@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 
+	"github.com/mgutz/ansi"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
 	"github.com/pivotal-cf/pcf-backup-and-restore/boshclient"
 	"github.com/urfave/cli"
@@ -44,7 +45,7 @@ func main() {
 				client := boshclient.New(c.GlobalString("target"), c.GlobalString("username"), c.GlobalString("password"))
 				backuper := backuper.New(client)
 				if err := backuper.Backup(c.GlobalString("deployment")); err != nil {
-					return cli.NewExitError(err.Error(), 1)
+					return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
 				}
 				return nil
 			},

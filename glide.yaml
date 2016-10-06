@@ -3,3 +3,4 @@ import:
 - package: github.com/urfave/cli
   version: ^1.18.1
 - package: github.com/pivotal-cf-experimental/cf-webmock
+- package: github.com/mgutz/ansi
