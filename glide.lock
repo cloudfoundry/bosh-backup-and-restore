@@ -1,11 +1,17 @@
-hash: 192c35d7f94a0cb8c34c37535f3be40150dae0b6f69409c0af4e818aca511c37
-updated: 2016-10-04T15:39:29.091766299+01:00
+hash: 9cc62d509b412c5452aaddbcc641deb9fbbdd60cc5f50d64eaf2aec8188a435f
+updated: 2016-10-06T15:38:39.940641024+01:00
 imports:
+- name: github.com/pivotal-cf-experimental/cf-webmock
+  version: c0d118e4492b96b4410364ee364b0bd6aa696a2b
+  subpackages:
+  - http
+  - mockbosh
+  - mockhttp
 - name: github.com/urfave/cli
   version: a14d7d367bc02b1f57d88de97926727f2d936387
 testImports:
 - name: github.com/onsi/ginkgo
-  version: 45a5f6ffb2a14e4f29698c16ae4c0a34018a8951
+  version: 462326b1628e124b23f42e87a8f2750e3c4e2d24
   subpackages:
   - config
   - internal/codelocation
@@ -25,21 +31,17 @@ testImports:
   version: d59fa0ac68bb5dd932ee8d24eed631cdd519efc3
   subpackages:
   - gexec
-  - format
-  - gbytes
   - internal/assertion
   - internal/asyncassertion
   - internal/testingtsupport
   - matchers
   - types
+  - format
+  - gbytes
   - internal/oraclematcher
   - matchers/support/goraph/bipartitegraph
   - matchers/support/goraph/edge
   - matchers/support/goraph/node
   - matchers/support/goraph/util
-- name: golang.org/x/sys
-  version: 8f0908ab3b2457e2e15403d3697c9ef5cb4b57a9
-  subpackages:
-  - unix
 - name: gopkg.in/yaml.v2
   version: a5b47d31c556af34a302ce5d659e6fea44d90de0

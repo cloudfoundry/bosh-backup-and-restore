@@ -1,0 +1,16 @@
+---
+resources:
+- name: pcf-backup-and-restore
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf/pcf-backup-and-restore.git
+    private-key: {{git-private-key}}
+    branch: master
+
+jobs:
+- name: unit
+  plan:
+  - get: pcf-backup-and-restore
+    trigger: true
+  - task: unit
+    

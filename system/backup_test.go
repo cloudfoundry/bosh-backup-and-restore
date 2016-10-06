@@ -14,7 +14,7 @@ import (
 
 var _ = Describe("Backs up a deployment", func() {
 	var commandPath string
-	var boshURL, boshUsername, boshPassword string
+	var boshURL, boshUsername, boshPassword, deploymentName string
 
 	BeforeSuite(func() {
 		SetDefaultEventuallyTimeout(1 * time.Second)
@@ -22,12 +22,13 @@ var _ = Describe("Backs up a deployment", func() {
 		commandPath, err = gexec.Build("github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr")
 		Expect(err).NotTo(HaveOccurred())
 
+		deploymentName = "dave"
 		boshURL = os.Getenv("BOSH_URL")
 		boshUsername = os.Getenv("BOSH_USERNAME")
 		boshPassword = os.Getenv("BOSH_PASSWORD")
 
-		Expect(boshURL).NotTo(BeEmpty(), "Need BOSH_URL for the test")
 		Expect(boshUsername).NotTo(BeEmpty(), "Need BOSH_USERNAME for the test")
+		Expect(boshURL).NotTo(BeEmpty(), "Need BOSH_URL for the test")
 		Expect(boshPassword).NotTo(BeEmpty(), "Need BOSH_PASSWORD for the test")
 	})
 	var params string
@@ -42,18 +43,18 @@ var _ = Describe("Backs up a deployment", func() {
 
 	Context("success", func() {
 		BeforeEach(func() {
-			params = fmt.Sprintf("-u %s -p %s backup", boshUsername, boshPassword)
+			params = fmt.Sprintf("-u %s -p %s -t %s -d %s backup", boshUsername, boshPassword, boshURL, deploymentName)
 		})
-		It("logs in", func() {
+		It("backs up", func() {
 			Eventually(session.ExitCode()).Should(Equal(0))
 		})
 	})
 
 	Context("wrong password", func() {
 		BeforeEach(func() {
-			params = fmt.Sprintf("-u %s -p %s backup", boshUsername, "BADPASSWORD")
+			params = fmt.Sprintf("-u %s -p %s -t %s -d %s backup", boshUsername, "BADPASSWORD", boshURL, deploymentName)
 		})
-		It("logs in", func() {
+		It("exits with error", func() {
 			Eventually(session.ExitCode()).Should(Equal(1))
 		})
 	})

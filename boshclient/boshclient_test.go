@@ -3,8 +3,8 @@ package boshclient_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-cf-experimental/go-webmock/mockbosh"
-	"github.com/pivotal-cf-experimental/go-webmock/mockhttp"
+	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
+	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
 	"github.com/pivotal-cf/pcf-backup-and-restore/boshclient"
 )
 
@@ -16,7 +16,7 @@ var _ = Describe("BOSH client", func() {
 	})
 	It("checks a deployment exists", func() {
 		director.ExpectedBasicAuth("admin", "admin")
-		director.VerifyAndMock(mockbosh.GetDeployment("my-new-deployment").RespondsWith([]byte(`--
+		director.VerifyAndMock(mockbosh.GetDeployment("my-new-deployment").RespondsWith([]byte(`---
 name: my-new-deployment`)))
 
 		client := boshclient.New(director.URL, "admin", "admin")

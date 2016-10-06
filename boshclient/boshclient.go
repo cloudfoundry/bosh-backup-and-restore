@@ -30,6 +30,7 @@ func New(boshURL, username, password string) *Client {
 }
 
 func (c *Client) CheckDeploymentExists(name string) (bool, error) {
+
 	req, err := http.NewRequest("GET", c.boshURL+"/deployments/"+name, nil)
 	if err != nil {
 		return false, err
