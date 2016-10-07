@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/mgutz/ansi"
@@ -13,6 +14,7 @@ func main() {
 	app := cli.NewApp()
 
 	app.Name = "Pivotal Backup and Restore"
+	app.HelpName = "Pivotal Backup and Restore"
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -36,6 +38,17 @@ func main() {
 			Usage: "Name of BOSH deployment",
 		},
 	}
+	app.Before = func(c *cli.Context) error {
+		requiredFlags := []string{"target", "username", "password", "deployment"}
+
+		for _, flag := range requiredFlags {
+			if c.GlobalString(flag) == "" {
+				return fmt.Errorf("--%v flag is required.", flag)
+			}
+		}
+
+		return nil
+	}
 	app.Commands = []cli.Command{
 		{
 			Name:    "backup",
@@ -52,5 +65,7 @@ func main() {
 		},
 	}
 
-	app.Run(os.Args)
+	if err := app.Run(os.Args); err != nil {
+		os.Exit(1)
+	}
 }
