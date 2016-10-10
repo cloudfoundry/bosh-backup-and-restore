@@ -1,0 +1,16 @@
+name: systest-dev
+director_uuid: 16dc0cd0-9d4c-49df-b084-a0ee7555b0b0
+
+instance_groups: []
+
+stemcells:
+- alias: default
+  os: ubuntu-trusty
+  version: latest
+
+releases: []
+update:
+  canaries: 1
+  max_in_flight: 1
+  canary_watch_time: 1000-90000
+  update_watch_time: 1000-90000

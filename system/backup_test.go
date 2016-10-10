@@ -22,12 +22,12 @@ var _ = Describe("Backs up a deployment", func() {
 		commandPath, err = gexec.Build("github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr")
 		Expect(err).NotTo(HaveOccurred())
 
-		deploymentName = "dave"
+		deploymentName = os.Getenv("BOSH_TEST_DEPLOYMENT")
 		boshURL = os.Getenv("BOSH_URL")
-		boshUsername = os.Getenv("BOSH_USERNAME")
+		boshUsername = os.Getenv("BOSH_USER")
 		boshPassword = os.Getenv("BOSH_PASSWORD")
 
-		Expect(boshUsername).NotTo(BeEmpty(), "Need BOSH_USERNAME for the test")
+		Expect(boshUsername).NotTo(BeEmpty(), "Need BOSH_USER for the test")
 		Expect(boshURL).NotTo(BeEmpty(), "Need BOSH_URL for the test")
 		Expect(boshPassword).NotTo(BeEmpty(), "Need BOSH_PASSWORD for the test")
 	})
