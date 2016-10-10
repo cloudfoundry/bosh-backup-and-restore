@@ -4,6 +4,8 @@ export BOSH_URL=https://52.50.223.208:25555
 
 test: test-unit test-integration
 
+test-ci: setup test
+
 test-unit:
 	ginkgo -r boshclient backuper
 
