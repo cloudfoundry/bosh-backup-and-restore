@@ -18,8 +18,9 @@ func TestIntegration(t *testing.T) {
 
 var commandPath string
 
-func runBinary(params ...string) *gexec.Session {
+func runBinary(env []string, params ...string) *gexec.Session {
 	command := exec.Command(commandPath, params...)
+	command.Env = env
 	fmt.Fprintf(GinkgoWriter, "Running command:: %v", params)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ToNot(HaveOccurred())

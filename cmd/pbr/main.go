@@ -28,9 +28,10 @@ func main() {
 			Usage: "BOSH Director username",
 		},
 		cli.StringFlag{
-			Name:  "password, p",
-			Value: "",
-			Usage: "BOSH Director password",
+			Name:   "password, p",
+			Value:  "",
+			EnvVar: "BOSH_PASSWORD",
+			Usage:  "BOSH Director password",
 		},
 		cli.StringFlag{
 			Name:  "deployment, d",

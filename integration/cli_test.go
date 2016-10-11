@@ -23,14 +23,23 @@ var _ = Describe("CLI Interface", func() {
 		It("can invoke command with short names", func() {
 			director.VerifyAndMock(mockbosh.GetDeployment("my-new-deployment").NotFound())
 
-			runBinary("-u", "admin", "-p", "admin", "-t", director.URL, "-d", "my-new-deployment", "backup")
+			runBinary([]string{}, "-u", "admin", "-p", "admin", "-t", director.URL, "-d", "my-new-deployment", "backup")
 
 			director.VerifyMocks()
 		})
 		It("can invoke command with long names", func() {
 			director.VerifyAndMock(mockbosh.GetDeployment("my-new-deployment").NotFound())
 
-			runBinary("--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
+			runBinary([]string{}, "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
+
+			director.VerifyMocks()
+		})
+	})
+	Context("password is supported from env", func() {
+		It("can invoke command with long names", func() {
+			director.VerifyAndMock(mockbosh.GetDeployment("my-new-deployment").NotFound())
+
+			runBinary([]string{"BOSH_PASSWORD=admin"}, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
 
 			director.VerifyMocks()
 		})
@@ -40,7 +49,7 @@ var _ = Describe("CLI Interface", func() {
 		var output helpText
 		var session *gexec.Session
 		BeforeEach(func() {
-			session = runBinary("--dave", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
+			session = runBinary([]string{"BOSH_PASSWORD=admin"}, "--dave", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
 			output.output = session.Out.Contents()
 		})
 
@@ -58,8 +67,12 @@ var _ = Describe("CLI Interface", func() {
 		var output helpText
 		var session *gexec.Session
 		var command []string
+		var env []string
+		BeforeEach(func() {
+			env = []string{"BOSH_PASSWORD=admin"}
+		})
 		JustBeforeEach(func() {
-			session = runBinary(command...)
+			session = runBinary(env, command...)
 			output.output = session.Out.Contents()
 		})
 
@@ -91,8 +104,9 @@ var _ = Describe("CLI Interface", func() {
 			ShowsTheHelpText(&output)
 		})
 
-		Context("Missing password", func() {
+		Context("Missing password in args", func() {
 			BeforeEach(func() {
+				env = []string{}
 				command = []string{"--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup"}
 			})
 			It("Exists with non zero", func() {
@@ -124,7 +138,7 @@ var _ = Describe("CLI Interface", func() {
 		var output helpText
 
 		BeforeEach(func() {
-			output.output = runBinary("--help").Out.Contents()
+			output.output = runBinary([]string{"BOSH_PASSWORD=admin"}, "--help").Out.Contents()
 		})
 
 		ShowsTheHelpText(&output)
@@ -134,7 +148,7 @@ var _ = Describe("CLI Interface", func() {
 		var output helpText
 
 		BeforeEach(func() {
-			output.output = runBinary("").Out.Contents()
+			output.output = runBinary([]string{"BOSH_PASSWORD=admin"}, "").Out.Contents()
 		})
 
 		ShowsTheHelpText(&output)
