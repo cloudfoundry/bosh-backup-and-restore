@@ -30,5 +30,5 @@ setup-sys-test-local:
 sys-test-ci: setup-sys-test-ci
 	BOSH_TEST_DEPLOYMENT=systest-ci ginkgo -r system
 
-setup-sys-test-ci:
+setup-sys-test-ci: setup
 	bosh -t $(BOSH_URL) -n -d fixtures/systest-ci.yml deploy
