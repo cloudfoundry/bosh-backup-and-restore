@@ -10,8 +10,12 @@ import (
 	"github.com/urfave/cli"
 )
 
+var version string
+
 func main() {
 	app := cli.NewApp()
+
+	app.Version = version
 
 	app.Name = "Pivotal Backup and Restore"
 	app.HelpName = "Pivotal Backup and Restore"

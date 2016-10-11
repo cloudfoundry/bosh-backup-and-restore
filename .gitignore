@@ -1,2 +1,3 @@
-pbr
+/pbr
 vendor/*
+releases/*

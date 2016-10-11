@@ -32,3 +32,9 @@ sys-test-ci: setup-sys-test-ci
 
 setup-sys-test-ci: setup
 	bosh -t $(BOSH_URL) -n -d fixtures/systest-ci.yml deploy
+
+dev_version := $(shell git rev-parse HEAD | cut -c1-6 | tr -d '\n')
+release: setup
+	mkdir -p releases/release-${dev_version}
+	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=0.0.0-${dev_version}" -o releases/release-${dev_version}/pbr github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr
+	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=0.0.0-${dev_version}" -o releases/release-$(dev_version)/pbr-mac github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr
