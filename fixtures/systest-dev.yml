@@ -1,16 +1,33 @@
+---
 name: systest-dev
 director_uuid: 16dc0cd0-9d4c-49df-b084-a0ee7555b0b0
-
-instance_groups: []
-
-stemcells:
-- alias: default
-  os: ubuntu-trusty
+releases:
+- name: redis-test
   version: latest
-
-releases: []
+stemcells:
+- alias: trusty
+  os: ubuntu-trusty
+  version: '3262.2'
+jobs:
+- name: redis
+  instances: 1
+  templates:
+  - name: redis
+    release: redis
+  vm_type: container
+  persistent_disk_type: five
+  stemcell: trusty
+  azs:
+  - lite
+  networks:
+  - name: services
+  properties:
+    redis:
+      password: redis
+      persistence: 'yes'
+      maxclients: 1000
 update:
   canaries: 1
-  max_in_flight: 1
-  canary_watch_time: 1000-90000
-  update_watch_time: 1000-90000
+  canary_watch_time: 30000-180000
+  update_watch_time: 30000-180000
+  max_in_flight: 4

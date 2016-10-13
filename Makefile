@@ -28,14 +28,17 @@ sys-test-local: setup-sys-test-local
 	BOSH_CERT_PATH=~/workspace/pcf-backup-and-restore-meta/certs/lite-bosh.backup-and-restore.cf-app.com.crt \
 	BOSH_TEST_DEPLOYMENT=systest-dev ginkgo -r system
 
-setup-sys-test-local:
+setup-sys-test-local: upload-test-releases
 	bosh -t $(BOSH_URL) -n -d fixtures/systest-dev.yml deploy
 
 sys-test-ci: setup-sys-test-ci
 	BOSH_TEST_DEPLOYMENT=systest-ci ginkgo -r system
 
-setup-sys-test-ci: setup
+setup-sys-test-ci: setup upload-test-releases
 	bosh -t $(BOSH_URL) -n -d fixtures/systest-ci.yml deploy
+
+upload-test-releases:
+	cd fixtures/releases/redis-test-release && bosh -n create release --force && bosh -t $(BOSH_URL) upload release --rebase
 
 dev_version := $(shell git rev-parse HEAD | cut -c1-6 | tr -d '\n')
 release: setup
