@@ -14,7 +14,7 @@ import (
 
 var _ = Describe("Backs up a deployment", func() {
 	var commandPath string
-	var boshURL, boshUsername, deploymentName string
+	var boshURL, boshUsername, deploymentName, customCert string
 
 	BeforeSuite(func() {
 		SetDefaultEventuallyTimeout(1 * time.Second)
@@ -25,9 +25,11 @@ var _ = Describe("Backs up a deployment", func() {
 		deploymentName = os.Getenv("BOSH_TEST_DEPLOYMENT")
 		boshURL = os.Getenv("BOSH_URL")
 		boshUsername = os.Getenv("BOSH_USER")
+		customCert = os.Getenv("BOSH_CERT_PATH")
 
 		Expect(boshUsername).NotTo(BeEmpty(), "Need BOSH_USER for the test")
 		Expect(boshURL).NotTo(BeEmpty(), "Need BOSH_URL for the test")
+		Expect(customCert).NotTo(BeEmpty(), "Need BOSH_CERT_PATH for the test")
 		Expect(os.Getenv("BOSH_PASSWORD")).NotTo(BeEmpty(), "Need BOSH_PASSWORD for the test")
 	})
 	var params string
@@ -42,7 +44,7 @@ var _ = Describe("Backs up a deployment", func() {
 
 	Context("success", func() {
 		BeforeEach(func() {
-			params = fmt.Sprintf("--username %s --target %s --deployment %s backup", boshUsername, boshURL, deploymentName)
+			params = fmt.Sprintf("--ca-cert %s --username %s --target %s --deployment %s backup", customCert, boshUsername, boshURL, deploymentName)
 		})
 		It("backs up", func() {
 			Eventually(session.ExitCode()).Should(Equal(0))

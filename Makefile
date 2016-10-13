@@ -1,10 +1,10 @@
 export BOSH_PASSWORD=admin
 export BOSH_USER=admin
-export BOSH_URL=https://52.50.223.208:25555
+export BOSH_URL=https://lite-bosh.backup-and-restore.cf-app.com
 
 test: test-unit test-integration
 
-watch: 
+watch:
 	ginkgo watch -r boshclient backuper integration
 
 test-ci: setup test
@@ -25,6 +25,7 @@ setup:
 	glide install
 
 sys-test-local: setup-sys-test-local
+	BOSH_CERT_PATH=~/workspace/pcf-backup-and-restore-meta/certs/lite-bosh.backup-and-restore.cf-app.com.crt \
 	BOSH_TEST_DEPLOYMENT=systest-dev ginkgo -r system
 
 setup-sys-test-local:
