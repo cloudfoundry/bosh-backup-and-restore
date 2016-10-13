@@ -1,20 +1,20 @@
-hash: 1fbba159f1bc123027e4155d080636724fbb7cdb805a7fd8796f06b7ee32f1fb
-updated: 2016-10-12T12:03:06.452573971+01:00
+hash: de2a20d097479b1e7eca94cd37b1b282c33ca39bb055f1d3a68bb268fa1ccc9e
+updated: 2016-10-13T10:49:18.478289504+01:00
 imports:
 - name: github.com/bmatcuk/doublestar
   version: dd6a6f0a8cdfaaa88b08cf26cf1bc7d69003ee13
 - name: github.com/charlievieth/fs
   version: 85d13508c8e9fdaf4c9fcd52a4c3241341566346
 - name: github.com/cloudfoundry/bosh-cli
-  version: 57771c2fb964071c816587d4885498770b5ec52d
+  version: 0a106fb6fe8e69fecb9cda9b40771aa01c8e178d
   subpackages:
   - director
 - name: github.com/cloudfoundry/bosh-utils
   version: 68a349540d0fed556d7e7affa9c165c829b80e59
   subpackages:
+  - logger
   - errors
   - httpclient
-  - logger
   - system
   - uuid
 - name: github.com/cppforlife/go-semi-semantic
@@ -26,7 +26,7 @@ imports:
 - name: github.com/nu7hatch/gouuid
   version: 179d4d0c4d8d407a32af483c2354df1d2c91e6c3
 - name: github.com/onsi/ginkgo
-  version: 462326b1628e124b23f42e87a8f2750e3c4e2d24
+  version: acfa16ac8e9e0d2c6b11cfe78c79d8652c3ee3fd
   subpackages:
   - config
   - internal/codelocation
@@ -46,32 +46,36 @@ imports:
   version: d59fa0ac68bb5dd932ee8d24eed631cdd519efc3
   subpackages:
   - gexec
+  - format
+  - gbytes
   - internal/assertion
   - internal/asyncassertion
   - internal/testingtsupport
   - matchers
   - types
-  - format
-  - gbytes
   - internal/oraclematcher
   - matchers/support/goraph/bipartitegraph
   - matchers/support/goraph/edge
   - matchers/support/goraph/node
   - matchers/support/goraph/util
 - name: github.com/pivotal-cf-experimental/cf-webmock
-  version: c0d118e4492b96b4410364ee364b0bd6aa696a2b
+  version: ca660490e7fdc58897c61b132b699acbffc71981
   subpackages:
   - mockbosh
   - mockhttp
 - name: github.com/urfave/cli
   version: a14d7d367bc02b1f57d88de97926727f2d936387
 - name: golang.org/x/crypto
-  version: 4cd25d65a015cc83d41bf3454e6e8d6c116d16da
+  version: 5f31782cfb2b6373211f8f9fbf31283fa234b570
   subpackages:
   - ssh
   - curve25519
   - ed25519
   - ed25519/internal/edwards25519
+- name: golang.org/x/sys
+  version: 9bb9f0998d48b31547d975974935ae9b48c7a03c
+  subpackages:
+  - unix
 - name: gopkg.in/yaml.v2
   version: a5b47d31c556af34a302ce5d659e6fea44d90de0
 testImports: []
