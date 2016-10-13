@@ -1,8 +1,6 @@
 package integration
 
 import (
-	"fmt"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -74,7 +72,6 @@ var _ = Describe("CLI Interface", func() {
 		})
 
 		It("displays a failure message", func() {
-			fmt.Println(output.outputString())
 			Expect(output.outputString()).To(ContainSubstring("Target director URL is malformed"))
 		})
 	})
@@ -92,7 +89,6 @@ var _ = Describe("CLI Interface", func() {
 		})
 
 		It("displays a failure message", func() {
-			fmt.Println(output.outputString())
 			Expect(output.outputString()).To(ContainSubstring("open /tmp/whatever: no such file or directory"))
 		})
 	})
