@@ -12,8 +12,8 @@ jobs:
 - name: redis
   instances: 1
   templates:
-  - name: redis
-    release: redis
+  - name: redis-server
+    release: redis-test
   vm_type: container
   persistent_disk_type: five
   stemcell: trusty
