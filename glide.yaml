@@ -4,3 +4,5 @@ import:
   version: ^1.18.1
 - package: github.com/pivotal-cf-experimental/cf-webmock
 - package: github.com/mgutz/ansi
+- package: github.com/cloudfoundry/bosh-cli
+  version: ^0.0.69

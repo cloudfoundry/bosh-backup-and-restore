@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/mgutz/ansi"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
-	"github.com/pivotal-cf/pcf-backup-and-restore/boshclient"
 	"github.com/urfave/cli"
+
+	"github.com/cloudfoundry/bosh-cli/director"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 var version string
@@ -42,6 +45,16 @@ func main() {
 			Value: "",
 			Usage: "Name of BOSH deployment",
 		},
+		cli.BoolFlag{
+			Name:  "debug",
+			Usage: "Enable debug logs",
+		},
+		cli.StringFlag{
+			Name:   "ca-cert",
+			Value:  "",
+			EnvVar: "CA_CERT",
+			Usage:  "Custom CA certificate",
+		},
 	}
 	app.Before = func(c *cli.Context) error {
 		requiredFlags := []string{"target", "username", "password", "deployment"}
@@ -60,8 +73,41 @@ func main() {
 			Aliases: []string{"b"},
 			Usage:   "add a task to the list",
 			Action: func(c *cli.Context) error {
-				client := boshclient.New(c.GlobalString("target"), c.GlobalString("username"), c.GlobalString("password"))
-				backuper := backuper.New(client)
+				var logger boshlog.Logger
+
+				if c.GlobalBool("debug") {
+					logger = boshlog.NewLogger(boshlog.LevelDebug)
+				} else {
+					logger = boshlog.NewLogger(boshlog.LevelError)
+				}
+
+				factory := director.NewFactory(logger)
+
+				config, err := director.NewConfigFromURL(c.GlobalString("target"))
+				if err != nil {
+					return cli.NewExitError(ansi.Color(
+						"Target director URL is malformed",
+						"red"), 1)
+				}
+
+				config.Username = c.GlobalString("username")
+				config.Password = c.GlobalString("password")
+
+				if c.GlobalString("ca-cert") != "" {
+					cert, err := ioutil.ReadFile(c.GlobalString("ca-cert"))
+					if err != nil {
+						return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
+					}
+					config.CACert = string(cert)
+				}
+
+				director, err := factory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
+				if err != nil {
+					return err
+				}
+
+				backuper := backuper.New(director)
+
 				if err := backuper.Backup(c.GlobalString("deployment")); err != nil {
 					return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
 				}

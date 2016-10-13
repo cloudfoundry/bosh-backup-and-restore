@@ -17,14 +17,18 @@ func TestIntegration(t *testing.T) {
 }
 
 var commandPath string
+var sslCertPath = "../fixtures/test.crt"
 
 func runBinary(env []string, params ...string) *gexec.Session {
 	command := exec.Command(commandPath, params...)
 	command.Env = env
-	fmt.Fprintf(GinkgoWriter, "Running command:: %v", params)
+	fmt.Fprintf(GinkgoWriter, "Running command:: %v\n", params)
+	fmt.Fprintf(GinkgoWriter, "Command output start\n")
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ToNot(HaveOccurred())
 	Eventually(session).Should(gexec.Exit())
+	fmt.Fprintf(GinkgoWriter, "Command output end\n")
+	fmt.Fprintf(GinkgoWriter, "Exited with %d\n", session.ExitCode())
 
 	return session
 }

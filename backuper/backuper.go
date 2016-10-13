@@ -1,24 +1,25 @@
 package backuper
 
-import "fmt"
+import "github.com/cloudfoundry/bosh-cli/director"
 
-func New(boshClient BoshClient) Backuper {
+func New(boshDirector director.Director) Backuper {
 	return Backuper{
-		BoshClient: boshClient,
+		Director: boshDirector,
 	}
 }
 
 type Backuper struct {
-	BoshClient
+	Director director.Director
 }
 
 func (b Backuper) Backup(deploymentName string) error {
-	exists, err := b.CheckDeploymentExists(deploymentName)
+	deployment, err := b.Director.FindDeployment(deploymentName)
 	if err != nil {
 		return err
 	}
-	if exists == false {
-		return fmt.Errorf("Deployment '%s' not found", deploymentName)
+	_, err = deployment.Manifest()
+	if err != nil {
+		return err
 	}
 
 	return nil

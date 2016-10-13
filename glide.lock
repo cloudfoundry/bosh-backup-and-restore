@@ -1,16 +1,30 @@
-hash: 0e034b6697ca4d3dd0035bd1de488f26a89bfcf30ecd8d699e67e82a2cc91ef1
-updated: 2016-10-06T16:15:59.976905438+01:00
+hash: 1fbba159f1bc123027e4155d080636724fbb7cdb805a7fd8796f06b7ee32f1fb
+updated: 2016-10-12T12:03:06.452573971+01:00
 imports:
+- name: github.com/bmatcuk/doublestar
+  version: dd6a6f0a8cdfaaa88b08cf26cf1bc7d69003ee13
+- name: github.com/charlievieth/fs
+  version: 85d13508c8e9fdaf4c9fcd52a4c3241341566346
+- name: github.com/cloudfoundry/bosh-cli
+  version: 57771c2fb964071c816587d4885498770b5ec52d
+  subpackages:
+  - director
+- name: github.com/cloudfoundry/bosh-utils
+  version: 68a349540d0fed556d7e7affa9c165c829b80e59
+  subpackages:
+  - errors
+  - httpclient
+  - logger
+  - system
+  - uuid
+- name: github.com/cppforlife/go-semi-semantic
+  version: 576b6af77ae4f3ccef356902fb3b9a9ae22e0b11
+  subpackages:
+  - version
 - name: github.com/mgutz/ansi
   version: c286dcecd19ff979eeb73ea444e479b903f2cfcb
-- name: github.com/pivotal-cf-experimental/cf-webmock
-  version: c0d118e4492b96b4410364ee364b0bd6aa696a2b
-  subpackages:
-  - mockbosh
-  - mockhttp
-- name: github.com/urfave/cli
-  version: a14d7d367bc02b1f57d88de97926727f2d936387
-testImports:
+- name: github.com/nu7hatch/gouuid
+  version: 179d4d0c4d8d407a32af483c2354df1d2c91e6c3
 - name: github.com/onsi/ginkgo
   version: 462326b1628e124b23f42e87a8f2750e3c4e2d24
   subpackages:
@@ -44,5 +58,20 @@ testImports:
   - matchers/support/goraph/edge
   - matchers/support/goraph/node
   - matchers/support/goraph/util
+- name: github.com/pivotal-cf-experimental/cf-webmock
+  version: c0d118e4492b96b4410364ee364b0bd6aa696a2b
+  subpackages:
+  - mockbosh
+  - mockhttp
+- name: github.com/urfave/cli
+  version: a14d7d367bc02b1f57d88de97926727f2d936387
+- name: golang.org/x/crypto
+  version: 4cd25d65a015cc83d41bf3454e6e8d6c116d16da
+  subpackages:
+  - ssh
+  - curve25519
+  - ed25519
+  - ed25519/internal/edwards25519
 - name: gopkg.in/yaml.v2
   version: a5b47d31c556af34a302ce5d659e6fea44d90de0
+testImports: []

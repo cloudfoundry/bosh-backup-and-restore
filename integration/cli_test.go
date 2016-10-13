@@ -1,6 +1,8 @@
 package integration
 
 import (
+	"fmt"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -15,7 +17,7 @@ var _ = Describe("CLI Interface", func() {
 		director.VerifyMocks()
 	})
 	BeforeEach(func() {
-		director = mockbosh.New()
+		director = mockbosh.NewTLS()
 		director.ExpectedBasicAuth("admin", "admin")
 	})
 
@@ -23,25 +25,75 @@ var _ = Describe("CLI Interface", func() {
 		It("can invoke command with short names", func() {
 			director.VerifyAndMock(mockbosh.GetDeployment("my-new-deployment").NotFound())
 
-			runBinary([]string{}, "-u", "admin", "-p", "admin", "-t", director.URL, "-d", "my-new-deployment", "backup")
+			runBinary([]string{}, "--ca-cert", sslCertPath, "-u", "admin", "-p", "admin", "-t", director.URL, "-d", "my-new-deployment", "backup")
 
 			director.VerifyMocks()
 		})
 		It("can invoke command with long names", func() {
 			director.VerifyAndMock(mockbosh.GetDeployment("my-new-deployment").NotFound())
 
-			runBinary([]string{}, "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
+			runBinary([]string{}, "--ca-cert", sslCertPath, "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
 
 			director.VerifyMocks()
 		})
 	})
+
+	Context("with debug flag set", func() {
+		It("outputs verbose HTTP logs", func() {
+			director.VerifyAndMock(mockbosh.GetDeployment("my-new-deployment").NotFound())
+
+			session := runBinary([]string{}, "--debug", "--ca-cert", sslCertPath, "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
+
+			Expect(string(session.Out.Contents())).To(ContainSubstring("Sending GET request to endpoint"))
+
+			director.VerifyMocks()
+		})
+	})
+
 	Context("password is supported from env", func() {
 		It("can invoke command with long names", func() {
 			director.VerifyAndMock(mockbosh.GetDeployment("my-new-deployment").NotFound())
 
-			runBinary([]string{"BOSH_PASSWORD=admin"}, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
+			runBinary([]string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
 
 			director.VerifyMocks()
+		})
+	})
+
+	Context("Hostname is malformed", func() {
+		var output helpText
+		var session *gexec.Session
+		BeforeEach(func() {
+			badDirectorURL := "https://:25555"
+			session = runBinary([]string{"BOSH_PASSWORD=admin"}, "--username", "admin", "--password", "admin", "--target", badDirectorURL, "--deployment", "my-new-deployment", "backup")
+			output.output = session.Err.Contents()
+		})
+
+		It("Exits with non zero", func() {
+			Expect(session.ExitCode()).NotTo(BeZero())
+		})
+
+		It("displays a failure message", func() {
+			fmt.Println(output.outputString())
+			Expect(output.outputString()).To(ContainSubstring("Target director URL is malformed"))
+		})
+	})
+
+	Context("Custom CA cert cannot be read", func() {
+		var output helpText
+		var session *gexec.Session
+		BeforeEach(func() {
+			session = runBinary([]string{"BOSH_PASSWORD=admin"}, "--ca-cert", "/tmp/whatever", "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
+			output.output = session.Err.Contents()
+		})
+
+		It("Exits with non zero", func() {
+			Expect(session.ExitCode()).NotTo(BeZero())
+		})
+
+		It("displays a failure message", func() {
+			fmt.Println(output.outputString())
+			Expect(output.outputString()).To(ContainSubstring("open /tmp/whatever: no such file or directory"))
 		})
 	})
 
@@ -53,7 +105,7 @@ var _ = Describe("CLI Interface", func() {
 			output.output = session.Out.Contents()
 		})
 
-		It("Exists with non zero", func() {
+		It("Exits with non zero", func() {
 			Expect(session.ExitCode()).NotTo(BeZero())
 		})
 
@@ -80,7 +132,7 @@ var _ = Describe("CLI Interface", func() {
 			BeforeEach(func() {
 				command = []string{"--username", "admin", "--password", "admin", "--deployment", "my-new-deployment", "backup"}
 			})
-			It("Exists with non zero", func() {
+			It("Exits with non zero", func() {
 				Expect(session.ExitCode()).NotTo(BeZero())
 			})
 
@@ -94,7 +146,7 @@ var _ = Describe("CLI Interface", func() {
 			BeforeEach(func() {
 				command = []string{"--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup"}
 			})
-			It("Exists with non zero", func() {
+			It("Exits with non zero", func() {
 				Expect(session.ExitCode()).NotTo(BeZero())
 			})
 
@@ -109,7 +161,7 @@ var _ = Describe("CLI Interface", func() {
 				env = []string{}
 				command = []string{"--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup"}
 			})
-			It("Exists with non zero", func() {
+			It("Exits with non zero", func() {
 				Expect(session.ExitCode()).NotTo(BeZero())
 			})
 
@@ -123,7 +175,7 @@ var _ = Describe("CLI Interface", func() {
 			BeforeEach(func() {
 				command = []string{"--username", "admin", "--password", "admin", "--target", director.URL, "backup"}
 			})
-			It("Exists with non zero", func() {
+			It("Exits with non zero", func() {
 				Expect(session.ExitCode()).NotTo(BeZero())
 			})
 
