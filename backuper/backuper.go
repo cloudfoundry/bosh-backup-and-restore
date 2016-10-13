@@ -24,8 +24,3 @@ func (b Backuper) Backup(deploymentName string) error {
 
 	return nil
 }
-
-//go:generate counterfeiter -o fakes/fake_bosh_client.go . BoshClient
-type BoshClient interface {
-	CheckDeploymentExists(name string) (bool, error)
-}
