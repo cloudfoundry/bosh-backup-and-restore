@@ -7,6 +7,7 @@ import (
 
 	"github.com/mgutz/ansi"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
 	"github.com/urfave/cli"
 
 	"github.com/cloudfoundry/bosh-cli/director"
@@ -101,12 +102,12 @@ func main() {
 					config.CACert = string(cert)
 				}
 
-				director, err := factory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
+				boshDirector, err := factory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
 				if err != nil {
 					return err
 				}
 
-				backuper := backuper.New(director)
+				backuper := backuper.New(bosh.New(boshDirector, director.NewSSHOpts))
 
 				if err := backuper.Backup(c.GlobalString("deployment")); err != nil {
 					return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)

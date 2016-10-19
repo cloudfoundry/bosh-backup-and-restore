@@ -3,55 +3,105 @@ package backuper_test
 import (
 	"fmt"
 
-	"github.com/cloudfoundry/bosh-cli/director/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/backuper/fakes"
 )
 
 var _ = Describe("Backuper", func() {
 	var (
-		boshDirector *fakes.FakeDirector
-		b            backuper.Backuper
-		deployment   *fakes.FakeDeployment
+		boshDirector      *fakes.FakeBoshDirector
+		b                 *backuper.Backuper
+		instance          *fakes.FakeInstance
+		instances         backuper.Instances
+		deploymentName    = "foobarbaz"
+		actualBackupError error
 	)
 
 	BeforeEach(func() {
-		boshDirector = new(fakes.FakeDirector)
+		boshDirector = new(fakes.FakeBoshDirector)
 		b = backuper.New(boshDirector)
-		deployment = &fakes.FakeDeployment{
-			NameStub: func() string { return "deploymentName" },
-		}
+		instance = new(fakes.FakeInstance)
+		instances = backuper.Instances{instance}
 	})
-	It("found a deployment", func() {
-		boshDirector.FindDeploymentReturns(deployment, nil)
-		deployment.ManifestReturns("not relevant", nil)
-
-		Expect(b.Backup("deploymentName")).To(Not(HaveOccurred()))
-
-		Expect(boshDirector.FindDeploymentArgsForCall(0)).To(Equal("deploymentName"))
-		Expect(deployment.ManifestCallCount()).To(Equal(1))
+	JustBeforeEach(func() {
+		actualBackupError = b.Backup(deploymentName)
 	})
 
-	It("had an error while fetching manifest", func() {
-		boshDirector.FindDeploymentReturns(deployment, nil)
-		deployment.ManifestReturns("", fmt.Errorf("Deployment 'deploymentName' not found"))
+	Context("backups up instances", func() {
+		BeforeEach(func() {
+			boshDirector.FindInstancesReturns(instances, nil)
+			instance.IsBackupableReturns(true, nil)
+			instance.CleanupReturns(nil)
+		})
 
-		err := b.Backup("deploymentName")
+		It("does not fail", func() {
+			Expect(actualBackupError).ToNot(HaveOccurred())
+		})
 
-		Expect(err).To(HaveOccurred())
-		Expect(err).To(MatchError(ContainSubstring("Deployment 'deploymentName' not found")))
-
-		Expect(boshDirector.FindDeploymentArgsForCall(0)).To(Equal("deploymentName"))
-		Expect(deployment.ManifestCallCount()).To(Equal(1))
+		It("finds a instances for the deployment", func() {
+			Expect(boshDirector.FindInstancesCallCount()).To(Equal(1))
+			Expect(boshDirector.FindInstancesArgsForCall(0)).To(Equal(deploymentName))
+		})
+		It("checks if the instance is backupable", func() {
+			Expect(instance.IsBackupableCallCount()).To(Equal(1))
+		})
+		It("ensures that instance is cleaned up", func() {
+			Expect(instance.CleanupCallCount()).To(Equal(1))
+		})
 	})
 
-	It("had an error while finding deployment", func() {
-		boshDirector.FindDeploymentReturns(deployment, fmt.Errorf("Some error"))
+	Describe("failures", func() {
+		var expectedError = fmt.Errorf("Jesus!")
+		Context("fails to find instances", func() {
+			BeforeEach(func() {
+				boshDirector.FindInstancesReturns(nil, expectedError)
+			})
 
-		Expect(b.Backup("deploymentName")).To(HaveOccurred())
+			It("fails the backup process", func() {
+				Expect(actualBackupError).To(MatchError(expectedError))
+			})
+		})
 
-		Expect(deployment.ManifestCallCount()).To(Equal(0))
-		Expect(boshDirector.FindDeploymentArgsForCall(0)).To(Equal("deploymentName"))
+		Context("fails when checking if instances are backupable", func() {
+			BeforeEach(func() {
+				boshDirector.FindInstancesReturns(instances, nil)
+				instance.IsBackupableReturns(false, expectedError)
+			})
+
+			It("finds instances with the deployment name", func() {
+				Expect(boshDirector.FindInstancesCallCount()).To(Equal(1))
+				Expect(boshDirector.FindInstancesArgsForCall(0)).To(Equal(deploymentName))
+			})
+
+			It("fails the backup process", func() {
+				Expect(actualBackupError).To(MatchError(expectedError))
+			})
+			It("ensures that deployment is cleaned up", func() {
+				Expect(instance.CleanupCallCount()).To(Equal(1))
+			})
+		})
+
+		Context("fails if the deployment is not backupable", func() {
+			BeforeEach(func() {
+				boshDirector.FindInstancesReturns(instances, nil)
+				instance.IsBackupableReturns(false, nil)
+			})
+
+			It("finds a instances with the deployment name", func() {
+				Expect(boshDirector.FindInstancesCallCount()).To(Equal(1))
+				Expect(boshDirector.FindInstancesArgsForCall(0)).To(Equal(deploymentName))
+			})
+			It("checks if the deployment is backupable", func() {
+				Expect(instance.IsBackupableCallCount()).To(Equal(1))
+			})
+			It("fails the backup process", func() {
+				Expect(actualBackupError).To(MatchError("Deployment '" + deploymentName + "' has no backup scripts"))
+			})
+			It("ensures that deployment is cleaned up", func() {
+				Expect(instance.CleanupCallCount()).To(Equal(1))
+			})
+		})
 	})
 })
