@@ -22,7 +22,7 @@ generate-fakes:
 	go generate ./...
 
 setup:
-	glide install
+	glide install --strip-vendor --strip-vcs
 
 sys-test-local: setup-sys-test-local
 	BOSH_CERT_PATH=~/workspace/pcf-backup-and-restore-meta/certs/lite-bosh.backup-and-restore.cf-app.com.crt \

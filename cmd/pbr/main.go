@@ -8,6 +8,7 @@ import (
 	"github.com/mgutz/ansi"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
+	"github.com/pivotal-cf/pcf-backup-and-restore/ssh"
 	"github.com/urfave/cli"
 
 	"github.com/cloudfoundry/bosh-cli/director"
@@ -107,7 +108,7 @@ func main() {
 					return err
 				}
 
-				backuper := backuper.New(bosh.New(boshDirector, director.NewSSHOpts))
+				backuper := backuper.New(bosh.New(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator))
 
 				if err := backuper.Backup(c.GlobalString("deployment")); err != nil {
 					return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
