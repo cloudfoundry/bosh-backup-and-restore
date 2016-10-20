@@ -9,7 +9,7 @@ type Connection struct {
 	user string
 }
 
-func (c Connection) Run(cmd string) ([]byte, []byte, error) {
+func (c Connection) Run(cmd string) ([]byte, []byte, int, error) {
 	// parsedPrivateKey, err := ssh.ParsePrivateKey([]byte(privateKey))
 	// if err != nil {
 	// 	return nil,err
@@ -40,7 +40,7 @@ func (c Connection) Run(cmd string) ([]byte, []byte, error) {
 	//
 	// session.Wait()
 
-	return nil, nil, nil
+	return nil, nil, 0, nil
 }
 
 func (c Connection) Close() error {

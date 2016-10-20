@@ -58,7 +58,7 @@ var _ = Describe("Director", func() {
 				sshConnectionFactory.Returns(sshConnection, nil)
 			})
 			It("collects the instances", func() {
-				Expect(acutalInstances).To(Equal(backuper.Instances{bosh.NewBoshInstance("job1", "index", sshConnection)}))
+				Expect(acutalInstances).To(Equal(backuper.Instances{bosh.NewBoshInstance("job1", "index", sshConnection, boshDeployment)}))
 			})
 			It("does not fail", func() {
 				Expect(acutalError).NotTo(HaveOccurred())

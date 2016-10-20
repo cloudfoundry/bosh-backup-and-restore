@@ -6,7 +6,9 @@ import (
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
 )
 
-func New(boshDirector director.Director, sshOptsGenerator SSHOptsGenerator, connectionFactory SSHConnectionFactory) backuper.BoshDirector {
+func New(boshDirector director.Director,
+	sshOptsGenerator SSHOptsGenerator,
+	connectionFactory SSHConnectionFactory) backuper.BoshDirector {
 	return client{
 		Director:             boshDirector,
 		SSHOptsGenerator:     sshOptsGenerator,
@@ -54,7 +56,7 @@ func (c client) FindInstances(deploymentName string) (backuper.Instances, error)
 			if err != nil {
 				return nil, err
 			}
-			instances = append(instances, NewBoshInstance(vm.JobName, host.IndexOrID, sshConnection))
+			instances = append(instances, NewBoshInstance(vm.JobName, host.IndexOrID, sshConnection, deployment))
 		}
 	}
 

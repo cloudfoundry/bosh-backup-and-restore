@@ -8,7 +8,7 @@ import (
 )
 
 type FakeSSHConnection struct {
-	RunStub        func(cmd string) ([]byte, []byte, error)
+	RunStub        func(cmd string) ([]byte, []byte, int, error)
 	runMutex       sync.RWMutex
 	runArgsForCall []struct {
 		cmd string
@@ -16,7 +16,8 @@ type FakeSSHConnection struct {
 	runReturns struct {
 		result1 []byte
 		result2 []byte
-		result3 error
+		result3 int
+		result4 error
 	}
 	CleanupStub        func() error
 	cleanupMutex       sync.RWMutex
@@ -24,11 +25,17 @@ type FakeSSHConnection struct {
 	cleanupReturns     struct {
 		result1 error
 	}
+	UsernameStub        func() string
+	usernameMutex       sync.RWMutex
+	usernameArgsForCall []struct{}
+	usernameReturns     struct {
+		result1 string
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeSSHConnection) Run(cmd string) ([]byte, []byte, error) {
+func (fake *FakeSSHConnection) Run(cmd string) ([]byte, []byte, int, error) {
 	fake.runMutex.Lock()
 	fake.runArgsForCall = append(fake.runArgsForCall, struct {
 		cmd string
@@ -38,7 +45,7 @@ func (fake *FakeSSHConnection) Run(cmd string) ([]byte, []byte, error) {
 	if fake.RunStub != nil {
 		return fake.RunStub(cmd)
 	} else {
-		return fake.runReturns.result1, fake.runReturns.result2, fake.runReturns.result3
+		return fake.runReturns.result1, fake.runReturns.result2, fake.runReturns.result3, fake.runReturns.result4
 	}
 }
 
@@ -54,13 +61,14 @@ func (fake *FakeSSHConnection) RunArgsForCall(i int) string {
 	return fake.runArgsForCall[i].cmd
 }
 
-func (fake *FakeSSHConnection) RunReturns(result1 []byte, result2 []byte, result3 error) {
+func (fake *FakeSSHConnection) RunReturns(result1 []byte, result2 []byte, result3 int, result4 error) {
 	fake.RunStub = nil
 	fake.runReturns = struct {
 		result1 []byte
 		result2 []byte
-		result3 error
-	}{result1, result2, result3}
+		result3 int
+		result4 error
+	}{result1, result2, result3, result4}
 }
 
 func (fake *FakeSSHConnection) Cleanup() error {
@@ -88,6 +96,31 @@ func (fake *FakeSSHConnection) CleanupReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeSSHConnection) Username() string {
+	fake.usernameMutex.Lock()
+	fake.usernameArgsForCall = append(fake.usernameArgsForCall, struct{}{})
+	fake.recordInvocation("Username", []interface{}{})
+	fake.usernameMutex.Unlock()
+	if fake.UsernameStub != nil {
+		return fake.UsernameStub()
+	} else {
+		return fake.usernameReturns.result1
+	}
+}
+
+func (fake *FakeSSHConnection) UsernameCallCount() int {
+	fake.usernameMutex.RLock()
+	defer fake.usernameMutex.RUnlock()
+	return len(fake.usernameArgsForCall)
+}
+
+func (fake *FakeSSHConnection) UsernameReturns(result1 string) {
+	fake.UsernameStub = nil
+	fake.usernameReturns = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeSSHConnection) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -95,6 +128,8 @@ func (fake *FakeSSHConnection) Invocations() map[string][][]interface{} {
 	defer fake.runMutex.RUnlock()
 	fake.cleanupMutex.RLock()
 	defer fake.cleanupMutex.RUnlock()
+	fake.usernameMutex.RLock()
+	defer fake.usernameMutex.RUnlock()
 	return fake.invocations
 }
 
