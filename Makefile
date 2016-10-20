@@ -10,7 +10,7 @@ watch:
 test-ci: setup test
 
 test-unit:
-	ginkgo -r boshclient backuper
+	ginkgo -r bosh backuper
 
 test-integration:
 	ginkgo -r integration
