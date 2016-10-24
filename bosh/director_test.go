@@ -119,8 +119,81 @@ var _ = Describe("Director", func() {
 			})
 		})
 
+		Context("finds instances for the deployment, having multiple instances in an instance group", func() {
+			BeforeEach(func() {
+				boshDirector.FindDeploymentReturns(boshDeployment, nil)
+				boshDeployment.VMInfosReturns([]director.VMInfo{
+					{
+						JobName: "job1",
+						ID:      "id1",
+					},
+					{
+						JobName: "job1",
+						ID:      "id2",
+					},
+				}, nil)
+				optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
+				boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
+					{
+						Username:  "username",
+						Host:      "hostname1",
+						IndexOrID: "id1",
+					},
+					{
+						Username:  "username",
+						Host:      "hostname2",
+						IndexOrID: "id2",
+					},
+				}}, nil)
+				sshConnectionFactory.Returns(sshConnection, nil)
+			})
+			It("collects the instances", func() {
+				Expect(acutalInstances).To(Equal(backuper.Instances{
+					bosh.NewBoshInstance("job1", "id1", sshConnection, boshDeployment),
+					bosh.NewBoshInstance("job1", "id2", sshConnection, boshDeployment),
+				}))
+			})
+			It("does not fail", func() {
+				Expect(acutalError).NotTo(HaveOccurred())
+			})
+
+			It("fetches the deployment by name", func() {
+				Expect(boshDirector.FindDeploymentCallCount()).To(Equal(1))
+				Expect(boshDirector.FindDeploymentArgsForCall(0)).To(Equal(deploymentName))
+			})
+
+			It("fetchs vms for the deployment", func() {
+				Expect(boshDeployment.VMInfosCallCount()).To(Equal(1))
+			})
+
+			It("generates a new ssh private key", func() {
+				Expect(optsGenerator.CallCount()).To(Equal(1))
+			})
+
+			It("sets up ssh for each group found", func() {
+				Expect(boshDeployment.SetUpSSHCallCount()).To(Equal(1))
+
+				slug, opts := boshDeployment.SetUpSSHArgsForCall(0)
+				Expect(slug).To(Equal(director.NewAllOrPoolOrInstanceSlug("job1", "")))
+				Expect(opts).To(Equal(stubbedSshOpts))
+			})
+
+			It("creates a ssh connection to each host", func() {
+				Expect(sshConnectionFactory.CallCount()).To(Equal(2))
+
+				host, username, privateKey := sshConnectionFactory.ArgsForCall(0)
+				Expect(host).To(Equal("hostname1:22"))
+				Expect(username).To(Equal("username"))
+				Expect(privateKey).To(Equal("private_key"))
+
+				host, username, privateKey = sshConnectionFactory.ArgsForCall(1)
+				Expect(host).To(Equal("hostname2:22"))
+				Expect(username).To(Equal("username"))
+				Expect(privateKey).To(Equal("private_key"))
+			})
+		})
+
 		//TODO: multiple instance groups
-		//TODO: multiple vms in instance groups
 		Context("failures", func() {
 			var expectedError = fmt.Errorf("er ma gerd")
 
