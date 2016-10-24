@@ -32,7 +32,7 @@ sys-test-local:
 	TEST_ENV=dev \
 	ginkgo -r -v system
 
-sys-test-ci:
+sys-test-ci: setup
 	TEST_ENV=ci \
 	ginkgo -r -v system
 
