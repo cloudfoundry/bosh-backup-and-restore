@@ -6,6 +6,8 @@ export BOSH_GATEWAY_HOST=lite-bosh.backup-and-restore.cf-app.com
 
 test: test-unit test-integration
 
+pre-commit: test sys-test-local
+
 watch:
 	ginkgo watch -r boshclient backuper integration
 

@@ -2,9 +2,11 @@ package bosh_test
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	boshfakes "github.com/cloudfoundry/bosh-cli/director/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
@@ -15,16 +17,18 @@ import (
 var _ = Describe("Instance", func() {
 	var sshConnection *fakes.FakeSSHConnection
 	var boshDeployment *boshfakes.FakeDeployment
+	var boshLogger boshlog.Logger
 
 	var instance backuper.Instance
 	BeforeEach(func() {
 		sshConnection = new(fakes.FakeSSHConnection)
 		boshDeployment = new(boshfakes.FakeDeployment)
+		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(GinkgoWriter, "[bosh-package] ", log.Lshortfile), log.New(GinkgoWriter, "[bosh-package] ", log.Lshortfile))
 	})
 
 	JustBeforeEach(func() {
 		sshConnection.UsernameReturns("sshUsername")
-		instance = bosh.NewBoshInstance("job-name", "job-index", sshConnection, boshDeployment)
+		instance = bosh.NewBoshInstance("job-name", "job-index", sshConnection, boshDeployment, boshLogger)
 	})
 
 	Context("IsBackupable", func() {

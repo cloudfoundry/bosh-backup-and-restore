@@ -10,11 +10,13 @@ import (
 
 func New(boshDirector director.Director,
 	sshOptsGenerator SSHOptsGenerator,
-	connectionFactory SSHConnectionFactory) backuper.BoshDirector {
+	connectionFactory SSHConnectionFactory,
+	logger Logger) backuper.BoshDirector {
 	return client{
 		Director:             boshDirector,
 		SSHOptsGenerator:     sshOptsGenerator,
 		SSHConnectionFactory: connectionFactory,
+		Logger:               logger,
 	}
 }
 
@@ -28,6 +30,13 @@ type client struct {
 	director.Director
 	SSHOptsGenerator
 	SSHConnectionFactory
+	Logger
+}
+
+type Logger interface {
+	Debug(tag, msg string, args ...interface{})
+	Info(tag, msg string, args ...interface{})
+	Error(tag, msg string, args ...interface{})
 }
 
 func (c client) FindInstances(deploymentName string) (backuper.Instances, error) {
@@ -35,6 +44,8 @@ func (c client) FindInstances(deploymentName string) (backuper.Instances, error)
 	if err != nil {
 		return nil, err
 	}
+
+	c.Logger.Debug("", "Finding VMs...")
 	vms, err := deployment.VMInfos()
 	if err != nil {
 		return nil, err
@@ -43,26 +54,34 @@ func (c client) FindInstances(deploymentName string) (backuper.Instances, error)
 	if err != nil {
 		return nil, err
 	}
+	c.Logger.Debug("", "SSH user generated: %s", sshOpts.Username)
+
 	instances := backuper.Instances{}
 
 	for _, jobName := range uniqueJobsFromVMs(vms) {
+		c.Logger.Debug("", "Setting up SSH for job %s", jobName)
+
 		allVmInstances, err := director.NewAllOrPoolOrInstanceSlugFromString(jobName)
 		if err != nil {
 			return nil, err
 		}
+
 		sshRes, err := deployment.SetUpSSH(allVmInstances, sshOpts)
 		if err != nil {
 			return nil, err
 		}
+
 		for _, host := range sshRes.Hosts {
 			var sshConnection SSHConnection
 			var err error
+
+			c.Logger.Debug("", "Attempting to SSH onto %s, %s", host.Host, host.IndexOrID)
 			sshConnection, err = c.SSHConnectionFactory(defaultToSSHPort(host.Host), host.Username, privateKey)
 
 			if err != nil {
 				return nil, err
 			}
-			instances = append(instances, NewBoshInstance(jobName, host.IndexOrID, sshConnection, deployment))
+			instances = append(instances, NewBoshInstance(jobName, host.IndexOrID, sshConnection, deployment, c.Logger))
 		}
 	}
 

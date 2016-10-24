@@ -2,9 +2,11 @@ package bosh_test
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	boshfakes "github.com/cloudfoundry/bosh-cli/director/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
@@ -16,6 +18,7 @@ var _ = Describe("Director", func() {
 	var optsGenerator *fakes.FakeSSHOptsGenerator
 	var sshConnectionFactory *fakes.FakeSSHConnectionFactory
 	var boshDirector *boshfakes.FakeDirector
+	var boshLogger boshlog.Logger
 	var boshDeployment *boshfakes.FakeDeployment
 	var sshConnection *fakes.FakeSSHConnection
 
@@ -23,7 +26,7 @@ var _ = Describe("Director", func() {
 
 	var b backuper.BoshDirector
 	JustBeforeEach(func() {
-		b = bosh.New(boshDirector, optsGenerator.Spy, sshConnectionFactory.Spy)
+		b = bosh.New(boshDirector, optsGenerator.Spy, sshConnectionFactory.Spy, boshLogger)
 	})
 
 	BeforeEach(func() {
@@ -32,6 +35,7 @@ var _ = Describe("Director", func() {
 		boshDirector = new(boshfakes.FakeDirector)
 		boshDeployment = new(boshfakes.FakeDeployment)
 		sshConnection = new(fakes.FakeSSHConnection)
+		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(GinkgoWriter, "[bosh-package] ", log.Lshortfile), log.New(GinkgoWriter, "[bosh-package] ", log.Lshortfile))
 	})
 	Context("instances", func() {
 		var stubbedSshOpts director.SSHOpts = director.SSHOpts{Username: "user"}
@@ -58,7 +62,7 @@ var _ = Describe("Director", func() {
 				sshConnectionFactory.Returns(sshConnection, nil)
 			})
 			It("collects the instances", func() {
-				Expect(acutalInstances).To(Equal(backuper.Instances{bosh.NewBoshInstance("job1", "index", sshConnection, boshDeployment)}))
+				Expect(acutalInstances).To(Equal(backuper.Instances{bosh.NewBoshInstance("job1", "index", sshConnection, boshDeployment, boshLogger)}))
 			})
 			It("does not fail", func() {
 				Expect(acutalError).NotTo(HaveOccurred())
@@ -149,8 +153,8 @@ var _ = Describe("Director", func() {
 			})
 			It("collects the instances", func() {
 				Expect(acutalInstances).To(Equal(backuper.Instances{
-					bosh.NewBoshInstance("job1", "id1", sshConnection, boshDeployment),
-					bosh.NewBoshInstance("job1", "id2", sshConnection, boshDeployment),
+					bosh.NewBoshInstance("job1", "id1", sshConnection, boshDeployment, boshLogger),
+					bosh.NewBoshInstance("job1", "id2", sshConnection, boshDeployment, boshLogger),
 				}))
 			})
 			It("does not fail", func() {

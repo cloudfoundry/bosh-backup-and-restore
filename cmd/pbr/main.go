@@ -108,7 +108,7 @@ func main() {
 					return err
 				}
 
-				backuper := backuper.New(bosh.New(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator))
+				backuper := backuper.New(bosh.New(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger))
 
 				if err := backuper.Backup(c.GlobalString("deployment")); err != nil {
 					return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
