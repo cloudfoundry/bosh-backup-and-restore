@@ -1,6 +1,7 @@
 export BOSH_PASSWORD=admin
 export BOSH_USER=admin
 export BOSH_URL=https://lite-bosh.backup-and-restore.cf-app.com
+export BOSH_GATEWAY_HOST=lite-bosh
 
 test: test-unit test-integration
 
@@ -24,9 +25,11 @@ generate-fakes:
 setup:
 	glide install --strip-vendor --strip-vcs
 
-sys-test-local: setup-sys-test-local
+sys-test-local:
 	BOSH_CERT_PATH=~/workspace/pcf-backup-and-restore-meta/certs/lite-bosh.backup-and-restore.cf-app.com.crt \
-	BOSH_TEST_DEPLOYMENT=systest-dev ginkgo -r system
+	TEST_ENV=dev \
+	BOSH_GATEWAY_USER=vcap \
+	BOSH_TEST_DEPLOYMENT=systest-dev ginkgo -v -r system
 
 setup-sys-test-local: upload-test-releases
 	bosh -t $(BOSH_URL) -n -d fixtures/systest-dev.yml deploy

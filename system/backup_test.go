@@ -3,8 +3,6 @@ package system
 import (
 	"fmt"
 	"os"
-	"os/exec"
-	"strings"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -14,40 +12,40 @@ import (
 
 var _ = Describe("Backs up a deployment", func() {
 	var commandPath string
-	var boshURL, boshUsername, deploymentName, customCert string
+	var err error
 
 	BeforeSuite(func() {
 		SetDefaultEventuallyTimeout(60 * time.Second)
-		var err error
+		// TODO: tests should build and upload the test release
+		// By("Creating the test release")
+		// RunBoshCommand(testDeploymentBoshCommand, "create-release", "--dir=../fixtures/releases/redis-test-release/", "--force")
+		// By("Uploading the test release")
+		// RunBoshCommand(testDeploymentBoshCommand, "upload-release", "--dir=../fixtures/releases/redis-test-release/", "--rebase")
+
+		By("deploying the test release")
+		RunBoshCommand(TestDeploymentBoshCommand(), "deploy", TestDeploymentManifest())
+		By("deploying the jump box")
+		RunBoshCommand(JumpBoxBoshCommand(), "deploy", JumpboxDeploymentManifest())
+
+		os.Setenv("GOOS", "linux")
+		os.Setenv("GOARCH", "amd64")
 		commandPath, err = gexec.Build("github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr")
 		Expect(err).NotTo(HaveOccurred())
 
-		deploymentName = os.Getenv("BOSH_TEST_DEPLOYMENT")
-		boshURL = os.Getenv("BOSH_URL")
-		boshUsername = os.Getenv("BOSH_USER")
-		customCert = os.Getenv("BOSH_CERT_PATH")
-
-		Expect(boshUsername).NotTo(BeEmpty(), "Need BOSH_USER for the test")
-		Expect(boshURL).NotTo(BeEmpty(), "Need BOSH_URL for the test")
-		Expect(customCert).NotTo(BeEmpty(), "Need BOSH_CERT_PATH for the test")
-		Expect(os.Getenv("BOSH_PASSWORD")).NotTo(BeEmpty(), "Need BOSH_PASSWORD for the test")
 	})
-	var params string
-	var session *gexec.Session
-	JustBeforeEach(func() {
-		var err error
-		command := exec.Command(commandPath, strings.Split(params, " ")...)
-		session, err = gexec.Start(command, GinkgoWriter, GinkgoWriter)
-		Expect(err).ToNot(HaveOccurred())
-		Eventually(session).Should(gexec.Exit())
-	})
+	It("backs up", func() {
+		RunBoshCommand(JumpBoxSCPCommand(), commandPath, "jumpbox/0:/tmp")
+		RunBoshCommand(JumpBoxSCPCommand(), MustHaveEnv("BOSH_CERT_PATH"), "jumpbox/0:/tmp/bosh.crt")
 
-	Context("success", func() {
-		BeforeEach(func() {
-			params = fmt.Sprintf("--ca-cert %s --username %s --target %s --deployment %s backup", customCert, boshUsername, boshURL, deploymentName)
-		})
-		It("backs up", func() {
-			Eventually(session.ExitCode()).Should(Equal(0))
-		})
+		By("running the backup command")
+		session := RunCommandOnRemote(
+			JumpBoxSSHCommand(),
+			fmt.Sprintf(`BOSH_PASSWORD=%s /tmp/pbr --ca-cert /tmp/bosh.crt --username %s --target %s --deployment %s backup`,
+				MustHaveEnv("BOSH_PASSWORD"), MustHaveEnv("BOSH_USER"), MustHaveEnv("BOSH_URL"), TestDeployment()),
+		)
+		Eventually(session).Should(gexec.Exit(0))
+	})
+	AfterSuite(func() {
+		RunBoshCommand(JumpBoxBoshCommand(), "delete-deployment")
 	})
 })
