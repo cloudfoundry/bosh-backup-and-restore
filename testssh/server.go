@@ -1,7 +1,6 @@
 package testssh
 
 import (
-	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -137,11 +136,16 @@ func (t *Server) startShellSession(connection ssh.Channel, req *ssh.Request) {
 	}
 }
 
+type execMsg struct {
+	Command string
+}
+
 func (t *Server) startExecSession(connection ssh.Channel, req *ssh.Request) {
-	payload := strings.TrimLeft(string(bytes.Trim(req.Payload, "\x00\b")), "'():")
+	msg := execMsg{}
+	ssh.Unmarshal(req.Payload, &msg)
 	defer connection.Close()
 
-	payloadSplit := strings.Split(payload, " ")
+	payloadSplit := strings.Split(msg.Command, " ")
 	cmd := exec.Command(payloadSplit[0], payloadSplit[1:]...)
 
 	stdout, err := cmd.StdoutPipe()
