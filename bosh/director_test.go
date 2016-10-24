@@ -88,7 +88,32 @@ var _ = Describe("Director", func() {
 			It("creates a ssh connection to each host", func() {
 				Expect(sshConnectionFactory.CallCount()).To(Equal(1))
 				host, username, privateKey := sshConnectionFactory.ArgsForCall(0)
-				Expect(host).To(Equal("hostname"))
+				Expect(host).To(Equal("hostname:22"), "overrides the port to be 22 if not provided")
+				Expect(username).To(Equal("username"))
+				Expect(privateKey).To(Equal("private_key"))
+			})
+		})
+		Context("finds instances for the deployment, with port specified in host", func() {
+			BeforeEach(func() {
+				boshDirector.FindDeploymentReturns(boshDeployment, nil)
+				boshDeployment.VMInfosReturns([]director.VMInfo{{
+					JobName: "job1",
+				}}, nil)
+				optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
+				boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
+					{
+						Username:  "username",
+						Host:      "hostname:3457",
+						IndexOrID: "index",
+					},
+				}}, nil)
+				sshConnectionFactory.Returns(sshConnection, nil)
+			})
+
+			It("uses the specified port", func() {
+				Expect(sshConnectionFactory.CallCount()).To(Equal(1))
+				host, username, privateKey := sshConnectionFactory.ArgsForCall(0)
+				Expect(host).To(Equal("hostname:3457"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
 			})

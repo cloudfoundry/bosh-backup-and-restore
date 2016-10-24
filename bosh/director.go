@@ -1,6 +1,8 @@
 package bosh
 
 import (
+	"strings"
+
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
@@ -52,7 +54,10 @@ func (c client) FindInstances(deploymentName string) (backuper.Instances, error)
 			return nil, err
 		}
 		for _, host := range sshRes.Hosts {
-			sshConnection, err := c.SSHConnectionFactory(host.Host, host.Username, privateKey)
+			var sshConnection SSHConnection
+			var err error
+			sshConnection, err = c.SSHConnectionFactory(defaultToSSHPort(host.Host), host.Username, privateKey)
+
 			if err != nil {
 				return nil, err
 			}
@@ -61,4 +66,13 @@ func (c client) FindInstances(deploymentName string) (backuper.Instances, error)
 	}
 
 	return instances, nil
+}
+
+func defaultToSSHPort(host string) string {
+	parts := strings.Split(host, ":")
+	if len(parts) == 2 {
+		return host
+	} else {
+		return host + ":22"
+	}
 }
