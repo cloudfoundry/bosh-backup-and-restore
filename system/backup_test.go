@@ -17,7 +17,7 @@ var _ = Describe("Backs up a deployment", func() {
 	var boshURL, boshUsername, deploymentName, customCert string
 
 	BeforeSuite(func() {
-		SetDefaultEventuallyTimeout(1 * time.Second)
+		SetDefaultEventuallyTimeout(60 * time.Second)
 		var err error
 		commandPath, err = gexec.Build("github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr")
 		Expect(err).NotTo(HaveOccurred())
