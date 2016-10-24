@@ -1,7 +1,9 @@
 package bosh
 
-import "github.com/cloudfoundry/bosh-cli/director"
-import "github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+import (
+	"github.com/cloudfoundry/bosh-cli/director"
+	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+)
 
 type DeployedInstance struct {
 	director.Deployment
@@ -27,7 +29,7 @@ func NewBoshInstance(jobName, jobIndex string, connection SSHConnection, deploym
 }
 
 func (d DeployedInstance) IsBackupable() (bool, error) {
-	_, _, exitCode, err := d.Run("ls /var/vcap/store/jobs/*/backup")
+	_, _, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/backup")
 	return exitCode == 0, err
 }
 

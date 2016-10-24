@@ -152,13 +152,13 @@ var _ = Describe("Connection", func() {
 			})
 		})
 
-		Context("error running command", func() {
+		Context("command not found", func() {
 			BeforeEach(func() {
 				command = "foo bar baz"
 			})
 
-			It("fails", func() {
-				Expect(runError).To(HaveOccurred())
+			It("captures exit code", func() {
+				Expect(exitCode).To(Equal(127))
 			})
 		})
 	})

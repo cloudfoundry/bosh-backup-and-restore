@@ -7,7 +7,6 @@ import (
 	"log"
 	"net"
 	"os/exec"
-	"strings"
 	"sync"
 	"syscall"
 
@@ -145,8 +144,7 @@ func (t *Server) startExecSession(connection ssh.Channel, req *ssh.Request) {
 	ssh.Unmarshal(req.Payload, &msg)
 	defer connection.Close()
 
-	payloadSplit := strings.Split(msg.Command, " ")
-	cmd := exec.Command(payloadSplit[0], payloadSplit[1:]...)
+	cmd := exec.Command("/bin/bash", "-c", msg.Command)
 
 	stdout, err := cmd.StdoutPipe()
 
