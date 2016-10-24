@@ -1,7 +1,8 @@
 export BOSH_PASSWORD=admin
 export BOSH_USER=admin
 export BOSH_URL=https://lite-bosh.backup-and-restore.cf-app.com
-export BOSH_GATEWAY_HOST=lite-bosh
+export BOSH_GATEWAY_USER=vcap
+export BOSH_GATEWAY_HOST=lite-bosh.backup-and-restore.cf-app.com
 
 test: test-unit test-integration
 
@@ -27,18 +28,13 @@ setup:
 
 sys-test-local:
 	BOSH_CERT_PATH=~/workspace/pcf-backup-and-restore-meta/certs/lite-bosh.backup-and-restore.cf-app.com.crt \
+	BOSH_GATEWAY_KEY=~/workspace/pcf-backup-and-restore-meta/bosh-director/bosh.pem \
 	TEST_ENV=dev \
-	BOSH_GATEWAY_USER=vcap \
-	BOSH_TEST_DEPLOYMENT=systest-dev ginkgo -v -r system
+	ginkgo -r -v system
 
-setup-sys-test-local: upload-test-releases
-	bosh -t $(BOSH_URL) -n -d fixtures/systest-dev.yml deploy
-
-sys-test-ci: setup-sys-test-ci
-	BOSH_TEST_DEPLOYMENT=systest-ci ginkgo -r system
-
-setup-sys-test-ci: setup upload-test-releases
-	bosh -t $(BOSH_URL) -n -d fixtures/systest-ci.yml deploy
+sys-test-ci:
+	TEST_ENV=ci \
+	ginkgo -r -v system
 
 upload-test-releases:
 	cd fixtures/releases/redis-test-release && bosh -n create release --force && bosh -t $(BOSH_URL) upload release --rebase

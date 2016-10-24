@@ -23,7 +23,6 @@ func RunBoshCommand(cmd string, args ...string) {
 	combinedArgs := append(cmdParts[1:], args...)
 	command := exec.Command(commandPath, combinedArgs...)
 
-	fmt.Println(command)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 
 	Expect(err).ToNot(HaveOccurred())
@@ -36,7 +35,6 @@ func RunCommandOnRemote(cmd string, remoteComand string) *gexec.Session {
 	combinedArgs := append(cmdParts[1:], remoteComand)
 	command := exec.Command(commandPath, combinedArgs...)
 
-	fmt.Println(command)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 
 	Expect(err).ToNot(HaveOccurred())
@@ -79,11 +77,8 @@ func JumpBoxBoshCommand() string {
 }
 
 func JumpBoxSCPCommand() string {
-	fmt.Println("$$$$")
-	fmt.Printf("%s scp --gw-user=%s --gw-host=%s", JumpBoxBoshCommand(), MustHaveEnv("BOSH_GATEWAY_USER"), MustHaveEnv("BOSH_GATEWAY_HOST"))
-	fmt.Println("$$$$")
-	return fmt.Sprintf("%s scp --gw-user=%s --gw-host=%s", JumpBoxBoshCommand(), MustHaveEnv("BOSH_GATEWAY_USER"), MustHaveEnv("BOSH_GATEWAY_HOST"))
+	return fmt.Sprintf("%s scp --gw-user=%s --gw-host=%s --gw-private-key=%s", JumpBoxBoshCommand(), MustHaveEnv("BOSH_GATEWAY_USER"), MustHaveEnv("BOSH_GATEWAY_HOST"), MustHaveEnv("BOSH_GATEWAY_KEY"))
 }
 func JumpBoxSSHCommand() string {
-	return fmt.Sprintf("%s ssh --gw-user=%s --gw-host=%s jumpbox/0", JumpBoxBoshCommand(), MustHaveEnv("BOSH_GATEWAY_USER"), MustHaveEnv("BOSH_GATEWAY_HOST"))
+	return fmt.Sprintf("%s ssh --gw-user=%s --gw-host=%s --gw-private-key=%s jumpbox/0", JumpBoxBoshCommand(), MustHaveEnv("BOSH_GATEWAY_USER"), MustHaveEnv("BOSH_GATEWAY_HOST"), MustHaveEnv("BOSH_GATEWAY_KEY"))
 }
