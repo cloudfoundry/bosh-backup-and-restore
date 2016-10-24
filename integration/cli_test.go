@@ -21,14 +21,14 @@ var _ = Describe("CLI Interface", func() {
 
 	Context("Params", func() {
 		It("can invoke command with short names", func() {
-			director.VerifyAndMock(mockbosh.GetDeployment("my-new-deployment").NotFound())
+			director.VerifyAndMock(mockbosh.VMsForDeployment("my-new-deployment").NotFound())
 
 			runBinary([]string{}, "--ca-cert", sslCertPath, "-u", "admin", "-p", "admin", "-t", director.URL, "-d", "my-new-deployment", "backup")
 
 			director.VerifyMocks()
 		})
 		It("can invoke command with long names", func() {
-			director.VerifyAndMock(mockbosh.GetDeployment("my-new-deployment").NotFound())
+			director.VerifyAndMock(mockbosh.VMsForDeployment("my-new-deployment").NotFound())
 
 			runBinary([]string{}, "--ca-cert", sslCertPath, "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
 
@@ -38,7 +38,7 @@ var _ = Describe("CLI Interface", func() {
 
 	Context("with debug flag set", func() {
 		It("outputs verbose HTTP logs", func() {
-			director.VerifyAndMock(mockbosh.GetDeployment("my-new-deployment").NotFound())
+			director.VerifyAndMock(mockbosh.VMsForDeployment("my-new-deployment").NotFound())
 
 			session := runBinary([]string{}, "--debug", "--ca-cert", sslCertPath, "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
 
@@ -50,7 +50,7 @@ var _ = Describe("CLI Interface", func() {
 
 	Context("password is supported from env", func() {
 		It("can invoke command with long names", func() {
-			director.VerifyAndMock(mockbosh.GetDeployment("my-new-deployment").NotFound())
+			director.VerifyAndMock(mockbosh.VMsForDeployment("my-new-deployment").NotFound())
 
 			runBinary([]string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
 

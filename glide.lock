@@ -1,5 +1,5 @@
 hash: de2a20d097479b1e7eca94cd37b1b282c33ca39bb055f1d3a68bb268fa1ccc9e
-updated: 2016-10-20T10:44:18.445175727+01:00
+updated: 2016-10-24T11:59:23.415650774+01:00
 imports:
 - name: github.com/bmatcuk/doublestar
   version: dd6a6f0a8cdfaaa88b08cf26cf1bc7d69003ee13
@@ -28,7 +28,7 @@ imports:
 - name: github.com/nu7hatch/gouuid
   version: 179d4d0c4d8d407a32af483c2354df1d2c91e6c3
 - name: github.com/onsi/ginkgo
-  version: 39549e585f5005ce588e6217d4538a4c99a472c9
+  version: a8ccd817611666211fdf6e6a752174a0db8374a8
   subpackages:
   - config
   - internal/codelocation
@@ -47,37 +47,37 @@ imports:
   - reporters/stenographer/support/go-colorable
   - reporters/stenographer/support/go-isatty
 - name: github.com/onsi/gomega
-  version: d59fa0ac68bb5dd932ee8d24eed631cdd519efc3
+  version: e46a88d81f5164c47e2d51c1c3d863dde7997993
   subpackages:
   - gexec
+  - format
+  - gbytes
   - internal/assertion
   - internal/asyncassertion
   - internal/testingtsupport
   - matchers
   - types
-  - format
-  - gbytes
   - internal/oraclematcher
   - matchers/support/goraph/bipartitegraph
   - matchers/support/goraph/edge
   - matchers/support/goraph/node
   - matchers/support/goraph/util
 - name: github.com/pivotal-cf-experimental/cf-webmock
-  version: ca660490e7fdc58897c61b132b699acbffc71981
+  version: 79eeddc7bcb66a0363352e698511eacb77cd9a11
   subpackages:
   - mockbosh
   - mockhttp
 - name: github.com/urfave/cli
   version: a14d7d367bc02b1f57d88de97926727f2d936387
 - name: golang.org/x/crypto
-  version: c367d6eeb7c6158125f2f47e049f7eb7e251c09a
+  version: 3c0d69f1777220f1a1d2ec373cb94a282f03eb42
   subpackages:
   - ssh
   - curve25519
   - ed25519
   - ed25519/internal/edwards25519
 - name: golang.org/x/sys
-  version: 002cbb5f952456d0c50e0d2aff17ea5eca716979
+  version: c200b10b5d5e122be351b67af224adc6128af5bf
   subpackages:
   - unix
 - name: gopkg.in/yaml.v2

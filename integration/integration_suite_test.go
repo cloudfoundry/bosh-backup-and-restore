@@ -3,6 +3,7 @@ package integration
 import (
 	"fmt"
 	"os/exec"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -18,6 +19,7 @@ func TestIntegration(t *testing.T) {
 
 var commandPath string
 var sslCertPath = "../fixtures/test.crt"
+var runTimeout = 5 * time.Second
 
 func runBinary(env []string, params ...string) *gexec.Session {
 	command := exec.Command(commandPath, params...)
@@ -26,7 +28,7 @@ func runBinary(env []string, params ...string) *gexec.Session {
 	fmt.Fprintf(GinkgoWriter, "Command output start\n")
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ToNot(HaveOccurred())
-	Eventually(session).Should(gexec.Exit())
+	Eventually(session, runTimeout).Should(gexec.Exit())
 	fmt.Fprintf(GinkgoWriter, "Command output end\n")
 	fmt.Fprintf(GinkgoWriter, "Exited with %d\n", session.ExitCode())
 

@@ -1,6 +1,9 @@
 package integration
 
 import (
+	"os"
+	"path/filepath"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -31,4 +34,13 @@ func ShowsTheHelpText(helpText *helpText) {
 		Expect(helpText.outputString()).To(ContainSubstring("--deployment"))
 		Expect(helpText.outputString()).To(ContainSubstring("Name of BOSH deployment"))
 	})
+}
+
+func filesExistOnVM(files ...string) {
+	for _, fileName := range files {
+		Expect(os.MkdirAll(filepath.Dir(fileName), 0777)).To(Succeed())
+
+		_, err := os.Create(fileName)
+		Expect(err).NotTo(HaveOccurred())
+	}
 }
