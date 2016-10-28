@@ -42,5 +42,8 @@ func filesExistOnVM(files ...string) {
 
 		_, err := os.Create(fileName)
 		Expect(err).NotTo(HaveOccurred())
+
+		err = os.Chmod(fileName, 0777)
+		Expect(err).NotTo(HaveOccurred())
 	}
 }
