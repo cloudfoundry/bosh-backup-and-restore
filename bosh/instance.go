@@ -48,7 +48,7 @@ func (d DeployedInstance) IsBackupable() (bool, error) {
 
 func (d DeployedInstance) Backup() error {
 	d.Logger.Debug("", "Running all backup scripts on instance %s %s", d.JobName, d.JobIndex)
-	stdin, stdout, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/backup | xargs -IN sh -c N")
+	stdin, stdout, exitCode, err := d.Run("mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/backup | xargs -IN sh -c N")
 
 	d.Logger.Debug("", "Stdin: %s", string(stdin))
 	d.Logger.Debug("", "Stdout: %s", string(stdout))

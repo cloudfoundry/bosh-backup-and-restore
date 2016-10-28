@@ -97,9 +97,9 @@ var _ = Describe("Instance", func() {
 			BeforeEach(func() {
 				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, nil)
 			})
-			It("invokes the ssh connection, to run all backup scripts", func() {
+			It("invokes the ssh connection to create the backup dir and run all backup scripts", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/backup | xargs -IN sh -c N"))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/backup | xargs -IN sh -c N"))
 			})
 			It("succeeds", func() {
 				Expect(err).NotTo(HaveOccurred())
@@ -110,9 +110,9 @@ var _ = Describe("Instance", func() {
 			BeforeEach(func() {
 				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 1, nil)
 			})
-			It("invokes the ssh connection, to run all backup scripts", func() {
+			It("invokes the ssh connection to create the backup dir and run all backup scripts", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/backup | xargs -IN sh -c N"))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/backup | xargs -IN sh -c N"))
 			})
 			It("fails", func() {
 				Expect(err).To(HaveOccurred())
