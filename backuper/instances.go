@@ -25,5 +25,6 @@ func (instances Instances) Cleanup() error {
 //go:generate counterfeiter -o fakes/fake_instance.go . Instance
 type Instance interface {
 	IsBackupable() (bool, error)
+	Backup() error
 	Cleanup() error
 }

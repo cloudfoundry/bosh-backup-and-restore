@@ -87,6 +87,39 @@ var _ = Describe("Instance", func() {
 		})
 	})
 
+	Context("Backup", func() {
+		var err error
+
+		JustBeforeEach(func() {
+			err = instance.Backup()
+		})
+		Describe("when there are backup scripts in the job directories", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, nil)
+			})
+			It("invokes the ssh connection, to run all backup scripts", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/backup | xargs -IN sh -c N"))
+			})
+			It("succeeds", func() {
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+
+		Describe("when there is an error backing up", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 1, nil)
+			})
+			It("invokes the ssh connection, to run all backup scripts", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/backup | xargs -IN sh -c N"))
+			})
+			It("fails", func() {
+				Expect(err).To(HaveOccurred())
+			})
+		})
+	})
+
 	Context("Cleanup", func() {
 		var actualError error
 		var expectedError error

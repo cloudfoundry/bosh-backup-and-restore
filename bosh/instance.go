@@ -1,6 +1,8 @@
 package bosh
 
 import (
+	"fmt"
+
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
 )
@@ -38,10 +40,28 @@ func (d DeployedInstance) IsBackupable() (bool, error) {
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
 
 	if err != nil {
-		d.Logger.Debug("", "Error checking instance has backup scripts. Exit code %d, body %s", exitCode, err.Error())
+		d.Logger.Debug("", "Error checking instance has backup scripts. Exit code %d, error %s", exitCode, err.Error())
 	}
 
 	return exitCode == 0, err
+}
+
+func (d DeployedInstance) Backup() error {
+	d.Logger.Debug("", "Running all backup scripts on instance %s %s", d.JobName, d.JobIndex)
+	stdin, stdout, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/backup | xargs -IN sh -c N")
+
+	d.Logger.Debug("", "Stdin: %s", string(stdin))
+	d.Logger.Debug("", "Stdout: %s", string(stdout))
+
+	if err != nil {
+		d.Logger.Debug("", "Error running instance backup scripts. Exit code %d, error %s", exitCode, err.Error())
+	}
+
+	if exitCode != 0 {
+		return fmt.Errorf("Instance backup scripts returned %d. Error: %s", exitCode, stdout)
+	}
+
+	return err
 }
 
 func (d DeployedInstance) Cleanup() error {
