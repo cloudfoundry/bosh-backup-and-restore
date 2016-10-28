@@ -12,6 +12,7 @@ type Backuper struct {
 	BoshDirector
 }
 
+//Backup checks if a deployment has backupable instances and backs them up.
 func (b Backuper) Backup(deploymentName string) error {
 	instances, err := b.FindInstances(deploymentName)
 	if err != nil {
@@ -19,14 +20,15 @@ func (b Backuper) Backup(deploymentName string) error {
 	}
 	defer instances.Cleanup()
 
-	if backupable, err := instances.AreAnyBackupable(); err != nil {
+	backupable, err := instances.AllBackupable()
+	if err != nil {
 		return err
-	} else if !backupable {
-		return fmt.Errorf("Deployment '%s' has no backup scripts", deploymentName)
-	} else {
-		return instances.Backup()
 	}
-	return nil
+	if len(backupable) == 0 {
+		return fmt.Errorf("Deployment '%s' has no backup scripts", deploymentName)
+	}
+
+	return backupable.Backup()
 }
 
 //go:generate counterfeiter -o fakes/fake_bosh_director.go . BoshDirector

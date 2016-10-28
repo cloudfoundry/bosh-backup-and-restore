@@ -46,7 +46,7 @@ var _ = Describe("Backuper", func() {
 		})
 
 		It("checks if the instance is backupable", func() {
-			Expect(instance.IsBackupableCallCount()).To(Equal(2))
+			Expect(instance.IsBackupableCallCount()).To(Equal(1))
 		})
 
 		It("runs backup scripts on the instance", func() {

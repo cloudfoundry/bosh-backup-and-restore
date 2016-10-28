@@ -10,6 +10,113 @@ import (
 )
 
 var _ = Describe("Instances", func() {
+	Context("AllBackupable", func() {
+		var (
+			instance1           *fakes.FakeInstance
+			instance2           *fakes.FakeInstance
+			instance3           *fakes.FakeInstance
+			instances           backuper.Instances
+			backupableInstances backuper.Instances
+			backupableError     error
+		)
+		BeforeEach(func() {
+			instance1 = new(fakes.FakeInstance)
+			instance2 = new(fakes.FakeInstance)
+			instance3 = new(fakes.FakeInstance)
+		})
+		JustBeforeEach(func() {
+			backupableInstances, backupableError = instances.AllBackupable()
+		})
+		Context("Single instance, not backupable", func() {
+			BeforeEach(func() {
+				instance1.IsBackupableReturns(false, nil)
+				instances = backuper.Instances{instance1}
+			})
+			It("Checks that instance is backupable", func() {
+				Expect(instance1.IsBackupableCallCount()).To(Equal(1))
+			})
+			It("returns no instances", func() {
+				Expect(backupableInstances).To(BeEmpty())
+			})
+			It("doesn't fail", func() {
+				Expect(backupableError).NotTo(HaveOccurred())
+			})
+		})
+		Context("Single instance, backupable", func() {
+			BeforeEach(func() {
+				instance1.IsBackupableReturns(true, nil)
+				instances = backuper.Instances{instance1}
+			})
+			It("Checks that instance is backupable", func() {
+				Expect(instance1.IsBackupableCallCount()).To(Equal(1))
+			})
+			It("returns the instance", func() {
+				Expect(backupableInstances).To(ConsistOf(instance1))
+			})
+			It("doesn't fail", func() {
+				Expect(backupableError).NotTo(HaveOccurred())
+			})
+		})
+		Context("Multiple instances, one backupable", func() {
+			BeforeEach(func() {
+				instance1.IsBackupableReturns(false, nil)
+				instance2.IsBackupableReturns(false, nil)
+				instance3.IsBackupableReturns(true, nil)
+				instances = backuper.Instances{instance1, instance2, instance3}
+			})
+			It("Checks that instance is backupable", func() {
+				Expect(instance1.IsBackupableCallCount()).To(Equal(1))
+				Expect(instance2.IsBackupableCallCount()).To(Equal(1))
+				Expect(instance3.IsBackupableCallCount()).To(Equal(1))
+			})
+			It("returns true", func() {
+				Expect(backupableInstances).To(ConsistOf(instance3))
+			})
+			It("dosent fail", func() {
+				Expect(backupableError).NotTo(HaveOccurred())
+			})
+		})
+
+		Context("Multiple instances, all backupable", func() {
+			BeforeEach(func() {
+				instance1.IsBackupableReturns(true, nil)
+				instance2.IsBackupableReturns(true, nil)
+				instance3.IsBackupableReturns(true, nil)
+				instances = backuper.Instances{instance1, instance2, instance3}
+			})
+			It("Checks all instances", func() {
+				Expect(instance1.IsBackupableCallCount()).To(Equal(1))
+				Expect(instance2.IsBackupableCallCount()).To(Equal(1))
+				Expect(instance3.IsBackupableCallCount()).To(Equal(1))
+			})
+			It("returns true", func() {
+				Expect(backupableInstances).To(ConsistOf(instance1, instance2, instance3))
+			})
+			It("dosent fail", func() {
+				Expect(backupableError).NotTo(HaveOccurred())
+			})
+		})
+		Context("Multiple instances, none backupable", func() {
+			BeforeEach(func() {
+				instance1.IsBackupableReturns(false, nil)
+				instance2.IsBackupableReturns(false, nil)
+				instance3.IsBackupableReturns(false, nil)
+				instances = backuper.Instances{instance1, instance2, instance3}
+			})
+			It("Checks all instances", func() {
+				Expect(instance1.IsBackupableCallCount()).To(Equal(1))
+				Expect(instance2.IsBackupableCallCount()).To(Equal(1))
+				Expect(instance3.IsBackupableCallCount()).To(Equal(1))
+			})
+			It("returns false", func() {
+				Expect(backupableInstances).To(BeEmpty())
+			})
+			It("dosent fail", func() {
+				Expect(backupableError).NotTo(HaveOccurred())
+			})
+		})
+	})
+
 	Context("AreAnyBackupable", func() {
 		var (
 			instance1        *fakes.FakeInstance
@@ -195,21 +302,6 @@ var _ = Describe("Instances", func() {
 			})
 			It("backs up the instance", func() {
 				Expect(instance1.BackupCallCount()).To(Equal(1))
-			})
-		})
-
-		Context("Multiple instances, one backupable", func() {
-			BeforeEach(func() {
-				instance1.IsBackupableReturns(false, nil)
-				instance2.IsBackupableReturns(true, nil)
-				instances = backuper.Instances{instance1, instance2}
-			})
-			It("does not fail", func() {
-				Expect(backupError).NotTo(HaveOccurred())
-			})
-			It("backs up the only the backupable instance", func() {
-				Expect(instance1.BackupCallCount()).To(Equal(0))
-				Expect(instance2.BackupCallCount()).To(Equal(1))
 			})
 		})
 
