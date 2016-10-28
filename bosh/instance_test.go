@@ -33,10 +33,10 @@ var _ = Describe("Instance", func() {
 
 	Context("IsBackupable", func() {
 		var actualBackupable bool
-		var acutalError error
+		var actualError error
 
 		JustBeforeEach(func() {
-			actualBackupable, acutalError = instance.IsBackupable()
+			actualBackupable, actualError = instance.IsBackupable()
 		})
 
 		Describe("there are backup scripts in the job directories", func() {
@@ -44,7 +44,7 @@ var _ = Describe("Instance", func() {
 				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, nil)
 			})
 			It("succeeds", func() {
-				Expect(acutalError).NotTo(HaveOccurred())
+				Expect(actualError).NotTo(HaveOccurred())
 			})
 			It("returns true", func() {
 				Expect(actualBackupable).To(BeTrue())
@@ -60,7 +60,7 @@ var _ = Describe("Instance", func() {
 				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 1, nil)
 			})
 			It("succeeds", func() {
-				Expect(acutalError).NotTo(HaveOccurred())
+				Expect(actualError).NotTo(HaveOccurred())
 			})
 			It("returns false", func() {
 				Expect(actualBackupable).To(BeFalse())
@@ -77,7 +77,7 @@ var _ = Describe("Instance", func() {
 				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, expectedError)
 			})
 			It("succeeds", func() {
-				Expect(acutalError).To(HaveOccurred())
+				Expect(actualError).To(HaveOccurred())
 			})
 
 			It("invokes the ssh connection, to find files", func() {
@@ -88,11 +88,11 @@ var _ = Describe("Instance", func() {
 	})
 
 	Context("Cleanup", func() {
-		var acutalError error
+		var actualError error
 		var expectedError error
 
 		JustBeforeEach(func() {
-			acutalError = instance.Cleanup()
+			actualError = instance.Cleanup()
 		})
 		Describe("cleans up successfully", func() {
 			It("deletes session from deployment", func() {
@@ -110,7 +110,7 @@ var _ = Describe("Instance", func() {
 				boshDeployment.CleanUpSSHReturns(expectedError)
 			})
 			It("fails", func() {
-				Expect(acutalError).To(MatchError(expectedError))
+				Expect(actualError).To(MatchError(expectedError))
 			})
 		})
 	})
