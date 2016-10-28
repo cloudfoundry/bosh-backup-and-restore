@@ -30,29 +30,31 @@ func ConnectionCreator(hostName, userName, privateKey string) (bosh.SSHConnectio
 		return nil, err
 	}
 
-	session, err := connection.NewSession()
-	if err != nil {
-		return nil, err
-	}
+	conn.connection = connection
 
-	conn.session = session
 	return conn, nil
 }
 
 type Connection struct {
-	host    string
-	user    string
-	session *ssh.Session
+	host       string
+	user       string
+	connection *ssh.Client
+	session    *ssh.Session
 }
 
 func (c Connection) Run(cmd string) ([]byte, []byte, int, error) {
+	session, err := c.connection.NewSession()
+	if err != nil {
+		return nil, nil, 0, err
+	}
+
 	outBuffer := bytes.NewBuffer([]byte{})
 	errBuffer := bytes.NewBuffer([]byte{})
 	exitCode := 0
 
-	c.session.Stdout = outBuffer
-	c.session.Stderr = errBuffer
-	err := c.session.Run(cmd)
+	session.Stdout = outBuffer
+	session.Stderr = errBuffer
+	err = session.Run(cmd)
 	if err != nil {
 		exitErr, yes := err.(*ssh.ExitError)
 		if yes {

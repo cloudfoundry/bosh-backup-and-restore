@@ -68,19 +68,6 @@ var _ = Describe("Connection", func() {
 		})
 	})
 
-	Describe("session creation fails", func() {
-		BeforeEach(func() {
-			server.FailSession = true
-		})
-		It("fails", func() {
-			Expect(connErr).To(HaveOccurred())
-		})
-		It("tires to connect with username and key", func() {
-			Expect(server.LastUser).To(Equal("admin"))
-			Expect(server.LastKey).To(Equal(publicKey(privateKey)))
-		})
-	})
-
 	Describe("Invalid ssh key", func() {
 		BeforeEach(func() {
 			privateKey = "laksdjf"
@@ -130,6 +117,32 @@ var _ = Describe("Connection", func() {
 				Expect(exitCode).To(BeZero())
 			})
 		})
+
+		Context("fails to create new session", func() {
+			BeforeEach(func() {
+				server.FailSession = true
+			})
+			It("fails", func() {
+				Expect(runError).To(HaveOccurred())
+			})
+		})
+
+		Context("running multiple commands", func() {
+			BeforeEach(func() {
+				command = "ls"
+			})
+
+			It("does not fail", func() {
+				_, _, _, runError1 := conn.Run(command)
+				_, _, _, runError2 := conn.Run(command)
+				_, _, _, runError3 := conn.Run(command)
+
+				Expect(runError1).NotTo(HaveOccurred())
+				Expect(runError2).NotTo(HaveOccurred())
+				Expect(runError3).NotTo(HaveOccurred())
+			})
+		})
+
 		Context("exit code not 0", func() {
 			BeforeEach(func() {
 				command = makeScript(`#!/usr/bin/env bash
