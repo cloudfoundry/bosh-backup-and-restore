@@ -42,5 +42,6 @@ upload-test-releases:
 	cd fixtures/releases/redis-test-release && bosh -n create release --force && bosh -t $(BOSH_URL) upload release --rebase
 
 release: setup
-	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o pbr-${VERSION} github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr
-	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o pbr-mac-${VERSION} github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr
+	mkdir releases
+	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=0.0.0-${VERSION}" -o releases/pbr-${VERSION} github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr
+	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=0.0.0-${VERSION}" -o releases/pbr-mac-$(VERSION) github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr
