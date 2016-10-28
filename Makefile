@@ -30,7 +30,7 @@ setup:
 
 sys-test-local:
 	BOSH_CERT_PATH=~/workspace/pcf-backup-and-restore-meta/certs/lite-bosh.backup-and-restore.cf-app.com.crt \
-	BOSH_GATEWAY_KEY=~/workspace/pcf-backup-and-restore-meta/bosh-director/bosh.pem \
+	BOSH_GATEWAY_KEY=~/workspace/pcf-backup-and-restore-meta/genesis-bosh/bosh.pem \
 	TEST_ENV=dev \
 	ginkgo -r -v system
 
