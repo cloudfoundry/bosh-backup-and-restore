@@ -43,5 +43,5 @@ upload-test-releases:
 
 release: setup
 	mkdir releases
-	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=0.0.0-${VERSION}" -o releases/pbr-${VERSION} github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr
-	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=0.0.0-${VERSION}" -o releases/pbr-mac-$(VERSION) github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr
+	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/pbr github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr
+	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/pbr-mac github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr
