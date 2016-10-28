@@ -40,10 +40,13 @@ func filesExistOnVM(files ...string) {
 	for _, fileName := range files {
 		Expect(os.MkdirAll(filepath.Dir(fileName), 0777)).To(Succeed())
 
-		_, err := os.Create(fileName)
+		file, err := os.Create(fileName)
 		Expect(err).NotTo(HaveOccurred())
 
 		err = os.Chmod(fileName, 0777)
+		Expect(err).NotTo(HaveOccurred())
+
+		err = file.Close()
 		Expect(err).NotTo(HaveOccurred())
 	}
 }
