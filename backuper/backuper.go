@@ -23,6 +23,8 @@ func (b Backuper) Backup(deploymentName string) error {
 		return err
 	} else if !backupable {
 		return fmt.Errorf("Deployment '%s' has no backup scripts", deploymentName)
+	} else {
+		return instances.Backup()
 	}
 	return nil
 }

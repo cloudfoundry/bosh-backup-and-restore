@@ -22,6 +22,28 @@ func (instances Instances) Cleanup() error {
 	return nil
 }
 
+// TODO make this not horrible
+func (instances Instances) Backup() error {
+	var instancesToBackup []Instance
+
+	for _, instance := range instances {
+		if backupable, err := instance.IsBackupable(); err != nil {
+			return err
+		} else if backupable {
+			instancesToBackup = append(instancesToBackup, instance)
+		}
+	}
+
+	for _, instance := range instancesToBackup {
+		err := instance.Backup()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 //go:generate counterfeiter -o fakes/fake_instance.go . Instance
 type Instance interface {
 	IsBackupable() (bool, error)

@@ -44,9 +44,15 @@ var _ = Describe("Backuper", func() {
 			Expect(boshDirector.FindInstancesCallCount()).To(Equal(1))
 			Expect(boshDirector.FindInstancesArgsForCall(0)).To(Equal(deploymentName))
 		})
+
 		It("checks if the instance is backupable", func() {
-			Expect(instance.IsBackupableCallCount()).To(Equal(1))
+			Expect(instance.IsBackupableCallCount()).To(Equal(2))
 		})
+
+		It("runs backup scripts on the instance", func() {
+			Expect(instance.BackupCallCount()).To(Equal(1))
+		})
+
 		It("ensures that instance is cleaned up", func() {
 			Expect(instance.CleanupCallCount()).To(Equal(1))
 		})
