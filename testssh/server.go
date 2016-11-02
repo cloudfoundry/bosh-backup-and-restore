@@ -144,7 +144,7 @@ func (t *Server) startExecSession(connection ssh.Channel, req *ssh.Request) {
 	ssh.Unmarshal(req.Payload, &msg)
 	defer connection.Close()
 
-	cmd := exec.Command("/bin/bash", "-c", msg.Command)
+	cmd := exec.Command("/bin/sh", "-c", msg.Command)
 
 	stdout, err := cmd.StdoutPipe()
 
