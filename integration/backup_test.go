@@ -6,6 +6,7 @@ import (
 
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
+	"github.com/pivotal-cf/pcf-backup-and-restore/testcluster"
 	"github.com/pivotal-cf/pcf-backup-and-restore/testssh"
 
 	. "github.com/onsi/ginkgo"
@@ -29,7 +30,10 @@ var _ = Describe("Backup", func() {
 	})
 
 	Context("with deployment present", func() {
+		var instance1 *testcluster.Instance
+
 		BeforeEach(func() {
+			instance1 = testcluster.NewInstance()
 			director.VerifyAndMock(
 				mockbosh.VMsForDeployment("my-new-deployment").RedirectsToTask(14),
 				mockbosh.Task(14).RespondsWithTaskContainingState(mockbosh.TaskDone),
@@ -41,21 +45,27 @@ var _ = Describe("Backup", func() {
 						JobName: "redis-dedicated-node",
 					},
 				}),
-				mockbosh.StartSSHSession("my-new-deployment").RedirectsToTask(15),
+				mockbosh.StartSSHSession("my-new-deployment").SetSSHResponseCallback(func(username, key string) {
+					instance1.CreateUser(username, key)
+				}).RedirectsToTask(15),
 				mockbosh.Task(15).RespondsWithTaskContainingState(mockbosh.TaskDone),
 				mockbosh.Task(15).RespondsWithTaskContainingState(mockbosh.TaskDone),
 				mockbosh.TaskEvent(15).RespondsWith("{}"),
 				mockbosh.TaskOutput(15).RespondsWith(fmt.Sprintf(`[{"status":"success",
-				"ip":"127.0.0.1:%d",
+				"ip":"%s",
 				"host_public_key":"not-relevant",
-				"index":0}]`, testSSHServer.Port)),
+				"index":0}]`, instance1.Address())),
 				mockbosh.CleanupSSHSession("my-new-deployment").RedirectsToTask(16),
 				mockbosh.Task(16).RespondsWithTaskContainingState(mockbosh.TaskDone),
 			)
 		})
 
+		AfterEach(func() {
+			instance1.Die()
+		})
+
 		It("backs up deployment successfully", func() {
-			filesExistOnVM(
+			instance1.FilesExist(
 				"/var/vcap/jobs/redis/bin/backup",
 			)
 
@@ -64,7 +74,7 @@ var _ = Describe("Backup", func() {
 		})
 
 		It("errors if a deployment cant be backuped", func() {
-			filesExistOnVM(
+			instance1.FilesExist(
 				"/var/vcap/jobs/redis/bin/ctl",
 			)
 

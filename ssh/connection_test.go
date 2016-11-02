@@ -99,7 +99,7 @@ var _ = Describe("Connection", func() {
 		})
 		Context("succeds", func() {
 			BeforeEach(func() {
-				command = makeScript(`#!/usr/bin/env bash
+				command = makeScript(`#!/usr/bin/env sh
 				echo "stdout"
 				echo "stderr" >&2`)
 
@@ -145,7 +145,7 @@ var _ = Describe("Connection", func() {
 
 		Context("exit code not 0", func() {
 			BeforeEach(func() {
-				command = makeScript(`#!/usr/bin/env bash
+				command = makeScript(`#!/usr/bin/env sh
 				echo "stdout"
 				echo "stderr" >&2
 				exit 12`)

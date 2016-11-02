@@ -101,7 +101,7 @@ func (t *Server) processChannel(channel ssh.Channel, requests <-chan *ssh.Reques
 	}
 }
 func (t *Server) startShellSession(connection ssh.Channel, req *ssh.Request) {
-	bash := exec.Command("bash")
+	bash := exec.Command("sh")
 
 	close := func() {
 		connection.Close()
