@@ -66,7 +66,6 @@ func main() {
 				return fmt.Errorf("--%v flag is required.", flag)
 			}
 		}
-
 		return nil
 	}
 	app.Commands = []cli.Command{
@@ -75,42 +74,22 @@ func main() {
 			Aliases: []string{"b"},
 			Usage:   "add a task to the list",
 			Action: func(c *cli.Context) error {
-				var logger boshlog.Logger
+				var debug = c.GlobalBool("debug")
+				var targetUrl = c.GlobalString("target")
+				var username = c.GlobalString("username")
+				var password = c.GlobalString("password")
+				var caCert = c.GlobalString("ca-cert")
+				var deployment = c.GlobalString("deployment")
 
-				if c.GlobalBool("debug") {
-					logger = boshlog.NewLogger(boshlog.LevelDebug)
-				} else {
-					logger = boshlog.NewLogger(boshlog.LevelError)
-				}
-
-				factory := director.NewFactory(logger)
-
-				config, err := director.NewConfigFromURL(c.GlobalString("target"))
-				if err != nil {
-					return cli.NewExitError(ansi.Color(
-						"Target director URL is malformed",
-						"red"), 1)
-				}
-
-				config.Username = c.GlobalString("username")
-				config.Password = c.GlobalString("password")
-
-				if c.GlobalString("ca-cert") != "" {
-					cert, err := ioutil.ReadFile(c.GlobalString("ca-cert"))
-					if err != nil {
-						return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
-					}
-					config.CACert = string(cert)
-				}
-
-				boshDirector, err := factory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
+				var logger = makeBoshLogger(debug)
+				boshDirector, err := makeBoshDirector(targetUrl, username, password, caCert, logger)
 				if err != nil {
 					return err
 				}
 
 				backuper := backuper.New(bosh.New(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger))
 
-				if err := backuper.Backup(c.GlobalString("deployment")); err != nil {
+				if err := backuper.Backup(deployment); err != nil {
 					return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
 				}
 				return nil
@@ -121,4 +100,36 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		os.Exit(1)
 	}
+}
+
+func makeBoshLogger(debug bool) boshlog.Logger {
+	if debug {
+		return boshlog.NewLogger(boshlog.LevelDebug)
+	} else {
+		return boshlog.NewLogger(boshlog.LevelError)
+	}
+}
+
+func makeBoshDirector(targetUrl, username, password, caCert string, logger boshlog.Logger) (director.Director, error) {
+	config, err := director.NewConfigFromURL(targetUrl)
+	if err != nil {
+		return nil, cli.NewExitError(ansi.Color(
+			"Target director URL is malformed",
+			"red"), 1)
+	}
+
+	config.Username = username
+	config.Password = password
+
+	if caCert != "" {
+		cert, err := ioutil.ReadFile(caCert)
+		if err != nil {
+			return nil, cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
+		}
+		config.CACert = string(cert)
+	}
+
+	factory := director.NewFactory(logger)
+
+	return factory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
 }
