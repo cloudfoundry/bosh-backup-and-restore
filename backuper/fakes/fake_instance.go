@@ -2,6 +2,7 @@
 package fakes
 
 import (
+	"io"
 	"sync"
 
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
@@ -38,6 +39,13 @@ type FakeInstance struct {
 	cleanupArgsForCall []struct{}
 	cleanupReturns     struct {
 		result1 error
+	}
+	DrainBackupStub        func() (io.Reader, error)
+	drainBackupMutex       sync.RWMutex
+	drainBackupArgsForCall []struct{}
+	drainBackupReturns     struct {
+		result1 io.Reader
+		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -169,6 +177,32 @@ func (fake *FakeInstance) CleanupReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeInstance) DrainBackup() (io.Reader, error) {
+	fake.drainBackupMutex.Lock()
+	fake.drainBackupArgsForCall = append(fake.drainBackupArgsForCall, struct{}{})
+	fake.recordInvocation("DrainBackup", []interface{}{})
+	fake.drainBackupMutex.Unlock()
+	if fake.DrainBackupStub != nil {
+		return fake.DrainBackupStub()
+	} else {
+		return fake.drainBackupReturns.result1, fake.drainBackupReturns.result2
+	}
+}
+
+func (fake *FakeInstance) DrainBackupCallCount() int {
+	fake.drainBackupMutex.RLock()
+	defer fake.drainBackupMutex.RUnlock()
+	return len(fake.drainBackupArgsForCall)
+}
+
+func (fake *FakeInstance) DrainBackupReturns(result1 io.Reader, result2 error) {
+	fake.DrainBackupStub = nil
+	fake.drainBackupReturns = struct {
+		result1 io.Reader
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -182,6 +216,8 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.backupMutex.RUnlock()
 	fake.cleanupMutex.RLock()
 	defer fake.cleanupMutex.RUnlock()
+	fake.drainBackupMutex.RLock()
+	defer fake.drainBackupMutex.RUnlock()
 	return fake.invocations
 }
 

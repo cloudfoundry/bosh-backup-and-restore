@@ -1,6 +1,7 @@
 package testcluster
 
 import (
+	"fmt"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -40,6 +41,12 @@ func (i *Instance) FilesExist(files ...string) {
 		dockerRun("exec", i.dockerID, "touch", fileName)
 		dockerRun("exec", i.dockerID, "chmod", "+x", fileName)
 	}
+}
+
+func (i *Instance) ScriptExist(file, contents string) {
+	dockerRun("exec", i.dockerID, "mkdir", "-p", filepath.Dir(file))
+	dockerRun("exec", i.dockerID, "sh", "-c", fmt.Sprintf(`echo '%s' > %s`, contents, file))
+	dockerRun("exec", i.dockerID, "chmod", "+x", file)
 }
 
 func (i *Instance) Die() {

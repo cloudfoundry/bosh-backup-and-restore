@@ -1,18 +1,12 @@
 package backuper
 
+import "io"
+
 type Instances []Instance
 
-func (instances Instances) AreAnyBackupable() (bool, error) {
-	for _, instance := range instances {
-		if backupable, err := instance.IsBackupable(); err != nil {
-			return false, err
-		} else if backupable {
-			return true, nil
-		}
-	}
-	return false, nil
+func (instances Instances) IsEmpty() bool {
+	return len(instances) == 0
 }
-
 func (instances Instances) AllBackupable() (Instances, error) {
 	var backupableInstances []Instance
 
@@ -35,7 +29,6 @@ func (instances Instances) Cleanup() error {
 	return nil
 }
 
-// TODO make this not horrible
 func (instances Instances) Backup() error {
 	for _, instance := range instances {
 		err := instance.Backup()
@@ -54,4 +47,5 @@ type Instance interface {
 	IsBackupable() (bool, error)
 	Backup() error
 	Cleanup() error
+	DrainBackup() (io.Reader, error)
 }

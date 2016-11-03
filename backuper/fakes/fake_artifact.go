@@ -2,16 +2,18 @@
 package fakes
 
 import (
+	"io"
 	"sync"
 
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
 )
 
 type FakeArtifact struct {
-	CreateFileStub        func(string) error
+	CreateFileStub        func(string, io.Reader) error
 	createFileMutex       sync.RWMutex
 	createFileArgsForCall []struct {
 		arg1 string
+		arg2 io.Reader
 	}
 	createFileReturns struct {
 		result1 error
@@ -20,15 +22,16 @@ type FakeArtifact struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeArtifact) CreateFile(arg1 string) error {
+func (fake *FakeArtifact) CreateFile(arg1 string, arg2 io.Reader) error {
 	fake.createFileMutex.Lock()
 	fake.createFileArgsForCall = append(fake.createFileArgsForCall, struct {
 		arg1 string
-	}{arg1})
-	fake.recordInvocation("CreateFile", []interface{}{arg1})
+		arg2 io.Reader
+	}{arg1, arg2})
+	fake.recordInvocation("CreateFile", []interface{}{arg1, arg2})
 	fake.createFileMutex.Unlock()
 	if fake.CreateFileStub != nil {
-		return fake.CreateFileStub(arg1)
+		return fake.CreateFileStub(arg1, arg2)
 	} else {
 		return fake.createFileReturns.result1
 	}
@@ -40,10 +43,10 @@ func (fake *FakeArtifact) CreateFileCallCount() int {
 	return len(fake.createFileArgsForCall)
 }
 
-func (fake *FakeArtifact) CreateFileArgsForCall(i int) string {
+func (fake *FakeArtifact) CreateFileArgsForCall(i int) (string, io.Reader) {
 	fake.createFileMutex.RLock()
 	defer fake.createFileMutex.RUnlock()
-	return fake.createFileArgsForCall[i].arg1
+	return fake.createFileArgsForCall[i].arg1, fake.createFileArgsForCall[i].arg2
 }
 
 func (fake *FakeArtifact) CreateFileReturns(result1 error) {

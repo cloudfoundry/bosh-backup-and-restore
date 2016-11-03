@@ -1,7 +1,9 @@
 package backuper_test
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -34,13 +36,17 @@ var _ = Describe("Backuper", func() {
 	})
 
 	Context("backups up an instance", func() {
+		var expectedReader io.Reader
 		BeforeEach(func() {
+			expectedReader = bytes.NewBufferString("some data")
+
 			artifactCreator.Returns(artifact, nil)
 			boshDirector.FindInstancesReturns(instances, nil)
 			instance.IsBackupableReturns(true, nil)
 			instance.CleanupReturns(nil)
 			instance.NameReturns("redis")
 			instance.IDReturns("0")
+			instance.DrainBackupReturns(expectedReader, nil)
 		})
 
 		It("does not fail", func() {
@@ -74,7 +80,15 @@ var _ = Describe("Backuper", func() {
 
 		It("creates files on disk for each backupable instance", func() {
 			Expect(artifact.CreateFileCallCount()).To(Equal(1))
-			Expect(artifact.CreateFileArgsForCall(0)).To(Equal("redis-0.tgz"))
+			filename, _ := artifact.CreateFileArgsForCall(0)
+			Expect(filename).To(Equal("redis-0.tgz"))
+		})
+		It("writes the drained backup to file", func() {
+			Expect(instance.DrainBackupCallCount()).To(Equal(1))
+			Expect(artifact.CreateFileCallCount()).To(Equal(1))
+			filename, reader := artifact.CreateFileArgsForCall(0)
+			Expect(filename).To(Equal("redis-0.tgz"))
+			Expect(reader).To(Equal(expectedReader))
 		})
 	})
 
@@ -185,6 +199,33 @@ var _ = Describe("Backuper", func() {
 			})
 		})
 
+		Context("fails if backup cannot be drained", func() {
+			var drainError = fmt.Errorf("they are bringing crime")
+			BeforeEach(func() {
+				boshDirector.FindInstancesReturns(instances, nil)
+				instance.IsBackupableReturns(true, nil)
+				artifactCreator.Returns(artifact, nil)
+				instance.DrainBackupReturns(nil, drainError)
+			})
+
+			It("check if the deployment is backupable", func() {
+				Expect(boshDirector.FindInstancesCallCount()).To(Equal(1))
+				Expect(instance.IsBackupableCallCount()).To(Equal(1))
+			})
+
+			It("backs up the instance", func() {
+				Expect(instance.BackupCallCount()).To(Equal(1))
+			})
+
+			It("fails the backup process", func() {
+				Expect(actualBackupError).To(MatchError(drainError))
+			})
+
+			It("does not try to create files in the artifact", func() {
+				Expect(artifact.CreateFileCallCount()).To(BeZero())
+			})
+		})
+
 		Context("fails if artifact cannot be created", func() {
 			var artifactError = fmt.Errorf("they are bringing crime")
 			BeforeEach(func() {
@@ -205,6 +246,58 @@ var _ = Describe("Backuper", func() {
 
 			It("fails the backup process", func() {
 				Expect(actualBackupError).To(MatchError(artifactError))
+			})
+		})
+
+		Context("fails if file cannot be created", func() {
+			var fileError = fmt.Errorf("i have a very good brain")
+			BeforeEach(func() {
+				boshDirector.FindInstancesReturns(instances, nil)
+				instance.IsBackupableReturns(true, nil)
+
+				artifactCreator.Returns(artifact, nil)
+				artifact.CreateFileReturns(fileError)
+			})
+
+			It("check if the deployment is backupable", func() {
+				Expect(boshDirector.FindInstancesCallCount()).To(Equal(1))
+				Expect(instance.IsBackupableCallCount()).To(Equal(1))
+			})
+
+			It("does try to backup the instance", func() {
+				Expect(instance.BackupCallCount()).To(Equal(1))
+			})
+
+			It("fails the backup process", func() {
+				Expect(actualBackupError).To(MatchError(fileError))
+			})
+		})
+
+		Context("fails if backup is not a success", func() {
+			var backupError = fmt.Errorf("i have the best words")
+			BeforeEach(func() {
+				boshDirector.FindInstancesReturns(instances, nil)
+				instance.IsBackupableReturns(true, nil)
+
+				artifactCreator.Returns(artifact, nil)
+				instance.BackupReturns(backupError)
+			})
+
+			It("check if the deployment is backupable", func() {
+				Expect(boshDirector.FindInstancesCallCount()).To(Equal(1))
+				Expect(instance.IsBackupableCallCount()).To(Equal(1))
+			})
+
+			It("does try to backup the instance", func() {
+				Expect(instance.BackupCallCount()).To(Equal(1))
+			})
+
+			It("does not try to create files in the artifact", func() {
+				Expect(artifact.CreateFileCallCount()).To(BeZero())
+			})
+
+			It("fails the backup process", func() {
+				Expect(actualBackupError).To(MatchError(backupError))
 			})
 		})
 	})

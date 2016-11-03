@@ -1,6 +1,8 @@
 package integration
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -68,15 +70,18 @@ var _ = Describe("Backup", func() {
 		})
 
 		It("backs up deployment successfully", func() {
-			instance1.FilesExist(
-				"/var/vcap/jobs/redis/bin/backup",
-			)
+			instance1.ScriptExist("/var/vcap/jobs/redis/bin/backup", `#!/usr/bin/env sh
+echo "backupdata1" > $BACKUP_DESTINATION/backupdump1
+echo "backupdata2" > $BACKUP_DESTINATION/backupdump2
+`)
 
 			session := runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "--debug", "backup")
 
 			Expect(session.ExitCode()).To(BeZero())
 			Expect(path.Join(backupWorkspace, "my-new-deployment")).To(BeADirectory())
 			Expect(path.Join(backupWorkspace, "my-new-deployment/redis-dedicated-node-0.tgz")).To(BeARegularFile())
+			Expect(filesInTar(path.Join(backupWorkspace, "my-new-deployment/redis-dedicated-node-0.tgz"))).To(ConsistOf("backupdump1", "backupdump2"))
+			//TODO: Assert on contents
 		})
 
 		It("errors if a deployment cant be backuped", func() {
@@ -174,3 +179,19 @@ var _ = Describe("Backup", func() {
 		Expect(string(session.Err.Contents())).To(ContainSubstring("Director responded with non-successful status code"))
 	})
 })
+
+func filesInTar(path string) []string {
+	reader, err := os.Open(path)
+	Expect(err).NotTo(HaveOccurred())
+	defer reader.Close()
+
+	archive, err := gzip.NewReader(reader)
+	Expect(err).NotTo(HaveOccurred())
+
+	tarReader := tar.NewReader(archive)
+	filenames := []string{}
+	for header, err := tarReader.Next(); err != nil; header, err = tarReader.Next() {
+		filenames = append(filenames, header.Name)
+	}
+	return filenames
+}

@@ -1,6 +1,9 @@
 package backuper
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+)
 
 func New(bosh BoshDirector, artifactCreator ArtifactCreator) *Backuper {
 	return &Backuper{
@@ -14,7 +17,7 @@ type ArtifactCreator func(string) (Artifact, error)
 
 //go:generate counterfeiter -o fakes/fake_artifact.go . Artifact
 type Artifact interface {
-	CreateFile(string) error
+	CreateFile(string, io.Reader) error
 }
 
 type Backuper struct {
@@ -35,21 +38,31 @@ func (b Backuper) Backup(deploymentName string) error {
 	if err != nil {
 		return err
 	}
-	if len(backupableInstances) == 0 {
+	if backupableInstances.IsEmpty() {
 		return fmt.Errorf("Deployment '%s' has no backup scripts", deploymentName)
 	}
 
 	artifact, err := b.ArtifactCreator(deploymentName)
-
 	if err != nil {
 		return err
 	}
 
+	if err = backupableInstances.Backup(); err != nil {
+		return err
+	}
+	//TODO: Refactor me, maybe
 	for _, instance := range backupableInstances {
-		artifact.CreateFile(instance.Name() + "-" + instance.ID() + ".tgz")
+		backupData, err := instance.DrainBackup()
+		if err != nil {
+			return err
+		}
+
+		if err = artifact.CreateFile(instance.Name()+"-"+instance.ID()+".tgz", backupData); err != nil {
+			return err
+		}
 	}
 
-	return backupableInstances.Backup()
+	return nil
 }
 
 //go:generate counterfeiter -o fakes/fake_bosh_director.go . BoshDirector
