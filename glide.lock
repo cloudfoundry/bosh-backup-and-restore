@@ -270,7 +270,7 @@ imports:
   - matchers/support/goraph/util
   - types
 - name: github.com/pivotal-cf-experimental/cf-webmock
-  version: 9fd00057c201581077dde3a935038940f21e3056
+  version: 997a8a7db11fd6d6453c18b3814deffef5a72be8
   subpackages:
   - mockbosh
   - mockhttp

@@ -77,7 +77,6 @@ var _ = Describe("Backup", func() {
 			Expect(session.ExitCode()).To(BeZero())
 			Expect(path.Join(backupWorkspace, "my-new-deployment")).To(BeADirectory())
 			Expect(path.Join(backupWorkspace, "my-new-deployment/redis-dedicated-node-0.tgz")).To(BeARegularFile())
-			//TODO: test we don't create a file for non backupable instances
 		})
 
 		It("errors if a deployment cant be backuped", func() {
@@ -90,6 +89,80 @@ var _ = Describe("Backup", func() {
 			Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment 'my-new-deployment' has no backup scripts"))
 			Expect(path.Join(backupWorkspace, "my-new-deployment")).NotTo(BeADirectory())
 		})
+	})
+
+	Context("with deployment, with two instances (one backupable)", func() {
+		var backupableInstance *testcluster.Instance
+		var nonBackupableInstance *testcluster.Instance
+
+		BeforeEach(func() {
+			backupableInstance = testcluster.NewInstance()
+			nonBackupableInstance = testcluster.NewInstance()
+			director.VerifyAndMock(
+				mockbosh.VMsForDeployment("my-new-deployment").RedirectsToTask(14),
+				mockbosh.Task(14).RespondsWithTaskContainingState(mockbosh.TaskDone),
+				mockbosh.Task(14).RespondsWithTaskContainingState(mockbosh.TaskDone),
+				mockbosh.TaskEvent(14).RespondsWithVMsOutput([]string{}),
+				mockbosh.TaskOutput(14).RespondsWithVMsOutput([]mockbosh.VMsOutput{
+					{
+						IPs:     []string{"10.0.0.1"},
+						JobName: "redis-dedicated-node",
+					},
+					{
+						IPs:     []string{"10.0.0.2"},
+						JobName: "redis-broker",
+					},
+				}),
+				mockbosh.StartSSHSession("my-new-deployment").ForInstanceGroup("redis-dedicated-node").
+					SetSSHResponseCallback(func(username, key string) {
+						backupableInstance.CreateUser(username, key)
+					}).RedirectsToTask(15),
+				mockbosh.Task(15).RespondsWithTaskContainingState(mockbosh.TaskDone),
+				mockbosh.Task(15).RespondsWithTaskContainingState(mockbosh.TaskDone),
+				mockbosh.TaskEvent(15).RespondsWith("{}"),
+				mockbosh.TaskOutput(15).RespondsWith(fmt.Sprintf(`[{"status":"success",
+				"ip":"%s",
+				"host_public_key":"not-relevant",
+				"index":0}]`, backupableInstance.Address())),
+
+				mockbosh.StartSSHSession("my-new-deployment").ForInstanceGroup("redis-broker").
+					SetSSHResponseCallback(func(username, key string) {
+						nonBackupableInstance.CreateUser(username, key)
+					}).RedirectsToTask(19),
+				mockbosh.Task(19).RespondsWithTaskContainingState(mockbosh.TaskDone),
+				mockbosh.Task(19).RespondsWithTaskContainingState(mockbosh.TaskDone),
+				mockbosh.TaskEvent(19).RespondsWith("{}"),
+				mockbosh.TaskOutput(19).RespondsWith(fmt.Sprintf(`[{"status":"success",
+				"ip":"%s",
+				"host_public_key":"not-relevant",
+				"index":0}]`, nonBackupableInstance.Address())),
+
+				mockbosh.CleanupSSHSession("my-new-deployment").ForInstanceGroup("redis-dedicated-node").RedirectsToTask(16),
+				mockbosh.Task(16).RespondsWithTaskContainingState(mockbosh.TaskDone),
+
+				mockbosh.CleanupSSHSession("my-new-deployment").ForInstanceGroup("redis-broker").RedirectsToTask(20),
+				mockbosh.Task(20).RespondsWithTaskContainingState(mockbosh.TaskDone),
+			)
+		})
+
+		AfterEach(func() {
+			go backupableInstance.Die()
+			go nonBackupableInstance.Die()
+		})
+
+		It("backs up deployment successfully", func() {
+			backupableInstance.FilesExist(
+				"/var/vcap/jobs/redis/bin/backup",
+			)
+
+			session := runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "--debug", "backup")
+
+			Expect(session.ExitCode()).To(BeZero())
+			Expect(path.Join(backupWorkspace, "my-new-deployment")).To(BeADirectory())
+			Expect(path.Join(backupWorkspace, "my-new-deployment/redis-dedicated-node-0.tgz")).To(BeARegularFile())
+			Expect(path.Join(backupWorkspace, "my-new-deployment/redis-broker-0.tgz")).ToNot(BeAnExistingFile())
+		})
+
 	})
 
 	It("returns error if deployment not found", func() {
