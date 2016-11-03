@@ -14,17 +14,6 @@ type DirectoryArtifact struct {
 	baseDirName string
 }
 
-func (d *DirectoryArtifact) CreateFile(name string, contents io.Reader) error {
-	var file *os.File
-	var err error
-
-	if file, err = os.Create(path.Join(d.baseDirName, name)); err != nil {
-		return err
-	}
-
-	if _, err = io.Copy(file, contents); err != nil {
-		return err
-	}
-
-	return file.Close()
+func (d *DirectoryArtifact) CreateFile(name string) (io.WriteCloser, error) {
+	return os.Create(path.Join(d.baseDirName, name))
 }

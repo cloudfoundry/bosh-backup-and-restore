@@ -17,7 +17,7 @@ type ArtifactCreator func(string) (Artifact, error)
 
 //go:generate counterfeiter -o fakes/fake_artifact.go . Artifact
 type Artifact interface {
-	CreateFile(string, io.Reader) error
+	CreateFile(string) (io.WriteCloser, error)
 }
 
 type Backuper struct {
@@ -52,12 +52,16 @@ func (b Backuper) Backup(deploymentName string) error {
 	}
 	//TODO: Refactor me, maybe
 	for _, instance := range backupableInstances {
-		backupData, err := instance.DrainBackup()
+		writer, err := artifact.CreateFile(instance.Name() + "-" + instance.ID() + ".tgz")
 		if err != nil {
 			return err
 		}
 
-		if err = artifact.CreateFile(instance.Name()+"-"+instance.ID()+".tgz", backupData); err != nil {
+		if err := instance.StreamBackupTo(writer); err != nil {
+			return err
+		}
+
+		if err := writer.Close(); err != nil {
 			return err
 		}
 	}

@@ -40,12 +40,13 @@ type FakeInstance struct {
 	cleanupReturns     struct {
 		result1 error
 	}
-	DrainBackupStub        func() (io.Reader, error)
-	drainBackupMutex       sync.RWMutex
-	drainBackupArgsForCall []struct{}
-	drainBackupReturns     struct {
-		result1 io.Reader
-		result2 error
+	StreamBackupToStub        func(io.Writer) error
+	streamBackupToMutex       sync.RWMutex
+	streamBackupToArgsForCall []struct {
+		arg1 io.Writer
+	}
+	streamBackupToReturns struct {
+		result1 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -177,30 +178,37 @@ func (fake *FakeInstance) CleanupReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeInstance) DrainBackup() (io.Reader, error) {
-	fake.drainBackupMutex.Lock()
-	fake.drainBackupArgsForCall = append(fake.drainBackupArgsForCall, struct{}{})
-	fake.recordInvocation("DrainBackup", []interface{}{})
-	fake.drainBackupMutex.Unlock()
-	if fake.DrainBackupStub != nil {
-		return fake.DrainBackupStub()
+func (fake *FakeInstance) StreamBackupTo(arg1 io.Writer) error {
+	fake.streamBackupToMutex.Lock()
+	fake.streamBackupToArgsForCall = append(fake.streamBackupToArgsForCall, struct {
+		arg1 io.Writer
+	}{arg1})
+	fake.recordInvocation("StreamBackupTo", []interface{}{arg1})
+	fake.streamBackupToMutex.Unlock()
+	if fake.StreamBackupToStub != nil {
+		return fake.StreamBackupToStub(arg1)
 	} else {
-		return fake.drainBackupReturns.result1, fake.drainBackupReturns.result2
+		return fake.streamBackupToReturns.result1
 	}
 }
 
-func (fake *FakeInstance) DrainBackupCallCount() int {
-	fake.drainBackupMutex.RLock()
-	defer fake.drainBackupMutex.RUnlock()
-	return len(fake.drainBackupArgsForCall)
+func (fake *FakeInstance) StreamBackupToCallCount() int {
+	fake.streamBackupToMutex.RLock()
+	defer fake.streamBackupToMutex.RUnlock()
+	return len(fake.streamBackupToArgsForCall)
 }
 
-func (fake *FakeInstance) DrainBackupReturns(result1 io.Reader, result2 error) {
-	fake.DrainBackupStub = nil
-	fake.drainBackupReturns = struct {
-		result1 io.Reader
-		result2 error
-	}{result1, result2}
+func (fake *FakeInstance) StreamBackupToArgsForCall(i int) io.Writer {
+	fake.streamBackupToMutex.RLock()
+	defer fake.streamBackupToMutex.RUnlock()
+	return fake.streamBackupToArgsForCall[i].arg1
+}
+
+func (fake *FakeInstance) StreamBackupToReturns(result1 error) {
+	fake.StreamBackupToStub = nil
+	fake.streamBackupToReturns = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeInstance) Invocations() map[string][][]interface{} {
@@ -216,8 +224,8 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.backupMutex.RUnlock()
 	fake.cleanupMutex.RLock()
 	defer fake.cleanupMutex.RUnlock()
-	fake.drainBackupMutex.RLock()
-	defer fake.drainBackupMutex.RUnlock()
+	fake.streamBackupToMutex.RLock()
+	defer fake.streamBackupToMutex.RUnlock()
 	return fake.invocations
 }
 

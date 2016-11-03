@@ -47,5 +47,5 @@ type Instance interface {
 	IsBackupable() (bool, error)
 	Backup() error
 	Cleanup() error
-	DrainBackup() (io.Reader, error)
+	StreamBackupTo(io.Writer) error
 }

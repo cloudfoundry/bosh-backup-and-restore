@@ -1,9 +1,7 @@
 package backuper_test
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -21,6 +19,7 @@ var _ = Describe("Backuper", func() {
 		artifactCreator   *fakes.FakeArtifactCreator
 		deploymentName    = "foobarbaz"
 		actualBackupError error
+		backupWriter      *fakes.FakeWriteCloser
 	)
 
 	BeforeEach(func() {
@@ -30,23 +29,23 @@ var _ = Describe("Backuper", func() {
 		instance = new(fakes.FakeInstance)
 		instances = backuper.Instances{instance}
 		b = backuper.New(boshDirector, artifactCreator.Spy)
+		backupWriter = new(fakes.FakeWriteCloser)
+
 	})
 	JustBeforeEach(func() {
 		actualBackupError = b.Backup(deploymentName)
 	})
 
 	Context("backups up an instance", func() {
-		var expectedReader io.Reader
 		BeforeEach(func() {
-			expectedReader = bytes.NewBufferString("some data")
-
 			artifactCreator.Returns(artifact, nil)
 			boshDirector.FindInstancesReturns(instances, nil)
 			instance.IsBackupableReturns(true, nil)
 			instance.CleanupReturns(nil)
 			instance.NameReturns("redis")
 			instance.IDReturns("0")
-			instance.DrainBackupReturns(expectedReader, nil)
+			artifact.CreateFileReturns(backupWriter, nil)
+			instance.StreamBackupToReturns(nil)
 		})
 
 		It("does not fail", func() {
@@ -80,15 +79,12 @@ var _ = Describe("Backuper", func() {
 
 		It("creates files on disk for each backupable instance", func() {
 			Expect(artifact.CreateFileCallCount()).To(Equal(1))
-			filename, _ := artifact.CreateFileArgsForCall(0)
+			filename := artifact.CreateFileArgsForCall(0)
 			Expect(filename).To(Equal("redis-0.tgz"))
 		})
-		It("writes the drained backup to file", func() {
-			Expect(instance.DrainBackupCallCount()).To(Equal(1))
-			Expect(artifact.CreateFileCallCount()).To(Equal(1))
-			filename, reader := artifact.CreateFileArgsForCall(0)
-			Expect(filename).To(Equal("redis-0.tgz"))
-			Expect(reader).To(Equal(expectedReader))
+		It("streams the contents to the writer", func() {
+			Expect(instance.StreamBackupToCallCount()).To(Equal(1))
+			Expect(instance.StreamBackupToArgsForCall(0)).To(Equal(backupWriter))
 		})
 	})
 
@@ -100,6 +96,7 @@ var _ = Describe("Backuper", func() {
 			instances = backuper.Instances{instance, nonBackupableInstance}
 
 			artifactCreator.Returns(artifact, nil)
+			artifact.CreateFileReturns(backupWriter, nil)
 			boshDirector.FindInstancesReturns(instances, nil)
 			instance.IsBackupableReturns(true, nil)
 			instance.CleanupReturns(nil)
@@ -205,7 +202,7 @@ var _ = Describe("Backuper", func() {
 				boshDirector.FindInstancesReturns(instances, nil)
 				instance.IsBackupableReturns(true, nil)
 				artifactCreator.Returns(artifact, nil)
-				instance.DrainBackupReturns(nil, drainError)
+				instance.StreamBackupToReturns(drainError)
 			})
 
 			It("check if the deployment is backupable", func() {
@@ -219,10 +216,6 @@ var _ = Describe("Backuper", func() {
 
 			It("fails the backup process", func() {
 				Expect(actualBackupError).To(MatchError(drainError))
-			})
-
-			It("does not try to create files in the artifact", func() {
-				Expect(artifact.CreateFileCallCount()).To(BeZero())
 			})
 		})
 
@@ -256,7 +249,7 @@ var _ = Describe("Backuper", func() {
 				instance.IsBackupableReturns(true, nil)
 
 				artifactCreator.Returns(artifact, nil)
-				artifact.CreateFileReturns(fileError)
+				artifact.CreateFileReturns(nil, fileError)
 			})
 
 			It("check if the deployment is backupable", func() {

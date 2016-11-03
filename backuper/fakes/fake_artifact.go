@@ -9,31 +9,30 @@ import (
 )
 
 type FakeArtifact struct {
-	CreateFileStub        func(string, io.Reader) error
+	CreateFileStub        func(string) (io.WriteCloser, error)
 	createFileMutex       sync.RWMutex
 	createFileArgsForCall []struct {
 		arg1 string
-		arg2 io.Reader
 	}
 	createFileReturns struct {
-		result1 error
+		result1 io.WriteCloser
+		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeArtifact) CreateFile(arg1 string, arg2 io.Reader) error {
+func (fake *FakeArtifact) CreateFile(arg1 string) (io.WriteCloser, error) {
 	fake.createFileMutex.Lock()
 	fake.createFileArgsForCall = append(fake.createFileArgsForCall, struct {
 		arg1 string
-		arg2 io.Reader
-	}{arg1, arg2})
-	fake.recordInvocation("CreateFile", []interface{}{arg1, arg2})
+	}{arg1})
+	fake.recordInvocation("CreateFile", []interface{}{arg1})
 	fake.createFileMutex.Unlock()
 	if fake.CreateFileStub != nil {
-		return fake.CreateFileStub(arg1, arg2)
+		return fake.CreateFileStub(arg1)
 	} else {
-		return fake.createFileReturns.result1
+		return fake.createFileReturns.result1, fake.createFileReturns.result2
 	}
 }
 
@@ -43,17 +42,18 @@ func (fake *FakeArtifact) CreateFileCallCount() int {
 	return len(fake.createFileArgsForCall)
 }
 
-func (fake *FakeArtifact) CreateFileArgsForCall(i int) (string, io.Reader) {
+func (fake *FakeArtifact) CreateFileArgsForCall(i int) string {
 	fake.createFileMutex.RLock()
 	defer fake.createFileMutex.RUnlock()
-	return fake.createFileArgsForCall[i].arg1, fake.createFileArgsForCall[i].arg2
+	return fake.createFileArgsForCall[i].arg1
 }
 
-func (fake *FakeArtifact) CreateFileReturns(result1 error) {
+func (fake *FakeArtifact) CreateFileReturns(result1 io.WriteCloser, result2 error) {
 	fake.CreateFileStub = nil
 	fake.createFileReturns = struct {
-		result1 error
-	}{result1}
+		result1 io.WriteCloser
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeArtifact) Invocations() map[string][][]interface{} {
