@@ -15,15 +15,17 @@ var _ = Describe("Backuper", func() {
 		b                 *backuper.Backuper
 		instance          *fakes.FakeInstance
 		instances         backuper.Instances
+		artifactCreator   *fakes.FakeArtifactCreator
 		deploymentName    = "foobarbaz"
 		actualBackupError error
 	)
 
 	BeforeEach(func() {
 		boshDirector = new(fakes.FakeBoshDirector)
-		b = backuper.New(boshDirector)
+		artifactCreator = new(fakes.FakeArtifactCreator)
 		instance = new(fakes.FakeInstance)
 		instances = backuper.Instances{instance}
+		b = backuper.New(boshDirector, artifactCreator.Spy)
 	})
 	JustBeforeEach(func() {
 		actualBackupError = b.Backup(deploymentName)
@@ -55,6 +57,14 @@ var _ = Describe("Backuper", func() {
 
 		It("ensures that instance is cleaned up", func() {
 			Expect(instance.CleanupCallCount()).To(Equal(1))
+		})
+
+		It("creates a local artifact", func() {
+			Expect(artifactCreator.CallCount()).To(Equal(1))
+		})
+
+		It("names the artifact after the deployment", func() {
+			Expect(artifactCreator.ArgsForCall(0)).To(Equal(deploymentName))
 		})
 	})
 
@@ -107,6 +117,29 @@ var _ = Describe("Backuper", func() {
 			})
 			It("ensures that deployment is cleaned up", func() {
 				Expect(instance.CleanupCallCount()).To(Equal(1))
+			})
+		})
+
+		Context("fails if artifact cannot be created", func() {
+			var artifactError = fmt.Errorf("they are bringing crime")
+			BeforeEach(func() {
+				boshDirector.FindInstancesReturns(instances, nil)
+				instance.IsBackupableReturns(true, nil)
+
+				artifactCreator.Returns(nil, artifactError)
+			})
+
+			It("check if the deployment is backupable", func() {
+				Expect(boshDirector.FindInstancesCallCount()).To(Equal(1))
+				Expect(instance.IsBackupableCallCount()).To(Equal(1))
+			})
+
+			It("dosent backup the instance", func() {
+				Expect(instance.BackupCallCount()).To(BeZero())
+			})
+
+			It("fails the backup process", func() {
+				Expect(actualBackupError).To(MatchError(artifactError))
 			})
 		})
 	})
