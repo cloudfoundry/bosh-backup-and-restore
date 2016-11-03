@@ -18,16 +18,13 @@ func TestIntegration(t *testing.T) {
 }
 
 var commandPath string
-
-//Default cert for golang ssh
-var sslCertPath = "../../fixtures/test.crt"
+var sslCertPath = "../fixtures/test.crt"
 var runTimeout = 5 * time.Second
 
-func runBinary(cwd string, env []string, params ...string) *gexec.Session {
+func runBinary(env []string, params ...string) *gexec.Session {
 	command := exec.Command(commandPath, params...)
 	command.Env = env
-	command.Dir = cwd
-	fmt.Fprintf(GinkgoWriter, "Running command:: %v in %s\n", params, cwd)
+	fmt.Fprintf(GinkgoWriter, "Running command:: %v\n", params)
 	fmt.Fprintf(GinkgoWriter, "Command output start\n")
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ToNot(HaveOccurred())

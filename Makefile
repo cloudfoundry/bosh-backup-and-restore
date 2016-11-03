@@ -17,7 +17,7 @@ test-unit:
 	ginkgo -r bosh backuper ssh
 
 test-integration:
-	ginkgo -r integration -nodes 4
+	ginkgo -r integration
 
 bin:
 	go build -o pbr github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr

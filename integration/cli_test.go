@@ -1,9 +1,6 @@
 package integration
 
 import (
-	"io/ioutil"
-	"os"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -14,33 +11,26 @@ import (
 var _ = Describe("CLI Interface", func() {
 
 	var director *mockhttp.Server
-	var backupWorkspace string
-
 	AfterEach(func() {
-		Expect(os.RemoveAll(backupWorkspace)).To(Succeed())
 		director.VerifyMocks()
 	})
-
 	BeforeEach(func() {
 		director = mockbosh.NewTLS()
 		director.ExpectedBasicAuth("admin", "admin")
-		var err error
-		backupWorkspace, err = ioutil.TempDir(".", "backup-workspace-")
-		Expect(err).NotTo(HaveOccurred())
 	})
 
 	Context("Params", func() {
 		It("can invoke command with short names", func() {
 			director.VerifyAndMock(mockbosh.VMsForDeployment("my-new-deployment").NotFound())
 
-			runBinary(backupWorkspace, []string{}, "--ca-cert", sslCertPath, "-u", "admin", "-p", "admin", "-t", director.URL, "-d", "my-new-deployment", "backup")
+			runBinary([]string{}, "--ca-cert", sslCertPath, "-u", "admin", "-p", "admin", "-t", director.URL, "-d", "my-new-deployment", "backup")
 
 			director.VerifyMocks()
 		})
 		It("can invoke command with long names", func() {
 			director.VerifyAndMock(mockbosh.VMsForDeployment("my-new-deployment").NotFound())
 
-			runBinary(backupWorkspace, []string{}, "--ca-cert", sslCertPath, "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
+			runBinary([]string{}, "--ca-cert", sslCertPath, "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
 
 			director.VerifyMocks()
 		})
@@ -50,7 +40,7 @@ var _ = Describe("CLI Interface", func() {
 		It("outputs verbose HTTP logs", func() {
 			director.VerifyAndMock(mockbosh.VMsForDeployment("my-new-deployment").NotFound())
 
-			session := runBinary(backupWorkspace, []string{}, "--debug", "--ca-cert", sslCertPath, "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
+			session := runBinary([]string{}, "--debug", "--ca-cert", sslCertPath, "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
 
 			Expect(string(session.Out.Contents())).To(ContainSubstring("Sending GET request to endpoint"))
 
@@ -62,7 +52,7 @@ var _ = Describe("CLI Interface", func() {
 		It("can invoke command with long names", func() {
 			director.VerifyAndMock(mockbosh.VMsForDeployment("my-new-deployment").NotFound())
 
-			runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
+			runBinary([]string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
 
 			director.VerifyMocks()
 		})
@@ -73,7 +63,7 @@ var _ = Describe("CLI Interface", func() {
 		var session *gexec.Session
 		BeforeEach(func() {
 			badDirectorURL := "https://:25555"
-			session = runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--username", "admin", "--password", "admin", "--target", badDirectorURL, "--deployment", "my-new-deployment", "backup")
+			session = runBinary([]string{"BOSH_PASSWORD=admin"}, "--username", "admin", "--password", "admin", "--target", badDirectorURL, "--deployment", "my-new-deployment", "backup")
 			output.output = session.Err.Contents()
 		})
 
@@ -90,7 +80,7 @@ var _ = Describe("CLI Interface", func() {
 		var output helpText
 		var session *gexec.Session
 		BeforeEach(func() {
-			session = runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--ca-cert", "/tmp/whatever", "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
+			session = runBinary([]string{"BOSH_PASSWORD=admin"}, "--ca-cert", "/tmp/whatever", "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
 			output.output = session.Err.Contents()
 		})
 
@@ -107,7 +97,7 @@ var _ = Describe("CLI Interface", func() {
 		var output helpText
 		var session *gexec.Session
 		BeforeEach(func() {
-			session = runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--dave", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
+			session = runBinary([]string{"BOSH_PASSWORD=admin"}, "--dave", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
 			output.output = session.Out.Contents()
 		})
 
@@ -130,7 +120,7 @@ var _ = Describe("CLI Interface", func() {
 			env = []string{"BOSH_PASSWORD=admin"}
 		})
 		JustBeforeEach(func() {
-			session = runBinary(backupWorkspace, env, command...)
+			session = runBinary(env, command...)
 			output.output = session.Out.Contents()
 		})
 
@@ -196,7 +186,7 @@ var _ = Describe("CLI Interface", func() {
 		var output helpText
 
 		BeforeEach(func() {
-			output.output = runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--help").Out.Contents()
+			output.output = runBinary([]string{"BOSH_PASSWORD=admin"}, "--help").Out.Contents()
 		})
 
 		ShowsTheHelpText(&output)
@@ -206,7 +196,7 @@ var _ = Describe("CLI Interface", func() {
 		var output helpText
 
 		BeforeEach(func() {
-			output.output = runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "").Out.Contents()
+			output.output = runBinary([]string{"BOSH_PASSWORD=admin"}, "").Out.Contents()
 		})
 
 		ShowsTheHelpText(&output)
