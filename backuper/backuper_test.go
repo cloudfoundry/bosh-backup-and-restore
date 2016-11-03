@@ -15,6 +15,7 @@ var _ = Describe("Backuper", func() {
 		b                 *backuper.Backuper
 		instance          *fakes.FakeInstance
 		instances         backuper.Instances
+		artifact          *fakes.FakeArtifact
 		artifactCreator   *fakes.FakeArtifactCreator
 		deploymentName    = "foobarbaz"
 		actualBackupError error
@@ -32,12 +33,14 @@ var _ = Describe("Backuper", func() {
 		actualBackupError = b.Backup(deploymentName)
 	})
 
-	Context("backups up instances", func() {
+	Context("backups up an instance", func() {
 		BeforeEach(func() {
 			artifactCreator.Returns(artifact, nil)
 			boshDirector.FindInstancesReturns(instances, nil)
 			instance.IsBackupableReturns(true, nil)
 			instance.CleanupReturns(nil)
+			instance.NameReturns("redis")
+			instance.IDReturns("0")
 		})
 
 		It("does not fail", func() {
@@ -71,6 +74,62 @@ var _ = Describe("Backuper", func() {
 
 		It("creates files on disk for each backupable instance", func() {
 			Expect(artifact.CreateFileCallCount()).To(Equal(1))
+			Expect(artifact.CreateFileArgsForCall(0)).To(Equal("redis-0.tgz"))
+		})
+	})
+
+	Context("backups deployment with a non backupable instance and a backupable instance", func() {
+		var nonBackupableInstance *fakes.FakeInstance
+
+		BeforeEach(func() {
+			nonBackupableInstance = new(fakes.FakeInstance)
+			instances = backuper.Instances{instance, nonBackupableInstance}
+
+			artifactCreator.Returns(artifact, nil)
+			boshDirector.FindInstancesReturns(instances, nil)
+			instance.IsBackupableReturns(true, nil)
+			instance.CleanupReturns(nil)
+			instance.NameReturns("redis")
+			instance.IDReturns("0")
+
+			nonBackupableInstance.IsBackupableReturns(false, nil)
+			nonBackupableInstance.NameReturns("broker")
+			nonBackupableInstance.IDReturns("0")
+		})
+
+		It("does not fail", func() {
+			Expect(actualBackupError).ToNot(HaveOccurred())
+		})
+
+		It("finds the instances for the deployment", func() {
+			Expect(boshDirector.FindInstancesCallCount()).To(Equal(1))
+			Expect(boshDirector.FindInstancesArgsForCall(0)).To(Equal(deploymentName))
+		})
+
+		It("checks if the instances is backupable", func() {
+			Expect(instance.IsBackupableCallCount()).To(Equal(1))
+			Expect(nonBackupableInstance.IsBackupableCallCount()).To(Equal(1))
+		})
+
+		It("runs backup scripts on the backupable instance", func() {
+			Expect(instance.BackupCallCount()).To(Equal(1))
+		})
+
+		It("does not run the backup scripts on the non backupable instance", func() {
+			Expect(nonBackupableInstance.BackupCallCount()).To(BeZero())
+		})
+
+		It("ensures that instance is cleaned up", func() {
+			Expect(instance.CleanupCallCount()).To(Equal(1))
+		})
+
+		It("ensures that nonbackupable instance is cleaned up", func() {
+			Expect(nonBackupableInstance.CleanupCallCount()).To(Equal(1))
+		})
+
+		It("creates files on disk for only the backupable instance", func() {
+			Expect(artifact.CreateFileCallCount()).To(Equal(1))
+			Expect(artifact.CreateFileArgsForCall(0)).To(Equal("redis-0.tgz"))
 		})
 	})
 

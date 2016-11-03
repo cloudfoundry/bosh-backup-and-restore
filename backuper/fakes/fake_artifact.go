@@ -8,20 +8,29 @@ import (
 )
 
 type FakeArtifact struct {
-	CreateFileStub        func()
+	CreateFileStub        func(string) error
 	createFileMutex       sync.RWMutex
-	createFileArgsForCall []struct{}
-	invocations           map[string][][]interface{}
-	invocationsMutex      sync.RWMutex
+	createFileArgsForCall []struct {
+		arg1 string
+	}
+	createFileReturns struct {
+		result1 error
+	}
+	invocations      map[string][][]interface{}
+	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeArtifact) CreateFile() {
+func (fake *FakeArtifact) CreateFile(arg1 string) error {
 	fake.createFileMutex.Lock()
-	fake.createFileArgsForCall = append(fake.createFileArgsForCall, struct{}{})
-	fake.recordInvocation("CreateFile", []interface{}{})
+	fake.createFileArgsForCall = append(fake.createFileArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("CreateFile", []interface{}{arg1})
 	fake.createFileMutex.Unlock()
 	if fake.CreateFileStub != nil {
-		fake.CreateFileStub()
+		return fake.CreateFileStub(arg1)
+	} else {
+		return fake.createFileReturns.result1
 	}
 }
 
@@ -29,6 +38,19 @@ func (fake *FakeArtifact) CreateFileCallCount() int {
 	fake.createFileMutex.RLock()
 	defer fake.createFileMutex.RUnlock()
 	return len(fake.createFileArgsForCall)
+}
+
+func (fake *FakeArtifact) CreateFileArgsForCall(i int) string {
+	fake.createFileMutex.RLock()
+	defer fake.createFileMutex.RUnlock()
+	return fake.createFileArgsForCall[i].arg1
+}
+
+func (fake *FakeArtifact) CreateFileReturns(result1 error) {
+	fake.CreateFileStub = nil
+	fake.createFileReturns = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeArtifact) Invocations() map[string][][]interface{} {

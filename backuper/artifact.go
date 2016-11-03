@@ -1,18 +1,23 @@
 package backuper
 
-import "os"
+import (
+	"os"
+	"path"
+)
 
 func DirectoryArtifactCreator(name string) (Artifact, error) {
-	err := os.MkdirAll(name, 0700)
-	if err != nil {
-		panic("oh my christ")
-	}
-	return nil, nil
+	return &DirectoryArtifact{baseDirName: name}, os.MkdirAll(name, 0700)
 }
 
 type DirectoryArtifact struct {
+	baseDirName string
 }
 
-func (*DirectoryArtifact) CreateFile() {
-
+func (d *DirectoryArtifact) CreateFile(name string) error {
+	var file *os.File
+	var err error
+	if file, err = os.Create(path.Join(d.baseDirName, name)); err != nil {
+		return err
+	}
+	return file.Close()
 }

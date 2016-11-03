@@ -14,7 +14,7 @@ type ArtifactCreator func(string) (Artifact, error)
 
 //go:generate counterfeiter -o fakes/fake_artifact.go . Artifact
 type Artifact interface {
-	CreateFile()
+	CreateFile(string) error
 }
 
 type Backuper struct {
@@ -39,10 +39,14 @@ func (b Backuper) Backup(deploymentName string) error {
 		return fmt.Errorf("Deployment '%s' has no backup scripts", deploymentName)
 	}
 
-	_, err = b.ArtifactCreator(deploymentName)
+	artifact, err := b.ArtifactCreator(deploymentName)
 
 	if err != nil {
 		return err
+	}
+
+	for _, instance := range backupableInstances {
+		artifact.CreateFile(instance.Name() + "-" + instance.ID() + ".tgz")
 	}
 
 	return backupableInstances.Backup()

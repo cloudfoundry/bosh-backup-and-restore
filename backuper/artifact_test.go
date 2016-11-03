@@ -18,8 +18,43 @@ var _ = Describe("Artifact", func() {
 			Expect(artifactName).To(BeADirectory())
 		})
 
-		AfterEach(func() {
-			Expect(os.RemoveAll(artifactName)).To(Succeed())
+	})
+	Describe("CreateFile", func() {
+		var artifact Artifact
+		var filename string
+		var artifactCreationError error
+		var fileCreationError error
+		BeforeEach(func() {
+			artifact, artifactCreationError = DirectoryArtifactCreator(artifactName)
 		})
+		JustBeforeEach(func() {
+			fileCreationError = artifact.CreateFile(filename)
+		})
+		Context("Can create a file", func() {
+			BeforeEach(func() {
+				filename = "foo"
+			})
+			It("creates a file in the artifact directory", func() {
+				Expect(artifactName + "/" + "foo").To(BeARegularFile())
+			})
+
+			It("does not fail", func() {
+				Expect(fileCreationError).NotTo(HaveOccurred())
+			})
+		})
+
+		Context("Cannot create file", func() {
+			BeforeEach(func() {
+				filename = "foo/bar/baz"
+			})
+			It("fails", func() {
+				Expect(fileCreationError).To(HaveOccurred())
+			})
+		})
+
+	})
+
+	AfterEach(func() {
+		Expect(os.RemoveAll(artifactName)).To(Succeed())
 	})
 })
