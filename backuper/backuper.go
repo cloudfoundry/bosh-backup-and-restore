@@ -31,20 +31,21 @@ func (b Backuper) Backup(deploymentName string) error {
 	}
 	defer instances.Cleanup()
 
-	backupable, err := instances.AllBackupable()
+	backupableInstances, err := instances.AllBackupable()
 	if err != nil {
 		return err
 	}
-	if len(backupable) == 0 {
+	if len(backupableInstances) == 0 {
 		return fmt.Errorf("Deployment '%s' has no backup scripts", deploymentName)
 	}
 
 	_, err = b.ArtifactCreator(deploymentName)
+
 	if err != nil {
 		return err
 	}
 
-	return backupable.Backup()
+	return backupableInstances.Backup()
 }
 
 //go:generate counterfeiter -o fakes/fake_bosh_director.go . BoshDirector

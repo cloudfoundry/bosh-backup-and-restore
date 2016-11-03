@@ -76,7 +76,8 @@ var _ = Describe("Backup", func() {
 
 			Expect(session.ExitCode()).To(BeZero())
 			Expect(path.Join(backupWorkspace, "my-new-deployment")).To(BeADirectory())
-			// Expect(path.Join(backupWorkspace, "my-new-deployment/redis-0.tgz")).To(BeARegularFile())
+			Expect(path.Join(backupWorkspace, "my-new-deployment/redis-0.tgz")).To(BeARegularFile())
+			//TODO: test we don't create a file for non backupable instances
 		})
 
 		It("errors if a deployment cant be backuped", func() {
@@ -87,6 +88,7 @@ var _ = Describe("Backup", func() {
 			session := runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "--debug", "backup")
 			Expect(session.ExitCode()).NotTo(BeZero())
 			Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment 'my-new-deployment' has no backup scripts"))
+			Expect(path.Join(backupWorkspace, "my-new-deployment")).NotTo(BeADirectory())
 		})
 	})
 

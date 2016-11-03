@@ -25,8 +25,12 @@ bin:
 generate-fakes:
 	go generate ./...
 
+generate:
+	echo */ | cut -f1 -d'/' | grep -v vendor | xargs -IN go generate github.com/pivotal-cf/pcf-backup-and-restore/N/...
 setup:
 	glide install --strip-vendor --strip-vcs
+	go get github.com/maxbrunsfeld/counterfeiter
+	go get github.com/onsi/ginkgo/ginkgo
 
 sys-test-local:
 	BOSH_CERT_PATH=~/workspace/pcf-backup-and-restore-meta/certs/lite-bosh.backup-and-restore.cf-app.com.crt \

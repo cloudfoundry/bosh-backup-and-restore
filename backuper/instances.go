@@ -49,6 +49,8 @@ func (instances Instances) Backup() error {
 
 //go:generate counterfeiter -o fakes/fake_instance.go . Instance
 type Instance interface {
+	Name() string
+	ID() string
 	IsBackupable() (bool, error)
 	Backup() error
 	Cleanup() error

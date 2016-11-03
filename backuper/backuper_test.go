@@ -23,6 +23,7 @@ var _ = Describe("Backuper", func() {
 	BeforeEach(func() {
 		boshDirector = new(fakes.FakeBoshDirector)
 		artifactCreator = new(fakes.FakeArtifactCreator)
+		artifact = new(fakes.FakeArtifact)
 		instance = new(fakes.FakeInstance)
 		instances = backuper.Instances{instance}
 		b = backuper.New(boshDirector, artifactCreator.Spy)
@@ -33,6 +34,7 @@ var _ = Describe("Backuper", func() {
 
 	Context("backups up instances", func() {
 		BeforeEach(func() {
+			artifactCreator.Returns(artifact, nil)
 			boshDirector.FindInstancesReturns(instances, nil)
 			instance.IsBackupableReturns(true, nil)
 			instance.CleanupReturns(nil)
@@ -65,6 +67,10 @@ var _ = Describe("Backuper", func() {
 
 		It("names the artifact after the deployment", func() {
 			Expect(artifactCreator.ArgsForCall(0)).To(Equal(deploymentName))
+		})
+
+		It("creates files on disk for each backupable instance", func() {
+			Expect(artifact.CreateFileCallCount()).To(Equal(1))
 		})
 	})
 
