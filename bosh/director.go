@@ -58,10 +58,10 @@ func (c client) FindInstances(deploymentName string) (backuper.Instances, error)
 
 	instances := backuper.Instances{}
 
-	for _, jobName := range uniqueJobsFromVMs(vms) {
-		c.Logger.Debug("", "Setting up SSH for job %s", jobName)
+	for _, instanceGroupName := range uniqueInstanceGroupNamesFromVMs(vms) {
+		c.Logger.Debug("", "Setting up SSH for job %s", instanceGroupName)
 
-		allVmInstances, err := director.NewAllOrPoolOrInstanceSlugFromString(jobName)
+		allVmInstances, err := director.NewAllOrPoolOrInstanceSlugFromString(instanceGroupName)
 		if err != nil {
 			return nil, err
 		}
@@ -81,7 +81,7 @@ func (c client) FindInstances(deploymentName string) (backuper.Instances, error)
 			if err != nil {
 				return nil, err
 			}
-			instances = append(instances, NewBoshInstance(jobName, host.IndexOrID, sshConnection, deployment, c.Logger))
+			instances = append(instances, NewBoshInstance(instanceGroupName, host.IndexOrID, sshConnection, deployment, c.Logger))
 		}
 	}
 
@@ -97,7 +97,7 @@ func defaultToSSHPort(host string) string {
 	}
 }
 
-func uniqueJobsFromVMs(vms []director.VMInfo) []string {
+func uniqueInstanceGroupNamesFromVMs(vms []director.VMInfo) []string {
 	var jobs []string
 	for _, vm := range vms {
 		if !contains(jobs, vm.JobName) {

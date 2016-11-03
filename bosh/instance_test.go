@@ -147,4 +147,17 @@ var _ = Describe("Instance", func() {
 			})
 		})
 	})
+
+	Context("Name", func() {
+		It("returns the instance name", func() {
+			Expect(instance.Name()).To(Equal("job-name"))
+		})
+	})
+
+	Context("ID", func() {
+		It("returns the instance ID", func() {
+			Expect(instance.ID()).To(Equal("job-index"))
+		})
+
+	})
 })

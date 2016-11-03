@@ -9,8 +9,8 @@ import (
 
 type DeployedInstance struct {
 	director.Deployment
-	JobName  string
-	JobIndex string
+	InstanceGroupName string
+	InstanceIndex     string
 	SSHConnection
 	Logger
 }
@@ -22,18 +22,18 @@ type SSHConnection interface {
 	Username() string
 }
 
-func NewBoshInstance(jobName, jobIndex string, connection SSHConnection, deployment director.Deployment, logger Logger) backuper.Instance {
+func NewBoshInstance(instanceGroupName, instanceIndex string, connection SSHConnection, deployment director.Deployment, logger Logger) backuper.Instance {
 	return DeployedInstance{
-		JobIndex:      jobIndex,
-		JobName:       jobName,
-		SSHConnection: connection,
-		Deployment:    deployment,
-		Logger:        logger,
+		InstanceIndex:     instanceIndex,
+		InstanceGroupName: instanceGroupName,
+		SSHConnection:     connection,
+		Deployment:        deployment,
+		Logger:            logger,
 	}
 }
 
 func (d DeployedInstance) IsBackupable() (bool, error) {
-	d.Logger.Debug("", "Checking instance %s %s has backup scripts", d.JobName, d.JobIndex)
+	d.Logger.Debug("", "Checking instance %s %s has backup scripts", d.InstanceGroupName, d.InstanceIndex)
 	stdin, stdout, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/backup")
 
 	d.Logger.Debug("", "Stdin: %s", string(stdin))
@@ -47,7 +47,7 @@ func (d DeployedInstance) IsBackupable() (bool, error) {
 }
 
 func (d DeployedInstance) Backup() error {
-	d.Logger.Debug("", "Running all backup scripts on instance %s %s", d.JobName, d.JobIndex)
+	d.Logger.Debug("", "Running all backup scripts on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
 	stdin, stdout, exitCode, err := d.Run("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/backup | xargs -IN sudo sh -c N")
 
 	d.Logger.Debug("", "Stdin: %s", string(stdin))
@@ -65,6 +65,14 @@ func (d DeployedInstance) Backup() error {
 }
 
 func (d DeployedInstance) Cleanup() error {
-	d.Logger.Debug("", "Cleaning up SSH connection on instance %s %s", d.JobName, d.JobIndex)
-	return d.CleanUpSSH(director.NewAllOrPoolOrInstanceSlug(d.JobName, d.JobIndex), director.SSHOpts{Username: d.SSHConnection.Username()})
+	d.Logger.Debug("", "Cleaning up SSH connection on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
+	return d.CleanUpSSH(director.NewAllOrPoolOrInstanceSlug(d.InstanceGroupName, d.InstanceIndex), director.SSHOpts{Username: d.SSHConnection.Username()})
+}
+
+func (d DeployedInstance) Name() string {
+	return d.InstanceGroupName
+}
+
+func (d DeployedInstance) ID() string {
+	return d.InstanceIndex
 }
