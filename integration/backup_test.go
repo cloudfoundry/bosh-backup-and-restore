@@ -2,12 +2,13 @@ package integration
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"path"
 
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
 	"github.com/pivotal-cf/pcf-backup-and-restore/testcluster"
-	"github.com/pivotal-cf/pcf-backup-and-restore/testssh"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -15,7 +16,7 @@ import (
 
 var _ = Describe("Backup", func() {
 	var director *mockhttp.Server
-	var testSSHServer *testssh.Server
+	var backupWorkspace string
 
 	AfterEach(func() {
 		director.VerifyMocks()
@@ -23,13 +24,15 @@ var _ = Describe("Backup", func() {
 	BeforeEach(func() {
 		director = mockbosh.NewTLS()
 		director.ExpectedBasicAuth("admin", "admin")
-		testSSHServer = testssh.New(GinkgoWriter)
+		var err error
+		backupWorkspace, err = ioutil.TempDir(".", "backup-workspace-")
+		Expect(err).NotTo(HaveOccurred())
 	})
 	AfterEach(func() {
-		Expect(os.RemoveAll("/var/vcap/jobs")).To(Succeed())
+		Expect(os.RemoveAll(backupWorkspace)).To(Succeed())
 	})
 
-	Context("with deployment present", func() {
+	Context("with deployment, with one instance present", func() {
 		var instance1 *testcluster.Instance
 
 		BeforeEach(func() {
@@ -61,7 +64,7 @@ var _ = Describe("Backup", func() {
 		})
 
 		AfterEach(func() {
-			instance1.Die()
+			go instance1.Die()
 		})
 
 		It("backs up deployment successfully", func() {
@@ -69,8 +72,11 @@ var _ = Describe("Backup", func() {
 				"/var/vcap/jobs/redis/bin/backup",
 			)
 
-			session := runBinary([]string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "--debug", "backup")
+			session := runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "--debug", "backup")
+
 			Expect(session.ExitCode()).To(BeZero())
+			Expect(path.Join(backupWorkspace, "my-new-deployment")).To(BeADirectory())
+			// Expect(path.Join(backupWorkspace, "my-new-deployment/redis-0.tgz")).To(BeARegularFile())
 		})
 
 		It("errors if a deployment cant be backuped", func() {
@@ -78,7 +84,7 @@ var _ = Describe("Backup", func() {
 				"/var/vcap/jobs/redis/bin/ctl",
 			)
 
-			session := runBinary([]string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "--debug", "backup")
+			session := runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "--debug", "backup")
 			Expect(session.ExitCode()).NotTo(BeZero())
 			Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment 'my-new-deployment' has no backup scripts"))
 		})
@@ -87,7 +93,7 @@ var _ = Describe("Backup", func() {
 	It("returns error if deployment not found", func() {
 		director.VerifyAndMock(mockbosh.VMsForDeployment("my-new-deployment").NotFound())
 
-		session := runBinary([]string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
+		session := runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
 
 		Expect(session.ExitCode()).To(Equal(1))
 		Expect(string(session.Err.Contents())).To(ContainSubstring("Director responded with non-successful status code"))

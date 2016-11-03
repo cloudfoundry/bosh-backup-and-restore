@@ -15,13 +15,16 @@ var _ = Describe("Backuper", func() {
 		b                 *backuper.Backuper
 		instance          *fakes.FakeInstance
 		instances         backuper.Instances
+		artifactCreator   *fakes.FakeArtifactCreator
 		deploymentName    = "foobarbaz"
 		actualBackupError error
 	)
 
 	BeforeEach(func() {
 		boshDirector = new(fakes.FakeBoshDirector)
-		b = backuper.New(boshDirector)
+		artifactCreator = new(fakes.FakeArtifactCreator)
+		fmt.Printf("artifactCreator.Stub %v", artifactCreator.Stub)
+		b = backuper.New(boshDirector, artifactCreator.Stub)
 		instance = new(fakes.FakeInstance)
 		instances = backuper.Instances{instance}
 	})
@@ -55,6 +58,14 @@ var _ = Describe("Backuper", func() {
 
 		It("ensures that instance is cleaned up", func() {
 			Expect(instance.CleanupCallCount()).To(Equal(1))
+		})
+
+		It("creates a local artifact", func() {
+			Expect(artifactCreator.CallCount()).To(Equal(1))
+		})
+
+		It("names the artifact after the deployment", func() {
+			Expect(artifactCreator.ArgsForCall(0)).To(Equal(deploymentName))
 		})
 	})
 
