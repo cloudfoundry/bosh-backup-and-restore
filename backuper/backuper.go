@@ -18,6 +18,7 @@ type ArtifactCreator func(string) (Artifact, error)
 //go:generate counterfeiter -o fakes/fake_artifact.go . Artifact
 type Artifact interface {
 	CreateFile(Instance) (io.WriteCloser, error)
+	AddChecksum(Instance, string) error
 }
 
 type Backuper struct {

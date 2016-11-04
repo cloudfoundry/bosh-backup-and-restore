@@ -62,6 +62,70 @@ var _ = Describe("Artifact", func() {
 
 	})
 
+	Describe("AddChecksum", func() {
+		var artifact Artifact
+		var addChecksumError error
+		var fakeInstance *fakes.FakeInstance
+		var checksum string
+
+		BeforeEach(func() {
+			artifact, _ = DirectoryArtifactCreator(artifactName)
+			fakeInstance = new(fakes.FakeInstance)
+			fakeInstance.IDReturns("0")
+			fakeInstance.NameReturns("redis")
+			checksum = "foobar"
+		})
+		JustBeforeEach(func() {
+			addChecksumError = artifact.AddChecksum(fakeInstance, checksum)
+		})
+
+		Context("Succesfully creates a checksum file, if none exists", func() {
+			It("makes a file", func() {
+				Expect(artifactName + "/metadata").To(BeARegularFile())
+
+				expectedMetadata := `---
+checksums:
+- instance_name: redis
+  instance_id: "0"
+  checksum: foobar`
+				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+			})
+		})
+		Context("Appends to a checksum file, if already exists", func() {
+			BeforeEach(func() {
+				firstInstance := new(fakes.FakeInstance)
+				firstInstance.IDReturns("0")
+				firstInstance.NameReturns("broker")
+				Expect(artifact.AddChecksum(firstInstance, "orignal_checksum")).NotTo(HaveOccurred())
+			})
+
+			It("appends to file", func() {
+				Expect(artifactName + "/metadata").To(BeARegularFile())
+
+				expectedMetadata := `---
+checksums:
+- instance_name: broker
+  instance_id: "0"
+  checksum: orignal_checksum
+- instance_name: redis
+  instance_id: "0"
+  checksum: foobar`
+				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+			})
+		})
+
+		Context("Appends fails, if existing file isn't valid", func() {
+			BeforeEach(func() {
+				ioutil.WriteFile(artifactName+"/metadata", []byte("not valid yaml"), 0666)
+			})
+
+			It("fails", func() {
+				Expect(addChecksumError).To(HaveOccurred())
+			})
+		})
+
+	})
+
 	AfterEach(func() {
 		Expect(os.RemoveAll(artifactName)).To(Succeed())
 	})

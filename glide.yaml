@@ -7,3 +7,4 @@ import:
 - package: github.com/mgutz/ansi
 - package: github.com/cloudfoundry/bosh-cli
   version: ^0.0.69
+- package: gopkg.in/yaml.v2

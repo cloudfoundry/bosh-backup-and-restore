@@ -85,6 +85,8 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 			Expect(filesInTar(outputFile)).To(ConsistOf("backupdump1", "backupdump2"))
 			Expect(contentsInTar(outputFile, "backupdump1")).To(Equal("backupcontent1"))
 			Expect(contentsInTar(outputFile, "backupdump2")).To(Equal("backupcontent2"))
+
+			Expect(path.Join(backupWorkspace, "my-new-deployment/metadata")).To(BeARegularFile())
 		})
 
 		It("errors if a deployment cant be backuped", func() {
