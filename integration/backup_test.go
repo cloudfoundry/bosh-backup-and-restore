@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -71,8 +72,8 @@ var _ = Describe("Backup", func() {
 
 		It("backs up deployment successfully", func() {
 			instance1.ScriptExist("/var/vcap/jobs/redis/bin/backup", `#!/usr/bin/env sh
-echo "backupdata1" > $BACKUP_DESTINATION/backupdump1
-echo "backupdata2" > $BACKUP_DESTINATION/backupdump2
+echo "backupdata1" > /var/vcap/store/backup/backupdump1
+echo "backupdata2" > /var/vcap/store/backup/backupdump2
 `)
 
 			session := runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "--debug", "backup")
@@ -190,8 +191,17 @@ func filesInTar(path string) []string {
 
 	tarReader := tar.NewReader(archive)
 	filenames := []string{}
-	for header, err := tarReader.Next(); err != nil; header, err = tarReader.Next() {
-		filenames = append(filenames, header.Name)
+	for {
+		header, err := tarReader.Next()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			Expect(err).NotTo(HaveOccurred())
+		}
+		info := header.FileInfo()
+		if !info.IsDir() {
+			filenames = append(filenames, info.Name())
+		}
 	}
 	return filenames
 }

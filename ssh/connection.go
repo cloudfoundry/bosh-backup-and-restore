@@ -2,6 +2,7 @@ package ssh
 
 import (
 	"bytes"
+	"io"
 
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
 	"golang.org/x/crypto/ssh"
@@ -43,16 +44,21 @@ type Connection struct {
 }
 
 func (c Connection) Run(cmd string) ([]byte, []byte, int, error) {
+	outBuffer := bytes.NewBuffer([]byte{})
+	errBuffer, exitCode, err := c.Stream(cmd, outBuffer)
+	return outBuffer.Bytes(), errBuffer, exitCode, err
+}
+
+func (c Connection) Stream(cmd string, writer io.Writer) ([]byte, int, error) {
 	session, err := c.connection.NewSession()
 	if err != nil {
-		return nil, nil, 0, err
+		return nil, 0, err
 	}
 
-	outBuffer := bytes.NewBuffer([]byte{})
 	errBuffer := bytes.NewBuffer([]byte{})
 	exitCode := 0
 
-	session.Stdout = outBuffer
+	session.Stdout = writer
 	session.Stderr = errBuffer
 	err = session.Run(cmd)
 	if err != nil {
@@ -60,12 +66,12 @@ func (c Connection) Run(cmd string) ([]byte, []byte, int, error) {
 		if yes {
 			exitCode = exitErr.ExitStatus()
 		} else {
-			return nil, nil, -1, err
+			return nil, -1, err
 		}
 
 	}
 
-	return outBuffer.Bytes(), errBuffer.Bytes(), exitCode, nil
+	return errBuffer.Bytes(), exitCode, nil
 }
 
 func (c Connection) Username() string {

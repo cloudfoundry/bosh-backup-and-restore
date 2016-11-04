@@ -1,6 +1,7 @@
 package ssh_test
 
 import (
+	"bytes"
 	"io/ioutil"
 	"os"
 	"strconv"
@@ -80,6 +81,42 @@ var _ = Describe("Connection", func() {
 	Describe("username", func() {
 		It("returns the SSH username", func() {
 			Expect(conn.Username()).To(Equal("admin"))
+		})
+	})
+
+	Describe("Stream", func() {
+		Context("succeeds", func() {
+			var writer *bytes.Buffer
+			var stdErr []byte
+			var exitCode int
+			var runError error
+			var command string
+			JustBeforeEach(func() {
+				stdErr, exitCode, runError = conn.Stream(command, writer)
+			})
+			BeforeEach(func() {
+				writer = bytes.NewBufferString("")
+				command = makeScript(`#!/usr/bin/env sh
+				echo "stdout"
+				echo "stderr" >&2`)
+			})
+			AfterEach(func() {
+				if _, err := os.Stat(command); err == nil {
+					Expect(os.Remove(command)).To(Succeed())
+				}
+			})
+			It("does not fail", func() {
+				Expect(runError).NotTo(HaveOccurred())
+			})
+			It("writes stdout to the writer", func() {
+				Expect(writer.String()).To(ContainSubstring("stdout"))
+			})
+			It("drains stderr", func() {
+				Expect(string(stdErr)).To(ContainSubstring("stderr"))
+			})
+			It("captures exit code", func() {
+				Expect(exitCode).To(BeZero())
+			})
 		})
 	})
 

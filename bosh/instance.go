@@ -2,6 +2,7 @@ package bosh
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
@@ -17,6 +18,7 @@ type DeployedInstance struct {
 
 //go:generate counterfeiter -o fakes/fake_ssh_connection.go . SSHConnection
 type SSHConnection interface {
+	Stream(cmd string, writer io.Writer) ([]byte, int, error)
 	Run(cmd string) ([]byte, []byte, int, error)
 	Cleanup() error
 	Username() string
@@ -48,17 +50,34 @@ func (d DeployedInstance) IsBackupable() (bool, error) {
 
 func (d DeployedInstance) Backup() error {
 	d.Logger.Debug("", "Running all backup scripts on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
-	stdin, stdout, exitCode, err := d.Run("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/backup | xargs -IN sudo sh -c N")
+	stdout, stderr, exitCode, err := d.Run("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/backup | xargs -IN sudo sh -c N")
 
-	d.Logger.Debug("", "Stdin: %s", string(stdin))
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
+	d.Logger.Debug("", "Stderr: %s", string(stderr))
 
 	if err != nil {
 		d.Logger.Debug("", "Error running instance backup scripts. Exit code %d, error %s", exitCode, err.Error())
 	}
 
 	if exitCode != 0 {
-		return fmt.Errorf("Instance backup scripts returned %d. Error: %s", exitCode, stdout)
+		return fmt.Errorf("Instance backup scripts returned %d. Error: %s", exitCode, stderr)
+	}
+
+	return err
+}
+
+func (d DeployedInstance) StreamBackupTo(writer io.Writer) error {
+	d.Logger.Debug("", "Running all backup scripts on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
+	stderr, exitCode, err := d.Stream("sudo tar -C /var/vcap/store/backup -zc .", writer)
+
+	d.Logger.Debug("", "Stderr: %s", string(stderr))
+
+	if err != nil {
+		d.Logger.Debug("", "Error running instance backup scripts. Exit code %d, error %s", exitCode, err.Error())
+	}
+
+	if exitCode != 0 {
+		return fmt.Errorf("Instance backup scripts returned %d. Error: %s", exitCode, stderr)
 	}
 
 	return err

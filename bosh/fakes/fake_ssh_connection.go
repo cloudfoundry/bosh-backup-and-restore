@@ -2,12 +2,24 @@
 package fakes
 
 import (
+	"io"
 	"sync"
 
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
 )
 
 type FakeSSHConnection struct {
+	StreamStub        func(cmd string, writer io.Writer) ([]byte, int, error)
+	streamMutex       sync.RWMutex
+	streamArgsForCall []struct {
+		cmd    string
+		writer io.Writer
+	}
+	streamReturns struct {
+		result1 []byte
+		result2 int
+		result3 error
+	}
 	RunStub        func(cmd string) ([]byte, []byte, int, error)
 	runMutex       sync.RWMutex
 	runArgsForCall []struct {
@@ -33,6 +45,42 @@ type FakeSSHConnection struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeSSHConnection) Stream(cmd string, writer io.Writer) ([]byte, int, error) {
+	fake.streamMutex.Lock()
+	fake.streamArgsForCall = append(fake.streamArgsForCall, struct {
+		cmd    string
+		writer io.Writer
+	}{cmd, writer})
+	fake.recordInvocation("Stream", []interface{}{cmd, writer})
+	fake.streamMutex.Unlock()
+	if fake.StreamStub != nil {
+		return fake.StreamStub(cmd, writer)
+	} else {
+		return fake.streamReturns.result1, fake.streamReturns.result2, fake.streamReturns.result3
+	}
+}
+
+func (fake *FakeSSHConnection) StreamCallCount() int {
+	fake.streamMutex.RLock()
+	defer fake.streamMutex.RUnlock()
+	return len(fake.streamArgsForCall)
+}
+
+func (fake *FakeSSHConnection) StreamArgsForCall(i int) (string, io.Writer) {
+	fake.streamMutex.RLock()
+	defer fake.streamMutex.RUnlock()
+	return fake.streamArgsForCall[i].cmd, fake.streamArgsForCall[i].writer
+}
+
+func (fake *FakeSSHConnection) StreamReturns(result1 []byte, result2 int, result3 error) {
+	fake.StreamStub = nil
+	fake.streamReturns = struct {
+		result1 []byte
+		result2 int
+		result3 error
+	}{result1, result2, result3}
 }
 
 func (fake *FakeSSHConnection) Run(cmd string) ([]byte, []byte, int, error) {
@@ -124,6 +172,8 @@ func (fake *FakeSSHConnection) UsernameReturns(result1 string) {
 func (fake *FakeSSHConnection) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.streamMutex.RLock()
+	defer fake.streamMutex.RUnlock()
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
 	fake.cleanupMutex.RLock()
