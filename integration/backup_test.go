@@ -72,8 +72,8 @@ var _ = Describe("Backup", func() {
 
 		It("backs up deployment successfully", func() {
 			instance1.ScriptExist("/var/vcap/jobs/redis/bin/backup", `#!/usr/bin/env sh
-echo "backupdata1" > /var/vcap/store/backup/backupdump1
-echo "backupdata2" > /var/vcap/store/backup/backupdump2
+printf "backupcontent1" > /var/vcap/store/backup/backupdump1
+printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 `)
 
 			session := runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "--debug", "backup")
@@ -81,8 +81,10 @@ echo "backupdata2" > /var/vcap/store/backup/backupdump2
 			Expect(session.ExitCode()).To(BeZero())
 			Expect(path.Join(backupWorkspace, "my-new-deployment")).To(BeADirectory())
 			Expect(path.Join(backupWorkspace, "my-new-deployment/redis-dedicated-node-0.tgz")).To(BeARegularFile())
-			Expect(filesInTar(path.Join(backupWorkspace, "my-new-deployment/redis-dedicated-node-0.tgz"))).To(ConsistOf("backupdump1", "backupdump2"))
-			//TODO: Assert on contents
+			outputFile := path.Join(backupWorkspace, "my-new-deployment/redis-dedicated-node-0.tgz")
+			Expect(filesInTar(outputFile)).To(ConsistOf("backupdump1", "backupdump2"))
+			Expect(contentsInTar(outputFile, "backupdump1")).To(Equal("backupcontent1"))
+			Expect(contentsInTar(outputFile, "backupdump2")).To(Equal("backupcontent2"))
 		})
 
 		It("errors if a deployment cant be backuped", func() {
@@ -204,4 +206,31 @@ func filesInTar(path string) []string {
 		}
 	}
 	return filenames
+}
+
+func contentsInTar(tarFile, file string) string {
+	reader, err := os.Open(tarFile)
+	Expect(err).NotTo(HaveOccurred())
+	defer reader.Close()
+
+	archive, err := gzip.NewReader(reader)
+	Expect(err).NotTo(HaveOccurred())
+
+	tarReader := tar.NewReader(archive)
+	for {
+		header, err := tarReader.Next()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			Expect(err).NotTo(HaveOccurred())
+		}
+		info := header.FileInfo()
+		if !info.IsDir() && info.Name() == file {
+			contents, err := ioutil.ReadAll(tarReader)
+			Expect(err).NotTo(HaveOccurred())
+			return string(contents)
+		}
+	}
+	Fail("File " + file + " not found in tar " + tarFile)
+	return ""
 }
