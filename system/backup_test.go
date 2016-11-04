@@ -7,12 +7,14 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 )
 
 var _ = Describe("Backs up a deployment", func() {
 	var commandPath string
 	var err error
+	var workspaceDir = "/var/vcap/store/backup_workspace"
 
 	BeforeSuite(func() {
 		SetDefaultEventuallyTimeout(60 * time.Second)
@@ -34,16 +36,24 @@ var _ = Describe("Backs up a deployment", func() {
 
 	})
 	It("backs up", func() {
-		RunBoshCommand(JumpBoxSCPCommand(), commandPath, "jumpbox/0:/tmp")
-		RunBoshCommand(JumpBoxSCPCommand(), MustHaveEnv("BOSH_CERT_PATH"), "jumpbox/0:/tmp/bosh.crt")
+		Eventually(RunCommandOnRemote(
+			JumpBoxSSHCommand(), fmt.Sprintf("sudo mkdir %s && sudo chown vcap:vcap %s && sudo chmod 0777 %s", workspaceDir, workspaceDir, workspaceDir),
+		)).Should(gexec.Exit(0))
+		RunBoshCommand(JumpBoxSCPCommand(), commandPath, "jumpbox/0:"+workspaceDir)
+		RunBoshCommand(JumpBoxSCPCommand(), MustHaveEnv("BOSH_CERT_PATH"), "jumpbox/0:"+workspaceDir+"/bosh.crt")
 
 		By("running the backup command")
-		session := RunCommandOnRemote(
+		Eventually(RunCommandOnRemote(
 			JumpBoxSSHCommand(),
-			fmt.Sprintf(`BOSH_PASSWORD=%s /tmp/pbr --ca-cert /tmp/bosh.crt --username %s --target %s --deployment %s backup`,
-				MustHaveEnv("BOSH_PASSWORD"), MustHaveEnv("BOSH_USER"), MustHaveEnv("BOSH_URL"), TestDeployment()),
-		)
-		Eventually(session).Should(gexec.Exit(0))
+			fmt.Sprintf(`cd %s; BOSH_PASSWORD=%s ./pbr --ca-cert bosh.crt --username %s --target %s --deployment %s backup`,
+				workspaceDir, MustHaveEnv("BOSH_PASSWORD"), MustHaveEnv("BOSH_USER"), MustHaveEnv("BOSH_URL"), TestDeployment()),
+		)).Should(gexec.Exit(0))
+
+		By("backup artifact has been created")
+		Eventually(RunCommandOnRemote(
+			JumpBoxSSHCommand(), fmt.Sprintf("ls %s/%s", workspaceDir, TestDeployment()),
+		)).Should(gbytes.Say("redis-0.tgz"))
+
 	})
 	AfterSuite(func() {
 		RunBoshCommand(JumpBoxBoshCommand(), "delete-deployment")

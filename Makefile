@@ -29,6 +29,7 @@ generate:
 	echo */ | cut -f1 -d'/' | grep -v vendor | xargs -IN go generate github.com/pivotal-cf/pcf-backup-and-restore/N/...
 setup:
 	glide install --strip-vendor --strip-vcs
+	go get github.com/cloudfoundry/bosh-cli
 	go get github.com/maxbrunsfeld/counterfeiter
 	go get github.com/onsi/ginkgo/ginkgo
 
