@@ -14,6 +14,7 @@ type DirectoryArtifact struct {
 	baseDirName string
 }
 
-func (d *DirectoryArtifact) CreateFile(name string) (io.WriteCloser, error) {
-	return os.Create(path.Join(d.baseDirName, name))
+func (d *DirectoryArtifact) CreateFile(inst Instance) (io.WriteCloser, error) {
+	filename := inst.Name() + "-" + inst.ID() + ".tgz"
+	return os.Create(path.Join(d.baseDirName, filename))
 }

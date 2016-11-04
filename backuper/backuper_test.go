@@ -79,8 +79,7 @@ var _ = Describe("Backuper", func() {
 
 		It("creates files on disk for each backupable instance", func() {
 			Expect(artifact.CreateFileCallCount()).To(Equal(1))
-			filename := artifact.CreateFileArgsForCall(0)
-			Expect(filename).To(Equal("redis-0.tgz"))
+			Expect(artifact.CreateFileArgsForCall(0)).To(Equal(instance))
 		})
 		It("streams the contents to the writer", func() {
 			Expect(instance.StreamBackupToCallCount()).To(Equal(1))
@@ -140,7 +139,7 @@ var _ = Describe("Backuper", func() {
 
 		It("creates files on disk for only the backupable instance", func() {
 			Expect(artifact.CreateFileCallCount()).To(Equal(1))
-			Expect(artifact.CreateFileArgsForCall(0)).To(Equal("redis-0.tgz"))
+			Expect(artifact.CreateFileArgsForCall(0)).To(Equal(instance))
 		})
 	})
 

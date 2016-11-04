@@ -9,10 +9,10 @@ import (
 )
 
 type FakeArtifact struct {
-	CreateFileStub        func(string) (io.WriteCloser, error)
+	CreateFileStub        func(backuper.Instance) (io.WriteCloser, error)
 	createFileMutex       sync.RWMutex
 	createFileArgsForCall []struct {
-		arg1 string
+		arg1 backuper.Instance
 	}
 	createFileReturns struct {
 		result1 io.WriteCloser
@@ -22,10 +22,10 @@ type FakeArtifact struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeArtifact) CreateFile(arg1 string) (io.WriteCloser, error) {
+func (fake *FakeArtifact) CreateFile(arg1 backuper.Instance) (io.WriteCloser, error) {
 	fake.createFileMutex.Lock()
 	fake.createFileArgsForCall = append(fake.createFileArgsForCall, struct {
-		arg1 string
+		arg1 backuper.Instance
 	}{arg1})
 	fake.recordInvocation("CreateFile", []interface{}{arg1})
 	fake.createFileMutex.Unlock()
@@ -42,7 +42,7 @@ func (fake *FakeArtifact) CreateFileCallCount() int {
 	return len(fake.createFileArgsForCall)
 }
 
-func (fake *FakeArtifact) CreateFileArgsForCall(i int) string {
+func (fake *FakeArtifact) CreateFileArgsForCall(i int) backuper.Instance {
 	fake.createFileMutex.RLock()
 	defer fake.createFileMutex.RUnlock()
 	return fake.createFileArgsForCall[i].arg1

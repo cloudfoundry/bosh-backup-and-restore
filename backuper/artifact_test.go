@@ -6,6 +6,7 @@ import (
 	"os"
 
 	. "github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/backuper/fakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -22,27 +23,27 @@ var _ = Describe("Artifact", func() {
 	})
 	Describe("CreateFile", func() {
 		var artifact Artifact
-		var filename string
 		var fileCreationError error
 		var writer io.Writer
+		var fakeInstance *fakes.FakeInstance
 
 		BeforeEach(func() {
 			artifact, _ = DirectoryArtifactCreator(artifactName)
+			fakeInstance = new(fakes.FakeInstance)
+			fakeInstance.IDReturns("0")
+			fakeInstance.NameReturns("redis")
 		})
 		JustBeforeEach(func() {
-			writer, fileCreationError = artifact.CreateFile(filename)
+			writer, fileCreationError = artifact.CreateFile(fakeInstance)
 		})
 		Context("Can create a file", func() {
-			BeforeEach(func() {
-				filename = "foo"
-			})
 			It("creates a file in the artifact directory", func() {
-				Expect(artifactName + "/" + "foo").To(BeARegularFile())
+				Expect(artifactName + "/redis-0.tgz").To(BeARegularFile())
 			})
 
 			It("writer writes contents to the file", func() {
 				writer.Write([]byte("they are taking our jobs"))
-				Expect(ioutil.ReadFile(artifactName + "/" + "foo")).To(Equal([]byte("they are taking our jobs")))
+				Expect(ioutil.ReadFile(artifactName + "/redis-0.tgz")).To(Equal([]byte("they are taking our jobs")))
 			})
 
 			It("does not fail", func() {
@@ -52,7 +53,7 @@ var _ = Describe("Artifact", func() {
 
 		Context("Cannot create file", func() {
 			BeforeEach(func() {
-				filename = "foo/bar/baz"
+				fakeInstance.NameReturns("foo/bar/baz")
 			})
 			It("fails", func() {
 				Expect(fileCreationError).To(HaveOccurred())
