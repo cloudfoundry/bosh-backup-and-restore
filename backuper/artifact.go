@@ -1,6 +1,8 @@
 package backuper
 
 import (
+	"crypto/sha1"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -32,6 +34,20 @@ func (d *DirectoryArtifact) CreateFile(inst Instance) (io.WriteCloser, error) {
 	return os.Create(path.Join(d.baseDirName, filename))
 }
 
+func (d *DirectoryArtifact) Checksum(inst Instance) (string, error) {
+	sha := sha1.New()
+	filename := d.instanceFilename(inst)
+	file, err := os.Open(filename)
+	if err != nil {
+		return "", err
+	}
+	if _, err = io.Copy(sha, file); err != nil {
+		return "", err
+	}
+	checksum := sha.Sum(nil)
+	return fmt.Sprintf("%x", checksum), nil
+}
+
 func (d *DirectoryArtifact) AddChecksum(inst Instance, shasum string) error {
 	metadata, err := d.readMetadata()
 	if err != nil {
@@ -54,6 +70,10 @@ func (d *DirectoryArtifact) saveMetadata(data metadata) error {
 	}
 
 	return ioutil.WriteFile(d.metadataFilename(), contents, 0666)
+}
+
+func (d *DirectoryArtifact) instanceFilename(inst Instance) string {
+	return path.Join(d.baseDirName, inst.Name()+"-"+inst.ID()+".tgz")
 }
 
 func (d *DirectoryArtifact) metadataFilename() string {

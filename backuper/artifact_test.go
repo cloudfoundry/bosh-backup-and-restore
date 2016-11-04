@@ -1,6 +1,8 @@
 package backuper_test
 
 import (
+	"crypto/sha1"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -60,6 +62,37 @@ var _ = Describe("Artifact", func() {
 			})
 		})
 
+	})
+
+	Describe("Checksum", func() {
+		var artifact Artifact
+		var fakeInstance *fakes.FakeInstance
+
+		BeforeEach(func() {
+			artifact, _ = DirectoryArtifactCreator(artifactName)
+			fakeInstance = new(fakes.FakeInstance)
+			fakeInstance.IDReturns("0")
+			fakeInstance.NameReturns("redis")
+		})
+		Context("file exists", func() {
+			JustBeforeEach(func() {
+				writer, fileCreationError := artifact.CreateFile(fakeInstance)
+				Expect(fileCreationError).NotTo(HaveOccurred())
+
+				writer.Write([]byte("foo bar baz"))
+				Expect(writer.Close()).NotTo(HaveOccurred())
+			})
+
+			It("returns the checksum for the saved instance data", func() {
+				Expect(artifact.Checksum(fakeInstance)).To(Equal(fmt.Sprintf("%x", sha1.Sum([]byte("foo bar baz")))))
+			})
+		})
+		Context("file doesn't exist", func() {
+			It("fails", func() {
+				_, err := artifact.Checksum(fakeInstance)
+				Expect(err).To(HaveOccurred())
+			})
+		})
 	})
 
 	Describe("AddChecksum", func() {

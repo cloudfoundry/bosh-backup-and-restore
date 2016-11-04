@@ -19,6 +19,7 @@ type ArtifactCreator func(string) (Artifact, error)
 type Artifact interface {
 	CreateFile(Instance) (io.WriteCloser, error)
 	AddChecksum(Instance, string) error
+	Checksum(Instance) (string, error)
 }
 
 type Backuper struct {
@@ -66,19 +67,9 @@ func (b Backuper) Backup(deploymentName string) error {
 		if err := writer.Close(); err != nil {
 			return err
 		}
+		//TODO: Fix
+		artifact.AddChecksum(instance, "invalid")
 	}
-	// // PART II
-	// // for _, instance := range backupableInstances {
-	// // 	if artifact.ShaFor(instance) == instance.BackupSha() {
-	// artifact.AddMetadata(instance, sha)
-	// //
-	// // 	}
-	// // }
-	//
-	// //PART I
-	// artifact.SaveMetadata()
-
-	// _, _ = artifact.CreateFile("metadata")
 
 	return nil
 }
