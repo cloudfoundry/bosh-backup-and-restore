@@ -84,12 +84,12 @@ var _ = Describe("Artifact", func() {
 			})
 
 			It("returns the checksum for the saved instance data", func() {
-				Expect(artifact.Checksum(fakeInstance)).To(Equal(fmt.Sprintf("%x", sha1.Sum([]byte("foo bar baz")))))
+				Expect(artifact.CalculateChecksum(fakeInstance)).To(Equal(fmt.Sprintf("%x", sha1.Sum([]byte("foo bar baz")))))
 			})
 		})
 		Context("file doesn't exist", func() {
 			It("fails", func() {
-				_, err := artifact.Checksum(fakeInstance)
+				_, err := artifact.CalculateChecksum(fakeInstance)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -117,7 +117,7 @@ var _ = Describe("Artifact", func() {
 				Expect(artifactName + "/metadata").To(BeARegularFile())
 
 				expectedMetadata := `---
-checksums:
+instances:
 - instance_name: redis
   instance_id: "0"
   checksum: foobar`
@@ -136,7 +136,7 @@ checksums:
 				Expect(artifactName + "/metadata").To(BeARegularFile())
 
 				expectedMetadata := `---
-checksums:
+instances:
 - instance_name: broker
   instance_id: "0"
   checksum: orignal_checksum

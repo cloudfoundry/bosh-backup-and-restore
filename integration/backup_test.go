@@ -3,6 +3,7 @@ package integration
 import (
 	"archive/tar"
 	"compress/gzip"
+	"crypto/sha1"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -76,16 +77,24 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 `)
 
 			session := runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "--debug", "backup")
+			backupArtifactFile := path.Join(backupWorkspace, "my-new-deployment/redis-dedicated-node-0.tgz")
 
 			Expect(session.ExitCode()).To(BeZero())
 			Expect(path.Join(backupWorkspace, "my-new-deployment")).To(BeADirectory())
-			Expect(path.Join(backupWorkspace, "my-new-deployment/redis-dedicated-node-0.tgz")).To(BeARegularFile())
+			Expect(backupArtifactFile).To(BeARegularFile())
 			outputFile := path.Join(backupWorkspace, "my-new-deployment/redis-dedicated-node-0.tgz")
 			Expect(filesInTar(outputFile)).To(ConsistOf("backupdump1", "backupdump2"))
 			Expect(contentsInTar(outputFile, "backupdump1")).To(Equal("backupcontent1"))
 			Expect(contentsInTar(outputFile, "backupdump2")).To(Equal("backupcontent2"))
 
-			Expect(path.Join(backupWorkspace, "my-new-deployment/metadata")).To(BeARegularFile())
+			metadataFile := path.Join(backupWorkspace, "my-new-deployment/metadata")
+			Expect(metadataFile).To(BeARegularFile())
+
+			shasumOfTar := shaForFile(backupArtifactFile)
+			Expect(ioutil.ReadFile(metadataFile)).To(MatchYAML(`instances:
+- instance_name: redis-dedicated-node
+  instance_id: "0"
+  checksum: ` + shasumOfTar))
 		})
 
 		It("errors if a deployment cant be backuped", func() {
@@ -234,4 +243,11 @@ func contentsInTar(tarFile, file string) string {
 	}
 	Fail("File " + file + " not found in tar " + tarFile)
 	return ""
+}
+func shaForFile(filename string) string {
+	contents, err := ioutil.ReadFile(filename)
+	Expect(err).NotTo(HaveOccurred())
+	shasum := sha1.New()
+	shasum.Write(contents)
+	return fmt.Sprintf("%x", shasum.Sum(nil))
 }

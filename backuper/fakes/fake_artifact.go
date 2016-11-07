@@ -27,12 +27,12 @@ type FakeArtifact struct {
 	addChecksumReturns struct {
 		result1 error
 	}
-	ChecksumStub        func(backuper.Instance) (string, error)
-	checksumMutex       sync.RWMutex
-	checksumArgsForCall []struct {
+	CalculateChecksumStub        func(backuper.Instance) (string, error)
+	calculateChecksumMutex       sync.RWMutex
+	calculateChecksumArgsForCall []struct {
 		arg1 backuper.Instance
 	}
-	checksumReturns struct {
+	calculateChecksumReturns struct {
 		result1 string
 		result2 error
 	}
@@ -108,35 +108,35 @@ func (fake *FakeArtifact) AddChecksumReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeArtifact) Checksum(arg1 backuper.Instance) (string, error) {
-	fake.checksumMutex.Lock()
-	fake.checksumArgsForCall = append(fake.checksumArgsForCall, struct {
+func (fake *FakeArtifact) CalculateChecksum(arg1 backuper.Instance) (string, error) {
+	fake.calculateChecksumMutex.Lock()
+	fake.calculateChecksumArgsForCall = append(fake.calculateChecksumArgsForCall, struct {
 		arg1 backuper.Instance
 	}{arg1})
-	fake.recordInvocation("Checksum", []interface{}{arg1})
-	fake.checksumMutex.Unlock()
-	if fake.ChecksumStub != nil {
-		return fake.ChecksumStub(arg1)
+	fake.recordInvocation("CalculateChecksum", []interface{}{arg1})
+	fake.calculateChecksumMutex.Unlock()
+	if fake.CalculateChecksumStub != nil {
+		return fake.CalculateChecksumStub(arg1)
 	} else {
-		return fake.checksumReturns.result1, fake.checksumReturns.result2
+		return fake.calculateChecksumReturns.result1, fake.calculateChecksumReturns.result2
 	}
 }
 
-func (fake *FakeArtifact) ChecksumCallCount() int {
-	fake.checksumMutex.RLock()
-	defer fake.checksumMutex.RUnlock()
-	return len(fake.checksumArgsForCall)
+func (fake *FakeArtifact) CalculateChecksumCallCount() int {
+	fake.calculateChecksumMutex.RLock()
+	defer fake.calculateChecksumMutex.RUnlock()
+	return len(fake.calculateChecksumArgsForCall)
 }
 
-func (fake *FakeArtifact) ChecksumArgsForCall(i int) backuper.Instance {
-	fake.checksumMutex.RLock()
-	defer fake.checksumMutex.RUnlock()
-	return fake.checksumArgsForCall[i].arg1
+func (fake *FakeArtifact) CalculateChecksumArgsForCall(i int) backuper.Instance {
+	fake.calculateChecksumMutex.RLock()
+	defer fake.calculateChecksumMutex.RUnlock()
+	return fake.calculateChecksumArgsForCall[i].arg1
 }
 
-func (fake *FakeArtifact) ChecksumReturns(result1 string, result2 error) {
-	fake.ChecksumStub = nil
-	fake.checksumReturns = struct {
+func (fake *FakeArtifact) CalculateChecksumReturns(result1 string, result2 error) {
+	fake.CalculateChecksumStub = nil
+	fake.calculateChecksumReturns = struct {
 		result1 string
 		result2 error
 	}{result1, result2}
@@ -149,8 +149,8 @@ func (fake *FakeArtifact) Invocations() map[string][][]interface{} {
 	defer fake.createFileMutex.RUnlock()
 	fake.addChecksumMutex.RLock()
 	defer fake.addChecksumMutex.RUnlock()
-	fake.checksumMutex.RLock()
-	defer fake.checksumMutex.RUnlock()
+	fake.calculateChecksumMutex.RLock()
+	defer fake.calculateChecksumMutex.RUnlock()
 	return fake.invocations
 }
 

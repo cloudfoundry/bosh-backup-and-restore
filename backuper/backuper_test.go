@@ -20,6 +20,7 @@ var _ = Describe("Backuper", func() {
 		deploymentName    = "foobarbaz"
 		actualBackupError error
 		backupWriter      *fakes.FakeWriteCloser
+		expectedChecksum  = "expected checksum"
 	)
 
 	BeforeEach(func() {
@@ -28,8 +29,8 @@ var _ = Describe("Backuper", func() {
 		artifact = new(fakes.FakeArtifact)
 		instance = new(fakes.FakeInstance)
 		instances = backuper.Instances{instance}
-		b = backuper.New(boshDirector, artifactCreator.Spy)
 		backupWriter = new(fakes.FakeWriteCloser)
+		b = backuper.New(boshDirector, artifactCreator.Spy)
 
 	})
 	JustBeforeEach(func() {
@@ -46,6 +47,7 @@ var _ = Describe("Backuper", func() {
 			instance.IDReturns("0")
 			artifact.CreateFileReturns(backupWriter, nil)
 			instance.StreamBackupToReturns(nil)
+			artifact.CalculateChecksumReturns(expectedChecksum, nil)
 		})
 
 		It("does not fail", func() {
@@ -81,9 +83,16 @@ var _ = Describe("Backuper", func() {
 			Expect(artifact.CreateFileCallCount()).To(Equal(1))
 			Expect(artifact.CreateFileArgsForCall(0)).To(Equal(instance))
 		})
+
 		It("streams the contents to the writer", func() {
 			Expect(instance.StreamBackupToCallCount()).To(Equal(1))
 			Expect(instance.StreamBackupToArgsForCall(0)).To(Equal(backupWriter))
+		})
+		It("adds the checksum for the instance to the metadata", func() {
+			Expect(artifact.AddChecksumCallCount()).To(Equal(1))
+			actualInstance, actualShasum := artifact.AddChecksumArgsForCall(0)
+			Expect(actualInstance).To(Equal(instance))
+			Expect(actualShasum).To(Equal(expectedChecksum))
 		})
 	})
 
@@ -290,6 +299,27 @@ var _ = Describe("Backuper", func() {
 
 			It("fails the backup process", func() {
 				Expect(actualBackupError).To(MatchError(backupError))
+			})
+		})
+
+		Context("fails if local shasum calculation fails", func() {
+			shasumError := fmt.Errorf("yuuuge")
+			BeforeEach(func() {
+				boshDirector.FindInstancesReturns(instances, nil)
+				instance.IsBackupableReturns(true, nil)
+				artifactCreator.Returns(artifact, nil)
+				instance.BackupReturns(nil)
+				artifact.CreateFileReturns(backupWriter, nil)
+
+				artifact.CalculateChecksumReturns("", shasumError)
+			})
+
+			It("does try to create files in the artifact", func() {
+				Expect(artifact.CreateFileCallCount()).To(Equal(1))
+			})
+
+			It("fails the backup process", func() {
+				Expect(actualBackupError).To(MatchError(shasumError))
 			})
 		})
 	})

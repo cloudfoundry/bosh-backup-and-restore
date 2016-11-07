@@ -19,14 +19,14 @@ type DirectoryArtifact struct {
 	baseDirName string
 }
 
-type Checksum struct {
+type InstanceMetadata struct {
 	InstanceName string `yaml:"instance_name"`
 	InstanceID   string `yaml:"instance_id"`
 	Checksum     string `yaml:"checksum"`
 }
 
 type metadata struct {
-	Checksums []Checksum `yaml:"checksums"`
+	MetadataForEachInstance []InstanceMetadata `yaml:"instances"`
 }
 
 func (d *DirectoryArtifact) CreateFile(inst Instance) (io.WriteCloser, error) {
@@ -34,7 +34,7 @@ func (d *DirectoryArtifact) CreateFile(inst Instance) (io.WriteCloser, error) {
 	return os.Create(path.Join(d.baseDirName, filename))
 }
 
-func (d *DirectoryArtifact) Checksum(inst Instance) (string, error) {
+func (d *DirectoryArtifact) CalculateChecksum(inst Instance) (string, error) {
 	sha := sha1.New()
 	filename := d.instanceFilename(inst)
 	file, err := os.Open(filename)
@@ -54,7 +54,7 @@ func (d *DirectoryArtifact) AddChecksum(inst Instance, shasum string) error {
 		return err
 	}
 
-	metadata.Checksums = append(metadata.Checksums, Checksum{
+	metadata.MetadataForEachInstance = append(metadata.MetadataForEachInstance, InstanceMetadata{
 		InstanceName: inst.Name(),
 		InstanceID:   inst.ID(),
 		Checksum:     shasum,

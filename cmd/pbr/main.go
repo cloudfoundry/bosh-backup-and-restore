@@ -82,7 +82,7 @@ func main() {
 				var deployment = c.GlobalString("deployment")
 
 				var logger = makeBoshLogger(debug)
-				boshDirector, err := makeBoshDirector(targetUrl, username, password, caCert, logger)
+				boshDirector, err := makeBoshDirectorClient(targetUrl, username, password, caCert, logger)
 				if err != nil {
 					return err
 				}
@@ -108,7 +108,7 @@ func main() {
 				var deployment = c.GlobalString("deployment")
 
 				var logger = makeBoshLogger(debug)
-				boshDirector, err := makeBoshDirector(targetUrl, username, password, caCert, logger)
+				boshDirector, err := makeBoshDirectorClient(targetUrl, username, password, caCert, logger)
 				if err != nil {
 					return err
 				}
@@ -137,7 +137,7 @@ func makeBoshLogger(debug bool) boshlog.Logger {
 	}
 }
 
-func makeBoshDirector(targetUrl, username, password, caCert string, logger boshlog.Logger) (director.Director, error) {
+func makeBoshDirectorClient(targetUrl, username, password, caCert string, logger boshlog.Logger) (director.Director, error) {
 	config, err := director.NewConfigFromURL(targetUrl)
 	if err != nil {
 		return nil, cli.NewExitError(ansi.Color(

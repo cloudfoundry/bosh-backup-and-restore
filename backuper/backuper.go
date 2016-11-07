@@ -19,7 +19,7 @@ type ArtifactCreator func(string) (Artifact, error)
 type Artifact interface {
 	CreateFile(Instance) (io.WriteCloser, error)
 	AddChecksum(Instance, string) error
-	Checksum(Instance) (string, error)
+	CalculateChecksum(Instance) (string, error)
 }
 
 type Backuper struct {
@@ -67,8 +67,11 @@ func (b Backuper) Backup(deploymentName string) error {
 		if err := writer.Close(); err != nil {
 			return err
 		}
-		//TODO: Fix
-		artifact.AddChecksum(instance, "invalid")
+		checksum, err := artifact.CalculateChecksum(instance)
+		if err != nil {
+			return err
+		}
+		artifact.AddChecksum(instance, checksum)
 	}
 
 	return nil
