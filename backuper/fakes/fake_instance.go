@@ -55,6 +55,13 @@ type FakeInstance struct {
 	streamBackupToReturns struct {
 		result1 error
 	}
+	BackupChecksumStub        func() (string, error)
+	backupChecksumMutex       sync.RWMutex
+	backupChecksumArgsForCall []struct{}
+	backupChecksumReturns     struct {
+		result1 string
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -244,6 +251,32 @@ func (fake *FakeInstance) StreamBackupToReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeInstance) BackupChecksum() (string, error) {
+	fake.backupChecksumMutex.Lock()
+	fake.backupChecksumArgsForCall = append(fake.backupChecksumArgsForCall, struct{}{})
+	fake.recordInvocation("BackupChecksum", []interface{}{})
+	fake.backupChecksumMutex.Unlock()
+	if fake.BackupChecksumStub != nil {
+		return fake.BackupChecksumStub()
+	} else {
+		return fake.backupChecksumReturns.result1, fake.backupChecksumReturns.result2
+	}
+}
+
+func (fake *FakeInstance) BackupChecksumCallCount() int {
+	fake.backupChecksumMutex.RLock()
+	defer fake.backupChecksumMutex.RUnlock()
+	return len(fake.backupChecksumArgsForCall)
+}
+
+func (fake *FakeInstance) BackupChecksumReturns(result1 string, result2 error) {
+	fake.BackupChecksumStub = nil
+	fake.backupChecksumReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -261,6 +294,8 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.cleanupMutex.RUnlock()
 	fake.streamBackupToMutex.RLock()
 	defer fake.streamBackupToMutex.RUnlock()
+	fake.backupChecksumMutex.RLock()
+	defer fake.backupChecksumMutex.RUnlock()
 	return fake.invocations
 }
 

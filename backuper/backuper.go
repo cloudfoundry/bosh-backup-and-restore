@@ -29,7 +29,6 @@ type Backuper struct {
 
 //Backup checks if a deployment has backupable instances and backs them up.
 func (b Backuper) Backup(deploymentName string) error {
-
 	instances, err := b.FindInstances(deploymentName)
 	if err != nil {
 		return err
@@ -67,11 +66,21 @@ func (b Backuper) Backup(deploymentName string) error {
 		if err := writer.Close(); err != nil {
 			return err
 		}
-		checksum, err := artifact.CalculateChecksum(instance)
+
+		localChecksum, err := artifact.CalculateChecksum(instance)
 		if err != nil {
 			return err
 		}
-		artifact.AddChecksum(instance, checksum)
+
+		remoteChecksum, err := instance.BackupChecksum()
+		if err != nil {
+			return err
+		}
+		if localChecksum != remoteChecksum {
+			return fmt.Errorf("Backup artifact is corrupted, checksum failed for %s:%s, remote checksum: %s, local checksum: %s", instance.Name(), instance.ID(), remoteChecksum, localChecksum)
+		}
+
+		artifact.AddChecksum(instance, localChecksum)
 	}
 
 	return nil

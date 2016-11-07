@@ -49,4 +49,5 @@ type Instance interface {
 	Backup() error
 	Cleanup() error
 	StreamBackupTo(io.Writer) error
+	BackupChecksum() (string, error)
 }

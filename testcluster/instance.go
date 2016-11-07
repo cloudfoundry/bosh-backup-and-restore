@@ -43,6 +43,9 @@ func (i *Instance) FilesExist(files ...string) {
 	}
 }
 
+func (i *Instance) RunInBackground(command string) {
+	dockerRun("exec", "-d", i.dockerID, command)
+}
 func (i *Instance) ScriptExist(file, contents string) {
 	dockerRun("exec", i.dockerID, "mkdir", "-p", filepath.Dir(file))
 	dockerRun("exec", i.dockerID, "sh", "-c", fmt.Sprintf(`echo '%s' > %s`, contents, file))

@@ -11,16 +11,17 @@ import (
 
 var _ = Describe("Backuper", func() {
 	var (
-		boshDirector      *fakes.FakeBoshDirector
-		b                 *backuper.Backuper
-		instance          *fakes.FakeInstance
-		instances         backuper.Instances
-		artifact          *fakes.FakeArtifact
-		artifactCreator   *fakes.FakeArtifactCreator
-		deploymentName    = "foobarbaz"
-		actualBackupError error
-		backupWriter      *fakes.FakeWriteCloser
-		expectedChecksum  = "expected checksum"
+		boshDirector           *fakes.FakeBoshDirector
+		b                      *backuper.Backuper
+		instance               *fakes.FakeInstance
+		instances              backuper.Instances
+		artifact               *fakes.FakeArtifact
+		artifactCreator        *fakes.FakeArtifactCreator
+		deploymentName         = "foobarbaz"
+		actualBackupError      error
+		backupWriter           *fakes.FakeWriteCloser
+		expectedLocalChecksum  = "expected checksum"
+		expectedRemoteChecksum = "expected checksum"
 	)
 
 	BeforeEach(func() {
@@ -47,7 +48,8 @@ var _ = Describe("Backuper", func() {
 			instance.IDReturns("0")
 			artifact.CreateFileReturns(backupWriter, nil)
 			instance.StreamBackupToReturns(nil)
-			artifact.CalculateChecksumReturns(expectedChecksum, nil)
+			artifact.CalculateChecksumReturns(expectedLocalChecksum, nil)
+			instance.BackupChecksumReturns(expectedRemoteChecksum, nil)
 		})
 
 		It("does not fail", func() {
@@ -92,7 +94,11 @@ var _ = Describe("Backuper", func() {
 			Expect(artifact.AddChecksumCallCount()).To(Equal(1))
 			actualInstance, actualShasum := artifact.AddChecksumArgsForCall(0)
 			Expect(actualInstance).To(Equal(instance))
-			Expect(actualShasum).To(Equal(expectedChecksum))
+			Expect(actualShasum).To(Equal(expectedLocalChecksum))
+		})
+
+		It("validates remote and local checksums match", func() {
+			Expect(instance.BackupChecksumCallCount()).To(Equal(1))
 		})
 	})
 
@@ -320,6 +326,47 @@ var _ = Describe("Backuper", func() {
 
 			It("fails the backup process", func() {
 				Expect(actualBackupError).To(MatchError(shasumError))
+			})
+		})
+
+		Context("fails if the remote shasum cant be calulated", func() {
+			remoteShasumError := fmt.Errorf("i have created so many jobs")
+			BeforeEach(func() {
+				boshDirector.FindInstancesReturns(instances, nil)
+				instance.IsBackupableReturns(true, nil)
+				artifactCreator.Returns(artifact, nil)
+				instance.BackupReturns(nil)
+				artifact.CreateFileReturns(backupWriter, nil)
+
+				instance.BackupChecksumReturns("", remoteShasumError)
+			})
+
+			It("fails the backup process", func() {
+				Expect(actualBackupError).To(MatchError(remoteShasumError))
+			})
+
+			It("dosen't try to append shasum to metadata", func() {
+				Expect(artifact.AddChecksumCallCount()).To(BeZero())
+			})
+		})
+		Context("fails if the remote shasum dosen't match the local shasum", func() {
+			BeforeEach(func() {
+				boshDirector.FindInstancesReturns(instances, nil)
+				instance.IsBackupableReturns(true, nil)
+				artifactCreator.Returns(artifact, nil)
+				instance.BackupReturns(nil)
+				artifact.CreateFileReturns(backupWriter, nil)
+
+				artifact.CalculateChecksumReturns("this won't match", nil)
+				instance.BackupChecksumReturns("this wont match", nil)
+			})
+
+			It("fails the backup process", func() {
+				Expect(actualBackupError).To(MatchError(ContainSubstring("Backup artifact is corrupted")))
+			})
+
+			It("dosen't try to append shasum to metadata", func() {
+				Expect(artifact.AddChecksumCallCount()).To(BeZero())
 			})
 		})
 	})

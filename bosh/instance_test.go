@@ -272,6 +272,41 @@ var _ = Describe("Instance", func() {
 		})
 	})
 
+	Context("BackupChecksum", func() {
+		var actualChecksum string
+		var actualChecksumError error
+		JustBeforeEach(func() {
+			actualChecksum, actualChecksumError = instance.BackupChecksum()
+		})
+		Context("can calculate checksum", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e -\n"), nil, 0, nil)
+			})
+			It("generates the checksum to the backup tar, without extra characters", func() {
+				Expect(actualChecksumError).NotTo(HaveOccurred())
+				Expect(actualChecksum).To(Equal("07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e"))
+			})
+		})
+		Context("fails to calculate checksum", func() {
+			expectedErr := fmt.Errorf("some error")
+
+			BeforeEach(func() {
+				sshConnection.RunReturns(nil, nil, 0, expectedErr)
+			})
+			It("returns an error", func() {
+				Expect(actualChecksumError).To(MatchError(expectedErr))
+			})
+		})
+		Context("fails to execute the command", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns(nil, nil, 1, nil)
+			})
+			It("returns an error", func() {
+				Expect(actualChecksumError).To(HaveOccurred())
+			})
+		})
+	})
+
 	Context("Name", func() {
 		It("returns the instance name", func() {
 			Expect(instance.Name()).To(Equal("job-name"))

@@ -3,6 +3,7 @@ package bosh
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
@@ -81,6 +82,23 @@ func (d DeployedInstance) StreamBackupTo(writer io.Writer) error {
 	}
 
 	return err
+}
+func (d DeployedInstance) BackupChecksum() (string, error) {
+	d.Logger.Debug("", "Running checksum on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
+
+	stdout, stderr, exitCode, err := d.Run("sudo tar -C /var/vcap/store/backup -zc . | shasum")
+
+	if err != nil {
+		d.Logger.Debug("", "Error generating checksum. Exit code %d, error %s", exitCode, err.Error())
+		return "", err
+	}
+
+	if exitCode != 0 {
+		return "", fmt.Errorf("Instance checksum returned %d. Error: %s", exitCode, stderr)
+	}
+
+	cleanSum := strings.Split(string(stdout), " ")[0]
+	return string(cleanSum), nil
 }
 
 func (d DeployedInstance) IsRestorable() (bool, error) {
