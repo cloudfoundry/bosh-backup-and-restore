@@ -108,7 +108,12 @@ func (b Backuper) Restore(deploymentName string) error {
 	}
 
 	artifact, _ := b.ArtifactCreator(deploymentName)
-	match, _ := artifact.DeploymentMatches(deploymentName, instances)
+	match, err := artifact.DeploymentMatches(deploymentName, instances)
+
+	if err != nil {
+		return fmt.Errorf("Unable to check if deployment '%s' matches the structure of the provided backup", deploymentName)
+	}
+
 	if match != true {
 		return fmt.Errorf("Deployment '%s' does not match the structure of the provided backup", deploymentName)
 	}

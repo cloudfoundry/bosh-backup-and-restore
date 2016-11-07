@@ -438,7 +438,8 @@ var _ = Describe("restore", func() {
 				})
 
 				It("returns an error", func() {
-					Expect(restoreError).To(HaveOccurred())
+					actualError := b.Restore(deploymentName)
+					Expect(actualError).To(HaveOccurred())
 				})
 			})
 
@@ -447,7 +448,8 @@ var _ = Describe("restore", func() {
 					instance.IsRestorableReturns(true, fmt.Errorf("the beauty of me is that I'm very rich"))
 				})
 				It("returns an error", func() {
-					Expect(restoreError).To(HaveOccurred())
+					actualError := b.Restore(deploymentName)
+					Expect(actualError).To(HaveOccurred())
 				})
 			})
 
@@ -457,7 +459,19 @@ var _ = Describe("restore", func() {
 				})
 
 				It("returns an error", func() {
-					Expect(restoreError).To(HaveOccurred())
+					actualError := b.Restore(deploymentName)
+					Expect(actualError).To(HaveOccurred())
+				})
+			})
+
+			Context("if checking the deployment topology fails", func() {
+				BeforeEach(func() {
+					artifact.DeploymentMatchesReturns(true, fmt.Errorf("my fingers are long and beautiful"))
+				})
+
+				It("returns an error", func() {
+					actualError := b.Restore(deploymentName)
+					Expect(actualError).To(HaveOccurred())
 				})
 			})
 		})
