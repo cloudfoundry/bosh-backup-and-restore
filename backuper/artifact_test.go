@@ -23,6 +23,72 @@ var _ = Describe("Artifact", func() {
 			Expect(artifactName).To(BeADirectory())
 		})
 	})
+
+	Describe("NoopArtifactCreator", func() {
+		It("does not create a directory", func() {
+			_, err := NoopArtifactCreator(artifactName)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(artifactName).NotTo(BeADirectory())
+		})
+	})
+
+	Describe("DeploymentMatches", func() {
+		var artifact Artifact
+		var deploymentName string
+		var instance *fakes.FakeInstance
+
+		BeforeEach(func() {
+			artifactName = "my-cool-redis"
+			deploymentName = "my-cool-redis"
+			instance = new(fakes.FakeInstance)
+			instance.IDReturns("0")
+
+			Expect(os.Mkdir(deploymentName, 0777)).To(Succeed())
+
+			file, err := os.Create(deploymentName + "/" + "metadata")
+			Expect(err).NotTo(HaveOccurred())
+
+			fakeMetadata := []byte(`---
+instances:
+- instance_name: redis
+  instance_id: 0
+  checksum: foo`)
+
+			_, err = file.Write(fakeMetadata)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(file.Close()).To(Succeed())
+
+			artifact, _ = NoopArtifactCreator(artifactName)
+		})
+
+		AfterEach(func() {
+			Expect(os.RemoveAll(deploymentName)).To(Succeed())
+		})
+
+		Context("when the backup on disk matches the current deployment", func() {
+			JustBeforeEach(func() {
+				instance.NameReturns("redis")
+			})
+
+			It("returns true", func() {
+				match, _ := artifact.DeploymentMatches(deploymentName, []Instance{instance})
+				Expect(match).To(BeTrue())
+			})
+		})
+
+		Context("when the backup doesn't match the current deployment", func() {
+			JustBeforeEach(func() {
+				instance.NameReturns("trump")
+			})
+
+			It("returns false", func() {
+				match, _ := artifact.DeploymentMatches(deploymentName, []Instance{instance})
+				Expect(match).To(BeFalse())
+			})
+		})
+
+	})
+
 	Describe("CreateFile", func() {
 		var artifact Artifact
 		var fileCreationError error

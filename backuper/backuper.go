@@ -20,6 +20,7 @@ type Artifact interface {
 	CreateFile(Instance) (io.WriteCloser, error)
 	AddChecksum(Instance, string) error
 	CalculateChecksum(Instance) (string, error)
+	DeploymentMatches(string, []Instance) (bool, error)
 }
 
 type Backuper struct {
@@ -104,6 +105,12 @@ func (b Backuper) Restore(deploymentName string) error {
 
 	if len(restorableInstances) == 0 {
 		return fmt.Errorf("Deployment '%s' has no restore scripts", deploymentName)
+	}
+
+	artifact, _ := b.ArtifactCreator(deploymentName)
+	match, _ := artifact.DeploymentMatches(deploymentName, instances)
+	if match != true {
+		return fmt.Errorf("Deployment '%s' does not match the structure of the provided backup", deploymentName)
 	}
 
 	return nil

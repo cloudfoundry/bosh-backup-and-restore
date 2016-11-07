@@ -377,6 +377,7 @@ var _ = Describe("restore", func() {
 		var (
 			restoreError    error
 			artifactCreator *fakes.FakeArtifactCreator
+			artifact        *fakes.FakeArtifact
 			boshDirector    *fakes.FakeBoshDirector
 			instance        *fakes.FakeInstance
 			instances       backuper.Instances
@@ -388,8 +389,13 @@ var _ = Describe("restore", func() {
 			instance = new(fakes.FakeInstance)
 			instances = backuper.Instances{instance}
 			boshDirector = new(fakes.FakeBoshDirector)
+			artifactCreator = new(fakes.FakeArtifactCreator)
+			artifact = new(fakes.FakeArtifact)
+
+			artifactCreator.Returns(artifact, nil)
 			boshDirector.FindInstancesReturns(instances, nil)
 			instance.IsRestorableReturns(true, nil)
+			artifact.DeploymentMatchesReturns(true, nil)
 
 			b = backuper.New(boshDirector, artifactCreator.Spy)
 
@@ -413,6 +419,15 @@ var _ = Describe("restore", func() {
 			Expect(instance.IsRestorableCallCount()).To(Equal(1))
 		})
 
+		It("checks that the deployment topology matches the topology of the backup", func() {
+			Expect(artifactCreator.CallCount()).To(Equal(1))
+			Expect(artifact.DeploymentMatchesCallCount()).To(Equal(1))
+
+			name, instances := artifact.DeploymentMatchesArgsForCall(0)
+			Expect(name).To(Equal(deploymentName))
+			Expect(instances).To(ContainElement(instance))
+		})
+
 		XIt("streams the local backup to the instance")
 		XIt("calls restore on the instance")
 
@@ -431,6 +446,16 @@ var _ = Describe("restore", func() {
 				BeforeEach(func() {
 					instance.IsRestorableReturns(true, fmt.Errorf("the beauty of me is that I'm very rich"))
 				})
+				It("returns an error", func() {
+					Expect(restoreError).To(HaveOccurred())
+				})
+			})
+
+			Context("if the deployment's topology doesn't match that of the backup", func() {
+				BeforeEach(func() {
+					artifact.DeploymentMatchesReturns(false, nil)
+				})
+
 				It("returns an error", func() {
 					Expect(restoreError).To(HaveOccurred())
 				})

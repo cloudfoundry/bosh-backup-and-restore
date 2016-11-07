@@ -36,6 +36,16 @@ type FakeArtifact struct {
 		result1 string
 		result2 error
 	}
+	DeploymentMatchesStub        func(string, []backuper.Instance) (bool, error)
+	deploymentMatchesMutex       sync.RWMutex
+	deploymentMatchesArgsForCall []struct {
+		arg1 string
+		arg2 []backuper.Instance
+	}
+	deploymentMatchesReturns struct {
+		result1 bool
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -142,6 +152,46 @@ func (fake *FakeArtifact) CalculateChecksumReturns(result1 string, result2 error
 	}{result1, result2}
 }
 
+func (fake *FakeArtifact) DeploymentMatches(arg1 string, arg2 []backuper.Instance) (bool, error) {
+	var arg2Copy []backuper.Instance
+	if arg2 != nil {
+		arg2Copy = make([]backuper.Instance, len(arg2))
+		copy(arg2Copy, arg2)
+	}
+	fake.deploymentMatchesMutex.Lock()
+	fake.deploymentMatchesArgsForCall = append(fake.deploymentMatchesArgsForCall, struct {
+		arg1 string
+		arg2 []backuper.Instance
+	}{arg1, arg2Copy})
+	fake.recordInvocation("DeploymentMatches", []interface{}{arg1, arg2Copy})
+	fake.deploymentMatchesMutex.Unlock()
+	if fake.DeploymentMatchesStub != nil {
+		return fake.DeploymentMatchesStub(arg1, arg2)
+	} else {
+		return fake.deploymentMatchesReturns.result1, fake.deploymentMatchesReturns.result2
+	}
+}
+
+func (fake *FakeArtifact) DeploymentMatchesCallCount() int {
+	fake.deploymentMatchesMutex.RLock()
+	defer fake.deploymentMatchesMutex.RUnlock()
+	return len(fake.deploymentMatchesArgsForCall)
+}
+
+func (fake *FakeArtifact) DeploymentMatchesArgsForCall(i int) (string, []backuper.Instance) {
+	fake.deploymentMatchesMutex.RLock()
+	defer fake.deploymentMatchesMutex.RUnlock()
+	return fake.deploymentMatchesArgsForCall[i].arg1, fake.deploymentMatchesArgsForCall[i].arg2
+}
+
+func (fake *FakeArtifact) DeploymentMatchesReturns(result1 bool, result2 error) {
+	fake.DeploymentMatchesStub = nil
+	fake.deploymentMatchesReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeArtifact) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -151,6 +201,8 @@ func (fake *FakeArtifact) Invocations() map[string][][]interface{} {
 	defer fake.addChecksumMutex.RUnlock()
 	fake.calculateChecksumMutex.RLock()
 	defer fake.calculateChecksumMutex.RUnlock()
+	fake.deploymentMatchesMutex.RLock()
+	defer fake.deploymentMatchesMutex.RUnlock()
 	return fake.invocations
 }
 

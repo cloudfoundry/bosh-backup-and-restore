@@ -8,11 +8,17 @@ import (
 	"os"
 	"path"
 
+	"reflect"
+
 	"gopkg.in/yaml.v2"
 )
 
 func DirectoryArtifactCreator(name string) (Artifact, error) {
 	return &DirectoryArtifact{baseDirName: name}, os.MkdirAll(name, 0700)
+}
+
+func NoopArtifactCreator(name string) (Artifact, error) {
+	return &DirectoryArtifact{baseDirName: name}, nil
 }
 
 type DirectoryArtifact struct {
@@ -27,6 +33,26 @@ type InstanceMetadata struct {
 
 type metadata struct {
 	MetadataForEachInstance []InstanceMetadata `yaml:"instances"`
+}
+
+func (d *DirectoryArtifact) DeploymentMatches(deployment string, instances []Instance) (bool, error) {
+	meta, _ := d.readMetadata()
+
+	instancesMatched := []Instance{}
+
+	for _, inst := range instances {
+		for _, backupInstance := range meta.MetadataForEachInstance {
+			if inst.ID() == backupInstance.InstanceID && inst.Name() == backupInstance.InstanceName {
+				instancesMatched = append(instancesMatched, inst)
+			}
+		}
+	}
+
+	if reflect.DeepEqual(instances, instancesMatched) {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func (d *DirectoryArtifact) CreateFile(inst Instance) (io.WriteCloser, error) {
