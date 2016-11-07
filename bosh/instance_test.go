@@ -88,6 +88,62 @@ var _ = Describe("Instance", func() {
 		})
 	})
 
+	Context("IsRestorable", func() {
+		var actualRestorable bool
+		var actualError error
+
+		JustBeforeEach(func() {
+			actualRestorable, actualError = instance.IsRestorable()
+		})
+
+		Describe("there are restore scripts in the job directories", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, nil)
+			})
+			It("succeeds", func() {
+				Expect(actualError).NotTo(HaveOccurred())
+			})
+			It("returns true", func() {
+				Expect(actualRestorable).To(BeTrue())
+			})
+			It("invokes the ssh connection, to find files", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/restore"))
+			})
+		})
+
+		Describe("there are no restore scripts in the job directories", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 1, nil)
+			})
+			It("succeeds", func() {
+				Expect(actualError).NotTo(HaveOccurred())
+			})
+			It("returns false", func() {
+				Expect(actualRestorable).To(BeFalse())
+			})
+			It("invokes the ssh connection, to find files", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/restore"))
+			})
+		})
+
+		Describe("error while running command", func() {
+			var expectedError = fmt.Errorf("we need to build a wall")
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, expectedError)
+			})
+			It("succeeds", func() {
+				Expect(actualError).To(HaveOccurred())
+			})
+
+			It("invokes the ssh connection, to find files", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/restore"))
+			})
+		})
+	})
+
 	Context("Backup", func() {
 		var err error
 

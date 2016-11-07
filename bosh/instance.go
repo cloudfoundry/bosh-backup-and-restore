@@ -84,7 +84,17 @@ func (d DeployedInstance) StreamBackupTo(writer io.Writer) error {
 }
 
 func (d DeployedInstance) IsRestorable() (bool, error) {
-	return false, nil
+	d.Logger.Debug("", "Checking instance %s %s has restore scripts", d.InstanceGroupName, d.InstanceIndex)
+	stdout, stderr, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/restore")
+
+	d.Logger.Debug("", "Stdout: %s", string(stdout))
+	d.Logger.Debug("", "Stderr: %s", string(stderr))
+
+	if err != nil {
+		d.Logger.Debug("", "Error checking instance has backup scripts. Exit code %d, error %s", exitCode, err.Error())
+	}
+
+	return exitCode == 0, err
 }
 
 func (d DeployedInstance) Cleanup() error {

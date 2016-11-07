@@ -366,8 +366,8 @@ var _ = Describe("restore", func() {
 			Expect(instance.IsRestorableCallCount()).To(Equal(1))
 		})
 
-		// XIt("streams the local backup to the instance")
-		// XIt("calls restore on the instance")
+		XIt("streams the local backup to the instance")
+		XIt("calls restore on the instance")
 
 		Describe("failures", func() {
 			Context("if no instances are restorable", func() {
