@@ -21,9 +21,6 @@ var _ = Describe("Backup", func() {
 	var director *mockhttp.Server
 	var backupWorkspace string
 
-	AfterEach(func() {
-		director.VerifyMocks()
-	})
 	BeforeEach(func() {
 		director = mockbosh.NewTLS()
 		director.ExpectedBasicAuth("admin", "admin")
@@ -31,8 +28,10 @@ var _ = Describe("Backup", func() {
 		backupWorkspace, err = ioutil.TempDir(".", "backup-workspace-")
 		Expect(err).NotTo(HaveOccurred())
 	})
+
 	AfterEach(func() {
 		Expect(os.RemoveAll(backupWorkspace)).To(Succeed())
+		director.VerifyMocks()
 	})
 
 	Context("with deployment, with one instance present", func() {

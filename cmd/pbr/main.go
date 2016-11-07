@@ -72,7 +72,7 @@ func main() {
 		{
 			Name:    "backup",
 			Aliases: []string{"b"},
-			Usage:   "add a task to the list",
+			Usage:   "Backup a deployment",
 			Action: func(c *cli.Context) error {
 				var debug = c.GlobalBool("debug")
 				var targetUrl = c.GlobalString("target")
@@ -92,6 +92,33 @@ func main() {
 				if err := backuper.Backup(deployment); err != nil {
 					return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
 				}
+				return nil
+			},
+		},
+		{
+			Name:    "restore",
+			Aliases: []string{"r"},
+			Usage:   "Restore a deployment from backup",
+			Action: func(c *cli.Context) error {
+				var debug = c.GlobalBool("debug")
+				var targetUrl = c.GlobalString("target")
+				var username = c.GlobalString("username")
+				var password = c.GlobalString("password")
+				var caCert = c.GlobalString("ca-cert")
+				var deployment = c.GlobalString("deployment")
+
+				var logger = makeBoshLogger(debug)
+				boshDirector, err := makeBoshDirector(targetUrl, username, password, caCert, logger)
+				if err != nil {
+					return err
+				}
+
+				backuper := backuper.New(bosh.New(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger), backuper.DirectoryArtifactCreator)
+
+				if err := backuper.Backup(deployment); err != nil {
+					return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
+				}
+
 				return nil
 			},
 		},
