@@ -35,13 +35,19 @@ var _ = Describe("Artifact", func() {
 	Describe("DeploymentMatches", func() {
 		var artifact Artifact
 		var deploymentName string
-		var instance *fakes.FakeInstance
+		var instance1 *fakes.FakeInstance
+		var instance2 *fakes.FakeInstance
 
 		BeforeEach(func() {
 			artifactName = "my-cool-redis"
 			deploymentName = "my-cool-redis"
-			instance = new(fakes.FakeInstance)
-			instance.IDReturns("0")
+			instance1 = new(fakes.FakeInstance)
+			instance1.NameReturns("redis")
+			instance1.IDReturns("0")
+
+			instance2 = new(fakes.FakeInstance)
+			instance2.NameReturns("redis")
+			instance2.IDReturns("1")
 
 			Expect(os.Mkdir(deploymentName, 0777)).To(Succeed())
 
@@ -52,7 +58,11 @@ var _ = Describe("Artifact", func() {
 instances:
 - instance_name: redis
   instance_id: 0
-  checksum: foo`)
+  checksum: foo
+- instance_name: redis
+  instance_id: 1
+  checksum: foo
+`)
 
 			_, err = file.Write(fakeMetadata)
 			Expect(err).NotTo(HaveOccurred())
@@ -66,23 +76,36 @@ instances:
 		})
 
 		Context("when the backup on disk matches the current deployment", func() {
-			JustBeforeEach(func() {
-				instance.NameReturns("redis")
-			})
-
 			It("returns true", func() {
-				match, _ := artifact.DeploymentMatches(deploymentName, []Instance{instance})
+				match, _ := artifact.DeploymentMatches(deploymentName, []Instance{instance1, instance2})
 				Expect(match).To(BeTrue())
 			})
 		})
 
 		Context("when the backup doesn't match the current deployment", func() {
 			JustBeforeEach(func() {
-				instance.NameReturns("trump")
+				tooManyInstances := []byte(`---
+instances:
+- instance_name: redis
+  instance_id: 0
+  checksum: foo
+- instance_name: redis
+  instance_id: 1
+  checksum: foo
+- instance_name: broker
+  instance_id: 2
+  checksum: foo
+`)
+				file, err := os.Create(deploymentName + "/" + "metadata")
+				Expect(err).NotTo(HaveOccurred())
+				_, err = file.Write(tooManyInstances)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(file.Close()).To(Succeed())
+				// instance1.NameReturns("trump")
 			})
 
 			It("returns false", func() {
-				match, _ := artifact.DeploymentMatches(deploymentName, []Instance{instance})
+				match, _ := artifact.DeploymentMatches(deploymentName, []Instance{instance1, instance2})
 				Expect(match).To(BeFalse())
 			})
 		})

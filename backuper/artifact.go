@@ -8,8 +8,6 @@ import (
 	"os"
 	"path"
 
-	"reflect"
-
 	"gopkg.in/yaml.v2"
 )
 
@@ -38,21 +36,14 @@ type metadata struct {
 func (d *DirectoryArtifact) DeploymentMatches(deployment string, instances []Instance) (bool, error) {
 	meta, _ := d.readMetadata()
 
-	instancesMatched := []Instance{}
-
-	for _, inst := range instances {
-		for _, backupInstance := range meta.MetadataForEachInstance {
-			if inst.ID() == backupInstance.InstanceID && inst.Name() == backupInstance.InstanceName {
-				instancesMatched = append(instancesMatched, inst)
-			}
+	for _, inst := range meta.MetadataForEachInstance {
+		present := d.backupInstanceIsPresent(inst, instances)
+		if present != true {
+			return false, nil
 		}
 	}
 
-	if reflect.DeepEqual(instances, instancesMatched) {
-		return true, nil
-	}
-
-	return false, nil
+	return true, nil
 }
 
 func (d *DirectoryArtifact) CreateFile(inst Instance) (io.WriteCloser, error) {
@@ -87,6 +78,15 @@ func (d *DirectoryArtifact) AddChecksum(inst Instance, shasum string) error {
 	})
 
 	return d.saveMetadata(metadata)
+}
+
+func (d *DirectoryArtifact) backupInstanceIsPresent(backupInstance InstanceMetadata, instances []Instance) bool {
+	for _, inst := range instances {
+		if inst.ID() == backupInstance.InstanceID && inst.Name() == backupInstance.InstanceName {
+			return true
+		}
+	}
+	return false
 }
 
 func (d *DirectoryArtifact) saveMetadata(data metadata) error {
