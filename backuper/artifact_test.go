@@ -101,12 +101,26 @@ instances:
 				_, err = file.Write(tooManyInstances)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(file.Close()).To(Succeed())
-				// instance1.NameReturns("trump")
 			})
 
 			It("returns false", func() {
 				match, _ := artifact.DeploymentMatches(deploymentName, []Instance{instance1, instance2})
 				Expect(match).To(BeFalse())
+			})
+		})
+
+		Context("when an error occurs checking the metadata", func() {
+			BeforeEach(func() {
+				file, err := os.Create(deploymentName + "/" + "metadata")
+				Expect(err).NotTo(HaveOccurred())
+				_, err = file.Write([]byte("this is not yaml"))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(file.Close()).To(Succeed())
+			})
+
+			It("returns error", func() {
+				_, err := artifact.DeploymentMatches(deploymentName, []Instance{instance1, instance2})
+				Expect(err).To(HaveOccurred())
 			})
 		})
 

@@ -34,7 +34,10 @@ type metadata struct {
 }
 
 func (d *DirectoryArtifact) DeploymentMatches(deployment string, instances []Instance) (bool, error) {
-	meta, _ := d.readMetadata()
+	meta, err := d.readMetadata()
+	if err != nil {
+		return false, err
+	}
 
 	for _, inst := range meta.MetadataForEachInstance {
 		present := d.backupInstanceIsPresent(inst, instances)
