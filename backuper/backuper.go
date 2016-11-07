@@ -83,7 +83,11 @@ func (b Backuper) Restore(deploymentName string) error {
 	var restorableInstances []Instance
 
 	for _, inst := range instances {
-		restorable, _ := inst.IsRestorable()
+		restorable, err := inst.IsRestorable()
+		if err != nil {
+			return fmt.Errorf("Error occurred while checking if deployment could be restored: %s", err)
+		}
+
 		if restorable {
 			restorableInstances = append(restorableInstances, inst)
 		}

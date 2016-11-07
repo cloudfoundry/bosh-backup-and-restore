@@ -375,7 +375,16 @@ var _ = Describe("restore", func() {
 					instance.IsRestorableReturns(false, nil)
 				})
 
-				It("returns an error if no instances can be restored", func() {
+				It("returns an error", func() {
+					Expect(restoreError).To(HaveOccurred())
+				})
+			})
+
+			Context("if checking the instance's restorable status fails", func() {
+				BeforeEach(func() {
+					instance.IsRestorableReturns(true, fmt.Errorf("the beauty of me is that I'm very rich"))
+				})
+				It("returns an error", func() {
 					Expect(restoreError).To(HaveOccurred())
 				})
 			})
