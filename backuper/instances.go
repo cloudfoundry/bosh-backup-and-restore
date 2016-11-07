@@ -45,6 +45,7 @@ type Instance interface {
 	Name() string
 	ID() string
 	IsBackupable() (bool, error)
+	IsRestorable() (bool, error)
 	Backup() error
 	Cleanup() error
 	StreamBackupTo(io.Writer) error

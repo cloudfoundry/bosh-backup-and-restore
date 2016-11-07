@@ -294,3 +294,61 @@ var _ = Describe("Backuper", func() {
 		})
 	})
 })
+
+var _ = Describe("restore", func() {
+	Context("restores an instance from backup", func() {
+		var (
+			restoreError    error
+			artifactCreator *fakes.FakeArtifactCreator
+			boshDirector    *fakes.FakeBoshDirector
+			instance        *fakes.FakeInstance
+			instances       backuper.Instances
+			b               *backuper.Backuper
+			deploymentName  string
+		)
+
+		BeforeEach(func() {
+			instance = new(fakes.FakeInstance)
+			instances = backuper.Instances{instance}
+			boshDirector = new(fakes.FakeBoshDirector)
+			boshDirector.FindInstancesReturns(instances, nil)
+			instance.IsRestorableReturns(true, nil)
+
+			b = backuper.New(boshDirector, artifactCreator.Spy)
+
+			deploymentName = "deployment-to-restore"
+		})
+
+		JustBeforeEach(func() {
+			restoreError = b.Restore(deploymentName)
+		})
+
+		It("does not fail", func() {
+			Expect(restoreError).NotTo(HaveOccurred())
+		})
+
+		It("finds a instances for the deployment", func() {
+			Expect(boshDirector.FindInstancesCallCount()).To(Equal(1))
+			Expect(boshDirector.FindInstancesArgsForCall(0)).To(Equal(deploymentName))
+		})
+
+		It("checks if the instance is restorable", func() {
+			Expect(instance.IsRestorableCallCount()).To(Equal(1))
+		})
+
+		// XIt("streams the local backup to the instance")
+		// XIt("calls restore on the instance")
+
+		Describe("failures", func() {
+			Context("if no instances are restorable", func() {
+				BeforeEach(func() {
+					instance.IsRestorableReturns(false, nil)
+				})
+
+				It("returns an error if no instances can be restored", func() {
+					Expect(restoreError).To(HaveOccurred())
+				})
+			})
+		})
+	})
+})

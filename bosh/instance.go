@@ -83,6 +83,10 @@ func (d DeployedInstance) StreamBackupTo(writer io.Writer) error {
 	return err
 }
 
+func (d DeployedInstance) IsRestorable() (bool, error) {
+	return false, nil
+}
+
 func (d DeployedInstance) Cleanup() error {
 	d.Logger.Debug("", "Cleaning up SSH connection on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
 	return d.CleanUpSSH(director.NewAllOrPoolOrInstanceSlug(d.InstanceGroupName, d.InstanceIndex), director.SSHOpts{Username: d.SSHConnection.Username()})

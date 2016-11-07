@@ -74,6 +74,25 @@ func (b Backuper) Backup(deploymentName string) error {
 	return nil
 }
 
+func (b Backuper) Restore(deploymentName string) error {
+	instances, _ := b.FindInstances(deploymentName)
+
+	var restorableInstances []Instance
+
+	for _, inst := range instances {
+		restorable, _ := inst.IsRestorable()
+		if restorable {
+			restorableInstances = append(restorableInstances, inst)
+		}
+	}
+
+	if len(restorableInstances) == 0 {
+		return fmt.Errorf("Deployment '%s' has no restore scripts", deploymentName)
+	}
+
+	return nil
+}
+
 //go:generate counterfeiter -o fakes/fake_bosh_director.go . BoshDirector
 type BoshDirector interface {
 	FindInstances(deploymentName string) (Instances, error)

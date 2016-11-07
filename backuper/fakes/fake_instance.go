@@ -28,6 +28,13 @@ type FakeInstance struct {
 		result1 bool
 		result2 error
 	}
+	IsRestorableStub        func() (bool, error)
+	isRestorableMutex       sync.RWMutex
+	isRestorableArgsForCall []struct{}
+	isRestorableReturns     struct {
+		result1 bool
+		result2 error
+	}
 	BackupStub        func() error
 	backupMutex       sync.RWMutex
 	backupArgsForCall []struct{}
@@ -128,6 +135,32 @@ func (fake *FakeInstance) IsBackupableReturns(result1 bool, result2 error) {
 	}{result1, result2}
 }
 
+func (fake *FakeInstance) IsRestorable() (bool, error) {
+	fake.isRestorableMutex.Lock()
+	fake.isRestorableArgsForCall = append(fake.isRestorableArgsForCall, struct{}{})
+	fake.recordInvocation("IsRestorable", []interface{}{})
+	fake.isRestorableMutex.Unlock()
+	if fake.IsRestorableStub != nil {
+		return fake.IsRestorableStub()
+	} else {
+		return fake.isRestorableReturns.result1, fake.isRestorableReturns.result2
+	}
+}
+
+func (fake *FakeInstance) IsRestorableCallCount() int {
+	fake.isRestorableMutex.RLock()
+	defer fake.isRestorableMutex.RUnlock()
+	return len(fake.isRestorableArgsForCall)
+}
+
+func (fake *FakeInstance) IsRestorableReturns(result1 bool, result2 error) {
+	fake.IsRestorableStub = nil
+	fake.isRestorableReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeInstance) Backup() error {
 	fake.backupMutex.Lock()
 	fake.backupArgsForCall = append(fake.backupArgsForCall, struct{}{})
@@ -220,6 +253,8 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.iDMutex.RUnlock()
 	fake.isBackupableMutex.RLock()
 	defer fake.isBackupableMutex.RUnlock()
+	fake.isRestorableMutex.RLock()
+	defer fake.isRestorableMutex.RUnlock()
 	fake.backupMutex.RLock()
 	defer fake.backupMutex.RUnlock()
 	fake.cleanupMutex.RLock()
