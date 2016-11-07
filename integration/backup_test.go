@@ -107,21 +107,6 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 			Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment 'my-new-deployment' has no backup scripts"))
 			Expect(path.Join(backupWorkspace, "my-new-deployment")).NotTo(BeADirectory())
 		})
-
-		It("errors when the sha dosent match", func() {
-			instance1.ScriptExist("/var/vcap/jobs/redis/bin/backup", `#!/usr/bin/env sh
-printf "backupcontent1" > /var/vcap/store/backup/backupdump1
-`)
-			instance1.ScriptExist("/var/vcap/jobs/redis/bin/data_corrupter", `#!/usr/bin/env bash
-while true; do
-	touch /var/vcap/store/backup/corrupt_file_$RANDOM
-done`)
-			instance1.RunInBackground("/var/vcap/jobs/redis/bin/data_corrupter")
-
-			session := runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "--debug", "backup")
-			Expect(session.ExitCode()).To(Equal(1))
-			Expect(string(session.Err.Contents())).To(ContainSubstring("Backup artifact is corrupted"))
-		})
 	})
 
 	Context("with deployment, with two instances (one backupable)", func() {
