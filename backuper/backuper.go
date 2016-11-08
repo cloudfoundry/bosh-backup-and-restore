@@ -88,7 +88,12 @@ func (b Backuper) Backup(deploymentName string) error {
 }
 
 func (b Backuper) Restore(deploymentName string) error {
-	instances, _ := b.FindInstances(deploymentName)
+	instances, err := b.FindInstances(deploymentName)
+	if err != nil {
+		return err
+	}
+
+	defer instances.Cleanup()
 
 	var restorableInstances []Instance
 

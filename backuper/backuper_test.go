@@ -410,6 +410,10 @@ var _ = Describe("restore", func() {
 			Expect(restoreError).NotTo(HaveOccurred())
 		})
 
+		It("ensures that instance is cleaned up", func() {
+			Expect(instance.CleanupCallCount()).To(Equal(1))
+		})
+
 		It("finds a instances for the deployment", func() {
 			Expect(boshDirector.FindInstancesCallCount()).To(Equal(1))
 			Expect(boshDirector.FindInstancesArgsForCall(0)).To(Equal(deploymentName))
@@ -432,6 +436,17 @@ var _ = Describe("restore", func() {
 		XIt("calls restore on the instance")
 
 		Describe("failures", func() {
+			Context("fails to find instances", func() {
+				BeforeEach(func() {
+					boshDirector.FindInstancesReturns(nil, fmt.Errorf("they will pay for the wall"))
+				})
+
+				It("returns an error", func() {
+					actualError := b.Restore(deploymentName)
+					Expect(actualError).To(MatchError("they will pay for the wall"))
+				})
+			})
+
 			Context("if no instances are restorable", func() {
 				BeforeEach(func() {
 					instance.IsRestorableReturns(false, nil)
