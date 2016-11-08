@@ -34,6 +34,10 @@ type metadata struct {
 }
 
 func (d *DirectoryArtifact) DeploymentMatches(deployment string, instances []Instance) (bool, error) {
+	_, err := d.metadataExistsAndIsReadable()
+	if err != nil {
+		return false, err
+	}
 	meta, err := d.readMetadata()
 	if err != nil {
 		return false, err
@@ -109,13 +113,20 @@ func (d *DirectoryArtifact) metadataFilename() string {
 	return path.Join(d.baseDirName, "metadata")
 }
 
+func (d *DirectoryArtifact) metadataExistsAndIsReadable() (bool, error) {
+	_, err := os.Stat(d.metadataFilename())
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func (d *DirectoryArtifact) readMetadata() (metadata, error) {
 	metadata := metadata{}
 
 	fileInfo, _ := os.Stat(d.metadataFilename())
 	if fileInfo != nil {
 		contents, err := ioutil.ReadFile(d.metadataFilename())
-
 		if err != nil {
 			return metadata, err
 		}

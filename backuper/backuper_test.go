@@ -433,7 +433,10 @@ var _ = Describe("restore", func() {
 		})
 
 		XIt("streams the local backup to the instance")
-		XIt("calls restore on the instance")
+
+		It("calls restore on the instance", func() {
+			Expect(instance.RestoreCallCount()).To(Equal(1))
+		})
 
 		Describe("failures", func() {
 			Context("fails to find instances", func() {

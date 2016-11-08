@@ -123,6 +123,10 @@ func (b Backuper) Restore(deploymentName string) error {
 		return fmt.Errorf("Deployment '%s' does not match the structure of the provided backup", deploymentName)
 	}
 
+	for _, instance := range restorableInstances {
+		instance.Restore()
+	}
+
 	return nil
 }
 

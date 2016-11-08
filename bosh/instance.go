@@ -67,6 +67,24 @@ func (d DeployedInstance) Backup() error {
 	return err
 }
 
+func (d DeployedInstance) Restore() error {
+	d.Logger.Debug("", "Running all restore scripts on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
+	stdout, stderr, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/restore | xargs -IN sudo sh -c N")
+
+	d.Logger.Debug("", "Stdout: %s", string(stdout))
+	d.Logger.Debug("", "Stderr: %s", string(stderr))
+
+	if err != nil {
+		d.Logger.Debug("", "Error running instance restore scripts. Exit code %d, error %s", exitCode, err.Error())
+	}
+
+	if exitCode != 0 {
+		return fmt.Errorf("Instance restore scripts returned %d. Error: %s", exitCode, stderr)
+	}
+
+	return err
+}
+
 func (d DeployedInstance) StreamBackupTo(writer io.Writer) error {
 	d.Logger.Debug("", "Running all backup scripts on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
 	stderr, exitCode, err := d.Stream("sudo tar -C /var/vcap/store/backup -zc .", writer)

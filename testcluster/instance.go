@@ -52,6 +52,14 @@ func (i *Instance) ScriptExist(file, contents string) {
 	dockerRun("exec", i.dockerID, "chmod", "+x", file)
 }
 
+func (i *Instance) AssertFileExists(path string) bool {
+	cmd := exec.Command("docker", "exec", i.dockerID, "ls", path)
+	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(session).Should(gexec.Exit())
+	return session.ExitCode() == 0
+}
+
 func (i *Instance) Die() {
 	dockerRun("kill", i.dockerID)
 }

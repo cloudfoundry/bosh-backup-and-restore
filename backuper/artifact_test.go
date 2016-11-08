@@ -49,25 +49,6 @@ var _ = Describe("Artifact", func() {
 			instance2.NameReturns("redis")
 			instance2.IDReturns("1")
 
-			Expect(os.Mkdir(deploymentName, 0777)).To(Succeed())
-
-			file, err := os.Create(deploymentName + "/" + "metadata")
-			Expect(err).NotTo(HaveOccurred())
-
-			fakeMetadata := []byte(`---
-instances:
-- instance_name: redis
-  instance_id: 0
-  checksum: foo
-- instance_name: redis
-  instance_id: 1
-  checksum: foo
-`)
-
-			_, err = file.Write(fakeMetadata)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(file.Close()).To(Succeed())
-
 			artifact, _ = NoopArtifactCreator(artifactName)
 		})
 
@@ -76,6 +57,22 @@ instances:
 		})
 
 		Context("when the backup on disk matches the current deployment", func() {
+			BeforeEach(func() {
+				createTestMetadata(deploymentName, `---
+instances:
+- instance_name: redis
+  instance_id: 0
+  checksum: foo
+- instance_name: redis
+  instance_id: 1
+  checksum: foo
+`)
+			})
+
+			AfterEach(func() {
+				deleteTestMetadata(deploymentName)
+			})
+
 			It("returns true", func() {
 				match, _ := artifact.DeploymentMatches(deploymentName, []Instance{instance1, instance2})
 				Expect(match).To(BeTrue())
@@ -83,8 +80,8 @@ instances:
 		})
 
 		Context("when the backup doesn't match the current deployment", func() {
-			JustBeforeEach(func() {
-				tooManyInstances := []byte(`---
+			BeforeEach(func() {
+				createTestMetadata(deploymentName, `---
 instances:
 - instance_name: redis
   instance_id: 0
@@ -96,11 +93,10 @@ instances:
   instance_id: 2
   checksum: foo
 `)
-				file, err := os.Create(deploymentName + "/" + "metadata")
-				Expect(err).NotTo(HaveOccurred())
-				_, err = file.Write(tooManyInstances)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(file.Close()).To(Succeed())
+			})
+
+			AfterEach(func() {
+				deleteTestMetadata(deploymentName)
 			})
 
 			It("returns false", func() {
@@ -109,13 +105,18 @@ instances:
 			})
 		})
 
-		Context("when an error occurs checking the metadata", func() {
+		Context("when an error occurs unmarshaling the metadata", func() {
 			BeforeEach(func() {
+				Expect(os.Mkdir(deploymentName, 0777)).To(Succeed())
 				file, err := os.Create(deploymentName + "/" + "metadata")
 				Expect(err).NotTo(HaveOccurred())
 				_, err = file.Write([]byte("this is not yaml"))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(file.Close()).To(Succeed())
+			})
+
+			AfterEach(func() {
+				deleteTestMetadata(deploymentName)
 			})
 
 			It("returns error", func() {
@@ -124,6 +125,12 @@ instances:
 			})
 		})
 
+		Context("when an error occurs checking if the file exists", func() {
+			It("returns error", func() {
+				_, err := artifact.DeploymentMatches(deploymentName, []Instance{instance1, instance2})
+				Expect(err).To(HaveOccurred())
+			})
+		})
 	})
 
 	Describe("CreateFile", func() {
@@ -266,3 +273,18 @@ instances:
 		Expect(os.RemoveAll(artifactName)).To(Succeed())
 	})
 })
+
+func createTestMetadata(deploymentName, metadata string) {
+	Expect(os.Mkdir(deploymentName, 0777)).To(Succeed())
+
+	file, err := os.Create(deploymentName + "/" + "metadata")
+	Expect(err).NotTo(HaveOccurred())
+
+	_, err = file.Write([]byte(metadata))
+	Expect(err).NotTo(HaveOccurred())
+	Expect(file.Close()).To(Succeed())
+}
+
+func deleteTestMetadata(deploymentName string) {
+	Expect(os.RemoveAll(deploymentName)).To(Succeed())
+}

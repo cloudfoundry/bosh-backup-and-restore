@@ -177,6 +177,46 @@ var _ = Describe("Instance", func() {
 		})
 	})
 
+	Context("Restore", func() {
+		var actualError error
+
+		JustBeforeEach(func() {
+			actualError = instance.Restore()
+		})
+
+		Describe("runs restore successfully", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, nil)
+			})
+			It("succeeds", func() {
+				Expect(actualError).NotTo(HaveOccurred())
+			})
+			It("invokes the ssh connection, to find files", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/restore | xargs -IN sudo sh -c N"))
+			})
+		})
+
+		Describe("error while running command", func() {
+			var expectedError = fmt.Errorf("we need to build a wall")
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, expectedError)
+			})
+			It("returns error", func() {
+				Expect(actualError).To(HaveOccurred())
+			})
+		})
+
+		Describe("restore scripts return an error", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("not relevant"), []byte("my fingers are long and beautiful"), 1, nil)
+			})
+			It("returns error", func() {
+				Expect(actualError.Error()).To(ContainSubstring("Instance restore scripts returned %d. Error: %s", 1, "my fingers are long and beautiful"))
+			})
+		})
+	})
+
 	Context("StreamBackupTo", func() {
 		var err error
 		var writer = bytes.NewBufferString("dave")
