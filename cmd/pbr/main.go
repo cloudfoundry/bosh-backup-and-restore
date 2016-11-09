@@ -133,7 +133,7 @@ func makeBoshLogger(debug bool) boshlog.Logger {
 	if debug {
 		return boshlog.NewLogger(boshlog.LevelDebug)
 	} else {
-		return boshlog.NewLogger(boshlog.LevelError)
+		return boshlog.NewLogger(boshlog.LevelInfo)
 	}
 }
 
