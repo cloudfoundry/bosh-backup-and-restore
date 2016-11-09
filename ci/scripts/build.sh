@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eux
+set -ex
 
 eval "$(ssh-agent)"
 chmod 400 pcf-backup-and-restore-meta/keys/github
