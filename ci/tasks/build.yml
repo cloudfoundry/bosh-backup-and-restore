@@ -15,4 +15,4 @@ outputs:
 - name: pbr-build
 
 run:
-  path: pcf-backup-and-restore/ci/scripts/build.sh
+  path: src/github.com/pivotal-cf/pcf-backup-and-restore/ci/scripts/build.sh

@@ -12,4 +12,4 @@ inputs:
 - name: backup-and-restore-node-with-ssh
 
 run:
-  path: pcf-backup-and-restore/ci/scripts/unit.sh
+  path: src/github.com/pivotal-cf/pcf-backup-and-restore/ci/scripts/unit.sh

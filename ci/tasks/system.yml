@@ -11,4 +11,4 @@ inputs:
 - name: pcf-backup-and-restore-meta
 
 run:
-  path: pcf-backup-and-restore/ci/scripts/system.sh
+  path: src/github.com/pivotal-cf/pcf-backup-and-restore/ci/scripts/system.sh
