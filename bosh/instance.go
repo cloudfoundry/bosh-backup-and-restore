@@ -50,6 +50,7 @@ func (d DeployedInstance) IsBackupable() (bool, error) {
 }
 
 func (d DeployedInstance) Backup() error {
+	d.Logger.Info("", "Backing up %s-%s...", d.InstanceGroupName, d.InstanceIndex)
 	d.Logger.Debug("", "Running all backup scripts on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
 	stdout, stderr, exitCode, err := d.Run("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/backup | xargs -IN sudo sh -c N")
 
@@ -64,6 +65,7 @@ func (d DeployedInstance) Backup() error {
 		return fmt.Errorf("Instance backup scripts returned %d. Error: %s", exitCode, stderr)
 	}
 
+	d.Logger.Info("", "Done.")
 	return err
 }
 

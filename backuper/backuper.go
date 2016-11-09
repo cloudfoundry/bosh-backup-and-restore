@@ -63,11 +63,9 @@ func (b Backuper) Backup(deploymentName string) error {
 		return err
 	}
 
-	b.Logger.Info("", "Running backup...")
 	if err = backupableInstances.Backup(); err != nil {
 		return err
 	}
-	b.Logger.Info("", "Done.")
 
 	//TODO: Refactor me, maybe
 	for _, instance := range backupableInstances {

@@ -132,7 +132,7 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 				Eventually(session).Should(gbytes.Say("Starting backup of %s...", deploymentName))
 				Eventually(session).Should(gbytes.Say("Finding instances with backup scripts..."))
 				Eventually(session).Should(gbytes.Say("Done."))
-				Eventually(session).Should(gbytes.Say("Running backup..."))
+				Eventually(session).Should(gbytes.Say("Backing up redis-dedicated-node-0..."))
 				Eventually(session).Should(gbytes.Say("Done."))
 				Eventually(session).Should(gbytes.Say("Copying backup -- %s uncompressed -- from redis-dedicated-node-0...", instance1.BackupSize()))
 				Eventually(session).Should(gbytes.Say("Done."))
