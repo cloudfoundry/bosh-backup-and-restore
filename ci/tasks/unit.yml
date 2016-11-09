@@ -1,0 +1,15 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source: {repository: cloudfoundrylondon/backup-and-restore-dind}
+
+inputs:
+- name: pcf-backup-and-restore
+  path: src/github.com/pivotal-cf/pcf-backup-and-restore
+- name: pcf-backup-and-restore-meta
+- name: backup-and-restore-node-with-ssh
+
+run:
+  path: pcf-backup-and-restore/ci/scripts/unit.sh
