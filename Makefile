@@ -22,11 +22,15 @@ test-integration:
 bin:
 	go build -o pbr github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr
 
+bin-linux:
+	GOOS=linux GOARCH=amd64 go build -o pbr github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr
+
 generate-fakes:
 	go generate ./...
 
 generate:
 	echo */ | cut -f1 -d'/' | grep -v vendor | xargs -IN go generate github.com/pivotal-cf/pcf-backup-and-restore/N/...
+
 setup:
 	glide install --strip-vendor --strip-vcs
 	go get github.com/cloudfoundry/bosh-cli
