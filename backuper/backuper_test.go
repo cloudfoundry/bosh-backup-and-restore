@@ -32,7 +32,6 @@ var _ = Describe("Backuper", func() {
 		instances = backuper.Instances{instance}
 		backupWriter = new(fakes.FakeWriteCloser)
 		b = backuper.New(boshDirector, artifactCreator.Spy)
-
 	})
 	JustBeforeEach(func() {
 		actualBackupError = b.Backup(deploymentName)

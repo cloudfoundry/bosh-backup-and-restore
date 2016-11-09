@@ -64,7 +64,12 @@ func (b Backuper) Backup(deploymentName string) error {
 			return err
 		}
 
-		fmt.Printf("Copying backup from %s-%s...", instance.Name(), instance.ID())
+		size, err := instance.BackupSize()
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Copying backup (%s uncompressed) from %s-%s...", size, instance.Name(), instance.ID())
 		if err := instance.StreamBackupTo(writer); err != nil {
 			return err
 		}

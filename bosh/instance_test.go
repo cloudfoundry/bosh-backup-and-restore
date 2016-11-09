@@ -357,6 +357,44 @@ var _ = Describe("Instance", func() {
 		It("returns the instance ID", func() {
 			Expect(instance.ID()).To(Equal("job-index"))
 		})
+	})
+
+	Context("BackupSize", func() {
+		Context("when there is a backup", func() {
+			var size string
+
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("4.1G\n"), nil, 0, nil)
+			})
+
+			JustBeforeEach(func() {
+				size, _ = instance.BackupSize()
+			})
+
+			It("returns the size of the backup, as a string", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("du -sh /var/vcap/store/backup/ | cut -f1"))
+				Expect(size).To(Equal("4.1G"))
+			})
+		})
+
+		Context("when there is no backup directory", func() {
+			var err error
+
+			BeforeEach(func() {
+				sshConnection.RunReturns(nil, nil, 1, nil) // simulating file not found
+			})
+
+			JustBeforeEach(func() {
+				_, err = instance.BackupSize()
+			})
+
+			It("returns the size of the backup, as a string", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("du -sh /var/vcap/store/backup/ | cut -f1"))
+				Expect(err).To(HaveOccurred())
+			})
+		})
 
 	})
 })

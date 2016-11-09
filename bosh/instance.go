@@ -133,6 +133,21 @@ func (d DeployedInstance) IsRestorable() (bool, error) {
 	return exitCode == 0, err
 }
 
+func (d DeployedInstance) BackupSize() (string, error) {
+	stdout, stderr, exitCode, err := d.Run("du -sh /var/vcap/store/backup/ | cut -f1")
+
+	if err != nil {
+		d.Logger.Debug("", "Error checking size of backup. Exit code %d, error %s", exitCode, err.Error())
+	}
+
+	if exitCode != 0 {
+		return "", fmt.Errorf("Unable to check size of backup: %s", stderr)
+	}
+
+	size := strings.TrimSpace(string(stdout))
+	return size, nil
+}
+
 func (d DeployedInstance) Cleanup() error {
 	d.Logger.Debug("", "Cleaning up SSH connection on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
 	return d.CleanUpSSH(director.NewAllOrPoolOrInstanceSlug(d.InstanceGroupName, d.InstanceIndex), director.SSHOpts{Username: d.SSHConnection.Username()})
