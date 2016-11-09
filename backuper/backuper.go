@@ -30,10 +30,14 @@ type Backuper struct {
 
 //Backup checks if a deployment has backupable instances and backs them up.
 func (b Backuper) Backup(deploymentName string) error {
+	fmt.Printf("Starting backup of %s...\n", deploymentName)
+
+	fmt.Printf("Finding instances with backup scripts...")
 	instances, err := b.FindInstances(deploymentName)
 	if err != nil {
 		return err
 	}
+	fmt.Printf(" Done.\n")
 	defer instances.Cleanup()
 
 	backupableInstances, err := instances.AllBackupable()
@@ -60,6 +64,7 @@ func (b Backuper) Backup(deploymentName string) error {
 			return err
 		}
 
+		fmt.Printf("Copying backup from %s-%s...", instance.Name(), instance.ID())
 		if err := instance.StreamBackupTo(writer); err != nil {
 			return err
 		}
@@ -82,8 +87,10 @@ func (b Backuper) Backup(deploymentName string) error {
 		}
 
 		artifact.AddChecksum(instance, localChecksum)
+		fmt.Printf(" Done.\n")
 	}
 
+	fmt.Printf("Completed backup of %s\n", deploymentName)
 	return nil
 }
 

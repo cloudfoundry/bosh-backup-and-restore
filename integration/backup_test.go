@@ -14,6 +14,7 @@ import (
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
 	"github.com/pivotal-cf/pcf-backup-and-restore/testcluster"
 
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 
 	. "github.com/onsi/ginkgo"
@@ -125,6 +126,17 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 - instance_name: redis-dedicated-node
   instance_id: "0"
   checksum: ` + shasumOfTar))
+			})
+
+			It("prints the backup progress to the screen", func() {
+				Eventually(session).Should(gbytes.Say("Starting backup of %s...", deploymentName))
+				Eventually(session).Should(gbytes.Say("Finding instances with backup scripts..."))
+				Eventually(session).Should(gbytes.Say(" Done.\n"))
+				Eventually(session).Should(gbytes.Say("Backing up redis-dedicated-node-0..."))
+				Eventually(session).Should(gbytes.Say(" Done.\n"))
+				Eventually(session).Should(gbytes.Say("Copying backup from redis-dedicated-node-0..."))
+				Eventually(session).Should(gbytes.Say(" Done.\n"))
+				Eventually(session).Should(gbytes.Say("Completed backup of %s", deploymentName))
 			})
 		})
 

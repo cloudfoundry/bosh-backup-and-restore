@@ -1,6 +1,9 @@
 package backuper
 
-import "io"
+import (
+	"fmt"
+	"io"
+)
 
 type Instances []Instance
 
@@ -31,10 +34,12 @@ func (instances Instances) Cleanup() error {
 
 func (instances Instances) Backup() error {
 	for _, instance := range instances {
+		fmt.Printf("Backing up %s-%s...", instance.Name(), instance.ID())
 		err := instance.Backup()
 		if err != nil {
 			return err
 		}
+		fmt.Printf(" Done.\n")
 	}
 
 	return nil
