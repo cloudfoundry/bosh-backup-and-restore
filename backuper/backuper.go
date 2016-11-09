@@ -5,10 +5,11 @@ import (
 	"io"
 )
 
-func New(bosh BoshDirector, artifactCreator ArtifactCreator) *Backuper {
+func New(bosh BoshDirector, artifactCreator ArtifactCreator, logger Logger) *Backuper {
 	return &Backuper{
 		BoshDirector:    bosh,
 		ArtifactCreator: artifactCreator,
+		Logger:          logger,
 	}
 }
 
@@ -23,21 +24,30 @@ type Artifact interface {
 	DeploymentMatches(string, []Instance) (bool, error)
 }
 
+//go:generate counterfeiter -o fakes/fake_logger.go . Logger
+type Logger interface {
+	Debug(tag, msg string, args ...interface{})
+	Info(tag, msg string, args ...interface{})
+	Warn(tag, msg string, args ...interface{})
+	Error(tag, msg string, args ...interface{})
+}
+
 type Backuper struct {
 	BoshDirector
 	ArtifactCreator
+	Logger
 }
 
 //Backup checks if a deployment has backupable instances and backs them up.
 func (b Backuper) Backup(deploymentName string) error {
-	fmt.Printf("Starting backup of %s...\n", deploymentName)
+	b.Logger.Info("", "Starting backup of %s...\n", deploymentName)
 
-	fmt.Printf("Finding instances with backup scripts...")
+	b.Logger.Info("", "Finding instances with backup scripts...")
 	instances, err := b.FindInstances(deploymentName)
 	if err != nil {
 		return err
 	}
-	fmt.Printf(" Done.\n")
+	b.Logger.Info("", " Done.\n")
 	defer instances.Cleanup()
 
 	backupableInstances, err := instances.AllBackupable()
@@ -53,9 +63,12 @@ func (b Backuper) Backup(deploymentName string) error {
 		return err
 	}
 
+	b.Logger.Info("", "Running backup...")
 	if err = backupableInstances.Backup(); err != nil {
 		return err
 	}
+	b.Logger.Info("", " Done.\n")
+
 	//TODO: Refactor me, maybe
 	for _, instance := range backupableInstances {
 		writer, err := artifact.CreateFile(instance)
@@ -69,7 +82,7 @@ func (b Backuper) Backup(deploymentName string) error {
 			return err
 		}
 
-		fmt.Printf("Copying backup (%s uncompressed) from %s-%s...", size, instance.Name(), instance.ID())
+		b.Logger.Info("", "Copying backup (%s uncompressed) from %s-%s...", size, instance.Name(), instance.ID())
 		if err := instance.StreamBackupTo(writer); err != nil {
 			return err
 		}
@@ -92,10 +105,10 @@ func (b Backuper) Backup(deploymentName string) error {
 		}
 
 		artifact.AddChecksum(instance, localChecksum)
-		fmt.Printf(" Done.\n")
+		b.Logger.Info("", " Done.\n")
 	}
 
-	fmt.Printf("Completed backup of %s\n", deploymentName)
+	b.Logger.Info("", "Completed backup of %s\n", deploymentName)
 	return nil
 }
 

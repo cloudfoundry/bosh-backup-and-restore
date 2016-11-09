@@ -53,13 +53,6 @@ type FakeInstance struct {
 	cleanupReturns     struct {
 		result1 error
 	}
-	BackupSizeStub        func() (string, error)
-	backupSizeMutex       sync.RWMutex
-	backupSizeArgsForCall []struct{}
-	backupSizeReturns     struct {
-		result1 string
-		result2 error
-	}
 	StreamBackupToStub        func(io.Writer) error
 	streamBackupToMutex       sync.RWMutex
 	streamBackupToArgsForCall []struct {
@@ -67,6 +60,13 @@ type FakeInstance struct {
 	}
 	streamBackupToReturns struct {
 		result1 error
+	}
+	BackupSizeStub        func() (string, error)
+	backupSizeMutex       sync.RWMutex
+	backupSizeArgsForCall []struct{}
+	backupSizeReturns     struct {
+		result1 string
+		result2 error
 	}
 	BackupChecksumStub        func() (string, error)
 	backupChecksumMutex       sync.RWMutex
@@ -256,32 +256,6 @@ func (fake *FakeInstance) CleanupReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeInstance) BackupSize() (string, error) {
-	fake.backupSizeMutex.Lock()
-	fake.backupSizeArgsForCall = append(fake.backupSizeArgsForCall, struct{}{})
-	fake.recordInvocation("BackupSize", []interface{}{})
-	fake.backupSizeMutex.Unlock()
-	if fake.BackupSizeStub != nil {
-		return fake.BackupSizeStub()
-	} else {
-		return fake.backupSizeReturns.result1, fake.backupSizeReturns.result2
-	}
-}
-
-func (fake *FakeInstance) BackupSizeCallCount() int {
-	fake.backupSizeMutex.RLock()
-	defer fake.backupSizeMutex.RUnlock()
-	return len(fake.backupSizeArgsForCall)
-}
-
-func (fake *FakeInstance) BackupSizeReturns(result1 string, result2 error) {
-	fake.BackupSizeStub = nil
-	fake.backupSizeReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeInstance) StreamBackupTo(arg1 io.Writer) error {
 	fake.streamBackupToMutex.Lock()
 	fake.streamBackupToArgsForCall = append(fake.streamBackupToArgsForCall, struct {
@@ -313,6 +287,32 @@ func (fake *FakeInstance) StreamBackupToReturns(result1 error) {
 	fake.streamBackupToReturns = struct {
 		result1 error
 	}{result1}
+}
+
+func (fake *FakeInstance) BackupSize() (string, error) {
+	fake.backupSizeMutex.Lock()
+	fake.backupSizeArgsForCall = append(fake.backupSizeArgsForCall, struct{}{})
+	fake.recordInvocation("BackupSize", []interface{}{})
+	fake.backupSizeMutex.Unlock()
+	if fake.BackupSizeStub != nil {
+		return fake.BackupSizeStub()
+	} else {
+		return fake.backupSizeReturns.result1, fake.backupSizeReturns.result2
+	}
+}
+
+func (fake *FakeInstance) BackupSizeCallCount() int {
+	fake.backupSizeMutex.RLock()
+	defer fake.backupSizeMutex.RUnlock()
+	return len(fake.backupSizeArgsForCall)
+}
+
+func (fake *FakeInstance) BackupSizeReturns(result1 string, result2 error) {
+	fake.BackupSizeStub = nil
+	fake.backupSizeReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeInstance) BackupChecksum() (string, error) {
@@ -358,10 +358,10 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.restoreMutex.RUnlock()
 	fake.cleanupMutex.RLock()
 	defer fake.cleanupMutex.RUnlock()
-	fake.backupSizeMutex.RLock()
-	defer fake.backupSizeMutex.RUnlock()
 	fake.streamBackupToMutex.RLock()
 	defer fake.streamBackupToMutex.RUnlock()
+	fake.backupSizeMutex.RLock()
+	defer fake.backupSizeMutex.RUnlock()
 	fake.backupChecksumMutex.RLock()
 	defer fake.backupChecksumMutex.RUnlock()
 	return fake.invocations

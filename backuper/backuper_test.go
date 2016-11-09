@@ -17,6 +17,7 @@ var _ = Describe("Backuper", func() {
 		instances              backuper.Instances
 		artifact               *fakes.FakeArtifact
 		artifactCreator        *fakes.FakeArtifactCreator
+		logger                 *fakes.FakeLogger
 		deploymentName         = "foobarbaz"
 		actualBackupError      error
 		backupWriter           *fakes.FakeWriteCloser
@@ -28,10 +29,11 @@ var _ = Describe("Backuper", func() {
 		boshDirector = new(fakes.FakeBoshDirector)
 		artifactCreator = new(fakes.FakeArtifactCreator)
 		artifact = new(fakes.FakeArtifact)
+		logger = new(fakes.FakeLogger)
 		instance = new(fakes.FakeInstance)
 		instances = backuper.Instances{instance}
 		backupWriter = new(fakes.FakeWriteCloser)
-		b = backuper.New(boshDirector, artifactCreator.Spy)
+		b = backuper.New(boshDirector, artifactCreator.Spy, logger)
 	})
 	JustBeforeEach(func() {
 		actualBackupError = b.Backup(deploymentName)
@@ -378,6 +380,7 @@ var _ = Describe("restore", func() {
 			artifactCreator *fakes.FakeArtifactCreator
 			artifact        *fakes.FakeArtifact
 			boshDirector    *fakes.FakeBoshDirector
+			logger          *fakes.FakeLogger
 			instance        *fakes.FakeInstance
 			instances       backuper.Instances
 			b               *backuper.Backuper
@@ -388,6 +391,7 @@ var _ = Describe("restore", func() {
 			instance = new(fakes.FakeInstance)
 			instances = backuper.Instances{instance}
 			boshDirector = new(fakes.FakeBoshDirector)
+			logger = new(fakes.FakeLogger)
 			artifactCreator = new(fakes.FakeArtifactCreator)
 			artifact = new(fakes.FakeArtifact)
 
@@ -396,7 +400,7 @@ var _ = Describe("restore", func() {
 			instance.IsRestorableReturns(true, nil)
 			artifact.DeploymentMatchesReturns(true, nil)
 
-			b = backuper.New(boshDirector, artifactCreator.Spy)
+			b = backuper.New(boshDirector, artifactCreator.Spy, logger)
 
 			deploymentName = "deployment-to-restore"
 		})
