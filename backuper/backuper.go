@@ -82,7 +82,7 @@ func (b Backuper) Backup(deploymentName string) error {
 			return err
 		}
 
-		b.Logger.Info("", "Copying backup (%s uncompressed) from %s-%s...", size, instance.Name(), instance.ID())
+		b.Logger.Info("", "Copying backup -- %s uncompressed -- from %s-%s...", size, instance.Name(), instance.ID())
 		if err := instance.StreamBackupTo(writer); err != nil {
 			return err
 		}
