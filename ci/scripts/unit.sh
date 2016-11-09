@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -cxe
+set -eux
 
 source /bin/docker-lib.sh
 start_docker
