@@ -86,7 +86,7 @@ func (d DeployedInstance) Restore() error {
 }
 
 func (d DeployedInstance) StreamBackupTo(writer io.Writer) error {
-	d.Logger.Debug("", "Running all backup scripts on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
+	d.Logger.Debug("", "Streaming backup from instance %s %s", d.InstanceGroupName, d.InstanceIndex)
 	stderr, exitCode, err := d.Stream("sudo tar -C /var/vcap/store/backup -zc .", writer)
 
 	d.Logger.Debug("", "Stderr: %s", string(stderr))
