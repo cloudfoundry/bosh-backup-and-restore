@@ -14,6 +14,8 @@ import (
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
 	"github.com/pivotal-cf/pcf-backup-and-restore/testcluster"
 
+	"github.com/onsi/gomega/gexec"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -70,42 +72,89 @@ var _ = Describe("Backup", func() {
 			go instance1.Die()
 		})
 
-		It("backs up deployment successfully", func() {
-			instance1.ScriptExist("/var/vcap/jobs/redis/bin/backup", `#!/usr/bin/env sh
+		Context("when the backup is successful", func() {
+			var session *gexec.Session
+			var backupArtifactFile string
+			var metadataFile string
+			var outputFile string
+
+			BeforeEach(func() {
+				instance1.ScriptExist("/var/vcap/jobs/redis/bin/backup", `#!/usr/bin/env sh
 printf "backupcontent1" > /var/vcap/store/backup/backupdump1
 printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 `)
+				session = runBinary(
+					backupWorkspace,
+					[]string{"BOSH_PASSWORD=admin"},
+					"--ca-cert", sslCertPath,
+					"--username", "admin",
+					"--target", director.URL,
+					"--deployment", "my-new-deployment",
+					"--debug",
+					"backup",
+				)
+				backupArtifactFile = path.Join(backupWorkspace, "my-new-deployment/redis-dedicated-node-0.tgz")
+				metadataFile = path.Join(backupWorkspace, "my-new-deployment/metadata")
+				outputFile = path.Join(backupWorkspace, "my-new-deployment/redis-dedicated-node-0.tgz")
+			})
 
-			session := runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "--debug", "backup")
-			backupArtifactFile := path.Join(backupWorkspace, "my-new-deployment/redis-dedicated-node-0.tgz")
+			It("exits zero", func() {
+				Expect(session.ExitCode()).To(BeZero())
+			})
 
-			Expect(session.ExitCode()).To(BeZero())
-			Expect(path.Join(backupWorkspace, "my-new-deployment")).To(BeADirectory())
-			Expect(backupArtifactFile).To(BeARegularFile())
-			outputFile := path.Join(backupWorkspace, "my-new-deployment/redis-dedicated-node-0.tgz")
-			Expect(filesInTar(outputFile)).To(ConsistOf("backupdump1", "backupdump2"))
-			Expect(contentsInTar(outputFile, "backupdump1")).To(Equal("backupcontent1"))
-			Expect(contentsInTar(outputFile, "backupdump2")).To(Equal("backupcontent2"))
+			It("creates a backup directory which contains a backup artifact", func() {
+				Expect(path.Join(backupWorkspace, "my-new-deployment")).To(BeADirectory())
+				Expect(backupArtifactFile).To(BeARegularFile())
+			})
 
-			metadataFile := path.Join(backupWorkspace, "my-new-deployment/metadata")
-			Expect(metadataFile).To(BeARegularFile())
+			It("the backup artifact contains the backup files from the instance", func() {
+				Expect(filesInTar(outputFile)).To(ConsistOf("backupdump1", "backupdump2"))
+				Expect(contentsInTar(outputFile, "backupdump1")).To(Equal("backupcontent1"))
+				Expect(contentsInTar(outputFile, "backupdump2")).To(Equal("backupcontent2"))
+			})
 
-			shasumOfTar := shaForFile(backupArtifactFile)
-			Expect(ioutil.ReadFile(metadataFile)).To(MatchYAML(`instances:
+			It("creates a metadata file", func() {
+				Expect(metadataFile).To(BeARegularFile())
+			})
+
+			It("the metadata file is correct", func() {
+				shasumOfTar := shaForFile(backupArtifactFile)
+				Expect(ioutil.ReadFile(metadataFile)).To(MatchYAML(`instances:
 - instance_name: redis-dedicated-node
   instance_id: "0"
   checksum: ` + shasumOfTar))
+			})
 		})
 
-		It("errors if a deployment cant be backuped", func() {
-			instance1.FilesExist(
-				"/var/vcap/jobs/redis/bin/ctl",
-			)
+		Context("if a deployment can't be backed up", func() {
+			var session *gexec.Session
+			BeforeEach(func() {
+				session = runBinary(
+					backupWorkspace,
+					[]string{"BOSH_PASSWORD=admin"},
+					"--ca-cert", sslCertPath,
+					"--username", "admin",
+					"--target", director.URL,
+					"--deployment", "my-new-deployment",
+					"--debug",
+					"backup",
+				)
+				instance1.FilesExist(
+					"/var/vcap/jobs/redis/bin/ctl",
+				)
+			})
 
-			session := runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "--debug", "backup")
-			Expect(session.ExitCode()).NotTo(BeZero())
-			Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment 'my-new-deployment' has no backup scripts"))
-			Expect(path.Join(backupWorkspace, "my-new-deployment")).NotTo(BeADirectory())
+			It("returns a non-zero exit code", func() {
+				Expect(session.ExitCode()).NotTo(BeZero())
+			})
+
+			It("prints an error", func() {
+				Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment 'my-new-deployment' has no backup scripts"))
+			})
+
+			It("does not create a backup on disk", func() {
+				Expect(path.Join(backupWorkspace, "my-new-deployment")).NotTo(BeADirectory())
+			})
 		})
 	})
 
@@ -183,13 +232,30 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 
 	})
 
-	It("returns error if deployment not found", func() {
-		director.VerifyAndMock(mockbosh.VMsForDeployment("my-new-deployment").NotFound())
+	Context("when deployment does not exist", func() {
+		var session *gexec.Session
 
-		session := runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", "backup")
+		BeforeEach(func() {
+			director.VerifyAndMock(mockbosh.VMsForDeployment("my-new-deployment").NotFound())
+			session = runBinary(
+				backupWorkspace,
+				[]string{"BOSH_PASSWORD=admin"},
+				"--ca-cert", sslCertPath,
+				"--username", "admin",
+				"--target", director.URL,
+				"--deployment", "my-new-deployment",
+				"backup",
+			)
+		})
 
-		Expect(session.ExitCode()).To(Equal(1))
-		Expect(string(session.Err.Contents())).To(ContainSubstring("Director responded with non-successful status code"))
+		It("returns exit code 1", func() {
+			Expect(session.ExitCode()).To(Equal(1))
+		})
+
+		It("prints an error", func() {
+			Expect(string(session.Err.Contents())).To(ContainSubstring("Director responded with non-successful status code"))
+		})
+
 	})
 })
 
