@@ -47,7 +47,7 @@ func (b Backuper) Backup(deploymentName string) error {
 	if err != nil {
 		return err
 	}
-	b.Logger.Info("", " Done.\n")
+	b.Logger.Info("", "Done.")
 	defer instances.Cleanup()
 
 	backupableInstances, err := instances.AllBackupable()
@@ -67,7 +67,7 @@ func (b Backuper) Backup(deploymentName string) error {
 	if err = backupableInstances.Backup(); err != nil {
 		return err
 	}
-	b.Logger.Info("", " Done.\n")
+	b.Logger.Info("", "Done.")
 
 	//TODO: Refactor me, maybe
 	for _, instance := range backupableInstances {
@@ -105,7 +105,7 @@ func (b Backuper) Backup(deploymentName string) error {
 		}
 
 		artifact.AddChecksum(instance, localChecksum)
-		b.Logger.Info("", " Done.\n")
+		b.Logger.Info("", "Done.")
 	}
 
 	b.Logger.Info("", "Completed backup of %s\n", deploymentName)

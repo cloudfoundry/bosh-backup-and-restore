@@ -132,9 +132,8 @@ func main() {
 func makeBoshLogger(debug bool) boshlog.Logger {
 	if debug {
 		return boshlog.NewLogger(boshlog.LevelDebug)
-	} else {
-		return boshlog.NewLogger(boshlog.LevelInfo)
 	}
+	return boshlog.NewLogger(boshlog.LevelInfo)
 }
 
 func makeBoshDirectorClient(targetUrl, username, password, caCert string, logger boshlog.Logger) (director.Director, error) {
