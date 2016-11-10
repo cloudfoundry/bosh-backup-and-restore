@@ -2,6 +2,20 @@ package backuper
 
 import "io"
 
+//go:generate counterfeiter -o fakes/fake_instance.go . Instance
+type Instance interface {
+	Name() string
+	ID() string
+	IsBackupable() (bool, error)
+	IsRestorable() (bool, error)
+	Backup() error
+	Restore() error
+	Cleanup() error
+	StreamBackupTo(io.Writer) error
+	BackupSize() (string, error)
+	BackupChecksum() (map[string]string, error)
+}
+
 type Instances []Instance
 
 func (instances Instances) IsEmpty() bool {
@@ -38,18 +52,4 @@ func (instances Instances) Backup() error {
 	}
 
 	return nil
-}
-
-//go:generate counterfeiter -o fakes/fake_instance.go . Instance
-type Instance interface {
-	Name() string
-	ID() string
-	IsBackupable() (bool, error)
-	IsRestorable() (bool, error)
-	Backup() error
-	Restore() error
-	Cleanup() error
-	StreamBackupTo(io.Writer) error
-	BackupSize() (string, error)
-	BackupChecksum() (map[string]string, error)
 }

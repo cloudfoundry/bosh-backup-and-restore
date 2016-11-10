@@ -7,9 +7,10 @@ import (
 
 func New(bosh BoshDirector, artifactCreator ArtifactCreator, logger Logger) *Backuper {
 	return &Backuper{
-		BoshDirector:    bosh,
-		ArtifactCreator: artifactCreator,
-		Logger:          logger,
+		BoshDirector:      bosh,
+		ArtifactCreator:   artifactCreator,
+		Logger:            logger,
+		DeploymentManager: NewBoshDeploymentManager(bosh, logger),
 	}
 }
 
@@ -36,25 +37,23 @@ type Backuper struct {
 	BoshDirector
 	ArtifactCreator
 	Logger
+
+	DeploymentManager
 }
 
 //Backup checks if a deployment has backupable instances and backs them up.
 func (b Backuper) Backup(deploymentName string) error {
 	b.Logger.Info("", "Starting backup of %s...\n", deploymentName)
-
-	b.Logger.Info("", "Finding instances with backup scripts...")
-	instances, err := b.FindInstances(deploymentName)
+	deployment, err := b.DeploymentManager.Find(deploymentName)
 	if err != nil {
 		return err
 	}
-	b.Logger.Info("", "Done.")
-	defer instances.Cleanup()
 
-	backupableInstances, err := instances.AllBackupable()
-	if err != nil {
+	defer deployment.Cleanup()
+
+	if backupable, err := deployment.IsBackupable(); err != nil {
 		return err
-	}
-	if backupableInstances.IsEmpty() {
+	} else if !backupable {
 		return fmt.Errorf("Deployment '%s' has no backup scripts", deploymentName)
 	}
 
@@ -63,47 +62,12 @@ func (b Backuper) Backup(deploymentName string) error {
 		return err
 	}
 
-	if err = backupableInstances.Backup(); err != nil {
+	if err = deployment.Backup(); err != nil {
 		return err
 	}
 
-	//TODO: Refactor me, maybe
-	for _, instance := range backupableInstances {
-		writer, err := artifact.CreateFile(instance)
-
-		if err != nil {
-			return err
-		}
-
-		size, err := instance.BackupSize()
-		if err != nil {
-			return err
-		}
-
-		b.Logger.Info("", "Copying backup -- %s uncompressed -- from %s-%s...", size, instance.Name(), instance.ID())
-		if err := instance.StreamBackupTo(writer); err != nil {
-			return err
-		}
-
-		if err := writer.Close(); err != nil {
-			return err
-		}
-
-		localChecksum, err := artifact.CalculateChecksum(instance)
-		if err != nil {
-			return err
-		}
-
-		remoteChecksum, err := instance.BackupChecksum()
-		if err != nil {
-			return err
-		}
-		if err := matchChecksums(instance, localChecksum, remoteChecksum); err != nil {
-			return err
-		}
-
-		artifact.AddChecksum(instance, localChecksum)
-		b.Logger.Info("", "Done.")
+	if err = deployment.DrainTo(artifact); err != nil {
+		return err
 	}
 
 	b.Logger.Info("", "Completed backup of %s\n", deploymentName)
