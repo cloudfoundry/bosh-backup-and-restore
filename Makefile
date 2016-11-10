@@ -54,3 +54,6 @@ release: setup
 	mkdir releases
 	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/pbr github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr
 	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/pbr-mac github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr
+
+clean-docker:
+	docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q)
