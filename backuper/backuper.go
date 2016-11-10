@@ -19,8 +19,8 @@ type ArtifactCreator func(string) (Artifact, error)
 //go:generate counterfeiter -o fakes/fake_artifact.go . Artifact
 type Artifact interface {
 	CreateFile(Instance) (io.WriteCloser, error)
-	AddChecksum(Instance, string) error
-	CalculateChecksum(Instance) (string, error)
+	AddChecksum(Instance, map[string]string) error
+	CalculateChecksum(Instance) (map[string]string, error)
 	DeploymentMatches(string, []Instance) (bool, error)
 }
 
@@ -98,8 +98,8 @@ func (b Backuper) Backup(deploymentName string) error {
 		if err != nil {
 			return err
 		}
-		if localChecksum != remoteChecksum {
-			return fmt.Errorf("Backup artifact is corrupted, checksum failed for %s:%s, remote checksum: %s, local checksum: %s", instance.Name(), instance.ID(), remoteChecksum, localChecksum)
+		if err := matchChecksums(instance, localChecksum, remoteChecksum); err != nil {
+			return err
 		}
 
 		artifact.AddChecksum(instance, localChecksum)
@@ -156,4 +156,16 @@ func (b Backuper) Restore(deploymentName string) error {
 //go:generate counterfeiter -o fakes/fake_bosh_director.go . BoshDirector
 type BoshDirector interface {
 	FindInstances(deploymentName string) (Instances, error)
+}
+
+func matchChecksums(instance Instance, localChecksum, remoteChecksum map[string]string) error {
+	if len(localChecksum) != len(remoteChecksum) {
+		return fmt.Errorf("Backup artifact is corrupted, checksum failed for %s:%s, files mismatched, remote files: %d, local files: %d", instance.Name(), instance.ID(), len(remoteChecksum), len(localChecksum))
+	}
+	for key, _ := range localChecksum {
+		if localChecksum[key] != remoteChecksum[key] {
+			return fmt.Errorf("Backup artifact is corrupted, checksum failed for %s:%s, checksum mismatched %s, remote file: %s, local file: %s", instance.Name(), instance.ID(), key, remoteChecksum, localChecksum)
+		}
+	}
+	return nil
 }

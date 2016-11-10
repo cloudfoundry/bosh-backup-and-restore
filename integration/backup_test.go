@@ -121,11 +121,12 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 			})
 
 			It("the metadata file is correct", func() {
-				shasumOfTar := shaForFile(backupArtifactFile)
-				Expect(ioutil.ReadFile(metadataFile)).To(MatchYAML(`instances:
+				Expect(ioutil.ReadFile(metadataFile)).To(MatchYAML(fmt.Sprintf(`instances:
 - instance_name: redis-dedicated-node
   instance_id: "0"
-  checksum: ` + shasumOfTar))
+  checksums:
+    ./backupdump1: %s
+    ./backupdump2: %s`, shaFor("backupcontent1"), shaFor("backupcontent2"))))
 			})
 
 			It("prints the backup progress to the screen", func() {
@@ -331,7 +332,11 @@ func contentsInTar(tarFile, file string) string {
 func shaForFile(filename string) string {
 	contents, err := ioutil.ReadFile(filename)
 	Expect(err).NotTo(HaveOccurred())
+	return shaFor(string(contents))
+}
+
+func shaFor(contents string) string {
 	shasum := sha1.New()
-	shasum.Write(contents)
+	shasum.Write([]byte(contents))
 	return fmt.Sprintf("%x", shasum.Sum(nil))
 }

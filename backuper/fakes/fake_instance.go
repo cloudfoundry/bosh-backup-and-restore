@@ -68,11 +68,11 @@ type FakeInstance struct {
 		result1 string
 		result2 error
 	}
-	BackupChecksumStub        func() (string, error)
+	BackupChecksumStub        func() (map[string]string, error)
 	backupChecksumMutex       sync.RWMutex
 	backupChecksumArgsForCall []struct{}
 	backupChecksumReturns     struct {
-		result1 string
+		result1 map[string]string
 		result2 error
 	}
 	invocations      map[string][][]interface{}
@@ -315,7 +315,7 @@ func (fake *FakeInstance) BackupSizeReturns(result1 string, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeInstance) BackupChecksum() (string, error) {
+func (fake *FakeInstance) BackupChecksum() (map[string]string, error) {
 	fake.backupChecksumMutex.Lock()
 	fake.backupChecksumArgsForCall = append(fake.backupChecksumArgsForCall, struct{}{})
 	fake.recordInvocation("BackupChecksum", []interface{}{})
@@ -333,10 +333,10 @@ func (fake *FakeInstance) BackupChecksumCallCount() int {
 	return len(fake.backupChecksumArgsForCall)
 }
 
-func (fake *FakeInstance) BackupChecksumReturns(result1 string, result2 error) {
+func (fake *FakeInstance) BackupChecksumReturns(result1 map[string]string, result2 error) {
 	fake.BackupChecksumStub = nil
 	fake.backupChecksumReturns = struct {
-		result1 string
+		result1 map[string]string
 		result2 error
 	}{result1, result2}
 }

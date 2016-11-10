@@ -1,6 +1,8 @@
 package backuper
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"crypto/sha1"
 	"fmt"
 	"io"
@@ -24,9 +26,9 @@ type DirectoryArtifact struct {
 }
 
 type InstanceMetadata struct {
-	InstanceName string `yaml:"instance_name"`
-	InstanceID   string `yaml:"instance_id"`
-	Checksum     string `yaml:"checksum"`
+	InstanceName string            `yaml:"instance_name"`
+	InstanceID   string            `yaml:"instance_id"`
+	Checksum     map[string]string `yaml:"checksums"`
 }
 
 type metadata struct {
@@ -58,21 +60,38 @@ func (d *DirectoryArtifact) CreateFile(inst Instance) (io.WriteCloser, error) {
 	return os.Create(path.Join(d.baseDirName, filename))
 }
 
-func (d *DirectoryArtifact) CalculateChecksum(inst Instance) (string, error) {
-	sha := sha1.New()
+func (d *DirectoryArtifact) CalculateChecksum(inst Instance) (map[string]string, error) {
 	filename := d.instanceFilename(inst)
 	file, err := os.Open(filename)
+	gzipedReader, err := gzip.NewReader(file)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	if _, err = io.Copy(sha, file); err != nil {
-		return "", err
+	tarReader := tar.NewReader(gzipedReader)
+	checksum := map[string]string{}
+	for {
+		tarHeader, err := tarReader.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		if tarHeader.FileInfo().IsDir() || tarHeader.FileInfo().Name() == "./" {
+			continue
+		}
+
+		fileShasum := sha1.New()
+		if _, err := io.Copy(fileShasum, tarReader); err != nil {
+			return nil, err
+		}
+		checksum[tarHeader.Name] = fmt.Sprintf("%x", fileShasum.Sum(nil))
 	}
-	checksum := sha.Sum(nil)
-	return fmt.Sprintf("%x", checksum), nil
+
+	return checksum, nil
 }
 
-func (d *DirectoryArtifact) AddChecksum(inst Instance, shasum string) error {
+func (d *DirectoryArtifact) AddChecksum(inst Instance, shasum map[string]string) error {
 	metadata, err := d.readMetadata()
 	if err != nil {
 		return err

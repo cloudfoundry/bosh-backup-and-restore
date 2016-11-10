@@ -1,6 +1,9 @@
 package backuper_test
 
 import (
+	"archive/tar"
+	"bytes"
+	"compress/gzip"
 	"crypto/sha1"
 	"fmt"
 	"io"
@@ -189,12 +192,57 @@ instances:
 				writer, fileCreationError := artifact.CreateFile(fakeInstance)
 				Expect(fileCreationError).NotTo(HaveOccurred())
 
-				writer.Write([]byte("foo bar baz"))
+				contents := gzipContents(createTarWithContents(map[string]string{
+					"readme.txt": "This archive contains some text files.",
+					"gopher.txt": "Gopher names:\nGeorge\nGeoffrey\nGonzo",
+					"todo.txt":   "Get animal handling license.",
+				}))
+
+				writer.Write(contents)
 				Expect(writer.Close()).NotTo(HaveOccurred())
 			})
 
 			It("returns the checksum for the saved instance data", func() {
-				Expect(artifact.CalculateChecksum(fakeInstance)).To(Equal(fmt.Sprintf("%x", sha1.Sum([]byte("foo bar baz")))))
+				Expect(artifact.CalculateChecksum(fakeInstance)).To(Equal(
+					map[string]string{
+						"readme.txt": fmt.Sprintf("%x", sha1.Sum([]byte("This archive contains some text files."))),
+						"gopher.txt": fmt.Sprintf("%x", sha1.Sum([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo"))),
+						"todo.txt":   fmt.Sprintf("%x", sha1.Sum([]byte("Get animal handling license."))),
+					}))
+			})
+		})
+		Context("invalid tar file", func() {
+			JustBeforeEach(func() {
+				writer, fileCreationError := artifact.CreateFile(fakeInstance)
+				Expect(fileCreationError).NotTo(HaveOccurred())
+
+				contents := gzipContents([]byte("this ain't a tarball"))
+
+				writer.Write(contents)
+				Expect(writer.Close()).NotTo(HaveOccurred())
+			})
+
+			It("fails to read", func() {
+				_, err := artifact.CalculateChecksum(fakeInstance)
+				Expect(err).To(HaveOccurred())
+			})
+		})
+		Context("invalid gz file", func() {
+			JustBeforeEach(func() {
+				writer, fileCreationError := artifact.CreateFile(fakeInstance)
+				Expect(fileCreationError).NotTo(HaveOccurred())
+
+				contents := createTarWithContents(map[string]string{
+					"readme.txt": "This archive contains some text files.",
+				})
+
+				writer.Write(contents)
+				Expect(writer.Close()).NotTo(HaveOccurred())
+			})
+
+			It("fails to read", func() {
+				_, err := artifact.CalculateChecksum(fakeInstance)
+				Expect(err).To(HaveOccurred())
 			})
 		})
 		Context("file doesn't exist", func() {
@@ -209,14 +257,14 @@ instances:
 		var artifact Artifact
 		var addChecksumError error
 		var fakeInstance *fakes.FakeInstance
-		var checksum string
+		var checksum map[string]string
 
 		BeforeEach(func() {
 			artifact, _ = DirectoryArtifactCreator(artifactName)
 			fakeInstance = new(fakes.FakeInstance)
 			fakeInstance.IDReturns("0")
 			fakeInstance.NameReturns("redis")
-			checksum = "foobar"
+			checksum = map[string]string{"filename": "foobar"}
 		})
 		JustBeforeEach(func() {
 			addChecksumError = artifact.AddChecksum(fakeInstance, checksum)
@@ -230,7 +278,8 @@ instances:
 instances:
 - instance_name: redis
   instance_id: "0"
-  checksum: foobar`
+  checksums:
+    filename: foobar`
 				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
 			})
 		})
@@ -239,7 +288,7 @@ instances:
 				firstInstance := new(fakes.FakeInstance)
 				firstInstance.IDReturns("0")
 				firstInstance.NameReturns("broker")
-				Expect(artifact.AddChecksum(firstInstance, "orignal_checksum")).NotTo(HaveOccurred())
+				Expect(artifact.AddChecksum(firstInstance, map[string]string{"filename1": "orignal_checksum"})).NotTo(HaveOccurred())
 			})
 
 			It("appends to file", func() {
@@ -249,10 +298,12 @@ instances:
 instances:
 - instance_name: broker
   instance_id: "0"
-  checksum: orignal_checksum
+  checksums:
+    filename1: orignal_checksum
 - instance_name: redis
   instance_id: "0"
-  checksum: foobar`
+  checksums:
+    filename: foobar`
 				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
 			})
 		})
@@ -287,4 +338,35 @@ func createTestMetadata(deploymentName, metadata string) {
 
 func deleteTestMetadata(deploymentName string) {
 	Expect(os.RemoveAll(deploymentName)).To(Succeed())
+}
+func gzipContents(contents []byte) []byte {
+	bytesBuffer := bytes.NewBuffer([]byte{})
+	gzipStream := gzip.NewWriter(bytesBuffer)
+	gzipStream.Write(contents)
+
+	Expect(gzipStream.Close()).NotTo(HaveOccurred())
+	return bytesBuffer.Bytes()
+}
+func createTarWithContents(files map[string]string) []byte {
+	bytesBuffer := bytes.NewBuffer([]byte{})
+	tarFile := tar.NewWriter(bytesBuffer)
+
+	for filename, contents := range files {
+		hdr := &tar.Header{
+			Name: filename,
+			Mode: 0600,
+			Size: int64(len(contents)),
+		}
+		if err := tarFile.WriteHeader(hdr); err != nil {
+			Expect(err).NotTo(HaveOccurred())
+		}
+		if _, err := tarFile.Write([]byte(contents)); err != nil {
+			Expect(err).NotTo(HaveOccurred())
+		}
+	}
+	if err := tarFile.Close(); err != nil {
+		Expect(err).NotTo(HaveOccurred())
+	}
+	Expect(tarFile.Close()).NotTo(HaveOccurred())
+	return bytesBuffer.Bytes()
 }

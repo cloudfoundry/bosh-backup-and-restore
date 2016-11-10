@@ -313,20 +313,54 @@ var _ = Describe("Instance", func() {
 	})
 
 	Context("BackupChecksum", func() {
-		var actualChecksum string
+		var actualChecksum map[string]string
 		var actualChecksumError error
 		JustBeforeEach(func() {
 			actualChecksum, actualChecksumError = instance.BackupChecksum()
 		})
 		Context("can calculate checksum", func() {
 			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e -\n"), nil, 0, nil)
+				sshConnection.RunReturns([]byte("07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e  file1\n07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e  file2\nn87fc29fb3aacd99f7f7b81df9c43b13e71c56a1e file3/file4"), nil, 0, nil)
 			})
-			It("generates the checksum to the backup tar, without extra characters", func() {
+			It("converts the checksum to a map", func() {
 				Expect(actualChecksumError).NotTo(HaveOccurred())
-				Expect(actualChecksum).To(Equal("07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e"))
+				Expect(actualChecksum).To(Equal(map[string]string{
+					"file1":       "07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
+					"file2":       "07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
+					"file3/file4": "n87fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
+				}))
 			})
 		})
+		Context("can calculate checksum, with trailing spaces", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e file1\n"), nil, 0, nil)
+			})
+			It("converts the checksum to a map", func() {
+				Expect(actualChecksumError).NotTo(HaveOccurred())
+				Expect(actualChecksum).To(Equal(map[string]string{
+					"file1": "07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
+				}))
+			})
+		})
+		Context("sha output is empty", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte(""), nil, 0, nil)
+			})
+			It("converts an empty map", func() {
+				Expect(actualChecksumError).NotTo(HaveOccurred())
+				Expect(actualChecksum).To(Equal(map[string]string{}))
+			})
+		})
+		Context("sha for a empty directory", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("da39a3ee5e6b4b0d3255bfef95601890afd80709  -"), nil, 0, nil)
+			})
+			It("reject '-' as a filename", func() {
+				Expect(actualChecksumError).NotTo(HaveOccurred())
+				Expect(actualChecksum).To(Equal(map[string]string{}))
+			})
+		})
+
 		Context("fails to calculate checksum", func() {
 			expectedErr := fmt.Errorf("some error")
 

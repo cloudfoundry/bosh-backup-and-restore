@@ -103,22 +103,21 @@ func (d DeployedInstance) StreamBackupTo(writer io.Writer) error {
 
 	return err
 }
-func (d DeployedInstance) BackupChecksum() (string, error) {
+func (d DeployedInstance) BackupChecksum() (map[string]string, error) {
 	d.Logger.Debug("", "Running checksum on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
 
-	stdout, stderr, exitCode, err := d.Run("sudo tar -C /var/vcap/store/backup -zc . | shasum")
+	stdout, stderr, exitCode, err := d.Run("cd /var/vcap/store/backup; find . -type f | xargs shasum")
 
 	if err != nil {
 		d.Logger.Debug("", "Error generating checksum. Exit code %d, error %s", exitCode, err.Error())
-		return "", err
+		return nil, err
 	}
 
 	if exitCode != 0 {
-		return "", fmt.Errorf("Instance checksum returned %d. Error: %s", exitCode, stderr)
+		return nil, fmt.Errorf("Instance checksum returned %d. Error: %s", exitCode, stderr)
 	}
 
-	cleanSum := strings.Split(string(stdout), " ")[0]
-	return string(cleanSum), nil
+	return convertShasToMap(string(stdout)), nil
 }
 
 func (d DeployedInstance) IsRestorable() (bool, error) {
@@ -161,4 +160,20 @@ func (d DeployedInstance) Name() string {
 
 func (d DeployedInstance) ID() string {
 	return d.InstanceIndex
+}
+func convertShasToMap(shas string) map[string]string {
+	mapOfSha := map[string]string{}
+	shas = strings.TrimSpace(shas)
+	if shas == "" {
+		return mapOfSha
+	}
+	for _, line := range strings.Split(shas, "\n") {
+		parts := strings.SplitN(line, " ", 2)
+		filename := strings.TrimSpace(parts[1])
+		if filename == "-" {
+			continue
+		}
+		mapOfSha[filename] = parts[0]
+	}
+	return mapOfSha
 }
