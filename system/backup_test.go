@@ -36,6 +36,15 @@ var _ = Describe("Backs up a deployment", func() {
 
 	})
 	It("backs up", func() {
+		By("polulating data in redis")
+		dataFixture := "../fixtures/redis_test_data"
+		RunBoshCommand(TestDeploymentSCPCommand(), dataFixture, "redis/0:/tmp")
+		Eventually(
+			RunCommandOnRemote(TestDeploymentSSHCommand(),
+				"cat /tmp/redis_test_commands | /var/vcap/packages/redis/bin/redis-cli",
+			)).Should(gexec.Exit(0))
+
+		By("setting up the jump box")
 		Eventually(RunCommandOnRemote(
 			JumpBoxSSHCommand(), fmt.Sprintf("sudo mkdir %s && sudo chown vcap:vcap %s && sudo chmod 0777 %s", workspaceDir, workspaceDir, workspaceDir),
 		)).Should(gexec.Exit(0))
@@ -49,13 +58,14 @@ var _ = Describe("Backs up a deployment", func() {
 				workspaceDir, MustHaveEnv("BOSH_PASSWORD"), MustHaveEnv("BOSH_USER"), MustHaveEnv("BOSH_URL"), TestDeployment()),
 		)).Should(gexec.Exit(0))
 
-		By("backup artifact has been created")
+		By("checking backup artifact has been created")
 		Eventually(RunCommandOnRemote(
 			JumpBoxSSHCommand(), fmt.Sprintf("ls %s/%s", workspaceDir, TestDeployment()),
 		)).Should(gbytes.Say("redis-0.tgz"))
 
 	})
 	AfterSuite(func() {
+		RunBoshCommand(TestDeploymentBoshCommand(), "delete-deployment")
 		RunBoshCommand(JumpBoxBoshCommand(), "delete-deployment")
 	})
 })
