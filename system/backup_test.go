@@ -41,7 +41,7 @@ var _ = Describe("Backs up a deployment", func() {
 		RunBoshCommand(TestDeploymentSCPCommand(), dataFixture, "redis/0:/tmp")
 		Eventually(
 			RunCommandOnRemote(TestDeploymentSSHCommand(),
-				"cat /tmp/redis_test_commands | /var/vcap/packages/redis/bin/redis-cli",
+				"cat /tmp/redis_test_data | /var/vcap/packages/redis/bin/redis-cli",
 			)).Should(gexec.Exit(0))
 
 		By("setting up the jump box")
