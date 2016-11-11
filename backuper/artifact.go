@@ -13,6 +13,17 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+//go:generate counterfeiter -o fakes/fake_artifact_creator.go . ArtifactCreator
+type ArtifactCreator func(string) (Artifact, error)
+
+//go:generate counterfeiter -o fakes/fake_artifact.go . Artifact
+type Artifact interface {
+	CreateFile(Instance) (io.WriteCloser, error)
+	AddChecksum(Instance, map[string]string) error
+	CalculateChecksum(Instance) (map[string]string, error)
+	DeploymentMatches(string, []Instance) (bool, error)
+}
+
 func DirectoryArtifactCreator(name string) (Artifact, error) {
 	return &DirectoryArtifact{baseDirName: name}, os.MkdirAll(name, 0700)
 }

@@ -1,9 +1,6 @@
 package backuper
 
-import (
-	"fmt"
-	"io"
-)
+import "fmt"
 
 func New(bosh BoshDirector, artifactCreator ArtifactCreator, logger Logger) *Backuper {
 	return &Backuper{
@@ -12,17 +9,6 @@ func New(bosh BoshDirector, artifactCreator ArtifactCreator, logger Logger) *Bac
 		Logger:            logger,
 		DeploymentManager: NewBoshDeploymentManager(bosh, logger),
 	}
-}
-
-//go:generate counterfeiter -o fakes/fake_artifact_creator.go . ArtifactCreator
-type ArtifactCreator func(string) (Artifact, error)
-
-//go:generate counterfeiter -o fakes/fake_artifact.go . Artifact
-type Artifact interface {
-	CreateFile(Instance) (io.WriteCloser, error)
-	AddChecksum(Instance, map[string]string) error
-	CalculateChecksum(Instance) (map[string]string, error)
-	DeploymentMatches(string, []Instance) (bool, error)
 }
 
 //go:generate counterfeiter -o fakes/fake_logger.go . Logger
