@@ -2,9 +2,12 @@ package backuper
 
 type Deployment interface {
 	IsBackupable() (bool, error)
+	IsRestoreable() (bool, error)
 	Backup() error
+	Restore() error
 	DrainTo(Artifact) error
 	Cleanup() error
+	Instances() Instances
 }
 
 type BoshDeployment struct {
@@ -13,6 +16,7 @@ type BoshDeployment struct {
 
 	instances           Instances
 	backupableInstances Instances
+	restorableInstances Instances
 }
 
 func NewBoshDeployment(boshDirector BoshDirector, logger Logger, instances Instances) Deployment {
@@ -26,7 +30,7 @@ func (bd *BoshDeployment) IsBackupable() (bool, error) {
 		return false, err
 	}
 	bd.Logger.Info("", "Done.")
-	return len(backupableInstances) != 0, nil
+	return !backupableInstances.IsEmpty(), nil
 }
 
 func (bd *BoshDeployment) Backup() error {
@@ -36,8 +40,26 @@ func (bd *BoshDeployment) Backup() error {
 		return instances.Backup()
 	}
 }
+func (bd *BoshDeployment) Restore() error {
+	if instances, err := bd.getRestoreableInstances(); err != nil {
+		return err
+	} else {
+		return instances.Restore()
+	}
+}
+
 func (bd *BoshDeployment) Cleanup() error {
 	return bd.instances.Cleanup()
+}
+
+func (bd *BoshDeployment) IsRestoreable() (bool, error) {
+	bd.Logger.Info("", "Finding instances with restore scripts...")
+	restoreableInstances, err := bd.getRestoreableInstances()
+	if err != nil {
+		return false, err
+	}
+	bd.Logger.Info("", "Done.")
+	return !restoreableInstances.IsEmpty(), nil
 }
 
 func (bd *BoshDeployment) DrainTo(artifact Artifact) error {
@@ -94,4 +116,18 @@ func (bd *BoshDeployment) getBackupableInstances() (Instances, error) {
 		bd.backupableInstances = instances
 	}
 	return bd.backupableInstances, nil
+}
+
+func (bd *BoshDeployment) getRestoreableInstances() (Instances, error) {
+	if bd.restorableInstances == nil {
+		instances, err := bd.instances.AllRestoreable()
+		if err != nil {
+			return nil, err
+		}
+		bd.restorableInstances = instances
+	}
+	return bd.restorableInstances, nil
+}
+func (bd *BoshDeployment) Instances() Instances {
+	return bd.instances
 }

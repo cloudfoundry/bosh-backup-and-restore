@@ -27,6 +27,11 @@ type Backuper struct {
 	DeploymentManager
 }
 
+//go:generate counterfeiter -o fakes/fake_bosh_director.go . BoshDirector
+type BoshDirector interface {
+	FindInstances(deploymentName string) (Instances, error)
+}
+
 //Backup checks if a deployment has backupable instances and backs them up.
 func (b Backuper) Backup(deploymentName string) error {
 	b.Logger.Info("", "Starting backup of %s...\n", deploymentName)
@@ -61,51 +66,28 @@ func (b Backuper) Backup(deploymentName string) error {
 }
 
 func (b Backuper) Restore(deploymentName string) error {
-	instances, err := b.FindInstances(deploymentName)
+	deployment, err := b.DeploymentManager.Find(deploymentName)
 	if err != nil {
 		return err
 	}
 
-	defer instances.Cleanup()
+	defer deployment.Cleanup()
 
-	var restorableInstances []Instance
-
-	for _, inst := range instances {
-		restorable, err := inst.IsRestorable()
-		if err != nil {
-			return fmt.Errorf("Error occurred while checking if deployment could be restored: %s", err)
-		}
-
-		if restorable {
-			restorableInstances = append(restorableInstances, inst)
-		}
-	}
-
-	if len(restorableInstances) == 0 {
+	if restoreable, err := deployment.IsRestoreable(); err != nil {
+		return err
+	} else if !restoreable {
 		return fmt.Errorf("Deployment '%s' has no restore scripts", deploymentName)
 	}
 
 	artifact, _ := b.ArtifactCreator(deploymentName)
-	match, err := artifact.DeploymentMatches(deploymentName, instances)
 
-	if err != nil {
+	if match, err := artifact.DeploymentMatches(deploymentName, deployment.Instances()); err != nil {
 		return fmt.Errorf("Unable to check if deployment '%s' matches the structure of the provided backup", deploymentName)
-	}
-
-	if match != true {
+	} else if match != true {
 		return fmt.Errorf("Deployment '%s' does not match the structure of the provided backup", deploymentName)
 	}
 
-	for _, instance := range restorableInstances {
-		instance.Restore()
-	}
-
-	return nil
-}
-
-//go:generate counterfeiter -o fakes/fake_bosh_director.go . BoshDirector
-type BoshDirector interface {
-	FindInstances(deploymentName string) (Instances, error)
+	return deployment.Restore()
 }
 
 func matchChecksums(instance Instance, localChecksum, remoteChecksum map[string]string) error {
