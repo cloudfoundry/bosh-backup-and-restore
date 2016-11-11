@@ -20,7 +20,7 @@ type FakeSSHConnection struct {
 		result2 int
 		result3 error
 	}
-	StreamStdinStub        func(cmd string, reader io.Reader) ([]byte, int, error)
+	StreamStdinStub        func(cmd string, reader io.Reader) ([]byte, []byte, int, error)
 	streamStdinMutex       sync.RWMutex
 	streamStdinArgsForCall []struct {
 		cmd    string
@@ -28,8 +28,9 @@ type FakeSSHConnection struct {
 	}
 	streamStdinReturns struct {
 		result1 []byte
-		result2 int
-		result3 error
+		result2 []byte
+		result3 int
+		result4 error
 	}
 	RunStub        func(cmd string) ([]byte, []byte, int, error)
 	runMutex       sync.RWMutex
@@ -94,7 +95,7 @@ func (fake *FakeSSHConnection) StreamReturns(result1 []byte, result2 int, result
 	}{result1, result2, result3}
 }
 
-func (fake *FakeSSHConnection) StreamStdin(cmd string, reader io.Reader) ([]byte, int, error) {
+func (fake *FakeSSHConnection) StreamStdin(cmd string, reader io.Reader) ([]byte, []byte, int, error) {
 	fake.streamStdinMutex.Lock()
 	fake.streamStdinArgsForCall = append(fake.streamStdinArgsForCall, struct {
 		cmd    string
@@ -105,7 +106,7 @@ func (fake *FakeSSHConnection) StreamStdin(cmd string, reader io.Reader) ([]byte
 	if fake.StreamStdinStub != nil {
 		return fake.StreamStdinStub(cmd, reader)
 	} else {
-		return fake.streamStdinReturns.result1, fake.streamStdinReturns.result2, fake.streamStdinReturns.result3
+		return fake.streamStdinReturns.result1, fake.streamStdinReturns.result2, fake.streamStdinReturns.result3, fake.streamStdinReturns.result4
 	}
 }
 
@@ -121,13 +122,14 @@ func (fake *FakeSSHConnection) StreamStdinArgsForCall(i int) (string, io.Reader)
 	return fake.streamStdinArgsForCall[i].cmd, fake.streamStdinArgsForCall[i].reader
 }
 
-func (fake *FakeSSHConnection) StreamStdinReturns(result1 []byte, result2 int, result3 error) {
+func (fake *FakeSSHConnection) StreamStdinReturns(result1 []byte, result2 []byte, result3 int, result4 error) {
 	fake.StreamStdinStub = nil
 	fake.streamStdinReturns = struct {
 		result1 []byte
-		result2 int
-		result3 error
-	}{result1, result2, result3}
+		result2 []byte
+		result3 int
+		result4 error
+	}{result1, result2, result3, result4}
 }
 
 func (fake *FakeSSHConnection) Run(cmd string) ([]byte, []byte, int, error) {

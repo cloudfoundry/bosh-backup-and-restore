@@ -237,12 +237,12 @@ var _ = Describe("Connection", func() {
 					conn, connErr = ssh.ConnectionCreator(instance1.Address(), "test-user", defaultPrivateKey())
 					Expect(connErr).NotTo(HaveOccurred())
 
-					stdErr, exitCode, runError = conn.StreamStdin(command, reader)
+					stdOut, stdErr, exitCode, runError = conn.StreamStdin(command, reader)
 				})
 
 				BeforeEach(func() {
 					reader = bytes.NewBufferString("they will pay for the wall")
-					command = "cat > /tmp/foo; echo 'stderr' >&2"
+					command = "cat > /tmp/foo; echo 'here is something on stdout'; echo 'here is something on stderr' >&2"
 				})
 
 				AfterEach(func() {
@@ -258,12 +258,12 @@ var _ = Describe("Connection", func() {
 					Expect(string(stdout)).To(Equal("they will pay for the wall"))
 				})
 
-				XIt("drains stdout", func() {
-					Expect(string(stdOut)).To(ContainSubstring("stdout"))
+				It("drains stdout", func() {
+					Expect(string(stdOut)).To(ContainSubstring("here is something on stdout"))
 				})
 
 				It("drains stderr", func() {
-					Expect(string(stdErr)).To(ContainSubstring("stderr"))
+					Expect(string(stdErr)).To(ContainSubstring("here is something on stderr"))
 				})
 				It("captures exit code", func() {
 					Expect(exitCode).To(BeZero())
