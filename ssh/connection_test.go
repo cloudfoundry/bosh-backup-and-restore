@@ -2,12 +2,14 @@ package ssh_test
 
 import (
 	"bytes"
+	"encoding/base64"
 	"io/ioutil"
 	"os"
 	"strconv"
 
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
 	"github.com/pivotal-cf/pcf-backup-and-restore/ssh"
+	"github.com/pivotal-cf/pcf-backup-and-restore/testcluster"
 	"github.com/pivotal-cf/pcf-backup-and-restore/testssh"
 	gossh "golang.org/x/crypto/ssh"
 
@@ -214,6 +216,64 @@ var _ = Describe("Connection", func() {
 	})
 })
 
+var _ = Describe("Connection", func() {
+	By("testing against a containerised SSH server", func() {
+		Describe("StreamStdin", func() {
+			Context("succeeds", func() {
+				var reader *bytes.Buffer
+				var stdErr []byte
+				var stdOut []byte
+				var exitCode int
+				var runError error
+				var connErr error
+				var command string
+				var conn bosh.SSHConnection
+				var instance1 *testcluster.Instance
+
+				JustBeforeEach(func() {
+					instance1 = testcluster.NewInstance()
+					instance1.CreateUser("test-user", publicKeyForDocker(defaultPrivateKey()))
+
+					conn, connErr = ssh.ConnectionCreator(instance1.Address(), "test-user", defaultPrivateKey())
+					Expect(connErr).NotTo(HaveOccurred())
+
+					stdErr, exitCode, runError = conn.StreamStdin(command, reader)
+				})
+
+				BeforeEach(func() {
+					reader = bytes.NewBufferString("they will pay for the wall")
+					command = "cat > /tmp/foo; echo 'stderr' >&2"
+				})
+
+				AfterEach(func() {
+					instance1.Die()
+				})
+
+				It("does not fail", func() {
+					Expect(runError).NotTo(HaveOccurred())
+				})
+
+				It("reads stdout from the reader", func() {
+					stdout, _, _, _ := conn.Run("cat /tmp/foo")
+					Expect(string(stdout)).To(Equal("they will pay for the wall"))
+				})
+
+				XIt("drains stdout", func() {
+					Expect(string(stdOut)).To(ContainSubstring("stdout"))
+				})
+
+				It("drains stderr", func() {
+					Expect(string(stdErr)).To(ContainSubstring("stderr"))
+				})
+				It("captures exit code", func() {
+					Expect(exitCode).To(BeZero())
+				})
+			})
+		})
+	})
+
+})
+
 func publicKey(privateKey string) string {
 	parsedPrivateKey, err := gossh.ParsePrivateKey([]byte(privateKey))
 	if err != nil {
@@ -221,6 +281,15 @@ func publicKey(privateKey string) string {
 	}
 
 	return string(parsedPrivateKey.PublicKey().Marshal())
+}
+
+func publicKeyForDocker(privateKey string) string {
+	parsedPrivateKey, err := gossh.ParsePrivateKey([]byte(privateKey))
+	if err != nil {
+		Fail("Cant parse key")
+	}
+
+	return "ssh-rsa " + base64.StdEncoding.EncodeToString(parsedPrivateKey.PublicKey().Marshal())
 }
 
 func defaultPrivateKey() string {

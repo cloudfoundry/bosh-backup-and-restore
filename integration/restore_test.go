@@ -36,7 +36,6 @@ var _ = Describe("Restore", func() {
 
 		BeforeEach(func() {
 			director.VerifyAndMock(mockbosh.VMsForDeployment("my-new-deployment").NotFound())
-
 			session = runBinary(
 				restoreWorkspace,
 				[]string{"BOSH_PASSWORD=admin"},
@@ -92,18 +91,13 @@ var _ = Describe("Restore", func() {
 touch /tmp/restored_file`)
 
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
-
-			file, err := os.Create(restoreWorkspace + "/" + deploymentName + "/" + "metadata")
-			Expect(err).NotTo(HaveOccurred())
-
-			_, err = file.Write([]byte(`---
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
 instances:
 - instance_name: redis-dedicated-node
   instance_id: 0
   checksum: foo
 `))
-			Expect(err).NotTo(HaveOccurred())
-			Expect(file.Close()).To(Succeed())
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tar.gz", []byte("foobar"))
 
 			session = runBinary(
 				restoreWorkspace,
@@ -117,7 +111,7 @@ instances:
 
 		AfterEach(func() {
 			Expect(os.RemoveAll(deploymentName)).To(Succeed())
-			//instance1.Die()
+			instance1.Die()
 		})
 
 		It("does not fail", func() {
@@ -127,5 +121,20 @@ instances:
 		It("restores from a local backup", func() {
 			Expect(instance1.AssertFileExists("/tmp/restored_file")).To(BeTrue())
 		})
+
+		XIt("transfers the archive file to the remote", func() {
+			Expect(instance1.AssertFileExists("/var/vcap/store/backup/something")).To(BeTrue())
+			Expect(instance1.GetFileContents("/var/vcap/store/backup/something")).To(Equal("foobar"))
+		})
+
+		XIt("Untars the archive file")
 	})
 })
+
+func createFileWithContents(filePath string, contents []byte) {
+	file, err := os.Create(filePath)
+	Expect(err).NotTo(HaveOccurred())
+	_, err = file.Write([]byte(contents))
+	Expect(err).NotTo(HaveOccurred())
+	Expect(file.Close()).To(Succeed())
+}
