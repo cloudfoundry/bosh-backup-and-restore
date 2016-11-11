@@ -52,6 +52,7 @@ func (i *Instance) ScriptExist(file, contents string) {
 	dockerRun("exec", i.dockerID, "chmod", "+x", file)
 }
 
+//TODO: have only one way of remote execution
 func (i *Instance) AssertFileExists(path string) bool {
 	cmd := exec.Command("docker", "exec", i.dockerID, "ls", path)
 	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
@@ -63,6 +64,10 @@ func (i *Instance) AssertFileExists(path string) bool {
 func (i *Instance) BackupSize() string {
 	size := dockerRun("exec", i.dockerID, "sh", "-c", "du -sh /var/vcap/store/backup/ | cut -f1")
 	return strings.TrimSpace(size)
+}
+
+func (i *Instance) GetFileContents(path string) string {
+	return dockerRun("docker", "exec", i.dockerID, "cat", path)
 }
 
 func (i *Instance) Die() {

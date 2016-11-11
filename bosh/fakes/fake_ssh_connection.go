@@ -20,6 +20,17 @@ type FakeSSHConnection struct {
 		result2 int
 		result3 error
 	}
+	StreamStdinStub        func(cmd string, reader io.Reader) ([]byte, int, error)
+	streamStdinMutex       sync.RWMutex
+	streamStdinArgsForCall []struct {
+		cmd    string
+		reader io.Reader
+	}
+	streamStdinReturns struct {
+		result1 []byte
+		result2 int
+		result3 error
+	}
 	RunStub        func(cmd string) ([]byte, []byte, int, error)
 	runMutex       sync.RWMutex
 	runArgsForCall []struct {
@@ -77,6 +88,42 @@ func (fake *FakeSSHConnection) StreamArgsForCall(i int) (string, io.Writer) {
 func (fake *FakeSSHConnection) StreamReturns(result1 []byte, result2 int, result3 error) {
 	fake.StreamStub = nil
 	fake.streamReturns = struct {
+		result1 []byte
+		result2 int
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeSSHConnection) StreamStdin(cmd string, reader io.Reader) ([]byte, int, error) {
+	fake.streamStdinMutex.Lock()
+	fake.streamStdinArgsForCall = append(fake.streamStdinArgsForCall, struct {
+		cmd    string
+		reader io.Reader
+	}{cmd, reader})
+	fake.recordInvocation("StreamStdin", []interface{}{cmd, reader})
+	fake.streamStdinMutex.Unlock()
+	if fake.StreamStdinStub != nil {
+		return fake.StreamStdinStub(cmd, reader)
+	} else {
+		return fake.streamStdinReturns.result1, fake.streamStdinReturns.result2, fake.streamStdinReturns.result3
+	}
+}
+
+func (fake *FakeSSHConnection) StreamStdinCallCount() int {
+	fake.streamStdinMutex.RLock()
+	defer fake.streamStdinMutex.RUnlock()
+	return len(fake.streamStdinArgsForCall)
+}
+
+func (fake *FakeSSHConnection) StreamStdinArgsForCall(i int) (string, io.Reader) {
+	fake.streamStdinMutex.RLock()
+	defer fake.streamStdinMutex.RUnlock()
+	return fake.streamStdinArgsForCall[i].cmd, fake.streamStdinArgsForCall[i].reader
+}
+
+func (fake *FakeSSHConnection) StreamStdinReturns(result1 []byte, result2 int, result3 error) {
+	fake.StreamStdinStub = nil
+	fake.streamStdinReturns = struct {
 		result1 []byte
 		result2 int
 		result3 error
@@ -174,6 +221,8 @@ func (fake *FakeSSHConnection) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.streamMutex.RLock()
 	defer fake.streamMutex.RUnlock()
+	fake.streamStdinMutex.RLock()
+	defer fake.streamStdinMutex.RUnlock()
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
 	fake.cleanupMutex.RLock()
