@@ -34,6 +34,19 @@ func (instances Instances) AllBackupable() (Instances, error) {
 	return backupableInstances, nil
 }
 
+func (instances Instances) AllRestoreable() (Instances, error) {
+	var backupableInstances []Instance
+
+	for _, instance := range instances {
+		if backupable, err := instance.IsRestorable(); err != nil {
+			return backupableInstances, err
+		} else if backupable {
+			backupableInstances = append(backupableInstances, instance)
+		}
+	}
+	return backupableInstances, nil
+}
+
 func (instances Instances) Cleanup() error {
 	for _, instance := range instances {
 		if err := instance.Cleanup(); err != nil {
@@ -50,6 +63,15 @@ func (instances Instances) Backup() error {
 			return err
 		}
 	}
+	return nil
+}
 
+func (instances Instances) Restore() error {
+	for _, instance := range instances {
+		err := instance.Restore()
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
