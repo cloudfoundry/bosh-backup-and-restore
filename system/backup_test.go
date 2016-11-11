@@ -37,7 +37,7 @@ var _ = Describe("Backs up a deployment", func() {
 	})
 	It("backs up", func() {
 		By("polulating data in redis")
-		dataFixture := "../fixtures/redis_test_data"
+		dataFixture := "../fixtures/redis_test_commands"
 		RunBoshCommand(TestDeploymentSCPCommand(), dataFixture, "redis/0:/tmp")
 		Eventually(
 			RunCommandOnRemote(TestDeploymentSSHCommand(),
