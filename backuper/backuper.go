@@ -57,7 +57,7 @@ func (b Backuper) Backup(deploymentName string) error {
 		return err
 	}
 
-	if err = deployment.DrainTo(artifact); err != nil {
+	if err = deployment.CopyRemoteBackupsToLocalArtifact(artifact); err != nil {
 		return err
 	}
 

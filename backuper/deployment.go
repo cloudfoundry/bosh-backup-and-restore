@@ -5,7 +5,7 @@ type Deployment interface {
 	IsRestorable() (bool, error)
 	Backup() error
 	Restore() error
-	DrainTo(Artifact) error
+	CopyRemoteBackupsToLocalArtifact(Artifact) error
 	Cleanup() error
 	Instances() Instances
 }
@@ -62,7 +62,7 @@ func (bd *BoshDeployment) IsRestorable() (bool, error) {
 	return !restoreableInstances.IsEmpty(), nil
 }
 
-func (bd *BoshDeployment) DrainTo(artifact Artifact) error {
+func (bd *BoshDeployment) CopyRemoteBackupsToLocalArtifact(artifact Artifact) error {
 	instances, err := bd.getBackupableInstances()
 	if err != nil {
 		return err
