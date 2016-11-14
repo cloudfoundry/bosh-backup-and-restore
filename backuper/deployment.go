@@ -2,7 +2,7 @@ package backuper
 
 type Deployment interface {
 	IsBackupable() (bool, error)
-	IsRestoreable() (bool, error)
+	IsRestorable() (bool, error)
 	Backup() error
 	Restore() error
 	DrainTo(Artifact) error
@@ -52,7 +52,7 @@ func (bd *BoshDeployment) Cleanup() error {
 	return bd.instances.Cleanup()
 }
 
-func (bd *BoshDeployment) IsRestoreable() (bool, error) {
+func (bd *BoshDeployment) IsRestorable() (bool, error) {
 	bd.Logger.Info("", "Finding instances with restore scripts...")
 	restoreableInstances, err := bd.getRestoreableInstances()
 	if err != nil {

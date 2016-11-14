@@ -73,7 +73,7 @@ func (b Backuper) Restore(deploymentName string) error {
 
 	defer deployment.Cleanup()
 
-	if restoreable, err := deployment.IsRestoreable(); err != nil {
+	if restoreable, err := deployment.IsRestorable(); err != nil {
 		return err
 	} else if !restoreable {
 		return fmt.Errorf("Deployment '%s' has no restore scripts", deploymentName)
