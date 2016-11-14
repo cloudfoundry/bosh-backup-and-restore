@@ -448,4 +448,12 @@ var _ = Describe("Deployment", func() {
 			})
 		})
 	})
+	Context("Instances", func() {
+		BeforeEach(func() {
+			instances = []backuper.Instance{instance1, instance2, instance3}
+		})
+		It("returns instances for the deployment", func() {
+			Expect(deployment.Instances()).To(ConsistOf(instance1, instance2, instance3))
+		})
+	})
 })
