@@ -519,4 +519,58 @@ var _ = Describe("Deployment", func() {
 			Expect(deployment.Instances()).To(ConsistOf(instance1, instance2, instance3))
 		})
 	})
+
+	Context("CopyRemoteBackupsToLocalArtifact", func() {
+		var (
+			artifact                              *fakes.FakeArtifact
+			writeCloser                           *fakes.FakeWriteCloser
+			copyRemoteBackupsToLocalArtifactError error
+		)
+		BeforeEach(func() {
+			artifact = new(fakes.FakeArtifact)
+			writeCloser = new(fakes.FakeWriteCloser)
+			artifact.CreateFileReturns(writeCloser, nil)
+		})
+		JustBeforeEach(func() {
+			copyRemoteBackupsToLocalArtifactError = deployment.CopyRemoteBackupsToLocalArtifact(artifact)
+		})
+		Context("One instance, backupable", func() {
+			var instanceChecksum = map[string]string{"file1": "abcd", "file2": "efgh"}
+			BeforeEach(func() {
+				instance1.IsBackupableReturns(true, nil)
+				artifact.CalculateChecksumReturns(instanceChecksum, nil)
+				instances = []backuper.Instance{instance1}
+				instance1.BackupChecksumReturns(instanceChecksum, nil)
+			})
+			It("creates an artifact file with the instance", func() {
+				Expect(artifact.CreateFileCallCount()).To(Equal(1))
+				Expect(artifact.CreateFileArgsForCall(0)).To(Equal(instance1))
+			})
+
+			It("streams the backup to the writer for the artifact file", func() {
+				Expect(instance1.StreamBackupFromRemoteCallCount()).To(Equal(1))
+				Expect(instance1.StreamBackupFromRemoteArgsForCall(0)).To(Equal(writeCloser))
+			})
+
+			It("closes the writer after its been streamed", func() {
+				Expect(writeCloser.CloseCallCount()).To(Equal(1))
+			})
+
+			It("calculates checksum for the instance on the artifact", func() {
+				Expect(artifact.CalculateChecksumCallCount()).To(Equal(1))
+				Expect(artifact.CalculateChecksumArgsForCall(0)).To(Equal(instance1))
+			})
+
+			It("calculates checksum for the instance on remote", func() {
+				Expect(instance1.BackupChecksumCallCount()).To(Equal(1))
+			})
+
+			It("appends the checksum for the instance on the artifact", func() {
+				Expect(artifact.AddChecksumCallCount()).To(Equal(1))
+				actualInstance, acutalChecksum := artifact.AddChecksumArgsForCall(0)
+				Expect(actualInstance).To(Equal(instance1))
+				Expect(acutalChecksum).To(Equal(instanceChecksum))
+			})
+		})
+	})
 })
