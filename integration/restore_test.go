@@ -97,7 +97,10 @@ instances:
   instance_id: 0
   checksum: foo
 `))
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tgz", []byte("foobar"))
+
+			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
+			Expect(err).NotTo(HaveOccurred())
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tgz", backupContents)
 
 			session = runBinary(
 				restoreWorkspace,
@@ -118,12 +121,14 @@ instances:
 			Expect(session.ExitCode()).To(Equal(0))
 		})
 
-		It("transfers the archive file to the remote", func() {
+		It("Untars the archive file on the remote", func() {
 			Expect(instance1.AssertFileExists("/var/vcap/store/backup/backup.tgz")).To(BeTrue())
-			Expect(instance1.GetFileContents("/var/vcap/store/backup/backup.tgz")).To(Equal("foobar"))
+			Expect(instance1.AssertFileExists("/var/vcap/store/backup/")).To(BeTrue())
 		})
 
-		XIt("Untars the archive file on the remote")
+		It("Runs the restore script on the remote", func() {
+			Expect(instance1.AssertFileExists("/tmp/restored_file")).To(BeTrue())
+		})
 	})
 })
 

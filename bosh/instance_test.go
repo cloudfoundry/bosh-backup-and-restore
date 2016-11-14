@@ -192,8 +192,9 @@ var _ = Describe("Instance", func() {
 				Expect(actualError).NotTo(HaveOccurred())
 			})
 			It("invokes the ssh connection, to find files", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/restore | xargs -IN sudo sh -c N"))
+				Expect(sshConnection.RunCallCount()).To(Equal(2))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("cd /var/vcap/store/backup && sudo tar -zxvf backup.tgz"))
+				Expect(sshConnection.RunArgsForCall(1)).To(Equal("ls /var/vcap/jobs/*/bin/restore | xargs -IN sudo sh -c N"))
 			})
 		})
 
