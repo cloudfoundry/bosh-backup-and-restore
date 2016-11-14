@@ -97,7 +97,7 @@ instances:
   instance_id: 0
   checksum: foo
 `))
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tar.gz", []byte("foobar"))
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tgz", []byte("foobar"))
 
 			session = runBinary(
 				restoreWorkspace,

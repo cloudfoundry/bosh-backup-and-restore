@@ -106,9 +106,23 @@ func (d DeployedInstance) StreamBackupFromRemote(writer io.Writer) error {
 }
 
 func (d DeployedInstance) StreamBackupToRemote(reader io.Reader) error {
-	d.Logger.Debug("", "Streaming backup to instance %s %s", d.InstanceGroupName, d.InstanceIndex)
+	d.Logger.Debug("", "Creating backup directory on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
+	stdout, stderr, exitCode, err := d.Run("sudo mkdir -p /var/vcap/store/backup/; sudo chown vcap:vcap /var/vcap/store/backup")
 
-	stdout, stderr, exitCode, err := d.StreamStdin("cat > /var/vcap/store/backup/backup.tgz", reader)
+	d.Logger.Debug("", "Stdout: %s", string(stdout))
+	d.Logger.Debug("", "Stderr: %s", string(stderr))
+
+	if err != nil {
+		d.Logger.Debug("", "Error creating backup directory on remote instance. Exit code %d, error %s", exitCode, err.Error())
+		return err
+	}
+
+	if exitCode != 0 {
+		return fmt.Errorf("Creating backup directory on the remote returned %d. Error: %s", exitCode, stderr)
+	}
+
+	d.Logger.Debug("", "Streaming backup to instance %s %s", d.InstanceGroupName, d.InstanceIndex)
+	stdout, stderr, exitCode, err = d.StreamStdin("sudo -i -u vcap bash -c 'cat > /var/vcap/store/backup/backup.tgz'", reader)
 
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
 	d.Logger.Debug("", "Stderr: %s", string(stderr))

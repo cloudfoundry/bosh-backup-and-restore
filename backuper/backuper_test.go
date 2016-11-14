@@ -456,7 +456,9 @@ var _ = Describe("restore", func() {
 			Expect(instances).To(ContainElement(instance))
 		})
 
-		XIt("streams the local backup to the instance")
+		It("streams the local backup to the instance", func() {
+			Expect(instance.StreamBackupToRemoteCallCount()).To(Equal(1))
+		})
 
 		It("calls restore on the instance", func() {
 			Expect(instance.RestoreCallCount()).To(Equal(1))
@@ -514,6 +516,17 @@ var _ = Describe("restore", func() {
 				It("returns an error", func() {
 					actualError := b.Restore(deploymentName)
 					Expect(actualError).To(HaveOccurred())
+				})
+			})
+
+			Context("if streaming the backup to the remote fails", func() {
+				BeforeEach(func() {
+					instance.StreamBackupToRemoteReturns(fmt.Errorf("Broken pipe"))
+				})
+
+				It("returns an error", func() {
+					actualError := b.Restore(deploymentName)
+					Expect(actualError.Error()).To(Equal("Unable to send backup to remote machine. Got error: Broken pipe"))
 				})
 			})
 		})

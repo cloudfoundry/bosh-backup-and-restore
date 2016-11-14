@@ -87,6 +87,10 @@ func (b Backuper) Restore(deploymentName string) error {
 		return fmt.Errorf("Deployment '%s' does not match the structure of the provided backup", deploymentName)
 	}
 
+	if err = deployment.LoadFrom(artifact); err != nil {
+		return fmt.Errorf("Unable to send backup to remote machine. Got error: %s", err)
+	}
+
 	return deployment.Restore()
 }
 

@@ -226,10 +226,16 @@ var _ = Describe("Instance", func() {
 		})
 
 		Describe("when successful", func() {
+			It("uses the ssh connection to make the backup directory on the remote machine", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				command := sshConnection.RunArgsForCall(0)
+				Expect(command).To(Equal("sudo mkdir -p /var/vcap/store/backup/; sudo chown vcap:vcap /var/vcap/store/backup"))
+			})
+
 			It("uses the ssh connection to stream files from the remote machine", func() {
 				Expect(sshConnection.StreamStdinCallCount()).To(Equal(1))
 				command, sentReader := sshConnection.StreamStdinArgsForCall(0)
-				Expect(command).To(Equal("cat > /var/vcap/store/backup/backup.tgz"))
+				Expect(command).To(Equal("sudo -i -u vcap bash -c 'cat > /var/vcap/store/backup/backup.tgz'"))
 				Expect(reader).To(Equal(sentReader))
 			})
 
@@ -249,7 +255,7 @@ var _ = Describe("Instance", func() {
 			})
 		})
 
-		Describe("when there is an error running the command", func() {
+		Describe("when there is an error running the stream", func() {
 			BeforeEach(func() {
 				sshConnection.StreamStdinReturns([]byte("not relevant"), []byte("not relevant"), 0, fmt.Errorf("My Twitter has become so powerful"))
 			})
@@ -257,6 +263,28 @@ var _ = Describe("Instance", func() {
 			It("fails", func() {
 				Expect(err).To(HaveOccurred())
 				Expect(err.Error()).To(ContainSubstring("My Twitter has become so powerful"))
+			})
+		})
+
+		Describe("when creating the directory fails on the remote", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 1, nil)
+			})
+
+			It("fails and returns the error", func() {
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("Creating backup directory on the remote returned 1"))
+			})
+		})
+
+		Describe("when creating the directory fails because of a connection error", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, fmt.Errorf("These media people. The most dishonest people"))
+			})
+
+			It("fails and returns the error", func() {
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("These media people. The most dishonest people"))
 			})
 		})
 	})
