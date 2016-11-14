@@ -19,6 +19,7 @@ type ArtifactCreator func(string) (Artifact, error)
 //go:generate counterfeiter -o fakes/fake_artifact.go . Artifact
 type Artifact interface {
 	CreateFile(Instance) (io.WriteCloser, error)
+	ReadFile(Instance) (io.ReadCloser, error)
 	AddChecksum(Instance, map[string]string) error
 	CalculateChecksum(Instance) (map[string]string, error)
 	DeploymentMatches(string, []Instance) (bool, error)
@@ -69,6 +70,17 @@ func (d *DirectoryArtifact) DeploymentMatches(deployment string, instances []Ins
 func (d *DirectoryArtifact) CreateFile(inst Instance) (io.WriteCloser, error) {
 	filename := inst.Name() + "-" + inst.ID() + ".tgz"
 	return os.Create(path.Join(d.baseDirName, filename))
+}
+
+func (d *DirectoryArtifact) ReadFile(inst Instance) (io.ReadCloser, error) {
+	filename := inst.Name() + "-" + inst.ID() + ".tgz"
+	file, err := os.Open(path.Join(d.baseDirName, filename))
+
+	if err != nil {
+		return nil, err
+	}
+
+	return file, nil
 }
 
 func (d *DirectoryArtifact) CalculateChecksum(inst Instance) (map[string]string, error) {

@@ -18,7 +18,7 @@ import (
 )
 
 var _ = Describe("Artifact", func() {
-	var artifactName = "dave"
+	var artifactName = "my-cool-redis"
 	Describe("DirectoryArtifactCreator", func() {
 		It("creates a directory with the given name", func() {
 			_, err := DirectoryArtifactCreator(artifactName)
@@ -175,6 +175,53 @@ instances:
 			})
 		})
 
+	})
+
+	Describe("ReadFile", func() {
+		var artifact Artifact
+		var fileReadError error
+		var reader io.Reader
+		var fakeInstance *fakes.FakeInstance
+
+		BeforeEach(func() {
+			artifact, _ = NoopArtifactCreator(artifactName)
+			fakeInstance = new(fakes.FakeInstance)
+			fakeInstance.IDReturns("0")
+			fakeInstance.NameReturns("redis")
+		})
+
+		Context("File exists and is readable", func() {
+			BeforeEach(func() {
+				err := os.MkdirAll(artifactName, 0700)
+				Expect(err).NotTo(HaveOccurred())
+				_, err = os.Create(artifactName + "/redis-0.tgz")
+				Expect(err).NotTo(HaveOccurred())
+				err = ioutil.WriteFile(artifactName+"/redis-0.tgz", []byte("backup-content"), 0700)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			JustBeforeEach(func() {
+				reader, fileReadError = artifact.ReadFile(fakeInstance)
+			})
+
+			It("does not fail", func() {
+				Expect(fileReadError).NotTo(HaveOccurred())
+			})
+
+			It("reads the correct file", func() {
+				contents, err := ioutil.ReadAll(reader)
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(contents).To(ContainSubstring("backup-content"))
+			})
+		})
+
+		Context("File is not readable", func() {
+			It("fails", func() {
+				_, fileReadError = artifact.ReadFile(fakeInstance)
+				Expect(fileReadError).To(HaveOccurred())
+			})
+		})
 	})
 
 	Describe("Checksum", func() {
