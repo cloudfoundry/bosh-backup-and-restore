@@ -3,6 +3,8 @@ updated: 2016-11-02T13:48:16.977827534Z
 imports:
 - name: code.cloudfoundry.org/clock
   version: e0835a7d46f9ea781e764f0dc9325110e32a97dd
+- name: github.com/hashicorp/go-multierror
+  version: 8c5f0ad9360406a3807ce7de6bc73269a91a6e51
 - name: github.com/aws/aws-sdk-go
   version: 7557129b846473b8edd52853c077d21b7934b699
   repo: https://github.com/aws/aws-sdk-go

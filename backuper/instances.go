@@ -1,6 +1,7 @@
 package backuper
 
 import "io"
+import "github.com/hashicorp/go-multierror"
 
 //go:generate counterfeiter -o fakes/fake_instance.go . Instance
 type Instance interface {
@@ -48,12 +49,13 @@ func (instances Instances) AllRestoreable() (Instances, error) {
 }
 
 func (instances Instances) Cleanup() error {
+	var cleanupErrors error = nil
 	for _, instance := range instances {
 		if err := instance.Cleanup(); err != nil {
-			return err
+			cleanupErrors = multierror.Append(cleanupErrors, err)
 		}
 	}
-	return nil
+	return cleanupErrors
 }
 
 func (instances Instances) Backup() error {

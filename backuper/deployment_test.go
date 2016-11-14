@@ -377,5 +377,75 @@ var _ = Describe("Deployment", func() {
 			})
 		})
 	})
+	Context("Cleanup", func() {
+		var (
+			actualCleanupError error
+		)
+		JustBeforeEach(func() {
+			actualCleanupError = deployment.Cleanup()
+		})
 
+		Context("Single instance", func() {
+			BeforeEach(func() {
+				instances = []backuper.Instance{instance1}
+			})
+			It("does not fail", func() {
+				Expect(actualCleanupError).NotTo(HaveOccurred())
+			})
+			It("cleans up the instance", func() {
+				Expect(instance1.CleanupCallCount()).To(Equal(1))
+			})
+		})
+
+		Context("Multiple instances", func() {
+			BeforeEach(func() {
+				instances = backuper.Instances{instance1, instance2}
+			})
+			It("does not fail", func() {
+				Expect(actualCleanupError).NotTo(HaveOccurred())
+			})
+			It("backs up the only the backupable instance", func() {
+				Expect(instance1.CleanupCallCount()).To(Equal(1))
+				Expect(instance2.CleanupCallCount()).To(Equal(1))
+			})
+		})
+
+		Context("Multiple instances, some failing", func() {
+			var cleanupError1 = fmt.Errorf("foo")
+
+			BeforeEach(func() {
+				instance1.CleanupReturns(cleanupError1)
+				instances = backuper.Instances{instance1, instance2}
+			})
+
+			It("fails", func() {
+				Expect(actualCleanupError).To(MatchError(ContainSubstring(cleanupError1.Error())))
+			})
+
+			It("continues cleanup of instances", func() {
+				Expect(instance1.CleanupCallCount()).To(Equal(1))
+				Expect(instance2.CleanupCallCount()).To(Equal(1))
+			})
+		})
+
+		Context("Multiple instances, all failing", func() {
+			var cleanupError1 = fmt.Errorf("foo")
+			var cleanupError2 = fmt.Errorf("bar")
+			BeforeEach(func() {
+				instance1.CleanupReturns(cleanupError1)
+				instance2.CleanupReturns(cleanupError2)
+				instances = backuper.Instances{instance1, instance2}
+			})
+
+			It("fails with both error messages", func() {
+				Expect(actualCleanupError).To(MatchError(ContainSubstring(cleanupError1.Error())))
+				Expect(actualCleanupError).To(MatchError(ContainSubstring(cleanupError2.Error())))
+			})
+
+			It("continues cleanup of instances", func() {
+				Expect(instance1.CleanupCallCount()).To(Equal(1))
+				Expect(instance2.CleanupCallCount()).To(Equal(1))
+			})
+		})
+	})
 })
