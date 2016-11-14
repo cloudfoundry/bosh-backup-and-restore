@@ -640,7 +640,54 @@ var _ = Describe("Deployment", func() {
 				Expect(acutalChecksum).To(Equal(instanceChecksum))
 			})
 		})
+		Context("Many instances, one backupable", func() {
+			var instanceChecksum = map[string]string{"file1": "abcd", "file2": "efgh"}
+			var writeCloser1 *fakes.FakeWriteCloser
 
+			BeforeEach(func() {
+				writeCloser1 = new(fakes.FakeWriteCloser)
+
+				artifact.CreateFileReturns(writeCloser1, nil)
+
+				instance1.IsBackupableReturns(true, nil)
+				instance2.IsBackupableReturns(false, nil)
+				artifact.CalculateChecksumReturns(instanceChecksum, nil)
+				instances = []backuper.Instance{instance1, instance2}
+				instance1.BackupChecksumReturns(instanceChecksum, nil)
+			})
+			It("creates an artifact file with the instance", func() {
+				Expect(artifact.CreateFileCallCount()).To(Equal(1))
+				Expect(artifact.CreateFileArgsForCall(0)).To(Equal(instance1))
+			})
+
+			It("streams the backup to the writer for the artifact file", func() {
+				Expect(instance1.StreamBackupFromRemoteCallCount()).To(Equal(1))
+				Expect(instance1.StreamBackupFromRemoteArgsForCall(0)).To(Equal(writeCloser1))
+
+				Expect(instance2.StreamBackupFromRemoteCallCount()).To(Equal(0))
+			})
+
+			It("closes the writer after its been streamed", func() {
+				Expect(writeCloser1.CloseCallCount()).To(Equal(1))
+			})
+
+			It("calculates checksum for the instance on the artifact", func() {
+				Expect(artifact.CalculateChecksumCallCount()).To(Equal(1))
+				Expect(artifact.CalculateChecksumArgsForCall(0)).To(Equal(instance1))
+			})
+
+			It("calculates checksum for the instance on remote", func() {
+				Expect(instance1.BackupChecksumCallCount()).To(Equal(1))
+				Expect(instance2.BackupChecksumCallCount()).To(Equal(0))
+			})
+
+			It("appends the checksum for the instance on the artifact", func() {
+				Expect(artifact.AddChecksumCallCount()).To(Equal(1))
+				actualInstance, acutalChecksum := artifact.AddChecksumArgsForCall(0)
+				Expect(actualInstance).To(Equal(instance1))
+				Expect(acutalChecksum).To(Equal(instanceChecksum))
+			})
+		})
 		Describe("failures", func() {
 			var expectedError = fmt.Errorf("Jesus!")
 
