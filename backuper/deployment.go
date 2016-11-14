@@ -6,6 +6,7 @@ type Deployment interface {
 	Backup() error
 	Restore() error
 	CopyRemoteBackupsToLocalArtifact(Artifact) error
+	LoadFrom(Artifact) error
 	Cleanup() error
 	Instances() Instances
 }
@@ -103,6 +104,27 @@ func (bd *BoshDeployment) CopyRemoteBackupsToLocalArtifact(artifact Artifact) er
 
 		artifact.AddChecksum(instance, localChecksum)
 		bd.Logger.Info("", "Done.")
+	}
+	return nil
+}
+
+func (bd *BoshDeployment) LoadFrom(artifact Artifact) error {
+	instances, err := bd.getRestoreableInstances()
+	if err != nil {
+		return err
+	}
+
+	for _, instance := range instances {
+		reader, err := artifact.ReadFile(instance)
+
+		if err != nil {
+			return err
+		}
+
+		bd.Logger.Info("", "Copying backup to %s-%s...", instance.Name(), instance.ID())
+		if err := instance.StreamBackupToRemote(reader); err != nil {
+			return err
+		}
 	}
 	return nil
 }

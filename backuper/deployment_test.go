@@ -2,6 +2,11 @@ package backuper_test
 
 import (
 	"fmt"
+	"io"
+
+	"bytes"
+
+	"io/ioutil"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -279,6 +284,64 @@ var _ = Describe("Deployment", func() {
 				Expect(instance2.RestoreCallCount()).To(Equal(0))
 			})
 		})
+	})
+
+	Context("LoadFrom", func() {
+		var (
+			artifact    *fakes.FakeArtifact
+			loadFromErr error
+			readFileErr error
+			reader      io.ReadCloser
+		)
+
+		BeforeEach(func() {
+			instance1.IsRestorableReturns(true, nil)
+			instance1.StreamBackupToRemoteReturns(nil)
+			instances = []backuper.Instance{instance1}
+			artifact = new(fakes.FakeArtifact)
+			artifact.ReadFileReturns(reader, readFileErr)
+		})
+
+		JustBeforeEach(func() {
+			reader = ioutil.NopCloser(bytes.NewBufferString("this-is-some-backup-data"))
+			readFileErr = nil
+			loadFromErr = deployment.LoadFrom(artifact)
+		})
+
+		Context("Single instance, restorable", func() {
+			It("does not fail", func() {
+				Expect(loadFromErr).NotTo(HaveOccurred())
+			})
+
+			It("streams the backup file to the restorable instance", func() {
+				Expect(instance1.StreamBackupToRemoteCallCount()).To(Equal(1))
+				expectedReader := instance1.StreamBackupToRemoteArgsForCall(0)
+				Expect(expectedReader).To(Equal(reader))
+			})
+
+			Context("problem occurs streaming to instance", func() {
+				BeforeEach(func() {
+					instance1.StreamBackupToRemoteReturns(fmt.Errorf("Tiny children are not horses"))
+				})
+
+				It("fails", func() {
+					Expect(loadFromErr).To(HaveOccurred())
+					Expect(loadFromErr).To(MatchError("Tiny children are not horses"))
+				})
+			})
+
+			Context("problem occurs while reading from backup", func() {
+				BeforeEach(func() {
+					artifact.ReadFileReturns(nil, fmt.Errorf("an overrated clown"))
+				})
+
+				It("fails", func() {
+					Expect(loadFromErr).To(HaveOccurred())
+					Expect(loadFromErr).To(MatchError("an overrated clown"))
+				})
+			})
+		})
+
 	})
 
 	Context("IsRestorable", func() {
