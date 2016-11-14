@@ -53,20 +53,12 @@ type FakeInstance struct {
 	cleanupReturns     struct {
 		result1 error
 	}
-	StreamBackupFromRemoteStub        func(io.Writer) error
-	streamBackupFromRemoteMutex       sync.RWMutex
-	streamBackupFromRemoteArgsForCall []struct {
+	StreamBackupToStub        func(io.Writer) error
+	streamBackupToMutex       sync.RWMutex
+	streamBackupToArgsForCall []struct {
 		arg1 io.Writer
 	}
-	streamBackupFromRemoteReturns struct {
-		result1 error
-	}
-	StreamBackupToRemoteStub        func(io.Reader) error
-	streamBackupToRemoteMutex       sync.RWMutex
-	streamBackupToRemoteArgsForCall []struct {
-		arg1 io.Reader
-	}
-	streamBackupToRemoteReturns struct {
+	streamBackupToReturns struct {
 		result1 error
 	}
 	BackupSizeStub        func() (string, error)
@@ -264,68 +256,35 @@ func (fake *FakeInstance) CleanupReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeInstance) StreamBackupFromRemote(arg1 io.Writer) error {
-	fake.streamBackupFromRemoteMutex.Lock()
-	fake.streamBackupFromRemoteArgsForCall = append(fake.streamBackupFromRemoteArgsForCall, struct {
+func (fake *FakeInstance) StreamBackupTo(arg1 io.Writer) error {
+	fake.streamBackupToMutex.Lock()
+	fake.streamBackupToArgsForCall = append(fake.streamBackupToArgsForCall, struct {
 		arg1 io.Writer
 	}{arg1})
-	fake.recordInvocation("StreamBackupFromRemote", []interface{}{arg1})
-	fake.streamBackupFromRemoteMutex.Unlock()
-	if fake.StreamBackupFromRemoteStub != nil {
-		return fake.StreamBackupFromRemoteStub(arg1)
+	fake.recordInvocation("StreamBackupTo", []interface{}{arg1})
+	fake.streamBackupToMutex.Unlock()
+	if fake.StreamBackupToStub != nil {
+		return fake.StreamBackupToStub(arg1)
 	} else {
-		return fake.streamBackupFromRemoteReturns.result1
+		return fake.streamBackupToReturns.result1
 	}
 }
 
-func (fake *FakeInstance) StreamBackupFromRemoteCallCount() int {
-	fake.streamBackupFromRemoteMutex.RLock()
-	defer fake.streamBackupFromRemoteMutex.RUnlock()
-	return len(fake.streamBackupFromRemoteArgsForCall)
+func (fake *FakeInstance) StreamBackupToCallCount() int {
+	fake.streamBackupToMutex.RLock()
+	defer fake.streamBackupToMutex.RUnlock()
+	return len(fake.streamBackupToArgsForCall)
 }
 
-func (fake *FakeInstance) StreamBackupFromRemoteArgsForCall(i int) io.Writer {
-	fake.streamBackupFromRemoteMutex.RLock()
-	defer fake.streamBackupFromRemoteMutex.RUnlock()
-	return fake.streamBackupFromRemoteArgsForCall[i].arg1
+func (fake *FakeInstance) StreamBackupToArgsForCall(i int) io.Writer {
+	fake.streamBackupToMutex.RLock()
+	defer fake.streamBackupToMutex.RUnlock()
+	return fake.streamBackupToArgsForCall[i].arg1
 }
 
-func (fake *FakeInstance) StreamBackupFromRemoteReturns(result1 error) {
-	fake.StreamBackupFromRemoteStub = nil
-	fake.streamBackupFromRemoteReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeInstance) StreamBackupToRemote(arg1 io.Reader) error {
-	fake.streamBackupToRemoteMutex.Lock()
-	fake.streamBackupToRemoteArgsForCall = append(fake.streamBackupToRemoteArgsForCall, struct {
-		arg1 io.Reader
-	}{arg1})
-	fake.recordInvocation("StreamBackupToRemote", []interface{}{arg1})
-	fake.streamBackupToRemoteMutex.Unlock()
-	if fake.StreamBackupToRemoteStub != nil {
-		return fake.StreamBackupToRemoteStub(arg1)
-	} else {
-		return fake.streamBackupToRemoteReturns.result1
-	}
-}
-
-func (fake *FakeInstance) StreamBackupToRemoteCallCount() int {
-	fake.streamBackupToRemoteMutex.RLock()
-	defer fake.streamBackupToRemoteMutex.RUnlock()
-	return len(fake.streamBackupToRemoteArgsForCall)
-}
-
-func (fake *FakeInstance) StreamBackupToRemoteArgsForCall(i int) io.Reader {
-	fake.streamBackupToRemoteMutex.RLock()
-	defer fake.streamBackupToRemoteMutex.RUnlock()
-	return fake.streamBackupToRemoteArgsForCall[i].arg1
-}
-
-func (fake *FakeInstance) StreamBackupToRemoteReturns(result1 error) {
-	fake.StreamBackupToRemoteStub = nil
-	fake.streamBackupToRemoteReturns = struct {
+func (fake *FakeInstance) StreamBackupToReturns(result1 error) {
+	fake.StreamBackupToStub = nil
+	fake.streamBackupToReturns = struct {
 		result1 error
 	}{result1}
 }
@@ -399,10 +358,8 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.restoreMutex.RUnlock()
 	fake.cleanupMutex.RLock()
 	defer fake.cleanupMutex.RUnlock()
-	fake.streamBackupFromRemoteMutex.RLock()
-	defer fake.streamBackupFromRemoteMutex.RUnlock()
-	fake.streamBackupToRemoteMutex.RLock()
-	defer fake.streamBackupToRemoteMutex.RUnlock()
+	fake.streamBackupToMutex.RLock()
+	defer fake.streamBackupToMutex.RUnlock()
 	fake.backupSizeMutex.RLock()
 	defer fake.backupSizeMutex.RUnlock()
 	fake.backupChecksumMutex.RLock()
