@@ -11,7 +11,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Backs up a deployment", func() {
+var _ = FDescribe("Backs up a deployment", func() {
 	var commandPath string
 	var err error
 	var workspaceDir = "/var/vcap/store/backup_workspace"
