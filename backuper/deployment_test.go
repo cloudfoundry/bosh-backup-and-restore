@@ -523,20 +523,22 @@ var _ = Describe("Deployment", func() {
 	Context("CopyRemoteBackupsToLocalArtifact", func() {
 		var (
 			artifact                              *fakes.FakeArtifact
-			writeCloser                           *fakes.FakeWriteCloser
 			copyRemoteBackupsToLocalArtifactError error
 		)
 		BeforeEach(func() {
 			artifact = new(fakes.FakeArtifact)
-			writeCloser = new(fakes.FakeWriteCloser)
-			artifact.CreateFileReturns(writeCloser, nil)
 		})
 		JustBeforeEach(func() {
 			copyRemoteBackupsToLocalArtifactError = deployment.CopyRemoteBackupsToLocalArtifact(artifact)
 		})
+
 		Context("One instance, backupable", func() {
+			var writeCloser *fakes.FakeWriteCloser
 			var instanceChecksum = map[string]string{"file1": "abcd", "file2": "efgh"}
 			BeforeEach(func() {
+				writeCloser = new(fakes.FakeWriteCloser)
+				artifact.CreateFileReturns(writeCloser, nil)
+
 				instance1.IsBackupableReturns(true, nil)
 				artifact.CalculateChecksumReturns(instanceChecksum, nil)
 				instances = []backuper.Instance{instance1}
@@ -570,6 +572,202 @@ var _ = Describe("Deployment", func() {
 				actualInstance, acutalChecksum := artifact.AddChecksumArgsForCall(0)
 				Expect(actualInstance).To(Equal(instance1))
 				Expect(acutalChecksum).To(Equal(instanceChecksum))
+			})
+		})
+
+		Context("Many instances, backupable", func() {
+			var instanceChecksum = map[string]string{"file1": "abcd", "file2": "efgh"}
+			var writeCloser1 *fakes.FakeWriteCloser
+			var writeCloser2 *fakes.FakeWriteCloser
+
+			BeforeEach(func() {
+				writeCloser1 = new(fakes.FakeWriteCloser)
+				writeCloser2 = new(fakes.FakeWriteCloser)
+
+				artifact.CreateFileStub = func(i backuper.Instance) (io.WriteCloser, error) {
+					if i == instance1 {
+						return writeCloser1, nil
+					} else {
+						return writeCloser2, nil
+					}
+				}
+
+				instance1.IsBackupableReturns(true, nil)
+				instance2.IsBackupableReturns(true, nil)
+				artifact.CalculateChecksumReturns(instanceChecksum, nil)
+				instances = []backuper.Instance{instance1, instance2}
+				instance1.BackupChecksumReturns(instanceChecksum, nil)
+				instance2.BackupChecksumReturns(instanceChecksum, nil)
+			})
+			It("creates an artifact file with the instance", func() {
+				Expect(artifact.CreateFileCallCount()).To(Equal(2))
+				Expect(artifact.CreateFileArgsForCall(0)).To(Equal(instance1))
+				Expect(artifact.CreateFileArgsForCall(1)).To(Equal(instance2))
+			})
+
+			It("streams the backup to the writer for the artifact file", func() {
+				Expect(instance1.StreamBackupFromRemoteCallCount()).To(Equal(1))
+				Expect(instance1.StreamBackupFromRemoteArgsForCall(0)).To(Equal(writeCloser1))
+
+				Expect(instance2.StreamBackupFromRemoteCallCount()).To(Equal(1))
+				Expect(instance2.StreamBackupFromRemoteArgsForCall(0)).To(Equal(writeCloser2))
+			})
+
+			It("closes the writer after its been streamed", func() {
+				Expect(writeCloser1.CloseCallCount()).To(Equal(1))
+				Expect(writeCloser2.CloseCallCount()).To(Equal(1))
+			})
+
+			It("calculates checksum for the instance on the artifact", func() {
+				Expect(artifact.CalculateChecksumCallCount()).To(Equal(2))
+				Expect(artifact.CalculateChecksumArgsForCall(0)).To(Equal(instance1))
+				Expect(artifact.CalculateChecksumArgsForCall(1)).To(Equal(instance2))
+			})
+
+			It("calculates checksum for the instance on remote", func() {
+				Expect(instance1.BackupChecksumCallCount()).To(Equal(1))
+				Expect(instance2.BackupChecksumCallCount()).To(Equal(1))
+			})
+
+			It("appends the checksum for the instance on the artifact", func() {
+				Expect(artifact.AddChecksumCallCount()).To(Equal(2))
+				actualInstance, acutalChecksum := artifact.AddChecksumArgsForCall(0)
+				Expect(actualInstance).To(Equal(instance1))
+				Expect(acutalChecksum).To(Equal(instanceChecksum))
+
+				actualInstance, acutalChecksum = artifact.AddChecksumArgsForCall(1)
+				Expect(actualInstance).To(Equal(instance2))
+				Expect(acutalChecksum).To(Equal(instanceChecksum))
+			})
+		})
+
+		Describe("failures", func() {
+			var expectedError = fmt.Errorf("Jesus!")
+
+			Context("fails when checking if instances are backupable", func() {
+				BeforeEach(func() {
+					instance1.IsBackupableReturns(false, expectedError)
+					instances = []backuper.Instance{instance1}
+				})
+
+				It("fails the copy process", func() {
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(expectedError))
+				})
+			})
+
+			Context("fails if backup cannot be drained", func() {
+				var drainError = fmt.Errorf("they are bringing crime")
+				BeforeEach(func() {
+					instances = []backuper.Instance{instance1}
+					instance1.IsBackupableReturns(true, nil)
+					instance1.StreamBackupFromRemoteReturns(drainError)
+				})
+
+				It("fails the transfer process", func() {
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(drainError))
+				})
+			})
+
+			Context("fails if file cannot be created", func() {
+				var fileError = fmt.Errorf("i have a very good brain")
+				BeforeEach(func() {
+					instances = []backuper.Instance{instance1}
+					instance1.IsBackupableReturns(true, nil)
+					artifact.CreateFileReturns(nil, fileError)
+				})
+
+				It("fails the backup process", func() {
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(fileError))
+				})
+			})
+			Context("fails if local shasum calculation fails", func() {
+				shasumError := fmt.Errorf("yuuuge")
+				var writeCloser1 *fakes.FakeWriteCloser
+
+				BeforeEach(func() {
+					writeCloser1 = new(fakes.FakeWriteCloser)
+					instances = []backuper.Instance{instance1}
+					instance1.IsBackupableReturns(true, nil)
+					instance1.BackupReturns(nil)
+					artifact.CreateFileReturns(writeCloser1, nil)
+
+					artifact.CalculateChecksumReturns(nil, shasumError)
+				})
+
+				It("fails the backup process", func() {
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(shasumError))
+				})
+			})
+
+			Context("fails if the remote shasum cant be calulated", func() {
+				remoteShasumError := fmt.Errorf("i have created so many jobs")
+				var writeCloser1 *fakes.FakeWriteCloser
+
+				BeforeEach(func() {
+					writeCloser1 = new(fakes.FakeWriteCloser)
+					instances = []backuper.Instance{instance1}
+
+					instance1.IsBackupableReturns(true, nil)
+					instance1.BackupReturns(nil)
+					artifact.CreateFileReturns(writeCloser1, nil)
+
+					instance1.BackupChecksumReturns(nil, remoteShasumError)
+				})
+
+				It("fails the backup process", func() {
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(remoteShasumError))
+				})
+
+				It("dosen't try to append shasum to metadata", func() {
+					Expect(artifact.AddChecksumCallCount()).To(BeZero())
+				})
+			})
+			Context("fails if the remote shasum dosen't match the local shasum", func() {
+				var writeCloser1 *fakes.FakeWriteCloser
+
+				BeforeEach(func() {
+					writeCloser1 = new(fakes.FakeWriteCloser)
+					instances = []backuper.Instance{instance1}
+
+					instance1.IsBackupableReturns(true, nil)
+					instance1.BackupReturns(nil)
+					artifact.CreateFileReturns(writeCloser1, nil)
+
+					artifact.CalculateChecksumReturns(map[string]string{"file": "this won't match"}, nil)
+					instance1.BackupChecksumReturns(map[string]string{"file": "this wont match"}, nil)
+				})
+
+				It("fails the backup process", func() {
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(ContainSubstring("Backup artifact is corrupted")))
+				})
+
+				It("dosen't try to append shasum to metadata", func() {
+					Expect(artifact.AddChecksumCallCount()).To(BeZero())
+				})
+			})
+
+			Context("fails if the number of files in the artifact dont match", func() {
+				var writeCloser1 *fakes.FakeWriteCloser
+
+				BeforeEach(func() {
+					writeCloser1 = new(fakes.FakeWriteCloser)
+					instances = []backuper.Instance{instance1}
+
+					instance1.IsBackupableReturns(true, nil)
+					instance1.BackupReturns(nil)
+					artifact.CreateFileReturns(writeCloser1, nil)
+
+					artifact.CalculateChecksumReturns(map[string]string{"file": "this will match", "extra": "this won't match"}, nil)
+					instance1.BackupChecksumReturns(map[string]string{"file": "this will match"}, nil)
+				})
+
+				It("fails the backup process", func() {
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(ContainSubstring("Backup artifact is corrupted")))
+				})
+
+				It("dosen't try to append shasum to metadata", func() {
+					Expect(artifact.AddChecksumCallCount()).To(BeZero())
+				})
 			})
 		})
 	})
