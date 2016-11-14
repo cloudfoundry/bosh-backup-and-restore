@@ -88,7 +88,7 @@ func (d DeployedInstance) Restore() error {
 	return err
 }
 
-func (d DeployedInstance) StreamBackupTo(writer io.Writer) error {
+func (d DeployedInstance) StreamBackupFromRemote(writer io.Writer) error {
 	d.Logger.Debug("", "Streaming backup from instance %s %s", d.InstanceGroupName, d.InstanceIndex)
 	stderr, exitCode, err := d.Stream("sudo tar -C /var/vcap/store/backup -zc .", writer)
 
@@ -104,6 +104,26 @@ func (d DeployedInstance) StreamBackupTo(writer io.Writer) error {
 
 	return err
 }
+
+func (d DeployedInstance) StreamBackupToRemote(reader io.Reader) error {
+	d.Logger.Debug("", "Streaming backup to instance %s %s", d.InstanceGroupName, d.InstanceIndex)
+
+	stdout, stderr, exitCode, err := d.StreamStdin("cat > /var/vcap/store/backup/backup.tgz", reader)
+
+	d.Logger.Debug("", "Stdout: %s", string(stdout))
+	d.Logger.Debug("", "Stderr: %s", string(stderr))
+
+	if err != nil {
+		d.Logger.Debug("", "Error streaming backup to remote instance. Exit code %d, error %s", exitCode, err.Error())
+	}
+
+	if exitCode != 0 {
+		return fmt.Errorf("Streaming backup to remote returned %d. Error: %s", exitCode, stderr)
+	}
+
+	return err
+}
+
 func (d DeployedInstance) BackupChecksum() (map[string]string, error) {
 	d.Logger.Debug("", "Running checksum on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
 

@@ -18,6 +18,15 @@ type FakeArtifact struct {
 		result1 io.WriteCloser
 		result2 error
 	}
+	ReadFileStub        func(backuper.Instance) (io.ReadCloser, error)
+	readFileMutex       sync.RWMutex
+	readFileArgsForCall []struct {
+		arg1 backuper.Instance
+	}
+	readFileReturns struct {
+		result1 io.ReadCloser
+		result2 error
+	}
 	AddChecksumStub        func(backuper.Instance, map[string]string) error
 	addChecksumMutex       sync.RWMutex
 	addChecksumArgsForCall []struct {
@@ -80,6 +89,40 @@ func (fake *FakeArtifact) CreateFileReturns(result1 io.WriteCloser, result2 erro
 	fake.CreateFileStub = nil
 	fake.createFileReturns = struct {
 		result1 io.WriteCloser
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeArtifact) ReadFile(arg1 backuper.Instance) (io.ReadCloser, error) {
+	fake.readFileMutex.Lock()
+	fake.readFileArgsForCall = append(fake.readFileArgsForCall, struct {
+		arg1 backuper.Instance
+	}{arg1})
+	fake.recordInvocation("ReadFile", []interface{}{arg1})
+	fake.readFileMutex.Unlock()
+	if fake.ReadFileStub != nil {
+		return fake.ReadFileStub(arg1)
+	} else {
+		return fake.readFileReturns.result1, fake.readFileReturns.result2
+	}
+}
+
+func (fake *FakeArtifact) ReadFileCallCount() int {
+	fake.readFileMutex.RLock()
+	defer fake.readFileMutex.RUnlock()
+	return len(fake.readFileArgsForCall)
+}
+
+func (fake *FakeArtifact) ReadFileArgsForCall(i int) backuper.Instance {
+	fake.readFileMutex.RLock()
+	defer fake.readFileMutex.RUnlock()
+	return fake.readFileArgsForCall[i].arg1
+}
+
+func (fake *FakeArtifact) ReadFileReturns(result1 io.ReadCloser, result2 error) {
+	fake.ReadFileStub = nil
+	fake.readFileReturns = struct {
+		result1 io.ReadCloser
 		result2 error
 	}{result1, result2}
 }
@@ -197,6 +240,8 @@ func (fake *FakeArtifact) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.createFileMutex.RLock()
 	defer fake.createFileMutex.RUnlock()
+	fake.readFileMutex.RLock()
+	defer fake.readFileMutex.RUnlock()
 	fake.addChecksumMutex.RLock()
 	defer fake.addChecksumMutex.RUnlock()
 	fake.calculateChecksumMutex.RLock()

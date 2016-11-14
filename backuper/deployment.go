@@ -80,7 +80,7 @@ func (bd *BoshDeployment) DrainTo(artifact Artifact) error {
 		}
 
 		bd.Logger.Info("", "Copying backup -- %s uncompressed -- from %s-%s...", size, instance.Name(), instance.ID())
-		if err := instance.StreamBackupTo(writer); err != nil {
+		if err := instance.StreamBackupFromRemote(writer); err != nil {
 			return err
 		}
 

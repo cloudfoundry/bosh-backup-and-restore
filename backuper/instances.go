@@ -12,7 +12,8 @@ type Instance interface {
 	Backup() error
 	Restore() error
 	Cleanup() error
-	StreamBackupTo(io.Writer) error
+	StreamBackupFromRemote(io.Writer) error
+	StreamBackupToRemote(io.Reader) error
 	BackupSize() (string, error)
 	BackupChecksum() (map[string]string, error)
 }

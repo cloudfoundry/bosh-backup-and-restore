@@ -118,16 +118,12 @@ instances:
 			Expect(session.ExitCode()).To(Equal(0))
 		})
 
-		It("restores from a local backup", func() {
-			Expect(instance1.AssertFileExists("/tmp/restored_file")).To(BeTrue())
-		})
-
 		XIt("transfers the archive file to the remote", func() {
-			Expect(instance1.AssertFileExists("/var/vcap/store/backup/something")).To(BeTrue())
-			Expect(instance1.GetFileContents("/var/vcap/store/backup/something")).To(Equal("foobar"))
+			Expect(instance1.AssertFileExists("/var/vcap/store/backup/backup.tgz")).To(BeTrue())
+			Expect(instance1.GetFileContents("/var/vcap/store/backup/backup.tgz")).To(Equal("foobar"))
 		})
 
-		XIt("Untars the archive file")
+		XIt("Untars the archive file on the remote")
 	})
 })
 
