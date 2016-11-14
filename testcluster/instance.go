@@ -67,7 +67,7 @@ func (i *Instance) BackupSize() string {
 }
 
 func (i *Instance) GetFileContents(path string) string {
-	return dockerRun("docker", "exec", i.dockerID, "cat", path)
+	return dockerRun("exec", i.dockerID, "cat", path)
 }
 
 func (i *Instance) Die() {

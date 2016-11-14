@@ -118,7 +118,7 @@ instances:
 			Expect(session.ExitCode()).To(Equal(0))
 		})
 
-		XIt("transfers the archive file to the remote", func() {
+		It("transfers the archive file to the remote", func() {
 			Expect(instance1.AssertFileExists("/var/vcap/store/backup/backup.tgz")).To(BeTrue())
 			Expect(instance1.GetFileContents("/var/vcap/store/backup/backup.tgz")).To(Equal("foobar"))
 		})
