@@ -48,7 +48,7 @@ var _ = Describe("Backuper", func() {
 			instance.NameReturns("redis")
 			instance.IDReturns("0")
 			artifact.CreateFileReturns(backupWriter, nil)
-			instance.StreamBackupToReturns(nil)
+			instance.StreamBackupFromRemoteReturns(nil)
 			artifact.CalculateChecksumReturns(expectedLocalChecksum, nil)
 			instance.BackupChecksumReturns(expectedRemoteChecksum, nil)
 		})
@@ -88,8 +88,8 @@ var _ = Describe("Backuper", func() {
 		})
 
 		It("streams the contents to the writer", func() {
-			Expect(instance.StreamBackupToCallCount()).To(Equal(1))
-			Expect(instance.StreamBackupToArgsForCall(0)).To(Equal(backupWriter))
+			Expect(instance.StreamBackupFromRemoteCallCount()).To(Equal(1))
+			Expect(instance.StreamBackupFromRemoteArgsForCall(0)).To(Equal(backupWriter))
 		})
 		It("adds the checksum for the instance to the metadata", func() {
 			Expect(artifact.AddChecksumCallCount()).To(Equal(1))
@@ -217,7 +217,7 @@ var _ = Describe("Backuper", func() {
 				boshDirector.FindInstancesReturns(instances, nil)
 				instance.IsBackupableReturns(true, nil)
 				artifactCreator.Returns(artifact, nil)
-				instance.StreamBackupToReturns(drainError)
+				instance.StreamBackupFromRemoteReturns(drainError)
 			})
 
 			It("check if the deployment is backupable", func() {
