@@ -1,7 +1,6 @@
 package integration
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -62,30 +61,13 @@ var _ = Describe("Restore", func() {
 		BeforeEach(func() {
 			instance1 = testcluster.NewInstance()
 			deploymentName = "my-new-deployment"
-			director.VerifyAndMock(
-				mockbosh.VMsForDeployment(deploymentName).RedirectsToTask(14),
-				mockbosh.Task(14).RespondsWithTaskContainingState(mockbosh.TaskDone),
-				mockbosh.Task(14).RespondsWithTaskContainingState(mockbosh.TaskDone),
-				mockbosh.TaskEvent(14).RespondsWithVMsOutput([]string{}),
-				mockbosh.TaskOutput(14).RespondsWithVMsOutput([]mockbosh.VMsOutput{
-					{
-						IPs:     []string{"10.0.0.1"},
-						JobName: "redis-dedicated-node",
-					},
-				}),
-				mockbosh.StartSSHSession(deploymentName).SetSSHResponseCallback(func(username, key string) {
-					instance1.CreateUser(username, key)
-				}).RedirectsToTask(15),
-				mockbosh.Task(15).RespondsWithTaskContainingState(mockbosh.TaskDone),
-				mockbosh.Task(15).RespondsWithTaskContainingState(mockbosh.TaskDone),
-				mockbosh.TaskEvent(15).RespondsWith("{}"),
-				mockbosh.TaskOutput(15).RespondsWith(fmt.Sprintf(`[{"status":"success",
-				"ip":"%s",
-				"host_public_key":"not-relevant",
-				"index":0}]`, instance1.Address())),
-				mockbosh.CleanupSSHSession(deploymentName).RedirectsToTask(16),
-				mockbosh.Task(16).RespondsWithTaskContainingState(mockbosh.TaskDone),
-			)
+			director.VerifyAndMock(AppendBuilders(VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+				{
+					IPs:     []string{"10.0.0.1"},
+					JobName: "redis-dedicated-node",
+				}}),
+				SetupSSH(deploymentName, "redis-dedicated-node", instance1),
+				CleanupSSH(deploymentName, "redis-dedicated-node"))...)
 
 			instance1.ScriptExist("/var/vcap/jobs/redis/bin/restore", `#!/usr/bin/env sh
 cp /var/vcap/store/backup/* /var/vcap/store/redis-server`)
