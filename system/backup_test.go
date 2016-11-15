@@ -2,7 +2,6 @@ package system
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -29,9 +28,7 @@ var _ = Describe("Backs up a deployment", func() {
 		By("deploying the jump box")
 		RunBoshCommand(JumpBoxBoshCommand(), "deploy", JumpboxDeploymentManifest())
 
-		os.Setenv("GOOS", "linux")
-		os.Setenv("GOARCH", "amd64")
-		commandPath, err = gexec.Build("github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr")
+		commandPath, err = gexec.BuildWithEnvironment("github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr", []string{"GOOS=linux", "GOARCH=amd64"})
 		Expect(err).NotTo(HaveOccurred())
 
 	})
