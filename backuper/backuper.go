@@ -30,6 +30,7 @@ type Backuper struct {
 //go:generate counterfeiter -o fakes/fake_bosh_director.go . BoshDirector
 type BoshDirector interface {
 	FindInstances(deploymentName string) ([]Instance, error)
+	GetManifest(deploymentName string) (string, error)
 }
 
 //Backup checks if a deployment has backupable instances and backs them up.

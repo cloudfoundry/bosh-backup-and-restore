@@ -87,6 +87,13 @@ func (c client) FindInstances(deploymentName string) ([]backuper.Instance, error
 
 	return instances, nil
 }
+func (c client) GetManifest(deploymentName string) (string, error) {
+	deployment, err := c.Director.FindDeployment(deploymentName)
+	if err != nil {
+		return "", err
+	}
+	return deployment.Manifest()
+}
 
 func defaultToSSHPort(host string) string {
 	parts := strings.Split(host, ":")

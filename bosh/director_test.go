@@ -336,4 +336,43 @@ var _ = Describe("Director", func() {
 			})
 		})
 	})
+
+	Context("download manifest", func() {
+		var actualManifest string
+		var acutalError error
+		JustBeforeEach(func() {
+			actualManifest, acutalError = b.GetManifest(deploymentName)
+		})
+
+		Context("gets the manifest", func() {
+			BeforeEach(func() {
+				boshDirector.FindDeploymentReturns(boshDeployment, nil)
+				boshDeployment.ManifestReturns("a good ol manifest", nil)
+			})
+			It("from the deployment", func() {
+				Expect(actualManifest).To(Equal("a good ol manifest"))
+			})
+		})
+		Context("fails", func() {
+			Context("to find deployment", func() {
+				var findDeploymentError = fmt.Errorf("what do you have to loose?")
+				BeforeEach(func() {
+					boshDirector.FindDeploymentReturns(nil, findDeploymentError)
+				})
+				It("returns an error", func() {
+					Expect(acutalError).To(MatchError(findDeploymentError))
+				})
+			})
+			Context("to download manifest", func() {
+				var downloadManifestError = fmt.Errorf("you will be tired of winning")
+				BeforeEach(func() {
+					boshDirector.FindDeploymentReturns(boshDeployment, nil)
+					boshDeployment.ManifestReturns("", downloadManifestError)
+				})
+				It("returns an error", func() {
+					Expect(acutalError).To(MatchError(downloadManifestError))
+				})
+			})
+		})
+	})
 })
