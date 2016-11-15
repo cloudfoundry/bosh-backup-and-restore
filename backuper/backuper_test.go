@@ -13,16 +13,13 @@ var _ = Describe("Backuper", func() {
 	var (
 		boshDirector      *fakes.FakeBoshDirector
 		b                 *backuper.Backuper
-		instance          *fakes.FakeInstance
 		deployment        *fakes.FakeDeployment
 		deploymentManager *fakes.FakeDeploymentManager
-		instances         []backuper.Instance
 		artifact          *fakes.FakeArtifact
 		artifactCreator   *fakes.FakeArtifactCreator
 		logger            *fakes.FakeLogger
 		deploymentName    = "foobarbaz"
 		actualBackupError error
-		backupWriter      *fakes.FakeWriteCloser
 	)
 
 	BeforeEach(func() {
@@ -32,9 +29,6 @@ var _ = Describe("Backuper", func() {
 		artifactCreator = new(fakes.FakeArtifactCreator)
 		artifact = new(fakes.FakeArtifact)
 		logger = new(fakes.FakeLogger)
-		instance = new(fakes.FakeInstance)
-		instances = []backuper.Instance{instance}
-		backupWriter = new(fakes.FakeWriteCloser)
 		b = backuper.New(boshDirector, artifactCreator.Spy, logger, deploymentManager)
 	})
 
@@ -48,7 +42,6 @@ var _ = Describe("Backuper", func() {
 			deploymentManager.FindReturns(deployment, nil)
 			deployment.IsBackupableReturns(true, nil)
 			deployment.CleanupReturns(nil)
-			artifact.CreateFileReturns(backupWriter, nil)
 			deployment.CopyRemoteBackupsToLocalArtifactReturns(nil)
 		})
 
