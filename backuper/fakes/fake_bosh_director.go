@@ -17,6 +17,15 @@ type FakeBoshDirector struct {
 		result1 []backuper.Instance
 		result2 error
 	}
+	GetManifestStub        func(deploymentName string) (string, error)
+	getManifestMutex       sync.RWMutex
+	getManifestArgsForCall []struct {
+		deploymentName string
+	}
+	getManifestReturns struct {
+		result1 string
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -55,11 +64,47 @@ func (fake *FakeBoshDirector) FindInstancesReturns(result1 []backuper.Instance, 
 	}{result1, result2}
 }
 
+func (fake *FakeBoshDirector) GetManifest(deploymentName string) (string, error) {
+	fake.getManifestMutex.Lock()
+	fake.getManifestArgsForCall = append(fake.getManifestArgsForCall, struct {
+		deploymentName string
+	}{deploymentName})
+	fake.recordInvocation("GetManifest", []interface{}{deploymentName})
+	fake.getManifestMutex.Unlock()
+	if fake.GetManifestStub != nil {
+		return fake.GetManifestStub(deploymentName)
+	} else {
+		return fake.getManifestReturns.result1, fake.getManifestReturns.result2
+	}
+}
+
+func (fake *FakeBoshDirector) GetManifestCallCount() int {
+	fake.getManifestMutex.RLock()
+	defer fake.getManifestMutex.RUnlock()
+	return len(fake.getManifestArgsForCall)
+}
+
+func (fake *FakeBoshDirector) GetManifestArgsForCall(i int) string {
+	fake.getManifestMutex.RLock()
+	defer fake.getManifestMutex.RUnlock()
+	return fake.getManifestArgsForCall[i].deploymentName
+}
+
+func (fake *FakeBoshDirector) GetManifestReturns(result1 string, result2 error) {
+	fake.GetManifestStub = nil
+	fake.getManifestReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeBoshDirector) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.findInstancesMutex.RLock()
 	defer fake.findInstancesMutex.RUnlock()
+	fake.getManifestMutex.RLock()
+	defer fake.getManifestMutex.RUnlock()
 	return fake.invocations
 }
 
