@@ -1,16 +1,16 @@
 hash: 2e8410c9e773ffbceaed0ce3db32dd1b0cae537ca332e67bd19cee2c2efd61fd
-updated: 2016-11-15T12:19:32.094916899Z
+updated: 2016-11-15T12:33:37.653369823Z
 imports:
 - name: github.com/bmatcuk/doublestar
-  version: 447b75bed51cafaa463084e69fdf6dfc7fa95580
+  version: dd6a6f0a8cdfaaa88b08cf26cf1bc7d69003ee13
 - name: github.com/charlievieth/fs
-  version: 447b75bed51cafaa463084e69fdf6dfc7fa95580
+  version: 85d13508c8e9fdaf4c9fcd52a4c3241341566346
 - name: github.com/cloudfoundry/bosh-cli
-  version: ""
+  version: 7f386519dc384201bcc370d94b99a4b675442547
   subpackages:
   - director
 - name: github.com/cloudfoundry/bosh-utils
-  version: 447b75bed51cafaa463084e69fdf6dfc7fa95580
+  version: 4ffc4d1eb40176160a58367276451c20f0a05e43
   subpackages:
   - uuid
   - logger
@@ -18,21 +18,21 @@ imports:
   - httpclient
   - system
 - name: github.com/cppforlife/go-semi-semantic
-  version: 447b75bed51cafaa463084e69fdf6dfc7fa95580
+  version: 576b6af77ae4f3ccef356902fb3b9a9ae22e0b11
   subpackages:
   - version
 - name: github.com/hashicorp/errwrap
-  version: 447b75bed51cafaa463084e69fdf6dfc7fa95580
+  version: 7554cd9344cec97297fa6649b055a8c98c2a1e55
 - name: github.com/hashicorp/go-multierror
-  version: 447b75bed51cafaa463084e69fdf6dfc7fa95580
+  version: 8484912a3b9987857bac52e0c5fec2b95f419628
 - name: github.com/kr/pty
-  version: 447b75bed51cafaa463084e69fdf6dfc7fa95580
+  version: ce7fa45920dc37a92de8377972e52bc55ffa8d57
 - name: github.com/mgutz/ansi
-  version: 447b75bed51cafaa463084e69fdf6dfc7fa95580
+  version: c286dcecd19ff979eeb73ea444e479b903f2cfcb
 - name: github.com/nu7hatch/gouuid
-  version: 447b75bed51cafaa463084e69fdf6dfc7fa95580
+  version: 179d4d0c4d8d407a32af483c2354df1d2c91e6c3
 - name: github.com/onsi/ginkgo
-  version: 447b75bed51cafaa463084e69fdf6dfc7fa95580
+  version: 00054c0bb96fc880d4e0be1b90937fad438c5290
   subpackages:
   - config
   - internal/codelocation
@@ -51,7 +51,7 @@ imports:
   - reporters/stenographer/support/go-colorable
   - reporters/stenographer/support/go-isatty
 - name: github.com/onsi/gomega
-  version: 447b75bed51cafaa463084e69fdf6dfc7fa95580
+  version: 2b6ed62707a2f5fdf1ba9cd856cdeec6bfff6b61
   subpackages:
   - gexec
   - gbytes
@@ -67,23 +67,23 @@ imports:
   - matchers/support/goraph/node
   - matchers/support/goraph/util
 - name: github.com/pivotal-cf-experimental/cf-webmock
-  version: 447b75bed51cafaa463084e69fdf6dfc7fa95580
+  version: 997a8a7db11fd6d6453c18b3814deffef5a72be8
   subpackages:
   - mockbosh
   - mockhttp
 - name: github.com/urfave/cli
-  version: ""
+  version: a14d7d367bc02b1f57d88de97926727f2d936387
 - name: golang.org/x/crypto
-  version: 447b75bed51cafaa463084e69fdf6dfc7fa95580
+  version: 9477e0b78b9ac3d0b03822fd95422e2fe07627cd
   subpackages:
   - ssh
   - curve25519
   - ed25519
   - ed25519/internal/edwards25519
 - name: golang.org/x/sys
-  version: 447b75bed51cafaa463084e69fdf6dfc7fa95580
+  version: b699b7032584f0953262cb2788a0ca19bb494703
   subpackages:
   - unix
 - name: gopkg.in/yaml.v2
-  version: 447b75bed51cafaa463084e69fdf6dfc7fa95580
+  version: a5b47d31c556af34a302ce5d659e6fea44d90de0
 testImports: []
