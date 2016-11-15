@@ -45,30 +45,16 @@ var _ = Describe("Backup", func() {
 		BeforeEach(func() {
 			deploymentName = "my-little-deployment"
 			instance1 = testcluster.NewInstance()
-			director.VerifyAndMock(
-				mockbosh.VMsForDeployment(deploymentName).RedirectsToTask(14),
-				mockbosh.Task(14).RespondsWithTaskContainingState(mockbosh.TaskDone),
-				mockbosh.Task(14).RespondsWithTaskContainingState(mockbosh.TaskDone),
-				mockbosh.TaskEvent(14).RespondsWithVMsOutput([]string{}),
-				mockbosh.TaskOutput(14).RespondsWithVMsOutput([]mockbosh.VMsOutput{
+			director.VerifyAndMock(AppendBuilders(
+				VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
 					{
 						IPs:     []string{"10.0.0.1"},
 						JobName: "redis-dedicated-node",
 					},
 				}),
-				mockbosh.StartSSHSession(deploymentName).SetSSHResponseCallback(func(username, key string) {
-					instance1.CreateUser(username, key)
-				}).RedirectsToTask(15),
-				mockbosh.Task(15).RespondsWithTaskContainingState(mockbosh.TaskDone),
-				mockbosh.Task(15).RespondsWithTaskContainingState(mockbosh.TaskDone),
-				mockbosh.TaskEvent(15).RespondsWith("{}"),
-				mockbosh.TaskOutput(15).RespondsWith(fmt.Sprintf(`[{"status":"success",
-				"ip":"%s",
-				"host_public_key":"not-relevant",
-				"index":0}]`, instance1.Address())),
-				mockbosh.CleanupSSHSession(deploymentName).RedirectsToTask(16),
-				mockbosh.Task(16).RespondsWithTaskContainingState(mockbosh.TaskDone),
-			)
+				SetupSSH(deploymentName, "redis-dedicated-node", instance1),
+				CleanupSSH(deploymentName, "redis-dedicated-node"),
+			)...)
 		})
 
 		AfterEach(func() {
@@ -182,12 +168,8 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 			deploymentName = "my-bigger-deployment"
 			backupableInstance = testcluster.NewInstance()
 			nonBackupableInstance = testcluster.NewInstance()
-			director.VerifyAndMock(
-				mockbosh.VMsForDeployment(deploymentName).RedirectsToTask(14),
-				mockbosh.Task(14).RespondsWithTaskContainingState(mockbosh.TaskDone),
-				mockbosh.Task(14).RespondsWithTaskContainingState(mockbosh.TaskDone),
-				mockbosh.TaskEvent(14).RespondsWithVMsOutput([]string{}),
-				mockbosh.TaskOutput(14).RespondsWithVMsOutput([]mockbosh.VMsOutput{
+			director.VerifyAndMock(AppendBuilders(
+				VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
 					{
 						IPs:     []string{"10.0.0.1"},
 						JobName: "redis-dedicated-node",
@@ -197,36 +179,11 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 						JobName: "redis-broker",
 					},
 				}),
-				mockbosh.StartSSHSession(deploymentName).ForInstanceGroup("redis-dedicated-node").
-					SetSSHResponseCallback(func(username, key string) {
-						backupableInstance.CreateUser(username, key)
-					}).RedirectsToTask(15),
-				mockbosh.Task(15).RespondsWithTaskContainingState(mockbosh.TaskDone),
-				mockbosh.Task(15).RespondsWithTaskContainingState(mockbosh.TaskDone),
-				mockbosh.TaskEvent(15).RespondsWith("{}"),
-				mockbosh.TaskOutput(15).RespondsWith(fmt.Sprintf(`[{"status":"success",
-				"ip":"%s",
-				"host_public_key":"not-relevant",
-				"index":0}]`, backupableInstance.Address())),
-
-				mockbosh.StartSSHSession(deploymentName).ForInstanceGroup("redis-broker").
-					SetSSHResponseCallback(func(username, key string) {
-						nonBackupableInstance.CreateUser(username, key)
-					}).RedirectsToTask(19),
-				mockbosh.Task(19).RespondsWithTaskContainingState(mockbosh.TaskDone),
-				mockbosh.Task(19).RespondsWithTaskContainingState(mockbosh.TaskDone),
-				mockbosh.TaskEvent(19).RespondsWith("{}"),
-				mockbosh.TaskOutput(19).RespondsWith(fmt.Sprintf(`[{"status":"success",
-				"ip":"%s",
-				"host_public_key":"not-relevant",
-				"index":0}]`, nonBackupableInstance.Address())),
-
-				mockbosh.CleanupSSHSession(deploymentName).ForInstanceGroup("redis-dedicated-node").RedirectsToTask(16),
-				mockbosh.Task(16).RespondsWithTaskContainingState(mockbosh.TaskDone),
-
-				mockbosh.CleanupSSHSession(deploymentName).ForInstanceGroup("redis-broker").RedirectsToTask(20),
-				mockbosh.Task(20).RespondsWithTaskContainingState(mockbosh.TaskDone),
-			)
+				SetupSSH(deploymentName, "redis-dedicated-node", backupableInstance),
+				SetupSSH(deploymentName, "redis-broker", nonBackupableInstance),
+				CleanupSSH(deploymentName, "redis-dedicated-node"),
+				CleanupSSH(deploymentName, "redis-broker"),
+			)...)
 		})
 
 		AfterEach(func() {
