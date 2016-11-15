@@ -8,19 +8,19 @@ type Deployment interface {
 	CopyRemoteBackupsToLocalArtifact(Artifact) error
 	LoadFrom(Artifact) error
 	Cleanup() error
-	Instances() Instances
+	Instances() instances
 }
 
 type BoshDeployment struct {
 	BoshDirector
 	Logger
 
-	instances           Instances
-	backupableInstances Instances
-	restorableInstances Instances
+	instances           instances
+	backupableInstances instances
+	restorableInstances instances
 }
 
-func NewBoshDeployment(boshDirector BoshDirector, logger Logger, instances Instances) Deployment {
+func NewBoshDeployment(boshDirector BoshDirector, logger Logger, instances []Instance) Deployment {
 	return &BoshDeployment{BoshDirector: boshDirector, Logger: logger, instances: instances}
 }
 
@@ -129,7 +129,7 @@ func (bd *BoshDeployment) LoadFrom(artifact Artifact) error {
 	return nil
 }
 
-func (bd *BoshDeployment) getBackupableInstances() (Instances, error) {
+func (bd *BoshDeployment) getBackupableInstances() (instances, error) {
 	if bd.backupableInstances == nil {
 		instances, err := bd.instances.AllBackupable()
 		if err != nil {
@@ -140,7 +140,7 @@ func (bd *BoshDeployment) getBackupableInstances() (Instances, error) {
 	return bd.backupableInstances, nil
 }
 
-func (bd *BoshDeployment) getRestoreableInstances() (Instances, error) {
+func (bd *BoshDeployment) getRestoreableInstances() (instances, error) {
 	if bd.restorableInstances == nil {
 		instances, err := bd.instances.AllRestoreable()
 		if err != nil {
@@ -150,6 +150,6 @@ func (bd *BoshDeployment) getRestoreableInstances() (Instances, error) {
 	}
 	return bd.restorableInstances, nil
 }
-func (bd *BoshDeployment) Instances() Instances {
+func (bd *BoshDeployment) Instances() instances {
 	return bd.instances
 }

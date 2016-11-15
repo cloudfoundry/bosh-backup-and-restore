@@ -14,7 +14,7 @@ var _ = Describe("Backuper", func() {
 		boshDirector           *fakes.FakeBoshDirector
 		b                      *backuper.Backuper
 		instance               *fakes.FakeInstance
-		instances              backuper.Instances
+		instances              []backuper.Instance
 		artifact               *fakes.FakeArtifact
 		artifactCreator        *fakes.FakeArtifactCreator
 		logger                 *fakes.FakeLogger
@@ -31,7 +31,7 @@ var _ = Describe("Backuper", func() {
 		artifact = new(fakes.FakeArtifact)
 		logger = new(fakes.FakeLogger)
 		instance = new(fakes.FakeInstance)
-		instances = backuper.Instances{instance}
+		instances = []backuper.Instance{instance}
 		backupWriter = new(fakes.FakeWriteCloser)
 		b = backuper.New(boshDirector, artifactCreator.Spy, logger)
 	})
@@ -108,7 +108,7 @@ var _ = Describe("Backuper", func() {
 
 		BeforeEach(func() {
 			nonBackupableInstance = new(fakes.FakeInstance)
-			instances = backuper.Instances{instance, nonBackupableInstance}
+			instances = []backuper.Instance{instance, nonBackupableInstance}
 
 			artifactCreator.Returns(artifact, nil)
 			artifact.CreateFileReturns(backupWriter, nil)
@@ -403,14 +403,14 @@ var _ = Describe("restore", func() {
 			boshDirector    *fakes.FakeBoshDirector
 			logger          *fakes.FakeLogger
 			instance        *fakes.FakeInstance
-			instances       backuper.Instances
+			instances       []backuper.Instance
 			b               *backuper.Backuper
 			deploymentName  string
 		)
 
 		BeforeEach(func() {
 			instance = new(fakes.FakeInstance)
-			instances = backuper.Instances{instance}
+			instances = []backuper.Instance{instance}
 			boshDirector = new(fakes.FakeBoshDirector)
 			logger = new(fakes.FakeLogger)
 			artifactCreator = new(fakes.FakeArtifactCreator)

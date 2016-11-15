@@ -59,7 +59,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(true, nil)
 				instance2.IsBackupableReturns(true, nil)
-				instances = backuper.Instances{instance1, instance2}
+				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(backupError).NotTo(HaveOccurred())
@@ -73,7 +73,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(true, nil)
 				instance2.IsBackupableReturns(false, nil)
-				instances = backuper.Instances{instance1, instance2}
+				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(backupError).NotTo(HaveOccurred())
@@ -92,7 +92,7 @@ var _ = Describe("Deployment", func() {
 				instance1.IsBackupableReturns(true, nil)
 				instance2.IsBackupableReturns(true, nil)
 				instance1.BackupReturns(backupError)
-				instances = backuper.Instances{instance1, instance2}
+				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(backupError).To(HaveOccurred())
@@ -155,7 +155,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(false, nil)
 				instance2.IsBackupableReturns(true, nil)
-				instances = backuper.Instances{instance1, instance2}
+				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(isBackupableError).NotTo(HaveOccurred())
@@ -171,7 +171,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(false, nil)
 				instance2.IsBackupableReturns(false, nil)
-				instances = backuper.Instances{instance1, instance2}
+				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(isBackupableError).NotTo(HaveOccurred())
@@ -189,7 +189,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(false, actualError)
 				instance2.IsBackupableReturns(true, nil)
-				instances = backuper.Instances{instance1, instance2}
+				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("fails", func() {
 				Expect(isBackupableError).To(MatchError(actualError))
@@ -239,7 +239,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsRestorableReturns(true, nil)
 				instance2.IsRestorableReturns(true, nil)
-				instances = backuper.Instances{instance1, instance2}
+				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(restoreError).NotTo(HaveOccurred())
@@ -253,7 +253,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsRestorableReturns(true, nil)
 				instance2.IsRestorableReturns(false, nil)
-				instances = backuper.Instances{instance1, instance2}
+				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(restoreError).NotTo(HaveOccurred())
@@ -273,7 +273,7 @@ var _ = Describe("Deployment", func() {
 				instance1.IsRestorableReturns(true, nil)
 				instance2.IsRestorableReturns(true, nil)
 				instance1.RestoreReturns(restoreError)
-				instances = backuper.Instances{instance1, instance2}
+				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(restoreError).To(MatchError(restoreError))
@@ -394,7 +394,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsRestorableReturns(false, nil)
 				instance2.IsRestorableReturns(true, nil)
-				instances = backuper.Instances{instance1, instance2}
+				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(isRestorableError).NotTo(HaveOccurred())
@@ -410,7 +410,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsRestorableReturns(false, nil)
 				instance2.IsRestorableReturns(false, nil)
-				instances = backuper.Instances{instance1, instance2}
+				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(isRestorableError).NotTo(HaveOccurred())
@@ -428,7 +428,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsRestorableReturns(false, actualError)
 				instance2.IsRestorableReturns(true, nil)
-				instances = backuper.Instances{instance1, instance2}
+				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("fails", func() {
 				Expect(isRestorableError).To(MatchError(actualError))
@@ -462,7 +462,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("Multiple instances", func() {
 			BeforeEach(func() {
-				instances = backuper.Instances{instance1, instance2}
+				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(actualCleanupError).NotTo(HaveOccurred())
@@ -478,7 +478,7 @@ var _ = Describe("Deployment", func() {
 
 			BeforeEach(func() {
 				instance1.CleanupReturns(cleanupError1)
-				instances = backuper.Instances{instance1, instance2}
+				instances = []backuper.Instance{instance1, instance2}
 			})
 
 			It("fails", func() {
@@ -497,7 +497,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.CleanupReturns(cleanupError1)
 				instance2.CleanupReturns(cleanupError2)
-				instances = backuper.Instances{instance1, instance2}
+				instances = []backuper.Instance{instance1, instance2}
 			})
 
 			It("fails with both error messages", func() {

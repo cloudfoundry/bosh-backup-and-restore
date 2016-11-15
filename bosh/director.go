@@ -39,7 +39,7 @@ type Logger interface {
 	Error(tag, msg string, args ...interface{})
 }
 
-func (c client) FindInstances(deploymentName string) (backuper.Instances, error) {
+func (c client) FindInstances(deploymentName string) ([]backuper.Instance, error) {
 	deployment, err := c.Director.FindDeployment(deploymentName)
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func (c client) FindInstances(deploymentName string) (backuper.Instances, error)
 	}
 	c.Logger.Debug("", "SSH user generated: %s", sshOpts.Username)
 
-	instances := backuper.Instances{}
+	instances := []backuper.Instance{}
 
 	for _, instanceGroupName := range uniqueInstanceGroupNamesFromVMs(vms) {
 		c.Logger.Debug("", "Setting up SSH for job %s", instanceGroupName)

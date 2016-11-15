@@ -39,7 +39,7 @@ var _ = Describe("Director", func() {
 	})
 	Context("instances", func() {
 		var stubbedSshOpts director.SSHOpts = director.SSHOpts{Username: "user"}
-		var acutalInstances backuper.Instances
+		var acutalInstances []backuper.Instance
 		var acutalError error
 		JustBeforeEach(func() {
 			acutalInstances, acutalError = b.FindInstances(deploymentName)
@@ -62,7 +62,7 @@ var _ = Describe("Director", func() {
 				sshConnectionFactory.Returns(sshConnection, nil)
 			})
 			It("collects the instances", func() {
-				Expect(acutalInstances).To(Equal(backuper.Instances{bosh.NewBoshInstance("job1", "index", sshConnection, boshDeployment, boshLogger)}))
+				Expect(acutalInstances).To(Equal([]backuper.Instance{bosh.NewBoshInstance("job1", "index", sshConnection, boshDeployment, boshLogger)}))
 			})
 			It("does not fail", func() {
 				Expect(acutalError).NotTo(HaveOccurred())
@@ -152,7 +152,7 @@ var _ = Describe("Director", func() {
 				sshConnectionFactory.Returns(sshConnection, nil)
 			})
 			It("collects the instances", func() {
-				Expect(acutalInstances).To(Equal(backuper.Instances{
+				Expect(acutalInstances).To(Equal([]backuper.Instance{
 					bosh.NewBoshInstance("job1", "id1", sshConnection, boshDeployment, boshLogger),
 					bosh.NewBoshInstance("job1", "id2", sshConnection, boshDeployment, boshLogger),
 				}))

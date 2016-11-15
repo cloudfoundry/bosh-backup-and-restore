@@ -8,20 +8,20 @@ import (
 )
 
 type FakeBoshDirector struct {
-	FindInstancesStub        func(deploymentName string) (backuper.Instances, error)
+	FindInstancesStub        func(deploymentName string) ([]backuper.Instance, error)
 	findInstancesMutex       sync.RWMutex
 	findInstancesArgsForCall []struct {
 		deploymentName string
 	}
 	findInstancesReturns struct {
-		result1 backuper.Instances
+		result1 []backuper.Instance
 		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeBoshDirector) FindInstances(deploymentName string) (backuper.Instances, error) {
+func (fake *FakeBoshDirector) FindInstances(deploymentName string) ([]backuper.Instance, error) {
 	fake.findInstancesMutex.Lock()
 	fake.findInstancesArgsForCall = append(fake.findInstancesArgsForCall, struct {
 		deploymentName string
@@ -47,10 +47,10 @@ func (fake *FakeBoshDirector) FindInstancesArgsForCall(i int) string {
 	return fake.findInstancesArgsForCall[i].deploymentName
 }
 
-func (fake *FakeBoshDirector) FindInstancesReturns(result1 backuper.Instances, result2 error) {
+func (fake *FakeBoshDirector) FindInstancesReturns(result1 []backuper.Instance, result2 error) {
 	fake.FindInstancesStub = nil
 	fake.findInstancesReturns = struct {
-		result1 backuper.Instances
+		result1 []backuper.Instance
 		result2 error
 	}{result1, result2}
 }

@@ -18,15 +18,15 @@ type Instance interface {
 	BackupChecksum() (map[string]string, error)
 }
 
-type Instances []Instance
+type instances []Instance
 
-func (instances Instances) IsEmpty() bool {
-	return len(instances) == 0
+func (is instances) IsEmpty() bool {
+	return len(is) == 0
 }
-func (instances Instances) AllBackupable() (Instances, error) {
+func (is instances) AllBackupable() (instances, error) {
 	var backupableInstances []Instance
 
-	for _, instance := range instances {
+	for _, instance := range is {
 		if backupable, err := instance.IsBackupable(); err != nil {
 			return backupableInstances, err
 		} else if backupable {
@@ -36,10 +36,10 @@ func (instances Instances) AllBackupable() (Instances, error) {
 	return backupableInstances, nil
 }
 
-func (instances Instances) AllRestoreable() (Instances, error) {
+func (is instances) AllRestoreable() (instances, error) {
 	var backupableInstances []Instance
 
-	for _, instance := range instances {
+	for _, instance := range is {
 		if backupable, err := instance.IsRestorable(); err != nil {
 			return backupableInstances, err
 		} else if backupable {
@@ -49,9 +49,9 @@ func (instances Instances) AllRestoreable() (Instances, error) {
 	return backupableInstances, nil
 }
 
-func (instances Instances) Cleanup() error {
+func (is instances) Cleanup() error {
 	var cleanupErrors error = nil
-	for _, instance := range instances {
+	for _, instance := range is {
 		if err := instance.Cleanup(); err != nil {
 			cleanupErrors = multierror.Append(cleanupErrors, err)
 		}
@@ -59,8 +59,8 @@ func (instances Instances) Cleanup() error {
 	return cleanupErrors
 }
 
-func (instances Instances) Backup() error {
-	for _, instance := range instances {
+func (is instances) Backup() error {
+	for _, instance := range is {
 		err := instance.Backup()
 		if err != nil {
 			return err
@@ -69,8 +69,8 @@ func (instances Instances) Backup() error {
 	return nil
 }
 
-func (instances Instances) Restore() error {
-	for _, instance := range instances {
+func (is instances) Restore() error {
+	for _, instance := range is {
 		err := instance.Restore()
 		if err != nil {
 			return err
