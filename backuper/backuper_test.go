@@ -36,7 +36,7 @@ var _ = Describe("Backuper", func() {
 		actualBackupError = b.Backup(deploymentName)
 	})
 
-	Context("backups up an instance", func() {
+	Context("backups up an deplyoment", func() {
 		BeforeEach(func() {
 			artifactCreator.Returns(artifact, nil)
 			deploymentManager.FindReturns(deployment, nil)
@@ -209,33 +209,36 @@ var _ = Describe("Backuper", func() {
 })
 
 var _ = Describe("restore", func() {
-	Context("restores an instance from backup", func() {
+	Context("restores a deployment from backup", func() {
 		var (
-			restoreError    error
-			artifactCreator *fakes.FakeArtifactCreator
-			artifact        *fakes.FakeArtifact
-			boshDirector    *fakes.FakeBoshDirector
-			logger          *fakes.FakeLogger
-			instance        *fakes.FakeInstance
-			instances       []backuper.Instance
-			b               *backuper.Backuper
-			deploymentName  string
+			restoreError      error
+			artifactCreator   *fakes.FakeArtifactCreator
+			artifact          *fakes.FakeArtifact
+			boshDirector      *fakes.FakeBoshDirector
+			logger            *fakes.FakeLogger
+			instances         []backuper.Instance
+			b                 *backuper.Backuper
+			deploymentName    string
+			deploymentManager *fakes.FakeDeploymentManager
+			deployment        *fakes.FakeDeployment
 		)
 
 		BeforeEach(func() {
-			instance = new(fakes.FakeInstance)
-			instances = []backuper.Instance{instance}
+			instances = []backuper.Instance{new(fakes.FakeInstance)}
 			boshDirector = new(fakes.FakeBoshDirector)
 			logger = new(fakes.FakeLogger)
 			artifactCreator = new(fakes.FakeArtifactCreator)
 			artifact = new(fakes.FakeArtifact)
+			deploymentManager = new(fakes.FakeDeploymentManager)
+			deployment = new(fakes.FakeDeployment)
 
 			artifactCreator.Returns(artifact, nil)
-			boshDirector.FindInstancesReturns(instances, nil)
-			instance.IsRestorableReturns(true, nil)
+			deploymentManager.FindReturns(deployment, nil)
+			deployment.IsRestorableReturns(true, nil)
+			deployment.InstancesReturns(instances)
 			artifact.DeploymentMatchesReturns(true, nil)
 
-			b = backuper.New(boshDirector, artifactCreator.Spy, logger, backuper.NewBoshDeploymentManager(boshDirector, logger))
+			b = backuper.New(boshDirector, artifactCreator.Spy, logger, deploymentManager)
 
 			deploymentName = "deployment-to-restore"
 		})
@@ -249,39 +252,40 @@ var _ = Describe("restore", func() {
 		})
 
 		It("ensures that instance is cleaned up", func() {
-			Expect(instance.CleanupCallCount()).To(Equal(1))
+			Expect(deployment.CleanupCallCount()).To(Equal(1))
 		})
 
-		It("finds a instances for the deployment", func() {
-			Expect(boshDirector.FindInstancesCallCount()).To(Equal(1))
-			Expect(boshDirector.FindInstancesArgsForCall(0)).To(Equal(deploymentName))
+		It("finds the deployment", func() {
+			Expect(deploymentManager.FindCallCount()).To(Equal(1))
+			Expect(deploymentManager.FindArgsForCall(0)).To(Equal(deploymentName))
 		})
 
-		It("checks if the instance is restorable", func() {
-			Expect(instance.IsRestorableCallCount()).To(Equal(1))
+		It("checks if the deployment is restorable", func() {
+			Expect(deployment.IsRestorableCallCount()).To(Equal(1))
 		})
 
 		It("checks that the deployment topology matches the topology of the backup", func() {
 			Expect(artifactCreator.CallCount()).To(Equal(1))
 			Expect(artifact.DeploymentMatchesCallCount()).To(Equal(1))
 
-			name, instances := artifact.DeploymentMatchesArgsForCall(0)
+			name, actualInstances := artifact.DeploymentMatchesArgsForCall(0)
 			Expect(name).To(Equal(deploymentName))
-			Expect(instances).To(ContainElement(instance))
+			Expect(actualInstances).To(Equal(instances))
 		})
 
-		It("streams the local backup to the instance", func() {
-			Expect(instance.StreamBackupToRemoteCallCount()).To(Equal(1))
+		It("streams the local backup to the deployment", func() {
+			Expect(deployment.LoadFromCallCount()).To(Equal(1))
+			Expect(deployment.LoadFromArgsForCall(0)).To(Equal(artifact))
 		})
 
-		It("calls restore on the instance", func() {
-			Expect(instance.RestoreCallCount()).To(Equal(1))
+		It("calls restore on the deployment", func() {
+			Expect(deployment.RestoreCallCount()).To(Equal(1))
 		})
 
 		Describe("failures", func() {
-			Context("fails to find instances", func() {
+			Context("fails to find deployment", func() {
 				BeforeEach(func() {
-					boshDirector.FindInstancesReturns(nil, fmt.Errorf("they will pay for the wall"))
+					deploymentManager.FindReturns(nil, fmt.Errorf("they will pay for the wall"))
 				})
 
 				It("returns an error", func() {
@@ -290,9 +294,9 @@ var _ = Describe("restore", func() {
 				})
 			})
 
-			Context("if no instances are restorable", func() {
+			Context("if deployment not restorable", func() {
 				BeforeEach(func() {
-					instance.IsRestorableReturns(false, nil)
+					deployment.IsRestorableReturns(false, nil)
 				})
 
 				It("returns an error", func() {
@@ -303,7 +307,7 @@ var _ = Describe("restore", func() {
 
 			Context("if checking the instance's restorable status fails", func() {
 				BeforeEach(func() {
-					instance.IsRestorableReturns(true, fmt.Errorf("the beauty of me is that I'm very rich"))
+					deployment.IsRestorableReturns(true, fmt.Errorf("the beauty of me is that I'm very rich"))
 				})
 				It("returns an error", func() {
 					actualError := b.Restore(deploymentName)
@@ -335,7 +339,7 @@ var _ = Describe("restore", func() {
 
 			Context("if streaming the backup to the remote fails", func() {
 				BeforeEach(func() {
-					instance.StreamBackupToRemoteReturns(fmt.Errorf("Broken pipe"))
+					deployment.LoadFromReturns(fmt.Errorf("Broken pipe"))
 				})
 
 				It("returns an error", func() {
