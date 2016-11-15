@@ -176,7 +176,24 @@ instances:
 		})
 
 	})
+	Describe("SaveManifest", func() {
+		var artifact Artifact
+		var saveManifestError error
+		BeforeEach(func() {
+			artifactName = "foo-bar"
+			artifact, _ = DirectoryArtifactCreator(artifactName)
+		})
+		JustBeforeEach(func() {
+			saveManifestError = artifact.SaveManifest("contents")
+		})
+		It("does not fail", func() {
+			Expect(saveManifestError).NotTo(HaveOccurred())
+		})
 
+		It("writes contents to a file", func() {
+			Expect(ioutil.ReadFile(artifactName + "/manifest.yml")).To(Equal([]byte("contents")))
+		})
+	})
 	Describe("ReadFile", func() {
 		var artifact Artifact
 		var fileReadError error

@@ -19,6 +19,11 @@ func VmsForDeployment(deploymentName string, vms []mockbosh.VMsOutput) []mockhtt
 		mockbosh.TaskOutput(randomTaskID).RespondsWithVMsOutput(vms),
 	}
 }
+func DownloadManifest(deploymentName string, manifest string) []mockhttp.MockedResponseBuilder {
+	return []mockhttp.MockedResponseBuilder{
+		mockbosh.Manifest(deploymentName).RespondsWith([]byte(manifest)),
+	}
+}
 func AppendBuilders(arrayOfArrayOfBuilders ...[]mockhttp.MockedResponseBuilder) []mockhttp.MockedResponseBuilder {
 	var flattenedArrayOfBuilders []mockhttp.MockedResponseBuilder
 	for _, arrayOfBuilders := range arrayOfArrayOfBuilders {

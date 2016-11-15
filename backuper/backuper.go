@@ -53,6 +53,11 @@ func (b Backuper) Backup(deploymentName string) error {
 	if err != nil {
 		return err
 	}
+	manifest, err := b.GetManifest(deploymentName)
+	if err != nil {
+		return err
+	}
+	artifact.SaveManifest(manifest)
 
 	if err = deployment.Backup(); err != nil {
 		return err

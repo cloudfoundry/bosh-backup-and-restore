@@ -44,21 +44,7 @@ var _ = Describe("Backup", func() {
 
 		BeforeEach(func() {
 			deploymentName = "my-little-deployment"
-			instance1 = testcluster.NewInstance()
-			director.VerifyAndMock(AppendBuilders(
-				VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
-					{
-						IPs:     []string{"10.0.0.1"},
-						JobName: "redis-dedicated-node",
-					},
-				}),
-				SetupSSH(deploymentName, "redis-dedicated-node", instance1),
-				CleanupSSH(deploymentName, "redis-dedicated-node"),
-			)...)
-		})
 
-		AfterEach(func() {
-			go instance1.Die()
 		})
 
 		Context("when the backup is successful", func() {
@@ -67,7 +53,24 @@ var _ = Describe("Backup", func() {
 			var metadataFile string
 			var outputFile string
 
+			AfterEach(func() {
+				go instance1.Die()
+			})
+
 			BeforeEach(func() {
+				instance1 = testcluster.NewInstance()
+				director.VerifyAndMock(AppendBuilders(
+					VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+						{
+							IPs:     []string{"10.0.0.1"},
+							JobName: "redis-dedicated-node",
+						},
+					}),
+					SetupSSH(deploymentName, "redis-dedicated-node", instance1),
+					DownloadManifest(deploymentName, "this is a totally valid yaml"),
+					CleanupSSH(deploymentName, "redis-dedicated-node"),
+				)...)
+
 				instance1.ScriptExist("/var/vcap/jobs/redis/bin/backup", `#!/usr/bin/env sh
 printf "backupcontent1" > /var/vcap/store/backup/backupdump1
 printf "backupcontent2" > /var/vcap/store/backup/backupdump2
@@ -89,6 +92,10 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 
 			It("exits zero", func() {
 				Expect(session.ExitCode()).To(BeZero())
+			})
+			It("downloads the manifest", func() {
+				Expect(path.Join(backupWorkspace, deploymentName, "manifest.yml")).To(BeARegularFile())
+				Expect(ioutil.ReadFile(path.Join(backupWorkspace, deploymentName, "manifest.yml"))).To(MatchYAML("this is a totally valid yaml"))
 			})
 
 			It("creates a backup directory which contains a backup artifact", func() {
@@ -130,6 +137,18 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 		Context("if a deployment can't be backed up", func() {
 			var session *gexec.Session
 			BeforeEach(func() {
+				instance1 = testcluster.NewInstance()
+				director.VerifyAndMock(AppendBuilders(
+					VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+						{
+							IPs:     []string{"10.0.0.1"},
+							JobName: "redis-dedicated-node",
+						},
+					}),
+					SetupSSH(deploymentName, "redis-dedicated-node", instance1),
+					CleanupSSH(deploymentName, "redis-dedicated-node"),
+				)...)
+
 				session = runBinary(
 					backupWorkspace,
 					[]string{"BOSH_PASSWORD=admin"},
@@ -181,6 +200,7 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 				}),
 				SetupSSH(deploymentName, "redis-dedicated-node", backupableInstance),
 				SetupSSH(deploymentName, "redis-broker", nonBackupableInstance),
+				DownloadManifest(deploymentName, "not being asserted"),
 				CleanupSSH(deploymentName, "redis-dedicated-node"),
 				CleanupSSH(deploymentName, "redis-broker"),
 			)...)

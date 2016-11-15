@@ -11,15 +11,16 @@ import (
 
 var _ = Describe("Backuper", func() {
 	var (
-		boshDirector      *fakes.FakeBoshDirector
-		b                 *backuper.Backuper
-		deployment        *fakes.FakeDeployment
-		deploymentManager *fakes.FakeDeploymentManager
-		artifact          *fakes.FakeArtifact
-		artifactCreator   *fakes.FakeArtifactCreator
-		logger            *fakes.FakeLogger
-		deploymentName    = "foobarbaz"
-		actualBackupError error
+		boshDirector       *fakes.FakeBoshDirector
+		b                  *backuper.Backuper
+		deployment         *fakes.FakeDeployment
+		deploymentManager  *fakes.FakeDeploymentManager
+		artifact           *fakes.FakeArtifact
+		artifactCreator    *fakes.FakeArtifactCreator
+		logger             *fakes.FakeLogger
+		deploymentName     = "foobarbaz"
+		deploymentManifest = "what a magnificent manifest"
+		actualBackupError  error
 	)
 
 	BeforeEach(func() {
@@ -38,6 +39,7 @@ var _ = Describe("Backuper", func() {
 
 	Context("backups up an deplyoment", func() {
 		BeforeEach(func() {
+			boshDirector.GetManifestReturns(deploymentManifest, nil)
 			artifactCreator.Returns(artifact, nil)
 			deploymentManager.FindReturns(deployment, nil)
 			deployment.IsBackupableReturns(true, nil)
@@ -52,6 +54,11 @@ var _ = Describe("Backuper", func() {
 		It("finds the deployment", func() {
 			Expect(deploymentManager.FindCallCount()).To(Equal(1))
 			Expect(deploymentManager.FindArgsForCall(0)).To(Equal(deploymentName))
+		})
+
+		It("saves the deployment manifest", func() {
+			Expect(boshDirector.GetManifestCallCount()).To(Equal(1))
+			Expect(boshDirector.GetManifestArgsForCall(0)).To(Equal(deploymentName))
 		})
 
 		It("checks if the deployment is backupable", func() {
@@ -85,6 +92,19 @@ var _ = Describe("Backuper", func() {
 		Context("fails to find deployment", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(nil, expectedError)
+			})
+
+			It("fails the backup process", func() {
+				Expect(actualBackupError).To(MatchError(expectedError))
+			})
+		})
+		Context("fails if manifest can't be downloaded", func() {
+			var expectedError = fmt.Errorf("he the founder of isis")
+			BeforeEach(func() {
+				deploymentManager.FindReturns(deployment, nil)
+				deployment.IsBackupableReturns(true, nil)
+				artifactCreator.Returns(artifact, nil)
+				boshDirector.GetManifestReturns("", expectedError)
 			})
 
 			It("fails the backup process", func() {

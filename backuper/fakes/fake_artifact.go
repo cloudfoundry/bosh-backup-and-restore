@@ -55,6 +55,14 @@ type FakeArtifact struct {
 		result1 bool
 		result2 error
 	}
+	SaveManifestStub        func(manifest string) error
+	saveManifestMutex       sync.RWMutex
+	saveManifestArgsForCall []struct {
+		manifest string
+	}
+	saveManifestReturns struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -235,6 +243,39 @@ func (fake *FakeArtifact) DeploymentMatchesReturns(result1 bool, result2 error) 
 	}{result1, result2}
 }
 
+func (fake *FakeArtifact) SaveManifest(manifest string) error {
+	fake.saveManifestMutex.Lock()
+	fake.saveManifestArgsForCall = append(fake.saveManifestArgsForCall, struct {
+		manifest string
+	}{manifest})
+	fake.recordInvocation("SaveManifest", []interface{}{manifest})
+	fake.saveManifestMutex.Unlock()
+	if fake.SaveManifestStub != nil {
+		return fake.SaveManifestStub(manifest)
+	} else {
+		return fake.saveManifestReturns.result1
+	}
+}
+
+func (fake *FakeArtifact) SaveManifestCallCount() int {
+	fake.saveManifestMutex.RLock()
+	defer fake.saveManifestMutex.RUnlock()
+	return len(fake.saveManifestArgsForCall)
+}
+
+func (fake *FakeArtifact) SaveManifestArgsForCall(i int) string {
+	fake.saveManifestMutex.RLock()
+	defer fake.saveManifestMutex.RUnlock()
+	return fake.saveManifestArgsForCall[i].manifest
+}
+
+func (fake *FakeArtifact) SaveManifestReturns(result1 error) {
+	fake.SaveManifestStub = nil
+	fake.saveManifestReturns = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeArtifact) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -248,6 +289,8 @@ func (fake *FakeArtifact) Invocations() map[string][][]interface{} {
 	defer fake.calculateChecksumMutex.RUnlock()
 	fake.deploymentMatchesMutex.RLock()
 	defer fake.deploymentMatchesMutex.RUnlock()
+	fake.saveManifestMutex.RLock()
+	defer fake.saveManifestMutex.RUnlock()
 	return fake.invocations
 }
 

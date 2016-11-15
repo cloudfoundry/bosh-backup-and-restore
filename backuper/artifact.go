@@ -23,6 +23,7 @@ type Artifact interface {
 	AddChecksum(Instance, map[string]string) error
 	CalculateChecksum(Instance) (map[string]string, error)
 	DeploymentMatches(string, []Instance) (bool, error)
+	SaveManifest(manifest string) error
 }
 
 func DirectoryArtifactCreator(name string) (Artifact, error) {
@@ -129,6 +130,10 @@ func (d *DirectoryArtifact) AddChecksum(inst Instance, shasum map[string]string)
 	return d.saveMetadata(metadata)
 }
 
+func (d *DirectoryArtifact) SaveManifest(manifest string) error {
+	return ioutil.WriteFile(d.manifestFilename(), []byte(manifest), 0666)
+}
+
 func (d *DirectoryArtifact) backupInstanceIsPresent(backupInstance InstanceMetadata, instances []Instance) bool {
 	for _, inst := range instances {
 		if inst.ID() == backupInstance.InstanceID && inst.Name() == backupInstance.InstanceName {
@@ -153,6 +158,9 @@ func (d *DirectoryArtifact) instanceFilename(inst Instance) string {
 
 func (d *DirectoryArtifact) metadataFilename() string {
 	return path.Join(d.baseDirName, "metadata")
+}
+func (d *DirectoryArtifact) manifestFilename() string {
+	return path.Join(d.baseDirName, "manifest.yml")
 }
 
 func (d *DirectoryArtifact) metadataExistsAndIsReadable() (bool, error) {
