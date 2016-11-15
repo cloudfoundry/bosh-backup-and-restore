@@ -2,12 +2,12 @@ package backuper
 
 import "fmt"
 
-func New(bosh BoshDirector, artifactCreator ArtifactCreator, logger Logger) *Backuper {
+func New(bosh BoshDirector, artifactCreator ArtifactCreator, logger Logger, deploymentManager DeploymentManager) *Backuper {
 	return &Backuper{
 		BoshDirector:      bosh,
 		ArtifactCreator:   artifactCreator,
 		Logger:            logger,
-		DeploymentManager: NewBoshDeploymentManager(bosh, logger),
+		DeploymentManager: deploymentManager,
 	}
 }
 

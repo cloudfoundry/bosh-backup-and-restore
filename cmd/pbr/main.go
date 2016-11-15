@@ -86,8 +86,9 @@ func main() {
 				if err != nil {
 					return err
 				}
-
-				backuper := backuper.New(bosh.New(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger), backuper.DirectoryArtifactCreator, logger)
+				boshClient := bosh.New(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger)
+				deploymentManager := backuper.NewBoshDeploymentManager(boshClient, logger)
+				backuper := backuper.New(boshClient, backuper.DirectoryArtifactCreator, logger, deploymentManager)
 
 				if err := backuper.Backup(deployment); err != nil {
 					return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
@@ -112,8 +113,9 @@ func main() {
 				if err != nil {
 					return err
 				}
-
-				backuper := backuper.New(bosh.New(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger), backuper.NoopArtifactCreator, logger)
+				boshClient := bosh.New(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger)
+				deploymentManager := backuper.NewBoshDeploymentManager(boshClient, logger)
+				backuper := backuper.New(boshClient, backuper.NoopArtifactCreator, logger, deploymentManager)
 
 				if err := backuper.Restore(deployment); err != nil {
 					return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)

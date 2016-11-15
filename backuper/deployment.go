@@ -1,5 +1,6 @@
 package backuper
 
+//go:generate counterfeiter -o fakes/fake_deployment.go . Deployment
 type Deployment interface {
 	IsBackupable() (bool, error)
 	IsRestorable() (bool, error)
@@ -8,7 +9,7 @@ type Deployment interface {
 	CopyRemoteBackupsToLocalArtifact(Artifact) error
 	LoadFrom(Artifact) error
 	Cleanup() error
-	Instances() instances
+	Instances() []Instance
 }
 
 type BoshDeployment struct {
@@ -20,8 +21,8 @@ type BoshDeployment struct {
 	restorableInstances instances
 }
 
-func NewBoshDeployment(boshDirector BoshDirector, logger Logger, instances []Instance) Deployment {
-	return &BoshDeployment{BoshDirector: boshDirector, Logger: logger, instances: instances}
+func NewBoshDeployment(boshDirector BoshDirector, logger Logger, instancesArray []Instance) Deployment {
+	return &BoshDeployment{BoshDirector: boshDirector, Logger: logger, instances: instances(instancesArray)}
 }
 
 func (bd *BoshDeployment) IsBackupable() (bool, error) {
@@ -150,6 +151,6 @@ func (bd *BoshDeployment) getRestoreableInstances() (instances, error) {
 	}
 	return bd.restorableInstances, nil
 }
-func (bd *BoshDeployment) Instances() instances {
+func (bd *BoshDeployment) Instances() []Instance {
 	return bd.instances
 }
