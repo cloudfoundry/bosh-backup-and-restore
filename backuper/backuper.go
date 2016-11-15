@@ -1,6 +1,9 @@
 package backuper
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 func New(bosh BoshDirector, artifactCreator ArtifactCreator, logger Logger, deploymentManager DeploymentManager) *Backuper {
 	return &Backuper{
@@ -67,7 +70,7 @@ func (b Backuper) Backup(deploymentName string) error {
 		return err
 	}
 
-	b.Logger.Info("", "Completed backup of %s\n", deploymentName)
+	b.Logger.Info("", "Backup created of %s on %v\n", deploymentName, time.Now())
 	return nil
 }
 
