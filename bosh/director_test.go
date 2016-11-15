@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/cloudfoundry/bosh-cli/director"
-	boshfakes "github.com/cloudfoundry/bosh-cli/director/fakes"
+	boshfakes "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -85,7 +85,7 @@ var _ = Describe("Director", func() {
 				Expect(boshDeployment.SetUpSSHCallCount()).To(Equal(1))
 
 				slug, opts := boshDeployment.SetUpSSHArgsForCall(0)
-				Expect(slug).To(Equal(director.NewAllOrPoolOrInstanceSlug("job1", "")))
+				Expect(slug).To(Equal(director.NewAllOrInstanceGroupOrInstanceSlug("job1", "")))
 				Expect(opts).To(Equal(stubbedSshOpts))
 			})
 
@@ -178,7 +178,7 @@ var _ = Describe("Director", func() {
 				Expect(boshDeployment.SetUpSSHCallCount()).To(Equal(1))
 
 				slug, opts := boshDeployment.SetUpSSHArgsForCall(0)
-				Expect(slug).To(Equal(director.NewAllOrPoolOrInstanceSlug("job1", "")))
+				Expect(slug).To(Equal(director.NewAllOrInstanceGroupOrInstanceSlug("job1", "")))
 				Expect(opts).To(Equal(stubbedSshOpts))
 			})
 

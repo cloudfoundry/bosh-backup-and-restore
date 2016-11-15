@@ -61,7 +61,7 @@ func (c client) FindInstances(deploymentName string) ([]backuper.Instance, error
 	for _, instanceGroupName := range uniqueInstanceGroupNamesFromVMs(vms) {
 		c.Logger.Debug("", "Setting up SSH for job %s", instanceGroupName)
 
-		allVmInstances, err := director.NewAllOrPoolOrInstanceSlugFromString(instanceGroupName)
+		allVmInstances, err := director.NewAllOrInstanceGroupOrInstanceSlugFromString(instanceGroupName)
 		if err != nil {
 			return nil, err
 		}

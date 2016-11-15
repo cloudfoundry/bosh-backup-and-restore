@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/cloudfoundry/bosh-cli/director"
-	boshfakes "github.com/cloudfoundry/bosh-cli/director/fakes"
+	boshfakes "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -368,7 +368,7 @@ var _ = Describe("Instance", func() {
 			It("deletes session from deployment", func() {
 				Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(1))
 				slug, sshOpts := boshDeployment.CleanUpSSHArgsForCall(0)
-				Expect(slug).To(Equal(director.NewAllOrPoolOrInstanceSlug("job-name", "job-index")))
+				Expect(slug).To(Equal(director.NewAllOrInstanceGroupOrInstanceSlug("job-name", "job-index")))
 				Expect(sshOpts).To(Equal(director.SSHOpts{
 					Username: "sshUsername",
 				}))
