@@ -40,7 +40,7 @@ var _ = Describe("DeploymentManager", func() {
 			Expect(boshDirector.FindInstancesArgsForCall(0)).To(Equal(deploymentName))
 		})
 		It("returns the deployment manager with instances", func() {
-			Expect(deployment).To(Equal(backuper.NewBoshDeployment(boshDirector, logger, instances)))
+			Expect(deployment).To(Equal(backuper.NewBoshDeployment(logger, instances)))
 		})
 
 		Context("error finding instances", func() {

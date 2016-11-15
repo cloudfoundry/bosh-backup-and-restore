@@ -25,7 +25,7 @@ var _ = Describe("Deployment", func() {
 	)
 
 	JustBeforeEach(func() {
-		deployment = backuper.NewBoshDeployment(nil, logger, instances)
+		deployment = backuper.NewBoshDeployment(logger, instances)
 	})
 	BeforeEach(func() {
 		logger = new(fakes.FakeLogger)

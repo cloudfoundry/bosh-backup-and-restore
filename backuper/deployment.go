@@ -13,7 +13,6 @@ type Deployment interface {
 }
 
 type BoshDeployment struct {
-	BoshDirector
 	Logger
 
 	instances           instances
@@ -21,8 +20,8 @@ type BoshDeployment struct {
 	restorableInstances instances
 }
 
-func NewBoshDeployment(boshDirector BoshDirector, logger Logger, instancesArray []Instance) Deployment {
-	return &BoshDeployment{BoshDirector: boshDirector, Logger: logger, instances: instances(instancesArray)}
+func NewBoshDeployment(logger Logger, instancesArray []Instance) Deployment {
+	return &BoshDeployment{Logger: logger, instances: instances(instancesArray)}
 }
 
 func (bd *BoshDeployment) IsBackupable() (bool, error) {

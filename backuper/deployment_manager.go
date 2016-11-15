@@ -16,5 +16,5 @@ type BoshDeploymentManager struct {
 
 func (b *BoshDeploymentManager) Find(deploymentName string) (Deployment, error) {
 	instances, err := b.FindInstances(deploymentName)
-	return NewBoshDeployment(b.BoshDirector, b.Logger, instances), err
+	return NewBoshDeployment(b.Logger, instances), err
 }
