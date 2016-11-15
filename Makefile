@@ -6,6 +6,9 @@ export BOSH_GATEWAY_HOST=lite-bosh.backup-and-restore.cf-app.com
 
 test: test-unit test-integration
 
+push: test
+	git push
+
 pre-commit: test sys-test-local
 
 watch:
