@@ -75,6 +75,7 @@ func (b Backuper) Backup(deploymentName string) error {
 }
 
 func (b Backuper) Restore(deploymentName string) error {
+	b.Logger.Info("", "Starting restore of %s...\n", deploymentName)
 	deployment, err := b.DeploymentManager.Find(deploymentName)
 	if err != nil {
 		return err
@@ -100,7 +101,13 @@ func (b Backuper) Restore(deploymentName string) error {
 		return fmt.Errorf("Unable to send backup to remote machine. Got error: %s", err)
 	}
 
-	return deployment.Restore()
+	err = deployment.Restore()
+	if err != nil {
+		return err
+	}
+
+	b.Logger.Info("", "Completed backup of %s\n", deploymentName)
+	return nil
 }
 
 func matchChecksums(instance Instance, localChecksum, remoteChecksum map[string]string) error {

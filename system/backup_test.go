@@ -2,7 +2,6 @@ package system
 
 import (
 	"fmt"
-	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -11,34 +10,15 @@ import (
 )
 
 var _ = Describe("Backs up a deployment", func() {
-	var commandPath string
-	var err error
 	var workspaceDir = "/var/vcap/store/backup_workspace"
 
-	BeforeSuite(func() {
-		SetDefaultEventuallyTimeout(60 * time.Second)
-		// TODO: tests should build and upload the test release
-		// By("Creating the test release")
-		// RunBoshCommand(testDeploymentBoshCommand, "create-release", "--dir=../fixtures/releases/redis-test-release/", "--force")
-		// By("Uploading the test release")
-		// RunBoshCommand(testDeploymentBoshCommand, "upload-release", "--dir=../fixtures/releases/redis-test-release/", "--rebase")
-
-		By("deploying the test release")
-		RunBoshCommand(TestDeploymentBoshCommand(), "deploy", TestDeploymentManifest())
-		By("deploying the jump box")
-		RunBoshCommand(JumpBoxBoshCommand(), "deploy", JumpboxDeploymentManifest())
-
-		commandPath, err = gexec.BuildWithEnvironment("github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr", []string{"GOOS=linux", "GOARCH=amd64"})
-		Expect(err).NotTo(HaveOccurred())
-
-	})
 	It("backs up", func() {
 		By("polulating data in redis")
 		dataFixture := "../fixtures/redis_test_commands"
 		RunBoshCommand(TestDeploymentSCPCommand(), dataFixture, "redis/0:/tmp")
 		Eventually(
 			RunCommandOnRemote(TestDeploymentSSHCommand(),
-				"cat /tmp/redis_test_commands | /var/vcap/packages/redis/bin/redis-cli",
+				"cat /tmp/redis_test_commands | /var/vcap/packages/redis/bin/redis-cli > /dev/null",
 			)).Should(gexec.Exit(0))
 
 		By("setting up the jump box")
@@ -59,10 +39,5 @@ var _ = Describe("Backs up a deployment", func() {
 		Eventually(RunCommandOnRemote(
 			JumpBoxSSHCommand(), fmt.Sprintf("ls %s/%s", workspaceDir, TestDeployment()),
 		)).Should(gbytes.Say("redis-0.tgz"))
-
-	})
-	AfterSuite(func() {
-		RunBoshCommand(TestDeploymentBoshCommand(), "delete-deployment")
-		RunBoshCommand(JumpBoxBoshCommand(), "delete-deployment")
 	})
 })
