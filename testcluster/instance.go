@@ -43,6 +43,10 @@ func (i *Instance) FilesExist(files ...string) {
 	}
 }
 
+func (i *Instance) CreateDir(path string) {
+	dockerRun("exec", i.dockerID, "mkdir", "-p", path)
+}
+
 func (i *Instance) RunInBackground(command string) {
 	dockerRun("exec", "-d", i.dockerID, command)
 }

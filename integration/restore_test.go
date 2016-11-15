@@ -88,7 +88,8 @@ var _ = Describe("Restore", func() {
 			)
 
 			instance1.ScriptExist("/var/vcap/jobs/redis/bin/restore", `#!/usr/bin/env sh
-touch /tmp/restored_file`)
+cp /var/vcap/store/backup/* /var/vcap/store/redis-server`)
+			instance1.CreateDir("/var/vcap/store/redis-server")
 
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
@@ -123,11 +124,11 @@ instances:
 
 		It("Untars the archive file on the remote", func() {
 			Expect(instance1.AssertFileExists("/var/vcap/store/backup/backup.tgz")).To(BeTrue())
-			Expect(instance1.AssertFileExists("/var/vcap/store/backup/")).To(BeTrue())
+			Expect(instance1.AssertFileExists("/var/vcap/store/backup/redis-backup")).To(BeTrue())
 		})
 
 		It("Runs the restore script on the remote", func() {
-			Expect(instance1.AssertFileExists("/tmp/restored_file")).To(BeTrue())
+			Expect(instance1.AssertFileExists("/var/vcap/store/redis-server/redis-backup"))
 		})
 	})
 })
