@@ -255,7 +255,7 @@ instances:
 
 			It("returns the checksum for the saved instance data", func() {
 				Expect(artifact.CalculateChecksum(fakeInstance)).To(Equal(
-					map[string]string{
+					backuper.BackupChecksum{
 						"readme.txt": fmt.Sprintf("%x", sha1.Sum([]byte("This archive contains some text files."))),
 						"gopher.txt": fmt.Sprintf("%x", sha1.Sum([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo"))),
 						"todo.txt":   fmt.Sprintf("%x", sha1.Sum([]byte("Get animal handling license."))),

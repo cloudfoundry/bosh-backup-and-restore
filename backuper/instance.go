@@ -15,7 +15,7 @@ type Instance interface {
 	StreamBackupFromRemote(io.Writer) error
 	StreamBackupToRemote(io.Reader) error
 	BackupSize() (string, error)
-	BackupChecksum() (map[string]string, error)
+	BackupChecksum() (BackupChecksum, error)
 }
 
 type instances []Instance

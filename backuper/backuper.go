@@ -112,15 +112,3 @@ func (b Backuper) Restore(deploymentName string) error {
 	b.Logger.Info("", "Completed restore of %s\n", deploymentName)
 	return nil
 }
-
-func matchChecksums(instance Instance, localChecksum, remoteChecksum map[string]string) error {
-	if len(localChecksum) != len(remoteChecksum) {
-		return fmt.Errorf("Backup artifact is corrupted, checksum failed for %s:%s, files mismatched, remote files: %d, local files: %d", instance.Name(), instance.ID(), len(remoteChecksum), len(localChecksum))
-	}
-	for key, _ := range localChecksum {
-		if localChecksum[key] != remoteChecksum[key] {
-			return fmt.Errorf("Backup artifact is corrupted, checksum failed for %s:%s, checksum mismatched %s, remote file: %s, local file: %s", instance.Name(), instance.ID(), key, remoteChecksum, localChecksum)
-		}
-	}
-	return nil
-}

@@ -61,7 +61,7 @@ func (d *DirectoryArtifact) ReadFile(inst backuper.Instance) (io.ReadCloser, err
 	return file, nil
 }
 
-func (d *DirectoryArtifact) CalculateChecksum(inst backuper.Instance) (map[string]string, error) {
+func (d *DirectoryArtifact) CalculateChecksum(inst backuper.Instance) (backuper.BackupChecksum, error) {
 	filename := d.instanceFilename(inst)
 	file, err := os.Open(filename)
 	gzipedReader, err := gzip.NewReader(file)
@@ -92,7 +92,7 @@ func (d *DirectoryArtifact) CalculateChecksum(inst backuper.Instance) (map[strin
 	return checksum, nil
 }
 
-func (d *DirectoryArtifact) AddChecksum(inst backuper.Instance, shasum map[string]string) error {
+func (d *DirectoryArtifact) AddChecksum(inst backuper.Instance, shasum backuper.BackupChecksum) error {
 	metadata, err := d.readMetadata()
 	if err != nil {
 		return err

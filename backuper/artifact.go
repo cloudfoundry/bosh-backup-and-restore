@@ -15,8 +15,8 @@ type ArtifactManager interface {
 type Artifact interface {
 	CreateFile(Instance) (io.WriteCloser, error)
 	ReadFile(Instance) (io.ReadCloser, error)
-	AddChecksum(Instance, map[string]string) error
-	CalculateChecksum(Instance) (map[string]string, error)
+	AddChecksum(Instance, BackupChecksum) error
+	CalculateChecksum(Instance) (BackupChecksum, error)
 	DeploymentMatches(string, []Instance) (bool, error)
 	SaveManifest(manifest string) error
 }

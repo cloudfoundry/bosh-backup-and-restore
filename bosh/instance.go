@@ -152,7 +152,7 @@ func (d DeployedInstance) StreamBackupToRemote(reader io.Reader) error {
 	return err
 }
 
-func (d DeployedInstance) BackupChecksum() (map[string]string, error) {
+func (d DeployedInstance) BackupChecksum() (backuper.BackupChecksum, error) {
 	d.Logger.Debug("", "Running checksum on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
 
 	stdout, stderr, exitCode, err := d.Run("cd /var/vcap/store/backup; find . -type f | xargs shasum")

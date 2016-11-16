@@ -534,7 +534,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("One instance, backupable", func() {
 			var writeCloser *fakes.FakeWriteCloser
-			var instanceChecksum = map[string]string{"file1": "abcd", "file2": "efgh"}
+			var instanceChecksum = backuper.BackupChecksum{"file1": "abcd", "file2": "efgh"}
 			BeforeEach(func() {
 				writeCloser = new(fakes.FakeWriteCloser)
 				artifact.CreateFileReturns(writeCloser, nil)
@@ -576,7 +576,7 @@ var _ = Describe("Deployment", func() {
 		})
 
 		Context("Many instances, backupable", func() {
-			var instanceChecksum = map[string]string{"file1": "abcd", "file2": "efgh"}
+			var instanceChecksum = backuper.BackupChecksum{"file1": "abcd", "file2": "efgh"}
 			var writeCloser1 *fakes.FakeWriteCloser
 			var writeCloser2 *fakes.FakeWriteCloser
 
@@ -641,7 +641,7 @@ var _ = Describe("Deployment", func() {
 			})
 		})
 		Context("Many instances, one backupable", func() {
-			var instanceChecksum = map[string]string{"file1": "abcd", "file2": "efgh"}
+			var instanceChecksum = backuper.BackupChecksum{"file1": "abcd", "file2": "efgh"}
 			var writeCloser1 *fakes.FakeWriteCloser
 
 			BeforeEach(func() {
@@ -780,8 +780,8 @@ var _ = Describe("Deployment", func() {
 					instance1.BackupReturns(nil)
 					artifact.CreateFileReturns(writeCloser1, nil)
 
-					artifact.CalculateChecksumReturns(map[string]string{"file": "this won't match"}, nil)
-					instance1.BackupChecksumReturns(map[string]string{"file": "this wont match"}, nil)
+					artifact.CalculateChecksumReturns(backuper.BackupChecksum{"file": "this won't match"}, nil)
+					instance1.BackupChecksumReturns(backuper.BackupChecksum{"file": "this wont match"}, nil)
 				})
 
 				It("fails the backup process", func() {
@@ -804,8 +804,8 @@ var _ = Describe("Deployment", func() {
 					instance1.BackupReturns(nil)
 					artifact.CreateFileReturns(writeCloser1, nil)
 
-					artifact.CalculateChecksumReturns(map[string]string{"file": "this will match", "extra": "this won't match"}, nil)
-					instance1.BackupChecksumReturns(map[string]string{"file": "this will match"}, nil)
+					artifact.CalculateChecksumReturns(backuper.BackupChecksum{"file": "this will match", "extra": "this won't match"}, nil)
+					instance1.BackupChecksumReturns(backuper.BackupChecksum{"file": "this will match"}, nil)
 				})
 
 				It("fails the backup process", func() {

@@ -1,5 +1,7 @@
 package backuper
 
+import "fmt"
+
 //go:generate counterfeiter -o fakes/fake_deployment.go . Deployment
 type Deployment interface {
 	IsBackupable() (bool, error)
@@ -98,8 +100,8 @@ func (bd *BoshDeployment) CopyRemoteBackupsToLocalArtifact(artifact Artifact) er
 		if err != nil {
 			return err
 		}
-		if err := matchChecksums(instance, localChecksum, remoteChecksum); err != nil {
-			return err
+		if !localChecksum.Match(remoteChecksum) {
+			return fmt.Errorf("Backup artifact is corrupted, checksum failed for %s:%s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), remoteChecksum, localChecksum)
 		}
 
 		artifact.AddChecksum(instance, localChecksum)
