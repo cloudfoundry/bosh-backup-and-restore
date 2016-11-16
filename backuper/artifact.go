@@ -31,7 +31,8 @@ func DirectoryArtifactCreator(name string) (Artifact, error) {
 }
 
 func NoopArtifactCreator(name string) (Artifact, error) {
-	return &DirectoryArtifact{baseDirName: name}, nil
+	_, err := os.Stat(name)
+	return &DirectoryArtifact{baseDirName: name}, err
 }
 
 type DirectoryArtifact struct {

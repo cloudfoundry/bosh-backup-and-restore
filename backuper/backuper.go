@@ -76,6 +76,11 @@ func (b Backuper) Backup(deploymentName string) error {
 
 func (b Backuper) Restore(deploymentName string) error {
 	b.Logger.Info("", "Starting restore of %s...\n", deploymentName)
+	artifact, err := b.ArtifactCreator(deploymentName)
+	if err != nil {
+		return err
+	}
+
 	deployment, err := b.DeploymentManager.Find(deploymentName)
 	if err != nil {
 		return err
@@ -88,8 +93,6 @@ func (b Backuper) Restore(deploymentName string) error {
 	} else if !restoreable {
 		return fmt.Errorf("Deployment '%s' has no restore scripts", deploymentName)
 	}
-
-	artifact, _ := b.ArtifactCreator(deploymentName)
 
 	if match, err := artifact.DeploymentMatches(deploymentName, deployment.Instances()); err != nil {
 		return fmt.Errorf("Unable to check if deployment '%s' matches the structure of the provided backup", deploymentName)

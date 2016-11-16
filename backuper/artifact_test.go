@@ -28,10 +28,23 @@ var _ = Describe("Artifact", func() {
 	})
 
 	Describe("NoopArtifactCreator", func() {
-		It("does not create a directory", func() {
-			_, err := NoopArtifactCreator(artifactName)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(artifactName).NotTo(BeADirectory())
+		Context("when the directory exists", func() {
+			BeforeEach(func() {
+				err := os.MkdirAll(artifactName, 0700)
+				Expect(err).NotTo(HaveOccurred())
+			})
+			It("does not create a directory", func() {
+				_, err := NoopArtifactCreator(artifactName)
+				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+
+		Context("when the directory does not exist", func() {
+			It("fails", func() {
+				_, err := NoopArtifactCreator(artifactName)
+				Expect(err).To(HaveOccurred())
+				Expect(artifactName).NotTo(BeADirectory())
+			})
 		})
 	})
 

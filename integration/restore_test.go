@@ -34,7 +34,9 @@ var _ = Describe("Restore", func() {
 		var session *gexec.Session
 
 		BeforeEach(func() {
-			director.VerifyAndMock(mockbosh.VMsForDeployment("my-new-deployment").NotFound())
+			deploymentName := "my-new-deployment"
+			director.VerifyAndMock(mockbosh.VMsForDeployment(deploymentName).NotFound())
+			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			session = runBinary(
 				restoreWorkspace,
 				[]string{"BOSH_PASSWORD=admin"},
@@ -50,6 +52,28 @@ var _ = Describe("Restore", func() {
 		})
 		It("prints an error", func() {
 			Expect(string(session.Err.Contents())).To(ContainSubstring("Director responded with non-successful status code"))
+		})
+	})
+
+	Context("when artifact is not present", func() {
+		var session *gexec.Session
+
+		BeforeEach(func() {
+			session = runBinary(
+				restoreWorkspace,
+				[]string{"BOSH_PASSWORD=admin"},
+				"--ca-cert", sslCertPath,
+				"--username", "admin",
+				"--target", director.URL,
+				"--deployment", "my-new-deployment",
+				"restore")
+
+		})
+		It("fails", func() {
+			Expect(session.ExitCode()).To(Equal(1))
+		})
+		It("prints an error", func() {
+			Expect(string(session.Err.Contents())).To(ContainSubstring("no such file or directory"))
 		})
 	})
 

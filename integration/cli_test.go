@@ -212,6 +212,9 @@ var _ = Describe("CLI Interface", func() {
 	})
 
 	Context("restore", func() {
+		BeforeEach(func() {
+			os.MkdirAll(backupWorkspace+"/"+"my-new-deployment", 0666)
+		})
 		AssertCLIBehaviour("restore")
 	})
 

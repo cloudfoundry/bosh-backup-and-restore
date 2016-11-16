@@ -314,6 +314,18 @@ var _ = Describe("restore", func() {
 				})
 			})
 
+			Context("fails if the artifact cant be opened", func() {
+				var artifactOpenError = fmt.Errorf("i have the best brain")
+				BeforeEach(func() {
+					deploymentManager.FindReturns(deployment, nil)
+					artifactCreator.Returns(nil, artifactOpenError)
+				})
+				It("returns an error", func() {
+					actualError := b.Restore(deploymentName)
+					Expect(actualError).To(MatchError(artifactOpenError))
+				})
+			})
+
 			Context("if deployment not restorable", func() {
 				BeforeEach(func() {
 					deployment.IsRestorableReturns(false, nil)
