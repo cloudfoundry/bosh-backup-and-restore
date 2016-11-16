@@ -106,7 +106,7 @@ func (b Backuper) Restore(deploymentName string) error {
 		return err
 	}
 
-	b.Logger.Info("", "Completed backup of %s\n", deploymentName)
+	b.Logger.Info("", "Completed restore of %s\n", deploymentName)
 	return nil
 }
 
