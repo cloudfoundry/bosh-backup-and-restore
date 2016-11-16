@@ -8,7 +8,7 @@ import (
 )
 
 var _ = Describe("Backuper/Checksum", func() {
-	FDescribe("Match", func() {
+	Describe("Match", func() {
 		It("returns false if checksums don't match", func() {
 			Expect(BackupChecksum{"foo": "bar"}.Match(BackupChecksum{"foo": "baz"})).To(BeFalse())
 		})
