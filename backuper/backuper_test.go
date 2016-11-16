@@ -16,7 +16,7 @@ var _ = Describe("Backuper", func() {
 		deployment         *fakes.FakeDeployment
 		deploymentManager  *fakes.FakeDeploymentManager
 		artifact           *fakes.FakeArtifact
-		artifactCreator    *fakes.FakeArtifactCreator
+		artifactManager    *fakes.FakeArtifactManager
 		logger             *fakes.FakeLogger
 		deploymentName     = "foobarbaz"
 		deploymentManifest = "what a magnificent manifest"
@@ -27,10 +27,10 @@ var _ = Describe("Backuper", func() {
 		deployment = new(fakes.FakeDeployment)
 		deploymentManager = new(fakes.FakeDeploymentManager)
 		boshDirector = new(fakes.FakeBoshDirector)
-		artifactCreator = new(fakes.FakeArtifactCreator)
+		artifactManager = new(fakes.FakeArtifactManager)
 		artifact = new(fakes.FakeArtifact)
 		logger = new(fakes.FakeLogger)
-		b = backuper.New(boshDirector, artifactCreator.Spy, logger, deploymentManager)
+		b = backuper.New(boshDirector, artifactManager, logger, deploymentManager)
 	})
 
 	JustBeforeEach(func() {
@@ -40,7 +40,7 @@ var _ = Describe("Backuper", func() {
 	Context("backups up an deplyoment", func() {
 		BeforeEach(func() {
 			boshDirector.GetManifestReturns(deploymentManifest, nil)
-			artifactCreator.Returns(artifact, nil)
+			artifactManager.CreateReturns(artifact, nil)
 			deploymentManager.FindReturns(deployment, nil)
 			deployment.IsBackupableReturns(true, nil)
 			deployment.CleanupReturns(nil)
@@ -74,11 +74,11 @@ var _ = Describe("Backuper", func() {
 		})
 
 		It("creates a local artifact", func() {
-			Expect(artifactCreator.CallCount()).To(Equal(1))
+			Expect(artifactManager.CreateCallCount()).To(Equal(1))
 		})
 
 		It("names the artifact after the deployment", func() {
-			Expect(artifactCreator.ArgsForCall(0)).To(Equal(deploymentName))
+			Expect(artifactManager.CreateArgsForCall(0)).To(Equal(deploymentName))
 		})
 
 		It("drains the backup to the artifact", func() {
@@ -103,7 +103,7 @@ var _ = Describe("Backuper", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true, nil)
-				artifactCreator.Returns(artifact, nil)
+				artifactManager.CreateReturns(artifact, nil)
 				boshDirector.GetManifestReturns("", expectedError)
 			})
 
@@ -157,7 +157,7 @@ var _ = Describe("Backuper", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true, nil)
-				artifactCreator.Returns(artifact, nil)
+				artifactManager.CreateReturns(artifact, nil)
 				deployment.CopyRemoteBackupsToLocalArtifactReturns(drainError)
 			})
 
@@ -181,7 +181,7 @@ var _ = Describe("Backuper", func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true, nil)
 
-				artifactCreator.Returns(nil, artifactError)
+				artifactManager.CreateReturns(nil, artifactError)
 			})
 
 			It("check if the deployment is backupable", func() {
@@ -204,7 +204,7 @@ var _ = Describe("Backuper", func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true, nil)
 
-				artifactCreator.Returns(artifact, nil)
+				artifactManager.CreateReturns(artifact, nil)
 				deployment.BackupReturns(backupError)
 			})
 
@@ -232,7 +232,7 @@ var _ = Describe("restore", func() {
 	Context("restores a deployment from backup", func() {
 		var (
 			restoreError      error
-			artifactCreator   *fakes.FakeArtifactCreator
+			artifactManager   *fakes.FakeArtifactManager
 			artifact          *fakes.FakeArtifact
 			boshDirector      *fakes.FakeBoshDirector
 			logger            *fakes.FakeLogger
@@ -247,18 +247,18 @@ var _ = Describe("restore", func() {
 			instances = []backuper.Instance{new(fakes.FakeInstance)}
 			boshDirector = new(fakes.FakeBoshDirector)
 			logger = new(fakes.FakeLogger)
-			artifactCreator = new(fakes.FakeArtifactCreator)
+			artifactManager = new(fakes.FakeArtifactManager)
 			artifact = new(fakes.FakeArtifact)
 			deploymentManager = new(fakes.FakeDeploymentManager)
 			deployment = new(fakes.FakeDeployment)
 
-			artifactCreator.Returns(artifact, nil)
+			artifactManager.OpenReturns(artifact, nil)
 			deploymentManager.FindReturns(deployment, nil)
 			deployment.IsRestorableReturns(true, nil)
 			deployment.InstancesReturns(instances)
 			artifact.DeploymentMatchesReturns(true, nil)
 
-			b = backuper.New(boshDirector, artifactCreator.Spy, logger, deploymentManager)
+			b = backuper.New(boshDirector, artifactManager, logger, deploymentManager)
 
 			deploymentName = "deployment-to-restore"
 		})
@@ -285,7 +285,7 @@ var _ = Describe("restore", func() {
 		})
 
 		It("checks that the deployment topology matches the topology of the backup", func() {
-			Expect(artifactCreator.CallCount()).To(Equal(1))
+			Expect(artifactManager.OpenCallCount()).To(Equal(1))
 			Expect(artifact.DeploymentMatchesCallCount()).To(Equal(1))
 
 			name, actualInstances := artifact.DeploymentMatchesArgsForCall(0)
@@ -318,7 +318,7 @@ var _ = Describe("restore", func() {
 				var artifactOpenError = fmt.Errorf("i have the best brain")
 				BeforeEach(func() {
 					deploymentManager.FindReturns(deployment, nil)
-					artifactCreator.Returns(nil, artifactOpenError)
+					artifactManager.OpenReturns(nil, artifactOpenError)
 				})
 				It("returns an error", func() {
 					actualError := b.Restore(deploymentName)

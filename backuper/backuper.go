@@ -5,10 +5,10 @@ import (
 	"time"
 )
 
-func New(bosh BoshDirector, artifactCreator ArtifactCreator, logger Logger, deploymentManager DeploymentManager) *Backuper {
+func New(bosh BoshDirector, artifactManager ArtifactManager, logger Logger, deploymentManager DeploymentManager) *Backuper {
 	return &Backuper{
 		BoshDirector:      bosh,
-		ArtifactCreator:   artifactCreator,
+		ArtifactManager:   artifactManager,
 		Logger:            logger,
 		DeploymentManager: deploymentManager,
 	}
@@ -24,7 +24,7 @@ type Logger interface {
 
 type Backuper struct {
 	BoshDirector
-	ArtifactCreator
+	ArtifactManager
 	Logger
 
 	DeploymentManager
@@ -52,7 +52,7 @@ func (b Backuper) Backup(deploymentName string) error {
 		return fmt.Errorf("Deployment '%s' has no backup scripts", deploymentName)
 	}
 
-	artifact, err := b.ArtifactCreator(deploymentName)
+	artifact, err := b.ArtifactManager.Create(deploymentName)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func (b Backuper) Backup(deploymentName string) error {
 
 func (b Backuper) Restore(deploymentName string) error {
 	b.Logger.Info("", "Starting restore of %s...\n", deploymentName)
-	artifact, err := b.ArtifactCreator(deploymentName)
+	artifact, err := b.ArtifactManager.Open(deploymentName)
 	if err != nil {
 		return err
 	}

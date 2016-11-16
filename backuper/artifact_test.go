@@ -19,31 +19,35 @@ import (
 
 var _ = Describe("Artifact", func() {
 	var artifactName = "my-cool-redis"
-	Describe("DirectoryArtifactCreator", func() {
-		It("creates a directory with the given name", func() {
-			_, err := DirectoryArtifactCreator(artifactName)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(artifactName).To(BeADirectory())
-		})
-	})
+	var artifactManager = DirectoryArtifactManager{}
 
-	Describe("NoopArtifactCreator", func() {
-		Context("when the directory exists", func() {
-			BeforeEach(func() {
-				err := os.MkdirAll(artifactName, 0700)
+	Context("ArtifactManager", func() {
+		Describe("Create", func() {
+			It("creates a directory with the given name", func() {
+				_, err := artifactManager.Create(artifactName)
 				Expect(err).NotTo(HaveOccurred())
-			})
-			It("does not create a directory", func() {
-				_, err := NoopArtifactCreator(artifactName)
-				Expect(err).NotTo(HaveOccurred())
+				Expect(artifactName).To(BeADirectory())
 			})
 		})
 
-		Context("when the directory does not exist", func() {
-			It("fails", func() {
-				_, err := NoopArtifactCreator(artifactName)
-				Expect(err).To(HaveOccurred())
-				Expect(artifactName).NotTo(BeADirectory())
+		Describe("NoopArtifactCreator", func() {
+			Context("when the directory exists", func() {
+				BeforeEach(func() {
+					err := os.MkdirAll(artifactName, 0700)
+					Expect(err).NotTo(HaveOccurred())
+				})
+				It("does not create a directory", func() {
+					_, err := artifactManager.Open(artifactName)
+					Expect(err).NotTo(HaveOccurred())
+				})
+			})
+
+			Context("when the directory does not exist", func() {
+				It("fails", func() {
+					_, err := artifactManager.Open(artifactName)
+					Expect(err).To(HaveOccurred())
+					Expect(artifactName).NotTo(BeADirectory())
+				})
 			})
 		})
 	})
@@ -65,7 +69,7 @@ var _ = Describe("Artifact", func() {
 			instance2.NameReturns("redis")
 			instance2.IDReturns("1")
 
-			artifact, _ = NoopArtifactCreator(artifactName)
+			artifact, _ = artifactManager.Open(artifactName)
 		})
 
 		AfterEach(func() {
@@ -156,7 +160,7 @@ instances:
 		var fakeInstance *fakes.FakeInstance
 
 		BeforeEach(func() {
-			artifact, _ = DirectoryArtifactCreator(artifactName)
+			artifact, _ = artifactManager.Create(artifactName)
 			fakeInstance = new(fakes.FakeInstance)
 			fakeInstance.IDReturns("0")
 			fakeInstance.NameReturns("redis")
@@ -194,7 +198,7 @@ instances:
 		var saveManifestError error
 		BeforeEach(func() {
 			artifactName = "foo-bar"
-			artifact, _ = DirectoryArtifactCreator(artifactName)
+			artifact, _ = artifactManager.Create(artifactName)
 		})
 		JustBeforeEach(func() {
 			saveManifestError = artifact.SaveManifest("contents")
@@ -214,7 +218,7 @@ instances:
 		var fakeInstance *fakes.FakeInstance
 
 		BeforeEach(func() {
-			artifact, _ = NoopArtifactCreator(artifactName)
+			artifact, _ = artifactManager.Open(artifactName)
 			fakeInstance = new(fakes.FakeInstance)
 			fakeInstance.IDReturns("0")
 			fakeInstance.NameReturns("redis")
@@ -259,7 +263,7 @@ instances:
 		var fakeInstance *fakes.FakeInstance
 
 		BeforeEach(func() {
-			artifact, _ = DirectoryArtifactCreator(artifactName)
+			artifact, _ = artifactManager.Create(artifactName)
 			fakeInstance = new(fakes.FakeInstance)
 			fakeInstance.IDReturns("0")
 			fakeInstance.NameReturns("redis")
@@ -337,7 +341,7 @@ instances:
 		var checksum map[string]string
 
 		BeforeEach(func() {
-			artifact, _ = DirectoryArtifactCreator(artifactName)
+			artifact, _ = artifactManager.Create(artifactName)
 			fakeInstance = new(fakes.FakeInstance)
 			fakeInstance.IDReturns("0")
 			fakeInstance.NameReturns("redis")
