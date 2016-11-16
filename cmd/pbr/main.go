@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/mgutz/ansi"
+	"github.com/pivotal-cf/pcf-backup-and-restore/artifact"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
 	"github.com/pivotal-cf/pcf-backup-and-restore/ssh"
@@ -74,22 +75,12 @@ func main() {
 			Aliases: []string{"b"},
 			Usage:   "Backup a deployment",
 			Action: func(c *cli.Context) error {
-				var debug = c.GlobalBool("debug")
-				var targetUrl = c.GlobalString("target")
-				var username = c.GlobalString("username")
-				var password = c.GlobalString("password")
-				var caCert = c.GlobalString("ca-cert")
 				var deployment = c.GlobalString("deployment")
 
-				var logger = makeBoshLogger(debug)
-				boshDirector, err := makeBoshDirectorClient(targetUrl, username, password, caCert, logger)
+				backuper, err := makeBackuper(c)
 				if err != nil {
 					return err
 				}
-				boshClient := bosh.New(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger)
-				deploymentManager := backuper.NewBoshDeploymentManager(boshClient, logger)
-				backuper := backuper.New(boshClient, backuper.DirectoryArtifactManager{}, logger, deploymentManager)
-
 				if err := backuper.Backup(deployment); err != nil {
 					return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
 				}
@@ -101,26 +92,15 @@ func main() {
 			Aliases: []string{"r"},
 			Usage:   "Restore a deployment from backup",
 			Action: func(c *cli.Context) error {
-				var debug = c.GlobalBool("debug")
-				var targetUrl = c.GlobalString("target")
-				var username = c.GlobalString("username")
-				var password = c.GlobalString("password")
-				var caCert = c.GlobalString("ca-cert")
 				var deployment = c.GlobalString("deployment")
 
-				var logger = makeBoshLogger(debug)
-				boshDirector, err := makeBoshDirectorClient(targetUrl, username, password, caCert, logger)
+				backuper, err := makeBackuper(c)
 				if err != nil {
 					return err
 				}
-				boshClient := bosh.New(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger)
-				deploymentManager := backuper.NewBoshDeploymentManager(boshClient, logger)
-				backuper := backuper.New(boshClient, backuper.DirectoryArtifactManager{}, logger, deploymentManager)
-
 				if err := backuper.Restore(deployment); err != nil {
 					return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
 				}
-
 				return nil
 			},
 		},
@@ -129,6 +109,23 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		os.Exit(1)
 	}
+}
+
+func makeBackuper(c *cli.Context) (*backuper.Backuper, error) {
+	var debug = c.GlobalBool("debug")
+	var targetUrl = c.GlobalString("target")
+	var username = c.GlobalString("username")
+	var password = c.GlobalString("password")
+	var caCert = c.GlobalString("ca-cert")
+
+	var logger = makeBoshLogger(debug)
+	boshDirector, err := makeBoshDirectorClient(targetUrl, username, password, caCert, logger)
+	if err != nil {
+		return nil, err
+	}
+	boshClient := bosh.New(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger)
+	deploymentManager := backuper.NewBoshDeploymentManager(boshClient, logger)
+	return backuper.New(boshClient, artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
 }
 
 func makeBoshLogger(debug bool) boshlog.Logger {

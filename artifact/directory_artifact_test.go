@@ -1,4 +1,4 @@
-package backuper_test
+package artifact_test
 
 import (
 	"archive/tar"
@@ -10,50 +10,20 @@ import (
 	"io/ioutil"
 	"os"
 
-	. "github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	. "github.com/pivotal-cf/pcf-backup-and-restore/artifact"
+	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper/fakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Artifact", func() {
+var _ = Describe("DirectoryArtifact", func() {
 	var artifactName = "my-cool-redis"
 	var artifactManager = DirectoryArtifactManager{}
 
-	Context("ArtifactManager", func() {
-		Describe("Create", func() {
-			It("creates a directory with the given name", func() {
-				_, err := artifactManager.Create(artifactName)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(artifactName).To(BeADirectory())
-			})
-		})
-
-		Describe("NoopArtifactCreator", func() {
-			Context("when the directory exists", func() {
-				BeforeEach(func() {
-					err := os.MkdirAll(artifactName, 0700)
-					Expect(err).NotTo(HaveOccurred())
-				})
-				It("does not create a directory", func() {
-					_, err := artifactManager.Open(artifactName)
-					Expect(err).NotTo(HaveOccurred())
-				})
-			})
-
-			Context("when the directory does not exist", func() {
-				It("fails", func() {
-					_, err := artifactManager.Open(artifactName)
-					Expect(err).To(HaveOccurred())
-					Expect(artifactName).NotTo(BeADirectory())
-				})
-			})
-		})
-	})
-
 	Describe("DeploymentMatches", func() {
-		var artifact Artifact
+		var artifact backuper.Artifact
 		var deploymentName string
 		var instance1 *fakes.FakeInstance
 		var instance2 *fakes.FakeInstance
@@ -94,7 +64,7 @@ instances:
 			})
 
 			It("returns true", func() {
-				match, _ := artifact.DeploymentMatches(deploymentName, []Instance{instance1, instance2})
+				match, _ := artifact.DeploymentMatches(deploymentName, []backuper.Instance{instance1, instance2})
 				Expect(match).To(BeTrue())
 			})
 		})
@@ -120,7 +90,7 @@ instances:
 			})
 
 			It("returns false", func() {
-				match, _ := artifact.DeploymentMatches(deploymentName, []Instance{instance1, instance2})
+				match, _ := artifact.DeploymentMatches(deploymentName, []backuper.Instance{instance1, instance2})
 				Expect(match).To(BeFalse())
 			})
 		})
@@ -140,21 +110,21 @@ instances:
 			})
 
 			It("returns error", func() {
-				_, err := artifact.DeploymentMatches(deploymentName, []Instance{instance1, instance2})
+				_, err := artifact.DeploymentMatches(deploymentName, []backuper.Instance{instance1, instance2})
 				Expect(err).To(HaveOccurred())
 			})
 		})
 
 		Context("when an error occurs checking if the file exists", func() {
 			It("returns error", func() {
-				_, err := artifact.DeploymentMatches(deploymentName, []Instance{instance1, instance2})
+				_, err := artifact.DeploymentMatches(deploymentName, []backuper.Instance{instance1, instance2})
 				Expect(err).To(HaveOccurred())
 			})
 		})
 	})
 
 	Describe("CreateFile", func() {
-		var artifact Artifact
+		var artifact backuper.Artifact
 		var fileCreationError error
 		var writer io.Writer
 		var fakeInstance *fakes.FakeInstance
@@ -194,7 +164,7 @@ instances:
 
 	})
 	Describe("SaveManifest", func() {
-		var artifact Artifact
+		var artifact backuper.Artifact
 		var saveManifestError error
 		BeforeEach(func() {
 			artifactName = "foo-bar"
@@ -212,7 +182,7 @@ instances:
 		})
 	})
 	Describe("ReadFile", func() {
-		var artifact Artifact
+		var artifact backuper.Artifact
 		var fileReadError error
 		var reader io.Reader
 		var fakeInstance *fakes.FakeInstance
@@ -259,7 +229,7 @@ instances:
 	})
 
 	Describe("Checksum", func() {
-		var artifact Artifact
+		var artifact backuper.Artifact
 		var fakeInstance *fakes.FakeInstance
 
 		BeforeEach(func() {
@@ -335,7 +305,7 @@ instances:
 	})
 
 	Describe("AddChecksum", func() {
-		var artifact Artifact
+		var artifact backuper.Artifact
 		var addChecksumError error
 		var fakeInstance *fakes.FakeInstance
 		var checksum map[string]string

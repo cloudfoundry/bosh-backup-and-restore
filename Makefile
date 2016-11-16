@@ -17,7 +17,7 @@ watch:
 test-ci: setup test
 
 test-unit:
-	ginkgo -r bosh backuper ssh
+	ginkgo -r bosh backuper ssh artifact
 
 test-integration:
 	ginkgo -r integration -nodes 4
