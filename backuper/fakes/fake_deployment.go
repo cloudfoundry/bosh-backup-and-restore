@@ -34,20 +34,20 @@ type FakeDeployment struct {
 	restoreReturns     struct {
 		result1 error
 	}
-	CopyRemoteBackupsToLocalArtifactStub        func(backuper.Artifact) error
-	copyRemoteBackupsToLocalArtifactMutex       sync.RWMutex
-	copyRemoteBackupsToLocalArtifactArgsForCall []struct {
+	CopyRemoteBackupToLocalStub        func(backuper.Artifact) error
+	copyRemoteBackupToLocalMutex       sync.RWMutex
+	copyRemoteBackupToLocalArgsForCall []struct {
 		arg1 backuper.Artifact
 	}
-	copyRemoteBackupsToLocalArtifactReturns struct {
+	copyRemoteBackupToLocalReturns struct {
 		result1 error
 	}
-	LoadFromStub        func(backuper.Artifact) error
-	loadFromMutex       sync.RWMutex
-	loadFromArgsForCall []struct {
+	CopyLocalBackupToRemoteStub        func(backuper.Artifact) error
+	copyLocalBackupToRemoteMutex       sync.RWMutex
+	copyLocalBackupToRemoteArgsForCall []struct {
 		arg1 backuper.Artifact
 	}
-	loadFromReturns struct {
+	copyLocalBackupToRemoteReturns struct {
 		result1 error
 	}
 	CleanupStub        func() error
@@ -168,68 +168,68 @@ func (fake *FakeDeployment) RestoreReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) CopyRemoteBackupsToLocalArtifact(arg1 backuper.Artifact) error {
-	fake.copyRemoteBackupsToLocalArtifactMutex.Lock()
-	fake.copyRemoteBackupsToLocalArtifactArgsForCall = append(fake.copyRemoteBackupsToLocalArtifactArgsForCall, struct {
+func (fake *FakeDeployment) CopyRemoteBackupToLocal(arg1 backuper.Artifact) error {
+	fake.copyRemoteBackupToLocalMutex.Lock()
+	fake.copyRemoteBackupToLocalArgsForCall = append(fake.copyRemoteBackupToLocalArgsForCall, struct {
 		arg1 backuper.Artifact
 	}{arg1})
-	fake.recordInvocation("CopyRemoteBackupsToLocalArtifact", []interface{}{arg1})
-	fake.copyRemoteBackupsToLocalArtifactMutex.Unlock()
-	if fake.CopyRemoteBackupsToLocalArtifactStub != nil {
-		return fake.CopyRemoteBackupsToLocalArtifactStub(arg1)
+	fake.recordInvocation("CopyRemoteBackupToLocal", []interface{}{arg1})
+	fake.copyRemoteBackupToLocalMutex.Unlock()
+	if fake.CopyRemoteBackupToLocalStub != nil {
+		return fake.CopyRemoteBackupToLocalStub(arg1)
 	} else {
-		return fake.copyRemoteBackupsToLocalArtifactReturns.result1
+		return fake.copyRemoteBackupToLocalReturns.result1
 	}
 }
 
-func (fake *FakeDeployment) CopyRemoteBackupsToLocalArtifactCallCount() int {
-	fake.copyRemoteBackupsToLocalArtifactMutex.RLock()
-	defer fake.copyRemoteBackupsToLocalArtifactMutex.RUnlock()
-	return len(fake.copyRemoteBackupsToLocalArtifactArgsForCall)
+func (fake *FakeDeployment) CopyRemoteBackupToLocalCallCount() int {
+	fake.copyRemoteBackupToLocalMutex.RLock()
+	defer fake.copyRemoteBackupToLocalMutex.RUnlock()
+	return len(fake.copyRemoteBackupToLocalArgsForCall)
 }
 
-func (fake *FakeDeployment) CopyRemoteBackupsToLocalArtifactArgsForCall(i int) backuper.Artifact {
-	fake.copyRemoteBackupsToLocalArtifactMutex.RLock()
-	defer fake.copyRemoteBackupsToLocalArtifactMutex.RUnlock()
-	return fake.copyRemoteBackupsToLocalArtifactArgsForCall[i].arg1
+func (fake *FakeDeployment) CopyRemoteBackupToLocalArgsForCall(i int) backuper.Artifact {
+	fake.copyRemoteBackupToLocalMutex.RLock()
+	defer fake.copyRemoteBackupToLocalMutex.RUnlock()
+	return fake.copyRemoteBackupToLocalArgsForCall[i].arg1
 }
 
-func (fake *FakeDeployment) CopyRemoteBackupsToLocalArtifactReturns(result1 error) {
-	fake.CopyRemoteBackupsToLocalArtifactStub = nil
-	fake.copyRemoteBackupsToLocalArtifactReturns = struct {
+func (fake *FakeDeployment) CopyRemoteBackupToLocalReturns(result1 error) {
+	fake.CopyRemoteBackupToLocalStub = nil
+	fake.copyRemoteBackupToLocalReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeDeployment) LoadFrom(arg1 backuper.Artifact) error {
-	fake.loadFromMutex.Lock()
-	fake.loadFromArgsForCall = append(fake.loadFromArgsForCall, struct {
+func (fake *FakeDeployment) CopyLocalBackupToRemote(arg1 backuper.Artifact) error {
+	fake.copyLocalBackupToRemoteMutex.Lock()
+	fake.copyLocalBackupToRemoteArgsForCall = append(fake.copyLocalBackupToRemoteArgsForCall, struct {
 		arg1 backuper.Artifact
 	}{arg1})
-	fake.recordInvocation("LoadFrom", []interface{}{arg1})
-	fake.loadFromMutex.Unlock()
-	if fake.LoadFromStub != nil {
-		return fake.LoadFromStub(arg1)
+	fake.recordInvocation("CopyLocalBackupToRemote", []interface{}{arg1})
+	fake.copyLocalBackupToRemoteMutex.Unlock()
+	if fake.CopyLocalBackupToRemoteStub != nil {
+		return fake.CopyLocalBackupToRemoteStub(arg1)
 	} else {
-		return fake.loadFromReturns.result1
+		return fake.copyLocalBackupToRemoteReturns.result1
 	}
 }
 
-func (fake *FakeDeployment) LoadFromCallCount() int {
-	fake.loadFromMutex.RLock()
-	defer fake.loadFromMutex.RUnlock()
-	return len(fake.loadFromArgsForCall)
+func (fake *FakeDeployment) CopyLocalBackupToRemoteCallCount() int {
+	fake.copyLocalBackupToRemoteMutex.RLock()
+	defer fake.copyLocalBackupToRemoteMutex.RUnlock()
+	return len(fake.copyLocalBackupToRemoteArgsForCall)
 }
 
-func (fake *FakeDeployment) LoadFromArgsForCall(i int) backuper.Artifact {
-	fake.loadFromMutex.RLock()
-	defer fake.loadFromMutex.RUnlock()
-	return fake.loadFromArgsForCall[i].arg1
+func (fake *FakeDeployment) CopyLocalBackupToRemoteArgsForCall(i int) backuper.Artifact {
+	fake.copyLocalBackupToRemoteMutex.RLock()
+	defer fake.copyLocalBackupToRemoteMutex.RUnlock()
+	return fake.copyLocalBackupToRemoteArgsForCall[i].arg1
 }
 
-func (fake *FakeDeployment) LoadFromReturns(result1 error) {
-	fake.LoadFromStub = nil
-	fake.loadFromReturns = struct {
+func (fake *FakeDeployment) CopyLocalBackupToRemoteReturns(result1 error) {
+	fake.CopyLocalBackupToRemoteStub = nil
+	fake.copyLocalBackupToRemoteReturns = struct {
 		result1 error
 	}{result1}
 }
@@ -295,10 +295,10 @@ func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	defer fake.backupMutex.RUnlock()
 	fake.restoreMutex.RLock()
 	defer fake.restoreMutex.RUnlock()
-	fake.copyRemoteBackupsToLocalArtifactMutex.RLock()
-	defer fake.copyRemoteBackupsToLocalArtifactMutex.RUnlock()
-	fake.loadFromMutex.RLock()
-	defer fake.loadFromMutex.RUnlock()
+	fake.copyRemoteBackupToLocalMutex.RLock()
+	defer fake.copyRemoteBackupToLocalMutex.RUnlock()
+	fake.copyLocalBackupToRemoteMutex.RLock()
+	defer fake.copyLocalBackupToRemoteMutex.RUnlock()
 	fake.cleanupMutex.RLock()
 	defer fake.cleanupMutex.RUnlock()
 	fake.instancesMutex.RLock()

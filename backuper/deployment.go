@@ -8,8 +8,8 @@ type Deployment interface {
 	IsRestorable() (bool, error)
 	Backup() error
 	Restore() error
-	CopyRemoteBackupsToLocalArtifact(Artifact) error
-	LoadFrom(Artifact) error
+	CopyRemoteBackupToLocal(Artifact) error
+	CopyLocalBackupToRemote(Artifact) error
 	Cleanup() error
 	Instances() []Instance
 }
@@ -65,7 +65,7 @@ func (bd *BoshDeployment) IsRestorable() (bool, error) {
 	return !restoreableInstances.IsEmpty(), nil
 }
 
-func (bd *BoshDeployment) CopyRemoteBackupsToLocalArtifact(artifact Artifact) error {
+func (bd *BoshDeployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 	instances, err := bd.getBackupableInstances()
 	if err != nil {
 		return err
@@ -110,7 +110,7 @@ func (bd *BoshDeployment) CopyRemoteBackupsToLocalArtifact(artifact Artifact) er
 	return nil
 }
 
-func (bd *BoshDeployment) LoadFrom(artifact Artifact) error {
+func (bd *BoshDeployment) CopyLocalBackupToRemote(artifact Artifact) error {
 	instances, err := bd.getRestoreableInstances()
 	if err != nil {
 		return err

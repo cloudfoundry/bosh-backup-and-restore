@@ -286,7 +286,7 @@ var _ = Describe("Deployment", func() {
 		})
 	})
 
-	Context("LoadFrom", func() {
+	Context("CopyLocalBackupToRemote", func() {
 		var (
 			artifact    *fakes.FakeArtifact
 			loadFromErr error
@@ -305,7 +305,7 @@ var _ = Describe("Deployment", func() {
 		JustBeforeEach(func() {
 			reader = ioutil.NopCloser(bytes.NewBufferString("this-is-some-backup-data"))
 			readFileErr = nil
-			loadFromErr = deployment.LoadFrom(artifact)
+			loadFromErr = deployment.CopyLocalBackupToRemote(artifact)
 		})
 
 		Context("Single instance, restorable", func() {
@@ -529,7 +529,7 @@ var _ = Describe("Deployment", func() {
 			artifact = new(fakes.FakeArtifact)
 		})
 		JustBeforeEach(func() {
-			copyRemoteBackupsToLocalArtifactError = deployment.CopyRemoteBackupsToLocalArtifact(artifact)
+			copyRemoteBackupsToLocalArtifactError = deployment.CopyRemoteBackupToLocal(artifact)
 		})
 
 		Context("One instance, backupable", func() {

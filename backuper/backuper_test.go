@@ -44,7 +44,7 @@ var _ = Describe("Backuper", func() {
 			deploymentManager.FindReturns(deployment, nil)
 			deployment.IsBackupableReturns(true, nil)
 			deployment.CleanupReturns(nil)
-			deployment.CopyRemoteBackupsToLocalArtifactReturns(nil)
+			deployment.CopyRemoteBackupToLocalReturns(nil)
 		})
 
 		It("does not fail", func() {
@@ -84,8 +84,8 @@ var _ = Describe("Backuper", func() {
 		})
 
 		It("drains the backup to the artifact", func() {
-			Expect(deployment.CopyRemoteBackupsToLocalArtifactCallCount()).To(Equal(1))
-			Expect(deployment.CopyRemoteBackupsToLocalArtifactArgsForCall(0)).To(Equal(artifact))
+			Expect(deployment.CopyRemoteBackupToLocalCallCount()).To(Equal(1))
+			Expect(deployment.CopyRemoteBackupToLocalArgsForCall(0)).To(Equal(artifact))
 		})
 	})
 
@@ -160,7 +160,7 @@ var _ = Describe("Backuper", func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true, nil)
 				artifactManager.CreateReturns(artifact, nil)
-				deployment.CopyRemoteBackupsToLocalArtifactReturns(drainError)
+				deployment.CopyRemoteBackupToLocalReturns(drainError)
 			})
 
 			It("check if the deployment is backupable", func() {
@@ -301,8 +301,8 @@ var _ = Describe("restore", func() {
 		})
 
 		It("streams the local backup to the deployment", func() {
-			Expect(deployment.LoadFromCallCount()).To(Equal(1))
-			Expect(deployment.LoadFromArgsForCall(0)).To(Equal(artifact))
+			Expect(deployment.CopyLocalBackupToRemoteCallCount()).To(Equal(1))
+			Expect(deployment.CopyLocalBackupToRemoteArgsForCall(0)).To(Equal(artifact))
 		})
 
 		It("calls restore on the deployment", func() {
@@ -402,7 +402,7 @@ var _ = Describe("restore", func() {
 
 			Context("if streaming the backup to the remote fails", func() {
 				BeforeEach(func() {
-					deployment.LoadFromReturns(fmt.Errorf("Broken pipe"))
+					deployment.CopyLocalBackupToRemoteReturns(fmt.Errorf("Broken pipe"))
 				})
 
 				It("returns an error", func() {
