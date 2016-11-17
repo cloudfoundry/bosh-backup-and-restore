@@ -52,7 +52,7 @@ func (b Backuper) Backup(deploymentName string) error {
 		return fmt.Errorf("Deployment '%s' has no backup scripts", deploymentName)
 	}
 
-	artifact, err := b.ArtifactManager.Create(deploymentName)
+	artifact, err := b.ArtifactManager.Create(deploymentName, b.Logger)
 	if err != nil {
 		return err
 	}
@@ -76,7 +76,7 @@ func (b Backuper) Backup(deploymentName string) error {
 
 func (b Backuper) Restore(deploymentName string) error {
 	b.Logger.Info("", "Starting restore of %s...\n", deploymentName)
-	artifact, err := b.ArtifactManager.Open(deploymentName)
+	artifact, err := b.ArtifactManager.Open(deploymentName, b.Logger)
 	if err != nil {
 		return err
 	}

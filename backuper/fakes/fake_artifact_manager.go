@@ -8,19 +8,21 @@ import (
 )
 
 type FakeArtifactManager struct {
-	CreateStub        func(string) (backuper.Artifact, error)
+	CreateStub        func(string, backuper.Logger) (backuper.Artifact, error)
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
 		arg1 string
+		arg2 backuper.Logger
 	}
 	createReturns struct {
 		result1 backuper.Artifact
 		result2 error
 	}
-	OpenStub        func(string) (backuper.Artifact, error)
+	OpenStub        func(string, backuper.Logger) (backuper.Artifact, error)
 	openMutex       sync.RWMutex
 	openArgsForCall []struct {
 		arg1 string
+		arg2 backuper.Logger
 	}
 	openReturns struct {
 		result1 backuper.Artifact
@@ -30,15 +32,16 @@ type FakeArtifactManager struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeArtifactManager) Create(arg1 string) (backuper.Artifact, error) {
+func (fake *FakeArtifactManager) Create(arg1 string, arg2 backuper.Logger) (backuper.Artifact, error) {
 	fake.createMutex.Lock()
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
 		arg1 string
-	}{arg1})
-	fake.recordInvocation("Create", []interface{}{arg1})
+		arg2 backuper.Logger
+	}{arg1, arg2})
+	fake.recordInvocation("Create", []interface{}{arg1, arg2})
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
-		return fake.CreateStub(arg1)
+		return fake.CreateStub(arg1, arg2)
 	} else {
 		return fake.createReturns.result1, fake.createReturns.result2
 	}
@@ -50,10 +53,10 @@ func (fake *FakeArtifactManager) CreateCallCount() int {
 	return len(fake.createArgsForCall)
 }
 
-func (fake *FakeArtifactManager) CreateArgsForCall(i int) string {
+func (fake *FakeArtifactManager) CreateArgsForCall(i int) (string, backuper.Logger) {
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
-	return fake.createArgsForCall[i].arg1
+	return fake.createArgsForCall[i].arg1, fake.createArgsForCall[i].arg2
 }
 
 func (fake *FakeArtifactManager) CreateReturns(result1 backuper.Artifact, result2 error) {
@@ -64,15 +67,16 @@ func (fake *FakeArtifactManager) CreateReturns(result1 backuper.Artifact, result
 	}{result1, result2}
 }
 
-func (fake *FakeArtifactManager) Open(arg1 string) (backuper.Artifact, error) {
+func (fake *FakeArtifactManager) Open(arg1 string, arg2 backuper.Logger) (backuper.Artifact, error) {
 	fake.openMutex.Lock()
 	fake.openArgsForCall = append(fake.openArgsForCall, struct {
 		arg1 string
-	}{arg1})
-	fake.recordInvocation("Open", []interface{}{arg1})
+		arg2 backuper.Logger
+	}{arg1, arg2})
+	fake.recordInvocation("Open", []interface{}{arg1, arg2})
 	fake.openMutex.Unlock()
 	if fake.OpenStub != nil {
-		return fake.OpenStub(arg1)
+		return fake.OpenStub(arg1, arg2)
 	} else {
 		return fake.openReturns.result1, fake.openReturns.result2
 	}
@@ -84,10 +88,10 @@ func (fake *FakeArtifactManager) OpenCallCount() int {
 	return len(fake.openArgsForCall)
 }
 
-func (fake *FakeArtifactManager) OpenArgsForCall(i int) string {
+func (fake *FakeArtifactManager) OpenArgsForCall(i int) (string, backuper.Logger) {
 	fake.openMutex.RLock()
 	defer fake.openMutex.RUnlock()
-	return fake.openArgsForCall[i].arg1
+	return fake.openArgsForCall[i].arg1, fake.openArgsForCall[i].arg2
 }
 
 func (fake *FakeArtifactManager) OpenReturns(result1 backuper.Artifact, result2 error) {

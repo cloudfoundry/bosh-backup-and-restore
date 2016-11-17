@@ -13,7 +13,7 @@ var _ = Context("ArtifactManager", func() {
 	var artifactManager = DirectoryArtifactManager{}
 	Describe("Create", func() {
 		It("creates a directory with the given name", func() {
-			_, err := artifactManager.Create(artifactName)
+			_, err := artifactManager.Create(artifactName, nil)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(artifactName).To(BeADirectory())
 		})
@@ -26,14 +26,14 @@ var _ = Context("ArtifactManager", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("does not create a directory", func() {
-				_, err := artifactManager.Open(artifactName)
+				_, err := artifactManager.Open(artifactName, nil)
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 
 		Context("when the directory does not exist", func() {
 			It("fails", func() {
-				_, err := artifactManager.Open(artifactName)
+				_, err := artifactManager.Open(artifactName, nil)
 				Expect(err).To(HaveOccurred())
 				Expect(artifactName).NotTo(BeADirectory())
 			})

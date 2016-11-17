@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/pivotal-cf/pcf-backup-and-restore/artifact"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper/fakes"
@@ -21,16 +22,19 @@ import (
 var _ = Describe("DirectoryArtifact", func() {
 	var artifactName = "my-cool-redis"
 	var artifactManager = DirectoryArtifactManager{}
+	var logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter, GinkgoWriter)
+
+	AfterEach(func() {
+		Expect(os.RemoveAll(artifactName)).To(Succeed())
+	})
 
 	Describe("DeploymentMatches", func() {
 		var artifact backuper.Artifact
-		var deploymentName string
 		var instance1 *fakes.FakeInstance
 		var instance2 *fakes.FakeInstance
 
 		BeforeEach(func() {
 			artifactName = "my-cool-redis"
-			deploymentName = "my-cool-redis"
 			instance1 = new(fakes.FakeInstance)
 			instance1.NameReturns("redis")
 			instance1.IDReturns("0")
@@ -39,16 +43,12 @@ var _ = Describe("DirectoryArtifact", func() {
 			instance2.NameReturns("redis")
 			instance2.IDReturns("1")
 
-			artifact, _ = artifactManager.Open(artifactName)
-		})
-
-		AfterEach(func() {
-			Expect(os.RemoveAll(deploymentName)).To(Succeed())
+			artifact, _ = artifactManager.Open(artifactName, logger)
 		})
 
 		Context("when the backup on disk matches the current deployment", func() {
 			BeforeEach(func() {
-				createTestMetadata(deploymentName, `---
+				createTestMetadata(artifactName, `---
 instances:
 - instance_name: redis
   instance_id: 0
@@ -59,19 +59,15 @@ instances:
 `)
 			})
 
-			AfterEach(func() {
-				deleteTestMetadata(deploymentName)
-			})
-
 			It("returns true", func() {
-				match, _ := artifact.DeploymentMatches(deploymentName, []backuper.Instance{instance1, instance2})
+				match, _ := artifact.DeploymentMatches(artifactName, []backuper.Instance{instance1, instance2})
 				Expect(match).To(BeTrue())
 			})
 		})
 
 		Context("when the backup doesn't match the current deployment", func() {
 			BeforeEach(func() {
-				createTestMetadata(deploymentName, `---
+				createTestMetadata(artifactName, `---
 instances:
 - instance_name: redis
   instance_id: 0
@@ -84,41 +80,152 @@ instances:
   checksum: foo
 `)
 			})
-
-			AfterEach(func() {
-				deleteTestMetadata(deploymentName)
-			})
-
 			It("returns false", func() {
-				match, _ := artifact.DeploymentMatches(deploymentName, []backuper.Instance{instance1, instance2})
+				match, _ := artifact.DeploymentMatches(artifactName, []backuper.Instance{instance1, instance2})
 				Expect(match).To(BeFalse())
 			})
 		})
 
 		Context("when an error occurs unmarshaling the metadata", func() {
 			BeforeEach(func() {
-				Expect(os.Mkdir(deploymentName, 0777)).To(Succeed())
-				file, err := os.Create(deploymentName + "/" + "metadata")
+				Expect(os.Mkdir(artifactName, 0777)).To(Succeed())
+				file, err := os.Create(artifactName + "/" + "metadata")
 				Expect(err).NotTo(HaveOccurred())
 				_, err = file.Write([]byte("this is not yaml"))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(file.Close()).To(Succeed())
 			})
 
-			AfterEach(func() {
-				deleteTestMetadata(deploymentName)
-			})
-
 			It("returns error", func() {
-				_, err := artifact.DeploymentMatches(deploymentName, []backuper.Instance{instance1, instance2})
+				_, err := artifact.DeploymentMatches(artifactName, []backuper.Instance{instance1, instance2})
 				Expect(err).To(HaveOccurred())
 			})
 		})
 
 		Context("when an error occurs checking if the file exists", func() {
 			It("returns error", func() {
-				_, err := artifact.DeploymentMatches(deploymentName, []backuper.Instance{instance1, instance2})
+				_, err := artifact.DeploymentMatches(artifactName, []backuper.Instance{instance1, instance2})
 				Expect(err).To(HaveOccurred())
+			})
+		})
+	})
+	Describe("Verify", func() {
+		var artifact backuper.Artifact
+		var verifyResult bool
+		var verifyError error
+		JustBeforeEach(func() {
+			var err error
+			artifact, err = artifactManager.Open(artifactName, logger)
+			Expect(err).NotTo(HaveOccurred())
+			verifyResult, verifyError = artifact.Verify()
+		})
+		BeforeEach(func() {
+			Expect(os.Mkdir(artifactName, 0777)).To(Succeed())
+		})
+
+		Context("when the artifact sha's match metafile", func() {
+			BeforeEach(func() {
+				contents := gzipContents(createTarWithContents(map[string]string{
+					"file1": "This archive contains some text files.",
+					"file2": "Gopher names:\nGeorge\nGeoffrey\nGonzo",
+				}))
+				Expect(ioutil.WriteFile(artifactName+"/redis-0.tgz", contents, 0666)).NotTo(HaveOccurred())
+				createTestMetadata(artifactName, fmt.Sprintf(`---
+instances:
+- instance_name: redis
+  instance_id: 0
+  checksums:
+    file1: %x
+    file2: %x
+`, sha1.Sum([]byte("This archive contains some text files.")),
+					sha1.Sum([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo"))))
+			})
+
+			It("returns true", func() {
+				Expect(verifyError).NotTo(HaveOccurred())
+				Expect(verifyResult).To(BeTrue())
+			})
+		})
+
+		Context("when one of the artifact file's contents don't match the sha", func() {
+			BeforeEach(func() {
+				contents := gzipContents(createTarWithContents(map[string]string{
+					"file1": "This archive contains some text files.",
+					"file2": "Gopher names:\nGeorge\nGeoffrey\nGonzo",
+				}))
+				Expect(ioutil.WriteFile(artifactName+"/redis-0.tgz", contents, 0666)).NotTo(HaveOccurred())
+				createTestMetadata(artifactName, fmt.Sprintf(`---
+instances:
+- instance_name: redis
+  instance_id: 0
+  checksums:
+    file1: %x
+    file2: %x
+`, sha1.Sum([]byte("This archive contains some text files.")),
+					sha1.Sum([]byte("Gopher names:\nNo Goper names"))))
+			})
+
+			It("returns false", func() {
+				Expect(verifyError).NotTo(HaveOccurred())
+				Expect(verifyResult).To(BeFalse())
+			})
+		})
+
+		Context("when one of there is an extra file in the backed metadata", func() {
+			BeforeEach(func() {
+				contents := gzipContents(createTarWithContents(map[string]string{
+					"file1": "This archive contains some text files.",
+				}))
+				Expect(ioutil.WriteFile(artifactName+"/redis-0.tgz", contents, 0666)).NotTo(HaveOccurred())
+				createTestMetadata(artifactName, fmt.Sprintf(`---
+instances:
+- instance_name: redis
+  instance_id: 0
+  checksums:
+    file1: %x
+    file2: %x
+`, sha1.Sum([]byte("This archive contains some text files.")),
+					sha1.Sum([]byte("Gopher names:\nNot present"))))
+			})
+
+			It("returns false", func() {
+				Expect(verifyResult).To(BeFalse())
+				Expect(verifyError).NotTo(HaveOccurred())
+			})
+		})
+
+		Context("metadata describes a file that dosen't exist", func() {
+			BeforeEach(func() {
+				createTestMetadata(artifactName, fmt.Sprintf(`---
+instances:
+- instance_name: redis
+	instance_id: 0
+	checksums:
+		file1: %x
+`, sha1.Sum([]byte("This archive contains some text files."))))
+			})
+
+			It("returns false", func() {
+				Expect(verifyResult).To(BeFalse())
+			})
+			It("returns an error", func() {
+				Expect(verifyError).To(HaveOccurred())
+			})
+		})
+
+		Context("metadata file dosen't exist", func() {
+			BeforeEach(func() {
+				contents := gzipContents(createTarWithContents(map[string]string{
+					"file1": "This archive contains some text files.",
+				}))
+				Expect(ioutil.WriteFile(artifactName+"/redis-1.tgz", contents, 0666)).NotTo(HaveOccurred())
+			})
+
+			It("returns false", func() {
+				Expect(verifyResult).To(BeFalse())
+			})
+			It("returns an error", func() {
+				Expect(verifyError).To(HaveOccurred())
 			})
 		})
 	})
@@ -130,7 +237,7 @@ instances:
 		var fakeInstance *fakes.FakeInstance
 
 		BeforeEach(func() {
-			artifact, _ = artifactManager.Create(artifactName)
+			artifact, _ = artifactManager.Create(artifactName, logger)
 			fakeInstance = new(fakes.FakeInstance)
 			fakeInstance.IDReturns("0")
 			fakeInstance.NameReturns("redis")
@@ -168,7 +275,7 @@ instances:
 		var saveManifestError error
 		BeforeEach(func() {
 			artifactName = "foo-bar"
-			artifact, _ = artifactManager.Create(artifactName)
+			artifact, _ = artifactManager.Create(artifactName, logger)
 		})
 		JustBeforeEach(func() {
 			saveManifestError = artifact.SaveManifest("contents")
@@ -188,7 +295,7 @@ instances:
 		var fakeInstance *fakes.FakeInstance
 
 		BeforeEach(func() {
-			artifact, _ = artifactManager.Open(artifactName)
+			artifact, _ = artifactManager.Open(artifactName, logger)
 			fakeInstance = new(fakes.FakeInstance)
 			fakeInstance.IDReturns("0")
 			fakeInstance.NameReturns("redis")
@@ -233,7 +340,7 @@ instances:
 		var fakeInstance *fakes.FakeInstance
 
 		BeforeEach(func() {
-			artifact, _ = artifactManager.Create(artifactName)
+			artifact, _ = artifactManager.Create(artifactName, logger)
 			fakeInstance = new(fakes.FakeInstance)
 			fakeInstance.IDReturns("0")
 			fakeInstance.NameReturns("redis")
@@ -311,7 +418,7 @@ instances:
 		var checksum map[string]string
 
 		BeforeEach(func() {
-			artifact, _ = artifactManager.Create(artifactName)
+			artifact, _ = artifactManager.Create(artifactName, logger)
 			fakeInstance = new(fakes.FakeInstance)
 			fakeInstance.IDReturns("0")
 			fakeInstance.NameReturns("redis")
@@ -370,14 +477,10 @@ instances:
 		})
 
 	})
-
-	AfterEach(func() {
-		Expect(os.RemoveAll(artifactName)).To(Succeed())
-	})
 })
 
 func createTestMetadata(deploymentName, metadata string) {
-	Expect(os.Mkdir(deploymentName, 0777)).To(Succeed())
+	Expect(os.MkdirAll(deploymentName, 0777)).To(Succeed())
 
 	file, err := os.Create(deploymentName + "/" + "metadata")
 	Expect(err).NotTo(HaveOccurred())

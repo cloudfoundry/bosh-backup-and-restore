@@ -63,6 +63,13 @@ type FakeArtifact struct {
 	saveManifestReturns struct {
 		result1 error
 	}
+	VerifyStub        func() (bool, error)
+	verifyMutex       sync.RWMutex
+	verifyArgsForCall []struct{}
+	verifyReturns     struct {
+		result1 bool
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -276,6 +283,32 @@ func (fake *FakeArtifact) SaveManifestReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeArtifact) Verify() (bool, error) {
+	fake.verifyMutex.Lock()
+	fake.verifyArgsForCall = append(fake.verifyArgsForCall, struct{}{})
+	fake.recordInvocation("Verify", []interface{}{})
+	fake.verifyMutex.Unlock()
+	if fake.VerifyStub != nil {
+		return fake.VerifyStub()
+	} else {
+		return fake.verifyReturns.result1, fake.verifyReturns.result2
+	}
+}
+
+func (fake *FakeArtifact) VerifyCallCount() int {
+	fake.verifyMutex.RLock()
+	defer fake.verifyMutex.RUnlock()
+	return len(fake.verifyArgsForCall)
+}
+
+func (fake *FakeArtifact) VerifyReturns(result1 bool, result2 error) {
+	fake.VerifyStub = nil
+	fake.verifyReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeArtifact) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -291,6 +324,8 @@ func (fake *FakeArtifact) Invocations() map[string][][]interface{} {
 	defer fake.deploymentMatchesMutex.RUnlock()
 	fake.saveManifestMutex.RLock()
 	defer fake.saveManifestMutex.RUnlock()
+	fake.verifyMutex.RLock()
+	defer fake.verifyMutex.RUnlock()
 	return fake.invocations
 }
 

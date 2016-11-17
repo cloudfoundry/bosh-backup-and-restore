@@ -78,7 +78,9 @@ var _ = Describe("Backuper", func() {
 		})
 
 		It("names the artifact after the deployment", func() {
-			Expect(artifactManager.CreateArgsForCall(0)).To(Equal(deploymentName))
+			actualDeploymentName, actualLogger := artifactManager.CreateArgsForCall(0)
+			Expect(actualDeploymentName).To(Equal(deploymentName))
+			Expect(actualLogger).To(Equal(logger))
 		})
 
 		It("drains the backup to the artifact", func() {

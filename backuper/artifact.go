@@ -7,8 +7,8 @@ type ArtifactCreator func(string) (Artifact, error)
 
 //go:generate counterfeiter -o fakes/fake_artifact_manager.go . ArtifactManager
 type ArtifactManager interface {
-	Create(string) (Artifact, error)
-	Open(string) (Artifact, error)
+	Create(string, Logger) (Artifact, error)
+	Open(string, Logger) (Artifact, error)
 }
 
 //go:generate counterfeiter -o fakes/fake_artifact.go . Artifact
@@ -19,4 +19,5 @@ type Artifact interface {
 	CalculateChecksum(InstanceIdentifer) (BackupChecksum, error)
 	DeploymentMatches(string, []Instance) (bool, error)
 	SaveManifest(manifest string) error
+	Verify() (bool, error)
 }
