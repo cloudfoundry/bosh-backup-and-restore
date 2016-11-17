@@ -117,7 +117,7 @@ instances:
 			var err error
 			artifact, err = artifactManager.Open(artifactName, logger)
 			Expect(err).NotTo(HaveOccurred())
-			verifyResult, verifyError = artifact.Verify()
+			verifyResult, verifyError = artifact.Valid()
 		})
 		BeforeEach(func() {
 			Expect(os.Mkdir(artifactName, 0777)).To(Succeed())

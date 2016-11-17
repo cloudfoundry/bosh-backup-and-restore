@@ -32,11 +32,14 @@ var _ = Describe("Restore", func() {
 
 	Context("when deployment is not present", func() {
 		var session *gexec.Session
+		deploymentName := "my-new-deployment"
 
 		BeforeEach(func() {
-			deploymentName := "my-new-deployment"
-			director.VerifyAndMock(mockbosh.VMsForDeployment(deploymentName).NotFound())
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
+instances: []`))
+
+			director.VerifyAndMock(mockbosh.VMsForDeployment(deploymentName).NotFound())
 			session = runBinary(
 				restoreWorkspace,
 				[]string{"BOSH_PASSWORD=admin"},
@@ -77,6 +80,42 @@ var _ = Describe("Restore", func() {
 		})
 	})
 
+	Context("when the backup artifact is corrupted", func() {
+		var session *gexec.Session
+		var deploymentName string
+		BeforeEach(func() {
+			deploymentName = "my-new-deployment"
+
+			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
+instances:
+- instance_name: redis-dedicated-node
+  instance_id: 0
+  checksums:
+    redis-backup: this-is-not-a-checksum-this-is-only-a-tribute
+`))
+
+			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
+			Expect(err).NotTo(HaveOccurred())
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tgz", backupContents)
+			session = runBinary(
+				restoreWorkspace,
+				[]string{"BOSH_PASSWORD=admin"},
+				"--ca-cert", sslCertPath,
+				"--username", "admin",
+				"--target", director.URL,
+				"--deployment", "my-new-deployment",
+				"restore")
+
+		})
+		It("fails", func() {
+			Expect(session.ExitCode()).To(Equal(1))
+		})
+		It("prints an error", func() {
+			Expect(string(session.Err.Contents())).To(ContainSubstring("Backup artifact is corrupted"))
+		})
+	})
+
 	Context("when deployment has a single instance", func() {
 		var session *gexec.Session
 		var instance1 *testcluster.Instance
@@ -102,8 +141,8 @@ cp /var/vcap/store/backup/* /var/vcap/store/redis-server`)
 instances:
 - instance_name: redis-dedicated-node
   instance_id: 0
-  checksum: foo
-`))
+  checksums:
+    redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
 
 			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
 			Expect(err).NotTo(HaveOccurred())

@@ -81,6 +81,12 @@ func (b Backuper) Restore(deploymentName string) error {
 		return err
 	}
 
+	if valid, err := artifact.Valid(); err != nil {
+		return err
+	} else if !valid {
+		return fmt.Errorf("Backup artifact is corrupted")
+	}
+
 	deployment, err := b.DeploymentManager.Find(deploymentName)
 	if err != nil {
 		return err

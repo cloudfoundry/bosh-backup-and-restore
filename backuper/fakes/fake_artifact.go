@@ -63,10 +63,10 @@ type FakeArtifact struct {
 	saveManifestReturns struct {
 		result1 error
 	}
-	VerifyStub        func() (bool, error)
-	verifyMutex       sync.RWMutex
-	verifyArgsForCall []struct{}
-	verifyReturns     struct {
+	ValidStub        func() (bool, error)
+	validMutex       sync.RWMutex
+	validArgsForCall []struct{}
+	validReturns     struct {
 		result1 bool
 		result2 error
 	}
@@ -283,27 +283,27 @@ func (fake *FakeArtifact) SaveManifestReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeArtifact) Verify() (bool, error) {
-	fake.verifyMutex.Lock()
-	fake.verifyArgsForCall = append(fake.verifyArgsForCall, struct{}{})
-	fake.recordInvocation("Verify", []interface{}{})
-	fake.verifyMutex.Unlock()
-	if fake.VerifyStub != nil {
-		return fake.VerifyStub()
+func (fake *FakeArtifact) Valid() (bool, error) {
+	fake.validMutex.Lock()
+	fake.validArgsForCall = append(fake.validArgsForCall, struct{}{})
+	fake.recordInvocation("Valid", []interface{}{})
+	fake.validMutex.Unlock()
+	if fake.ValidStub != nil {
+		return fake.ValidStub()
 	} else {
-		return fake.verifyReturns.result1, fake.verifyReturns.result2
+		return fake.validReturns.result1, fake.validReturns.result2
 	}
 }
 
-func (fake *FakeArtifact) VerifyCallCount() int {
-	fake.verifyMutex.RLock()
-	defer fake.verifyMutex.RUnlock()
-	return len(fake.verifyArgsForCall)
+func (fake *FakeArtifact) ValidCallCount() int {
+	fake.validMutex.RLock()
+	defer fake.validMutex.RUnlock()
+	return len(fake.validArgsForCall)
 }
 
-func (fake *FakeArtifact) VerifyReturns(result1 bool, result2 error) {
-	fake.VerifyStub = nil
-	fake.verifyReturns = struct {
+func (fake *FakeArtifact) ValidReturns(result1 bool, result2 error) {
+	fake.ValidStub = nil
+	fake.validReturns = struct {
 		result1 bool
 		result2 error
 	}{result1, result2}
@@ -324,8 +324,8 @@ func (fake *FakeArtifact) Invocations() map[string][][]interface{} {
 	defer fake.deploymentMatchesMutex.RUnlock()
 	fake.saveManifestMutex.RLock()
 	defer fake.saveManifestMutex.RUnlock()
-	fake.verifyMutex.RLock()
-	defer fake.verifyMutex.RUnlock()
+	fake.validMutex.RLock()
+	defer fake.validMutex.RUnlock()
 	return fake.invocations
 }
 

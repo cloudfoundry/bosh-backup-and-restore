@@ -123,7 +123,7 @@ func (d *DirectoryArtifact) SaveManifest(manifest string) error {
 	return ioutil.WriteFile(d.manifestFilename(), []byte(manifest), 0666)
 }
 
-func (d *DirectoryArtifact) Verify() (bool, error) {
+func (d *DirectoryArtifact) Valid() (bool, error) {
 	meta, err := readMetadata(d.metadataFilename())
 	if err != nil {
 		d.Debug(TAG, "Error reading metadata from %s %v", d.metadataFilename(), err)

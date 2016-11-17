@@ -19,5 +19,5 @@ type Artifact interface {
 	CalculateChecksum(InstanceIdentifer) (BackupChecksum, error)
 	DeploymentMatches(string, []Instance) (bool, error)
 	SaveManifest(manifest string) error
-	Verify() (bool, error)
+	Valid() (bool, error)
 }

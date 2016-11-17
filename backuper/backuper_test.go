@@ -259,6 +259,7 @@ var _ = Describe("restore", func() {
 			deployment.IsRestorableReturns(true, nil)
 			deployment.InstancesReturns(instances)
 			artifact.DeploymentMatchesReturns(true, nil)
+			artifact.ValidReturns(true, nil)
 
 			b = backuper.New(boshDirector, artifactManager, logger, deploymentManager)
 
@@ -275,6 +276,10 @@ var _ = Describe("restore", func() {
 
 		It("ensures that instance is cleaned up", func() {
 			Expect(deployment.CleanupCallCount()).To(Equal(1))
+		})
+
+		It("ensures artifact is valid", func() {
+			Expect(artifact.ValidCallCount()).To(Equal(1))
 		})
 
 		It("finds the deployment", func() {
@@ -325,6 +330,30 @@ var _ = Describe("restore", func() {
 				It("returns an error", func() {
 					actualError := b.Restore(deploymentName)
 					Expect(actualError).To(MatchError(artifactOpenError))
+				})
+			})
+			Context("fails if the artifact is invalid", func() {
+				BeforeEach(func() {
+					deploymentManager.FindReturns(deployment, nil)
+					artifactManager.OpenReturns(artifact, nil)
+					artifact.ValidReturns(false, nil)
+				})
+				It("returns an error", func() {
+					actualError := b.Restore(deploymentName)
+					Expect(actualError).To(MatchError("Backup artifact is corrupted"))
+				})
+			})
+			Context("fails if can't check if artifact is valid", func() {
+				var artifactValidError = fmt.Errorf("we will win so much")
+
+				BeforeEach(func() {
+					deploymentManager.FindReturns(deployment, nil)
+					artifactManager.OpenReturns(artifact, nil)
+					artifact.ValidReturns(false, artifactValidError)
+				})
+				It("returns an error", func() {
+					actualError := b.Restore(deploymentName)
+					Expect(actualError).To(MatchError(artifactValidError))
 				})
 			})
 
