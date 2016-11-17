@@ -584,7 +584,7 @@ var _ = Describe("Deployment", func() {
 				writeCloser1 = new(fakes.FakeWriteCloser)
 				writeCloser2 = new(fakes.FakeWriteCloser)
 
-				artifact.CreateFileStub = func(i backuper.Instance) (io.WriteCloser, error) {
+				artifact.CreateFileStub = func(i backuper.InstanceIdentifer) (io.WriteCloser, error) {
 					if i == instance1 {
 						return writeCloser1, nil
 					} else {

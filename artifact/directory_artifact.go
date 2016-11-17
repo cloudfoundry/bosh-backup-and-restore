@@ -45,12 +45,12 @@ func (d *DirectoryArtifact) DeploymentMatches(deployment string, instances []bac
 	return true, nil
 }
 
-func (d *DirectoryArtifact) CreateFile(inst backuper.Instance) (io.WriteCloser, error) {
+func (d *DirectoryArtifact) CreateFile(inst backuper.InstanceIdentifer) (io.WriteCloser, error) {
 	filename := inst.Name() + "-" + inst.ID() + ".tgz"
 	return os.Create(path.Join(d.baseDirName, filename))
 }
 
-func (d *DirectoryArtifact) ReadFile(inst backuper.Instance) (io.ReadCloser, error) {
+func (d *DirectoryArtifact) ReadFile(inst backuper.InstanceIdentifer) (io.ReadCloser, error) {
 	filename := inst.Name() + "-" + inst.ID() + ".tgz"
 	file, err := os.Open(path.Join(d.baseDirName, filename))
 
@@ -61,7 +61,7 @@ func (d *DirectoryArtifact) ReadFile(inst backuper.Instance) (io.ReadCloser, err
 	return file, nil
 }
 
-func (d *DirectoryArtifact) CalculateChecksum(inst backuper.Instance) (backuper.BackupChecksum, error) {
+func (d *DirectoryArtifact) CalculateChecksum(inst backuper.InstanceIdentifer) (backuper.BackupChecksum, error) {
 	filename := d.instanceFilename(inst)
 	file, err := os.Open(filename)
 	gzipedReader, err := gzip.NewReader(file)
@@ -92,7 +92,7 @@ func (d *DirectoryArtifact) CalculateChecksum(inst backuper.Instance) (backuper.
 	return checksum, nil
 }
 
-func (d *DirectoryArtifact) AddChecksum(inst backuper.Instance, shasum backuper.BackupChecksum) error {
+func (d *DirectoryArtifact) AddChecksum(inst backuper.InstanceIdentifer, shasum backuper.BackupChecksum) error {
 	metadata, err := d.readMetadata()
 	if err != nil {
 		return err
@@ -129,7 +129,7 @@ func (d *DirectoryArtifact) saveMetadata(data metadata) error {
 	return ioutil.WriteFile(d.metadataFilename(), contents, 0666)
 }
 
-func (d *DirectoryArtifact) instanceFilename(inst backuper.Instance) string {
+func (d *DirectoryArtifact) instanceFilename(inst backuper.InstanceIdentifer) string {
 	return path.Join(d.baseDirName, inst.Name()+"-"+inst.ID()+".tgz")
 }
 

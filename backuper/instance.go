@@ -3,10 +3,14 @@ package backuper
 import "io"
 import "github.com/hashicorp/go-multierror"
 
-//go:generate counterfeiter -o fakes/fake_instance.go . Instance
-type Instance interface {
+type InstanceIdentifer interface {
 	Name() string
 	ID() string
+}
+
+//go:generate counterfeiter -o fakes/fake_instance.go . Instance
+type Instance interface {
+	InstanceIdentifer
 	IsBackupable() (bool, error)
 	IsRestorable() (bool, error)
 	Backup() error
