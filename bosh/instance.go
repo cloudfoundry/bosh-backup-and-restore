@@ -71,22 +71,7 @@ func (d DeployedInstance) Backup() error {
 }
 
 func (d DeployedInstance) Restore() error {
-	d.Logger.Debug("", "Running all restore scripts on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
-	stdout, stderr, exitCode, err := d.Run("cd /var/vcap/store/backup && sudo tar -zxvf backup.tgz")
-
-	d.Logger.Debug("", "Stdout: %s", string(stdout))
-	d.Logger.Debug("", "Stderr: %s", string(stderr))
-
-	if err != nil {
-		d.Logger.Debug("", "Error running instance restore scripts. Exit code %d, error %s", exitCode, err.Error())
-		return err
-	}
-
-	if exitCode != 0 {
-		return fmt.Errorf("Instance restore scripts returned %d. Error: %s", exitCode, stderr)
-	}
-
-	stdout, stderr, exitCode, err = d.Run("ls /var/vcap/jobs/*/bin/restore | xargs -IN sudo sh -c N")
+	stdout, stderr, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/restore | xargs -IN sudo sh -c N")
 
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
 	d.Logger.Debug("", "Stderr: %s", string(stderr))
@@ -136,7 +121,7 @@ func (d DeployedInstance) StreamBackupToRemote(reader io.Reader) error {
 	}
 
 	d.Logger.Debug("", "Streaming backup to instance %s %s", d.InstanceGroupName, d.InstanceIndex)
-	stdout, stderr, exitCode, err = d.StreamStdin("sudo -i -u vcap bash -c 'cat > /var/vcap/store/backup/backup.tgz'", reader)
+	stdout, stderr, exitCode, err = d.StreamStdin("sudo -i -u vcap bash -c 'tar -C /var/vcap/store/backup -zx'", reader)
 
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
 	d.Logger.Debug("", "Stderr: %s", string(stderr))

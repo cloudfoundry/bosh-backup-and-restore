@@ -290,7 +290,6 @@ var _ = Describe("Deployment", func() {
 		var (
 			artifact    *fakes.FakeArtifact
 			loadFromErr error
-			readFileErr error
 			reader      io.ReadCloser
 		)
 
@@ -299,18 +298,33 @@ var _ = Describe("Deployment", func() {
 			instance1.StreamBackupToRemoteReturns(nil)
 			instances = []backuper.Instance{instance1}
 			artifact = new(fakes.FakeArtifact)
-			artifact.ReadFileReturns(reader, readFileErr)
+			artifact.ReadFileReturns(reader, nil)
 		})
 
 		JustBeforeEach(func() {
 			reader = ioutil.NopCloser(bytes.NewBufferString("this-is-some-backup-data"))
-			readFileErr = nil
 			loadFromErr = deployment.CopyLocalBackupToRemote(artifact)
 		})
 
 		Context("Single instance, restorable", func() {
+			var instanceChecksum = backuper.BackupChecksum{"file1": "abcd", "file2": "efgh"}
+
+			BeforeEach(func() {
+				artifact.FetchChecksumReturns(instanceChecksum, nil)
+				instance1.BackupChecksumReturns(instanceChecksum, nil)
+			})
+
 			It("does not fail", func() {
 				Expect(loadFromErr).NotTo(HaveOccurred())
+			})
+
+			It("checks the remote after transfer", func() {
+				Expect(instance1.BackupChecksumCallCount()).To(Equal(1))
+			})
+
+			It("checks the local checksum", func() {
+				Expect(artifact.FetchChecksumCallCount()).To(Equal(1))
+				Expect(artifact.FetchChecksumArgsForCall(0)).To(Equal(instance1))
 			})
 
 			It("streams the backup file to the restorable instance", func() {
@@ -327,6 +341,38 @@ var _ = Describe("Deployment", func() {
 				It("fails", func() {
 					Expect(loadFromErr).To(HaveOccurred())
 					Expect(loadFromErr).To(MatchError("Tiny children are not horses"))
+				})
+			})
+			Context("problem calculating shasum on local", func() {
+				var checksumError = fmt.Errorf("because i am smart")
+				BeforeEach(func() {
+					artifact.FetchChecksumReturns(nil, checksumError)
+				})
+
+				It("fails", func() {
+					Expect(loadFromErr).To(HaveOccurred())
+					Expect(loadFromErr).To(MatchError(checksumError))
+				})
+			})
+			Context("problem calculating shasum on remote", func() {
+				var checksumError = fmt.Errorf("grr")
+				BeforeEach(func() {
+					instance1.BackupChecksumReturns(nil, checksumError)
+				})
+
+				It("fails", func() {
+					Expect(loadFromErr).To(HaveOccurred())
+					Expect(loadFromErr).To(MatchError(checksumError))
+				})
+			})
+
+			Context("shas dont match after transfer", func() {
+				BeforeEach(func() {
+					instance1.BackupChecksumReturns(backuper.BackupChecksum{"shas": "they dont match"}, nil)
+				})
+
+				It("fails", func() {
+					Expect(loadFromErr).To(MatchError(ContainSubstring("Backup couldn't be transfered, checksum failed")))
 				})
 			})
 
@@ -520,7 +566,7 @@ var _ = Describe("Deployment", func() {
 		})
 	})
 
-	Context("CopyRemoteBackupsToLocalArtifact", func() {
+	Context("CopyRemoteBackupsToLocal", func() {
 		var (
 			artifact                              *fakes.FakeArtifact
 			copyRemoteBackupsToLocalArtifactError error

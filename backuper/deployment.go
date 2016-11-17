@@ -127,6 +127,19 @@ func (bd *BoshDeployment) CopyLocalBackupToRemote(artifact Artifact) error {
 		if err := instance.StreamBackupToRemote(reader); err != nil {
 			return err
 		}
+
+		localChecksum, err := artifact.FetchChecksum(instance)
+		if err != nil {
+			return err
+		}
+
+		remoteChecksum, err := instance.BackupChecksum()
+		if err != nil {
+			return err
+		}
+		if !localChecksum.Match(remoteChecksum) {
+			return fmt.Errorf("Backup couldn't be transfered, checksum failed for %s:%s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), remoteChecksum, localChecksum)
+		}
 	}
 	return nil
 }

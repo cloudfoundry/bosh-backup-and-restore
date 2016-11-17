@@ -142,7 +142,7 @@ instances:
 - instance_name: redis-dedicated-node
   instance_id: 0
   checksums:
-    redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
+    ./redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
 
 			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
 			Expect(err).NotTo(HaveOccurred())
@@ -168,7 +168,6 @@ instances:
 		})
 
 		It("Untars the archive file on the remote", func() {
-			Expect(instance1.AssertFileExists("/var/vcap/store/backup/backup.tgz")).To(BeTrue())
 			Expect(instance1.AssertFileExists("/var/vcap/store/backup/redis-backup")).To(BeTrue())
 		})
 

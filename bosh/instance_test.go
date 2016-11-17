@@ -191,10 +191,9 @@ var _ = Describe("Instance", func() {
 			It("succeeds", func() {
 				Expect(actualError).NotTo(HaveOccurred())
 			})
-			It("invokes the ssh connection, to find files", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(2))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("cd /var/vcap/store/backup && sudo tar -zxvf backup.tgz"))
-				Expect(sshConnection.RunArgsForCall(1)).To(Equal("ls /var/vcap/jobs/*/bin/restore | xargs -IN sudo sh -c N"))
+			It("runs all restore scripts", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/restore | xargs -IN sudo sh -c N"))
 			})
 		})
 
@@ -236,7 +235,7 @@ var _ = Describe("Instance", func() {
 			It("uses the ssh connection to stream files from the remote machine", func() {
 				Expect(sshConnection.StreamStdinCallCount()).To(Equal(1))
 				command, sentReader := sshConnection.StreamStdinArgsForCall(0)
-				Expect(command).To(Equal("sudo -i -u vcap bash -c 'cat > /var/vcap/store/backup/backup.tgz'"))
+				Expect(command).To(Equal("sudo -i -u vcap bash -c 'tar -C /var/vcap/store/backup -zx'"))
 				Expect(reader).To(Equal(sentReader))
 			})
 
