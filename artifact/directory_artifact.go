@@ -61,6 +61,20 @@ func (d *DirectoryArtifact) ReadFile(inst backuper.InstanceIdentifer) (io.ReadCl
 	return file, nil
 }
 
+func (d *DirectoryArtifact) FetchChecksum(inst backuper.InstanceIdentifer) (backuper.BackupChecksum, error) {
+	metadata, err := readMetadata(d.metadataFilename())
+	if err != nil {
+		d.Debug(TAG, "Error reading metadata from %s %v", d.metadataFilename(), err)
+		return nil, err
+	}
+	for _, instanceInMetadata := range metadata.MetadataForEachInstance {
+		if instanceInMetadata.ID() == inst.ID() && instanceInMetadata.Name() == inst.Name() {
+			return instanceInMetadata.Checksum, nil
+		}
+	}
+	d.Warn(TAG, "Checksum for %s/%s not found in artifact", inst.Name(), inst.ID())
+	return nil, nil
+}
 func (d *DirectoryArtifact) CalculateChecksum(inst backuper.InstanceIdentifer) (backuper.BackupChecksum, error) {
 	file, err := d.ReadFile(inst)
 	if err != nil {

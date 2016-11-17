@@ -477,6 +477,76 @@ instances:
 		})
 
 	})
+
+	Describe("FetchChecksum", func() {
+		var artifact backuper.Artifact
+		var fetchChecksumError error
+		var fakeInstance *fakes.FakeInstance
+		var checksum backuper.BackupChecksum
+		BeforeEach(func() {
+			fakeInstance = new(fakes.FakeInstance)
+		})
+		JustBeforeEach(func() {
+			var artifactOpenError error
+			artifact, artifactOpenError = artifactManager.Open(artifactName, logger)
+			Expect(artifactOpenError).NotTo(HaveOccurred())
+
+			checksum, fetchChecksumError = artifact.FetchChecksum(fakeInstance)
+		})
+		Context("the instance is found in metadata", func() {
+			BeforeEach(func() {
+				fakeInstance.NameReturns("foo")
+				fakeInstance.IDReturns("bar")
+
+				createTestMetadata(artifactName, `---
+instances:
+- instance_name: foo
+  instance_id: "bar"
+  checksums:
+    filename1: orignal_checksum`)
+			})
+
+			It("dosen't fail", func() {
+				Expect(fetchChecksumError).NotTo(HaveOccurred())
+			})
+
+			It("fetches the checksum", func() {
+				Expect(checksum).To(Equal(backuper.BackupChecksum{"filename1": "orignal_checksum"}))
+			})
+		})
+		Context("the instance is not found in metadata", func() {
+			BeforeEach(func() {
+				fakeInstance.NameReturns("not-foo")
+				fakeInstance.IDReturns("bar")
+
+				createTestMetadata(artifactName, `---
+instances:
+- instance_name: foo
+  instance_id: "bar"
+  checksums:
+    filename1: orignal_checksum`)
+			})
+
+			It("dosen't fail", func() {
+				Expect(fetchChecksumError).ToNot(HaveOccurred())
+			})
+
+			It("returns nil", func() {
+				Expect(checksum).To(BeNil())
+			})
+		})
+
+		Context("if existing file isn't valid", func() {
+			BeforeEach(func() {
+				createTestMetadata(artifactName, "not valid yaml")
+			})
+
+			It("fails", func() {
+				Expect(fetchChecksumError).To(HaveOccurred())
+			})
+		})
+
+	})
 })
 
 func createTestMetadata(deploymentName, metadata string) {

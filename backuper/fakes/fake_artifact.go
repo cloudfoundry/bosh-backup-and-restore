@@ -36,6 +36,15 @@ type FakeArtifact struct {
 	addChecksumReturns struct {
 		result1 error
 	}
+	FetchChecksumStub        func(backuper.InstanceIdentifer) (backuper.BackupChecksum, error)
+	fetchChecksumMutex       sync.RWMutex
+	fetchChecksumArgsForCall []struct {
+		arg1 backuper.InstanceIdentifer
+	}
+	fetchChecksumReturns struct {
+		result1 backuper.BackupChecksum
+		result2 error
+	}
 	CalculateChecksumStub        func(backuper.InstanceIdentifer) (backuper.BackupChecksum, error)
 	calculateChecksumMutex       sync.RWMutex
 	calculateChecksumArgsForCall []struct {
@@ -174,6 +183,40 @@ func (fake *FakeArtifact) AddChecksumReturns(result1 error) {
 	fake.addChecksumReturns = struct {
 		result1 error
 	}{result1}
+}
+
+func (fake *FakeArtifact) FetchChecksum(arg1 backuper.InstanceIdentifer) (backuper.BackupChecksum, error) {
+	fake.fetchChecksumMutex.Lock()
+	fake.fetchChecksumArgsForCall = append(fake.fetchChecksumArgsForCall, struct {
+		arg1 backuper.InstanceIdentifer
+	}{arg1})
+	fake.recordInvocation("FetchChecksum", []interface{}{arg1})
+	fake.fetchChecksumMutex.Unlock()
+	if fake.FetchChecksumStub != nil {
+		return fake.FetchChecksumStub(arg1)
+	} else {
+		return fake.fetchChecksumReturns.result1, fake.fetchChecksumReturns.result2
+	}
+}
+
+func (fake *FakeArtifact) FetchChecksumCallCount() int {
+	fake.fetchChecksumMutex.RLock()
+	defer fake.fetchChecksumMutex.RUnlock()
+	return len(fake.fetchChecksumArgsForCall)
+}
+
+func (fake *FakeArtifact) FetchChecksumArgsForCall(i int) backuper.InstanceIdentifer {
+	fake.fetchChecksumMutex.RLock()
+	defer fake.fetchChecksumMutex.RUnlock()
+	return fake.fetchChecksumArgsForCall[i].arg1
+}
+
+func (fake *FakeArtifact) FetchChecksumReturns(result1 backuper.BackupChecksum, result2 error) {
+	fake.FetchChecksumStub = nil
+	fake.fetchChecksumReturns = struct {
+		result1 backuper.BackupChecksum
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeArtifact) CalculateChecksum(arg1 backuper.InstanceIdentifer) (backuper.BackupChecksum, error) {
@@ -318,6 +361,8 @@ func (fake *FakeArtifact) Invocations() map[string][][]interface{} {
 	defer fake.readFileMutex.RUnlock()
 	fake.addChecksumMutex.RLock()
 	defer fake.addChecksumMutex.RUnlock()
+	fake.fetchChecksumMutex.RLock()
+	defer fake.fetchChecksumMutex.RUnlock()
 	fake.calculateChecksumMutex.RLock()
 	defer fake.calculateChecksumMutex.RUnlock()
 	fake.deploymentMatchesMutex.RLock()
