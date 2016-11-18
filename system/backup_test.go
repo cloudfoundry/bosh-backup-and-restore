@@ -29,14 +29,14 @@ var _ = Describe("Backs up a deployment", func() {
 		RunBoshCommand(JumpBoxSCPCommand(), MustHaveEnv("BOSH_CERT_PATH"), "jumpbox/0:"+workspaceDir+"/bosh.crt")
 
 		By("running the backup command")
-		Eventually(RunCommandOnRemote(
+		Eventually(RunCommandOnRemoteAsVcap(
 			JumpBoxSSHCommand(),
 			fmt.Sprintf(`cd %s; BOSH_PASSWORD=%s ./pbr --ca-cert bosh.crt --username %s --target %s --deployment %s backup`,
 				workspaceDir, MustHaveEnv("BOSH_PASSWORD"), MustHaveEnv("BOSH_USER"), MustHaveEnv("BOSH_URL"), TestDeployment()),
 		)).Should(gexec.Exit(0))
 
 		By("checking backup artifact has been created")
-		Eventually(RunCommandOnRemote(
+		Eventually(RunCommandOnRemoteAsVcap(
 			JumpBoxSSHCommand(), fmt.Sprintf("ls %s/%s", workspaceDir, TestDeployment()),
 		)).Should(gbytes.Say("redis-0.tgz"))
 	})

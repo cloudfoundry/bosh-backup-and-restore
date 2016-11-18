@@ -40,6 +40,9 @@ func RunCommandOnRemote(cmd string, remoteComand string) *gexec.Session {
 	Expect(err).ToNot(HaveOccurred())
 	return session
 }
+func RunCommandOnRemoteAsVcap(cmd string, remoteComand string) *gexec.Session {
+	return RunCommandOnRemote(cmd, fmt.Sprintf("sudo su vcap -c '%s'", remoteComand))
+}
 
 func GenericBoshCommand() string {
 	return fmt.Sprintf("bosh-cli --non-interactive --environment=%s --ca-cert=%s --user=%s --password=%s",
