@@ -7,7 +7,7 @@ releases:
 stemcells:
 - alias: trusty
   os: ubuntu-trusty
-  version: '3262.2'
+  version: latest
 jobs:
 - name: redis
   instances: 1
