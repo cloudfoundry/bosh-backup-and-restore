@@ -11,15 +11,33 @@ import (
 var _ = Context("ArtifactManager", func() {
 	var artifactName = "my-cool-redis"
 	var artifactManager = DirectoryArtifactManager{}
+	var err error
+
 	Describe("Create", func() {
-		It("creates a directory with the given name", func() {
-			_, err := artifactManager.Create(artifactName, nil)
-			Expect(err).NotTo(HaveOccurred())
-			Expect(artifactName).To(BeADirectory())
+		JustBeforeEach(func() {
+			_, err = artifactManager.Create(artifactName, nil)
+		})
+
+		Context("when the directory exists", func() {
+			BeforeEach(func() {
+				Expect(os.MkdirAll(artifactName, 0777)).To(Succeed())
+			})
+
+			It("returns an error", func() {
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("when the directory doesnt exist", func() {
+			It("creates a directory with the given name", func() {
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(artifactName).To(BeADirectory())
+			})
 		})
 	})
 
-	Describe("NoopArtifactCreator", func() {
+	Describe("Open", func() {
 		Context("when the directory exists", func() {
 			BeforeEach(func() {
 				err := os.MkdirAll(artifactName, 0700)
@@ -36,6 +54,30 @@ var _ = Context("ArtifactManager", func() {
 				_, err := artifactManager.Open(artifactName, nil)
 				Expect(err).To(HaveOccurred())
 				Expect(artifactName).NotTo(BeADirectory())
+			})
+		})
+	})
+
+	Describe("Exists", func() {
+		var exists bool
+
+		JustBeforeEach(func() {
+			exists = artifactManager.Exists(artifactName)
+		})
+
+		Context("when the artifact exists", func() {
+			BeforeEach(func() {
+				Expect(os.MkdirAll(artifactName, 0777)).To(Succeed())
+			})
+
+			It("returns true", func() {
+				Expect(exists).To(BeTrue())
+			})
+		})
+
+		Context("when the artifact doesn't exist", func() {
+			It("returns false", func() {
+				Expect(exists).To(BeFalse())
 			})
 		})
 	})

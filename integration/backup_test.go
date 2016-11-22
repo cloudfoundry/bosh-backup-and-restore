@@ -165,6 +165,26 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 				Expect(path.Join(backupWorkspace, deploymentName)).NotTo(BeADirectory())
 			})
 		})
+
+		Context("if the artifact exists locally", func() {
+			BeforeEach(func() {
+				deploymentName = "already-backed-up-deployment"
+				err := os.Mkdir(path.Join(backupWorkspace, deploymentName), 0777)
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("returns a non-zero exit code", func() {
+				Expect(session.ExitCode()).NotTo(BeZero())
+			})
+
+			It("prints an error", func() {
+				Expect(string(session.Err.Contents())).To(
+					ContainSubstring(
+						fmt.Sprintf("artifact %s already exists", deploymentName),
+					),
+				)
+			})
+		})
 	})
 
 	Context("with deployment, with two instances (one backupable)", func() {

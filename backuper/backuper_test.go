@@ -41,6 +41,7 @@ var _ = Describe("Backuper", func() {
 		BeforeEach(func() {
 			boshDirector.GetManifestReturns(deploymentManifest, nil)
 			artifactManager.CreateReturns(artifact, nil)
+			artifactManager.ExistsReturns(false)
 			deploymentManager.FindReturns(deployment, nil)
 			deployment.IsBackupableReturns(true, nil)
 			deployment.CleanupReturns(nil)
@@ -59,6 +60,10 @@ var _ = Describe("Backuper", func() {
 		It("saves the deployment manifest", func() {
 			Expect(boshDirector.GetManifestCallCount()).To(Equal(1))
 			Expect(boshDirector.GetManifestArgsForCall(0)).To(Equal(deploymentName))
+		})
+
+		It("checks if the artifact already exists", func() {
+			Expect(artifactManager.ExistsCallCount()).To(Equal(1))
 		})
 
 		It("checks if the deployment is backupable", func() {
@@ -91,6 +96,19 @@ var _ = Describe("Backuper", func() {
 
 	Describe("failures", func() {
 		var expectedError = fmt.Errorf("Jesus!")
+
+		Context("when the artifiact already exists", func() {
+			BeforeEach(func() {
+				artifactManager.ExistsReturns(true)
+			})
+
+			It("fails the backup process", func() {
+				Expect(actualBackupError).To(
+					MatchError(fmt.Errorf("artifact %s already exists", deploymentName)),
+				)
+			})
+		})
+
 		Context("fails to find deployment", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(nil, expectedError)
@@ -100,6 +118,7 @@ var _ = Describe("Backuper", func() {
 				Expect(actualBackupError).To(MatchError(expectedError))
 			})
 		})
+
 		Context("fails if manifest can't be downloaded", func() {
 			var expectedError = fmt.Errorf("he the founder of isis")
 			BeforeEach(func() {
@@ -186,9 +205,8 @@ var _ = Describe("Backuper", func() {
 				artifactManager.CreateReturns(nil, artifactError)
 			})
 
-			It("check if the deployment is backupable", func() {
+			It("should check if the deployment is backupable", func() {
 				Expect(deploymentManager.FindCallCount()).To(Equal(1))
-				Expect(deployment.IsBackupableCallCount()).To(Equal(1))
 			})
 
 			It("dosent backup the deployment", func() {

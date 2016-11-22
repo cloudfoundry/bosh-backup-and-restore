@@ -39,6 +39,12 @@ type BoshDirector interface {
 //Backup checks if a deployment has backupable instances and backs them up.
 func (b Backuper) Backup(deploymentName string) error {
 	b.Logger.Info("", "Starting backup of %s...\n", deploymentName)
+
+	exists := b.ArtifactManager.Exists(deploymentName)
+	if exists {
+		return fmt.Errorf("artifact %s already exists", deploymentName)
+	}
+
 	deployment, err := b.DeploymentManager.Find(deploymentName)
 	if err != nil {
 		return err

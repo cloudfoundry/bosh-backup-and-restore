@@ -9,6 +9,7 @@ type ArtifactCreator func(string) (Artifact, error)
 type ArtifactManager interface {
 	Create(string, Logger) (Artifact, error)
 	Open(string, Logger) (Artifact, error)
+	Exists(string) bool
 }
 
 //go:generate counterfeiter -o fakes/fake_artifact.go . Artifact

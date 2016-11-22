@@ -28,6 +28,14 @@ type FakeArtifactManager struct {
 		result1 backuper.Artifact
 		result2 error
 	}
+	ExistsStub        func(string) bool
+	existsMutex       sync.RWMutex
+	existsArgsForCall []struct {
+		arg1 string
+	}
+	existsReturns struct {
+		result1 bool
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -102,6 +110,39 @@ func (fake *FakeArtifactManager) OpenReturns(result1 backuper.Artifact, result2 
 	}{result1, result2}
 }
 
+func (fake *FakeArtifactManager) Exists(arg1 string) bool {
+	fake.existsMutex.Lock()
+	fake.existsArgsForCall = append(fake.existsArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("Exists", []interface{}{arg1})
+	fake.existsMutex.Unlock()
+	if fake.ExistsStub != nil {
+		return fake.ExistsStub(arg1)
+	} else {
+		return fake.existsReturns.result1
+	}
+}
+
+func (fake *FakeArtifactManager) ExistsCallCount() int {
+	fake.existsMutex.RLock()
+	defer fake.existsMutex.RUnlock()
+	return len(fake.existsArgsForCall)
+}
+
+func (fake *FakeArtifactManager) ExistsArgsForCall(i int) string {
+	fake.existsMutex.RLock()
+	defer fake.existsMutex.RUnlock()
+	return fake.existsArgsForCall[i].arg1
+}
+
+func (fake *FakeArtifactManager) ExistsReturns(result1 bool) {
+	fake.ExistsStub = nil
+	fake.existsReturns = struct {
+		result1 bool
+	}{result1}
+}
+
 func (fake *FakeArtifactManager) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -109,6 +150,8 @@ func (fake *FakeArtifactManager) Invocations() map[string][][]interface{} {
 	defer fake.createMutex.RUnlock()
 	fake.openMutex.RLock()
 	defer fake.openMutex.RUnlock()
+	fake.existsMutex.RLock()
+	defer fake.existsMutex.RUnlock()
 	return fake.invocations
 }
 
