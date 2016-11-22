@@ -24,8 +24,11 @@ import (
 var _ = Describe("Backup", func() {
 	var director *mockhttp.Server
 	var backupWorkspace string
+	var session *gexec.Session
+	var deploymentName string
 
 	BeforeEach(func() {
+		deploymentName = "my-little-deployment"
 		director = mockbosh.NewTLS()
 		director.ExpectedBasicAuth("admin", "admin")
 		var err error
@@ -38,17 +41,23 @@ var _ = Describe("Backup", func() {
 		director.VerifyMocks()
 	})
 
+	JustBeforeEach(func() {
+		session = runBinary(
+			backupWorkspace,
+			[]string{"BOSH_PASSWORD=admin"},
+			"--ca-cert", sslCertPath,
+			"--username", "admin",
+			"--target", director.URL,
+			"--deployment", deploymentName,
+			"--debug",
+			"backup",
+		)
+	})
+
 	Context("with deployment, with one instance present", func() {
 		var instance1 *testcluster.Instance
-		var deploymentName string
-
-		BeforeEach(func() {
-			deploymentName = "my-little-deployment"
-
-		})
 
 		Context("when the backup is successful", func() {
-			var session *gexec.Session
 			var backupArtifactFile string
 			var metadataFile string
 			var outputFile string
@@ -75,16 +84,7 @@ var _ = Describe("Backup", func() {
 printf "backupcontent1" > /var/vcap/store/backup/backupdump1
 printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 `)
-				session = runBinary(
-					backupWorkspace,
-					[]string{"BOSH_PASSWORD=admin"},
-					"--ca-cert", sslCertPath,
-					"--username", "admin",
-					"--target", director.URL,
-					"--deployment", deploymentName,
-					"--debug",
-					"backup",
-				)
+
 				backupArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")
 				metadataFile = path.Join(backupWorkspace, deploymentName, "/metadata")
 				outputFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")
@@ -135,7 +135,6 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 		})
 
 		Context("if a deployment can't be backed up", func() {
-			var session *gexec.Session
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				director.VerifyAndMock(AppendBuilders(
@@ -149,16 +148,6 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)...)
 
-				session = runBinary(
-					backupWorkspace,
-					[]string{"BOSH_PASSWORD=admin"},
-					"--ca-cert", sslCertPath,
-					"--username", "admin",
-					"--target", director.URL,
-					"--deployment", deploymentName,
-					"--debug",
-					"backup",
-				)
 				instance1.FilesExist(
 					"/var/vcap/jobs/redis/bin/ctl",
 				)
@@ -181,7 +170,6 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 	Context("with deployment, with two instances (one backupable)", func() {
 		var backupableInstance *testcluster.Instance
 		var nonBackupableInstance *testcluster.Instance
-		var deploymentName string
 
 		BeforeEach(func() {
 			deploymentName = "my-bigger-deployment"
@@ -204,6 +192,10 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 				CleanupSSH(deploymentName, "redis-dedicated-node"),
 				CleanupSSH(deploymentName, "redis-broker"),
 			)...)
+			backupableInstance.FilesExist(
+				"/var/vcap/jobs/redis/bin/backup",
+			)
+
 		})
 
 		AfterEach(func() {
@@ -212,36 +204,17 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 		})
 
 		It("backs up deployment successfully", func() {
-			backupableInstance.FilesExist(
-				"/var/vcap/jobs/redis/bin/backup",
-			)
-
-			session := runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", deploymentName, "--debug", "backup")
-
 			Expect(session.ExitCode()).To(BeZero())
 			Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
 			Expect(path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")).To(BeARegularFile())
 			Expect(path.Join(backupWorkspace, deploymentName, "/redis-broker-0.tgz")).ToNot(BeAnExistingFile())
 		})
-
 	})
 
 	Context("when deployment does not exist", func() {
-		var session *gexec.Session
-		var deploymentName string
-
 		BeforeEach(func() {
 			deploymentName = "my-non-existent-deployment"
 			director.VerifyAndMock(mockbosh.VMsForDeployment(deploymentName).NotFound())
-			session = runBinary(
-				backupWorkspace,
-				[]string{"BOSH_PASSWORD=admin"},
-				"--ca-cert", sslCertPath,
-				"--username", "admin",
-				"--target", director.URL,
-				"--deployment", deploymentName,
-				"backup",
-			)
 		})
 
 		It("returns exit code 1", func() {
