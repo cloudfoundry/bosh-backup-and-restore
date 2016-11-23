@@ -13,7 +13,7 @@ var _ = Describe("Backs up a deployment", func() {
 	var workspaceDir = "/var/vcap/store/backup_workspace"
 
 	It("backs up", func() {
-		By("polulating data in redis")
+		By("populating data in redis")
 		dataFixture := "../fixtures/redis_test_commands"
 		RunBoshCommand(TestDeploymentSCPCommand(), dataFixture, "redis/0:/tmp")
 		Eventually(
