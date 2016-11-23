@@ -10,6 +10,23 @@ stemcells:
   version: latest
 jobs:
 - name: redis
+  instances: 2
+  templates:
+  - name: redis-server
+    release: redis-test
+  vm_type: container
+  persistent_disk_type: five
+  stemcell: trusty
+  azs:
+  - lite
+  networks:
+  - name: services
+  properties:
+    redis:
+      password: redis
+      persistence: 'yes'
+      maxclients: 1000
+- name: other-redis
   instances: 1
   templates:
   - name: redis-server
@@ -27,7 +44,7 @@ jobs:
       persistence: 'yes'
       maxclients: 1000
 update:
-  canaries: 1
+  canaries: 2
   canary_watch_time: 30000-180000
   update_watch_time: 30000-180000
   max_in_flight: 4

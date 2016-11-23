@@ -188,8 +188,7 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 	})
 
 	Context("with deployment, with two instances (one backupable)", func() {
-		var backupableInstance *testcluster.Instance
-		var nonBackupableInstance *testcluster.Instance
+		var backupableInstance, nonBackupableInstance *testcluster.Instance
 
 		BeforeEach(func() {
 			deploymentName = "my-bigger-deployment"
@@ -228,6 +227,54 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 			Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
 			Expect(path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")).To(BeARegularFile())
 			Expect(path.Join(backupWorkspace, deploymentName, "/redis-broker-0.tgz")).ToNot(BeAnExistingFile())
+		})
+	})
+
+	Context("with deployment, with two instances (both backupable)", func() {
+		var backupableInstance1, backupableInstance2 *testcluster.Instance
+
+		BeforeEach(func() {
+			deploymentName = "my-two-instance-deployment"
+			backupableInstance1 = testcluster.NewInstance()
+			backupableInstance2 = testcluster.NewInstance()
+			director.VerifyAndMock(AppendBuilders(
+				VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+					{
+						IPs:     []string{"10.0.0.1"},
+						JobName: "redis-dedicated-node",
+					},
+					{
+						IPs:     []string{"10.0.0.2"},
+						JobName: "redis-broker",
+					},
+				}),
+				SetupSSH(deploymentName, "redis-dedicated-node", backupableInstance1),
+				SetupSSH(deploymentName, "redis-broker", backupableInstance2),
+				DownloadManifest(deploymentName, "not being asserted"),
+				CleanupSSH(deploymentName, "redis-dedicated-node"),
+				CleanupSSH(deploymentName, "redis-broker"),
+			)...)
+
+			backupableInstance1.FilesExist(
+				"/var/vcap/jobs/redis/bin/backup",
+			)
+
+			backupableInstance2.FilesExist(
+				"/var/vcap/jobs/redis/bin/backup",
+			)
+
+		})
+
+		AfterEach(func() {
+			go backupableInstance1.Die()
+			go backupableInstance2.Die()
+		})
+
+		It("backs up both instances successfully", func() {
+			Expect(session.ExitCode()).To(BeZero())
+			Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
+			Expect(path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")).To(BeARegularFile())
+			Expect(path.Join(backupWorkspace, deploymentName, "/redis-broker-0.tgz")).To(BeARegularFile())
 		})
 	})
 

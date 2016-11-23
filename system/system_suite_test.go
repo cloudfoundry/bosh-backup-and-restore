@@ -21,7 +21,7 @@ var (
 )
 
 var _ = BeforeEach(func() {
-	SetDefaultEventuallyTimeout(60 * time.Second)
+	SetDefaultEventuallyTimeout(2 * time.Minute)
 	// TODO: tests should build and upload the test release
 	// By("Creating the test release")
 	// RunBoshCommand(testDeploymentBoshCommand, "create-release", "--dir=../fixtures/releases/redis-test-release/", "--force")

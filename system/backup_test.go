@@ -5,7 +5,6 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 )
 
@@ -36,8 +35,15 @@ var _ = Describe("Backs up a deployment", func() {
 		)).Should(gexec.Exit(0))
 
 		By("checking backup artifact has been created")
-		Eventually(RunCommandOnRemoteAsVcap(
-			JumpBoxSSHCommand(), fmt.Sprintf("ls %s/%s", workspaceDir, TestDeployment()),
-		)).Should(gbytes.Say("redis-0.tgz"))
+		cmd := RunCommandOnRemoteAsVcap(
+			JumpBoxSSHCommand(),
+			fmt.Sprintf("ls %s/%s", workspaceDir, TestDeployment()),
+		)
+		Eventually(cmd).Should(gexec.Exit(0))
+
+		fileList := string(cmd.Out.Contents())
+		Expect(fileList).To(ContainSubstring("redis-0.tgz"))
+		Expect(fileList).To(ContainSubstring("redis-1.tgz"))
+		Expect(fileList).To(ContainSubstring("other-redis-0.tgz"))
 	})
 })
