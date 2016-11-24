@@ -4,3 +4,13 @@ instances:
   checksums:
     ./appendonly.aof: b8c7e5915a516767cce9c06188f68bb97c0ce59d
     ./dump.rdb: b1f8cb68520f348872efa6ca6064aaf020bf3c34
+- instance_name: redis
+  instance_id: "1"
+  checksums:
+    ./appendonly.aof: b8c7e5915a516767cce9c06188f68bb97c0ce59d
+    ./dump.rdb: b1f8cb68520f348872efa6ca6064aaf020bf3c34
+- instance_name: other-redis
+  instance_id: "0"
+  checksums:
+    ./appendonly.aof: b8c7e5915a516767cce9c06188f68bb97c0ce59d
+    ./dump.rdb: b1f8cb68520f348872efa6ca6064aaf020bf3c34

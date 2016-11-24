@@ -20,6 +20,12 @@ var (
 	err         error
 )
 
+var instanceCollection = map[string][]string{
+	"redis":       []string{"0", "1"},
+	"other-redis": []string{"0"},
+}
+var fixturesPath = "../fixtures/redis-backup/"
+
 var _ = BeforeEach(func() {
 	SetDefaultEventuallyTimeout(2 * time.Minute)
 	// TODO: tests should build and upload the test release
@@ -41,3 +47,11 @@ var _ = AfterEach(func() {
 	RunBoshCommand(TestDeploymentBoshCommand(), "delete-deployment")
 	RunBoshCommand(JumpBoxBoshCommand(), "delete-deployment")
 })
+
+func performOnAllInstances(f func(string, string)) {
+	for instanceGroup, instances := range instanceCollection {
+		for _, instanceIndex := range instances {
+			f(instanceGroup, instanceIndex)
+		}
+	}
+}

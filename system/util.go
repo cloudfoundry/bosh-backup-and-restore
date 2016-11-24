@@ -60,8 +60,16 @@ func TestDeploymentBoshCommand() string {
 func TestDeploymentSCPCommand() string {
 	return fmt.Sprintf("%s scp --gw-user=%s --gw-host=%s --gw-private-key=%s", TestDeploymentBoshCommand(), MustHaveEnv("BOSH_GATEWAY_USER"), MustHaveEnv("BOSH_GATEWAY_HOST"), MustHaveEnv("BOSH_GATEWAY_KEY"))
 }
-func TestDeploymentSSHCommand() string {
-	return fmt.Sprintf("%s ssh --gw-user=%s --gw-host=%s --gw-private-key=%s redis/0", TestDeploymentBoshCommand(), MustHaveEnv("BOSH_GATEWAY_USER"), MustHaveEnv("BOSH_GATEWAY_HOST"), MustHaveEnv("BOSH_GATEWAY_KEY"))
+func TestDeploymentSSHCommand(instanceName, instanceIndex string) string {
+	return fmt.Sprintf(
+		"%s ssh --gw-user=%s --gw-host=%s --gw-private-key=%s %s/%s",
+		TestDeploymentBoshCommand(),
+		MustHaveEnv("BOSH_GATEWAY_USER"),
+		MustHaveEnv("BOSH_GATEWAY_HOST"),
+		MustHaveEnv("BOSH_GATEWAY_KEY"),
+		instanceName,
+		instanceIndex,
+	)
 }
 
 func TestDeployment() string {

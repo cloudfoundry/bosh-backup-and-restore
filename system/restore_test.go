@@ -12,7 +12,6 @@ import (
 var _ = Describe("Restores a deployment", func() {
 	var workspaceDir = "/var/vcap/store/restore_workspace"
 	var backupMetadata = "../fixtures/redis-backup/metadata"
-	var backupArchive = "../fixtures/redis-backup/redis-0.tgz"
 
 	It("restores", func() {
 		By("setting up the jump box")
@@ -24,23 +23,38 @@ var _ = Describe("Restores a deployment", func() {
 		RunBoshCommand(JumpBoxSCPCommand(), MustHaveEnv("BOSH_CERT_PATH"), "jumpbox/0:"+workspaceDir+"/bosh.crt")
 		RunBoshCommand(JumpBoxSCPCommand(), commandPath, "jumpbox/0:"+workspaceDir)
 		RunBoshCommand(JumpBoxSCPCommand(), backupMetadata, "jumpbox/0:"+workspaceDir+"/"+TestDeployment()+"/metadata")
-		RunBoshCommand(JumpBoxSCPCommand(), backupArchive, "jumpbox/0:"+workspaceDir+"/"+TestDeployment()+"/redis-0.tgz")
+		performOnAllInstances(func(in, ii string) {
+			fileName := fmt.Sprintf("%s-%s.tgz", in, ii)
+			RunBoshCommand(
+				JumpBoxSCPCommand(),
+				fixturesPath+fileName,
+				fmt.Sprintf(
+					"jumpbox/0:%s/%s/%s",
+					workspaceDir,
+					TestDeployment(),
+					fileName,
+				),
+			)
+		})
 
-		By("running the backup command")
+		By("running the restore command")
 		Eventually(RunCommandOnRemote(
 			JumpBoxSSHCommand(),
 			fmt.Sprintf(`cd %s; BOSH_PASSWORD=%s ./pbr --debug --ca-cert bosh.crt --username %s --target %s --deployment %s restore`,
 				workspaceDir, MustHaveEnv("BOSH_PASSWORD"), MustHaveEnv("BOSH_USER"), MustHaveEnv("BOSH_URL"), TestDeployment()),
 		)).Should(gexec.Exit(0))
 
-		Eventually(RunCommandOnRemote(
-			TestDeploymentSSHCommand(), fmt.Sprintf("ls -la /var/vcap/store/redis-server"),
-		)).Should(gexec.Exit(0))
+		performOnAllInstances(func(instName, instIndex string) {
+			Eventually(RunCommandOnRemote(
+				TestDeploymentSSHCommand(instName, instIndex),
+				fmt.Sprintf("ls -la /var/vcap/store/redis-server"),
+			)).Should(gexec.Exit(0))
 
-		redisSession := RunCommandOnRemote(TestDeploymentSSHCommand(),
-			"/var/vcap/packages/redis/bin/redis-cli -a redis get FOO23",
-		)
+			redisSession := RunCommandOnRemote(TestDeploymentSSHCommand(instName, instIndex),
+				"/var/vcap/packages/redis/bin/redis-cli -a redis get FOO23",
+			)
 
-		Eventually(redisSession.Out).Should(gbytes.Say("BAR23"))
+			Eventually(redisSession.Out).Should(gbytes.Say("BAR23"))
+		})
 	})
 })

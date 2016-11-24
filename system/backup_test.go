@@ -14,11 +14,16 @@ var _ = Describe("Backs up a deployment", func() {
 	It("backs up", func() {
 		By("populating data in redis")
 		dataFixture := "../fixtures/redis_test_commands"
+
 		RunBoshCommand(TestDeploymentSCPCommand(), dataFixture, "redis/0:/tmp")
-		Eventually(
-			RunCommandOnRemote(TestDeploymentSSHCommand(),
-				"cat /tmp/redis_test_commands | /var/vcap/packages/redis/bin/redis-cli > /dev/null",
-			)).Should(gexec.Exit(0))
+
+		performOnAllInstances(func(instName, instIndex string) {
+			Eventually(
+				RunCommandOnRemote(TestDeploymentSSHCommand(instName, instIndex),
+					"cat /tmp/redis_test_commands | /var/vcap/packages/redis/bin/redis-cli > /dev/null",
+				),
+			).Should(gexec.Exit(0))
+		})
 
 		By("setting up the jump box")
 		Eventually(RunCommandOnRemote(
