@@ -56,8 +56,20 @@ var _ = BeforeEach(func() {
 })
 
 var _ = AfterEach(func() {
-	RunBoshCommand(TestDeploymentBoshCommand(), "delete-deployment")
-	RunBoshCommand(JumpBoxBoshCommand(), "delete-deployment")
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+	go func() {
+		RunBoshCommand(TestDeploymentBoshCommand(), "delete-deployment")
+		wg.Done()
+	}()
+
+	go func() {
+		RunBoshCommand(JumpBoxBoshCommand(), "delete-deployment")
+		wg.Done()
+	}()
+
+	wg.Wait()
 })
 
 func performOnAllInstances(f func(string, string)) {
