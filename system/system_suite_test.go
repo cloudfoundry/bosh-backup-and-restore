@@ -1,12 +1,14 @@
 package system
 
 import (
+	"fmt"
 	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 
+	"sync"
 	"testing"
 )
 
@@ -33,11 +35,21 @@ var _ = BeforeEach(func() {
 	// RunBoshCommand(testDeploymentBoshCommand, "create-release", "--dir=../fixtures/releases/redis-test-release/", "--force")
 	// By("Uploading the test release")
 	// RunBoshCommand(testDeploymentBoshCommand, "upload-release", "--dir=../fixtures/releases/redis-test-release/", "--rebase")
+	var wg sync.WaitGroup
 
-	By("deploying the test release")
-	RunBoshCommand(TestDeploymentBoshCommand(), "deploy", TestDeploymentManifest())
-	By("deploying the jump box")
-	RunBoshCommand(JumpBoxBoshCommand(), "deploy", JumpboxDeploymentManifest())
+	wg.Add(2)
+	go func() {
+		By("deploying the test release")
+		RunBoshCommand(TestDeploymentBoshCommand(), "deploy", "--var=deployment-name="+fmt.Sprintf("systest-%s", TestEnv()), TestDeploymentManifest())
+		wg.Done()
+	}()
+
+	go func() {
+		By("deploying the jump box")
+		RunBoshCommand(JumpBoxBoshCommand(), "deploy", "--var=deployment-name="+fmt.Sprintf("jumpbox-%s", TestEnv()), JumpboxDeploymentManifest())
+		wg.Done()
+	}()
+	wg.Wait()
 
 	commandPath, err = gexec.BuildWithEnvironment("github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr", []string{"GOOS=linux", "GOARCH=amd64"})
 	Expect(err).NotTo(HaveOccurred())

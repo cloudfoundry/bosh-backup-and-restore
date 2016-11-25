@@ -80,10 +80,10 @@ func JumpboxDeployment() string {
 }
 
 func TestDeploymentManifest() string {
-	return "../fixtures/" + TestDeployment() + ".yml"
+	return "../fixtures/systest.yml"
 }
 func JumpboxDeploymentManifest() string {
-	return "../fixtures/" + JumpboxDeployment() + ".yml"
+	return "../fixtures/jumpbox.yml"
 }
 
 func TestEnv() string {

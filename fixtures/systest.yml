@@ -1,6 +1,6 @@
 ---
-name: systest-dev-2
-director_uuid: 4ee8747a-4676-4316-b537-0a736778d404
+name: ((deployment-name))
+director_uuid: 16dc0cd0-9d4c-49df-b084-a0ee7555b0b0
 releases:
 - name: redis-test
   version: latest
