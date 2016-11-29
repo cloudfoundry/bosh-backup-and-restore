@@ -17,12 +17,12 @@ var _ = Describe("Restores a deployment", func() {
 		By("setting up the jump box")
 		Eventually(RunCommandOnRemote(
 			JumpBoxSSHCommand(), fmt.Sprintf("sudo mkdir -p %s && sudo chown -R vcap:vcap %s && sudo chmod -R 0777 %s",
-				workspaceDir+"/"+TestDeployment(), workspaceDir, workspaceDir),
+				workspaceDir+"/"+RedisDeployment(), workspaceDir, workspaceDir),
 		)).Should(gexec.Exit(0))
 
 		RunBoshCommand(JumpBoxSCPCommand(), MustHaveEnv("BOSH_CERT_PATH"), "jumpbox/0:"+workspaceDir+"/bosh.crt")
 		RunBoshCommand(JumpBoxSCPCommand(), commandPath, "jumpbox/0:"+workspaceDir)
-		RunBoshCommand(JumpBoxSCPCommand(), backupMetadata, "jumpbox/0:"+workspaceDir+"/"+TestDeployment()+"/metadata")
+		RunBoshCommand(JumpBoxSCPCommand(), backupMetadata, "jumpbox/0:"+workspaceDir+"/"+RedisDeployment()+"/metadata")
 		performOnAllInstances(func(in, ii string) {
 			fileName := fmt.Sprintf("%s-%s.tgz", in, ii)
 			RunBoshCommand(
@@ -31,7 +31,7 @@ var _ = Describe("Restores a deployment", func() {
 				fmt.Sprintf(
 					"jumpbox/0:%s/%s/%s",
 					workspaceDir,
-					TestDeployment(),
+					RedisDeployment(),
 					fileName,
 				),
 			)
@@ -41,16 +41,16 @@ var _ = Describe("Restores a deployment", func() {
 		Eventually(RunCommandOnRemote(
 			JumpBoxSSHCommand(),
 			fmt.Sprintf(`cd %s; BOSH_PASSWORD=%s ./pbr --debug --ca-cert bosh.crt --username %s --target %s --deployment %s restore`,
-				workspaceDir, MustHaveEnv("BOSH_PASSWORD"), MustHaveEnv("BOSH_USER"), MustHaveEnv("BOSH_URL"), TestDeployment()),
+				workspaceDir, MustHaveEnv("BOSH_PASSWORD"), MustHaveEnv("BOSH_USER"), MustHaveEnv("BOSH_URL"), RedisDeployment()),
 		)).Should(gexec.Exit(0))
 
 		performOnAllInstances(func(instName, instIndex string) {
 			Eventually(RunCommandOnRemote(
-				TestDeploymentSSHCommand(instName, instIndex),
+				RedisDeploymentSSHCommand(instName, instIndex),
 				fmt.Sprintf("ls -la /var/vcap/store/redis-server"),
 			)).Should(gexec.Exit(0))
 
-			redisSession := RunCommandOnRemote(TestDeploymentSSHCommand(instName, instIndex),
+			redisSession := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
 				"/var/vcap/packages/redis/bin/redis-cli -a redis get FOO23",
 			)
 

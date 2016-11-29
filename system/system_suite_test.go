@@ -40,7 +40,7 @@ var _ = BeforeEach(func() {
 	wg.Add(2)
 	go func() {
 		By("deploying the test release")
-		RunBoshCommand(TestDeploymentBoshCommand(), "deploy", "--var=deployment-name="+fmt.Sprintf("systest-%s", TestEnv()), TestDeploymentManifest())
+		RunBoshCommand(RedisDeploymentBoshCommand(), "deploy", "--var=deployment-name="+fmt.Sprintf("redis-%s", TestEnv()), RedisDeploymentManifest())
 		wg.Done()
 	}()
 
@@ -60,11 +60,13 @@ var _ = AfterEach(func() {
 
 	wg.Add(2)
 	go func() {
-		RunBoshCommand(TestDeploymentBoshCommand(), "delete-deployment")
+		By("tearing down the test release")
+		RunBoshCommand(RedisDeploymentBoshCommand(), "delete-deployment")
 		wg.Done()
 	}()
 
 	go func() {
+		By("tearing down the jump box")
 		RunBoshCommand(JumpBoxBoshCommand(), "delete-deployment")
 		wg.Done()
 	}()

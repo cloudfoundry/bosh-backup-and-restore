@@ -15,11 +15,11 @@ var _ = Describe("Backs up a deployment", func() {
 		By("populating data in redis")
 		dataFixture := "../fixtures/redis_test_commands"
 
-		RunBoshCommand(TestDeploymentSCPCommand(), dataFixture, "redis/0:/tmp")
+		RunBoshCommand(RedisDeploymentSCPCommand(), dataFixture, "redis/0:/tmp")
 
 		performOnAllInstances(func(instName, instIndex string) {
 			Eventually(
-				RunCommandOnRemote(TestDeploymentSSHCommand(instName, instIndex),
+				RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
 					"cat /tmp/redis_test_commands | /var/vcap/packages/redis/bin/redis-cli > /dev/null",
 				),
 			).Should(gexec.Exit(0))
@@ -36,13 +36,13 @@ var _ = Describe("Backs up a deployment", func() {
 		Eventually(RunCommandOnRemoteAsVcap(
 			JumpBoxSSHCommand(),
 			fmt.Sprintf(`cd %s; BOSH_PASSWORD=%s ./pbr --ca-cert bosh.crt --username %s --target %s --deployment %s backup`,
-				workspaceDir, MustHaveEnv("BOSH_PASSWORD"), MustHaveEnv("BOSH_USER"), MustHaveEnv("BOSH_URL"), TestDeployment()),
+				workspaceDir, MustHaveEnv("BOSH_PASSWORD"), MustHaveEnv("BOSH_USER"), MustHaveEnv("BOSH_URL"), RedisDeployment()),
 		)).Should(gexec.Exit(0))
 
 		By("checking backup artifact has been created")
 		cmd := RunCommandOnRemoteAsVcap(
 			JumpBoxSSHCommand(),
-			fmt.Sprintf("ls %s/%s", workspaceDir, TestDeployment()),
+			fmt.Sprintf("ls %s/%s", workspaceDir, RedisDeployment()),
 		)
 		Eventually(cmd).Should(gexec.Exit(0))
 
