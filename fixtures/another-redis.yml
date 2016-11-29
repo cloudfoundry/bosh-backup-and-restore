@@ -9,7 +9,7 @@ stemcells:
   os: ubuntu-trusty
   version: latest
 jobs:
-- name: not-really-a-brokered-redis
+- name: another-redis
   instances: 1
   templates:
   - name: redis-server

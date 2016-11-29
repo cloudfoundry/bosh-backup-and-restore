@@ -44,6 +44,17 @@ func RunCommandOnRemoteAsVcap(cmd string, remoteComand string) *gexec.Session {
 	return RunCommandOnRemote(cmd, fmt.Sprintf("sudo su vcap -c '%s'", remoteComand))
 }
 
+func AssertJumpboxFilesExist(paths []string) {
+	for _, path := range paths {
+		cmd := RunCommandOnRemoteAsVcap(
+			JumpBoxSSHCommand(),
+			fmt.Sprintf("stat %s", path),
+		)
+		Eventually(cmd).Should(gexec.Exit(0),
+			fmt.Sprintf("File at %s not found on jumpbox\n", path))
+	}
+}
+
 func GenericBoshCommand() string {
 	return fmt.Sprintf("bosh-cli --non-interactive --environment=%s --ca-cert=%s --user=%s --password=%s",
 		MustHaveEnv("BOSH_URL"),
@@ -55,6 +66,10 @@ func GenericBoshCommand() string {
 
 func RedisDeploymentBoshCommand() string {
 	return fmt.Sprintf("%s --deployment=%s", GenericBoshCommand(), RedisDeployment())
+}
+
+func AnotherRedisDeploymentBoshCommand() string {
+	return fmt.Sprintf("%s --deployment=%s", GenericBoshCommand(), AnotherRedisDeployment())
 }
 
 func RedisDeploymentSCPCommand() string {
@@ -75,6 +90,11 @@ func RedisDeploymentSSHCommand(instanceName, instanceIndex string) string {
 func RedisDeployment() string {
 	return "redis-" + TestEnv()
 }
+
+func AnotherRedisDeployment() string {
+	return "another-redis-" + TestEnv()
+}
+
 func JumpboxDeployment() string {
 	return "jumpbox-" + TestEnv()
 }
@@ -82,6 +102,11 @@ func JumpboxDeployment() string {
 func RedisDeploymentManifest() string {
 	return "../fixtures/redis.yml"
 }
+
+func AnotherRedisDeploymentManifest() string {
+	return "../fixtures/another-redis.yml"
+}
+
 func JumpboxDeploymentManifest() string {
 	return "../fixtures/jumpbox.yml"
 }

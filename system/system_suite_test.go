@@ -37,31 +37,50 @@ var _ = BeforeEach(func() {
 	// RunBoshCommand(testDeploymentBoshCommand, "upload-release", "--dir=../fixtures/releases/redis-test-release/", "--rebase")
 	var wg sync.WaitGroup
 
-	wg.Add(2)
+	wg.Add(3)
 	go func() {
-		By("deploying the test release")
-		RunBoshCommand(RedisDeploymentBoshCommand(), "deploy", "--var=deployment-name="+fmt.Sprintf("redis-%s", TestEnv()), RedisDeploymentManifest())
+		By("deploying the Redis test release")
+		RunBoshCommand(RedisDeploymentBoshCommand(), "deploy", SetName(RedisDeployment()), RedisDeploymentManifest())
 		wg.Done()
 	}()
 
 	go func() {
 		By("deploying the jump box")
-		RunBoshCommand(JumpBoxBoshCommand(), "deploy", "--var=deployment-name="+fmt.Sprintf("jumpbox-%s", TestEnv()), JumpboxDeploymentManifest())
+		RunBoshCommand(JumpBoxBoshCommand(), "deploy", SetName(JumpboxDeployment()), JumpboxDeploymentManifest())
+		wg.Done()
+	}()
+
+	go func() {
+		By("deploying the other Redis test release")
+		RunBoshCommand(AnotherRedisDeploymentBoshCommand(), "deploy", SetName(AnotherRedisDeployment()), AnotherRedisDeploymentManifest())
 		wg.Done()
 	}()
 	wg.Wait()
 
+	By("building pbr")
 	commandPath, err = gexec.BuildWithEnvironment("github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr", []string{"GOOS=linux", "GOARCH=amd64"})
 	Expect(err).NotTo(HaveOccurred())
+
+	By("setting up the jump box")
+	Eventually(RunCommandOnRemote(
+		JumpBoxSSHCommand(), fmt.Sprintf("sudo mkdir %s && sudo chown vcap:vcap %s && sudo chmod 0777 %s", workspaceDir, workspaceDir, workspaceDir),
+	)).Should(gexec.Exit(0))
+	RunBoshCommand(JumpBoxSCPCommand(), commandPath, "jumpbox/0:"+workspaceDir)
+	RunBoshCommand(JumpBoxSCPCommand(), MustHaveEnv("BOSH_CERT_PATH"), "jumpbox/0:"+workspaceDir+"/bosh.crt")
 })
 
 var _ = AfterEach(func() {
 	var wg sync.WaitGroup
 
-	wg.Add(2)
+	wg.Add(3)
 	go func() {
-		By("tearing down the test release")
+		By("tearing down the redis release")
 		RunBoshCommand(RedisDeploymentBoshCommand(), "delete-deployment")
+		wg.Done()
+	}()
+	go func() {
+		By("tearing down the other redis release")
+		RunBoshCommand(AnotherRedisDeploymentBoshCommand(), "delete-deployment")
 		wg.Done()
 	}()
 
@@ -80,4 +99,8 @@ func performOnAllInstances(f func(string, string)) {
 			f(instanceGroup, instanceIndex)
 		}
 	}
+}
+
+func SetName(name string) string {
+	return "--var=deployment-name=" + name
 }
