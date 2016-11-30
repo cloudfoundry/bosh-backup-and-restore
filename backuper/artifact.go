@@ -2,9 +2,6 @@ package backuper
 
 import "io"
 
-//go:generate counterfeiter -o fakes/fake_artifact_creator.go . ArtifactCreator
-type ArtifactCreator func(string) (Artifact, error)
-
 //go:generate counterfeiter -o fakes/fake_artifact_manager.go . ArtifactManager
 type ArtifactManager interface {
 	Create(string, Logger) (Artifact, error)
