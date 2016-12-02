@@ -47,7 +47,7 @@ var _ = Describe("Restores a deployment", func() {
 		performOnAllInstances(func(instName, instIndex string) {
 			Eventually(RunCommandOnRemote(
 				RedisDeploymentSSHCommand(instName, instIndex),
-				fmt.Sprintf("ls -la /var/vcap/store/redis-server"),
+				fmt.Sprintf("sudo ls -la /var/vcap/store/redis-server"),
 			)).Should(gexec.Exit(0))
 
 			redisSession := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),

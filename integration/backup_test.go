@@ -132,6 +132,20 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 				Eventually(session).Should(gbytes.Say("Done."))
 				Eventually(session).Should(gbytes.Say("Backup created of %s on", deploymentName))
 			})
+
+			Context("when backup file has owner only permissions of different user", func() {
+				BeforeEach(func() {
+					instance1.ScriptExist("/var/vcap/jobs/redis/bin/backup", `#!/usr/bin/env sh
+	printf "backupcontent1" > /var/vcap/store/backup/backupdump1
+	printf "backupcontent2" > /var/vcap/store/backup/backupdump2
+	chmod 700 /var/vcap/store/backup/*
+	`)
+				})
+
+				It("exits zero", func() {
+					Expect(session.ExitCode()).To(BeZero())
+				})
+			})
 		})
 
 		Context("if a deployment can't be backed up", func() {

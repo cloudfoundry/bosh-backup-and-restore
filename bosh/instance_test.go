@@ -390,6 +390,14 @@ var _ = Describe("Instance", func() {
 		JustBeforeEach(func() {
 			actualChecksum, actualChecksumError = instance.BackupChecksum()
 		})
+		Context("triggers find & shasum as root", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("not relevant"), nil, 0, nil)
+			})
+			It("generates the correct request", func() {
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("cd /var/vcap/store/backup; sudo sh -c 'find . -type f | xargs shasum'"))
+			})
+		})
 		Context("can calculate checksum", func() {
 			BeforeEach(func() {
 				sshConnection.RunReturns([]byte("07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e  file1\n07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e  file2\nn87fc29fb3aacd99f7f7b81df9c43b13e71c56a1e file3/file4"), nil, 0, nil)
