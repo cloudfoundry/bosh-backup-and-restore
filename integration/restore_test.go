@@ -134,7 +134,6 @@ instances:
 
 			instance1.ScriptExist("/var/vcap/jobs/redis/bin/restore", `#!/usr/bin/env sh
 cp /var/vcap/store/backup/* /var/vcap/store/redis-server`)
-			instance1.CreateDir("/var/vcap/store/redis-server")
 
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---

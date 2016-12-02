@@ -229,13 +229,13 @@ var _ = Describe("Instance", func() {
 			It("uses the ssh connection to make the backup directory on the remote machine", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				command := sshConnection.RunArgsForCall(0)
-				Expect(command).To(Equal("sudo mkdir -p /var/vcap/store/backup/; sudo chown vcap:vcap /var/vcap/store/backup"))
+				Expect(command).To(Equal("sudo mkdir -p /var/vcap/store/backup/"))
 			})
 
 			It("uses the ssh connection to stream files from the remote machine", func() {
 				Expect(sshConnection.StreamStdinCallCount()).To(Equal(1))
 				command, sentReader := sshConnection.StreamStdinArgsForCall(0)
-				Expect(command).To(Equal("sudo -i -u vcap bash -c 'tar -C /var/vcap/store/backup -zx'"))
+				Expect(command).To(Equal("sudo sh -c 'tar -C /var/vcap/store/backup -zx'"))
 				Expect(reader).To(Equal(sentReader))
 			})
 
