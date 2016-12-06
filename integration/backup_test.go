@@ -137,11 +137,11 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 				BeforeEach(func() {
 					instance1.ScriptExist("/var/vcap/jobs/redis/bin/backup", `#!/usr/bin/env sh
 
-dd if=/dev/urandom of=/var/vcap/store/backup/backupdump1 bs=1M count=1
-dd if=/dev/urandom of=/var/vcap/store/backup/backupdump2 bs=1M count=1
+dd if=/dev/urandom of=/var/vcap/store/backup/backupdump1 bs=1KB count=1024
+dd if=/dev/urandom of=/var/vcap/store/backup/backupdump2 bs=1KB count=1024
 
 mkdir /var/vcap/store/backup/backupdump3
-dd if=/dev/urandom of=/var/vcap/store/backup/backupdump3/dump bs=1M count=1
+dd if=/dev/urandom of=/var/vcap/store/backup/backupdump3/dump bs=1KB count=1024
 
 chown vcap:vcap /var/vcap/store/backup/backupdump3
 chmod 0700 /var/vcap/store/backup/backupdump3`)
@@ -152,7 +152,7 @@ chmod 0700 /var/vcap/store/backup/backupdump3`)
 				})
 
 				It("prints the artifact size with the files from the other users", func() {
-					Eventually(session).Should(gbytes.Say("Copying backup -- 3.1M uncompressed -- from redis-dedicated-node-0..."))
+					Eventually(session).Should(gbytes.Say("Copying backup -- 3.0M uncompressed -- from redis-dedicated-node-0..."))
 				})
 			})
 		})
