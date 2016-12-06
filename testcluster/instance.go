@@ -65,11 +65,6 @@ func (i *Instance) AssertFileExists(path string) bool {
 	return session.ExitCode() == 0
 }
 
-func (i *Instance) BackupSize() string {
-	size := dockerRun("exec", i.dockerID, "sh", "-c", "du -sh /var/vcap/store/backup/ | cut -f1")
-	return strings.TrimSpace(size)
-}
-
 func (i *Instance) GetFileContents(path string) string {
 	return dockerRun("exec", i.dockerID, "cat", path)
 }

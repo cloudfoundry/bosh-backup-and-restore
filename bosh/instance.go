@@ -169,7 +169,7 @@ func (d DeployedInstance) IsRestorable() (bool, error) {
 }
 
 func (d DeployedInstance) BackupSize() (string, error) {
-	stdout, stderr, exitCode, err := d.Run("du -sh /var/vcap/store/backup/ | cut -f1")
+	stdout, stderr, exitCode, err := d.Run("sudo du -sh /var/vcap/store/backup/ | cut -f1")
 
 	if err != nil {
 		d.Logger.Debug("", "Error checking size of backup. Exit code %d, error %s", exitCode, err.Error())

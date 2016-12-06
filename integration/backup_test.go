@@ -128,7 +128,7 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 				Eventually(session).Should(gbytes.Say("Done."))
 				Eventually(session).Should(gbytes.Say("Backing up redis-dedicated-node-0..."))
 				Eventually(session).Should(gbytes.Say("Done."))
-				Eventually(session).Should(gbytes.Say("Copying backup -- %s uncompressed -- from redis-dedicated-node-0...", instance1.BackupSize()))
+				Eventually(session).Should(gbytes.Say("Copying backup -- 12K uncompressed -- from redis-dedicated-node-0..."))
 				Eventually(session).Should(gbytes.Say("Done."))
 				Eventually(session).Should(gbytes.Say("Backup created of %s on", deploymentName))
 			})
@@ -136,14 +136,23 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 			Context("when backup file has owner only permissions of different user", func() {
 				BeforeEach(func() {
 					instance1.ScriptExist("/var/vcap/jobs/redis/bin/backup", `#!/usr/bin/env sh
-	printf "backupcontent1" > /var/vcap/store/backup/backupdump1
-	printf "backupcontent2" > /var/vcap/store/backup/backupdump2
-	chmod 700 /var/vcap/store/backup/*
-	`)
+
+dd if=/dev/urandom of=/var/vcap/store/backup/backupdump1 bs=1M count=1
+dd if=/dev/urandom of=/var/vcap/store/backup/backupdump2 bs=1M count=1
+
+mkdir /var/vcap/store/backup/backupdump3
+dd if=/dev/urandom of=/var/vcap/store/backup/backupdump3/dump bs=1M count=1
+
+chown vcap:vcap /var/vcap/store/backup/backupdump3
+chmod 0700 /var/vcap/store/backup/backupdump3`)
 				})
 
 				It("exits zero", func() {
 					Expect(session.ExitCode()).To(BeZero())
+				})
+
+				It("prints the artifact size with the files from the other users", func() {
+					Eventually(session).Should(gbytes.Say("Copying backup -- 3.1M uncompressed -- from redis-dedicated-node-0..."))
 				})
 			})
 		})

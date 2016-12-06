@@ -485,9 +485,9 @@ var _ = Describe("Instance", func() {
 				size, _ = instance.BackupSize()
 			})
 
-			It("returns the size of the backup, as a string", func() {
+			It("returns the size of the backup according to the root user, as a string", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("du -sh /var/vcap/store/backup/ | cut -f1"))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh /var/vcap/store/backup/ | cut -f1"))
 				Expect(size).To(Equal("4.1G"))
 			})
 		})
@@ -503,9 +503,9 @@ var _ = Describe("Instance", func() {
 				_, err = instance.BackupSize()
 			})
 
-			It("returns the size of the backup, as a string", func() {
+			It("returns the size of the backup according to the root user, as a string", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("du -sh /var/vcap/store/backup/ | cut -f1"))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh /var/vcap/store/backup/ | cut -f1"))
 				Expect(err).To(HaveOccurred())
 			})
 		})
