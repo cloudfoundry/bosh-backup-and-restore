@@ -35,7 +35,7 @@ func (i *Instance) CreateUser(username, key string) {
 	dockerRun("exec", i.dockerID, "/bin/create_user_with_key", username, key)
 }
 
-func (i *Instance) FilesExist(files ...string) {
+func (i *Instance) CreateFiles(files ...string) {
 	for _, fileName := range files {
 		dockerRun("exec", i.dockerID, "mkdir", "-p", filepath.Dir(fileName))
 		dockerRun("exec", i.dockerID, "touch", fileName)
@@ -50,7 +50,7 @@ func (i *Instance) CreateDir(path string) {
 func (i *Instance) RunInBackground(command string) {
 	dockerRun("exec", "-d", i.dockerID, command)
 }
-func (i *Instance) ScriptExist(file, contents string) {
+func (i *Instance) CreateScript(file, contents string) {
 	dockerRun("exec", i.dockerID, "mkdir", "-p", filepath.Dir(file))
 	dockerRun("exec", i.dockerID, "sh", "-c", fmt.Sprintf(`echo '%s' > %s`, contents, file))
 	dockerRun("exec", i.dockerID, "chmod", "+x", file)

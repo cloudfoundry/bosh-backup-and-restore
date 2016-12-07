@@ -80,7 +80,7 @@ var _ = Describe("Backup", func() {
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)...)
 
-				instance1.ScriptExist("/var/vcap/jobs/redis/bin/backup", `#!/usr/bin/env sh
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/backup", `#!/usr/bin/env sh
 printf "backupcontent1" > /var/vcap/store/backup/backupdump1
 printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 `)
@@ -136,7 +136,7 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 
 			Context("when backup file has owner only permissions of different user", func() {
 				BeforeEach(func() {
-					instance1.ScriptExist("/var/vcap/jobs/redis/bin/backup", `#!/usr/bin/env sh
+					instance1.CreateScript("/var/vcap/jobs/redis/bin/backup", `#!/usr/bin/env sh
 
 dd if=/dev/urandom of=/var/vcap/store/backup/backupdump1 bs=1KB count=1024
 dd if=/dev/urandom of=/var/vcap/store/backup/backupdump2 bs=1KB count=1024
@@ -172,7 +172,7 @@ chmod 0700 /var/vcap/store/backup/backupdump3`)
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)...)
 
-				instance1.FilesExist(
+				instance1.CreateFiles(
 					"/var/vcap/jobs/redis/bin/ctl",
 				)
 			})
@@ -235,7 +235,7 @@ chmod 0700 /var/vcap/store/backup/backupdump3`)
 				CleanupSSH(deploymentName, "redis-dedicated-node"),
 				CleanupSSH(deploymentName, "redis-broker"),
 			)...)
-			backupableInstance.FilesExist(
+			backupableInstance.CreateFiles(
 				"/var/vcap/jobs/redis/bin/backup",
 			)
 
@@ -279,11 +279,11 @@ chmod 0700 /var/vcap/store/backup/backupdump3`)
 				CleanupSSH(deploymentName, "redis-broker"),
 			)...)
 
-			backupableInstance1.FilesExist(
+			backupableInstance1.CreateFiles(
 				"/var/vcap/jobs/redis/bin/backup",
 			)
 
-			backupableInstance2.FilesExist(
+			backupableInstance2.CreateFiles(
 				"/var/vcap/jobs/redis/bin/backup",
 			)
 

@@ -132,7 +132,7 @@ instances:
 				SetupSSH(deploymentName, "redis-dedicated-node", instance1),
 				CleanupSSH(deploymentName, "redis-dedicated-node"))...)
 
-			instance1.ScriptExist("/var/vcap/jobs/redis/bin/restore", `#!/usr/bin/env sh
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/restore", `#!/usr/bin/env sh
 cp /var/vcap/store/backup/* /var/vcap/store/redis-server`)
 
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
