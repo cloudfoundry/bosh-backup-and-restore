@@ -194,6 +194,10 @@ var _ = Describe("Backuper", func() {
 			It("fails the backup process", func() {
 				Expect(actualBackupError).To(MatchError(drainError))
 			})
+
+			It("ensures that deployment's instance is cleaned up", func() {
+				Expect(deployment.CleanupCallCount()).To(Equal(1))
+			})
 		})
 
 		Context("fails if artifact cannot be created", func() {
@@ -215,6 +219,41 @@ var _ = Describe("Backuper", func() {
 
 			It("fails the backup process", func() {
 				Expect(actualBackupError).To(MatchError(artifactError))
+			})
+
+			It("ensures that deployment's instance is cleaned up", func() {
+				Expect(deployment.CleanupCallCount()).To(Equal(1))
+			})
+		})
+
+		Context("fails if the cleanup cannot be completed", func() {
+			var cleanupError = fmt.Errorf("why doesn't he show his birth certificate?")
+			BeforeEach(func() {
+				deploymentManager.FindReturns(deployment, nil)
+				deployment.IsBackupableReturns(true, nil)
+
+				artifactManager.CreateReturns(artifact, nil)
+				deployment.CleanupReturns(cleanupError)
+			})
+
+			It("should check if the deployment is backupable", func() {
+				Expect(deploymentManager.FindCallCount()).To(Equal(1))
+			})
+
+			It("backs up the deployment", func() {
+				Expect(deployment.BackupCallCount()).To(Equal(1))
+			})
+
+			It("tries to cleanup the deployment instance", func() {
+				Expect(deployment.CleanupCallCount()).To(Equal(1))
+			})
+
+			It("fails the backup process", func() {
+				Expect(actualBackupError).To(MatchError(ContainSubstring(cleanupError.Error())))
+
+			})
+			It("returns a cleanup error", func() {
+				Expect(actualBackupError).To(BeAssignableToTypeOf(backuper.CleanupError{}))
 			})
 		})
 
@@ -243,6 +282,10 @@ var _ = Describe("Backuper", func() {
 
 			It("fails the backup process", func() {
 				Expect(actualBackupError).To(MatchError(backupError))
+			})
+
+			It("ensures that deployment's instance is cleaned up", func() {
+				Expect(deployment.CleanupCallCount()).To(Equal(1))
 			})
 		})
 	})

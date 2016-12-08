@@ -77,11 +77,14 @@ func main() {
 			Action: func(c *cli.Context) error {
 				var deployment = c.GlobalString("deployment")
 
-				backuper, err := makeBackuper(c)
+				backuperInstance, err := makeBackuper(c)
 				if err != nil {
 					return err
 				}
-				if err := backuper.Backup(deployment); err != nil {
+				if err := backuperInstance.Backup(deployment); err != nil {
+					if _, checkErrorType := err.(backuper.CleanupError); checkErrorType {
+						return cli.NewExitError(ansi.Color(err.Error(), "yellow"), 2)
+					}
 					return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
 				}
 				return nil

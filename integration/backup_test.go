@@ -194,6 +194,43 @@ chmod 0700 /var/vcap/store/backup/backupdump3`)
 			})
 		})
 
+		Context("if a deployment can be backed up but the cleanup fails", func() {
+			BeforeEach(func() {
+				instance1 = testcluster.NewInstance()
+				director.VerifyAndMock(AppendBuilders(
+					VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+						{
+							IPs:     []string{"10.0.0.1"},
+							JobName: "redis-dedicated-node",
+						},
+					}),
+					SetupSSH(deploymentName, "redis-dedicated-node", instance1),
+					DownloadManifest(deploymentName, "this is a totally valid yaml"),
+					CleanupSSHFails(deploymentName, "redis-dedicated-node", "Can't do it mate"),
+				)...)
+
+				instance1.CreateFiles(
+					"/var/vcap/jobs/redis/bin/backup",
+				)
+			})
+
+			It("returns a partial error code", func() {
+				Expect(session.ExitCode()).To(Equal(2))
+			})
+
+			It("prints an error", func() {
+				Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' failed while cleaning up with error: "))
+			})
+
+			It("error output should include the failure message", func() {
+				Expect(string(session.Err.Contents())).To(ContainSubstring("Can't do it mate"))
+			})
+
+			It("should create a backup on disk", func() {
+				Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
+			})
+		})
+
 		Context("if the artifact exists locally", func() {
 			BeforeEach(func() {
 				deploymentName = "already-backed-up-deployment"

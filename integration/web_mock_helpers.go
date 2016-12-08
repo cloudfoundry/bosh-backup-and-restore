@@ -54,6 +54,12 @@ func CleanupSSH(deploymentName, instanceGroup string) []mockhttp.MockedResponseB
 	}
 }
 
+func CleanupSSHFails(deploymentName, instanceGroup, errorMessage string) []mockhttp.MockedResponseBuilder {
+	return []mockhttp.MockedResponseBuilder{
+		mockbosh.CleanupSSHSession(deploymentName).ForInstanceGroup(instanceGroup).Fails(errorMessage),
+	}
+}
+
 func generateTaskId() int {
 	return rand.Int()
 }

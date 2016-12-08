@@ -36,6 +36,10 @@ type BoshDirector interface {
 	GetManifest(deploymentName string) (string, error)
 }
 
+type CleanupError struct {
+	error
+}
+
 //Backup checks if a deployment has backupable instances and backs them up.
 func (b Backuper) Backup(deploymentName string) error {
 	b.Logger.Info("", "Starting backup of %s...\n", deploymentName)
@@ -50,33 +54,43 @@ func (b Backuper) Backup(deploymentName string) error {
 		return err
 	}
 
-	defer deployment.Cleanup()
+	cleanupAndReturnErrors := func(err error) error {
+		deployment.Cleanup()
+		return err
+	}
 
 	if backupable, err := deployment.IsBackupable(); err != nil {
-		return err
+		return cleanupAndReturnErrors(err)
 	} else if !backupable {
-		return fmt.Errorf("Deployment '%s' has no backup scripts", deploymentName)
+		return cleanupAndReturnErrors(fmt.Errorf("Deployment '%s' has no backup scripts", deploymentName))
 	}
 
 	artifact, err := b.ArtifactManager.Create(deploymentName, b.Logger)
 	if err != nil {
-		return err
+		return cleanupAndReturnErrors(err)
 	}
 	manifest, err := b.GetManifest(deploymentName)
 	if err != nil {
-		return err
+		return cleanupAndReturnErrors(err)
 	}
+	//TODO: Handle this error
 	artifact.SaveManifest(manifest)
 
 	if err = deployment.Backup(); err != nil {
-		return err
+		return cleanupAndReturnErrors(err)
 	}
 
 	if err = deployment.CopyRemoteBackupToLocal(artifact); err != nil {
-		return err
+		return cleanupAndReturnErrors(err)
 	}
 
 	b.Logger.Info("", "Backup created of %s on %v\n", deploymentName, time.Now())
+
+	if err := deployment.Cleanup(); err != nil {
+		return CleanupError{
+			fmt.Errorf("Deployment '%s' failed while cleaning up with error: %v", deploymentName, err),
+		}
+	}
 	return nil
 }
 
