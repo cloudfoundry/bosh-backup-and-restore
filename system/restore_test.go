@@ -44,6 +44,17 @@ var _ = Describe("Restores a deployment", func() {
 				workspaceDir, MustHaveEnv("BOSH_PASSWORD"), MustHaveEnv("BOSH_USER"), MustHaveEnv("BOSH_URL"), RedisDeployment()),
 		)).Should(gexec.Exit(0))
 
+		By("cleaning up artifacts from the remote instances")
+		performOnAllInstances(func(instName, instIndex string) {
+			session := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
+				"ls -l /var/vcap/store/backup",
+			)
+			Eventually(session).Should(gexec.Exit())
+			Expect(session.ExitCode()).To(Equal(1))
+			Expect(session.Out).To(gbytes.Say("No such file or directory"))
+		})
+
+		By("ensuring data is restored")
 		performOnAllInstances(func(instName, instIndex string) {
 			Eventually(RunCommandOnRemote(
 				RedisDeploymentSSHCommand(instName, instIndex),
