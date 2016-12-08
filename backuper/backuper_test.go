@@ -133,6 +133,26 @@ var _ = Describe("Backuper", func() {
 			})
 		})
 
+		Context("fails if manifest can't be saved", func() {
+			var expectedError = fmt.Errorf("he the founder of isis")
+
+			BeforeEach(func() {
+				deploymentManager.FindReturns(deployment, nil)
+				deployment.IsBackupableReturns(true, nil)
+				artifactManager.CreateReturns(artifact, nil)
+				boshDirector.GetManifestReturns(deploymentManifest, nil)
+				artifact.SaveManifestReturns(expectedError)
+			})
+
+			It("fails the backup process", func() {
+				Expect(actualBackupError).To(MatchError(expectedError))
+			})
+
+			It("cleans up", func() {
+				Expect(deployment.CleanupCallCount()).To(Equal(1))
+			})
+		})
+
 		Context("fails when checking if deployment is backupable", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)

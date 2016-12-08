@@ -73,8 +73,10 @@ func (b Backuper) Backup(deploymentName string) error {
 	if err != nil {
 		return cleanupAndReturnErrors(err)
 	}
-	//TODO: Handle this error
-	artifact.SaveManifest(manifest)
+
+	if err := artifact.SaveManifest(manifest); err != nil {
+		return cleanupAndReturnErrors(err)
+	}
 
 	if err = deployment.Backup(); err != nil {
 		return cleanupAndReturnErrors(err)
