@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/cloudfoundry/bosh-cli/director"
+	"github.com/hashicorp/go-multierror"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
 )
 
@@ -184,8 +185,18 @@ func (d DeployedInstance) BackupSize() (string, error) {
 }
 
 func (d DeployedInstance) Cleanup() error {
+	var errs error
 	d.Logger.Debug("", "Cleaning up SSH connection on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
-	return d.CleanUpSSH(director.NewAllOrInstanceGroupOrInstanceSlug(d.InstanceGroupName, d.InstanceIndex), director.SSHOpts{Username: d.SSHConnection.Username()})
+	removeArtifactError := d.removeBackupArtifacts()
+	if removeArtifactError != nil {
+		errs = multierror.Append(errs, removeArtifactError)
+	}
+
+	cleanupSSHError := d.CleanUpSSH(director.NewAllOrInstanceGroupOrInstanceSlug(d.InstanceGroupName, d.InstanceIndex), director.SSHOpts{Username: d.SSHConnection.Username()})
+	if cleanupSSHError != nil {
+		errs = multierror.Append(errs, cleanupSSHError)
+	}
+	return errs
 }
 
 func (d DeployedInstance) Name() string {
@@ -195,6 +206,12 @@ func (d DeployedInstance) Name() string {
 func (d DeployedInstance) ID() string {
 	return d.InstanceIndex
 }
+
+func (d DeployedInstance) removeBackupArtifacts() error {
+	_, _, _, err := d.Run("sudo rm -rf /var/vcap/store/backup")
+	return err
+}
+
 func convertShasToMap(shas string) map[string]string {
 	mapOfSha := map[string]string{}
 	shas = strings.TrimSpace(shas)

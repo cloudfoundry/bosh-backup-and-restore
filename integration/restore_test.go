@@ -166,12 +166,12 @@ instances:
 			Expect(session.ExitCode()).To(Equal(0))
 		})
 
-		It("Untars the archive file on the remote", func() {
-			Expect(instance1.AssertFileExists("/var/vcap/store/backup/redis-backup")).To(BeTrue())
+		It("Cleans up the archive file on the remote", func() {
+			Expect(instance1.FileExists("/var/vcap/store/backup/redis-backup")).To(BeFalse())
 		})
 
 		It("Runs the restore script on the remote", func() {
-			Expect(instance1.AssertFileExists("/var/vcap/store/redis-server/redis-backup"))
+			Expect(instance1.FileExists("/var/vcap/store/redis-server/redis-backup"))
 		})
 	})
 })

@@ -134,6 +134,10 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 				Eventually(session).Should(gbytes.Say("Backup created of %s on", deploymentName))
 			})
 
+			It("cleans up backup artifacts from remote", func() {
+				Expect(instance1.FileExists("/var/vcap/store/backup")).To(BeFalse())
+			})
+
 			Context("when backup file has owner only permissions of different user", func() {
 				BeforeEach(func() {
 					instance1.CreateScript("/var/vcap/jobs/redis/bin/backup", `#!/usr/bin/env sh

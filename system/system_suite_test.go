@@ -39,18 +39,21 @@ var _ = BeforeEach(func() {
 
 	wg.Add(3)
 	go func() {
+		GinkgoRecover()
 		By("deploying the Redis test release")
 		RunBoshCommand(RedisDeploymentBoshCommand(), "deploy", SetName(RedisDeployment()), RedisDeploymentManifest())
 		wg.Done()
 	}()
 
 	go func() {
+		GinkgoRecover()
 		By("deploying the jump box")
 		RunBoshCommand(JumpBoxBoshCommand(), "deploy", SetName(JumpboxDeployment()), JumpboxDeploymentManifest())
 		wg.Done()
 	}()
 
 	go func() {
+		GinkgoRecover()
 		By("deploying the other Redis test release")
 		RunBoshCommand(AnotherRedisDeploymentBoshCommand(), "deploy", SetName(AnotherRedisDeployment()), AnotherRedisDeploymentManifest())
 		wg.Done()
@@ -74,17 +77,20 @@ var _ = AfterEach(func() {
 
 	wg.Add(3)
 	go func() {
+		GinkgoRecover()
 		By("tearing down the redis release")
 		RunBoshCommand(RedisDeploymentBoshCommand(), "delete-deployment")
 		wg.Done()
 	}()
 	go func() {
+		GinkgoRecover()
 		By("tearing down the other redis release")
 		RunBoshCommand(AnotherRedisDeploymentBoshCommand(), "delete-deployment")
 		wg.Done()
 	}()
 
 	go func() {
+		GinkgoRecover()
 		By("tearing down the jump box")
 		RunBoshCommand(JumpBoxBoshCommand(), "delete-deployment")
 		wg.Done()

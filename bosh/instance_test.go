@@ -364,6 +364,11 @@ var _ = Describe("Instance", func() {
 			actualError = instance.Cleanup()
 		})
 		Describe("cleans up successfully", func() {
+			It("deletes the backup folder", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				cmd := sshConnection.RunArgsForCall(0)
+				Expect(cmd).To(Equal("sudo rm -rf /var/vcap/store/backup"))
+			})
 			It("deletes session from deployment", func() {
 				Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(1))
 				slug, sshOpts := boshDeployment.CleanUpSSHArgsForCall(0)
@@ -373,13 +378,48 @@ var _ = Describe("Instance", func() {
 				}))
 			})
 		})
-		Describe("error while running delete", func() {
+		Describe("error removing the backup folder", func() {
+			BeforeEach(func() {
+				expectedError = fmt.Errorf("foo bar")
+				sshConnection.RunReturns(nil, nil, 1, expectedError)
+			})
+			It("tries to cleanup ssh connection", func() {
+				Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(1))
+			})
+			It("returns the error", func() {
+				Expect(actualError).To(MatchError(ContainSubstring(expectedError.Error())))
+			})
+		})
+
+		Describe("error removing the backup folder and an error while running cleaning up the connection", func() {
+			var expectedErrorWhileDeleting error
+			var expectedErrorWhileCleaningUp error
+			BeforeEach(func() {
+				expectedErrorWhileDeleting = fmt.Errorf("error while cleaning up var/vcap/store/backup")
+				expectedErrorWhileCleaningUp = fmt.Errorf("error while cleaning the ssh tunnel")
+				sshConnection.RunReturns(nil, nil, 1, expectedErrorWhileDeleting)
+				boshDeployment.CleanUpSSHReturns(expectedErrorWhileCleaningUp)
+			})
+
+			It("tries delete the artifact", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+			})
+			It("tries to cleanup ssh connection", func() {
+				Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(1))
+			})
+			It("returns the aggregated error", func() {
+				Expect(actualError).To(MatchError(ContainSubstring(expectedErrorWhileDeleting.Error())))
+				Expect(actualError).To(MatchError(ContainSubstring(expectedErrorWhileCleaningUp.Error())))
+			})
+		})
+
+		Describe("error while running cleaning up the connection", func() {
 			BeforeEach(func() {
 				expectedError = fmt.Errorf("werk niet")
 				boshDeployment.CleanUpSSHReturns(expectedError)
 			})
 			It("fails", func() {
-				Expect(actualError).To(MatchError(expectedError))
+				Expect(actualError).To(MatchError(ContainSubstring(expectedError.Error())))
 			})
 		})
 	})
