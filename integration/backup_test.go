@@ -194,6 +194,67 @@ chmod 0700 /var/vcap/store/backup/backupdump3`)
 			})
 		})
 
+		Context("instance backup script failed with an error", func() {
+			BeforeEach(func() {
+				instance1 = testcluster.NewInstance()
+				director.VerifyAndMock(AppendBuilders(
+					VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+						{
+							IPs:     []string{"10.0.0.1"},
+							JobName: "redis-dedicated-node",
+						},
+					}),
+					SetupSSH(deploymentName, "redis-dedicated-node", instance1),
+					DownloadManifest(deploymentName, "this is a totally valid yaml"),
+					CleanupSSH(deploymentName, "redis-dedicated-node"),
+				)...)
+
+				instance1.CreateScript(
+					"/var/vcap/jobs/redis/bin/backup", "(>&2 echo 'ultra-baz'); exit 1",
+				)
+			})
+
+			It("returns a non-zero exit code", func() {
+				Expect(session.ExitCode()).To(Equal(1))
+			})
+
+			It("prints an error", func() {
+				Expect(string(session.Err.Contents())).To(ContainSubstring("Instance backup scripts returned 123"))
+				Expect(string(session.Err.Contents())).To(ContainSubstring("ultra-baz"))
+			})
+		})
+
+		Context("instance backup script failed with an error and cleanup failed as well", func() {
+			BeforeEach(func() {
+				instance1 = testcluster.NewInstance()
+				director.VerifyAndMock(AppendBuilders(
+					VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+						{
+							IPs:     []string{"10.0.0.1"},
+							JobName: "redis-dedicated-node",
+						},
+					}),
+					SetupSSH(deploymentName, "redis-dedicated-node", instance1),
+					DownloadManifest(deploymentName, "this is a totally valid yaml"),
+					CleanupSSHFails(deploymentName, "redis-dedicated-node", "ultra-foo"),
+				)...)
+
+				instance1.CreateScript(
+					"/var/vcap/jobs/redis/bin/backup", "(>&2 echo 'ultra-baz'); exit 1",
+				)
+			})
+
+			It("returns a non-zero exit code", func() {
+				Expect(session.ExitCode()).To(Equal(1))
+			})
+
+			It("prints an error", func() {
+				Expect(string(session.Err.Contents())).To(ContainSubstring("Instance backup scripts returned 123"))
+				Expect(string(session.Err.Contents())).To(ContainSubstring("ultra-baz"))
+				Expect(string(session.Err.Contents())).To(ContainSubstring("ultra-foo"))
+			})
+		})
+
 		Context("if a deployment can be backed up but the cleanup fails", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()

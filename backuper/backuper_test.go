@@ -96,6 +96,16 @@ var _ = Describe("Backuper", func() {
 
 	Describe("failures", func() {
 		var expectedError = fmt.Errorf("Jesus!")
+		var assertCleanupError = func() {
+			var cleanupError = fmt.Errorf("he was born in kenya")
+			BeforeEach(func() {
+				deployment.CleanupReturns(cleanupError)
+			})
+
+			It("includes the cleanup error in the returned error", func() {
+				Expect(actualBackupError).To(MatchError(ContainSubstring(cleanupError.Error())))
+			})
+		}
 
 		Context("when the artifiact already exists", func() {
 			BeforeEach(func() {
@@ -191,6 +201,8 @@ var _ = Describe("Backuper", func() {
 			It("ensures that deployment is cleaned up", func() {
 				Expect(deployment.CleanupCallCount()).To(Equal(1))
 			})
+
+			Context("cleanup fails as well", assertCleanupError)
 		})
 
 		Context("fails if backup cannot be drained", func() {
@@ -218,6 +230,8 @@ var _ = Describe("Backuper", func() {
 			It("ensures that deployment's instance is cleaned up", func() {
 				Expect(deployment.CleanupCallCount()).To(Equal(1))
 			})
+
+			Context("cleanup fails as well", assertCleanupError)
 		})
 
 		Context("fails if artifact cannot be created", func() {
@@ -244,6 +258,8 @@ var _ = Describe("Backuper", func() {
 			It("ensures that deployment's instance is cleaned up", func() {
 				Expect(deployment.CleanupCallCount()).To(Equal(1))
 			})
+
+			Context("cleanup fails as well", assertCleanupError)
 		})
 
 		Context("fails if the cleanup cannot be completed", func() {
@@ -275,6 +291,8 @@ var _ = Describe("Backuper", func() {
 			It("returns a cleanup error", func() {
 				Expect(actualBackupError).To(BeAssignableToTypeOf(backuper.CleanupError{}))
 			})
+
+			Context("cleanup fails as well", assertCleanupError)
 		})
 
 		Context("fails if backup is not a success", func() {
@@ -307,6 +325,8 @@ var _ = Describe("Backuper", func() {
 			It("ensures that deployment's instance is cleaned up", func() {
 				Expect(deployment.CleanupCallCount()).To(Equal(1))
 			})
+
+			Context("cleanup fails as well", assertCleanupError)
 		})
 	})
 })

@@ -3,6 +3,8 @@ package backuper
 import (
 	"fmt"
 	"time"
+
+	"github.com/hashicorp/go-multierror"
 )
 
 func New(bosh BoshDirector, artifactManager ArtifactManager, logger Logger, deploymentManager DeploymentManager) *Backuper {
@@ -55,7 +57,10 @@ func (b Backuper) Backup(deploymentName string) error {
 	}
 
 	cleanupAndReturnErrors := func(err error) error {
-		deployment.Cleanup()
+		cleanupErr := deployment.Cleanup()
+		if cleanupErr != nil {
+			return multierror.Append(err, cleanupErr)
+		}
 		return err
 	}
 
