@@ -411,14 +411,25 @@ var _ = Describe("restore", func() {
 		})
 
 		Describe("failures", func() {
+
+			var assertCleanupError = func() {
+				var cleanupError = fmt.Errorf("he was born in kenya")
+				BeforeEach(func() {
+					deployment.CleanupReturns(cleanupError)
+				})
+
+				It("includes the cleanup error in the returned error", func() {
+					Expect(restoreError).To(MatchError(ContainSubstring(cleanupError.Error())))
+				})
+			}
+
 			Context("fails to find deployment", func() {
 				BeforeEach(func() {
 					deploymentManager.FindReturns(nil, fmt.Errorf("they will pay for the wall"))
 				})
 
 				It("returns an error", func() {
-					actualError := b.Restore(deploymentName)
-					Expect(actualError).To(MatchError("they will pay for the wall"))
+					Expect(restoreError).To(MatchError("they will pay for the wall"))
 				})
 			})
 
@@ -429,8 +440,7 @@ var _ = Describe("restore", func() {
 					artifactManager.OpenReturns(nil, artifactOpenError)
 				})
 				It("returns an error", func() {
-					actualError := b.Restore(deploymentName)
-					Expect(actualError).To(MatchError(artifactOpenError))
+					Expect(restoreError).To(MatchError(artifactOpenError))
 				})
 			})
 			Context("fails if the artifact is invalid", func() {
@@ -440,8 +450,25 @@ var _ = Describe("restore", func() {
 					artifact.ValidReturns(false, nil)
 				})
 				It("returns an error", func() {
-					actualError := b.Restore(deploymentName)
-					Expect(actualError).To(MatchError("Backup artifact is corrupted"))
+					Expect(restoreError).To(MatchError("Backup artifact is corrupted"))
+				})
+			})
+
+			Context("fails, if the cleanup fails", func() {
+				var cleanupError = fmt.Errorf("we gotta deal with china")
+				BeforeEach(func() {
+					deploymentManager.FindReturns(deployment, nil)
+					artifactManager.OpenReturns(artifact, nil)
+					artifact.ValidReturns(true, nil)
+					deployment.CleanupReturns(cleanupError)
+				})
+
+				It("returns an error", func() {
+					Expect(restoreError).To(MatchError(ContainSubstring(cleanupError.Error())))
+				})
+
+				It("returns an error of type, cleanup error", func() {
+					Expect(restoreError).To(BeAssignableToTypeOf(backuper.CleanupError{}))
 				})
 			})
 			Context("fails if can't check if artifact is valid", func() {
@@ -453,8 +480,7 @@ var _ = Describe("restore", func() {
 					artifact.ValidReturns(false, artifactValidError)
 				})
 				It("returns an error", func() {
-					actualError := b.Restore(deploymentName)
-					Expect(actualError).To(MatchError(artifactValidError))
+					Expect(restoreError).To(MatchError(artifactValidError))
 				})
 			})
 
@@ -464,9 +490,13 @@ var _ = Describe("restore", func() {
 				})
 
 				It("returns an error", func() {
-					actualError := b.Restore(deploymentName)
-					Expect(actualError).To(HaveOccurred())
+					Expect(restoreError).To(HaveOccurred())
 				})
+
+				It("should cleanup", func() {
+					Expect(deployment.CleanupCallCount()).To(Equal(1))
+				})
+				assertCleanupError()
 			})
 
 			Context("if checking the instance's restorable status fails", func() {
@@ -474,9 +504,13 @@ var _ = Describe("restore", func() {
 					deployment.IsRestorableReturns(true, fmt.Errorf("the beauty of me is that I'm very rich"))
 				})
 				It("returns an error", func() {
-					actualError := b.Restore(deploymentName)
-					Expect(actualError).To(HaveOccurred())
+					Expect(restoreError).To(HaveOccurred())
 				})
+
+				It("should cleanup", func() {
+					Expect(deployment.CleanupCallCount()).To(Equal(1))
+				})
+				assertCleanupError()
 			})
 
 			Context("if the deployment's topology doesn't match that of the backup", func() {
@@ -485,9 +519,13 @@ var _ = Describe("restore", func() {
 				})
 
 				It("returns an error", func() {
-					actualError := b.Restore(deploymentName)
-					Expect(actualError).To(HaveOccurred())
+					Expect(restoreError).To(HaveOccurred())
 				})
+
+				It("should cleanup", func() {
+					Expect(deployment.CleanupCallCount()).To(Equal(1))
+				})
+				assertCleanupError()
 			})
 
 			Context("if checking the deployment topology fails", func() {
@@ -496,9 +534,13 @@ var _ = Describe("restore", func() {
 				})
 
 				It("returns an error", func() {
-					actualError := b.Restore(deploymentName)
-					Expect(actualError).To(HaveOccurred())
+					Expect(restoreError).To(HaveOccurred())
 				})
+
+				It("should cleanup", func() {
+					Expect(deployment.CleanupCallCount()).To(Equal(1))
+				})
+				assertCleanupError()
 			})
 
 			Context("if streaming the backup to the remote fails", func() {
@@ -507,9 +549,29 @@ var _ = Describe("restore", func() {
 				})
 
 				It("returns an error", func() {
-					actualError := b.Restore(deploymentName)
-					Expect(actualError.Error()).To(Equal("Unable to send backup to remote machine. Got error: Broken pipe"))
+					Expect(restoreError).To(MatchError(ContainSubstring("Unable to send backup to remote machine. Got error: Broken pipe")))
 				})
+
+				It("should cleanup", func() {
+					Expect(deployment.CleanupCallCount()).To(Equal(1))
+				})
+				assertCleanupError()
+			})
+
+			Context("if running the restore script fails", func() {
+				var restoreError = fmt.Errorf("there is something in that birth certificate")
+				BeforeEach(func() {
+					deployment.RestoreReturns(restoreError)
+				})
+
+				It("returns an error", func() {
+					Expect(restoreError).To(MatchError(ContainSubstring(restoreError.Error())))
+				})
+
+				It("should cleanup", func() {
+					Expect(deployment.CleanupCallCount()).To(Equal(1))
+				})
+				assertCleanupError()
 			})
 		})
 	})

@@ -56,39 +56,31 @@ func (b Backuper) Backup(deploymentName string) error {
 		return err
 	}
 
-	cleanupAndReturnErrors := func(err error) error {
-		cleanupErr := deployment.Cleanup()
-		if cleanupErr != nil {
-			return multierror.Append(err, cleanupErr)
-		}
-		return err
-	}
-
 	if backupable, err := deployment.IsBackupable(); err != nil {
-		return cleanupAndReturnErrors(err)
+		return cleanupAndReturnErrors(deployment, err)
 	} else if !backupable {
-		return cleanupAndReturnErrors(fmt.Errorf("Deployment '%s' has no backup scripts", deploymentName))
+		return cleanupAndReturnErrors(deployment, fmt.Errorf("Deployment '%s' has no backup scripts", deploymentName))
 	}
 
 	artifact, err := b.ArtifactManager.Create(deploymentName, b.Logger)
 	if err != nil {
-		return cleanupAndReturnErrors(err)
+		return cleanupAndReturnErrors(deployment, err)
 	}
 	manifest, err := b.GetManifest(deploymentName)
 	if err != nil {
-		return cleanupAndReturnErrors(err)
+		return cleanupAndReturnErrors(deployment, err)
 	}
 
 	if err := artifact.SaveManifest(manifest); err != nil {
-		return cleanupAndReturnErrors(err)
+		return cleanupAndReturnErrors(deployment, err)
 	}
 
 	if err = deployment.Backup(); err != nil {
-		return cleanupAndReturnErrors(err)
+		return cleanupAndReturnErrors(deployment, err)
 	}
 
 	if err = deployment.CopyRemoteBackupToLocal(artifact); err != nil {
-		return cleanupAndReturnErrors(err)
+		return cleanupAndReturnErrors(deployment, err)
 	}
 
 	b.Logger.Info("", "Backup created of %s on %v\n", deploymentName, time.Now())
@@ -119,29 +111,42 @@ func (b Backuper) Restore(deploymentName string) error {
 		return err
 	}
 
-	defer deployment.Cleanup()
-
+	// defer deployment.Cleanup()
 	if restoreable, err := deployment.IsRestorable(); err != nil {
-		return err
+		return cleanupAndReturnErrors(deployment, err)
 	} else if !restoreable {
-		return fmt.Errorf("Deployment '%s' has no restore scripts", deploymentName)
+		return cleanupAndReturnErrors(deployment, fmt.Errorf("Deployment '%s' has no restore scripts", deploymentName))
 	}
 
 	if match, err := artifact.DeploymentMatches(deploymentName, deployment.Instances()); err != nil {
-		return fmt.Errorf("Unable to check if deployment '%s' matches the structure of the provided backup", deploymentName)
+		return cleanupAndReturnErrors(deployment, fmt.Errorf("Unable to check if deployment '%s' matches the structure of the provided backup", deploymentName))
 	} else if match != true {
-		return fmt.Errorf("Deployment '%s' does not match the structure of the provided backup", deploymentName)
+		return cleanupAndReturnErrors(deployment, fmt.Errorf("Deployment '%s' does not match the structure of the provided backup", deploymentName))
 	}
 
 	if err = deployment.CopyLocalBackupToRemote(artifact); err != nil {
-		return fmt.Errorf("Unable to send backup to remote machine. Got error: %s", err)
+		return cleanupAndReturnErrors(deployment, fmt.Errorf("Unable to send backup to remote machine. Got error: %s", err))
 	}
 
 	err = deployment.Restore()
 	if err != nil {
-		return err
+		return cleanupAndReturnErrors(deployment, err)
 	}
 
 	b.Logger.Info("", "Completed restore of %s\n", deploymentName)
+
+	if err := deployment.Cleanup(); err != nil {
+		return CleanupError{
+			fmt.Errorf("Deployment '%s' failed while cleaning up with error: %v", deploymentName, err),
+		}
+	}
 	return nil
+}
+
+func cleanupAndReturnErrors(d Deployment, err error) error {
+	cleanupErr := d.Cleanup()
+	if cleanupErr != nil {
+		return multierror.Append(err, cleanupErr)
+	}
+	return err
 }

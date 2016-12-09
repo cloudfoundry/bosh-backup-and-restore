@@ -146,7 +146,9 @@ instances:
 			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tgz", backupContents)
+		})
 
+		JustBeforeEach(func() {
 			session = runBinary(
 				restoreWorkspace,
 				[]string{"BOSH_PASSWORD=admin"},
@@ -172,6 +174,86 @@ instances:
 
 		It("Runs the restore script on the remote", func() {
 			Expect(instance1.FileExists("/var/vcap/store/redis-server/redis-backup"))
+		})
+
+		Context("when restore fails", func() {
+			BeforeEach(func() {
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/restore", `#!/usr/bin/env sh
+	>&2 echo "dear lord"; exit 1`)
+			})
+
+			It("fails", func() {
+				Expect(session.ExitCode()).To(Equal(1))
+			})
+
+			It("returns the failure", func() {
+				Expect(session.Err.Contents()).To(ContainSubstring("dear lord"))
+			})
+		})
+	})
+
+	Context("the cleanup fails", func() {
+		var session *gexec.Session
+		var instance1 *testcluster.Instance
+		var deploymentName string
+
+		BeforeEach(func() {
+			instance1 = testcluster.NewInstance()
+			deploymentName = "my-new-deployment"
+			director.VerifyAndMock(AppendBuilders(VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+				{
+					IPs:     []string{"10.0.0.1"},
+					JobName: "redis-dedicated-node",
+				}}),
+				SetupSSH(deploymentName, "redis-dedicated-node", instance1),
+				CleanupSSHFails(deploymentName, "redis-dedicated-node", "cleanup err"))...)
+
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/restore", `#!/usr/bin/env sh
+cp /var/vcap/store/backup/* /var/vcap/store/redis-server`)
+
+			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
+instances:
+- instance_name: redis-dedicated-node
+  instance_id: 0
+  checksums:
+    ./redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
+
+			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
+			Expect(err).NotTo(HaveOccurred())
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tgz", backupContents)
+		})
+
+		JustBeforeEach(func() {
+			session = runBinary(
+				restoreWorkspace,
+				[]string{"BOSH_PASSWORD=admin"},
+				"--ca-cert", sslCertPath,
+				"--username", "admin",
+				"--target", director.URL,
+				"--deployment", deploymentName,
+				"restore")
+		})
+
+		AfterEach(func() {
+			Expect(os.RemoveAll(deploymentName)).To(Succeed())
+			instance1.Die()
+		})
+
+		It("fails", func() {
+			Expect(session.ExitCode()).To(Equal(2))
+		})
+
+		It("Cleans up the archive file on the remote", func() {
+			Expect(instance1.FileExists("/var/vcap/store/backup/redis-backup")).To(BeFalse())
+		})
+
+		It("Runs the restore script on the remote", func() {
+			Expect(instance1.FileExists("/var/vcap/store/redis-server/redis-backup"))
+		})
+
+		It("returns the failure", func() {
+			Expect(session.Err.Contents()).To(ContainSubstring("cleanup err"))
 		})
 	})
 })
