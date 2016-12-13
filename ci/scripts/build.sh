@@ -3,6 +3,7 @@
 set -ex
 
 eval "$(ssh-agent)"
+./pcf-backup-and-restore-meta/unlock-ci.sh
 chmod 400 pcf-backup-and-restore-meta/keys/github
 ssh-add pcf-backup-and-restore-meta/keys/github
 export GOPATH=$PWD

@@ -11,6 +11,7 @@ inputs:
 - name: pcf-backup-and-restore-meta
 
 params:
-  BOSH_PASSWORD: 
+  BOSH_PASSWORD:
+  TEAM_GPG_KEY:
 run:
   path: src/github.com/pivotal-cf/pcf-backup-and-restore/ci/scripts/system.sh

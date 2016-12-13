@@ -11,6 +11,9 @@ inputs:
   path: src/github.com/pivotal-cf/pcf-backup-and-restore
 - name: pcf-backup-and-restore-meta
 
+params:
+  TEAM_GPG_KEY:
+
 outputs:
 - name: pbr-build
 

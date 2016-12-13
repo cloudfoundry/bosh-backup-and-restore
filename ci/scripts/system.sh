@@ -3,6 +3,7 @@
 set -ex
 
 eval "$(ssh-agent)"
+./pcf-backup-and-restore-meta/unlock-ci.sh
 chmod 400 pcf-backup-and-restore-meta/keys/github
 chmod 400 pcf-backup-and-restore-meta/genesis-bosh/bosh.pem
 ssh-add pcf-backup-and-restore-meta/keys/github

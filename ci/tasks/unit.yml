@@ -13,3 +13,6 @@ inputs:
 
 run:
   path: src/github.com/pivotal-cf/pcf-backup-and-restore/ci/scripts/unit.sh
+
+params:
+  TEAM_GPG_KEY:
