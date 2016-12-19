@@ -132,7 +132,7 @@ instances:
 				SetupSSH(deploymentName, "redis-dedicated-node", instance1),
 				CleanupSSH(deploymentName, "redis-dedicated-node"))...)
 
-			instance1.CreateScript("/var/vcap/jobs/redis/bin/restore", `#!/usr/bin/env sh
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/p-restore", `#!/usr/bin/env sh
 cp /var/vcap/store/backup/* /var/vcap/store/redis-server`)
 
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
@@ -178,7 +178,7 @@ instances:
 
 		Context("when restore fails", func() {
 			BeforeEach(func() {
-				instance1.CreateScript("/var/vcap/jobs/redis/bin/restore", `#!/usr/bin/env sh
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/p-restore", `#!/usr/bin/env sh
 	>&2 echo "dear lord"; exit 1`)
 			})
 
@@ -208,7 +208,7 @@ instances:
 				SetupSSH(deploymentName, "redis-dedicated-node", instance1),
 				CleanupSSHFails(deploymentName, "redis-dedicated-node", "cleanup err"))...)
 
-			instance1.CreateScript("/var/vcap/jobs/redis/bin/restore", `#!/usr/bin/env sh
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/p-restore", `#!/usr/bin/env sh
 cp /var/vcap/store/backup/* /var/vcap/store/redis-server`)
 
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())

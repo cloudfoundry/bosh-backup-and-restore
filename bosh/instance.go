@@ -39,7 +39,7 @@ func NewBoshInstance(instanceGroupName, instanceIndex string, connection SSHConn
 
 func (d DeployedInstance) IsBackupable() (bool, error) {
 	d.Logger.Debug("", "Checking instance %s %s has backup scripts", d.InstanceGroupName, d.InstanceIndex)
-	stdin, stdout, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/backup")
+	stdin, stdout, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/p-backup")
 
 	d.Logger.Debug("", "Stdin: %s", string(stdin))
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
@@ -54,7 +54,7 @@ func (d DeployedInstance) IsBackupable() (bool, error) {
 func (d DeployedInstance) Backup() error {
 	d.Logger.Info("", "Backing up %s-%s...", d.InstanceGroupName, d.InstanceIndex)
 	d.Logger.Debug("", "Running all backup scripts on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
-	stdout, stderr, exitCode, err := d.Run("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/backup | xargs -IN sudo sh -c N")
+	stdout, stderr, exitCode, err := d.Run("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/p-backup | xargs -IN sudo sh -c N")
 
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
 	d.Logger.Debug("", "Stderr: %s", string(stderr))
@@ -72,7 +72,7 @@ func (d DeployedInstance) Backup() error {
 }
 
 func (d DeployedInstance) Restore() error {
-	stdout, stderr, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/restore | xargs -IN sudo sh -c N")
+	stdout, stderr, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/p-restore | xargs -IN sudo sh -c N")
 
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
 	d.Logger.Debug("", "Stderr: %s", string(stderr))
@@ -157,7 +157,7 @@ func (d DeployedInstance) BackupChecksum() (backuper.BackupChecksum, error) {
 
 func (d DeployedInstance) IsRestorable() (bool, error) {
 	d.Logger.Debug("", "Checking instance %s %s has restore scripts", d.InstanceGroupName, d.InstanceIndex)
-	stdout, stderr, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/restore")
+	stdout, stderr, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/p-restore")
 
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
 	d.Logger.Debug("", "Stderr: %s", string(stderr))

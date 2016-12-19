@@ -80,7 +80,7 @@ var _ = Describe("Backup", func() {
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)...)
 
-				instance1.CreateScript("/var/vcap/jobs/redis/bin/backup", `#!/usr/bin/env sh
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/p-backup", `#!/usr/bin/env sh
 printf "backupcontent1" > /var/vcap/store/backup/backupdump1
 printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 `)
@@ -140,7 +140,7 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 
 			Context("when backup file has owner only permissions of different user", func() {
 				BeforeEach(func() {
-					instance1.CreateScript("/var/vcap/jobs/redis/bin/backup", `#!/usr/bin/env sh
+					instance1.CreateScript("/var/vcap/jobs/redis/bin/p-backup", `#!/usr/bin/env sh
 
 dd if=/dev/urandom of=/var/vcap/store/backup/backupdump1 bs=1KB count=1024
 dd if=/dev/urandom of=/var/vcap/store/backup/backupdump2 bs=1KB count=1024
@@ -210,7 +210,7 @@ chmod 0700 /var/vcap/store/backup/backupdump3`)
 				)...)
 
 				instance1.CreateScript(
-					"/var/vcap/jobs/redis/bin/backup", "(>&2 echo 'ultra-baz'); exit 1",
+					"/var/vcap/jobs/redis/bin/p-backup", "(>&2 echo 'ultra-baz'); exit 1",
 				)
 			})
 
@@ -240,7 +240,7 @@ chmod 0700 /var/vcap/store/backup/backupdump3`)
 				)...)
 
 				instance1.CreateScript(
-					"/var/vcap/jobs/redis/bin/backup", "(>&2 echo 'ultra-baz'); exit 1",
+					"/var/vcap/jobs/redis/bin/p-backup", "(>&2 echo 'ultra-baz'); exit 1",
 				)
 			})
 
@@ -271,7 +271,7 @@ chmod 0700 /var/vcap/store/backup/backupdump3`)
 				)...)
 
 				instance1.CreateFiles(
-					"/var/vcap/jobs/redis/bin/backup",
+					"/var/vcap/jobs/redis/bin/p-backup",
 				)
 			})
 
@@ -338,7 +338,7 @@ chmod 0700 /var/vcap/store/backup/backupdump3`)
 				CleanupSSH(deploymentName, "redis-broker"),
 			)...)
 			backupableInstance.CreateFiles(
-				"/var/vcap/jobs/redis/bin/backup",
+				"/var/vcap/jobs/redis/bin/p-backup",
 			)
 
 		})
@@ -382,11 +382,11 @@ chmod 0700 /var/vcap/store/backup/backupdump3`)
 			)...)
 
 			backupableInstance1.CreateFiles(
-				"/var/vcap/jobs/redis/bin/backup",
+				"/var/vcap/jobs/redis/bin/p-backup",
 			)
 
 			backupableInstance2.CreateFiles(
-				"/var/vcap/jobs/redis/bin/backup",
+				"/var/vcap/jobs/redis/bin/p-backup",
 			)
 
 		})
