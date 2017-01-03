@@ -75,6 +75,10 @@ func (b Backuper) Backup(deploymentName string) error {
 		return cleanupAndReturnErrors(deployment, err)
 	}
 
+	if err = deployment.PreBackupQuiesce(); err != nil {
+		return cleanupAndReturnErrors(deployment, err)
+	}
+
 	if err = deployment.Backup(); err != nil {
 		return cleanupAndReturnErrors(deployment, err)
 	}
@@ -111,7 +115,6 @@ func (b Backuper) Restore(deploymentName string) error {
 		return err
 	}
 
-	// defer deployment.Cleanup()
 	if restoreable, err := deployment.IsRestorable(); err != nil {
 		return cleanupAndReturnErrors(deployment, err)
 	} else if !restoreable {

@@ -6,6 +6,7 @@ import "fmt"
 type Deployment interface {
 	IsBackupable() (bool, error)
 	IsRestorable() (bool, error)
+	PreBackupQuiesce() error
 	Backup() error
 	Restore() error
 	CopyRemoteBackupToLocal(Artifact) error
@@ -36,6 +37,12 @@ func (bd *BoshDeployment) IsBackupable() (bool, error) {
 	return !backupableInstances.IsEmpty(), nil
 }
 
+func (bd *BoshDeployment) PreBackupQuiesce() error {
+	instances, _ := bd.getBackupableInstances()
+
+	return instances.PreBackupQuiesce()
+}
+
 func (bd *BoshDeployment) Backup() error {
 	if instances, err := bd.getBackupableInstances(); err != nil {
 		return err
@@ -43,6 +50,7 @@ func (bd *BoshDeployment) Backup() error {
 		return instances.Backup()
 	}
 }
+
 func (bd *BoshDeployment) Restore() error {
 	if instances, err := bd.getRestoreableInstances(); err != nil {
 		return err

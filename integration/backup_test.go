@@ -90,9 +90,22 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 				outputFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")
 			})
 
+			Context("when the p-pre-backup-quiesce script is present", func() {
+				BeforeEach(func() {
+					instance1.CreateScript("/var/vcap/jobs/redis/bin/p-pre-backup-quiesce", `#!/usr/bin/env sh
+touch /tmp/pre-backup-quiesce-output
+`)
+				})
+
+				It("runs the p-pre-backup-quiesce script", func() {
+					Expect(instance1.FileExists("/tmp/pre-backup-quiesce-output")).To(BeTrue())
+				})
+			})
+
 			It("exits zero", func() {
 				Expect(session.ExitCode()).To(BeZero())
 			})
+
 			It("downloads the manifest", func() {
 				Expect(path.Join(backupWorkspace, deploymentName, "manifest.yml")).To(BeARegularFile())
 				Expect(ioutil.ReadFile(path.Join(backupWorkspace, deploymentName, "manifest.yml"))).To(MatchYAML("this is a totally valid yaml"))

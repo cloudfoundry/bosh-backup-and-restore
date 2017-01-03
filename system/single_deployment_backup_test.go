@@ -23,6 +23,13 @@ var _ = Describe("Single deployment", func() {
 				workspaceDir, MustHaveEnv("BOSH_PASSWORD"), MustHaveEnv("BOSH_USER"), MustHaveEnv("BOSH_URL"), RedisDeployment()),
 		)).Should(gexec.Exit(0))
 
+		By("running the pre-backup quiesce script")
+		runOnAllInstances(func(instName, instIndex string) {
+			Eventually(RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
+				"cat /tmp/pre-backup-quiesce.out",
+			)).Should(gexec.Exit(0))
+		})
+
 		By("creating the backup artifacts locally")
 		AssertJumpboxFilesExist([]string{
 			fmt.Sprintf("%s/%s/redis-0.tgz", workspaceDir, RedisDeployment()),

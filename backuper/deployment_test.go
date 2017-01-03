@@ -34,6 +34,45 @@ var _ = Describe("Deployment", func() {
 		instance3 = new(fakes.FakeInstance)
 	})
 
+	Context("PreBackupQuiesce", func() {
+		var quiesceError error
+
+		JustBeforeEach(func() {
+			quiesceError = deployment.PreBackupQuiesce()
+		})
+
+		Context("Single instance, backupable", func() {
+			BeforeEach(func() {
+				instance1.IsBackupableReturns(true, nil)
+				instance1.PreBackupQuiesceReturns(nil)
+				instances = []backuper.Instance{instance1}
+			})
+
+			It("does not fail", func() {
+				Expect(quiesceError).NotTo(HaveOccurred())
+			})
+
+			It("quiesces the instance", func() {
+				Expect(instance1.PreBackupQuiesceCallCount()).To(Equal(1))
+			})
+
+			Context("if the pre-backup-quiesce fails", func() {
+				quiesceErr := fmt.Errorf("something")
+
+				BeforeEach(func() {
+					instance1.IsBackupableReturns(true, nil)
+					instance1.PreBackupQuiesceReturns(quiesceErr)
+				})
+
+				It("fails", func() {
+					Expect(quiesceErr).To(HaveOccurred())
+				})
+			})
+		})
+
+
+	})
+
 	Context("Backup", func() {
 		var (
 			backupError error
@@ -686,6 +725,7 @@ var _ = Describe("Deployment", func() {
 				Expect(acutalChecksum).To(Equal(instanceChecksum))
 			})
 		})
+
 		Context("Many instances, one backupable", func() {
 			var instanceChecksum = backuper.BackupChecksum{"file1": "abcd", "file2": "efgh"}
 			var writeCloser1 *fakes.FakeWriteCloser
@@ -734,6 +774,7 @@ var _ = Describe("Deployment", func() {
 				Expect(acutalChecksum).To(Equal(instanceChecksum))
 			})
 		})
+
 		Describe("failures", func() {
 			var expectedError = fmt.Errorf("Jesus!")
 
@@ -773,6 +814,7 @@ var _ = Describe("Deployment", func() {
 					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(fileError))
 				})
 			})
+
 			Context("fails if local shasum calculation fails", func() {
 				shasumError := fmt.Errorf("yuuuge")
 				var writeCloser1 *fakes.FakeWriteCloser
@@ -815,6 +857,7 @@ var _ = Describe("Deployment", func() {
 					Expect(artifact.AddChecksumCallCount()).To(BeZero())
 				})
 			})
+
 			Context("fails if the remote shasum dosen't match the local shasum", func() {
 				var writeCloser1 *fakes.FakeWriteCloser
 
@@ -862,6 +905,7 @@ var _ = Describe("Deployment", func() {
 					Expect(artifact.AddChecksumCallCount()).To(BeZero())
 				})
 			})
+
 		})
 	})
 })
