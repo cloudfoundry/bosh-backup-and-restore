@@ -99,7 +99,7 @@ var _ = AfterEach(func() {
 	wg.Wait()
 })
 
-func performOnAllInstances(f func(string, string)) {
+func runOnAllInstances(f func(string, string)) {
 	for instanceGroup, instances := range instanceCollection {
 		for _, instanceIndex := range instances {
 			f(instanceGroup, instanceIndex)

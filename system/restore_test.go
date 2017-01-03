@@ -23,7 +23,7 @@ var _ = Describe("Restores a deployment", func() {
 		RunBoshCommand(JumpBoxSCPCommand(), MustHaveEnv("BOSH_CERT_PATH"), "jumpbox/0:"+workspaceDir+"/bosh.crt")
 		RunBoshCommand(JumpBoxSCPCommand(), commandPath, "jumpbox/0:"+workspaceDir)
 		RunBoshCommand(JumpBoxSCPCommand(), backupMetadata, "jumpbox/0:"+workspaceDir+"/"+RedisDeployment()+"/metadata")
-		performOnAllInstances(func(in, ii string) {
+		runOnAllInstances(func(in, ii string) {
 			fileName := fmt.Sprintf("%s-%s.tgz", in, ii)
 			RunBoshCommand(
 				JumpBoxSCPCommand(),
@@ -45,7 +45,7 @@ var _ = Describe("Restores a deployment", func() {
 		)).Should(gexec.Exit(0))
 
 		By("cleaning up artifacts from the remote instances")
-		performOnAllInstances(func(instName, instIndex string) {
+		runOnAllInstances(func(instName, instIndex string) {
 			session := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
 				"ls -l /var/vcap/store/backup",
 			)
@@ -55,7 +55,7 @@ var _ = Describe("Restores a deployment", func() {
 		})
 
 		By("ensuring data is restored")
-		performOnAllInstances(func(instName, instIndex string) {
+		runOnAllInstances(func(instName, instIndex string) {
 			Eventually(RunCommandOnRemote(
 				RedisDeploymentSSHCommand(instName, instIndex),
 				fmt.Sprintf("sudo ls -la /var/vcap/store/redis-server"),

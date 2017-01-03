@@ -14,17 +14,7 @@ var workspaceDir = "/var/vcap/store/backup_workspace"
 var _ = Describe("Single deployment", func() {
 	It("backs up, and cleans up the backup on the remote", func() {
 		By("populating data in redis")
-		dataFixture := "../fixtures/redis_test_commands"
-
-		RunBoshCommand(RedisDeploymentSCPCommand(), dataFixture, "redis/0:/tmp")
-
-		performOnAllInstances(func(instName, instIndex string) {
-			Eventually(
-				RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
-					"cat /tmp/redis_test_commands | /var/vcap/packages/redis/bin/redis-cli > /dev/null",
-				),
-			).Should(gexec.Exit(0))
-		})
+		populateRedisFixtureOnInstances()
 
 		By("running the backup command")
 		Eventually(RunCommandOnRemoteAsVcap(
@@ -41,7 +31,7 @@ var _ = Describe("Single deployment", func() {
 		})
 
 		By("cleaning up artifacts from the remote instances")
-		performOnAllInstances(func(instName, instIndex string) {
+		runOnAllInstances(func(instName, instIndex string) {
 			session := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
 				"ls -l /var/vcap/store/backup",
 			)
@@ -51,3 +41,15 @@ var _ = Describe("Single deployment", func() {
 		})
 	})
 })
+
+func populateRedisFixtureOnInstances() {
+	dataFixture := "../fixtures/redis_test_commands"
+	RunBoshCommand(RedisDeploymentSCPCommand(), dataFixture, "redis/0:/tmp")
+	runOnAllInstances(func(instName, instIndex string) {
+		Eventually(
+			RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
+				"cat /tmp/redis_test_commands | /var/vcap/packages/redis/bin/redis-cli > /dev/null",
+			),
+		).Should(gexec.Exit(0))
+	})
+}
