@@ -51,19 +51,19 @@ func (d DeployedInstance) IsBackupable() (bool, error) {
 	return exitCode == 0, err
 }
 
-func (d DeployedInstance) PreBackupQuiesce() error {
-	d.Logger.Info("", "Running pre-backup-quiesce on %s-%s...", d.InstanceGroupName, d.InstanceIndex)
-	stdout, stderr, exitCode, err := d.Run("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-quiesce | xargs -IN sudo sh -c N")
+func (d DeployedInstance) PreBackupLock() error {
+	d.Logger.Info("", "Running pre-backup-lock on %s-%s...", d.InstanceGroupName, d.InstanceIndex)
+	stdout, stderr, exitCode, err := d.Run("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock | xargs -IN sudo sh -c N")
 
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
 	d.Logger.Debug("", "Stderr: %s", string(stderr))
 
 	if err != nil {
-		d.Logger.Debug("", "Error running instance pre-backup-quiesce scripts. Exit code %d, error %s", exitCode, err.Error())
+		d.Logger.Debug("", "Error running instance pre-backup-lock scripts. Exit code %d, error %s", exitCode, err.Error())
 	}
 
 	if exitCode != 0 {
-		return fmt.Errorf("Instance pre-backup-quiesce scripts returned %d. Error: %s", exitCode, stderr)
+		return fmt.Errorf("Instance pre-backup-lock scripts returned %d. Error: %s", exitCode, stderr)
 	}
 
 	return err

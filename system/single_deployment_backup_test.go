@@ -23,10 +23,10 @@ var _ = Describe("Single deployment", func() {
 				workspaceDir, MustHaveEnv("BOSH_PASSWORD"), MustHaveEnv("BOSH_USER"), MustHaveEnv("BOSH_URL"), RedisDeployment()),
 		)).Should(gexec.Exit(0))
 
-		By("running the pre-backup quiesce script")
+		By("running the pre-backup lock script")
 		runOnAllInstances(func(instName, instIndex string) {
 			Eventually(RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
-				"cat /tmp/pre-backup-quiesce.out",
+				"cat /tmp/pre-backup-lock.out",
 			)).Should(gexec.Exit(0))
 		})
 

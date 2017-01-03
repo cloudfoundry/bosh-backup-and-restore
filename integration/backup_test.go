@@ -90,15 +90,15 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 				outputFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")
 			})
 
-			Context("when the p-pre-backup-quiesce script is present", func() {
+			Context("when the p-pre-backup-lock script is present", func() {
 				BeforeEach(func() {
-					instance1.CreateScript("/var/vcap/jobs/redis/bin/p-pre-backup-quiesce", `#!/usr/bin/env sh
-touch /tmp/pre-backup-quiesce-output
+					instance1.CreateScript("/var/vcap/jobs/redis/bin/p-pre-backup-lock", `#!/usr/bin/env sh
+touch /tmp/pre-backup-lock-output
 `)
 				})
 
-				It("runs the p-pre-backup-quiesce script", func() {
-					Expect(instance1.FileExists("/tmp/pre-backup-quiesce-output")).To(BeTrue())
+				It("runs the p-pre-backup-lock script", func() {
+					Expect(instance1.FileExists("/tmp/pre-backup-lock-output")).To(BeTrue())
 				})
 			})
 

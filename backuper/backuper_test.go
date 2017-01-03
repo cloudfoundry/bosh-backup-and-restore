@@ -70,8 +70,8 @@ var _ = Describe("Backuper", func() {
 			Expect(deployment.IsBackupableCallCount()).To(Equal(1))
 		})
 
-		It("runs p-pre-backup-quiesce scripts on the deployment", func(){
-			Expect(deployment.PreBackupQuiesceCallCount()).To(Equal(1))
+		It("runs p-pre-backup-lock scripts on the deployment", func(){
+			Expect(deployment.PreBackupLockCallCount()).To(Equal(1))
 		})
 
 		It("runs p-backup scripts on the deployment", func() {
@@ -209,8 +209,8 @@ var _ = Describe("Backuper", func() {
 			Context("cleanup fails as well", assertCleanupError)
 		})
 
-		Context("fails if pre-backup-quiesce fails", func() {
-			var quiesceError = fmt.Errorf("it was going to be a smooth transition - NOT")
+		Context("fails if pre-backup-lock fails", func() {
+			var lockError = fmt.Errorf("it was going to be a smooth transition - NOT")
 
 			BeforeEach(func() {
 				boshDirector.GetManifestReturns(deploymentManifest, nil)
@@ -220,11 +220,11 @@ var _ = Describe("Backuper", func() {
 				deployment.IsBackupableReturns(true, nil)
 				deployment.CleanupReturns(nil)
 
-				deployment.PreBackupQuiesceReturns(quiesceError)
+				deployment.PreBackupLockReturns(lockError)
 			})
 
 			It("fails the backup process", func() {
-				Expect(actualBackupError).To(MatchError(quiesceError))
+				Expect(actualBackupError).To(MatchError(lockError))
 			})
 
 			Context("cleanup fails as well", assertCleanupError)

@@ -144,21 +144,21 @@ var _ = Describe("Instance", func() {
 		})
 	})
 
-	Context("PreBackupQuiesce", func() {
+	Context("PreBackupLock", func() {
 		var err error
 		expectedError := fmt.Errorf("something went very wrong")
 
 		JustBeforeEach(func() {
-			err = instance.PreBackupQuiesce()
+			err = instance.PreBackupLock()
 		})
 
 		It("succeeds", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		It("uses the ssh connection to run the pre-backup-quiesce script", func() {
+		It("uses the ssh connection to run the pre-backup-lock script", func() {
 			Expect(sshConnection.RunCallCount()).To(Equal(1))
-			Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-quiesce | xargs -IN sudo sh -c N"))
+			Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock | xargs -IN sudo sh -c N"))
 		})
 
 		Describe("when there is an error with the ssh tunnel", func() {
@@ -171,7 +171,7 @@ var _ = Describe("Instance", func() {
 			})
 		})
 
-		Describe("when the pre-backup-quiesce script returns an error", func() {
+		Describe("when the pre-backup-lock script returns an error", func() {
 			BeforeEach(func() {
 				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 1, nil)
 			})

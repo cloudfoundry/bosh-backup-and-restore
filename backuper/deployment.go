@@ -6,7 +6,7 @@ import "fmt"
 type Deployment interface {
 	IsBackupable() (bool, error)
 	IsRestorable() (bool, error)
-	PreBackupQuiesce() error
+	PreBackupLock() error
 	Backup() error
 	Restore() error
 	CopyRemoteBackupToLocal(Artifact) error
@@ -37,10 +37,10 @@ func (bd *BoshDeployment) IsBackupable() (bool, error) {
 	return !backupableInstances.IsEmpty(), nil
 }
 
-func (bd *BoshDeployment) PreBackupQuiesce() error {
+func (bd *BoshDeployment) PreBackupLock() error {
 	instances, _ := bd.getBackupableInstances()
 
-	return instances.PreBackupQuiesce()
+	return instances.PreBackupLock()
 }
 
 func (bd *BoshDeployment) Backup() error {

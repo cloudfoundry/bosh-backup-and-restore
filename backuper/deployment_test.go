@@ -34,38 +34,38 @@ var _ = Describe("Deployment", func() {
 		instance3 = new(fakes.FakeInstance)
 	})
 
-	Context("PreBackupQuiesce", func() {
-		var quiesceError error
+	Context("PreBackupLock", func() {
+		var lockError error
 
 		JustBeforeEach(func() {
-			quiesceError = deployment.PreBackupQuiesce()
+			lockError = deployment.PreBackupLock()
 		})
 
 		Context("Single instance, backupable", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(true, nil)
-				instance1.PreBackupQuiesceReturns(nil)
+				instance1.PreBackupLockReturns(nil)
 				instances = []backuper.Instance{instance1}
 			})
 
 			It("does not fail", func() {
-				Expect(quiesceError).NotTo(HaveOccurred())
+				Expect(lockError).NotTo(HaveOccurred())
 			})
 
-			It("quiesces the instance", func() {
-				Expect(instance1.PreBackupQuiesceCallCount()).To(Equal(1))
+			It("locks the instance", func() {
+				Expect(instance1.PreBackupLockCallCount()).To(Equal(1))
 			})
 
-			Context("if the pre-backup-quiesce fails", func() {
-				quiesceErr := fmt.Errorf("something")
+			Context("if the pre-backup-lock fails", func() {
+				lockErr := fmt.Errorf("something")
 
 				BeforeEach(func() {
 					instance1.IsBackupableReturns(true, nil)
-					instance1.PreBackupQuiesceReturns(quiesceErr)
+					instance1.PreBackupLockReturns(lockErr)
 				})
 
 				It("fails", func() {
-					Expect(quiesceErr).To(HaveOccurred())
+					Expect(lockErr).To(HaveOccurred())
 				})
 			})
 		})

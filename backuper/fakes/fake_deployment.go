@@ -22,10 +22,10 @@ type FakeDeployment struct {
 		result1 bool
 		result2 error
 	}
-	PreBackupQuiesceStub        func() error
-	preBackupQuiesceMutex       sync.RWMutex
-	preBackupQuiesceArgsForCall []struct{}
-	preBackupQuiesceReturns     struct {
+	PreBackupLockStub        func() error
+	preBackupLockMutex       sync.RWMutex
+	preBackupLockArgsForCall []struct{}
+	preBackupLockReturns     struct {
 		result1 error
 	}
 	BackupStub        func() error
@@ -124,27 +124,27 @@ func (fake *FakeDeployment) IsRestorableReturns(result1 bool, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeDeployment) PreBackupQuiesce() error {
-	fake.preBackupQuiesceMutex.Lock()
-	fake.preBackupQuiesceArgsForCall = append(fake.preBackupQuiesceArgsForCall, struct{}{})
-	fake.recordInvocation("PreBackupQuiesce", []interface{}{})
-	fake.preBackupQuiesceMutex.Unlock()
-	if fake.PreBackupQuiesceStub != nil {
-		return fake.PreBackupQuiesceStub()
+func (fake *FakeDeployment) PreBackupLock() error {
+	fake.preBackupLockMutex.Lock()
+	fake.preBackupLockArgsForCall = append(fake.preBackupLockArgsForCall, struct{}{})
+	fake.recordInvocation("PreBackupLock", []interface{}{})
+	fake.preBackupLockMutex.Unlock()
+	if fake.PreBackupLockStub != nil {
+		return fake.PreBackupLockStub()
 	} else {
-		return fake.preBackupQuiesceReturns.result1
+		return fake.preBackupLockReturns.result1
 	}
 }
 
-func (fake *FakeDeployment) PreBackupQuiesceCallCount() int {
-	fake.preBackupQuiesceMutex.RLock()
-	defer fake.preBackupQuiesceMutex.RUnlock()
-	return len(fake.preBackupQuiesceArgsForCall)
+func (fake *FakeDeployment) PreBackupLockCallCount() int {
+	fake.preBackupLockMutex.RLock()
+	defer fake.preBackupLockMutex.RUnlock()
+	return len(fake.preBackupLockArgsForCall)
 }
 
-func (fake *FakeDeployment) PreBackupQuiesceReturns(result1 error) {
-	fake.PreBackupQuiesceStub = nil
-	fake.preBackupQuiesceReturns = struct {
+func (fake *FakeDeployment) PreBackupLockReturns(result1 error) {
+	fake.PreBackupLockStub = nil
+	fake.preBackupLockReturns = struct {
 		result1 error
 	}{result1}
 }
@@ -322,8 +322,8 @@ func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	defer fake.isBackupableMutex.RUnlock()
 	fake.isRestorableMutex.RLock()
 	defer fake.isRestorableMutex.RUnlock()
-	fake.preBackupQuiesceMutex.RLock()
-	defer fake.preBackupQuiesceMutex.RUnlock()
+	fake.preBackupLockMutex.RLock()
+	defer fake.preBackupLockMutex.RUnlock()
 	fake.backupMutex.RLock()
 	defer fake.backupMutex.RUnlock()
 	fake.restoreMutex.RLock()

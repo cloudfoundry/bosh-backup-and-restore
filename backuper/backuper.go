@@ -75,7 +75,7 @@ func (b Backuper) Backup(deploymentName string) error {
 		return cleanupAndReturnErrors(deployment, err)
 	}
 
-	if err = deployment.PreBackupQuiesce(); err != nil {
+	if err = deployment.PreBackupLock(); err != nil {
 		return cleanupAndReturnErrors(deployment, err)
 	}
 

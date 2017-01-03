@@ -13,7 +13,7 @@ type Instance interface {
 	InstanceIdentifer
 	IsBackupable() (bool, error)
 	IsRestorable() (bool, error)
-	PreBackupQuiesce() error
+	PreBackupLock() error
 	Backup() error
 	Restore() error
 	Cleanup() error
@@ -64,15 +64,15 @@ func (is instances) Cleanup() error {
 	return cleanupErrors
 }
 
-func (is instances) PreBackupQuiesce() error {
-	var quiesceErrors error = nil
+func (is instances) PreBackupLock() error {
+	var lockErrors error = nil
 	for _, instance := range is {
-		if err := instance.PreBackupQuiesce(); err != nil {
-			quiesceErrors = multierror.Append(quiesceErrors, err)
+		if err := instance.PreBackupLock(); err != nil {
+			lockErrors = multierror.Append(lockErrors, err)
 		}
 	}
 
-	return quiesceErrors
+	return lockErrors
 }
 
 func (is instances) Backup() error {
