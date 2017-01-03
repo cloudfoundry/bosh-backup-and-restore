@@ -12,9 +12,11 @@ type InstanceIdentifer interface {
 type Instance interface {
 	InstanceIdentifer
 	IsBackupable() (bool, error)
+	IsPostBackupUnlockable() (bool, error)
 	IsRestorable() (bool, error)
 	PreBackupLock() error
 	Backup() error
+	PostBackupUnlock() error
 	Restore() error
 	Cleanup() error
 	StreamBackupFromRemote(io.Writer) error
@@ -39,6 +41,21 @@ func (is instances) AllBackupable() (instances, error) {
 		}
 	}
 	return backupableInstances, nil
+}
+
+func (is instances) AllPostBackupUnlockable() (instances, error) {
+	var unlockableInstances []Instance
+	var findUnlockableErrors error = nil
+
+	for _, instance := range is {
+		if unlockable, err := instance.IsPostBackupUnlockable(); err != nil {
+			findUnlockableErrors = multierror.Append(err)
+		} else if unlockable {
+			unlockableInstances = append(unlockableInstances, instance)
+		}
+	}
+
+	return unlockableInstances, findUnlockableErrors
 }
 
 func (is instances) AllRestoreable() (instances, error) {
@@ -83,6 +100,16 @@ func (is instances) Backup() error {
 		}
 	}
 	return nil
+}
+
+func (is instances) PostBackupUnlock() error {
+	var unlockErrors error = nil
+	for _, instance := range is {
+		if err := instance.PostBackupUnlock(); err != nil {
+			unlockErrors = multierror.Append(unlockErrors, err)
+		}
+	}
+	return unlockErrors
 }
 
 func (is instances) Restore() error {

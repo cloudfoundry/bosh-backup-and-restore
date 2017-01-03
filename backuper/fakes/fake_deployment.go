@@ -34,6 +34,12 @@ type FakeDeployment struct {
 	backupReturns     struct {
 		result1 error
 	}
+	PostBackupUnlockStub        func() error
+	postBackupUnlockMutex       sync.RWMutex
+	postBackupUnlockArgsForCall []struct{}
+	postBackupUnlockReturns     struct {
+		result1 error
+	}
 	RestoreStub        func() error
 	restoreMutex       sync.RWMutex
 	restoreArgsForCall []struct{}
@@ -170,6 +176,31 @@ func (fake *FakeDeployment) BackupCallCount() int {
 func (fake *FakeDeployment) BackupReturns(result1 error) {
 	fake.BackupStub = nil
 	fake.backupReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeployment) PostBackupUnlock() error {
+	fake.postBackupUnlockMutex.Lock()
+	fake.postBackupUnlockArgsForCall = append(fake.postBackupUnlockArgsForCall, struct{}{})
+	fake.recordInvocation("PostBackupUnlock", []interface{}{})
+	fake.postBackupUnlockMutex.Unlock()
+	if fake.PostBackupUnlockStub != nil {
+		return fake.PostBackupUnlockStub()
+	} else {
+		return fake.postBackupUnlockReturns.result1
+	}
+}
+
+func (fake *FakeDeployment) PostBackupUnlockCallCount() int {
+	fake.postBackupUnlockMutex.RLock()
+	defer fake.postBackupUnlockMutex.RUnlock()
+	return len(fake.postBackupUnlockArgsForCall)
+}
+
+func (fake *FakeDeployment) PostBackupUnlockReturns(result1 error) {
+	fake.PostBackupUnlockStub = nil
+	fake.postBackupUnlockReturns = struct {
 		result1 error
 	}{result1}
 }
@@ -326,6 +357,8 @@ func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	defer fake.preBackupLockMutex.RUnlock()
 	fake.backupMutex.RLock()
 	defer fake.backupMutex.RUnlock()
+	fake.postBackupUnlockMutex.RLock()
+	defer fake.postBackupUnlockMutex.RUnlock()
 	fake.restoreMutex.RLock()
 	defer fake.restoreMutex.RUnlock()
 	fake.copyRemoteBackupToLocalMutex.RLock()

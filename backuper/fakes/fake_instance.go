@@ -28,6 +28,13 @@ type FakeInstance struct {
 		result1 bool
 		result2 error
 	}
+	IsPostBackupUnlockableStub        func() (bool, error)
+	isPostBackupUnlockableMutex       sync.RWMutex
+	isPostBackupUnlockableArgsForCall []struct{}
+	isPostBackupUnlockableReturns     struct {
+		result1 bool
+		result2 error
+	}
 	IsRestorableStub        func() (bool, error)
 	isRestorableMutex       sync.RWMutex
 	isRestorableArgsForCall []struct{}
@@ -45,6 +52,12 @@ type FakeInstance struct {
 	backupMutex       sync.RWMutex
 	backupArgsForCall []struct{}
 	backupReturns     struct {
+		result1 error
+	}
+	PostBackupUnlockStub        func() error
+	postBackupUnlockMutex       sync.RWMutex
+	postBackupUnlockArgsForCall []struct{}
+	postBackupUnlockReturns     struct {
 		result1 error
 	}
 	RestoreStub        func() error
@@ -169,6 +182,32 @@ func (fake *FakeInstance) IsBackupableReturns(result1 bool, result2 error) {
 	}{result1, result2}
 }
 
+func (fake *FakeInstance) IsPostBackupUnlockable() (bool, error) {
+	fake.isPostBackupUnlockableMutex.Lock()
+	fake.isPostBackupUnlockableArgsForCall = append(fake.isPostBackupUnlockableArgsForCall, struct{}{})
+	fake.recordInvocation("IsPostBackupUnlockable", []interface{}{})
+	fake.isPostBackupUnlockableMutex.Unlock()
+	if fake.IsPostBackupUnlockableStub != nil {
+		return fake.IsPostBackupUnlockableStub()
+	} else {
+		return fake.isPostBackupUnlockableReturns.result1, fake.isPostBackupUnlockableReturns.result2
+	}
+}
+
+func (fake *FakeInstance) IsPostBackupUnlockableCallCount() int {
+	fake.isPostBackupUnlockableMutex.RLock()
+	defer fake.isPostBackupUnlockableMutex.RUnlock()
+	return len(fake.isPostBackupUnlockableArgsForCall)
+}
+
+func (fake *FakeInstance) IsPostBackupUnlockableReturns(result1 bool, result2 error) {
+	fake.IsPostBackupUnlockableStub = nil
+	fake.isPostBackupUnlockableReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeInstance) IsRestorable() (bool, error) {
 	fake.isRestorableMutex.Lock()
 	fake.isRestorableArgsForCall = append(fake.isRestorableArgsForCall, struct{}{})
@@ -241,6 +280,31 @@ func (fake *FakeInstance) BackupCallCount() int {
 func (fake *FakeInstance) BackupReturns(result1 error) {
 	fake.BackupStub = nil
 	fake.backupReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeInstance) PostBackupUnlock() error {
+	fake.postBackupUnlockMutex.Lock()
+	fake.postBackupUnlockArgsForCall = append(fake.postBackupUnlockArgsForCall, struct{}{})
+	fake.recordInvocation("PostBackupUnlock", []interface{}{})
+	fake.postBackupUnlockMutex.Unlock()
+	if fake.PostBackupUnlockStub != nil {
+		return fake.PostBackupUnlockStub()
+	} else {
+		return fake.postBackupUnlockReturns.result1
+	}
+}
+
+func (fake *FakeInstance) PostBackupUnlockCallCount() int {
+	fake.postBackupUnlockMutex.RLock()
+	defer fake.postBackupUnlockMutex.RUnlock()
+	return len(fake.postBackupUnlockArgsForCall)
+}
+
+func (fake *FakeInstance) PostBackupUnlockReturns(result1 error) {
+	fake.PostBackupUnlockStub = nil
+	fake.postBackupUnlockReturns = struct {
 		result1 error
 	}{result1}
 }
@@ -422,12 +486,16 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.iDMutex.RUnlock()
 	fake.isBackupableMutex.RLock()
 	defer fake.isBackupableMutex.RUnlock()
+	fake.isPostBackupUnlockableMutex.RLock()
+	defer fake.isPostBackupUnlockableMutex.RUnlock()
 	fake.isRestorableMutex.RLock()
 	defer fake.isRestorableMutex.RUnlock()
 	fake.preBackupLockMutex.RLock()
 	defer fake.preBackupLockMutex.RUnlock()
 	fake.backupMutex.RLock()
 	defer fake.backupMutex.RUnlock()
+	fake.postBackupUnlockMutex.RLock()
+	defer fake.postBackupUnlockMutex.RUnlock()
 	fake.restoreMutex.RLock()
 	defer fake.restoreMutex.RUnlock()
 	fake.cleanupMutex.RLock()

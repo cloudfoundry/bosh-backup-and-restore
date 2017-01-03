@@ -83,6 +83,10 @@ func (b Backuper) Backup(deploymentName string) error {
 		return cleanupAndReturnErrors(deployment, err)
 	}
 
+	if err = deployment.PostBackupUnlock(); err != nil {
+		return cleanupAndReturnErrors(deployment, err)
+	}
+
 	if err = deployment.CopyRemoteBackupToLocal(artifact); err != nil {
 		return cleanupAndReturnErrors(deployment, err)
 	}

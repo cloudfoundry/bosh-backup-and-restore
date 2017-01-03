@@ -10,6 +10,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh/fakes"
@@ -19,17 +20,25 @@ var _ = Describe("Instance", func() {
 	var sshConnection *fakes.FakeSSHConnection
 	var boshDeployment *boshfakes.FakeDeployment
 	var boshLogger boshlog.Logger
+	var stdout, stderr *gbytes.Buffer
+	var jobName, jobIndex, expectedStdout, expectedStderr string
 
 	var instance backuper.Instance
 	BeforeEach(func() {
 		sshConnection = new(fakes.FakeSSHConnection)
 		boshDeployment = new(boshfakes.FakeDeployment)
-		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(GinkgoWriter, "[bosh-package] ", log.Lshortfile), log.New(GinkgoWriter, "[bosh-package] ", log.Lshortfile))
+		jobName = "job-name"
+		jobIndex = "job-index"
+		expectedStdout = "i'm a stdout"
+		expectedStderr = "i'm a stderr"
+		stdout = gbytes.NewBuffer()
+		stderr = gbytes.NewBuffer()
+		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile), log.New(stderr, "[bosh-package] ", log.Lshortfile))
 	})
 
 	JustBeforeEach(func() {
 		sshConnection.UsernameReturns("sshUsername")
-		instance = bosh.NewBoshInstance("job-name", "job-index", sshConnection, boshDeployment, boshLogger)
+		instance = bosh.NewBoshInstance(jobName, jobIndex, sshConnection, boshDeployment, boshLogger)
 	})
 
 	Context("IsBackupable", func() {
@@ -84,6 +93,82 @@ var _ = Describe("Instance", func() {
 			It("invokes the ssh connection, to find files", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/p-backup"))
+			})
+		})
+	})
+
+	Describe("IsPostBackupUnlockable", func() {
+		var actualUnlockable bool
+		var actualError error
+
+		JustBeforeEach(func() {
+			actualUnlockable, actualError = instance.IsPostBackupUnlockable()
+		})
+
+		Context("there are p-post-backup-unlock scripts in the job directories", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte(expectedStdout), []byte(expectedStderr), 0, nil)
+			})
+
+			It("succeeds", func() {
+				Expect(actualError).NotTo(HaveOccurred())
+			})
+
+			It("returns true", func() {
+				Expect(actualUnlockable).To(BeTrue())
+			})
+
+			It("invokes the ssh connection, to find files", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/p-post-backup-unlock"))
+			})
+
+			It("logs that we are checking for post-backup-unlock scripts", func() {
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Checking instance %s %s has post backup unlock scripts", jobName, jobIndex)))
+			})
+
+			It("logs stdout and stderr", func() {
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stdout: %s", expectedStdout)))
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stderr: %s", expectedStderr)))
+			})
+		})
+
+		Context("there are no p-post-backup-unlock scripts in the job directories", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte(expectedStdout), []byte(expectedStderr), 1, nil)
+			})
+
+			It("succeeds", func() {
+				Expect(actualError).NotTo(HaveOccurred())
+			})
+
+			It("returns false", func() {
+				Expect(actualUnlockable).To(BeFalse())
+			})
+		})
+
+		Context("error while running command", func() {
+			var expectedError = fmt.Errorf("we need to build a wall")
+
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte(expectedStdout), []byte(expectedStderr), 0, expectedError)
+			})
+
+			It("fails", func() {
+				Expect(actualError).To(HaveOccurred())
+			})
+
+			It("logs the error to stderr", func() {
+				Expect(stderr).To(
+					gbytes.Say(
+						fmt.Sprintf(
+							"Error checking instance %s %s for post backup unlock scripts. Exit code 0, error: %s",
+							jobName,
+							jobIndex,
+							expectedError,
+						),
+					),
+				)
 			})
 		})
 	})
@@ -211,6 +296,86 @@ var _ = Describe("Instance", func() {
 			})
 			It("fails", func() {
 				Expect(err).To(HaveOccurred())
+			})
+		})
+	})
+
+	Describe("PostBackupUnlock", func() {
+		var err error
+
+		JustBeforeEach(func() {
+			err = instance.PostBackupUnlock()
+		})
+
+		Context("when there are post backup unlock scripts in the job directories", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte(expectedStdout), []byte(expectedStderr), 0, nil)
+			})
+
+			It("succeeds", func() {
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("it uses the ssh connection to execute the post backup unlock scripts", func() {
+				Expect(sshConnection.RunArgsForCall(0)).To(
+					Equal("sudo ls /var/vcap/jobs/*/bin/p-post-backup-unlock | xargs -IN sudo sh -c N"),
+				)
+			})
+
+			It("logs that we are running post backup unlock on the instance", func() {
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running post backup unlock on %s %s", jobName, jobIndex)))
+				Expect(stdout).To(gbytes.Say("Done."))
+			})
+
+			It("logs stdout and stderr", func() {
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stdout: %s", expectedStdout)))
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stderr: %s", expectedStderr)))
+			})
+		})
+
+		Context("when there is a post backup unlock script which fails", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte(expectedStdout), []byte(expectedStderr), 1, nil)
+			})
+
+			It("fails", func() {
+				Expect(err).To(HaveOccurred())
+			})
+
+			It("returns the expected error", func() {
+				Expect(err.Error()).To(ContainSubstring(
+					fmt.Sprintf("Post backup unlock script on instance %s %s failed. Exit code 1", jobName, jobIndex),
+				))
+			})
+		})
+
+		Context("when there is an error executing the post backup unlock scripts", func() {
+			var expectedError error
+
+			BeforeEach(func() {
+				expectedError = fmt.Errorf("you just picked a whole bunch of oopsie daisies")
+				sshConnection.RunReturns([]byte(expectedStdout), []byte(expectedStderr), 0, expectedError)
+			})
+
+			It("fails", func() {
+				Expect(err).To(HaveOccurred())
+			})
+
+			It("returns the error from the SSH connection", func() {
+				Expect(err).To(Equal(expectedError))
+			})
+
+			It("logs the error to stderr", func() {
+				Expect(stderr).To(
+					gbytes.Say(
+						fmt.Sprintf(
+							"Error running post backup lock on instance %s %s. Error: %s",
+							jobName,
+							jobIndex,
+							expectedError,
+						),
+					),
+				)
 			})
 		})
 	})

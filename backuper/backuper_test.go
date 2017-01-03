@@ -78,6 +78,10 @@ var _ = Describe("Backuper", func() {
 			Expect(deployment.BackupCallCount()).To(Equal(1))
 		})
 
+		It("runs p-post-backup-unlock scripts on the deployment", func() {
+			Expect(deployment.PostBackupUnlockCallCount()).To(Equal(1))
+		})
+
 		It("ensures that deployment is cleaned up", func() {
 			Expect(deployment.CleanupCallCount()).To(Equal(1))
 		})
@@ -225,6 +229,28 @@ var _ = Describe("Backuper", func() {
 
 			It("fails the backup process", func() {
 				Expect(actualBackupError).To(MatchError(lockError))
+			})
+
+			Context("cleanup fails as well", assertCleanupError)
+		})
+
+		Context("fails if post-backup-unlock fails", func() {
+			var unlockError error
+
+			BeforeEach(func() {
+				unlockError = fmt.Errorf("it was going to be a smooth transition - NOT")
+				boshDirector.GetManifestReturns(deploymentManifest, nil)
+				artifactManager.CreateReturns(artifact, nil)
+				artifactManager.ExistsReturns(false)
+				deploymentManager.FindReturns(deployment, nil)
+				deployment.IsBackupableReturns(true, nil)
+				deployment.CleanupReturns(nil)
+
+				deployment.PostBackupUnlockReturns(unlockError)
+			})
+
+			It("fails the backup process", func() {
+				Expect(actualBackupError).To(MatchError(unlockError))
 			})
 
 			Context("cleanup fails as well", assertCleanupError)
