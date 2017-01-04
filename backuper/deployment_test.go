@@ -70,6 +70,21 @@ var _ = Describe("Deployment", func() {
 			})
 		})
 
+		Context("Multiple instances, some backupable", func() {
+			BeforeEach(func() {
+				instance1.IsBackupableReturns(true, nil)
+				instance2.IsBackupableReturns(false, nil)
+				instances = []backuper.Instance{instance1, instance2}
+			})
+			It("does not fail", func() {
+				Expect(lockError).NotTo(HaveOccurred())
+			})
+			It("runs pre-backup-lock on all instances", func() {
+				Expect(instance1.PreBackupLockCallCount()).To(Equal(1))
+				Expect(instance2.PreBackupLockCallCount()).To(Equal(1))
+			})
+		})
+
 
 	})
 

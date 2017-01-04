@@ -38,9 +38,7 @@ func (bd *BoshDeployment) IsBackupable() (bool, error) {
 }
 
 func (bd *BoshDeployment) PreBackupLock() error {
-	instances, _ := bd.getBackupableInstances()
-
-	return instances.PreBackupLock()
+	return bd.instances.PreBackupLock()
 }
 
 func (bd *BoshDeployment) Backup() error {
