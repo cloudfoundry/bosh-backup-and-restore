@@ -39,10 +39,10 @@ func NewBoshInstance(instanceGroupName, instanceIndex string, connection SSHConn
 
 func (d DeployedInstance) IsBackupable() (bool, error) {
 	d.Logger.Debug("", "Checking instance %s %s has backup scripts", d.InstanceGroupName, d.InstanceIndex)
-	stdin, stdout, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/p-backup")
+	stdout, stderr, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/p-backup")
 
-	d.Logger.Debug("", "Stdin: %s", string(stdin))
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
+	d.Logger.Debug("", "Stderr: %s", string(stderr))
 
 	if err != nil {
 		d.Logger.Debug("", "Error checking instance has backup scripts. Exit code %d, error %s", exitCode, err.Error())
