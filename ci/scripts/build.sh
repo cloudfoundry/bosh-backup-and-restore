@@ -16,3 +16,8 @@ pushd src/github.com/pivotal-cf/pcf-backup-and-restore
 popd
 
 mv src/github.com/pivotal-cf/pcf-backup-and-restore/pbr-"$VERSION".tar pbr-build/
+
+echo "Auto-delivered in
+https://s3-eu-west-1.amazonaws.com/pcf-backup-and-restore-builds/pbr-$VERSION.tar
+
+[Backup and Restore Bot]" > pbr-build/message
