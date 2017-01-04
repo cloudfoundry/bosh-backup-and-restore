@@ -38,29 +38,13 @@ func NewBoshInstance(instanceGroupName, instanceIndex string, connection SSHConn
 }
 
 func (d DeployedInstance) IsBackupable() (bool, error) {
-	d.Logger.Debug("", "Checking instance %s %s has backup scripts", d.InstanceGroupName, d.InstanceIndex)
-	stdout, stderr, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/p-backup")
-
-	d.Logger.Debug("", "Stdout: %s", string(stdout))
-	d.Logger.Debug("", "Stderr: %s", string(stderr))
-
-	if err != nil {
-		d.Logger.Debug("", "Error checking instance has backup scripts. Exit code %d, error %s", exitCode, err.Error())
-	}
+	_, _, exitCode, err := d.logAndRun("ls /var/vcap/jobs/*/bin/p-backup", "check for backup scripts")
 
 	return exitCode == 0, err
 }
 
 func (d DeployedInstance) PreBackupLock() error {
-	d.Logger.Info("", "Running pre-backup-lock on %s-%s...", d.InstanceGroupName, d.InstanceIndex)
-	stdout, stderr, exitCode, err := d.Run("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock | xargs -IN sudo sh -c N")
-
-	d.Logger.Debug("", "Stdout: %s", string(stdout))
-	d.Logger.Debug("", "Stderr: %s", string(stderr))
-
-	if err != nil {
-		d.Logger.Debug("", "Error running instance pre-backup-lock scripts. Exit code %d, error %s", exitCode, err.Error())
-	}
+	_, stderr, exitCode, err := d.logAndRun("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock | xargs -IN sudo sh -c N", "pre-backup-lock")
 
 	if exitCode != 0 {
 		return fmt.Errorf("Instance pre-backup-lock scripts returned %d. Error: %s", exitCode, stderr)
@@ -71,15 +55,8 @@ func (d DeployedInstance) PreBackupLock() error {
 
 func (d DeployedInstance) Backup() error {
 	d.Logger.Info("", "Backing up %s-%s...", d.InstanceGroupName, d.InstanceIndex)
-	d.Logger.Debug("", "Running all backup scripts on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
-	stdout, stderr, exitCode, err := d.Run("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/p-backup | xargs -IN sudo sh -c N")
 
-	d.Logger.Debug("", "Stdout: %s", string(stdout))
-	d.Logger.Debug("", "Stderr: %s", string(stderr))
-
-	if err != nil {
-		d.Logger.Debug("", "Error running instance backup scripts. Exit code %d, error %s", exitCode, err.Error())
-	}
+	_,stderr, exitCode, err := d.logAndRun("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/p-backup | xargs -IN sudo sh -c N", "backup")
 
 	if exitCode != 0 {
 		return fmt.Errorf("Instance backup scripts returned %d. Error: %s", exitCode, stderr)
@@ -90,14 +67,7 @@ func (d DeployedInstance) Backup() error {
 }
 
 func (d DeployedInstance) Restore() error {
-	stdout, stderr, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/p-restore | xargs -IN sudo sh -c N")
-
-	d.Logger.Debug("", "Stdout: %s", string(stdout))
-	d.Logger.Debug("", "Stderr: %s", string(stderr))
-
-	if err != nil {
-		d.Logger.Debug("", "Error running instance restore scripts. Exit code %d, error %s", exitCode, err.Error())
-	}
+	_, stderr, exitCode, err := d.logAndRun("ls /var/vcap/jobs/*/bin/p-restore | xargs -IN sudo sh -c N", "restore")
 
 	if exitCode != 0 {
 		return fmt.Errorf("Instance restore scripts returned %d. Error: %s", exitCode, stderr)
@@ -124,14 +94,9 @@ func (d DeployedInstance) StreamBackupFromRemote(writer io.Writer) error {
 }
 
 func (d DeployedInstance) StreamBackupToRemote(reader io.Reader) error {
-	d.Logger.Debug("", "Creating backup directory on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
-	stdout, stderr, exitCode, err := d.Run("sudo mkdir -p /var/vcap/store/backup/")
-
-	d.Logger.Debug("", "Stdout: %s", string(stdout))
-	d.Logger.Debug("", "Stderr: %s", string(stderr))
+	stdout, stderr, exitCode, err := d.logAndRun("sudo mkdir -p /var/vcap/store/backup/", "create backup directory on remote")
 
 	if err != nil {
-		d.Logger.Debug("", "Error creating backup directory on remote instance. Exit code %d, error %s", exitCode, err.Error())
 		return err
 	}
 
@@ -157,12 +122,9 @@ func (d DeployedInstance) StreamBackupToRemote(reader io.Reader) error {
 }
 
 func (d DeployedInstance) BackupChecksum() (backuper.BackupChecksum, error) {
-	d.Logger.Debug("", "Running checksum on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
-
-	stdout, stderr, exitCode, err := d.Run("cd /var/vcap/store/backup; sudo sh -c 'find . -type f | xargs shasum'")
+	stdout, stderr, exitCode, err := d.logAndRun("cd /var/vcap/store/backup; sudo sh -c 'find . -type f | xargs shasum'", "checksum")
 
 	if err != nil {
-		d.Logger.Debug("", "Error generating checksum. Exit code %d, error %s", exitCode, err.Error())
 		return nil, err
 	}
 
@@ -174,25 +136,13 @@ func (d DeployedInstance) BackupChecksum() (backuper.BackupChecksum, error) {
 }
 
 func (d DeployedInstance) IsRestorable() (bool, error) {
-	d.Logger.Debug("", "Checking instance %s %s has restore scripts", d.InstanceGroupName, d.InstanceIndex)
-	stdout, stderr, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/p-restore")
-
-	d.Logger.Debug("", "Stdout: %s", string(stdout))
-	d.Logger.Debug("", "Stderr: %s", string(stderr))
-
-	if err != nil {
-		d.Logger.Debug("", "Error checking instance has backup scripts. Exit code %d, error %s", exitCode, err.Error())
-	}
+	_, _, exitCode, err := d.logAndRun("ls /var/vcap/jobs/*/bin/p-restore", "check for restore scripts")
 
 	return exitCode == 0, err
 }
 
 func (d DeployedInstance) BackupSize() (string, error) {
-	stdout, stderr, exitCode, err := d.Run("sudo du -sh /var/vcap/store/backup/ | cut -f1")
-
-	if err != nil {
-		d.Logger.Debug("", "Error checking size of backup. Exit code %d, error %s", exitCode, err.Error())
-	}
+	stdout, stderr, exitCode, _ := d.logAndRun("sudo du -sh /var/vcap/store/backup/ | cut -f1", "check backup size")
 
 	if exitCode != 0 {
 		return "", fmt.Errorf("Unable to check size of backup: %s", stderr)
@@ -217,6 +167,21 @@ func (d DeployedInstance) Cleanup() error {
 	return errs
 }
 
+
+func (d DeployedInstance) logAndRun(cmd, label string) ([]byte,[]byte, int, error) {
+	d.Logger.Debug("", "Running %s on %s %s",label, d.InstanceGroupName, d.InstanceIndex)
+
+	stdout, stderr, exitCode, err := d.Run(cmd)
+	d.Logger.Debug("", "Stdout: %s", string(stdout))
+	d.Logger.Debug("", "Stderr: %s", string(stderr))
+
+	if err != nil {
+		d.Logger.Debug("", "Error running %s. Exit code %d, error %s", label, exitCode, err.Error())
+	}
+
+	return stdout,stderr, exitCode, err
+}
+
 func (d DeployedInstance) Name() string {
 	return d.InstanceGroupName
 }
@@ -226,7 +191,7 @@ func (d DeployedInstance) ID() string {
 }
 
 func (d DeployedInstance) removeBackupArtifacts() error {
-	_, _, _, err := d.Run("sudo rm -rf /var/vcap/store/backup")
+	_, _, _, err := d.logAndRun("sudo rm -rf /var/vcap/store/backup", "remove backup artifacts")
 	return err
 }
 
