@@ -13,6 +13,7 @@ import (
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh/fakes"
+	"errors"
 )
 
 var _ = Describe("Instance", func() {
@@ -585,6 +586,24 @@ var _ = Describe("Instance", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh /var/vcap/store/backup/ | cut -f1"))
 				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("when an error occurs", func() {
+			var err error
+			var actualError = errors.New("we will load it up with some bad dudes")
+
+			BeforeEach(func() {
+				sshConnection.RunReturns(nil, nil, 0, actualError)
+			})
+
+			JustBeforeEach(func() {
+				_, err = instance.BackupSize()
+			})
+
+			It("returns the error", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(err).To(MatchError(actualError))
 			})
 		})
 
