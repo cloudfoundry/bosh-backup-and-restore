@@ -25,9 +25,22 @@ var _ = Describe("Single deployment", func() {
 
 		By("running the pre-backup lock script")
 		runOnAllInstances(func(instName, instIndex string) {
-			Eventually(RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
+			session := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
 				"cat /tmp/pre-backup-lock.out",
-			)).Should(gexec.Exit(0))
+			)
+
+			Eventually(session).Should(gexec.Exit(0))
+			Expect(session.Out.Contents()).Should(ContainSubstring("output from p-pre-backup-lock"))
+		})
+
+		By("running the post backup unlock script")
+		runOnAllInstances(func(instName, instIndex string) {
+			session := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
+				"cat /tmp/post-backup-unlock.out",
+			)
+			Eventually(session).Should(gexec.Exit(0))
+
+			Expect(session.Out.Contents()).Should(ContainSubstring("output from p-post-backup-unlock"))
 		})
 
 		By("creating the backup artifacts locally")

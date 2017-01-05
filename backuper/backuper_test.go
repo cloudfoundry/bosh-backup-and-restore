@@ -115,7 +115,7 @@ var _ = Describe("Backuper", func() {
 			})
 		}
 
-		Context("when the artifiact already exists", func() {
+		Context("when the artifact already exists", func() {
 			BeforeEach(func() {
 				artifactManager.ExistsReturns(true)
 			})
