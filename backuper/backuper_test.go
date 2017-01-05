@@ -250,7 +250,18 @@ var _ = Describe("Backuper", func() {
 			})
 
 			It("fails the backup process", func() {
-				Expect(actualBackupError).To(MatchError(unlockError))
+				Expect(actualBackupError).To(MatchError(ContainSubstring(unlockError.Error())))
+			})
+
+			It("fails with the correct error type", func(){
+				Expect(actualBackupError).To(BeAssignableToTypeOf(backuper.PostBackupUnlockError{}))
+			})
+
+			It("continues with the cleanup",func(){
+				Expect(deployment.CleanupCallCount()).To(Equal(1))
+			})
+			It("continues with drain artifact",func(){
+				Expect(deployment.CopyRemoteBackupToLocalCallCount()).To(Equal(1))
 			})
 
 			Context("cleanup fails as well", assertCleanupError)

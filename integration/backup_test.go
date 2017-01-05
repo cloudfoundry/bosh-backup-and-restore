@@ -195,6 +195,20 @@ echo "Unlocking release"`)
 					Eventually(session).Should(gbytes.Say("Running post backup unlock on redis-dedicated-node 0"))
 					Eventually(session).Should(gbytes.Say("Done."))
 				})
+
+				Context("when the post backup unlock script fails", func(){
+					BeforeEach(func(){
+						instance1.CreateScript("/var/vcap/jobs/redis/bin/p-post-backup-unlock", `#!/usr/bin/env sh
+(>&2 echo 'error output from script')
+exit 1`)
+					})
+					It("exits with the correct error code", func() {
+						Expect(session).To(gexec.Exit(42))
+					})
+					It("has the error from the remote script in the output", func() {
+						Expect(session.Out.Contents()).Should(ContainSubstring("error output from script"))
+					})
+				})
 			})
 
 

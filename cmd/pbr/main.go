@@ -26,7 +26,65 @@ func main() {
 	app.Name = "Pivotal Backup and Restore"
 	app.HelpName = "Pivotal Backup and Restore"
 
-	app.Flags = []cli.Flag{
+	app.Flags = availableFlags()
+	app.Before = validateFlags
+	app.Commands = []cli.Command{
+		{
+			Name:    "backup",
+			Aliases: []string{"b"},
+			Usage:   "Backup a deployment",
+			Action:  backup,
+		},
+		{
+			Name:    "restore",
+			Aliases: []string{"r"},
+			Usage:   "Restore a deployment from backup",
+			Action:  restore,
+		},
+	}
+
+	if err := app.Run(os.Args); err != nil {
+		os.Exit(1)
+	}
+}
+
+func backup(c *cli.Context) error {
+	var deployment = c.GlobalString("deployment")
+
+	backuperInstance, err := makeBackuper(c)
+	if err != nil {
+		return err
+	}
+
+	err = backuperInstance.Backup(deployment)
+	return processBackuperError(err)
+}
+
+func restore(c *cli.Context) error {
+	var deployment = c.GlobalString("deployment")
+
+	backuperInstance, err := makeBackuper(c)
+	if err != nil {
+		return err
+	}
+
+	err = backuperInstance.Restore(deployment)
+	return processBackuperError(err)
+}
+
+func validateFlags(c *cli.Context) error {
+	requiredFlags := []string{"target", "username", "password", "deployment"}
+
+	for _, flag := range requiredFlags {
+		if c.GlobalString(flag) == "" {
+			return fmt.Errorf("--%v flag is required.", flag)
+		}
+	}
+	return nil
+}
+
+func availableFlags() []cli.Flag {
+	return []cli.Flag{
 		cli.StringFlag{
 			Name:  "target, t",
 			Value: "",
@@ -59,64 +117,19 @@ func main() {
 			Usage:  "Custom CA certificate",
 		},
 	}
-	app.Before = func(c *cli.Context) error {
-		requiredFlags := []string{"target", "username", "password", "deployment"}
-
-		for _, flag := range requiredFlags {
-			if c.GlobalString(flag) == "" {
-				return fmt.Errorf("--%v flag is required.", flag)
-			}
-		}
-		return nil
-	}
-	app.Commands = []cli.Command{
-		{
-			Name:    "backup",
-			Aliases: []string{"b"},
-			Usage:   "Backup a deployment",
-			Action: func(c *cli.Context) error {
-				var deployment = c.GlobalString("deployment")
-
-				backuperInstance, err := makeBackuper(c)
-				if err != nil {
-					return err
-				}
-
-				err = backuperInstance.Backup(deployment)
-				return processBackuperError(err)
-			},
-		},
-		{
-			Name:    "restore",
-			Aliases: []string{"r"},
-			Usage:   "Restore a deployment from backup",
-			Action: func(c *cli.Context) error {
-				var deployment = c.GlobalString("deployment")
-
-				backuperInstance, err := makeBackuper(c)
-				if err != nil {
-					return err
-				}
-
-				err = backuperInstance.Restore(deployment)
-				return processBackuperError(err)
-			},
-		},
-	}
-
-	if err := app.Run(os.Args); err != nil {
-		os.Exit(1)
-	}
 }
 
 func processBackuperError(err error) error {
-	if err != nil {
-		if _, checkErrorType := err.(backuper.CleanupError); checkErrorType {
-			return cli.NewExitError(ansi.Color(err.Error(), "yellow"), 2)
-		}
+	switch err := err.(type) {
+	case backuper.CleanupError:
+		return cli.NewExitError(ansi.Color(err.Error(), "yellow"), 2)
+	case backuper.PostBackupUnlockError:
+		return cli.NewExitError(ansi.Color(err.Error(), "yellow"), 42)
+	case error:
 		return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
+	default:
+		return err
 	}
-	return err
 }
 
 func makeBackuper(c *cli.Context) (*backuper.Backuper, error) {

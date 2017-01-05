@@ -42,6 +42,11 @@ type CleanupError struct {
 	error
 }
 
+type PostBackupUnlockError struct {
+	error
+}
+
+
 //Backup checks if a deployment has backupable instances and backs them up.
 func (b Backuper) Backup(deploymentName string) error {
 	b.Logger.Info("", "Starting backup of %s...\n", deploymentName)
@@ -83,12 +88,14 @@ func (b Backuper) Backup(deploymentName string) error {
 		return cleanupAndReturnErrors(deployment, err)
 	}
 
-	if err = deployment.PostBackupUnlock(); err != nil {
-		return cleanupAndReturnErrors(deployment, err)
-	}
+	postBackupUnlockError := deployment.PostBackupUnlock()
 
 	if err = deployment.CopyRemoteBackupToLocal(artifact); err != nil {
 		return cleanupAndReturnErrors(deployment, err)
+	}
+
+	if postBackupUnlockError != nil {
+		return cleanupAndReturnErrors(deployment, PostBackupUnlockError{postBackupUnlockError})
 	}
 
 	b.Logger.Info("", "Backup created of %s on %v\n", deploymentName, time.Now())
