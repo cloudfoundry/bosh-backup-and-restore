@@ -70,7 +70,7 @@ var _ = Describe("Backuper", func() {
 			Expect(deployment.IsBackupableCallCount()).To(Equal(1))
 		})
 
-		It("runs p-pre-backup-lock scripts on the deployment", func(){
+		It("runs p-pre-backup-lock scripts on the deployment", func() {
 			Expect(deployment.PreBackupLockCallCount()).To(Equal(1))
 		})
 

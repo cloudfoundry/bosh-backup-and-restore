@@ -95,11 +95,22 @@ printf "backupcontent2" > /var/vcap/store/backup/backupdump2
 					instance1.CreateScript("/var/vcap/jobs/redis/bin/p-pre-backup-lock", `#!/usr/bin/env sh
 touch /tmp/pre-backup-lock-output
 `)
+					instance1.CreateScript("/var/vcap/jobs/redis-broker/bin/p-pre-backup-lock", ``)
 				})
 
-				It("runs the p-pre-backup-lock script", func() {
+				It("runs the p-pre-backup-lock scripts", func() {
 					Expect(instance1.FileExists("/tmp/pre-backup-lock-output")).To(BeTrue())
 				})
+
+				It("logs that it looked for, and found, the scripts", func() {
+					Expect(session.Out.Contents()).Should(ContainSubstring(`Listing contents of /var/vcap/jobs/*/bin/p-pre-backup-lock on redis-dedicated-node 0`))
+					Expect(session.Out.Contents()).Should(ContainSubstring("> /var/vcap/jobs/redis/bin/p-pre-backup-lock"))
+					Expect(session.Out.Contents()).Should(ContainSubstring("> /var/vcap/jobs/redis-broker/bin/p-pre-backup-lock"))
+				})
+			})
+
+			Context("when the p-pre-backup-lock script is not present", func() {
+				XIt("logs that no such script was invoked")
 			})
 
 			It("exits zero", func() {

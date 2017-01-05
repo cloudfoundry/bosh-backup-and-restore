@@ -85,7 +85,6 @@ var _ = Describe("Deployment", func() {
 			})
 		})
 
-
 	})
 
 	Context("Backup", func() {

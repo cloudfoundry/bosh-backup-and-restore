@@ -65,6 +65,7 @@ func (d DeployedInstance) IsPostBackupUnlockable() (bool, error) {
 }
 
 func (d DeployedInstance) PreBackupLock() error {
+	d.filesPresent("/var/vcap/jobs/*/bin/p-pre-backup-lock")
 	_, stderr, exitCode, err := d.logAndRun("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock | xargs -IN sudo sh -c N", "pre-backup-lock")
 
 	if exitCode != 0 {
@@ -75,9 +76,10 @@ func (d DeployedInstance) PreBackupLock() error {
 }
 
 func (d DeployedInstance) Backup() error {
+	d.filesPresent("/var/vcap/jobs/*/bin/p-backup")
 	d.Logger.Info("", "Backing up %s-%s...", d.InstanceGroupName, d.InstanceIndex)
 
-	_,stderr, exitCode, err := d.logAndRun("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/p-backup | xargs -IN sudo sh -c N", "backup")
+	_, stderr, exitCode, err := d.logAndRun("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/p-backup | xargs -IN sudo sh -c N", "backup")
 
 	if exitCode != 0 {
 		return fmt.Errorf("Instance backup scripts returned %d. Error: %s", exitCode, stderr)
@@ -120,6 +122,7 @@ func (d DeployedInstance) PostBackupUnlock() error {
 }
 
 func (d DeployedInstance) Restore() error {
+	d.filesPresent("/var/vcap/jobs/*/bin/p-restore")
 	_, stderr, exitCode, err := d.logAndRun("ls /var/vcap/jobs/*/bin/p-restore | xargs -IN sudo sh -c N", "restore")
 
 	if exitCode != 0 {
@@ -220,9 +223,8 @@ func (d DeployedInstance) Cleanup() error {
 	return errs
 }
 
-
-func (d DeployedInstance) logAndRun(cmd, label string) ([]byte,[]byte, int, error) {
-	d.Logger.Debug("", "Running %s on %s %s",label, d.InstanceGroupName, d.InstanceIndex)
+func (d DeployedInstance) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
+	d.Logger.Debug("", "Running %s on %s %s", label, d.InstanceGroupName, d.InstanceIndex)
 
 	stdout, stderr, exitCode, err := d.Run(cmd)
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
@@ -232,7 +234,18 @@ func (d DeployedInstance) logAndRun(cmd, label string) ([]byte,[]byte, int, erro
 		d.Logger.Debug("", "Error running %s. Exit code %d, error %s", label, exitCode, err.Error())
 	}
 
-	return stdout,stderr, exitCode, err
+	return stdout, stderr, exitCode, err
+}
+
+func (d DeployedInstance) filesPresent(path string) {
+	d.Logger.Debug("", "Listing contents of %s on %s %s", path, d.InstanceGroupName, d.InstanceIndex)
+
+	stdout, _, _, _ := d.Run("sudo ls " + path)
+	files := strings.Split(string(stdout),"\n")
+
+	for _, f := range files {
+		d.Logger.Debug("", "> %s", f)
+	}
 }
 
 func (d DeployedInstance) Name() string {

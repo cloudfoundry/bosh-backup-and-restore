@@ -242,9 +242,10 @@ var _ = Describe("Instance", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		It("uses the ssh connection to run the pre-backup-lock script", func() {
-			Expect(sshConnection.RunCallCount()).To(Equal(1))
-			Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock | xargs -IN sudo sh -c N"))
+		It("uses the ssh connection to find any pre-backup-lock scripts, and run them", func() {
+			Expect(sshConnection.RunCallCount()).To(Equal(2))
+			Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock"))
+			Expect(sshConnection.RunArgsForCall(1)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock | xargs -IN sudo sh -c N"))
 		})
 
 		Describe("when there is an error with the ssh tunnel", func() {
@@ -278,10 +279,13 @@ var _ = Describe("Instance", func() {
 			BeforeEach(func() {
 				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, nil)
 			})
-			It("uses the ssh connection to create the backup dir and run all backup scripts as sudo", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/p-backup | xargs -IN sudo sh -c N"))
+
+			It("uses the ssh connection to create the backup dir, and list + run all backup scripts as sudo", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(2))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-backup"))
+				Expect(sshConnection.RunArgsForCall(1)).To(Equal("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/p-backup | xargs -IN sudo sh -c N"))
 			})
+
 			It("succeeds", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
@@ -291,10 +295,13 @@ var _ = Describe("Instance", func() {
 			BeforeEach(func() {
 				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 1, nil)
 			})
-			It("uses the ssh connection to create the backup dir and run all backup scripts as sudo", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/p-backup | xargs -IN sudo sh -c N"))
+
+			It("uses the ssh connection to create the backup dir and list + run all backup scripts as sudo", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(2))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-backup"))
+				Expect(sshConnection.RunArgsForCall(1)).To(Equal("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/p-backup | xargs -IN sudo sh -c N"))
 			})
+
 			It("fails", func() {
 				Expect(err).To(HaveOccurred())
 			})
@@ -395,9 +402,11 @@ var _ = Describe("Instance", func() {
 			It("succeeds", func() {
 				Expect(actualError).NotTo(HaveOccurred())
 			})
-			It("runs all restore scripts", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/p-restore | xargs -IN sudo sh -c N"))
+
+			It("lists, then runs, all restore scripts", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(2))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-restore"))
+				Expect(sshConnection.RunArgsForCall(1)).To(Equal("ls /var/vcap/jobs/*/bin/p-restore | xargs -IN sudo sh -c N"))
 			})
 		})
 
