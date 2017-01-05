@@ -173,6 +173,20 @@ chmod 0700 /var/vcap/store/backup/backupdump3`)
 					Eventually(session).Should(gbytes.Say("Copying backup -- 3.0M uncompressed -- from redis-dedicated-node-0..."))
 				})
 			})
+
+			Context("when backup deployment has a post-backup-unlock script", func() {
+				BeforeEach(func() {
+					instance1.CreateScript("/var/vcap/jobs/redis/bin/p-post-backup-unlock", `#!/usr/bin/env sh
+echo "Unlocking release"`)
+				})
+
+				It("prints unlock progress to the screen", func() {
+					Eventually(session).Should(gbytes.Say("Running post backup unlock on redis-dedicated-node 0"))
+					Eventually(session).Should(gbytes.Say("Done."))
+				})
+			})
+
+
 		})
 
 		Context("if a deployment can't be backed up", func() {

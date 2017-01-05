@@ -1,6 +1,8 @@
 package backuper
 
-import "fmt"
+import (
+	"fmt"
+)
 
 //go:generate counterfeiter -o fakes/fake_deployment.go . Deployment
 type Deployment interface {
@@ -8,6 +10,7 @@ type Deployment interface {
 	IsRestorable() (bool, error)
 	PreBackupLock() error
 	Backup() error
+	PostBackupUnlock() error
 	Restore() error
 	CopyRemoteBackupToLocal(Artifact) error
 	CopyLocalBackupToRemote(Artifact) error
@@ -21,6 +24,7 @@ type BoshDeployment struct {
 	instances           instances
 	backupableInstances instances
 	restorableInstances instances
+	postBackupUnlockableInstances instances
 }
 
 func NewBoshDeployment(logger Logger, instancesArray []Instance) Deployment {
@@ -47,6 +51,12 @@ func (bd *BoshDeployment) Backup() error {
 	} else {
 		return instances.Backup()
 	}
+}
+
+func (bd *BoshDeployment) PostBackupUnlock() error {
+	instances, _ := bd.getPostBackupUnlockableInstances()
+
+	return instances.PostBackupUnlock()
 }
 
 func (bd *BoshDeployment) Restore() error {
@@ -159,6 +169,17 @@ func (bd *BoshDeployment) getBackupableInstances() (instances, error) {
 		bd.backupableInstances = instances
 	}
 	return bd.backupableInstances, nil
+}
+
+func (bd *BoshDeployment) getPostBackupUnlockableInstances() (instances, error) {
+	if bd.postBackupUnlockableInstances == nil {
+		instances, err := bd.instances.AllPostBackupUnlockable()
+		if err != nil {
+			return nil, err
+		}
+		bd.postBackupUnlockableInstances = instances
+	}
+	return bd.postBackupUnlockableInstances, nil
 }
 
 func (bd *BoshDeployment) getRestoreableInstances() (instances, error) {

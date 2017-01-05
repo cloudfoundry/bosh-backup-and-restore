@@ -159,6 +159,156 @@ var _ = Describe("Deployment", func() {
 		})
 	})
 
+	Context("PostBackupUnlock", func() {
+		var unlockError, expectedError error
+
+		BeforeEach(func() {
+			expectedError = fmt.Errorf("something went terribly wrong")
+		})
+
+		JustBeforeEach(func() {
+			unlockError = deployment.PostBackupUnlock()
+		})
+
+		Context("Single instance, with post backup unlock", func() {
+			BeforeEach(func() {
+				instance1.IsPostBackupUnlockableReturns(true, nil)
+				instance1.PostBackupUnlockReturns(nil)
+				instances = []backuper.Instance{instance1}
+			})
+
+			It("does not fail", func() {
+				Expect(unlockError).NotTo(HaveOccurred())
+			})
+
+			It("unlocks the instance", func() {
+				Expect(instance1.PostBackupUnlockCallCount()).To(Equal(1))
+			})
+		})
+
+		Context("single instance, without post backup unlock", func() {
+			BeforeEach(func() {
+				instance1.IsPostBackupUnlockableReturns(false, nil)
+				instances = []backuper.Instance{instance1}
+			})
+
+			It("does not fail", func() {
+				Expect(unlockError).NotTo(HaveOccurred())
+			})
+
+			It("doesn't attempt to unlock the instance", func() {
+				Expect(instance1.PostBackupUnlockCallCount()).To(Equal(0))
+			})
+		})
+
+		Context("single that fails to unlock", func() {
+			BeforeEach(func() {
+				instance1.IsPostBackupUnlockableReturns(true, nil)
+				instance1.PostBackupUnlockReturns(expectedError)
+				instances = []backuper.Instance{instance1}
+			})
+
+			It("fails", func() {
+				Expect(unlockError).To(HaveOccurred())
+			})
+
+			It("attempts to unlock the instance", func() {
+				Expect(instance1.PostBackupUnlockCallCount()).To(Equal(1))
+			})
+		})
+
+		Context("Multiple instances, all with post backup unlock scripts", func() {
+			BeforeEach(func() {
+				instance1.IsPostBackupUnlockableReturns(true, nil)
+				instance1.PostBackupUnlockReturns(nil)
+				instance2.IsPostBackupUnlockableReturns(true, nil)
+				instance2.PostBackupUnlockReturns(nil)
+				instances = []backuper.Instance{instance1, instance2}
+			})
+
+			It("does not fail", func() {
+				Expect(unlockError).NotTo(HaveOccurred())
+			})
+
+			It("unlocks the instances", func() {
+				Expect(instance1.PostBackupUnlockCallCount()).To(Equal(1))
+				Expect(instance2.PostBackupUnlockCallCount()).To(Equal(1))
+			})
+		})
+
+		Context("Multiple instances, one with post backup unlock scripts", func() {
+			BeforeEach(func() {
+				instance1.IsPostBackupUnlockableReturns(false, nil)
+				instance2.IsPostBackupUnlockableReturns(true, nil)
+				instance2.PostBackupUnlockReturns(nil)
+				instances = []backuper.Instance{instance1, instance2}
+			})
+
+			It("does not fail", func() {
+				Expect(unlockError).NotTo(HaveOccurred())
+			})
+
+			It("unlocks the correct instance", func() {
+				Expect(instance2.PostBackupUnlockCallCount()).To(Equal(1))
+			})
+
+			It("doesn't unlock the instance with no script", func() {
+				Expect(instance1.PostBackupUnlockCallCount()).To(Equal(0))
+			})
+		})
+
+		Context("Multiple instances, where one fails to unlock", func() {
+			BeforeEach(func() {
+				instance1.IsPostBackupUnlockableReturns(true, nil)
+				instance1.PostBackupUnlockReturns(expectedError)
+				instance2.IsPostBackupUnlockableReturns(true, nil)
+				instance2.PostBackupUnlockReturns(nil)
+				instances = []backuper.Instance{instance1, instance2}
+			})
+
+			It("fails", func() {
+				Expect(unlockError).To(HaveOccurred())
+			})
+
+			It("attempts to unlock both instances", func() {
+				Expect(instance1.PostBackupUnlockCallCount()).To(Equal(1))
+				Expect(instance2.PostBackupUnlockCallCount()).To(Equal(1))
+			})
+
+			It("returns the expected single error", func() {
+				Expect(unlockError).To(MatchError(ContainSubstring(expectedError.Error())))
+			})
+		})
+
+		Context("Multiple instances, all fail to unlock", func() {
+			var secondError error
+
+			BeforeEach(func() {
+				instance1.IsPostBackupUnlockableReturns(true, nil)
+				instance1.PostBackupUnlockReturns(expectedError)
+
+				secondError = fmt.Errorf("something else went wrong")
+				instance2.IsPostBackupUnlockableReturns(true, nil)
+				instance2.PostBackupUnlockReturns(secondError)
+				instances = []backuper.Instance{instance1, instance2}
+			})
+
+			It("fails", func() {
+				Expect(unlockError).To(HaveOccurred())
+			})
+
+			It("attempts to unlock both instances", func() {
+				Expect(instance1.PostBackupUnlockCallCount()).To(Equal(1))
+				Expect(instance2.PostBackupUnlockCallCount()).To(Equal(1))
+			})
+
+			It("returns all the expected errors", func() {
+				Expect(unlockError).To(MatchError(ContainSubstring(expectedError.Error())))
+				Expect(unlockError).To(MatchError(ContainSubstring(secondError.Error())))
+			})
+		})
+	})
+
 	Context("IsBackupable", func() {
 		var (
 			isBackupableError error

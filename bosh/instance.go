@@ -43,6 +43,27 @@ func (d DeployedInstance) IsBackupable() (bool, error) {
 	return exitCode == 0, err
 }
 
+func (d DeployedInstance) IsPostBackupUnlockable() (bool, error) {
+	d.Logger.Debug("", "Checking instance %s %s has post backup unlock scripts", d.InstanceGroupName, d.InstanceIndex)
+	stdout, stderr, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/p-post-backup-unlock")
+
+	d.Logger.Debug("", "Stdout: %s", string(stdout))
+	d.Logger.Debug("", "Stderr: %s", string(stderr))
+
+	if err != nil {
+		d.Logger.Error(
+			"",
+			"Error checking instance %s %s for post backup unlock scripts. Exit code %d, error: %s",
+			d.InstanceGroupName,
+			d.InstanceIndex,
+			exitCode,
+			err.Error(),
+		)
+	}
+
+	return exitCode == 0, err
+}
+
 func (d DeployedInstance) PreBackupLock() error {
 	_, stderr, exitCode, err := d.logAndRun("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock | xargs -IN sudo sh -c N", "pre-backup-lock")
 
@@ -64,6 +85,38 @@ func (d DeployedInstance) Backup() error {
 
 	d.Logger.Info("", "Done.")
 	return err
+}
+
+func (d DeployedInstance) PostBackupUnlock() error {
+	d.Logger.Info("", "Running post backup unlock on %s %s", d.InstanceGroupName, d.InstanceIndex)
+
+	stdout, stderr, exitCode, err :=d.Run("sudo ls /var/vcap/jobs/*/bin/p-post-backup-unlock | xargs -IN sudo sh -c N")
+
+	d.Logger.Debug("", "Stdout: %s", string(stdout))
+	d.Logger.Debug("", "Stderr: %s", string(stderr))
+
+	if err != nil {
+		d.Logger.Error(
+			"",
+			"Error running post backup lock on instance %s %s. Error: %s",
+			d.InstanceGroupName,
+			d.InstanceIndex,
+			err,
+		)
+		return err
+	}
+
+	if exitCode != 0 {
+		return fmt.Errorf(
+			"Post backup unlock script on instance %s %s failed. Exit code %d",
+			d.InstanceGroupName,
+			d.InstanceIndex,
+			exitCode,
+		)
+	}
+
+	d.Logger.Info("", "Done.")
+	return nil
 }
 
 func (d DeployedInstance) Restore() error {
