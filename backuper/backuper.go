@@ -95,7 +95,7 @@ func (b Backuper) Backup(deploymentName string) error {
 	}
 
 	if postBackupUnlockError != nil {
-		return cleanupAndReturnErrors(deployment, PostBackupUnlockError{postBackupUnlockError})
+		return cleanupAndReturnPostBackupError(deployment, postBackupUnlockError)
 	}
 
 	b.Logger.Info("", "Backup created of %s on %v\n", deploymentName, time.Now())
@@ -163,4 +163,11 @@ func cleanupAndReturnErrors(d Deployment, err error) error {
 		return multierror.Append(err, cleanupErr)
 	}
 	return err
+}
+func cleanupAndReturnPostBackupError(d Deployment, err error) error {
+	cleanupErr := d.Cleanup()
+	if cleanupErr != nil {
+		err = multierror.Append(err, cleanupErr)
+	}
+	return PostBackupUnlockError{err}
 }

@@ -264,7 +264,20 @@ var _ = Describe("Backuper", func() {
 				Expect(deployment.CopyRemoteBackupToLocalCallCount()).To(Equal(1))
 			})
 
-			Context("cleanup fails as well", assertCleanupError)
+			Context("cleanup fails as well", func(){
+				var cleanupError = fmt.Errorf("he was born in kenya")
+				BeforeEach(func() {
+					deployment.CleanupReturns(cleanupError)
+				})
+
+				It("includes the cleanup error in the returned error", func() {
+					Expect(actualBackupError).To(MatchError(ContainSubstring(cleanupError.Error())))
+				})
+
+				It("returns an error of type PostBackupUnlockError", func() {
+					Expect(actualBackupError).To(BeAssignableToTypeOf(backuper.PostBackupUnlockError{}))
+				})
+			})
 		})
 
 		Context("fails if backup cannot be drained", func() {
