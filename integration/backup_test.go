@@ -109,10 +109,6 @@ touch /tmp/pre-backup-lock-output
 				})
 			})
 
-			Context("when the p-pre-backup-lock script is not present", func() {
-				XIt("logs that no such script was invoked")
-			})
-
 			It("exits zero", func() {
 				Expect(session.ExitCode()).To(BeZero())
 			})
