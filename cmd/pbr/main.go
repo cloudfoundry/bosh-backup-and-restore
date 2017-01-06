@@ -124,7 +124,7 @@ func processBackuperError(err error) error {
 	case backuper.CleanupError:
 		return cli.NewExitError(ansi.Color(err.Error(), "yellow"), 2)
 	case backuper.PostBackupUnlockError:
-		return cli.NewExitError(ansi.Color(err.Error(), "yellow"), 42)
+		return cli.NewExitError(ansi.Color(err.Error(), "red"), 42)
 	case error:
 		return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
 	default:
