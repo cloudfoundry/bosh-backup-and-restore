@@ -264,6 +264,41 @@ var _ = Describe("Backuper", func() {
 				Expect(deployment.CopyRemoteBackupToLocalCallCount()).To(Equal(1))
 			})
 
+			Context("when the drain artifact fails as well", func(){
+				var drainError = fmt.Errorf("i don't do email but i know about hacking")
+
+				BeforeEach(func() {
+					deployment.CopyRemoteBackupToLocalReturns(drainError)
+				})
+
+				It("includes the drain error in the returned error", func() {
+					Expect(actualBackupError).To(MatchError(ContainSubstring(drainError.Error())))
+				})
+
+				It("returns an error of type PostBackupUnlockError", func() {
+					Expect(actualBackupError).To(BeAssignableToTypeOf(backuper.PostBackupUnlockError{}))
+				})
+
+				Context("cleanup fails as well", func(){
+					var cleanupError = fmt.Errorf("he was born in kenya")
+					BeforeEach(func() {
+						deployment.CleanupReturns(cleanupError)
+					})
+
+					It("includes the cleanup error in the returned error", func() {
+						Expect(actualBackupError).To(MatchError(ContainSubstring(cleanupError.Error())))
+					})
+
+					It("includes the drain error in the returned error", func() {
+						Expect(actualBackupError).To(MatchError(ContainSubstring(drainError.Error())))
+					})
+
+					It("returns an error of type PostBackupUnlockError", func() {
+						Expect(actualBackupError).To(BeAssignableToTypeOf(backuper.PostBackupUnlockError{}))
+					})
+				})
+			})
+
 			Context("cleanup fails as well", func(){
 				var cleanupError = fmt.Errorf("he was born in kenya")
 				BeforeEach(func() {

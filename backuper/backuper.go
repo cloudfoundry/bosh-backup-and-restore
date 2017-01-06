@@ -90,12 +90,22 @@ func (b Backuper) Backup(deploymentName string) error {
 
 	postBackupUnlockError := deployment.PostBackupUnlock()
 
-	if err = deployment.CopyRemoteBackupToLocal(artifact); err != nil {
-		return cleanupAndReturnErrors(deployment, err)
+	copyRemoteBackupToLocalError := deployment.CopyRemoteBackupToLocal(artifact)
+
+	if postBackupUnlockError != nil && copyRemoteBackupToLocalError != nil {
+		var errs error
+		errs = multierror.Append(errs, postBackupUnlockError)
+		errs = multierror.Append(errs, copyRemoteBackupToLocalError)
+
+		return cleanupAndReturnPostBackupErrorAndCopyRemoteBackupToLocalError(deployment, errs)
 	}
 
 	if postBackupUnlockError != nil {
 		return cleanupAndReturnPostBackupError(deployment, postBackupUnlockError)
+	}
+
+	if copyRemoteBackupToLocalError != nil {
+		return cleanupAndReturnErrors(deployment, copyRemoteBackupToLocalError)
 	}
 
 	b.Logger.Info("", "Backup created of %s on %v\n", deploymentName, time.Now())
@@ -164,10 +174,19 @@ func cleanupAndReturnErrors(d Deployment, err error) error {
 	}
 	return err
 }
+
 func cleanupAndReturnPostBackupError(d Deployment, err error) error {
 	cleanupErr := d.Cleanup()
 	if cleanupErr != nil {
 		err = multierror.Append(err, cleanupErr)
 	}
 	return PostBackupUnlockError{err}
+}
+
+func cleanupAndReturnPostBackupErrorAndCopyRemoteBackupToLocalError(d Deployment, errs error) error {
+	cleanupErr := d.Cleanup()
+	if cleanupErr != nil {
+		multierror.Append(errs, cleanupErr)
+	}
+	return PostBackupUnlockError{errs}
 }
