@@ -277,13 +277,19 @@ var _ = Describe("Instance", func() {
 		})
 		Describe("when there are backup scripts in the job directories", func() {
 			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, nil)
+				sshConnection.RunReturns([]byte("/var/vcap/foo/bar/backup\n/var/vcap/foo/baz/backup\n"), []byte("not relevant"), 0, nil)
 			})
 
 			It("uses the ssh connection to create the backup dir, and list + run all backup scripts as sudo", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(2))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-backup"))
 				Expect(sshConnection.RunArgsForCall(1)).To(Equal("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/p-backup | xargs -IN sudo sh -c N"))
+			})
+
+			It("logs the paths to the scripts being run", func() {
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/foo/bar/backup`))
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/foo/baz/backup`))
+				Expect(string(stdout.Contents())).NotTo(ContainSubstring("> \n"))
 			})
 
 			It("succeeds", func() {

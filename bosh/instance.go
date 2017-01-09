@@ -8,6 +8,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"bytes"
 )
 
 type DeployedInstance struct {
@@ -92,7 +93,7 @@ func (d DeployedInstance) Backup() error {
 func (d DeployedInstance) PostBackupUnlock() error {
 	d.Logger.Info("", "Running post backup unlock on %s %s", d.InstanceGroupName, d.InstanceIndex)
 
-	stdout, stderr, exitCode, err :=d.Run("sudo ls /var/vcap/jobs/*/bin/p-post-backup-unlock | xargs -IN sudo sh -c N")
+	stdout, stderr, exitCode, err := d.Run("sudo ls /var/vcap/jobs/*/bin/p-post-backup-unlock | xargs -IN sudo sh -c N")
 
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
 	d.Logger.Debug("", "Stderr: %s", string(stderr))
@@ -241,7 +242,8 @@ func (d DeployedInstance) filesPresent(path string) {
 	d.Logger.Debug("", "Listing contents of %s on %s %s", path, d.InstanceGroupName, d.InstanceIndex)
 
 	stdout, _, _, _ := d.Run("sudo ls " + path)
-	files := strings.Split(string(stdout),"\n")
+	stdout = bytes.TrimSpace(stdout)
+	files := strings.Split(string(stdout), "\n")
 
 	for _, f := range files {
 		d.Logger.Debug("", "> %s", f)
