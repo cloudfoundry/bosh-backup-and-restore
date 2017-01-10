@@ -1,22 +1,24 @@
-hash: 2e8410c9e773ffbceaed0ce3db32dd1b0cae537ca332e67bd19cee2c2efd61fd
-updated: 2016-11-15T12:33:37.653369823Z
+hash: 8b2ed2276f2810c8b680c752733ad2faba5f464c0f132cb3c45723fadc86aba7
+updated: 2017-01-10T11:54:26.61741432Z
 imports:
 - name: github.com/bmatcuk/doublestar
   version: dd6a6f0a8cdfaaa88b08cf26cf1bc7d69003ee13
 - name: github.com/charlievieth/fs
   version: 85d13508c8e9fdaf4c9fcd52a4c3241341566346
 - name: github.com/cloudfoundry/bosh-cli
-  version: 7f386519dc384201bcc370d94b99a4b675442547
+  version: 2a5f10c7693ea2e74c5e81f4b62e23d211fff415
   subpackages:
   - director
+  - director/directorfakes
 - name: github.com/cloudfoundry/bosh-utils
-  version: 4ffc4d1eb40176160a58367276451c20f0a05e43
+  version: 18e54c725fb20f623c27e12aaf3e98d6e18dca69
+  vcs: git
   subpackages:
-  - uuid
-  - logger
   - errors
   - httpclient
+  - logger
   - system
+  - uuid
 - name: github.com/cppforlife/go-semi-semantic
   version: 576b6af77ae4f3ccef356902fb3b9a9ae22e0b11
   subpackages:
@@ -36,50 +38,50 @@ imports:
   subpackages:
   - config
   - internal/codelocation
+  - internal/containernode
   - internal/failer
+  - internal/leafnodes
   - internal/remote
+  - internal/spec
+  - internal/specrunner
   - internal/suite
   - internal/testingtproxy
   - internal/writer
   - reporters
   - reporters/stenographer
-  - types
-  - internal/containernode
-  - internal/leafnodes
-  - internal/spec
-  - internal/specrunner
   - reporters/stenographer/support/go-colorable
   - reporters/stenographer/support/go-isatty
+  - types
 - name: github.com/onsi/gomega
   version: 2b6ed62707a2f5fdf1ba9cd856cdeec6bfff6b61
   subpackages:
-  - gexec
+  - format
   - gbytes
+  - gexec
   - internal/assertion
   - internal/asyncassertion
+  - internal/oraclematcher
   - internal/testingtsupport
   - matchers
-  - types
-  - format
-  - internal/oraclematcher
   - matchers/support/goraph/bipartitegraph
   - matchers/support/goraph/edge
   - matchers/support/goraph/node
   - matchers/support/goraph/util
+  - types
 - name: github.com/pivotal-cf-experimental/cf-webmock
   version: 997a8a7db11fd6d6453c18b3814deffef5a72be8
   subpackages:
   - mockbosh
   - mockhttp
 - name: github.com/urfave/cli
-  version: a14d7d367bc02b1f57d88de97926727f2d936387
+  version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 - name: golang.org/x/crypto
   version: 9477e0b78b9ac3d0b03822fd95422e2fe07627cd
   subpackages:
-  - ssh
   - curve25519
   - ed25519
   - ed25519/internal/edwards25519
+  - ssh
 - name: golang.org/x/sys
   version: b699b7032584f0953262cb2788a0ca19bb494703
   subpackages:

@@ -5,10 +5,11 @@ import:
 - package: github.com/pivotal-cf-experimental/cf-webmock
 - package: github.com/mgutz/ansi
 - package: github.com/cloudfoundry/bosh-cli
-  version: ^0.0.123
+  version: =0.0.123
+- package: github.com/cloudfoundry/bosh-utils
+  vcs: git
+  version: 18e54c725fb20f623c27e12aaf3e98d6e18dca69
 - package: gopkg.in/yaml.v2
 - package: github.com/hashicorp/go-multierror
 - package: github.com/onsi/gomega
-  # version: ^1.0.0
 - package: github.com/onsi/ginkgo
-  # version: ^1.2.0
