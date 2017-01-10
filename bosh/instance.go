@@ -43,7 +43,7 @@ func (d *DeployedInstance) IsBackupable() (bool, error) {
 	if d.backupable != nil {
 		return *d.backupable, nil
 	}
-	_, _, exitCode, err := d.logAndRun("ls /var/vcap/jobs/*/bin/p-backup", "check for backup scripts")
+	_, _, exitCode, err := d.logAndRun("sudo ls /var/vcap/jobs/*/bin/p-backup", "check for backup scripts")
 	if err != nil {
 		return false, err
 	}

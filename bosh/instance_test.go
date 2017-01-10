@@ -15,6 +15,7 @@ import (
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh/fakes"
 	"errors"
+	"strings"
 )
 
 var _ = Describe("Instance", func() {
@@ -62,7 +63,7 @@ var _ = Describe("Instance", func() {
 			})
 			It("invokes the ssh connection, to find files", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/p-backup"))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-backup"))
 			})
 			Describe("when is backupable is called again", func() {
 				var secondInvocationActualBackupable bool
@@ -97,7 +98,7 @@ var _ = Describe("Instance", func() {
 			})
 			It("invokes the ssh connection, to find files", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/p-backup"))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-backup"))
 			})
 
 			Describe("when is backupable is called again", func() {
@@ -131,7 +132,7 @@ var _ = Describe("Instance", func() {
 
 			It("invokes the ssh connection, to find files", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/p-backup"))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-backup"))
 			})
 
 			Describe("when is backupable is called again", func() {
@@ -145,6 +146,7 @@ var _ = Describe("Instance", func() {
 				It("only invokes the ssh connection again", func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(2))
 				})
+
 				It("fails", func() {
 					Expect(secondInvocationActualError).To(HaveOccurred())
 				})
@@ -353,7 +355,12 @@ var _ = Describe("Instance", func() {
 
 		Describe("when there is an error backing up", func() {
 			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 1, nil)
+				sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
+					if strings.Contains(cmd, "xargs") {
+						return []byte("not relevant"), []byte("not relevant"), 1, nil
+					}
+					return []byte("not relevant"), []byte("not relevant"), 0, nil
+				}
 			})
 
 			It("uses the ssh connection to create the backup dir and list + run all backup scripts as sudo", func() {
