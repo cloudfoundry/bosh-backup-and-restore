@@ -17,6 +17,7 @@ type DeployedInstance struct {
 	InstanceIndex     string
 	SSHConnection
 	Logger
+	backupable        *bool
 }
 
 //go:generate counterfeiter -o fakes/fake_ssh_connection.go . SSHConnection
@@ -29,7 +30,7 @@ type SSHConnection interface {
 }
 
 func NewBoshInstance(instanceGroupName, instanceIndex string, connection SSHConnection, deployment director.Deployment, logger Logger) backuper.Instance {
-	return DeployedInstance{
+	return &DeployedInstance{
 		InstanceIndex:     instanceIndex,
 		InstanceGroupName: instanceGroupName,
 		SSHConnection:     connection,
@@ -38,13 +39,21 @@ func NewBoshInstance(instanceGroupName, instanceIndex string, connection SSHConn
 	}
 }
 
-func (d DeployedInstance) IsBackupable() (bool, error) {
+func (d *DeployedInstance) IsBackupable() (bool, error) {
+	if d.backupable != nil {
+		return *d.backupable, nil
+	}
 	_, _, exitCode, err := d.logAndRun("ls /var/vcap/jobs/*/bin/p-backup", "check for backup scripts")
+	if err != nil {
+		return false, err
+	}
+	backupable := exitCode == 0
+	d.backupable = &backupable
 
-	return exitCode == 0, err
+	return *d.backupable, err
 }
 
-func (d DeployedInstance) IsPostBackupUnlockable() (bool, error) {
+func (d *DeployedInstance) IsPostBackupUnlockable() (bool, error) {
 	d.Logger.Debug("", "Checking instance %s %s has post backup unlock scripts", d.InstanceGroupName, d.InstanceIndex)
 	stdout, stderr, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/p-post-backup-unlock")
 
@@ -65,7 +74,7 @@ func (d DeployedInstance) IsPostBackupUnlockable() (bool, error) {
 	return exitCode == 0, err
 }
 
-func (d DeployedInstance) PreBackupLock() error {
+func (d *DeployedInstance) PreBackupLock() error {
 	d.filesPresent("/var/vcap/jobs/*/bin/p-pre-backup-lock")
 	_, stderr, exitCode, err := d.logAndRun("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock | xargs -IN sudo sh -c N", "pre-backup-lock")
 
@@ -76,7 +85,7 @@ func (d DeployedInstance) PreBackupLock() error {
 	return err
 }
 
-func (d DeployedInstance) Backup() error {
+func (d *DeployedInstance) Backup() error {
 	d.filesPresent("/var/vcap/jobs/*/bin/p-backup")
 	d.Logger.Info("", "Backing up %s-%s...", d.InstanceGroupName, d.InstanceIndex)
 
@@ -90,7 +99,7 @@ func (d DeployedInstance) Backup() error {
 	return err
 }
 
-func (d DeployedInstance) PostBackupUnlock() error {
+func (d *DeployedInstance) PostBackupUnlock() error {
 	d.Logger.Info("", "Running post backup unlock on %s %s", d.InstanceGroupName, d.InstanceIndex)
 
 	stdout, stderr, exitCode, err := d.Run("sudo ls /var/vcap/jobs/*/bin/p-post-backup-unlock | xargs -IN sudo sh -c N")
@@ -122,7 +131,7 @@ func (d DeployedInstance) PostBackupUnlock() error {
 	return nil
 }
 
-func (d DeployedInstance) Restore() error {
+func (d *DeployedInstance) Restore() error {
 	d.filesPresent("/var/vcap/jobs/*/bin/p-restore")
 	_, stderr, exitCode, err := d.logAndRun("ls /var/vcap/jobs/*/bin/p-restore | xargs -IN sudo sh -c N", "restore")
 
@@ -133,7 +142,7 @@ func (d DeployedInstance) Restore() error {
 	return err
 }
 
-func (d DeployedInstance) StreamBackupFromRemote(writer io.Writer) error {
+func (d *DeployedInstance) StreamBackupFromRemote(writer io.Writer) error {
 	d.Logger.Debug("", "Streaming backup from instance %s %s", d.InstanceGroupName, d.InstanceIndex)
 	stderr, exitCode, err := d.Stream("sudo tar -C /var/vcap/store/backup -zc .", writer)
 
@@ -150,7 +159,7 @@ func (d DeployedInstance) StreamBackupFromRemote(writer io.Writer) error {
 	return err
 }
 
-func (d DeployedInstance) StreamBackupToRemote(reader io.Reader) error {
+func (d *DeployedInstance) StreamBackupToRemote(reader io.Reader) error {
 	stdout, stderr, exitCode, err := d.logAndRun("sudo mkdir -p /var/vcap/store/backup/", "create backup directory on remote")
 
 	if err != nil {
@@ -178,7 +187,7 @@ func (d DeployedInstance) StreamBackupToRemote(reader io.Reader) error {
 	return err
 }
 
-func (d DeployedInstance) BackupChecksum() (backuper.BackupChecksum, error) {
+func (d *DeployedInstance) BackupChecksum() (backuper.BackupChecksum, error) {
 	stdout, stderr, exitCode, err := d.logAndRun("cd /var/vcap/store/backup; sudo sh -c 'find . -type f | xargs shasum'", "checksum")
 
 	if err != nil {
@@ -192,13 +201,13 @@ func (d DeployedInstance) BackupChecksum() (backuper.BackupChecksum, error) {
 	return convertShasToMap(string(stdout)), nil
 }
 
-func (d DeployedInstance) IsRestorable() (bool, error) {
+func (d *DeployedInstance) IsRestorable() (bool, error) {
 	_, _, exitCode, err := d.logAndRun("ls /var/vcap/jobs/*/bin/p-restore", "check for restore scripts")
 
 	return exitCode == 0, err
 }
 
-func (d DeployedInstance) BackupSize() (string, error) {
+func (d *DeployedInstance) BackupSize() (string, error) {
 	stdout, stderr, exitCode, err := d.logAndRun("sudo du -sh /var/vcap/store/backup/ | cut -f1", "check backup size")
 
 	if exitCode != 0 {
@@ -209,7 +218,7 @@ func (d DeployedInstance) BackupSize() (string, error) {
 	return size, err
 }
 
-func (d DeployedInstance) Cleanup() error {
+func (d *DeployedInstance) Cleanup() error {
 	var errs error
 	d.Logger.Debug("", "Cleaning up SSH connection on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
 	removeArtifactError := d.removeBackupArtifacts()
@@ -224,7 +233,7 @@ func (d DeployedInstance) Cleanup() error {
 	return errs
 }
 
-func (d DeployedInstance) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
+func (d *DeployedInstance) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
 	d.Logger.Debug("", "Running %s on %s %s", label, d.InstanceGroupName, d.InstanceIndex)
 
 	stdout, stderr, exitCode, err := d.Run(cmd)
@@ -238,7 +247,7 @@ func (d DeployedInstance) logAndRun(cmd, label string) ([]byte, []byte, int, err
 	return stdout, stderr, exitCode, err
 }
 
-func (d DeployedInstance) filesPresent(path string) {
+func (d *DeployedInstance) filesPresent(path string) {
 	d.Logger.Debug("", "Listing contents of %s on %s %s", path, d.InstanceGroupName, d.InstanceIndex)
 
 	stdout, _, _, _ := d.Run("sudo ls " + path)
@@ -250,15 +259,15 @@ func (d DeployedInstance) filesPresent(path string) {
 	}
 }
 
-func (d DeployedInstance) Name() string {
+func (d *DeployedInstance) Name() string {
 	return d.InstanceGroupName
 }
 
-func (d DeployedInstance) ID() string {
+func (d *DeployedInstance) ID() string {
 	return d.InstanceIndex
 }
 
-func (d DeployedInstance) removeBackupArtifacts() error {
+func (d *DeployedInstance) removeBackupArtifacts() error {
 	_, _, _, err := d.logAndRun("sudo rm -rf /var/vcap/store/backup", "remove backup artifacts")
 	return err
 }

@@ -64,6 +64,25 @@ var _ = Describe("Instance", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/p-backup"))
 			})
+			Describe("when is backupable is called again", func() {
+				var secondInvocationActualBackupable bool
+				var secondInvocationActualError error
+				JustBeforeEach(func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(1))
+					secondInvocationActualBackupable, secondInvocationActualError = instance.IsBackupable()
+				})
+
+				It("only invokes the ssh connection once", func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(1))
+				})
+				It("returns true", func() {
+					Expect(secondInvocationActualBackupable).To(BeTrue())
+				})
+				It("succeeds", func() {
+					Expect(secondInvocationActualError).NotTo(HaveOccurred())
+				})
+			})
+
 		})
 
 		Describe("there are no backup scripts in the job directories", func() {
@@ -80,6 +99,25 @@ var _ = Describe("Instance", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/p-backup"))
 			})
+
+			Describe("when is backupable is called again", func() {
+				var secondInvocationActualBackupable bool
+				var secondInvocationActualError error
+				JustBeforeEach(func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(1))
+					secondInvocationActualBackupable, secondInvocationActualError = instance.IsBackupable()
+				})
+
+				It("only invokes the ssh connection once", func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(1))
+				})
+				It("returns false", func() {
+					Expect(secondInvocationActualBackupable).To(BeFalse())
+				})
+				It("succeeds", func() {
+					Expect(secondInvocationActualError).NotTo(HaveOccurred())
+				})
+			})
 		})
 
 		Describe("error while running command", func() {
@@ -87,13 +125,29 @@ var _ = Describe("Instance", func() {
 			BeforeEach(func() {
 				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, expectedError)
 			})
-			It("succeeds", func() {
+			It("fails", func() {
 				Expect(actualError).To(HaveOccurred())
 			})
 
 			It("invokes the ssh connection, to find files", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/p-backup"))
+			})
+
+			Describe("when is backupable is called again", func() {
+				var secondInvocationActualBackupable bool
+				var secondInvocationActualError error
+				JustBeforeEach(func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(1))
+					secondInvocationActualBackupable, secondInvocationActualError = instance.IsBackupable()
+				})
+
+				It("only invokes the ssh connection again", func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(2))
+				})
+				It("fails", func() {
+					Expect(secondInvocationActualError).To(HaveOccurred())
+				})
 			})
 		})
 	})
