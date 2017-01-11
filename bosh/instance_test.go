@@ -55,16 +55,20 @@ var _ = Describe("Instance", func() {
 			BeforeEach(func() {
 				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, nil)
 			})
+
 			It("succeeds", func() {
 				Expect(actualError).NotTo(HaveOccurred())
 			})
+
 			It("returns true", func() {
 				Expect(actualBackupable).To(BeTrue())
 			})
+
 			It("invokes the ssh connection, to find files", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-backup"))
 			})
+
 			Describe("when is backupable is called again", func() {
 				var secondInvocationActualBackupable bool
 				var secondInvocationActualError error
@@ -83,7 +87,6 @@ var _ = Describe("Instance", func() {
 					Expect(secondInvocationActualError).NotTo(HaveOccurred())
 				})
 			})
-
 		})
 
 		Describe("there are no backup scripts in the job directories", func() {
@@ -143,7 +146,7 @@ var _ = Describe("Instance", func() {
 					secondInvocationActualBackupable, secondInvocationActualError = instance.IsBackupable()
 				})
 
-				It("only invokes the ssh connection again", func() {
+				It("invokes the ssh connection again", func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(2))
 				})
 
@@ -177,16 +180,37 @@ var _ = Describe("Instance", func() {
 
 			It("invokes the ssh connection, to find files", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/p-post-backup-unlock"))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-post-backup-unlock"))
 			})
 
 			It("logs that we are checking for post-backup-unlock scripts", func() {
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Checking instance %s %s has post backup unlock scripts", jobName, jobIndex)))
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running check for post-backup-unlock scripts on %s %s", jobName, jobIndex)))
 			})
 
 			It("logs stdout and stderr", func() {
 				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stdout: %s", expectedStdout)))
 				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stderr: %s", expectedStderr)))
+			})
+
+			Describe("when is post backup unlockable is called again", func() {
+				var secondInvocationActualUnlockable bool
+				var secondInvocationActualError error
+				JustBeforeEach(func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(1))
+					secondInvocationActualUnlockable, secondInvocationActualError = instance.IsPostBackupUnlockable()
+				})
+
+				It("only invokes the ssh connection once", func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(1))
+				})
+
+				It("returns true", func() {
+					Expect(secondInvocationActualUnlockable).To(BeTrue())
+				})
+
+				It("succeeds", func() {
+					Expect(secondInvocationActualError).NotTo(HaveOccurred())
+				})
 			})
 		})
 
@@ -202,6 +226,28 @@ var _ = Describe("Instance", func() {
 			It("returns false", func() {
 				Expect(actualUnlockable).To(BeFalse())
 			})
+
+			Describe("when is post backup unlockable is called again", func() {
+				var secondInvocationActualUnlockable bool
+				var secondInvocationActualError error
+
+				JustBeforeEach(func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(1))
+					secondInvocationActualUnlockable, secondInvocationActualError = instance.IsPostBackupUnlockable()
+				})
+
+				It("only invokes the ssh connection once", func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(1))
+				})
+
+				It("returns false", func() {
+					Expect(secondInvocationActualUnlockable).To(BeFalse())
+				})
+
+				It("succeeds", func() {
+					Expect(secondInvocationActualError).NotTo(HaveOccurred())
+				})
+			})
 		})
 
 		Context("error while running command", func() {
@@ -216,16 +262,33 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs the error to stderr", func() {
-				Expect(stderr).To(
+				Expect(stdout).To(
 					gbytes.Say(
 						fmt.Sprintf(
-							"Error checking instance %s %s for post backup unlock scripts. Exit code 0, error: %s",
+							"Error running check for post-backup-unlock scripts on instance %s %s. Exit code 0, error: %s",
 							jobName,
 							jobIndex,
 							expectedError,
 						),
 					),
 				)
+			})
+
+			Describe("when is post backup backupable is called again", func() {
+				var secondInvocationActualUnlockable bool
+				var secondInvocationActualError error
+				JustBeforeEach(func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(1))
+					secondInvocationActualUnlockable, secondInvocationActualError = instance.IsPostBackupUnlockable()
+				})
+
+				It("invokes the ssh connection again", func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(2))
+				})
+
+				It("fails", func() {
+					Expect(secondInvocationActualError).To(HaveOccurred())
+				})
 			})
 		})
 	})
@@ -284,7 +347,7 @@ var _ = Describe("Instance", func() {
 			BeforeEach(func() {
 				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 1, nil)
 			})
-			
+
 			It("succeeds", func() {
 				Expect(actualError).NotTo(HaveOccurred())
 			})

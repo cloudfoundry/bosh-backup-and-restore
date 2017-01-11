@@ -19,6 +19,7 @@ type DeployedInstance struct {
 	Logger
 	backupable        *bool
 	restorable			  *bool
+	unlockable				*bool
 }
 
 //go:generate counterfeiter -o fakes/fake_ssh_connection.go . SSHConnection
@@ -55,24 +56,17 @@ func (d *DeployedInstance) IsBackupable() (bool, error) {
 }
 
 func (d *DeployedInstance) IsPostBackupUnlockable() (bool, error) {
-	d.Logger.Debug("", "Checking instance %s %s has post backup unlock scripts", d.InstanceGroupName, d.InstanceIndex)
-	stdout, stderr, exitCode, err := d.Run("ls /var/vcap/jobs/*/bin/p-post-backup-unlock")
-
-	d.Logger.Debug("", "Stdout: %s", string(stdout))
-	d.Logger.Debug("", "Stderr: %s", string(stderr))
-
-	if err != nil {
-		d.Logger.Error(
-			"",
-			"Error checking instance %s %s for post backup unlock scripts. Exit code %d, error: %s",
-			d.InstanceGroupName,
-			d.InstanceIndex,
-			exitCode,
-			err.Error(),
-		)
+	if d.unlockable != nil {
+		return *d.unlockable, nil
 	}
+	_, _, exitCode, err := d.logAndRun("sudo ls /var/vcap/jobs/*/bin/p-post-backup-unlock", "check for post-backup-unlock scripts")
+	if err != nil {
+		return false, err
+	}
+	unlockable := exitCode == 0
+	d.unlockable = &unlockable
 
-	return exitCode == 0, err
+	return *d.unlockable, err
 }
 
 func (d *DeployedInstance) PreBackupLock() error {
@@ -251,7 +245,7 @@ func (d *DeployedInstance) logAndRun(cmd, label string) ([]byte, []byte, int, er
 	d.Logger.Debug("", "Stderr: %s", string(stderr))
 
 	if err != nil {
-		d.Logger.Debug("", "Error running %s. Exit code %d, error %s", label, exitCode, err.Error())
+		d.Logger.Debug("", "Error running %s on instance %s %s. Exit code %d, error: %s", label, d.InstanceGroupName, d.InstanceIndex, exitCode, err.Error())
 	}
 
 	return stdout, stderr, exitCode, err

@@ -22,7 +22,6 @@ type BoshDeployment struct {
 	Logger
 
 	instances                     instances
-	postBackupUnlockableInstances instances
 }
 
 func NewBoshDeployment(logger Logger, instancesArray []Instance) Deployment {
@@ -52,7 +51,7 @@ func (bd *BoshDeployment) Backup() error {
 }
 
 func (bd *BoshDeployment) PostBackupUnlock() error {
-	instances, _ := bd.getPostBackupUnlockableInstances()
+	instances, _ := bd.instances.AllPostBackupUnlockable()
 
 	return instances.PostBackupUnlock()
 }
@@ -156,17 +155,6 @@ func (bd *BoshDeployment) CopyLocalBackupToRemote(artifact Artifact) error {
 		}
 	}
 	return nil
-}
-
-func (bd *BoshDeployment) getPostBackupUnlockableInstances() (instances, error) {
-	if bd.postBackupUnlockableInstances == nil {
-		instances, err := bd.instances.AllPostBackupUnlockable()
-		if err != nil {
-			return nil, err
-		}
-		bd.postBackupUnlockableInstances = instances
-	}
-	return bd.postBackupUnlockableInstances, nil
 }
 
 func (bd *BoshDeployment) Instances() []Instance {
