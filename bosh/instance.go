@@ -17,9 +17,10 @@ type DeployedInstance struct {
 	InstanceIndex     string
 	SSHConnection
 	Logger
-	backupable        *bool
-	restorable			  *bool
-	unlockable				*bool
+	backupable *bool
+	restorable *bool
+	unlockable *bool
+	lockable   *bool
 }
 
 //go:generate counterfeiter -o fakes/fake_ssh_connection.go . SSHConnection
@@ -67,6 +68,21 @@ func (d *DeployedInstance) IsPostBackupUnlockable() (bool, error) {
 	d.unlockable = &unlockable
 
 	return *d.unlockable, err
+}
+
+func (d *DeployedInstance) IsPreBackupLockable() (bool, error) {
+	if d.lockable != nil {
+		return *d.lockable, nil
+	}
+	_, _, exitCode, err := d.logAndRun("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock", "check for pre-backup-lock scripts")
+	if err != nil {
+		return false, err
+	}
+
+	lockable := exitCode == 0
+	d.lockable = &lockable
+
+	return *d.lockable, err
 }
 
 func (d *DeployedInstance) PreBackupLock() error {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"errors"
 	"github.com/cloudfoundry/bosh-cli/director"
 	boshfakes "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -14,7 +15,6 @@ import (
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh/fakes"
-	"errors"
 	"strings"
 )
 
@@ -153,6 +153,120 @@ var _ = Describe("Instance", func() {
 				It("fails", func() {
 					Expect(secondInvocationActualError).To(HaveOccurred())
 				})
+			})
+		})
+	})
+
+	Describe("IsPreBackupLockable", func() {
+		var actualLockable bool
+		var actualError error
+
+		JustBeforeEach(func() {
+			actualLockable, actualError = instance.IsPreBackupLockable()
+		})
+
+		Context("there are p-pre-backup-lock scripts in the job directories", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte(expectedStdout), []byte(expectedStderr), 0, nil)
+			})
+
+			It("succeeds", func() {
+				Expect(actualError).NotTo(HaveOccurred())
+			})
+
+			It("returns true", func() {
+				Expect(actualLockable).To(BeTrue())
+			})
+
+			It("invokes the ssh connection, to find files", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock"))
+			})
+
+			It("logs that we are checking for pre-backup-lock scripts", func() {
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running check for pre-backup-lock scripts on %s %s", jobName, jobIndex)))
+			})
+
+			It("logs stdout and stderr", func() {
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stdout: %s", expectedStdout)))
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stderr: %s", expectedStderr)))
+			})
+
+			Describe("when is pre backup lockable is called again", func() {
+				var secondInvocationActualLockable bool
+				var secondInvocationActualError error
+				JustBeforeEach(func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(1))
+					secondInvocationActualLockable, secondInvocationActualError = instance.IsPreBackupLockable()
+				})
+
+				It("only invokes the ssh connection once", func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(1))
+				})
+
+				It("returns true", func() {
+					Expect(secondInvocationActualLockable).To(BeTrue())
+				})
+
+				It("succeeds", func() {
+					Expect(secondInvocationActualError).NotTo(HaveOccurred())
+				})
+			})
+		})
+
+		Context("there are no p-pre-backup-lock scripts", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte(expectedStdout), []byte(expectedStderr), 1, nil)
+			})
+
+			It("succeeds", func() {
+				Expect(actualError).NotTo(HaveOccurred())
+			})
+
+			It("returns false", func() {
+				Expect(actualLockable).To(BeFalse())
+			})
+
+			It("invokes the ssh connection, to find files", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock"))
+			})
+
+			It("logs that we are checking for pre-backup-lock scripts", func() {
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running check for pre-backup-lock scripts on %s %s", jobName, jobIndex)))
+			})
+
+			It("logs stdout and stderr", func() {
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stdout: %s", expectedStdout)))
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stderr: %s", expectedStderr)))
+			})
+		})
+
+		Context("checking for p-pre-backup-lock scripts fails", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte(expectedStdout), []byte(expectedStderr), 0, fmt.Errorf("we have to deal with isis"))
+			})
+
+			It("fails", func() {
+				Expect(actualError).To(HaveOccurred())
+			})
+
+			It("returns false", func() {
+				Expect(actualLockable).To(BeFalse())
+			})
+
+			It("invokes the ssh connection, to find files", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock"))
+			})
+
+			It("logs that we are checking for pre-backup-lock scripts", func() {
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running check for pre-backup-lock scripts on %s %s", jobName, jobIndex)))
+			})
+
+			It("logs stdout and stderr", func() {
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stdout: %s", expectedStdout)))
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stderr: %s", expectedStderr)))
 			})
 		})
 	})

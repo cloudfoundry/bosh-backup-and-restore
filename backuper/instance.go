@@ -13,6 +13,7 @@ type Instance interface {
 	InstanceIdentifer
 	IsBackupable() (bool, error)
 	IsPostBackupUnlockable() (bool, error)
+	IsPreBackupLockable() (bool, error)
 	IsRestorable() (bool, error)
 	PreBackupLock() error
 	Backup() error
@@ -41,6 +42,21 @@ func (is instances) AllBackupable() (instances, error) {
 		}
 	}
 	return backupableInstances, nil
+}
+
+func (is instances) AllPreBackupLockable() (instances, error) {
+	var lockableInstances []Instance
+	var findLockableErrors error = nil
+
+	for _, instance := range is {
+		if lockable, err := instance.IsPreBackupLockable(); err != nil {
+			findLockableErrors = multierror.Append(err)
+		} else if lockable {
+			lockableInstances = append(lockableInstances, instance)
+		}
+	}
+
+	return lockableInstances, findLockableErrors
 }
 
 func (is instances) AllPostBackupUnlockable() (instances, error) {

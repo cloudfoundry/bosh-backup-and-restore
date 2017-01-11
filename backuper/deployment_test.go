@@ -43,7 +43,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("Single instance, backupable", func() {
 			BeforeEach(func() {
-				instance1.IsBackupableReturns(true, nil)
+				instance1.IsPreBackupLockableReturns(true, nil)
 				instance1.PreBackupLockReturns(nil)
 				instances = []backuper.Instance{instance1}
 			})
@@ -56,11 +56,23 @@ var _ = Describe("Deployment", func() {
 				Expect(instance1.PreBackupLockCallCount()).To(Equal(1))
 			})
 
+			Context("if checking for the pre-backup-lock scripts fails", func() {
+				checkErr := fmt.Errorf("foobar")
+
+				BeforeEach(func() {
+					instance1.IsPreBackupLockableReturns(false, checkErr)
+				})
+
+				It("fails", func() {
+					Expect(lockError).To(HaveOccurred())
+					Expect(lockError).To(MatchError(ContainSubstring(checkErr.Error())))
+				})
+			})
+
 			Context("if the pre-backup-lock fails", func() {
 				lockErr := fmt.Errorf("something")
 
 				BeforeEach(func() {
-					instance1.IsBackupableReturns(true, nil)
 					instance1.PreBackupLockReturns(lockErr)
 				})
 
@@ -70,18 +82,22 @@ var _ = Describe("Deployment", func() {
 			})
 		})
 
-		Context("Multiple instances, some backupable", func() {
+		Context("Multiple instances, some pre-backup-lockable", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(true, nil)
-				instance2.IsBackupableReturns(false, nil)
+				instance2.IsBackupableReturns(true, nil)
+				instance1.IsPreBackupLockableReturns(true, nil)
+				instance2.IsPreBackupLockableReturns(false, nil)
 				instances = []backuper.Instance{instance1, instance2}
 			})
+
 			It("does not fail", func() {
 				Expect(lockError).NotTo(HaveOccurred())
 			})
-			It("runs pre-backup-lock on all instances", func() {
+
+			It("runs pre-backup-lock on only the instance with the pre-backup-lock script", func() {
 				Expect(instance1.PreBackupLockCallCount()).To(Equal(1))
-				Expect(instance2.PreBackupLockCallCount()).To(Equal(1))
+				Expect(instance2.PreBackupLockCallCount()).To(Equal(0))
 			})
 		})
 

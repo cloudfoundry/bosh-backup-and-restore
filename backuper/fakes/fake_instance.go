@@ -35,6 +35,13 @@ type FakeInstance struct {
 		result1 bool
 		result2 error
 	}
+	IsPreBackupLockableStub        func() (bool, error)
+	isPreBackupLockableMutex       sync.RWMutex
+	isPreBackupLockableArgsForCall []struct{}
+	isPreBackupLockableReturns     struct {
+		result1 bool
+		result2 error
+	}
 	IsRestorableStub        func() (bool, error)
 	isRestorableMutex       sync.RWMutex
 	isRestorableArgsForCall []struct{}
@@ -203,6 +210,32 @@ func (fake *FakeInstance) IsPostBackupUnlockableCallCount() int {
 func (fake *FakeInstance) IsPostBackupUnlockableReturns(result1 bool, result2 error) {
 	fake.IsPostBackupUnlockableStub = nil
 	fake.isPostBackupUnlockableReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeInstance) IsPreBackupLockable() (bool, error) {
+	fake.isPreBackupLockableMutex.Lock()
+	fake.isPreBackupLockableArgsForCall = append(fake.isPreBackupLockableArgsForCall, struct{}{})
+	fake.recordInvocation("IsPreBackupLockable", []interface{}{})
+	fake.isPreBackupLockableMutex.Unlock()
+	if fake.IsPreBackupLockableStub != nil {
+		return fake.IsPreBackupLockableStub()
+	} else {
+		return fake.isPreBackupLockableReturns.result1, fake.isPreBackupLockableReturns.result2
+	}
+}
+
+func (fake *FakeInstance) IsPreBackupLockableCallCount() int {
+	fake.isPreBackupLockableMutex.RLock()
+	defer fake.isPreBackupLockableMutex.RUnlock()
+	return len(fake.isPreBackupLockableArgsForCall)
+}
+
+func (fake *FakeInstance) IsPreBackupLockableReturns(result1 bool, result2 error) {
+	fake.IsPreBackupLockableStub = nil
+	fake.isPreBackupLockableReturns = struct {
 		result1 bool
 		result2 error
 	}{result1, result2}
@@ -488,6 +521,8 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.isBackupableMutex.RUnlock()
 	fake.isPostBackupUnlockableMutex.RLock()
 	defer fake.isPostBackupUnlockableMutex.RUnlock()
+	fake.isPreBackupLockableMutex.RLock()
+	defer fake.isPreBackupLockableMutex.RUnlock()
 	fake.isRestorableMutex.RLock()
 	defer fake.isRestorableMutex.RUnlock()
 	fake.preBackupLockMutex.RLock()
