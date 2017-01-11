@@ -242,31 +242,82 @@ var _ = Describe("Instance", func() {
 			BeforeEach(func() {
 				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, nil)
 			})
+
 			It("succeeds", func() {
 				Expect(actualError).NotTo(HaveOccurred())
 			})
+
 			It("returns true", func() {
 				Expect(actualRestorable).To(BeTrue())
 			})
+
 			It("invokes the ssh connection, to find files", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/p-restore"))
 			})
+
+			Describe("when is restoreable is called again", func() {
+				var secondInvocationActualRestorable bool
+				var secondInvocationActualError error
+
+				JustBeforeEach(func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(1))
+					secondInvocationActualRestorable, secondInvocationActualError = instance.IsRestorable()
+				})
+
+				It("only invokes the ssh connection once", func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(1))
+				})
+
+				It("returns true", func() {
+					Expect(secondInvocationActualRestorable).To(BeTrue())
+				})
+
+				It("succeeds", func() {
+					Expect(secondInvocationActualError).NotTo(HaveOccurred())
+				})
+			})
+
 		})
 
 		Describe("there are no restore scripts in the job directories", func() {
 			BeforeEach(func() {
 				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 1, nil)
 			})
+			
 			It("succeeds", func() {
 				Expect(actualError).NotTo(HaveOccurred())
 			})
+
 			It("returns false", func() {
 				Expect(actualRestorable).To(BeFalse())
 			})
+
 			It("invokes the ssh connection, to find files", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/p-restore"))
+			})
+
+			Describe("when is restoreable is called again", func() {
+				var secondInvocationActualRestorable bool
+				var secondInvocationActualError error
+
+				JustBeforeEach(func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(1))
+					secondInvocationActualRestorable, secondInvocationActualError = instance.IsRestorable()
+				})
+
+				It("only invokes the ssh connection once", func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(1))
+				})
+
+				It("returns false", func() {
+					Expect(secondInvocationActualRestorable).To(BeFalse())
+				})
+
+				It("succeeds", func() {
+					Expect(secondInvocationActualError).NotTo(HaveOccurred())
+				})
 			})
 		})
 
@@ -275,13 +326,30 @@ var _ = Describe("Instance", func() {
 			BeforeEach(func() {
 				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, expectedError)
 			})
-			It("succeeds", func() {
+			It("fails", func() {
 				Expect(actualError).To(HaveOccurred())
 			})
 
 			It("invokes the ssh connection, to find files", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/p-restore"))
+			})
+
+			Describe("when is restorable is called again", func() {
+				var secondInvocationActualRestorable bool
+				var secondInvocationActualError error
+				JustBeforeEach(func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(1))
+					secondInvocationActualRestorable, secondInvocationActualError = instance.IsRestorable()
+				})
+
+				It("invokes the ssh connection again", func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(2))
+				})
+
+				It("fails", func() {
+					Expect(secondInvocationActualError).To(HaveOccurred())
+				})
 			})
 		})
 	})

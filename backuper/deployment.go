@@ -21,9 +21,7 @@ type Deployment interface {
 type BoshDeployment struct {
 	Logger
 
-	instances           instances
-	backupableInstances instances
-	restorableInstances instances
+	instances                     instances
 	postBackupUnlockableInstances instances
 }
 
@@ -60,7 +58,7 @@ func (bd *BoshDeployment) PostBackupUnlock() error {
 }
 
 func (bd *BoshDeployment) Restore() error {
-	if instances, err := bd.getRestoreableInstances(); err != nil {
+	if instances, err := bd.instances.AllRestoreable(); err != nil {
 		return err
 	} else {
 		return instances.Restore()
@@ -73,7 +71,7 @@ func (bd *BoshDeployment) Cleanup() error {
 
 func (bd *BoshDeployment) IsRestorable() (bool, error) {
 	bd.Logger.Info("", "Finding instances with restore scripts...")
-	restoreableInstances, err := bd.getRestoreableInstances()
+	restoreableInstances, err := bd.instances.AllRestoreable()
 	if err != nil {
 		return false, err
 	}
@@ -127,7 +125,7 @@ func (bd *BoshDeployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 }
 
 func (bd *BoshDeployment) CopyLocalBackupToRemote(artifact Artifact) error {
-	instances, err := bd.getRestoreableInstances()
+	instances, err := bd.instances.AllRestoreable()
 	if err != nil {
 		return err
 	}
@@ -160,7 +158,6 @@ func (bd *BoshDeployment) CopyLocalBackupToRemote(artifact Artifact) error {
 	return nil
 }
 
-
 func (bd *BoshDeployment) getPostBackupUnlockableInstances() (instances, error) {
 	if bd.postBackupUnlockableInstances == nil {
 		instances, err := bd.instances.AllPostBackupUnlockable()
@@ -172,16 +169,6 @@ func (bd *BoshDeployment) getPostBackupUnlockableInstances() (instances, error) 
 	return bd.postBackupUnlockableInstances, nil
 }
 
-func (bd *BoshDeployment) getRestoreableInstances() (instances, error) {
-	if bd.restorableInstances == nil {
-		instances, err := bd.instances.AllRestoreable()
-		if err != nil {
-			return nil, err
-		}
-		bd.restorableInstances = instances
-	}
-	return bd.restorableInstances, nil
-}
 func (bd *BoshDeployment) Instances() []Instance {
 	return bd.instances
 }

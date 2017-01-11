@@ -18,6 +18,7 @@ type DeployedInstance struct {
 	SSHConnection
 	Logger
 	backupable        *bool
+	restorable			  *bool
 }
 
 //go:generate counterfeiter -o fakes/fake_ssh_connection.go . SSHConnection
@@ -202,9 +203,18 @@ func (d *DeployedInstance) BackupChecksum() (backuper.BackupChecksum, error) {
 }
 
 func (d *DeployedInstance) IsRestorable() (bool, error) {
+	if d.restorable != nil {
+		return *d.restorable, nil
+	}
 	_, _, exitCode, err := d.logAndRun("ls /var/vcap/jobs/*/bin/p-restore", "check for restore scripts")
+	if err != nil {
+		return false, err
+	}
 
-	return exitCode == 0, err
+	restorable := exitCode == 0
+	d.restorable = &restorable
+
+	return *d.restorable, err
 }
 
 func (d *DeployedInstance) BackupSize() (string, error) {
