@@ -51,7 +51,10 @@ func (bd *BoshDeployment) Backup() error {
 }
 
 func (bd *BoshDeployment) PostBackupUnlock() error {
-	instances, _ := bd.instances.AllPostBackupUnlockable()
+	instances, err := bd.instances.AllPostBackupUnlockable()
+	if err != nil {
+		return err
+	}
 
 	return instances.PostBackupUnlock()
 }

@@ -200,7 +200,7 @@ var _ = Describe("Deployment", func() {
 			})
 		})
 
-		Context("single that fails to unlock", func() {
+		Context("single instance that fails to unlock", func() {
 			BeforeEach(func() {
 				instance1.IsPostBackupUnlockableReturns(true, nil)
 				instance1.PostBackupUnlockReturns(expectedError)
@@ -213,6 +213,24 @@ var _ = Describe("Deployment", func() {
 
 			It("attempts to unlock the instance", func() {
 				Expect(instance1.PostBackupUnlockCallCount()).To(Equal(1))
+			})
+		})
+
+		Context("single instance that fails checking for post-backup-unlock scripts", func() {
+			var checkUnlockableError = fmt.Errorf("i know a lot about hacking")
+
+			BeforeEach(func() {
+				instance1.IsPostBackupUnlockableReturns(false, checkUnlockableError)
+				instances = []backuper.Instance{instance1}
+			})
+
+			It("fails", func() {
+				Expect(unlockError).To(HaveOccurred())
+				Expect(unlockError).To(MatchError(ContainSubstring(checkUnlockableError.Error())))
+			})
+
+			It("does not attempt to unlock the instance", func() {
+				Expect(instance1.PostBackupUnlockCallCount()).To(Equal(0))
 			})
 		})
 
