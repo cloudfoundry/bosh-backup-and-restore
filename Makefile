@@ -34,8 +34,11 @@ generate:
 	ls -F | grep / | grep -v vendor | xargs -IN go generate github.com/pivotal-cf/pcf-backup-and-restore/N/...
 
 setup:
+	glide install --strip-vcs
+	go install github.com/pivotal-cf/pcf-backup-and-restore/vendor/github.com/cloudfoundry/bosh-cli
+
 	glide install --strip-vendor --strip-vcs
-	go get github.com/cloudfoundry/bosh-cli
+
 	go get github.com/maxbrunsfeld/counterfeiter
 	go get github.com/onsi/ginkgo/ginkgo
 
