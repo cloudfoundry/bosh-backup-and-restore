@@ -46,7 +46,6 @@ type PostBackupUnlockError struct {
 	error
 }
 
-
 //Backup checks if a deployment has backupable instances and backs them up.
 func (b Backuper) Backup(deploymentName string) error {
 	b.Logger.Info("", "Starting backup of %s...\n", deploymentName)

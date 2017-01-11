@@ -21,7 +21,7 @@ type Deployment interface {
 type BoshDeployment struct {
 	Logger
 
-	instances                     instances
+	instances instances
 }
 
 func NewBoshDeployment(logger Logger, instancesArray []Instance) Deployment {

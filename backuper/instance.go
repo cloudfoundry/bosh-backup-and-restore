@@ -31,6 +31,7 @@ type instances []Instance
 func (is instances) IsEmpty() bool {
 	return len(is) == 0
 }
+
 func (is instances) AllBackupable() (instances, error) {
 	var backupableInstances []Instance
 
