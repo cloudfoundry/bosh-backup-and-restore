@@ -183,8 +183,9 @@ var _ = Describe("Backuper", func() {
 			})
 
 			It("fails the backup process", func() {
-				Expect(actualBackupError).To(MatchError(expectedError))
+				Expect(actualBackupError.Error()).To(ContainSubstring(expectedError.Error()))
 			})
+
 			It("ensures that deployment is cleaned up", func() {
 				Expect(deployment.CleanupCallCount()).To(Equal(1))
 			})
@@ -204,7 +205,7 @@ var _ = Describe("Backuper", func() {
 				Expect(deployment.IsBackupableCallCount()).To(Equal(1))
 			})
 			It("fails the backup process", func() {
-				Expect(actualBackupError).To(MatchError("Deployment '" + deploymentName + "' has no backup scripts"))
+				Expect(actualBackupError.Error()).To(ContainSubstring("Deployment '" + deploymentName + "' has no backup scripts"))
 			})
 			It("ensures that deployment is cleaned up", func() {
 				Expect(deployment.CleanupCallCount()).To(Equal(1))
@@ -228,7 +229,7 @@ var _ = Describe("Backuper", func() {
 			})
 
 			It("fails the backup process", func() {
-				Expect(actualBackupError).To(MatchError(lockError))
+				Expect(actualBackupError.Error()).To(ContainSubstring(lockError.Error()))
 			})
 
 			Context("cleanup fails as well", assertCleanupError)
