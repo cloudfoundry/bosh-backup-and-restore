@@ -98,7 +98,7 @@ func availableFlags() []cli.Flag {
 		cli.StringFlag{
 			Name:   "password, p",
 			Value:  "",
-			EnvVar: "BOSH_PASSWORD",
+			EnvVar: "BOSH_CLIENT_SECRET",
 			Usage:  "BOSH Director password",
 		},
 		cli.StringFlag{

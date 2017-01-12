@@ -65,7 +65,7 @@ var _ = Describe("CLI Interface", func() {
 			It("can invoke command with long names", func() {
 				director.VerifyAndMock(mockbosh.VMsForDeployment("my-new-deployment").NotFound())
 
-				runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+				runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
 
 				director.VerifyMocks()
 			})
@@ -76,7 +76,7 @@ var _ = Describe("CLI Interface", func() {
 			var session *gexec.Session
 			BeforeEach(func() {
 				badDirectorURL := "https://:25555"
-				session = runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--username", "admin", "--password", "admin", "--target", badDirectorURL, "--deployment", "my-new-deployment", cmd)
+				session = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "--username", "admin", "--password", "admin", "--target", badDirectorURL, "--deployment", "my-new-deployment", cmd)
 				output.output = session.Err.Contents()
 			})
 
@@ -93,7 +93,7 @@ var _ = Describe("CLI Interface", func() {
 			var output helpText
 			var session *gexec.Session
 			BeforeEach(func() {
-				session = runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--ca-cert", "/tmp/whatever", "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+				session = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "--ca-cert", "/tmp/whatever", "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
 				output.output = session.Err.Contents()
 			})
 
@@ -110,7 +110,7 @@ var _ = Describe("CLI Interface", func() {
 			var output helpText
 			var session *gexec.Session
 			BeforeEach(func() {
-				session = runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--dave", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+				session = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "--dave", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
 				output.output = session.Out.Contents()
 			})
 
@@ -130,7 +130,7 @@ var _ = Describe("CLI Interface", func() {
 			var command []string
 			var env []string
 			BeforeEach(func() {
-				env = []string{"BOSH_PASSWORD=admin"}
+				env = []string{"BOSH_CLIENT_SECRET=admin"}
 			})
 			JustBeforeEach(func() {
 				session = runBinary(backupWorkspace, env, command...)
@@ -225,7 +225,7 @@ instances: []`))
 		var output helpText
 
 		BeforeEach(func() {
-			output.output = runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "--help").Out.Contents()
+			output.output = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "--help").Out.Contents()
 		})
 
 		ShowsTheHelpText(&output)
@@ -235,7 +235,7 @@ instances: []`))
 		var output helpText
 
 		BeforeEach(func() {
-			output.output = runBinary(backupWorkspace, []string{"BOSH_PASSWORD=admin"}, "").Out.Contents()
+			output.output = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "").Out.Contents()
 		})
 
 		ShowsTheHelpText(&output)

@@ -44,7 +44,7 @@ var _ = Describe("Backup", func() {
 	JustBeforeEach(func() {
 		session = runBinary(
 			backupWorkspace,
-			[]string{"BOSH_PASSWORD=admin"},
+			[]string{"BOSH_CLIENT_SECRET=admin"},
 			"--ca-cert", sslCertPath,
 			"--username", "admin",
 			"--target", director.URL,

@@ -42,7 +42,7 @@ instances: []`))
 			director.VerifyAndMock(mockbosh.VMsForDeployment(deploymentName).NotFound())
 			session = runBinary(
 				restoreWorkspace,
-				[]string{"BOSH_PASSWORD=admin"},
+				[]string{"BOSH_CLIENT_SECRET=admin"},
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
 				"--target", director.URL,
@@ -64,7 +64,7 @@ instances: []`))
 		BeforeEach(func() {
 			session = runBinary(
 				restoreWorkspace,
-				[]string{"BOSH_PASSWORD=admin"},
+				[]string{"BOSH_CLIENT_SECRET=admin"},
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
 				"--target", director.URL,
@@ -100,7 +100,7 @@ instances:
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tgz", backupContents)
 			session = runBinary(
 				restoreWorkspace,
-				[]string{"BOSH_PASSWORD=admin"},
+				[]string{"BOSH_CLIENT_SECRET=admin"},
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
 				"--target", director.URL,
@@ -151,7 +151,7 @@ instances:
 		JustBeforeEach(func() {
 			session = runBinary(
 				restoreWorkspace,
-				[]string{"BOSH_PASSWORD=admin"},
+				[]string{"BOSH_CLIENT_SECRET=admin"},
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
 				"--target", director.URL,
@@ -227,7 +227,7 @@ instances:
 		JustBeforeEach(func() {
 			session = runBinary(
 				restoreWorkspace,
-				[]string{"BOSH_PASSWORD=admin"},
+				[]string{"BOSH_CLIENT_SECRET=admin"},
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
 				"--target", director.URL,
