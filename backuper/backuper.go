@@ -89,7 +89,7 @@ func (b Backuper) Backup(deploymentName string) Error {
 			},
 			"enter_finished": func(e *fsm.Event) {
 				if err := deployment.Cleanup(); err != nil {
-					allTheErrs = append(allTheErrs, CleanupError{err})
+					allTheErrs = append(allTheErrs, CleanupError{fmt.Errorf("Deployment '%s' failed while cleaning up with error: %v", deploymentName, err)})
 				}
 			},
 			"before_create-artifact": func(e *fsm.Event) {
