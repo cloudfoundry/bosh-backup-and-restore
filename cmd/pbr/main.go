@@ -56,8 +56,8 @@ func backup(c *cli.Context) error {
 		return err
 	}
 
-	err = backuperInstance.Backup(deployment)
-	return processBackuperError(err)
+	backupErr := backuperInstance.Backup(deployment)
+	return processBackupError(backupErr)
 }
 
 func restore(c *cli.Context) error {
@@ -69,7 +69,7 @@ func restore(c *cli.Context) error {
 	}
 
 	err = backuperInstance.Restore(deployment)
-	return processBackuperError(err)
+	return processRestoreError(err)
 }
 
 func validateFlags(c *cli.Context) error {
@@ -119,7 +119,23 @@ func availableFlags() []cli.Flag {
 	}
 }
 
-func processBackuperError(err error) error {
+func processBackupError(err backuper.Error) error {
+	switch {
+	case err.IsCleanup():
+		return cli.NewExitError(ansi.Color(err.Error(), "yellow"), 2)
+	case err.IsPostBackup():
+		return cli.NewExitError(ansi.Color(err.Error(), "red"), 42)
+	case err.IsFatal():
+		return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
+	case err.IsNil():
+		return nil
+	default:
+		return err
+	}
+}
+
+
+func processRestoreError(err error) error {
 	switch err := err.(type) {
 	case backuper.CleanupError:
 		return cli.NewExitError(ansi.Color(err.Error(), "yellow"), 2)

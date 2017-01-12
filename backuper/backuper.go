@@ -38,53 +38,45 @@ type BoshDirector interface {
 	GetManifest(deploymentName string) (string, error)
 }
 
-type CleanupError struct {
-	error
-}
-
-type PostBackupUnlockError struct {
-	error
-}
-
 //Backup checks if a deployment has backupable instances and backs them up.
-func (b Backuper) Backup(deploymentName string) error {
+func (b Backuper) Backup(deploymentName string) Error {
 	b.Logger.Info("", "Starting backup of %s...\n", deploymentName)
 
 	exists := b.ArtifactManager.Exists(deploymentName)
 	if exists {
-		return fmt.Errorf("artifact %s already exists", deploymentName)
+		return Error{fmt.Errorf("artifact %s already exists", deploymentName)}
 	}
 
 	deployment, err := b.DeploymentManager.Find(deploymentName)
 	if err != nil {
-		return err
+		return Error{err}
 	}
 
 	if backupable, err := deployment.IsBackupable(); err != nil {
-		return cleanupAndReturnErrors(deployment, err)
+		return Error{cleanupAndReturnErrors(deployment, err)}
 	} else if !backupable {
-		return cleanupAndReturnErrors(deployment, fmt.Errorf("Deployment '%s' has no backup scripts", deploymentName))
+		return Error{cleanupAndReturnErrors(deployment, fmt.Errorf("Deployment '%s' has no backup scripts", deploymentName))}
 	}
 
 	artifact, err := b.ArtifactManager.Create(deploymentName, b.Logger)
 	if err != nil {
-		return cleanupAndReturnErrors(deployment, err)
+		return Error{cleanupAndReturnErrors(deployment, err)}
 	}
 	manifest, err := b.GetManifest(deploymentName)
 	if err != nil {
-		return cleanupAndReturnErrors(deployment, err)
+		return Error{cleanupAndReturnErrors(deployment, err)}
 	}
 
 	if err := artifact.SaveManifest(manifest); err != nil {
-		return cleanupAndReturnErrors(deployment, err)
+		return Error{cleanupAndReturnErrors(deployment, err)}
 	}
 
 	if err = deployment.PreBackupLock(); err != nil {
-		return cleanupAndReturnErrors(deployment, err)
+		return Error{cleanupAndReturnErrors(deployment, err)}
 	}
 
 	if err = deployment.Backup(); err != nil {
-		return cleanupAndReturnErrors(deployment, err)
+		return Error{cleanupAndReturnErrors(deployment, err)}
 	}
 
 	postBackupUnlockError := deployment.PostBackupUnlock()
@@ -96,23 +88,23 @@ func (b Backuper) Backup(deploymentName string) error {
 		errs = multierror.Append(errs, postBackupUnlockError)
 		errs = multierror.Append(errs, copyRemoteBackupToLocalError)
 
-		return cleanupAndReturnPostBackupErrorAndCopyRemoteBackupToLocalError(deployment, errs)
+		return Error{cleanupAndReturnPostBackupErrorAndCopyRemoteBackupToLocalError(deployment, errs)}
 	}
 
 	if postBackupUnlockError != nil {
-		return cleanupAndReturnPostBackupError(deployment, postBackupUnlockError)
+		return Error{cleanupAndReturnPostBackupError(deployment, postBackupUnlockError)}
 	}
 
 	if copyRemoteBackupToLocalError != nil {
-		return cleanupAndReturnErrors(deployment, copyRemoteBackupToLocalError)
+		return Error{cleanupAndReturnErrors(deployment, copyRemoteBackupToLocalError)}
 	}
 
 	b.Logger.Info("", "Backup created of %s on %v\n", deploymentName, time.Now())
 
 	if err := deployment.Cleanup(); err != nil {
-		return CleanupError{
+		return Error{CleanupError{
 			fmt.Errorf("Deployment '%s' failed while cleaning up with error: %v", deploymentName, err),
-		}
+		}}
 	}
 	return nil
 }
