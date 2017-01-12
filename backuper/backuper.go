@@ -53,30 +53,30 @@ func (b Backuper) Backup(deploymentName string) Error {
 	}
 
 	if backupable, err := deployment.IsBackupable(); err != nil {
-		return Error{cleanupAndReturnErrors(deployment, err)}
+		return cleanupAndReturnErrorsArray(deployment, Error{err})
 	} else if !backupable {
-		return Error{cleanupAndReturnErrors(deployment, fmt.Errorf("Deployment '%s' has no backup scripts", deploymentName))}
+		return cleanupAndReturnErrorsArray(deployment, Error{fmt.Errorf("Deployment '%s' has no backup scripts", deploymentName)})
 	}
 
 	artifact, err := b.ArtifactManager.Create(deploymentName, b.Logger)
 	if err != nil {
-		return Error{cleanupAndReturnErrors(deployment, err)}
+		return cleanupAndReturnErrorsArray(deployment, Error{err})
 	}
 	manifest, err := b.GetManifest(deploymentName)
 	if err != nil {
-		return Error{cleanupAndReturnErrors(deployment, err)}
+		return cleanupAndReturnErrorsArray(deployment, Error{err})
 	}
 
 	if err := artifact.SaveManifest(manifest); err != nil {
-		return Error{cleanupAndReturnErrors(deployment, err)}
+		return cleanupAndReturnErrorsArray(deployment, Error{err})
 	}
 
 	if err = deployment.PreBackupLock(); err != nil {
-		return Error{cleanupAndReturnErrors(deployment, err)}
+		return cleanupAndReturnErrorsArray(deployment, Error{err})
 	}
 
 	if err = deployment.Backup(); err != nil {
-		return Error{cleanupAndReturnErrors(deployment, err)}
+		return cleanupAndReturnErrorsArray(deployment, Error{err})
 	}
 
 	postBackupUnlockError := deployment.PostBackupUnlock()
@@ -84,19 +84,17 @@ func (b Backuper) Backup(deploymentName string) Error {
 	copyRemoteBackupToLocalError := deployment.CopyRemoteBackupToLocal(artifact)
 
 	if postBackupUnlockError != nil && copyRemoteBackupToLocalError != nil {
-		var errs error
-		errs = multierror.Append(errs, postBackupUnlockError)
-		errs = multierror.Append(errs, copyRemoteBackupToLocalError)
+		errs := Error{}
+		errs = append(errs, PostBackupUnlockError{postBackupUnlockError})
+		errs = append(errs, copyRemoteBackupToLocalError)
 
-		return Error{cleanupAndReturnPostBackupErrorAndCopyRemoteBackupToLocalError(deployment, errs)}
+		return cleanupAndReturnErrorsArray(deployment, errs)
 	}
-
 	if postBackupUnlockError != nil {
-		return Error{cleanupAndReturnPostBackupError(deployment, postBackupUnlockError)}
+		return cleanupAndReturnErrorsArray(deployment, Error{PostBackupUnlockError{postBackupUnlockError}})
 	}
-
 	if copyRemoteBackupToLocalError != nil {
-		return Error{cleanupAndReturnErrors(deployment, copyRemoteBackupToLocalError)}
+		return cleanupAndReturnErrorsArray(deployment, Error{copyRemoteBackupToLocalError})
 	}
 
 	b.Logger.Info("", "Backup created of %s on %v\n", deploymentName, time.Now())
@@ -166,18 +164,10 @@ func cleanupAndReturnErrors(d Deployment, err error) error {
 	return err
 }
 
-func cleanupAndReturnPostBackupError(d Deployment, err error) error {
+func cleanupAndReturnErrorsArray(d Deployment, err Error) Error {
 	cleanupErr := d.Cleanup()
 	if cleanupErr != nil {
-		err = multierror.Append(err, cleanupErr)
+		return append(err, CleanupError{cleanupErr})
 	}
-	return PostBackupUnlockError{err}
-}
-
-func cleanupAndReturnPostBackupErrorAndCopyRemoteBackupToLocalError(d Deployment, errs error) error {
-	cleanupErr := d.Cleanup()
-	if cleanupErr != nil {
-		multierror.Append(errs, cleanupErr)
-	}
-	return PostBackupUnlockError{errs}
+	return err
 }
