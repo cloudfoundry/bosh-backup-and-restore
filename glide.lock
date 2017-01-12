@@ -1,5 +1,5 @@
-hash: 789e7662c679f8ab00b86a8190d096295d6c1dda83a4834ec6c9e306a91aa2ad
-updated: 2017-01-12T11:38:08.947539726Z
+hash: 9f0cfc725530ba089c6b9eddff1d4f6a8ea080d5c759e16922b544071e15b26d
+updated: 2017-01-12T14:26:35.24352776Z
 imports:
 - name: github.com/bmatcuk/doublestar
   version: dd6a6f0a8cdfaaa88b08cf26cf1bc7d69003ee13
@@ -28,6 +28,8 @@ imports:
   version: 8484912a3b9987857bac52e0c5fec2b95f419628
 - name: github.com/kr/pty
   version: ce7fa45920dc37a92de8377972e52bc55ffa8d57
+- name: github.com/looplab/fsm
+  version: ee3b44fdc79755b3bb003c9bf637cf82bc364a69
 - name: github.com/mgutz/ansi
   version: c286dcecd19ff979eeb73ea444e479b903f2cfcb
 - name: github.com/nu7hatch/gouuid
