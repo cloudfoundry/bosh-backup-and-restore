@@ -1,4 +1,4 @@
-export BOSH_USER=admin
+export BOSH_CLIENT=admin
 export BOSH_URL=https://lite-bosh.backup-and-restore.cf-app.com
 export BOSH_GATEWAY_USER=vcap
 export BOSH_GATEWAY_HOST=lite-bosh.backup-and-restore.cf-app.com
@@ -40,7 +40,7 @@ setup:
 	go get github.com/onsi/ginkgo/ginkgo
 
 sys-test-local:
-	BOSH_PASSWORD=`lpass show LiteBoshDirector --password` \
+	BOSH_CLIENT_SECRET=`lpass show LiteBoshDirector --password` \
 	BOSH_CERT_PATH=~/workspace/pcf-backup-and-restore-meta/certs/lite-bosh.backup-and-restore.cf-app.com.crt \
 	BOSH_GATEWAY_KEY=~/workspace/pcf-backup-and-restore-meta/genesis-bosh/bosh.pem \
 	TEST_ENV=`echo $(DEV_ENV)` \

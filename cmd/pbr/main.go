@@ -180,8 +180,8 @@ func makeBoshDirectorClient(targetUrl, username, password, caCert string, logger
 			"red"), 1)
 	}
 
-	config.Username = username
-	config.Password = password
+	config.Client = username
+	config.ClientSecret = password
 
 	if caCert != "" {
 		cert, err := ioutil.ReadFile(caCert)

@@ -41,7 +41,7 @@ var _ = Describe("Restores a deployment", func() {
 		Eventually(RunCommandOnRemote(
 			JumpBoxSSHCommand(),
 			fmt.Sprintf(`cd %s; BOSH_PASSWORD=%s ./pbr --debug --ca-cert bosh.crt --username %s --target %s --deployment %s restore`,
-				workspaceDir, MustHaveEnv("BOSH_PASSWORD"), MustHaveEnv("BOSH_USER"), MustHaveEnv("BOSH_URL"), RedisDeployment()),
+				workspaceDir, MustHaveEnv("BOSH_CLIENT_SECRET"), MustHaveEnv("BOSH_CLIENT"), MustHaveEnv("BOSH_URL"), RedisDeployment()),
 		)).Should(gexec.Exit(0))
 
 		By("cleaning up artifacts from the remote instances")

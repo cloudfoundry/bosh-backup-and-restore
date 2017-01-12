@@ -56,11 +56,11 @@ func AssertJumpboxFilesExist(paths []string) {
 }
 
 func GenericBoshCommand() string {
-	return fmt.Sprintf("bosh-cli --non-interactive --environment=%s --ca-cert=%s --user=%s --password=%s",
+	return fmt.Sprintf("bosh-cli --non-interactive --environment=%s --ca-cert=%s --client=%s --client-secret=%s",
 		MustHaveEnv("BOSH_URL"),
 		MustHaveEnv("BOSH_CERT_PATH"),
-		MustHaveEnv("BOSH_USER"),
-		MustHaveEnv("BOSH_PASSWORD"),
+		MustHaveEnv("BOSH_CLIENT"),
+		MustHaveEnv("BOSH_CLIENT_SECRET"),
 	)
 }
 

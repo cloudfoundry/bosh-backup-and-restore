@@ -1,18 +1,17 @@
-hash: 8b2ed2276f2810c8b680c752733ad2faba5f464c0f132cb3c45723fadc86aba7
-updated: 2017-01-10T11:54:26.61741432Z
+hash: 789e7662c679f8ab00b86a8190d096295d6c1dda83a4834ec6c9e306a91aa2ad
+updated: 2017-01-12T11:38:08.947539726Z
 imports:
 - name: github.com/bmatcuk/doublestar
   version: dd6a6f0a8cdfaaa88b08cf26cf1bc7d69003ee13
 - name: github.com/charlievieth/fs
   version: 85d13508c8e9fdaf4c9fcd52a4c3241341566346
 - name: github.com/cloudfoundry/bosh-cli
-  version: 2a5f10c7693ea2e74c5e81f4b62e23d211fff415
+  version: 11140a1205cc11018f982e968e273e574f16acf1
   subpackages:
   - director
   - director/directorfakes
 - name: github.com/cloudfoundry/bosh-utils
   version: 18e54c725fb20f623c27e12aaf3e98d6e18dca69
-  vcs: git
   subpackages:
   - errors
   - httpclient
