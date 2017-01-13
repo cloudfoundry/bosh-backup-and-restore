@@ -2,10 +2,9 @@ package backuper
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/looplab/fsm"
+	//"github.com/looplab/fsm"
 )
 
 func New(bosh BoshDirector, artifactManager ArtifactManager, logger Logger, deploymentManager DeploymentManager) *Backuper {
@@ -39,9 +38,13 @@ type BoshDirector interface {
 	GetManifest(deploymentName string) (string, error)
 }
 
+func beforeEvent(eventName string) string {
+	return "before_" + eventName
+}
+
 //Backup checks if a deployment has backupable instances and backs them up.
 func (b Backuper) Backup(deploymentName string) Error {
-	var artifact Artifact
+	//var artifact Artifact
 
 	b.Logger.Info("", "Starting backup of %s...\n", deploymentName)
 
@@ -55,110 +58,9 @@ func (b Backuper) Backup(deploymentName string) Error {
 		return Error{err}
 	}
 
-	StateReady := "ready"
-	events := fsm.Events{
-		{Name: "check-is-backupable", Src: []string{StateReady}, Dst: "is-backupable"},
-		{Name: "create-artifact", Src: []string{"is-backupable"}, Dst: "artifact-created"},
-		{Name: "pre-backup-lock", Src: []string{"artifact-created"}, Dst: "locked"},
-		{Name: "backup", Src: []string{"locked"}, Dst: "backed-up"},
-		{Name: "post-backup-unlock", Src: []string{"backed-up"}, Dst: "unlocked"},
-		{Name: "drain", Src: []string{"unlocked"}, Dst: "drained"},
-		{Name: "cleanup", Src: []string{StateReady, "is-backupable", "artifact-created", "unlocked", "drained"}, Dst: "finished"},
-	}
+	bw := newbackupWorkflow(b, deploymentName, deployment)
 
-	var allTheErrs Error
-
-	bfsm := fsm.NewFSM(
-		StateReady,
-		events,
-		fsm.Callbacks{
-			"before_check-is-backupable": func(e *fsm.Event) {
-				backupable, err := deployment.IsBackupable()
-
-				if err != nil {
-					allTheErrs = append(allTheErrs, err)
-					e.Cancel()
-					return
-				}
-
-				if !backupable {
-					allTheErrs = append(allTheErrs, fmt.Errorf("Deployment '%s' has no backup scripts", deploymentName))
-					e.Cancel()
-				}
-			},
-			"enter_finished": func(e *fsm.Event) {
-				if err := deployment.Cleanup(); err != nil {
-					allTheErrs = append(allTheErrs, CleanupError{fmt.Errorf("Deployment '%s' failed while cleaning up with error: %v", deploymentName, err)})
-				}
-			},
-			"before_create-artifact": func(e *fsm.Event) {
-				artifact, err = b.ArtifactManager.Create(deploymentName, b.Logger)
-				if err != nil {
-					allTheErrs = append(allTheErrs, err)
-					e.Cancel()
-					return
-				}
-
-				manifest, err := b.GetManifest(deploymentName)
-				if err != nil {
-					allTheErrs = append(allTheErrs, err)
-					e.Cancel()
-					return
-				}
-
-				err = artifact.SaveManifest(manifest)
-
-				if err != nil {
-					allTheErrs = append(allTheErrs, err)
-					e.Cancel()
-					return
-				}
-			},
-			"before_pre-backup-lock": func(e *fsm.Event) {
-				err := deployment.PreBackupLock()
-
-				if err != nil {
-					allTheErrs = append(allTheErrs, err)
-					e.Cancel()
-				}
-			},
-			"before_backup": func(e *fsm.Event) {
-				err := deployment.Backup()
-
-				if err != nil {
-					allTheErrs = append(allTheErrs, err)
-				}
-			},
-			"before_drain": func(e *fsm.Event) {
-				if allTheErrs.IsFatal() {
-					e.Cancel()
-					return
-				}
-				err := deployment.CopyRemoteBackupToLocal(artifact)
-
-				if err != nil {
-					allTheErrs = append(allTheErrs, err)
-					return
-				}
-
-				b.Logger.Info("", "Backup created of %s on %v\n", deploymentName, time.Now())
-			},
-			"before_post-backup-unlock": func(e *fsm.Event) {
-				err := deployment.PostBackupUnlock()
-
-				if err != nil {
-					allTheErrs = append(allTheErrs, PostBackupUnlockError{err})
-				}
-			},
-		},
-	)
-
-	for _, e := range events {
-		if bfsm.Can(e.Name) {
-			bfsm.Event(e.Name) //TODO: err
-		}
-	}
-	return allTheErrs
+	return bw.Run()
 }
 
 func (b Backuper) Restore(deploymentName string) error {
