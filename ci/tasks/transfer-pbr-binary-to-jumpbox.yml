@@ -6,7 +6,6 @@ image_resource:
   source: {repository: cloudfoundrylondon/backup-and-restore}
 
 inputs:
-- name: version
 - name: pcf-backup-and-restore
 - name: pcf-backup-and-restore-meta
 - name: release
