@@ -63,8 +63,7 @@ func (b Backuper) Backup(deploymentName string) Error {
 		{Name: "backup", Src: []string{"locked"}, Dst: "backed-up"},
 		{Name: "post-backup-unlock", Src: []string{"backed-up"}, Dst: "unlocked"},
 		{Name: "drain", Src: []string{"unlocked"}, Dst: "drained"},
-		{Name: "post-failure-unlock", Src: []string{"artifact-created", "locked"}, Dst: "failed"},
-		{Name: "cleanup", Src: []string{StateReady, "is-backupable", "failed", "drained"}, Dst: "finished"},
+		{Name: "cleanup", Src: []string{StateReady, "is-backupable", "artifact-created", "unlocked", "drained"}, Dst: "finished"},
 	}
 
 	var allTheErrs Error
@@ -128,10 +127,13 @@ func (b Backuper) Backup(deploymentName string) Error {
 
 				if err != nil {
 					allTheErrs = append(allTheErrs, err)
-					e.Cancel()
 				}
 			},
 			"before_drain": func(e *fsm.Event) {
+				if allTheErrs.IsFatal() {
+					e.Cancel()
+					return
+				}
 				err := deployment.CopyRemoteBackupToLocal(artifact)
 
 				if err != nil {
@@ -146,14 +148,6 @@ func (b Backuper) Backup(deploymentName string) Error {
 
 				if err != nil {
 					allTheErrs = append(allTheErrs, PostBackupUnlockError{err})
-				}
-			},
-			"before_post-failure-unlock": func(e *fsm.Event) {
-				err := deployment.PostBackupUnlock()
-
-				if err != nil {
-					allTheErrs = append(allTheErrs, PostBackupUnlockError{err})
-					e.Cancel()
 				}
 			},
 		},
