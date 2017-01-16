@@ -689,7 +689,7 @@ var _ = Describe("Instance", func() {
 				Expect(stderr).To(
 					gbytes.Say(
 						fmt.Sprintf(
-							"Error running post backup lock on instance %s %s. Error: %s",
+							"Error running post backup unlock on instance %s %s. Error: %s",
 							jobName,
 							jobIndex,
 							expectedError,
