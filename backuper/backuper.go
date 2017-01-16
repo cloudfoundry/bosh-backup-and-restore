@@ -44,21 +44,7 @@ func beforeEvent(eventName string) string {
 
 //Backup checks if a deployment has backupable instances and backs them up.
 func (b Backuper) Backup(deploymentName string) Error {
-	//var artifact Artifact
-
-	b.Logger.Info("", "Starting backup of %s...\n", deploymentName)
-
-	exists := b.ArtifactManager.Exists(deploymentName)
-	if exists {
-		return Error{fmt.Errorf("artifact %s already exists", deploymentName)}
-	}
-
-	deployment, err := b.DeploymentManager.Find(deploymentName)
-	if err != nil {
-		return Error{err}
-	}
-
-	bw := newbackupWorkflow(b, deploymentName, deployment)
+	bw := newbackupWorkflow(b, deploymentName)
 
 	return bw.Run()
 }
