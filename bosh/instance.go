@@ -121,7 +121,7 @@ func (d *DeployedInstance) PostBackupUnlock() error {
 	if err != nil {
 		d.Logger.Error(
 			"",
-			"Error running post backup lock on instance %s %s. Error: %s",
+			"Error running post backup unlock on instance %s %s. Error: %s",
 			d.InstanceGroupName,
 			d.InstanceIndex,
 			err,

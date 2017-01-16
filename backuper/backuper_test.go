@@ -37,7 +37,7 @@ var _ = Describe("Backuper", func() {
 		actualBackupError = b.Backup(deploymentName)
 	})
 
-	Context("backups up an deplyoment", func() {
+	Context("backs up a deployment", func() {
 		BeforeEach(func() {
 			boshDirector.GetManifestReturns(deploymentManifest, nil)
 			artifactManager.CreateReturns(artifact, nil)
@@ -232,6 +232,10 @@ var _ = Describe("Backuper", func() {
 
 			It("fails the backup process", func() {
 				Expect(actualBackupError).To(ConsistOf(lockError))
+			})
+
+			It("also runs post-backup-unlock", func(){
+				Expect(deployment.PostBackupUnlockCallCount()).To(Equal(1))
 			})
 
 			Context("cleanup fails as well", assertCleanupError)

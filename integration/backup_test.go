@@ -109,6 +109,31 @@ touch /tmp/pre-backup-lock-output
 				})
 			})
 
+			Context("when the p-pre-backup-lock script fails", func() {
+				BeforeEach(func() {
+					instance1.CreateScript("/var/vcap/jobs/redis/bin/p-pre-backup-lock", `#!/usr/bin/env sh
+touch /tmp/pre-backup-lock-output
+exit 1
+`)
+					instance1.CreateScript("/var/vcap/jobs/redis-broker/bin/p-pre-backup-lock", ``)
+					instance1.CreateScript("/var/vcap/jobs/redis/bin/p-post-backup-unlock", `#!/usr/bin/env sh
+touch /tmp/post-backup-unlock-output
+`)
+				})
+
+				It("runs the p-pre-backup-lock scripts", func() {
+					Expect(instance1.FileExists("/tmp/pre-backup-lock-output")).To(BeTrue())
+				})
+
+				It("logs the error", func() {
+					Expect(string(session.Err.Contents())).Should(ContainSubstring("Instance pre-backup-lock scripts returned 123. Error: "))
+				})
+
+				It("also runs the p-post-backup-unlock scripts", func(){
+					Expect(instance1.FileExists("/tmp/post-backup-unlock-output")).To(BeTrue())
+				})
+			})
+
 			It("exits zero", func() {
 				Expect(session.ExitCode()).To(BeZero())
 			})
