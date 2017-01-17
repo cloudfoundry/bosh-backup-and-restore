@@ -67,7 +67,9 @@ func (i *Instance) GetFileContents(path string) string {
 }
 
 func (i *Instance) Die() {
-	dockerRunAndWaitForSuccess("kill", i.dockerID)
+	if i != nil {
+		dockerRunAndWaitForSuccess("kill", i.dockerID)
+	}
 }
 
 func dockerRun(args ...string) *gexec.Session {
