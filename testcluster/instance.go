@@ -81,13 +81,16 @@ func (i *Instance) die() {
 
 func dockerRun(args ...string) *gexec.Session {
 	cmd := exec.Command("docker", args...)
+	fmt.Fprintf(GinkgoWriter, "Starting docker run %v\n", args)
 	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
 	return session
 }
 
 func dockerRunAndWaitForSuccess(args ...string) string {
+	startTime := time.Now()
 	session := dockerRun(args...)
 	Eventually(session, testclusterTimeout).Should(gexec.Exit(0))
+	fmt.Fprintf(GinkgoWriter, "Completed docker run in %v, cmd: %v\n", time.Now().Sub(startTime), args)
 	return string(session.Out.Contents())
 }
