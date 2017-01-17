@@ -161,7 +161,7 @@ instances:
 
 		AfterEach(func() {
 			Expect(os.RemoveAll(deploymentName)).To(Succeed())
-			instance1.Die()
+			instance1.DieInBackground()
 		})
 
 		It("does not fail", func() {
@@ -237,7 +237,7 @@ instances:
 
 		AfterEach(func() {
 			Expect(os.RemoveAll(deploymentName)).To(Succeed())
-			instance1.Die()
+			instance1.DieInBackground()
 		})
 
 		It("fails", func() {

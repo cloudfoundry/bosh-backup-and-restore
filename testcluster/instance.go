@@ -66,7 +66,14 @@ func (i *Instance) GetFileContents(path string) string {
 	return dockerRunAndWaitForSuccess("exec", i.dockerID, "cat", path)
 }
 
-func (i *Instance) Die() {
+func (i *Instance) DieInBackground() {
+	go func() {
+		defer GinkgoRecover()
+		i.die()
+	}()
+}
+
+func (i *Instance) die() {
 	if i != nil {
 		dockerRunAndWaitForSuccess("kill", i.dockerID)
 	}

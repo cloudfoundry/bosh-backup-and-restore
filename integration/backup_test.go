@@ -63,7 +63,7 @@ var _ = Describe("Backup", func() {
 			var outputFile string
 
 			AfterEach(func() {
-				go instance1.Die()
+				instance1.DieInBackground()
 			})
 
 			BeforeEach(func() {
@@ -416,8 +416,8 @@ exit 1`)
 		})
 
 		AfterEach(func() {
-			go backupableInstance.Die()
-			go nonBackupableInstance.Die()
+			backupableInstance.DieInBackground()
+			nonBackupableInstance.DieInBackground()
 		})
 
 		It("backs up deployment successfully", func() {
@@ -464,8 +464,8 @@ exit 1`)
 		})
 
 		AfterEach(func() {
-			go backupableInstance1.Die()
-			go backupableInstance2.Die()
+			backupableInstance1.DieInBackground()
+			backupableInstance2.DieInBackground()
 		})
 
 		It("backs up both instances successfully", func() {

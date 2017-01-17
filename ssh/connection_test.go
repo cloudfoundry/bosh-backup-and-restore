@@ -246,7 +246,7 @@ var _ = Describe("Connection", func() {
 				})
 
 				AfterEach(func() {
-					instance1.Die()
+					instance1.DieInBackground()
 				})
 
 				It("does not fail", func() {
