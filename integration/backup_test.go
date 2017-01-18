@@ -112,6 +112,8 @@ touch /tmp/pre-backup-lock-output
 			Context("when the p-pre-backup-lock script fails", func() {
 				BeforeEach(func() {
 					instance1.CreateScript("/var/vcap/jobs/redis/bin/p-pre-backup-lock", `#!/usr/bin/env sh
+echo 'ultra-bar'
+(>&2 echo 'ultra-baz')
 touch /tmp/pre-backup-lock-output
 exit 1
 `)
@@ -126,7 +128,15 @@ touch /tmp/post-backup-unlock-output
 				})
 
 				It("logs the error", func() {
-					Expect(string(session.Err.Contents())).Should(ContainSubstring("Instance pre-backup-lock scripts returned 123. Error: "))
+					Expect(session.Err.Contents()).To(ContainSubstring("One or more pre-backup-lock scripts failed on redis-dedicated-node 0."))
+				})
+
+				It("logs stdout", func(){
+					Expect(session.Err.Contents()).To(ContainSubstring("Stdout: ultra-bar"))
+				})
+
+				It("logs stderr", func(){
+					Expect(session.Err.Contents()).To(ContainSubstring("Stderr: ultra-baz"))
 				})
 
 				It("also runs the p-post-backup-unlock scripts", func(){
@@ -220,18 +230,28 @@ echo "Unlocking release"`)
 				Context("when the post backup unlock script fails", func() {
 					BeforeEach(func() {
 						instance1.CreateScript("/var/vcap/jobs/redis/bin/p-post-backup-unlock", `#!/usr/bin/env sh
-(>&2 echo 'error output from script')
+echo 'ultra-bar'
+(>&2 echo 'ultra-baz')
 exit 1`)
 					})
+
 					It("exits with the correct error code", func() {
 						Expect(session).To(gexec.Exit(42))
 					})
-					It("has the error from the remote script in the output", func() {
-						Expect(session.Out.Contents()).Should(ContainSubstring("error output from script"))
+
+					It("prints stdout", func() {
+						Expect(session.Err.Contents()).To(ContainSubstring("Stdout: ultra-bar"))
+					})
+
+					It("prints stderr", func() {
+						Expect(session.Err.Contents()).To(ContainSubstring("Stderr: ultra-baz"))
+					})
+
+					It("prints an error", func() {
+						Expect(session.Err.Contents()).To(ContainSubstring("One or more post-backup-unlock scripts failed on redis-dedicated-node 0."))
 					})
 				})
 			})
-
 		})
 
 		Context("if a deployment can't be backed up", func() {
@@ -282,7 +302,7 @@ exit 1`)
 				)...)
 
 				instance1.CreateScript(
-					"/var/vcap/jobs/redis/bin/p-backup", "(>&2 echo 'ultra-baz'); exit 1",
+					"/var/vcap/jobs/redis/bin/p-backup", "echo 'ultra-bar'; (>&2 echo 'ultra-baz'); exit 1",
 				)
 			})
 
@@ -290,10 +310,6 @@ exit 1`)
 				Expect(session.ExitCode()).To(Equal(1))
 			})
 
-			It("prints an error", func() {
-				Expect(string(session.Err.Contents())).To(ContainSubstring("Instance backup scripts returned 123"))
-				Expect(string(session.Err.Contents())).To(ContainSubstring("ultra-baz"))
-			})
 		})
 
 		Context("instance backup script failed with an error and cleanup failed as well", func() {
@@ -321,7 +337,7 @@ exit 1`)
 			})
 
 			It("prints an error", func() {
-				Expect(string(session.Err.Contents())).To(ContainSubstring("Instance backup scripts returned 123"))
+				Expect(string(session.Err.Contents())).To(ContainSubstring("One or more backup scripts failed on redis-dedicated-node 0."))
 				Expect(string(session.Err.Contents())).To(ContainSubstring("ultra-baz"))
 				Expect(string(session.Err.Contents())).To(ContainSubstring("ultra-foo"))
 			})

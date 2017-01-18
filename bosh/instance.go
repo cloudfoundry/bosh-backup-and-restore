@@ -87,10 +87,16 @@ func (d *DeployedInstance) IsPreBackupLockable() (bool, error) {
 
 func (d *DeployedInstance) PreBackupLock() error {
 	d.filesPresent("/var/vcap/jobs/*/bin/p-pre-backup-lock")
-	_, stderr, exitCode, err := d.logAndRun("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock | xargs -IN sudo sh -c N", "pre-backup-lock")
+	stdout, stderr, exitCode, err := d.logAndRun("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock | xargs -IN sudo sh -c N", "pre-backup-lock")
 
 	if exitCode != 0 {
-		return fmt.Errorf("Instance pre-backup-lock scripts returned %d. Error: %s", exitCode, stderr)
+		return fmt.Errorf(
+			"One or more pre-backup-lock scripts failed on %s %s.\nStdout: %s\nStderr: %s",
+			d.InstanceGroupName,
+			d.InstanceIndex,
+			stdout,
+			stderr,
+		)
 	}
 
 	return err
@@ -100,10 +106,16 @@ func (d *DeployedInstance) Backup() error {
 	d.filesPresent("/var/vcap/jobs/*/bin/p-backup")
 	d.Logger.Info("", "Backing up %s-%s...", d.InstanceGroupName, d.InstanceIndex)
 
-	_, stderr, exitCode, err := d.logAndRun("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/p-backup | xargs -IN sudo sh -c N", "backup")
+	stdout, stderr, exitCode, err := d.logAndRun("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/p-backup | xargs -IN sudo sh -c N", "backup")
 
 	if exitCode != 0 {
-		return fmt.Errorf("Instance backup scripts returned %d. Error: %s", exitCode, stderr)
+		return fmt.Errorf(
+			"One or more backup scripts failed on %s %s.\nStdout: %s\nStderr: %s",
+			d.InstanceGroupName,
+			d.InstanceIndex,
+			stdout,
+			stderr,
+		)
 	}
 
 	d.Logger.Info("", "Done.")
@@ -131,10 +143,11 @@ func (d *DeployedInstance) PostBackupUnlock() error {
 
 	if exitCode != 0 {
 		return fmt.Errorf(
-			"Post backup unlock script on instance %s %s failed. Exit code %d",
+			"One or more post-backup-unlock scripts failed on %s %s.\nStdout: %s\nStderr: %s",
 			d.InstanceGroupName,
 			d.InstanceIndex,
-			exitCode,
+			stdout,
+			stderr,
 		)
 	}
 

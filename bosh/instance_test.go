@@ -551,7 +551,7 @@ var _ = Describe("Instance", func() {
 
 		Describe("when there is an error with the ssh tunnel", func() {
 			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, expectedError)
+				sshConnection.RunReturns([]byte("some stdout"), []byte("some stderr"), 0, expectedError)
 			})
 
 			It("fails", func() {
@@ -560,12 +560,29 @@ var _ = Describe("Instance", func() {
 		})
 
 		Describe("when the pre-backup-lock script returns an error", func() {
+			expectedStdout := "some stdout"
+			expectedStderr := "some stderr"
+
 			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 1, nil)
+				sshConnection.RunReturns([]byte(expectedStdout), []byte(expectedStderr), 1, nil)
 			})
 
 			It("fails", func() {
 				Expect(err).To(HaveOccurred())
+			})
+
+			It("prints an error message", func() {
+				Expect(err.Error()).To(ContainSubstring(
+					fmt.Sprintf("One or more pre-backup-lock scripts failed on %s %s", jobName, jobIndex),
+				))
+			})
+
+			It("prints stdout", func() {
+				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Stdout: %s", expectedStdout)))
+			})
+
+			It("prints stderr", func() {
+				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Stderr: %s", expectedStderr)))
 			})
 		})
 	})
@@ -599,10 +616,13 @@ var _ = Describe("Instance", func() {
 		})
 
 		Describe("when there is an error backing up", func() {
+			expectedStdout := "some stdout"
+			expectedStderr := "some stderr"
+
 			BeforeEach(func() {
 				sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
 					if strings.Contains(cmd, "xargs") {
-						return []byte("not relevant"), []byte("not relevant"), 1, nil
+						return []byte(expectedStdout), []byte(expectedStderr), 1, nil
 					}
 					return []byte("not relevant"), []byte("not relevant"), 0, nil
 				}
@@ -616,6 +636,20 @@ var _ = Describe("Instance", func() {
 
 			It("fails", func() {
 				Expect(err).To(HaveOccurred())
+			})
+
+			It("prints an error message", func() {
+				Expect(err.Error()).To(ContainSubstring(
+					fmt.Sprintf("One or more backup scripts failed on %s %s", jobName, jobIndex),
+				))
+			})
+
+			It("prints stdout", func() {
+				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Stdout: %s", expectedStdout)))
+			})
+
+			It("prints stderr", func() {
+				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Stderr: %s", expectedStderr)))
 			})
 		})
 	})
@@ -662,10 +696,18 @@ var _ = Describe("Instance", func() {
 				Expect(err).To(HaveOccurred())
 			})
 
-			It("returns the expected error", func() {
+			It("prints an error message", func() {
 				Expect(err.Error()).To(ContainSubstring(
-					fmt.Sprintf("Post backup unlock script on instance %s %s failed. Exit code 1", jobName, jobIndex),
+					fmt.Sprintf("One or more post-backup-unlock scripts failed on %s %s", jobName, jobIndex),
 				))
+			})
+
+			It("prints stdout", func() {
+				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Stdout: %s", expectedStdout)))
+			})
+
+			It("prints stderr", func() {
+				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Stderr: %s", expectedStderr)))
 			})
 		})
 
