@@ -10,4 +10,4 @@ export GOPATH=$PWD
 export PATH=$PATH:$GOPATH/bin
 cd src/github.com/pivotal-cf/pcf-backup-and-restore
 make test-ci
-make clean-docker
+make clean-docker || true
