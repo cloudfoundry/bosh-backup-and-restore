@@ -35,7 +35,7 @@ func (d *DirectoryArtifact) DeploymentMatches(deployment string, instances []bac
 	for _, inst := range meta.MetadataForEachInstance {
 		present := d.backupInstanceIsPresent(inst, instances)
 		if present != true {
-			d.Debug(TAG, "Instance %v/%v not found in %v", inst.Name(), inst.ID(), instances)
+			d.Debug(TAG, "Instance %v/%v not found in %v", inst.Name(), inst.Index(), instances)
 			return false, nil
 		}
 	}
@@ -44,7 +44,7 @@ func (d *DirectoryArtifact) DeploymentMatches(deployment string, instances []bac
 }
 
 func (d *DirectoryArtifact) CreateFile(inst backuper.InstanceIdentifer) (io.WriteCloser, error) {
-	filename := inst.Name() + "-" + inst.ID() + ".tgz"
+	filename := inst.Name() + "-" + inst.Index() + ".tgz"
 	d.Debug(TAG, "Trying to create file %s", filename)
 	return os.Create(path.Join(d.baseDirName, filename))
 }
@@ -68,11 +68,11 @@ func (d *DirectoryArtifact) FetchChecksum(inst backuper.InstanceIdentifer) (back
 		return nil, err
 	}
 	for _, instanceInMetadata := range metadata.MetadataForEachInstance {
-		if instanceInMetadata.ID() == inst.ID() && instanceInMetadata.Name() == inst.Name() {
+		if instanceInMetadata.Index() == inst.Index() && instanceInMetadata.Name() == inst.Name() {
 			return instanceInMetadata.Checksum, nil
 		}
 	}
-	d.Warn(TAG, "Checksum for %s/%s not found in artifact", inst.Name(), inst.ID())
+	d.Warn(TAG, "Checksum for %s/%s not found in artifact", inst.Name(), inst.Index())
 	return nil, nil
 }
 func (d *DirectoryArtifact) CalculateChecksum(inst backuper.InstanceIdentifer) (backuper.BackupChecksum, error) {
@@ -84,7 +84,7 @@ func (d *DirectoryArtifact) CalculateChecksum(inst backuper.InstanceIdentifer) (
 
 	gzipedReader, err := gzip.NewReader(file)
 	if err != nil {
-		d.Debug(TAG, "Cant open gzip for %s/%s %v", inst.ID(), inst.Name(), err)
+		d.Debug(TAG, "Cant open gzip for %s/%s %v", inst.Index(), inst.Name(), err)
 		return nil, err
 	}
 	tarReader := tar.NewReader(gzipedReader)
@@ -95,7 +95,7 @@ func (d *DirectoryArtifact) CalculateChecksum(inst backuper.InstanceIdentifer) (
 			break
 		}
 		if err != nil {
-			d.Debug(TAG, "Error reading tar for %s/%s %v", inst.ID(), inst.Name(), err)
+			d.Debug(TAG, "Error reading tar for %s/%s %v", inst.Index(), inst.Name(), err)
 			return nil, err
 		}
 		if tarHeader.FileInfo().IsDir() || tarHeader.FileInfo().Name() == "./" {
@@ -104,7 +104,7 @@ func (d *DirectoryArtifact) CalculateChecksum(inst backuper.InstanceIdentifer) (
 
 		fileShasum := sha1.New()
 		if _, err := io.Copy(fileShasum, tarReader); err != nil {
-			d.Debug(TAG, "Error calculating sha for %s/%s %v", inst.ID(), inst.Name(), err)
+			d.Debug(TAG, "Error calculating sha for %s/%s %v", inst.Index(), inst.Name(), err)
 			return nil, err
 		}
 		checksum[tarHeader.Name] = fmt.Sprintf("%x", fileShasum.Sum(nil))
@@ -126,7 +126,7 @@ func (d *DirectoryArtifact) AddChecksum(inst backuper.InstanceIdentifer, shasum 
 
 	metadata.MetadataForEachInstance = append(metadata.MetadataForEachInstance, instanceMetadata{
 		InstanceName: inst.Name(),
-		InstanceID:   inst.ID(),
+		InstanceIndex:   inst.Index(),
 		Checksum:     shasum,
 	})
 
@@ -150,7 +150,7 @@ func (d *DirectoryArtifact) Valid() (bool, error) {
 			return false, err
 		}
 		if !actualInstanceChecksum.Match(inst.Checksum) {
-			d.Debug(TAG, "Can't match checksums for %s/%s, in metadata: %v, in actual file: %v", inst.Name(), inst.ID(), actualInstanceChecksum, inst.Checksum)
+			d.Debug(TAG, "Can't match checksums for %s/%s, in metadata: %v, in actual file: %v", inst.Name(), inst.Index(), actualInstanceChecksum, inst.Checksum)
 			return false, nil
 		}
 
@@ -160,7 +160,7 @@ func (d *DirectoryArtifact) Valid() (bool, error) {
 
 func (d *DirectoryArtifact) backupInstanceIsPresent(backupInstance instanceMetadata, instances []backuper.Instance) bool {
 	for _, inst := range instances {
-		if inst.ID() == backupInstance.InstanceID && inst.Name() == backupInstance.InstanceName {
+		if inst.Index() == backupInstance.InstanceIndex && inst.Name() == backupInstance.InstanceName {
 			return true
 		}
 	}
@@ -168,7 +168,7 @@ func (d *DirectoryArtifact) backupInstanceIsPresent(backupInstance instanceMetad
 }
 
 func (d *DirectoryArtifact) instanceFilename(inst backuper.InstanceIdentifer) string {
-	return path.Join(d.baseDirName, inst.Name()+"-"+inst.ID()+".tgz")
+	return path.Join(d.baseDirName, inst.Name()+"-"+inst.Index()+".tgz")
 }
 
 func (d *DirectoryArtifact) metadataFilename() string {

@@ -4,17 +4,17 @@ import "gopkg.in/yaml.v2"
 import "io/ioutil"
 
 type instanceMetadata struct {
-	InstanceName string            `yaml:"instance_name"`
-	InstanceID   string            `yaml:"instance_id"`
-	Checksum     map[string]string `yaml:"checksums"`
+	InstanceName  string            `yaml:"instance_name"`
+	InstanceIndex string            `yaml:"instance_id"`
+	Checksum      map[string]string `yaml:"checksums"`
 }
 
 func (m instanceMetadata) Name() string {
 	return m.InstanceName
 }
 
-func (m instanceMetadata) ID() string {
-	return m.InstanceID
+func (m instanceMetadata) Index() string {
+	return m.InstanceIndex
 }
 
 type metadata struct {

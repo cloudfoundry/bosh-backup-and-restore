@@ -37,11 +37,11 @@ var _ = Describe("DirectoryArtifact", func() {
 			artifactName = "my-cool-redis"
 			instance1 = new(fakes.FakeInstance)
 			instance1.NameReturns("redis")
-			instance1.IDReturns("0")
+			instance1.IndexReturns("0")
 
 			instance2 = new(fakes.FakeInstance)
 			instance2.NameReturns("redis")
-			instance2.IDReturns("1")
+			instance2.IndexReturns("1")
 
 			artifact, _ = artifactManager.Open(artifactName, logger)
 		})
@@ -239,7 +239,7 @@ instances:
 		BeforeEach(func() {
 			artifact, _ = artifactManager.Create(artifactName, logger)
 			fakeInstance = new(fakes.FakeInstance)
-			fakeInstance.IDReturns("0")
+			fakeInstance.IndexReturns("0")
 			fakeInstance.NameReturns("redis")
 		})
 		JustBeforeEach(func() {
@@ -297,7 +297,7 @@ instances:
 		BeforeEach(func() {
 			artifact, _ = artifactManager.Open(artifactName, logger)
 			fakeInstance = new(fakes.FakeInstance)
-			fakeInstance.IDReturns("0")
+			fakeInstance.IndexReturns("0")
 			fakeInstance.NameReturns("redis")
 		})
 
@@ -342,7 +342,7 @@ instances:
 		BeforeEach(func() {
 			artifact, _ = artifactManager.Create(artifactName, logger)
 			fakeInstance = new(fakes.FakeInstance)
-			fakeInstance.IDReturns("0")
+			fakeInstance.IndexReturns("0")
 			fakeInstance.NameReturns("redis")
 		})
 		Context("file exists", func() {
@@ -420,7 +420,7 @@ instances:
 		BeforeEach(func() {
 			artifact, _ = artifactManager.Create(artifactName, logger)
 			fakeInstance = new(fakes.FakeInstance)
-			fakeInstance.IDReturns("0")
+			fakeInstance.IndexReturns("0")
 			fakeInstance.NameReturns("redis")
 			checksum = map[string]string{"filename": "foobar"}
 		})
@@ -444,7 +444,7 @@ instances:
 		Context("Appends to a checksum file, if already exists", func() {
 			BeforeEach(func() {
 				firstInstance := new(fakes.FakeInstance)
-				firstInstance.IDReturns("0")
+				firstInstance.IndexReturns("0")
 				firstInstance.NameReturns("broker")
 				Expect(artifact.AddChecksum(firstInstance, map[string]string{"filename1": "orignal_checksum"})).NotTo(HaveOccurred())
 			})
@@ -496,7 +496,7 @@ instances:
 		Context("the instance is found in metadata", func() {
 			BeforeEach(func() {
 				fakeInstance.NameReturns("foo")
-				fakeInstance.IDReturns("bar")
+				fakeInstance.IndexReturns("bar")
 
 				createTestMetadata(artifactName, `---
 instances:
@@ -517,7 +517,7 @@ instances:
 		Context("the instance is not found in metadata", func() {
 			BeforeEach(func() {
 				fakeInstance.NameReturns("not-foo")
-				fakeInstance.IDReturns("bar")
+				fakeInstance.IndexReturns("bar")
 
 				createTestMetadata(artifactName, `---
 instances:

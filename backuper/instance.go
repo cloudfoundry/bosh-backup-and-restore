@@ -5,7 +5,7 @@ import "github.com/hashicorp/go-multierror"
 
 type InstanceIdentifer interface {
 	Name() string
-	ID() string
+	Index() string
 }
 
 //go:generate counterfeiter -o fakes/fake_instance.go . Instance

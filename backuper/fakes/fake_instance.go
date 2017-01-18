@@ -15,10 +15,10 @@ type FakeInstance struct {
 	nameReturns     struct {
 		result1 string
 	}
-	IDStub        func() string
-	iDMutex       sync.RWMutex
-	iDArgsForCall []struct{}
-	iDReturns     struct {
+	IndexStub        func() string
+	indexMutex       sync.RWMutex
+	indexArgsForCall []struct{}
+	indexReturns     struct {
 		result1 string
 	}
 	IsBackupableStub        func() (bool, error)
@@ -138,27 +138,27 @@ func (fake *FakeInstance) NameReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeInstance) ID() string {
-	fake.iDMutex.Lock()
-	fake.iDArgsForCall = append(fake.iDArgsForCall, struct{}{})
-	fake.recordInvocation("ID", []interface{}{})
-	fake.iDMutex.Unlock()
-	if fake.IDStub != nil {
-		return fake.IDStub()
+func (fake *FakeInstance) Index() string {
+	fake.indexMutex.Lock()
+	fake.indexArgsForCall = append(fake.indexArgsForCall, struct{}{})
+	fake.recordInvocation("Index", []interface{}{})
+	fake.indexMutex.Unlock()
+	if fake.IndexStub != nil {
+		return fake.IndexStub()
 	} else {
-		return fake.iDReturns.result1
+		return fake.indexReturns.result1
 	}
 }
 
-func (fake *FakeInstance) IDCallCount() int {
-	fake.iDMutex.RLock()
-	defer fake.iDMutex.RUnlock()
-	return len(fake.iDArgsForCall)
+func (fake *FakeInstance) IndexCallCount() int {
+	fake.indexMutex.RLock()
+	defer fake.indexMutex.RUnlock()
+	return len(fake.indexArgsForCall)
 }
 
-func (fake *FakeInstance) IDReturns(result1 string) {
-	fake.IDStub = nil
-	fake.iDReturns = struct {
+func (fake *FakeInstance) IndexReturns(result1 string) {
+	fake.IndexStub = nil
+	fake.indexReturns = struct {
 		result1 string
 	}{result1}
 }
@@ -515,8 +515,8 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.nameMutex.RLock()
 	defer fake.nameMutex.RUnlock()
-	fake.iDMutex.RLock()
-	defer fake.iDMutex.RUnlock()
+	fake.indexMutex.RLock()
+	defer fake.indexMutex.RUnlock()
 	fake.isBackupableMutex.RLock()
 	defer fake.isBackupableMutex.RUnlock()
 	fake.isPostBackupUnlockableMutex.RLock()

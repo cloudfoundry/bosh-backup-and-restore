@@ -1074,9 +1074,9 @@ var _ = Describe("Instance", func() {
 		})
 	})
 
-	Context("ID", func() {
-		It("returns the instance ID", func() {
-			Expect(instance.ID()).To(Equal("job-index"))
+	Context("Index", func() {
+		It("returns the instance Index", func() {
+			Expect(instance.Index()).To(Equal("job-index"))
 		})
 	})
 

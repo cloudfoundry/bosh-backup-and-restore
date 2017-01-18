@@ -296,7 +296,7 @@ func (d *DeployedInstance) Name() string {
 	return d.InstanceGroupName
 }
 
-func (d *DeployedInstance) ID() string {
+func (d *DeployedInstance) Index() string {
 	return d.InstanceIndex
 }
 
