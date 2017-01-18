@@ -37,7 +37,7 @@ var _ = Describe("Director", func() {
 		sshConnection = new(fakes.FakeSSHConnection)
 		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(GinkgoWriter, "[bosh-package] ", log.Lshortfile), log.New(GinkgoWriter, "[bosh-package] ", log.Lshortfile))
 	})
-	Context("instances", func() {
+	Describe("FindInstances", func() {
 		var stubbedSshOpts director.SSHOpts = director.SSHOpts{Username: "user"}
 		var acutalInstances []backuper.Instance
 		var acutalError error
@@ -56,13 +56,12 @@ var _ = Describe("Director", func() {
 					{
 						Username:  "username",
 						Host:      "hostname",
-						IndexOrID: "index",
 					},
 				}}, nil)
 				sshConnectionFactory.Returns(sshConnection, nil)
 			})
 			It("collects the instances", func() {
-				Expect(acutalInstances).To(Equal([]backuper.Instance{bosh.NewBoshInstance("job1", "index", sshConnection, boshDeployment, boshLogger)}))
+				Expect(acutalInstances).To(Equal([]backuper.Instance{bosh.NewBoshInstance("job1", "0", sshConnection, boshDeployment, boshLogger)}))
 			})
 			It("does not fail", func() {
 				Expect(acutalError).NotTo(HaveOccurred())
@@ -129,11 +128,9 @@ var _ = Describe("Director", func() {
 				boshDeployment.VMInfosReturns([]director.VMInfo{
 					{
 						JobName: "job1",
-						ID:      "id1",
 					},
 					{
 						JobName: "job1",
-						ID:      "id2",
 					},
 				}, nil)
 				optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
@@ -141,20 +138,18 @@ var _ = Describe("Director", func() {
 					{
 						Username:  "username",
 						Host:      "hostname1",
-						IndexOrID: "id1",
 					},
 					{
 						Username:  "username",
 						Host:      "hostname2",
-						IndexOrID: "id2",
 					},
 				}}, nil)
 				sshConnectionFactory.Returns(sshConnection, nil)
 			})
 			It("collects the instances", func() {
 				Expect(acutalInstances).To(Equal([]backuper.Instance{
-					bosh.NewBoshInstance("job1", "id1", sshConnection, boshDeployment, boshLogger),
-					bosh.NewBoshInstance("job1", "id2", sshConnection, boshDeployment, boshLogger),
+					bosh.NewBoshInstance("job1", "0", sshConnection, boshDeployment, boshLogger),
+					bosh.NewBoshInstance("job1", "1", sshConnection, boshDeployment, boshLogger),
 				}))
 			})
 			It("does not fail", func() {
@@ -337,7 +332,7 @@ var _ = Describe("Director", func() {
 		})
 	})
 
-	Context("download manifest", func() {
+	Describe("GetManifest", func() {
 		var actualManifest string
 		var acutalError error
 		JustBeforeEach(func() {

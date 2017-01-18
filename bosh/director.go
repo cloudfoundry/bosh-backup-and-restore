@@ -6,6 +6,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"strconv"
 )
 
 func New(boshDirector director.Director,
@@ -71,7 +72,7 @@ func (c client) FindInstances(deploymentName string) ([]backuper.Instance, error
 			return nil, err
 		}
 
-		for _, host := range sshRes.Hosts {
+		for index, host := range sshRes.Hosts {
 			var sshConnection SSHConnection
 			var err error
 
@@ -81,7 +82,7 @@ func (c client) FindInstances(deploymentName string) ([]backuper.Instance, error
 			if err != nil {
 				return nil, err
 			}
-			instances = append(instances, NewBoshInstance(instanceGroupName, host.IndexOrID, sshConnection, deployment, c.Logger))
+			instances = append(instances, NewBoshInstance(instanceGroupName, strconv.Itoa(index), sshConnection, deployment, c.Logger))
 		}
 	}
 
