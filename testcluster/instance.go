@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"os"
 )
 
 type Instance struct {
@@ -29,7 +30,16 @@ func NewInstance() *Instance {
 }
 
 func (i *Instance) Address() string {
-	return strings.TrimSpace(dockerRunAndWaitForSuccess("port", i.dockerID, "22"))
+	return strings.TrimSpace(strings.Replace(dockerRunAndWaitForSuccess("port", i.dockerID, "22"), "0.0.0.0", i.dockerHostIp(),-1))
+}
+
+func (i *Instance) dockerHostIp() string {
+	dockerHost := os.Getenv("DOCKER_HOST")
+	if dockerHost==""{
+		return "0.0.0.0"
+	} else {
+		return strings.Split(dockerHost, ":")[0]
+	}
 }
 func (i *Instance) CreateUser(username, key string) {
 	dockerRunAndWaitForSuccess("exec", i.dockerID, "/bin/create_user_with_key", username, key)
