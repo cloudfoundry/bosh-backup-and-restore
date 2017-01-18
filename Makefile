@@ -36,9 +36,9 @@ generate:
 
 setup:
 	glide install --strip-vendor --strip-vcs
-	go get github.com/cloudfoundry/bosh-cli
-	go get github.com/maxbrunsfeld/counterfeiter
-	go get github.com/onsi/ginkgo/ginkgo
+	go get -u github.com/cloudfoundry/bosh-cli
+	go get -u github.com/maxbrunsfeld/counterfeiter
+	go get -u github.com/onsi/ginkgo/ginkgo
 
 sys-test-local:
 	BOSH_CLIENT_SECRET=`lpass show LiteBoshDirector --password` \
