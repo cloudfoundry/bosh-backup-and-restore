@@ -21,6 +21,12 @@ type FakeInstance struct {
 	indexReturns     struct {
 		result1 string
 	}
+	IDStub        func() string
+	iDMutex       sync.RWMutex
+	iDArgsForCall []struct{}
+	iDReturns     struct {
+		result1 string
+	}
 	IsBackupableStub        func() (bool, error)
 	isBackupableMutex       sync.RWMutex
 	isBackupableArgsForCall []struct{}
@@ -159,6 +165,31 @@ func (fake *FakeInstance) IndexCallCount() int {
 func (fake *FakeInstance) IndexReturns(result1 string) {
 	fake.IndexStub = nil
 	fake.indexReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeInstance) ID() string {
+	fake.iDMutex.Lock()
+	fake.iDArgsForCall = append(fake.iDArgsForCall, struct{}{})
+	fake.recordInvocation("ID", []interface{}{})
+	fake.iDMutex.Unlock()
+	if fake.IDStub != nil {
+		return fake.IDStub()
+	} else {
+		return fake.iDReturns.result1
+	}
+}
+
+func (fake *FakeInstance) IDCallCount() int {
+	fake.iDMutex.RLock()
+	defer fake.iDMutex.RUnlock()
+	return len(fake.iDArgsForCall)
+}
+
+func (fake *FakeInstance) IDReturns(result1 string) {
+	fake.IDStub = nil
+	fake.iDReturns = struct {
 		result1 string
 	}{result1}
 }
@@ -517,6 +548,8 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.nameMutex.RUnlock()
 	fake.indexMutex.RLock()
 	defer fake.indexMutex.RUnlock()
+	fake.iDMutex.RLock()
+	defer fake.iDMutex.RUnlock()
 	fake.isBackupableMutex.RLock()
 	defer fake.isBackupableMutex.RUnlock()
 	fake.isPostBackupUnlockableMutex.RLock()

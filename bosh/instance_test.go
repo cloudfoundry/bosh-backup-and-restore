@@ -23,7 +23,7 @@ var _ = Describe("Instance", func() {
 	var boshDeployment *boshfakes.FakeDeployment
 	var boshLogger boshlog.Logger
 	var stdout, stderr *gbytes.Buffer
-	var jobName, jobIndex, expectedStdout, expectedStderr string
+	var jobName, jobIndex, jobID, expectedStdout, expectedStderr string
 
 	var instance backuper.Instance
 	BeforeEach(func() {
@@ -40,7 +40,7 @@ var _ = Describe("Instance", func() {
 
 	JustBeforeEach(func() {
 		sshConnection.UsernameReturns("sshUsername")
-		instance = bosh.NewBoshInstance(jobName, jobIndex, sshConnection, boshDeployment, boshLogger)
+		instance = bosh.NewBoshInstance(jobName, jobIndex, jobID, sshConnection, boshDeployment, boshLogger)
 	})
 
 	Context("IsBackupable", func() {
@@ -184,7 +184,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs that we are checking for pre-backup-lock scripts", func() {
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running check for pre-backup-lock scripts on %s %s", jobName, jobIndex)))
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running check for pre-backup-lock scripts on %s %s", jobName, jobID)))
 			})
 
 			It("logs stdout and stderr", func() {

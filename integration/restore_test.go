@@ -90,7 +90,7 @@ instances: []`))
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
 instances:
 - instance_name: redis-dedicated-node
-  instance_id: 0
+  instance_index: 0
   checksums:
     redis-backup: this-is-not-a-checksum-this-is-only-a-tribute
 `))
@@ -139,7 +139,7 @@ cp /var/vcap/store/backup/* /var/vcap/store/redis-server`)
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
 instances:
 - instance_name: redis-dedicated-node
-  instance_id: 0
+  instance_index: 0
   checksums:
     ./redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
 
@@ -215,7 +215,7 @@ cp /var/vcap/store/backup/* /var/vcap/store/redis-server`)
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
 instances:
 - instance_name: redis-dedicated-node
-  instance_id: 0
+  instance_index: 0
   checksums:
     ./redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
 

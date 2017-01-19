@@ -51,10 +51,10 @@ var _ = Describe("DirectoryArtifact", func() {
 				createTestMetadata(artifactName, `---
 instances:
 - instance_name: redis
-  instance_id: 0
+  instance_index: 0
   checksum: foo
 - instance_name: redis
-  instance_id: 1
+  instance_index: 1
   checksum: foo
 `)
 			})
@@ -70,13 +70,13 @@ instances:
 				createTestMetadata(artifactName, `---
 instances:
 - instance_name: redis
-  instance_id: 0
+  instance_index: 0
   checksum: foo
 - instance_name: redis
-  instance_id: 1
+  instance_index: 1
   checksum: foo
 - instance_name: broker
-  instance_id: 2
+  instance_index: 2
   checksum: foo
 `)
 			})
@@ -133,7 +133,7 @@ instances:
 				createTestMetadata(artifactName, fmt.Sprintf(`---
 instances:
 - instance_name: redis
-  instance_id: 0
+  instance_index: 0
   checksums:
     file1: %x
     file2: %x
@@ -157,7 +157,7 @@ instances:
 				createTestMetadata(artifactName, fmt.Sprintf(`---
 instances:
 - instance_name: redis
-  instance_id: 0
+  instance_index: 0
   checksums:
     file1: %x
     file2: %x
@@ -180,7 +180,7 @@ instances:
 				createTestMetadata(artifactName, fmt.Sprintf(`---
 instances:
 - instance_name: redis
-  instance_id: 0
+  instance_index: 0
   checksums:
     file1: %x
     file2: %x
@@ -199,7 +199,7 @@ instances:
 				createTestMetadata(artifactName, fmt.Sprintf(`---
 instances:
 - instance_name: redis
-	instance_id: 0
+	instance_index: 0
 	checksums:
 		file1: %x
 `, sha1.Sum([]byte("This archive contains some text files."))))
@@ -435,7 +435,7 @@ instances:
 				expectedMetadata := `---
 instances:
 - instance_name: redis
-  instance_id: "0"
+  instance_index: "0"
   checksums:
     filename: foobar`
 				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
@@ -455,11 +455,11 @@ instances:
 				expectedMetadata := `---
 instances:
 - instance_name: broker
-  instance_id: "0"
+  instance_index: "0"
   checksums:
     filename1: orignal_checksum
 - instance_name: redis
-  instance_id: "0"
+  instance_index: "0"
   checksums:
     filename: foobar`
 				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
@@ -501,7 +501,7 @@ instances:
 				createTestMetadata(artifactName, `---
 instances:
 - instance_name: foo
-  instance_id: "bar"
+  instance_index: "bar"
   checksums:
     filename1: orignal_checksum`)
 			})
@@ -522,7 +522,7 @@ instances:
 				createTestMetadata(artifactName, `---
 instances:
 - instance_name: foo
-  instance_id: "bar"
+  instance_index: "bar"
   checksums:
     filename1: orignal_checksum`)
 			})

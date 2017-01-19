@@ -171,7 +171,7 @@ touch /tmp/post-backup-unlock-output
 			It("the metadata file is correct", func() {
 				Expect(ioutil.ReadFile(metadataFile)).To(MatchYAML(fmt.Sprintf(`instances:
 - instance_name: redis-dedicated-node
-  instance_id: "0"
+  instance_index: "0"
   checksums:
     ./backupdump1: %s
     ./backupdump2: %s`, shaFor("backupcontent1"), shaFor("backupcontent2"))))

@@ -82,7 +82,7 @@ func (c client) FindInstances(deploymentName string) ([]backuper.Instance, error
 			if err != nil {
 				return nil, err
 			}
-			instances = append(instances, NewBoshInstance(instanceGroupName, strconv.Itoa(index), sshConnection, deployment, c.Logger))
+			instances = append(instances, NewBoshInstance(instanceGroupName, strconv.Itoa(index), host.IndexOrID, sshConnection, deployment, c.Logger))
 		}
 	}
 

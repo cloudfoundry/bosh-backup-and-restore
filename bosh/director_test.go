@@ -50,18 +50,20 @@ var _ = Describe("Director", func() {
 				boshDirector.FindDeploymentReturns(boshDeployment, nil)
 				boshDeployment.VMInfosReturns([]director.VMInfo{{
 					JobName: "job1",
+					ID: "jobID",
 				}}, nil)
 				optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
 				boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
 					{
 						Username:  "username",
 						Host:      "hostname",
+						IndexOrID: "jobID",
 					},
 				}}, nil)
 				sshConnectionFactory.Returns(sshConnection, nil)
 			})
 			It("collects the instances", func() {
-				Expect(acutalInstances).To(Equal([]backuper.Instance{bosh.NewBoshInstance("job1", "0", sshConnection, boshDeployment, boshLogger)}))
+				Expect(acutalInstances).To(Equal([]backuper.Instance{bosh.NewBoshInstance("job1", "0", "jobID", sshConnection, boshDeployment, boshLogger)}))
 			})
 			It("does not fail", func() {
 				Expect(acutalError).NotTo(HaveOccurred())
@@ -128,9 +130,11 @@ var _ = Describe("Director", func() {
 				boshDeployment.VMInfosReturns([]director.VMInfo{
 					{
 						JobName: "job1",
+						ID: "id1",
 					},
 					{
 						JobName: "job1",
+						ID: "id2",
 					},
 				}, nil)
 				optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
@@ -138,18 +142,20 @@ var _ = Describe("Director", func() {
 					{
 						Username:  "username",
 						Host:      "hostname1",
+						IndexOrID: "id1",
 					},
 					{
 						Username:  "username",
 						Host:      "hostname2",
+						IndexOrID: "id2",
 					},
 				}}, nil)
 				sshConnectionFactory.Returns(sshConnection, nil)
 			})
 			It("collects the instances", func() {
 				Expect(acutalInstances).To(Equal([]backuper.Instance{
-					bosh.NewBoshInstance("job1", "0", sshConnection, boshDeployment, boshLogger),
-					bosh.NewBoshInstance("job1", "1", sshConnection, boshDeployment, boshLogger),
+					bosh.NewBoshInstance("job1", "0", "id1", sshConnection, boshDeployment, boshLogger),
+					bosh.NewBoshInstance("job1", "1", "id2", sshConnection, boshDeployment, boshLogger),
 				}))
 			})
 			It("does not fail", func() {

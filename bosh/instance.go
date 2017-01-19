@@ -5,16 +5,17 @@ import (
 	"io"
 	"strings"
 
+	"bytes"
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
-	"bytes"
 )
 
 type DeployedInstance struct {
 	director.Deployment
 	InstanceGroupName string
 	InstanceIndex     string
+	InstanceID				string
 	SSHConnection
 	Logger
 	backupable *bool
@@ -32,10 +33,11 @@ type SSHConnection interface {
 	Username() string
 }
 
-func NewBoshInstance(instanceGroupName, instanceIndex string, connection SSHConnection, deployment director.Deployment, logger Logger) backuper.Instance {
+func NewBoshInstance(instanceGroupName, instanceIndex, instanceID string, connection SSHConnection, deployment director.Deployment, logger Logger) backuper.Instance {
 	return &DeployedInstance{
 		InstanceIndex:     instanceIndex,
 		InstanceGroupName: instanceGroupName,
+		InstanceID:        instanceID,
 		SSHConnection:     connection,
 		Deployment:        deployment,
 		Logger:            logger,
@@ -298,6 +300,10 @@ func (d *DeployedInstance) Name() string {
 
 func (d *DeployedInstance) Index() string {
 	return d.InstanceIndex
+}
+
+func (d *DeployedInstance) ID() string {
+	return d.InstanceID
 }
 
 func (d *DeployedInstance) removeBackupArtifacts() error {
