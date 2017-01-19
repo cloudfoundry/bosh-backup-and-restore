@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 )
 
-type BackupAndRestoreScripts []string
+type BackupAndRestoreScripts []script
 
 const (
 	backupScriptName  = "p-backup"
@@ -15,15 +15,50 @@ const (
 	restoreScriptMatcher = jobDirectoryMatcher + restoreScriptName
 )
 
+type script string
+
+func (s script) isBackup() bool {
+	match, _ := filepath.Match(backupScriptMatcher, string(s))
+	return match
+}
+
+func (s script) isRestore() bool {
+	match, _ := filepath.Match(restoreScriptMatcher, string(s))
+	return match
+}
+
+func (s script) isPlatformScript() bool {
+	return s.isBackup() || s.isRestore()
+}
+
+
 func NewBackupAndRestoreScripts(files []string) BackupAndRestoreScripts {
-	bandrScripts := []string{}
-	for _, script := range files {
-		if match, _ := filepath.Match(backupScriptMatcher, script); match {
-			bandrScripts = append(bandrScripts, script)
-		}
-		if match, _ := filepath.Match(restoreScriptMatcher, script); match {
-			bandrScripts = append(bandrScripts, script)
+	bandrScripts := []script{}
+	for _, s := range files {
+		s:=script(s)
+		if s.isPlatformScript(){
+			bandrScripts = append(bandrScripts, s)
 		}
 	}
 	return bandrScripts
+}
+
+func (s BackupAndRestoreScripts) BackupOnly() BackupAndRestoreScripts {
+	scripts := BackupAndRestoreScripts{}
+	for _, script := range s {
+		if script.isBackup() {
+			scripts  = append(scripts , script)
+		}
+	}
+	return scripts
+}
+
+func (s BackupAndRestoreScripts) RestoreOnly() BackupAndRestoreScripts {
+	scripts := BackupAndRestoreScripts{}
+	for _, script := range s {
+		if script.isRestore() {
+			scripts  = append(scripts , script)
+		}
+	}
+	return scripts
 }
