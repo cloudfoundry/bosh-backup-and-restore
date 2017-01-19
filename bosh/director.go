@@ -3,10 +3,11 @@ package bosh
 import (
 	"strings"
 
+	"strconv"
+
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
-	"strconv"
 )
 
 func New(boshDirector director.Director,
@@ -82,7 +83,35 @@ func (c client) FindInstances(deploymentName string) ([]backuper.Instance, error
 			if err != nil {
 				return nil, err
 			}
-			instances = append(instances, NewBoshInstance(instanceGroupName, strconv.Itoa(index), host.IndexOrID, sshConnection, deployment, c.Logger))
+			c.Logger.Debug("", "Attempting to find scripts on %s/%s", host.Host, host.IndexOrID)
+
+			stdout, stderr, exitCode, err := sshConnection.Run("find /var/vcap/jobs/*/bin/* -type f")
+			if err != nil {
+				c.Logger.Error(
+					"",
+					"Failed to run find on %s/%s. Error: %s'nStdout: %s\nStderr%s",
+					host.Host,
+					host.IndexOrID,
+					err,
+					stdout,
+					stderr,
+				)
+				return nil, err
+			}
+
+			if exitCode != 0 {
+				c.Logger.Debug(
+					"",
+					"Running find failed on %s/%s.\nStdout: %s\nStderr: %s",
+					host.Host,
+					host.IndexOrID,
+					stdout,
+					stderr,
+				)
+			}
+
+			scripts := strings.Split(string(stdout), "\n")
+			instances = append(instances, NewBoshInstance(instanceGroupName, strconv.Itoa(index), host.IndexOrID, sshConnection, deployment, c.Logger, NewBackupAndRestoreScripts(scripts)))
 		}
 	}
 

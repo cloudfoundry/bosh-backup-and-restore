@@ -131,15 +131,15 @@ touch /tmp/post-backup-unlock-output
 					Expect(session.Err.Contents()).To(ContainSubstring("One or more pre-backup-lock scripts failed on redis-dedicated-node 0."))
 				})
 
-				It("logs stdout", func(){
+				It("logs stdout", func() {
 					Expect(session.Err.Contents()).To(ContainSubstring("Stdout: ultra-bar"))
 				})
 
-				It("logs stderr", func(){
+				It("logs stderr", func() {
 					Expect(session.Err.Contents()).To(ContainSubstring("Stderr: ultra-baz"))
 				})
 
-				It("also runs the p-post-backup-unlock scripts", func(){
+				It("also runs the p-post-backup-unlock scripts", func() {
 					Expect(instance1.FileExists("/tmp/post-backup-unlock-output")).To(BeTrue())
 				})
 			})

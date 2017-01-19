@@ -22,6 +22,7 @@ type DeployedInstance struct {
 	restorable *bool
 	unlockable *bool
 	lockable   *bool
+	BackupAndRestoreScripts
 }
 
 //go:generate counterfeiter -o fakes/fake_ssh_connection.go . SSHConnection
@@ -33,7 +34,7 @@ type SSHConnection interface {
 	Username() string
 }
 
-func NewBoshInstance(instanceGroupName, instanceIndex, instanceID string, connection SSHConnection, deployment director.Deployment, logger Logger) backuper.Instance {
+func NewBoshInstance(instanceGroupName, instanceIndex, instanceID string, connection SSHConnection, deployment director.Deployment, logger Logger, scripts BackupAndRestoreScripts) backuper.Instance {
 	return &DeployedInstance{
 		InstanceIndex:     instanceIndex,
 		InstanceGroupName: instanceGroupName,
@@ -41,6 +42,7 @@ func NewBoshInstance(instanceGroupName, instanceIndex, instanceID string, connec
 		SSHConnection:     connection,
 		Deployment:        deployment,
 		Logger:            logger,
+		BackupAndRestoreScripts: scripts,
 	}
 }
 
