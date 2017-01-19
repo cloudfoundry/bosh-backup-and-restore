@@ -91,12 +91,24 @@ func (c client) FindInstances(deploymentName string) ([]backuper.Instance, error
 				return nil, err
 			}
 
+			instances = append(instances,
+				NewBoshInstance(
+					instanceGroupName,
+					strconv.Itoa(index),
+					host.IndexOrID,
+					sshConnection,
+					deployment,
+					c.Logger,
+				),
+			)
+
 			instances = append(instances, NewBoshInstance(instanceGroupName, strconv.Itoa(index), host.IndexOrID, sshConnection, deployment, c.Logger, NewBackupAndRestoreScripts(scripts)))
 		}
 	}
 
 	return instances, nil
 }
+
 func (c client) GetManifest(deploymentName string) (string, error) {
 	deployment, err := c.Director.FindDeployment(deploymentName)
 	if err != nil {

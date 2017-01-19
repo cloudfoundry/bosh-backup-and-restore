@@ -103,7 +103,7 @@ func (bd *BoshDeployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 			return err
 		}
 
-		bd.Logger.Info("", "Copying backup -- %s uncompressed -- from %s-%s...", size, instance.Name(), instance.Index())
+		bd.Logger.Info("", "Copying backup -- %s uncompressed -- from %s/%s...", size, instance.Name(), instance.ID())
 		if err := instance.StreamBackupFromRemote(writer); err != nil {
 			return err
 		}

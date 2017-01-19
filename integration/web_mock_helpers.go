@@ -31,7 +31,7 @@ func AppendBuilders(arrayOfArrayOfBuilders ...[]mockhttp.MockedResponseBuilder) 
 	}
 	return flattenedArrayOfBuilders
 }
-func SetupSSH(deploymentName, instanceGroup string, instance *testcluster.Instance) []mockhttp.MockedResponseBuilder {
+func SetupSSH(deploymentName, instanceGroup, instanceID string, instanceIndex int, instance *testcluster.Instance) []mockhttp.MockedResponseBuilder {
 	randomTaskID := generateTaskId()
 	return []mockhttp.MockedResponseBuilder{
 		mockbosh.StartSSHSession(deploymentName).SetSSHResponseCallback(func(username, key string) {
@@ -40,10 +40,17 @@ func SetupSSH(deploymentName, instanceGroup string, instance *testcluster.Instan
 		mockbosh.Task(randomTaskID).RespondsWithTaskContainingState(mockbosh.TaskDone),
 		mockbosh.Task(randomTaskID).RespondsWithTaskContainingState(mockbosh.TaskDone),
 		mockbosh.TaskEvent(randomTaskID).RespondsWith("{}"),
-		mockbosh.TaskOutput(randomTaskID).RespondsWith(fmt.Sprintf(`[{"status":"success",
-      "ip":"%s",
-      "host_public_key":"not-relevant",
-      "index":0}]`, instance.Address())),
+		mockbosh.TaskOutput(randomTaskID).RespondsWith(
+			fmt.Sprintf(`[{"status":"success",
+"ip":"%s",
+"host_public_key":"not-relevant",
+"id":"%s",
+"index":%d}]`,
+				instance.Address(),
+				instanceID,
+				instanceIndex,
+			),
+		),
 	}
 }
 func CleanupSSH(deploymentName, instanceGroup string) []mockhttp.MockedResponseBuilder {

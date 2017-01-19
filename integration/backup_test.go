@@ -75,7 +75,7 @@ var _ = Describe("Backup", func() {
 							JobName: "redis-dedicated-node",
 						},
 					}),
-					SetupSSH(deploymentName, "redis-dedicated-node", instance1),
+					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					DownloadManifest(deploymentName, "this is a totally valid yaml"),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)...)
@@ -181,10 +181,10 @@ touch /tmp/post-backup-unlock-output
 				Eventually(session).Should(gbytes.Say("Starting backup of %s...", deploymentName))
 				Eventually(session).Should(gbytes.Say("Finding instances with backup scripts..."))
 				Eventually(session).Should(gbytes.Say("Done."))
-				Eventually(session).Should(gbytes.Say("Backing up redis-dedicated-node-0..."))
+				Eventually(session).Should(gbytes.Say("Backing up redis-dedicated-node/fake-uuid..."))
 				Eventually(session).Should(gbytes.Say("Done."))
 				Eventually(session).Should(gbytes.Say("Copying backup --"))
-				Eventually(session).Should(gbytes.Say("from redis-dedicated-node-0..."))
+				Eventually(session).Should(gbytes.Say("from redis-dedicated-node/fake-uuid..."))
 				Eventually(session).Should(gbytes.Say("Done."))
 				Eventually(session).Should(gbytes.Say("Backup created of %s on", deploymentName))
 			})
@@ -212,7 +212,7 @@ chmod 0700 /var/vcap/store/backup/backupdump3`)
 				})
 
 				It("prints the artifact size with the files from the other users", func() {
-					Eventually(session).Should(gbytes.Say("Copying backup -- 3.0M uncompressed -- from redis-dedicated-node-0..."))
+					Eventually(session).Should(gbytes.Say("Copying backup -- 3.0M uncompressed -- from redis-dedicated-node/fake-uuid..."))
 				})
 			})
 
@@ -264,7 +264,7 @@ exit 1`)
 							JobName: "redis-dedicated-node",
 						},
 					}),
-					SetupSSH(deploymentName, "redis-dedicated-node", instance1),
+					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)...)
 
@@ -296,7 +296,7 @@ exit 1`)
 							JobName: "redis-dedicated-node",
 						},
 					}),
-					SetupSSH(deploymentName, "redis-dedicated-node", instance1),
+					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					DownloadManifest(deploymentName, "this is a totally valid yaml"),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)...)
@@ -322,7 +322,7 @@ exit 1`)
 							JobName: "redis-dedicated-node",
 						},
 					}),
-					SetupSSH(deploymentName, "redis-dedicated-node", instance1),
+					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					DownloadManifest(deploymentName, "this is a totally valid yaml"),
 					CleanupSSHFails(deploymentName, "redis-dedicated-node", "ultra-foo"),
 				)...)
@@ -353,7 +353,7 @@ exit 1`)
 							JobName: "redis-dedicated-node",
 						},
 					}),
-					SetupSSH(deploymentName, "redis-dedicated-node", instance1),
+					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					DownloadManifest(deploymentName, "this is a totally valid yaml"),
 					CleanupSSHFails(deploymentName, "redis-dedicated-node", "Can't do it mate"),
 				)...)
@@ -419,8 +419,8 @@ exit 1`)
 						JobName: "redis-broker",
 					},
 				}),
-				SetupSSH(deploymentName, "redis-dedicated-node", backupableInstance),
-				SetupSSH(deploymentName, "redis-broker", nonBackupableInstance),
+				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance),
+				SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, nonBackupableInstance),
 				DownloadManifest(deploymentName, "not being asserted"),
 				CleanupSSH(deploymentName, "redis-dedicated-node"),
 				CleanupSSH(deploymentName, "redis-broker"),
@@ -462,8 +462,8 @@ exit 1`)
 						JobName: "redis-broker",
 					},
 				}),
-				SetupSSH(deploymentName, "redis-dedicated-node", backupableInstance1),
-				SetupSSH(deploymentName, "redis-broker", backupableInstance2),
+				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
+				SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance2),
 				DownloadManifest(deploymentName, "not being asserted"),
 				CleanupSSH(deploymentName, "redis-dedicated-node"),
 				CleanupSSH(deploymentName, "redis-broker"),
@@ -489,6 +489,20 @@ exit 1`)
 			Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
 			Expect(path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")).To(BeARegularFile())
 			Expect(path.Join(backupWorkspace, deploymentName, "/redis-broker-0.tgz")).To(BeARegularFile())
+		})
+
+		It("prints the backup progress to the screen", func() {
+			Eventually(session).Should(gbytes.Say("Starting backup of %s...", deploymentName))
+			Eventually(session).Should(gbytes.Say("Finding instances with backup scripts..."))
+			Eventually(session).Should(gbytes.Say("Done."))
+			Eventually(session).Should(gbytes.Say("Backing up redis-dedicated-node/fake-uuid..."))
+			Eventually(session).Should(gbytes.Say("Backing up redis-broker/fake-uuid-2..."))
+			Eventually(session).Should(gbytes.Say("Done."))
+			Eventually(session).Should(gbytes.Say("Copying backup --"))
+			Eventually(session).Should(gbytes.Say("from redis-dedicated-node/fake-uuid..."))
+			Eventually(session).Should(gbytes.Say("from redis-broker/fake-uuid-2..."))
+			Eventually(session).Should(gbytes.Say("Done."))
+			Eventually(session).Should(gbytes.Say("Backup created of %s on", deploymentName))
 		})
 	})
 

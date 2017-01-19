@@ -108,7 +108,7 @@ func (d *DeployedInstance) PreBackupLock() error {
 
 func (d *DeployedInstance) Backup() error {
 	d.filesPresent("/var/vcap/jobs/*/bin/p-backup")
-	d.Logger.Info("", "Backing up %s-%s...", d.InstanceGroupName, d.InstanceIndex)
+	d.Logger.Info("", "Backing up %s/%s...", d.InstanceGroupName, d.InstanceID)
 
 	stdout, stderr, exitCode, err := d.logAndRun("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/p-backup | xargs -IN sudo sh -c N", "backup")
 

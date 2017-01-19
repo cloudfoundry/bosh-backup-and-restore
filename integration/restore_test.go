@@ -128,8 +128,9 @@ instances:
 				{
 					IPs:     []string{"10.0.0.1"},
 					JobName: "redis-dedicated-node",
+					JobID:   "fake-uuid",
 				}}),
-				SetupSSH(deploymentName, "redis-dedicated-node", instance1),
+				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 				CleanupSSH(deploymentName, "redis-dedicated-node"))...)
 
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/p-restore", `#!/usr/bin/env sh
@@ -205,7 +206,7 @@ instances:
 					IPs:     []string{"10.0.0.1"},
 					JobName: "redis-dedicated-node",
 				}}),
-				SetupSSH(deploymentName, "redis-dedicated-node", instance1),
+				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 				CleanupSSHFails(deploymentName, "redis-dedicated-node", "cleanup err"))...)
 
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/p-restore", `#!/usr/bin/env sh

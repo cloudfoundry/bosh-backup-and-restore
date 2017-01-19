@@ -1,5 +1,5 @@
 hash: 9f0cfc725530ba089c6b9eddff1d4f6a8ea080d5c759e16922b544071e15b26d
-updated: 2017-01-12T14:26:35.24352776Z
+updated: 2017-01-19T13:38:45.825568349Z
 imports:
 - name: github.com/bmatcuk/doublestar
   version: dd6a6f0a8cdfaaa88b08cf26cf1bc7d69003ee13
@@ -70,7 +70,7 @@ imports:
   - matchers/support/goraph/util
   - types
 - name: github.com/pivotal-cf-experimental/cf-webmock
-  version: 997a8a7db11fd6d6453c18b3814deffef5a72be8
+  version: d1aca7a4164fb83d6fb06a52b2bd76400d0bb5f2
   subpackages:
   - mockbosh
   - mockhttp
