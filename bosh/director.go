@@ -8,6 +8,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"fmt"
 )
 
 func New(boshDirector director.Director,
@@ -83,34 +84,13 @@ func (c client) FindInstances(deploymentName string) ([]backuper.Instance, error
 			if err != nil {
 				return nil, err
 			}
-			c.Logger.Debug("", "Attempting to find scripts on %s/%s", host.Host, host.IndexOrID)
 
-			stdout, stderr, exitCode, err := sshConnection.Run("find /var/vcap/jobs/*/bin/* -type f")
+			scripts, err := c.findScripts(host, sshConnection)
+
 			if err != nil {
-				c.Logger.Error(
-					"",
-					"Failed to run find on %s/%s. Error: %s'nStdout: %s\nStderr%s",
-					host.Host,
-					host.IndexOrID,
-					err,
-					stdout,
-					stderr,
-				)
 				return nil, err
 			}
 
-			if exitCode != 0 {
-				c.Logger.Debug(
-					"",
-					"Running find failed on %s/%s.\nStdout: %s\nStderr: %s",
-					host.Host,
-					host.IndexOrID,
-					stdout,
-					stderr,
-				)
-			}
-
-			scripts := strings.Split(string(stdout), "\n")
 			instances = append(instances, NewBoshInstance(instanceGroupName, strconv.Itoa(index), host.IndexOrID, sshConnection, deployment, c.Logger, NewBackupAndRestoreScripts(scripts)))
 		}
 	}
@@ -151,4 +131,52 @@ func contains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+func (c client) findScripts(host director.Host, sshConnection SSHConnection) ([]string, error) {
+	c.Logger.Debug("", "Attempting to find scripts on %s/%s", host.Host, host.IndexOrID)
+
+	stdout, stderr, exitCode, err := sshConnection.Run("find /var/vcap/jobs/*/bin/* -type f")
+	if err != nil {
+		c.Logger.Error(
+			"",
+			"Failed to run find on %s/%s. Error: %s'nStdout: %s\nStderr%s",
+			host.Host,
+			host.IndexOrID,
+			err,
+			stdout,
+			stderr,
+		)
+		return nil, err
+	}
+
+	if exitCode != 0 {
+		if strings.Contains(string(stderr), "No such file or directory") {
+			c.Logger.Debug(
+				"",
+				"Running find failed on %s/%s.\nStdout: %s\nStderr: %s",
+				host.Host,
+				host.IndexOrID,
+				stdout,
+				stderr,
+			)
+		} else {
+			c.Logger.Error(
+				"",
+				"Running find failed on %s/%s.\nStdout: %s\nStderr: %s",
+				host.Host,
+				host.IndexOrID,
+				stdout,
+				stderr,
+			)
+			return nil, fmt.Errorf(
+				"Running find failed on %s/%s.\nStdout: %s\nStderr: %s",
+				host.Host,
+				host.IndexOrID,
+				stdout,
+				stderr,
+			)
+		}
+	}
+	return strings.Split(string(stdout), "\n"), nil
 }

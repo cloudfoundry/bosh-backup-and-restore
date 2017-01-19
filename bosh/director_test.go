@@ -127,7 +127,7 @@ var _ = Describe("Director", func() {
 			})
 		})
 
-		Context("finds instances with no backup scripts", func() {
+		Context("finds instances with no jobs folder", func() {
 			var (
 				actualStdOut = "stdout"
 				actualStdErr = "find: `/var/vcap/jobs/*/bin/*': No such file or directory"
@@ -489,6 +489,63 @@ var _ = Describe("Director", func() {
 					Expect(stderrLogStream.String()).To(ContainSubstring(expectedError.Error()))
 
 				})
+				It("logs the stdout", func() {
+					Expect(stderrLogStream.String()).To(ContainSubstring(actualStdOut))
+
+				})
+				It("logs the stderr", func() {
+					Expect(stderrLogStream.String()).To(ContainSubstring(actualStdErr))
+
+				})
+			})
+
+			Context("find fails with an unknown error", func() {
+				var (
+					actualStdOut = "stdout"
+					actualStdErr = "unknown error"
+				)
+
+				BeforeEach(func() {
+					boshDirector.FindDeploymentReturns(boshDeployment, nil)
+					boshDeployment.VMInfosReturns([]director.VMInfo{{
+						JobName: "job1",
+					}}, nil)
+					optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
+					boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
+						{
+							Username:  "username",
+							Host:      "hostname",
+							IndexOrID: "index",
+						},
+					}}, nil)
+					sshConnectionFactory.Returns(sshConnection, nil)
+					sshConnection.RunReturns([]byte(actualStdOut), []byte(actualStdErr), 1, nil)
+				})
+
+				It("does fail", func() {
+					Expect(acutalError).To(HaveOccurred())
+				})
+
+				It("tries to connect to the vm", func() {
+					Expect(sshConnectionFactory.CallCount()).To(Equal(1))
+				})
+
+				It("fetchs vm infos", func() {
+					Expect(boshDeployment.VMInfosCallCount()).To(Equal(1))
+				})
+
+				It("fetches deployment", func() {
+					Expect(boshDirector.FindDeploymentCallCount()).To(Equal(1))
+					Expect(boshDirector.FindDeploymentArgsForCall(0)).To(Equal(deploymentName))
+				})
+				It("generates ssh opts", func() {
+					Expect(optsGenerator.CallCount()).To(Equal(1))
+				})
+
+				It("uses the ssh connnection to run find", func() {
+					Expect(sshConnection.RunCallCount()).To(Equal(1))
+				})
+
 				It("logs the stdout", func() {
 					Expect(stderrLogStream.String()).To(ContainSubstring(actualStdOut))
 
