@@ -13,15 +13,15 @@ import (
 
 type DeployedInstance struct {
 	director.Deployment
-	InstanceGroupName string
-	InstanceIndex     string
-	InstanceID				string
+	InstanceGroupName             string
+	BackupAndRestoreInstanceIndex string
+	BoshInstanceID                string
 	SSHConnection
 	Logger
-	backupable *bool
-	restorable *bool
-	unlockable *bool
-	lockable   *bool
+	backupable                    *bool
+	restorable                    *bool
+	unlockable                    *bool
+	lockable                      *bool
 	BackupAndRestoreScripts
 }
 
@@ -36,9 +36,9 @@ type SSHConnection interface {
 
 func NewBoshInstance(instanceGroupName, instanceIndex, instanceID string, connection SSHConnection, deployment director.Deployment, logger Logger, scripts BackupAndRestoreScripts) backuper.Instance {
 	return &DeployedInstance{
-		InstanceIndex:     instanceIndex,
+		BackupAndRestoreInstanceIndex:     instanceIndex,
 		InstanceGroupName: instanceGroupName,
-		InstanceID:        instanceID,
+		BoshInstanceID:        instanceID,
 		SSHConnection:     connection,
 		Deployment:        deployment,
 		Logger:            logger,
@@ -95,9 +95,9 @@ func (d *DeployedInstance) PreBackupLock() error {
 
 	if exitCode != 0 {
 		return fmt.Errorf(
-			"One or more pre-backup-lock scripts failed on %s %s.\nStdout: %s\nStderr: %s",
+			"One or more pre-backup-lock scripts failed on %s/%s.\nStdout: %s\nStderr: %s",
 			d.InstanceGroupName,
-			d.InstanceIndex,
+			d.BoshInstanceID,
 			stdout,
 			stderr,
 		)
@@ -108,15 +108,15 @@ func (d *DeployedInstance) PreBackupLock() error {
 
 func (d *DeployedInstance) Backup() error {
 	d.filesPresent("/var/vcap/jobs/*/bin/p-backup")
-	d.Logger.Info("", "Backing up %s/%s...", d.InstanceGroupName, d.InstanceID)
+	d.Logger.Info("", "Backing up %s/%s...", d.InstanceGroupName, d.BoshInstanceID)
 
 	stdout, stderr, exitCode, err := d.logAndRun("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/p-backup | xargs -IN sudo sh -c N", "backup")
 
 	if exitCode != 0 {
 		return fmt.Errorf(
-			"One or more backup scripts failed on %s %s.\nStdout: %s\nStderr: %s",
+			"One or more backup scripts failed on %s/%s.\nStdout: %s\nStderr: %s",
 			d.InstanceGroupName,
-			d.InstanceIndex,
+			d.BoshInstanceID,
 			stdout,
 			stderr,
 		)
@@ -127,7 +127,7 @@ func (d *DeployedInstance) Backup() error {
 }
 
 func (d *DeployedInstance) PostBackupUnlock() error {
-	d.Logger.Info("", "Running post backup unlock on %s %s", d.InstanceGroupName, d.InstanceIndex)
+	d.Logger.Info("", "Running post backup unlock on %s/%s", d.InstanceGroupName, d.BoshInstanceID)
 
 	stdout, stderr, exitCode, err := d.Run("sudo ls /var/vcap/jobs/*/bin/p-post-backup-unlock | xargs -IN sudo sh -c N")
 
@@ -137,9 +137,9 @@ func (d *DeployedInstance) PostBackupUnlock() error {
 	if err != nil {
 		d.Logger.Error(
 			"",
-			"Error running post backup unlock on instance %s %s. Error: %s",
+			"Error running post backup unlock on instance %s/%s. Error: %s",
 			d.InstanceGroupName,
-			d.InstanceIndex,
+			d.BoshInstanceID,
 			err,
 		)
 		return err
@@ -147,9 +147,9 @@ func (d *DeployedInstance) PostBackupUnlock() error {
 
 	if exitCode != 0 {
 		return fmt.Errorf(
-			"One or more post-backup-unlock scripts failed on %s %s.\nStdout: %s\nStderr: %s",
+			"One or more post-backup-unlock scripts failed on %s/%s.\nStdout: %s\nStderr: %s",
 			d.InstanceGroupName,
-			d.InstanceIndex,
+			d.BoshInstanceID,
 			stdout,
 			stderr,
 		)
@@ -171,7 +171,7 @@ func (d *DeployedInstance) Restore() error {
 }
 
 func (d *DeployedInstance) StreamBackupFromRemote(writer io.Writer) error {
-	d.Logger.Debug("", "Streaming backup from instance %s %s", d.InstanceGroupName, d.InstanceIndex)
+	d.Logger.Debug("", "Streaming backup from instance %s/%s", d.InstanceGroupName, d.BoshInstanceID)
 	stderr, exitCode, err := d.Stream("sudo tar -C /var/vcap/store/backup -zc .", writer)
 
 	d.Logger.Debug("", "Stderr: %s", string(stderr))
@@ -198,7 +198,7 @@ func (d *DeployedInstance) StreamBackupToRemote(reader io.Reader) error {
 		return fmt.Errorf("Creating backup directory on the remote returned %d. Error: %s", exitCode, stderr)
 	}
 
-	d.Logger.Debug("", "Streaming backup to instance %s %s", d.InstanceGroupName, d.InstanceIndex)
+	d.Logger.Debug("", "Streaming backup to instance %s/%s", d.InstanceGroupName, d.BoshInstanceID)
 	stdout, stderr, exitCode, err = d.StreamStdin("sudo sh -c 'tar -C /var/vcap/store/backup -zx'", reader)
 
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
@@ -257,13 +257,12 @@ func (d *DeployedInstance) BackupSize() (string, error) {
 
 func (d *DeployedInstance) Cleanup() error {
 	var errs error
-	d.Logger.Debug("", "Cleaning up SSH connection on instance %s %s", d.InstanceGroupName, d.InstanceIndex)
+	d.Logger.Debug("", "Cleaning up SSH connection on instance %s %s", d.InstanceGroupName, d.BoshInstanceID)
 	removeArtifactError := d.removeBackupArtifacts()
 	if removeArtifactError != nil {
 		errs = multierror.Append(errs, removeArtifactError)
 	}
-
-	cleanupSSHError := d.CleanUpSSH(director.NewAllOrInstanceGroupOrInstanceSlug(d.InstanceGroupName, d.InstanceIndex), director.SSHOpts{Username: d.SSHConnection.Username()})
+	cleanupSSHError := d.CleanUpSSH(director.NewAllOrInstanceGroupOrInstanceSlug(d.InstanceGroupName, d.BoshInstanceID), director.SSHOpts{Username: d.SSHConnection.Username()})
 	if cleanupSSHError != nil {
 		errs = multierror.Append(errs, cleanupSSHError)
 	}
@@ -271,21 +270,21 @@ func (d *DeployedInstance) Cleanup() error {
 }
 
 func (d *DeployedInstance) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
-	d.Logger.Debug("", "Running %s on %s %s", label, d.InstanceGroupName, d.InstanceIndex)
+	d.Logger.Debug("", "Running %s on %s/%s", label, d.InstanceGroupName, d.BoshInstanceID)
 
 	stdout, stderr, exitCode, err := d.Run(cmd)
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
 	d.Logger.Debug("", "Stderr: %s", string(stderr))
 
 	if err != nil {
-		d.Logger.Debug("", "Error running %s on instance %s %s. Exit code %d, error: %s", label, d.InstanceGroupName, d.InstanceIndex, exitCode, err.Error())
+		d.Logger.Debug("", "Error running %s on instance %s/%s. Exit code %d, error: %s", label, d.InstanceGroupName, d.BoshInstanceID, exitCode, err.Error())
 	}
 
 	return stdout, stderr, exitCode, err
 }
 
 func (d *DeployedInstance) filesPresent(path string) {
-	d.Logger.Debug("", "Listing contents of %s on %s %s", path, d.InstanceGroupName, d.InstanceIndex)
+	d.Logger.Debug("", "Listing contents of %s on %s/%s", path, d.InstanceGroupName, d.BoshInstanceID)
 
 	stdout, _, _, _ := d.Run("sudo ls " + path)
 	stdout = bytes.TrimSpace(stdout)
@@ -301,11 +300,11 @@ func (d *DeployedInstance) Name() string {
 }
 
 func (d *DeployedInstance) Index() string {
-	return d.InstanceIndex
+	return d.BackupAndRestoreInstanceIndex
 }
 
 func (d *DeployedInstance) ID() string {
-	return d.InstanceID
+	return d.BoshInstanceID
 }
 
 func (d *DeployedInstance) removeBackupArtifacts() error {

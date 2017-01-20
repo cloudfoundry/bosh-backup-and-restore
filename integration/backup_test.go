@@ -103,7 +103,7 @@ touch /tmp/pre-backup-lock-output
 				})
 
 				It("logs that it looked for, and found, the scripts", func() {
-					Expect(session.Out.Contents()).Should(ContainSubstring(`Listing contents of /var/vcap/jobs/*/bin/p-pre-backup-lock on redis-dedicated-node 0`))
+					Expect(session.Out.Contents()).Should(ContainSubstring(`Listing contents of /var/vcap/jobs/*/bin/p-pre-backup-lock on redis-dedicated-node/fake-uuid`))
 					Expect(session.Out.Contents()).Should(ContainSubstring("> /var/vcap/jobs/redis/bin/p-pre-backup-lock"))
 					Expect(session.Out.Contents()).Should(ContainSubstring("> /var/vcap/jobs/redis-broker/bin/p-pre-backup-lock"))
 				})
@@ -128,7 +128,7 @@ touch /tmp/post-backup-unlock-output
 				})
 
 				It("logs the error", func() {
-					Expect(session.Err.Contents()).To(ContainSubstring("One or more pre-backup-lock scripts failed on redis-dedicated-node 0."))
+					Expect(session.Err.Contents()).To(ContainSubstring("One or more pre-backup-lock scripts failed on redis-dedicated-node/fake-uuid."))
 				})
 
 				It("logs stdout", func() {
@@ -223,7 +223,7 @@ echo "Unlocking release"`)
 				})
 
 				It("prints unlock progress to the screen", func() {
-					Eventually(session).Should(gbytes.Say("Running post backup unlock on redis-dedicated-node 0"))
+					Eventually(session).Should(gbytes.Say("Running post backup unlock on redis-dedicated-node/fake-uuid"))
 					Eventually(session).Should(gbytes.Say("Done."))
 				})
 
@@ -248,7 +248,7 @@ exit 1`)
 					})
 
 					It("prints an error", func() {
-						Expect(session.Err.Contents()).To(ContainSubstring("One or more post-backup-unlock scripts failed on redis-dedicated-node 0."))
+						Expect(session.Err.Contents()).To(ContainSubstring("One or more post-backup-unlock scripts failed on redis-dedicated-node/fake-uuid."))
 					})
 				})
 			})
@@ -337,7 +337,7 @@ exit 1`)
 			})
 
 			It("prints an error", func() {
-				Expect(string(session.Err.Contents())).To(ContainSubstring("One or more backup scripts failed on redis-dedicated-node 0."))
+				Expect(string(session.Err.Contents())).To(ContainSubstring("One or more backup scripts failed on redis-dedicated-node/fake-uuid."))
 				Expect(string(session.Err.Contents())).To(ContainSubstring("ultra-baz"))
 				Expect(string(session.Err.Contents())).To(ContainSubstring("ultra-foo"))
 			})

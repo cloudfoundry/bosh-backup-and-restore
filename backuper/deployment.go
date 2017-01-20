@@ -122,7 +122,7 @@ func (bd *BoshDeployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 			return err
 		}
 		if !localChecksum.Match(remoteChecksum) {
-			return fmt.Errorf("Backup artifact is corrupted, checksum failed for %s:%s,  remote file: %s, local file: %s", instance.Name(), instance.Index(), remoteChecksum, localChecksum)
+			return fmt.Errorf("Backup artifact is corrupted, checksum failed for %s/%s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), remoteChecksum, localChecksum)
 		}
 
 		artifact.AddChecksum(instance, localChecksum)
@@ -144,7 +144,7 @@ func (bd *BoshDeployment) CopyLocalBackupToRemote(artifact Artifact) error {
 			return err
 		}
 
-		bd.Logger.Info("", "Copying backup to %s-%s...", instance.Name(), instance.Index())
+		bd.Logger.Info("", "Copying backup to %s-%s...", instance.Name(), instance.ID())
 		if err := instance.StreamBackupToRemote(reader); err != nil {
 			return err
 		}
@@ -159,7 +159,7 @@ func (bd *BoshDeployment) CopyLocalBackupToRemote(artifact Artifact) error {
 			return err
 		}
 		if !localChecksum.Match(remoteChecksum) {
-			return fmt.Errorf("Backup couldn't be transfered, checksum failed for %s:%s,  remote file: %s, local file: %s", instance.Name(), instance.Index(), remoteChecksum, localChecksum)
+			return fmt.Errorf("Backup couldn't be transfered, checksum failed for %s/%s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), remoteChecksum, localChecksum)
 		}
 	}
 	return nil

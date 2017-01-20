@@ -44,11 +44,9 @@ func (d *DirectoryArtifact) DeploymentMatches(deployment string, instances []bac
 }
 
 func (d *DirectoryArtifact) CreateFile(inst backuper.InstanceIdentifer) (io.WriteCloser, error) {
-	filename := inst.Name() + "-" + inst.Index() + ".tgz"
-	d.Debug(TAG, "Trying to create file %s", filename)
-	return os.Create(path.Join(d.baseDirName, filename))
+	d.Debug(TAG, "Trying to create file %s", fileName(inst))
+	return os.Create(path.Join(d.baseDirName, fileName(inst)))
 }
-
 func (d *DirectoryArtifact) ReadFile(inst backuper.InstanceIdentifer) (io.ReadCloser, error) {
 	filename := d.instanceFilename(inst)
 	d.Debug(TAG, "Trying to open %s", filename)
@@ -75,6 +73,7 @@ func (d *DirectoryArtifact) FetchChecksum(inst backuper.InstanceIdentifer) (back
 	d.Warn(TAG, "Checksum for %s/%s not found in artifact", inst.Name(), inst.Index())
 	return nil, nil
 }
+
 func (d *DirectoryArtifact) CalculateChecksum(inst backuper.InstanceIdentifer) (backuper.BackupChecksum, error) {
 	file, err := d.ReadFile(inst)
 	if err != nil {
@@ -112,7 +111,6 @@ func (d *DirectoryArtifact) CalculateChecksum(inst backuper.InstanceIdentifer) (
 
 	return checksum, nil
 }
-
 func (d *DirectoryArtifact) AddChecksum(inst backuper.InstanceIdentifer, shasum backuper.BackupChecksum) error {
 	metadata := metadata{}
 	if exists, _ := d.metadataExistsAndIsReadable(); exists {
@@ -174,14 +172,18 @@ func (d *DirectoryArtifact) instanceFilename(inst backuper.InstanceIdentifer) st
 func (d *DirectoryArtifact) metadataFilename() string {
 	return path.Join(d.baseDirName, "metadata")
 }
+
 func (d *DirectoryArtifact) manifestFilename() string {
 	return path.Join(d.baseDirName, "manifest.yml")
 }
-
 func (d *DirectoryArtifact) metadataExistsAndIsReadable() (bool, error) {
 	_, err := os.Stat(d.metadataFilename())
 	if err != nil {
 		return false, err
 	}
 	return true, nil
+}
+
+func fileName(inst backuper.InstanceIdentifer) string {
+	return inst.Name() + "-" + inst.Index() + ".tgz"
 }

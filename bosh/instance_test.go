@@ -31,6 +31,7 @@ var _ = Describe("Instance", func() {
 		boshDeployment = new(boshfakes.FakeDeployment)
 		jobName = "job-name"
 		jobIndex = "job-index"
+		jobID = "job-id"
 		expectedStdout = "i'm a stdout"
 		expectedStderr = "i'm a stderr"
 		stdout = gbytes.NewBuffer()
@@ -184,7 +185,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs that we are checking for pre-backup-lock scripts", func() {
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running check for pre-backup-lock scripts on %s %s", jobName, jobID)))
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running check for pre-backup-lock scripts on %s/%s", jobName, jobID)))
 			})
 
 			It("logs stdout and stderr", func() {
@@ -233,7 +234,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs that we are checking for pre-backup-lock scripts", func() {
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running check for pre-backup-lock scripts on %s %s", jobName, jobIndex)))
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running check for pre-backup-lock scripts on %s/%s", jobName, jobID)))
 			})
 
 			It("logs stdout and stderr", func() {
@@ -261,7 +262,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs that we are checking for pre-backup-lock scripts", func() {
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running check for pre-backup-lock scripts on %s %s", jobName, jobIndex)))
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running check for pre-backup-lock scripts on %s/%s", jobName, jobID)))
 			})
 
 			It("logs stdout and stderr", func() {
@@ -298,7 +299,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs that we are checking for post-backup-unlock scripts", func() {
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running check for post-backup-unlock scripts on %s %s", jobName, jobIndex)))
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running check for post-backup-unlock scripts on %s/%s", jobName, jobID)))
 			})
 
 			It("logs stdout and stderr", func() {
@@ -379,9 +380,9 @@ var _ = Describe("Instance", func() {
 				Expect(stdout).To(
 					gbytes.Say(
 						fmt.Sprintf(
-							"Error running check for post-backup-unlock scripts on instance %s %s. Exit code 0, error: %s",
+							"Error running check for post-backup-unlock scripts on instance %s/%s. Exit code 0, error: %s",
 							jobName,
-							jobIndex,
+							jobID,
 							expectedError,
 						),
 					),
@@ -573,7 +574,7 @@ var _ = Describe("Instance", func() {
 
 			It("prints an error message", func() {
 				Expect(err.Error()).To(ContainSubstring(
-					fmt.Sprintf("One or more pre-backup-lock scripts failed on %s %s", jobName, jobIndex),
+					fmt.Sprintf("One or more pre-backup-lock scripts failed on %s/%s", jobName, jobID),
 				))
 			})
 
@@ -640,7 +641,7 @@ var _ = Describe("Instance", func() {
 
 			It("prints an error message", func() {
 				Expect(err.Error()).To(ContainSubstring(
-					fmt.Sprintf("One or more backup scripts failed on %s %s", jobName, jobIndex),
+					fmt.Sprintf("One or more backup scripts failed on %s/%s", jobName, jobID),
 				))
 			})
 
@@ -677,7 +678,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("logs that we are running post backup unlock on the instance", func() {
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running post backup unlock on %s %s", jobName, jobIndex)))
+				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running post backup unlock on %s/%s", jobName, jobID)))
 				Expect(stdout).To(gbytes.Say("Done."))
 			})
 
@@ -698,7 +699,7 @@ var _ = Describe("Instance", func() {
 
 			It("prints an error message", func() {
 				Expect(err.Error()).To(ContainSubstring(
-					fmt.Sprintf("One or more post-backup-unlock scripts failed on %s %s", jobName, jobIndex),
+					fmt.Sprintf("One or more post-backup-unlock scripts failed on %s/%s", jobName, jobID),
 				))
 			})
 
@@ -731,9 +732,9 @@ var _ = Describe("Instance", func() {
 				Expect(stderr).To(
 					gbytes.Say(
 						fmt.Sprintf(
-							"Error running post backup unlock on instance %s %s. Error: %s",
+							"Error running post backup unlock on instance %s/%s. Error: %s",
 							jobName,
-							jobIndex,
+							jobID,
 							expectedError,
 						),
 					),
@@ -939,7 +940,7 @@ var _ = Describe("Instance", func() {
 			It("deletes session from deployment", func() {
 				Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(1))
 				slug, sshOpts := boshDeployment.CleanUpSSHArgsForCall(0)
-				Expect(slug).To(Equal(director.NewAllOrInstanceGroupOrInstanceSlug("job-name", "job-index")))
+				Expect(slug).To(Equal(director.NewAllOrInstanceGroupOrInstanceSlug(jobName, jobID)))
 				Expect(sshOpts).To(Equal(director.SSHOpts{
 					Username: "sshUsername",
 				}))

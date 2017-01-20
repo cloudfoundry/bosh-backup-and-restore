@@ -7,8 +7,6 @@ type instanceMetadata struct {
 	InstanceName  string            `yaml:"instance_name"`
 	InstanceIndex string            `yaml:"instance_index"`
 	Checksum      map[string]string `yaml:"checksums"`
-
-	instanceID string
 }
 
 func (m instanceMetadata) Name() string {
@@ -20,7 +18,7 @@ func (m instanceMetadata) Index() string {
 }
 
 func (m instanceMetadata) ID() string {
-	return m.instanceID
+	return m.Index()
 }
 
 type metadata struct {
