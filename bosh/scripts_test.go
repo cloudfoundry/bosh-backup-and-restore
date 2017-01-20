@@ -158,3 +158,35 @@ var _ = Describe("Backup and Restore Scripts", func() {
 		})
 	})
 })
+
+var _ = Describe("Script", func() {
+	var (
+		script Script
+		result string
+		err error
+	)
+
+	JustBeforeEach(func() {
+		result, err = script.JobName()
+	})
+
+	Describe("JobName", func() {
+		BeforeEach(func() {
+			script = Script("/var/vcap/jobs/a-job-name/p-backup")
+		})
+
+		It("returns the job name for a given bosh job script", func() {
+			Expect(result).To(Equal("a-job-name"))
+		})
+
+		Context("when provided script is not a job script", func() {
+			BeforeEach(func() {
+				script = Script("/var/vcap/packages/job/some-script")
+			})
+
+			It("returns an error", func() {
+				Expect(err).To(HaveOccurred())
+			})
+		})
+	})
+})

@@ -337,7 +337,7 @@ exit 1`)
 			})
 
 			It("prints an error", func() {
-				Expect(string(session.Err.Contents())).To(ContainSubstring("One or more backup scripts failed on redis-dedicated-node/fake-uuid."))
+				Expect(string(session.Err.Contents())).To(ContainSubstring("Backup script for job redis failed on redis-dedicated-node/fake-uuid."))
 				Expect(string(session.Err.Contents())).To(ContainSubstring("ultra-baz"))
 				Expect(string(session.Err.Contents())).To(ContainSubstring("ultra-foo"))
 			})

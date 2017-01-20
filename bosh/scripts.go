@@ -2,40 +2,52 @@ package bosh
 
 import (
 	"path/filepath"
+	"strings"
+	"fmt"
 )
 
-type BackupAndRestoreScripts []script
+type BackupAndRestoreScripts []Script
 
 const (
 	backupScriptName  = "p-backup"
 	restoreScriptName = "p-restore"
 
-	jobDirectoryMatcher  = "/var/vcap/jobs/*/bin/"
+	jobBaseDirectory = "/var/vcap/jobs/"
+	jobDirectoryMatcher  = jobBaseDirectory + "*/bin/"
 	backupScriptMatcher  = jobDirectoryMatcher + backupScriptName
 	restoreScriptMatcher = jobDirectoryMatcher + restoreScriptName
 )
 
-type script string
+type Script string
 
-func (s script) isBackup() bool {
+func (s Script) isBackup() bool {
 	match, _ := filepath.Match(backupScriptMatcher, string(s))
 	return match
 }
 
-func (s script) isRestore() bool {
+func (s Script) isRestore() bool {
 	match, _ := filepath.Match(restoreScriptMatcher, string(s))
 	return match
 }
 
-func (s script) isPlatformScript() bool {
+func (s Script) isPlatformScript() bool {
 	return s.isBackup() || s.isRestore()
 }
 
+func (s Script) JobName() (string, error) {
+	if !strings.HasPrefix(string(s), jobBaseDirectory) {
+		return "", fmt.Errorf("script %s is not a job script", string(s))
+	}
+
+	strippedPrefix := strings.TrimPrefix(string(s), jobBaseDirectory)
+	splitFirstElement := strings.SplitN(strippedPrefix, "/", 2)
+	return splitFirstElement[0], nil
+}
 
 func NewBackupAndRestoreScripts(files []string) BackupAndRestoreScripts {
-	bandrScripts := []script{}
+	bandrScripts := []Script{}
 	for _, s := range files {
-		s:=script(s)
+		s:=Script(s)
 		if s.isPlatformScript(){
 			bandrScripts = append(bandrScripts, s)
 		}

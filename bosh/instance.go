@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"errors"
 
 	"bytes"
 	"github.com/cloudfoundry/bosh-cli/director"
@@ -107,23 +108,58 @@ func (d *DeployedInstance) PreBackupLock() error {
 }
 
 func (d *DeployedInstance) Backup() error {
-	d.filesPresent("/var/vcap/jobs/*/bin/p-backup")
-	d.Logger.Info("", "Backing up %s/%s...", d.InstanceGroupName, d.BoshInstanceID)
+	d.Logger.Info("", "Backing up %s-%s...", d.InstanceGroupName, d.BackupAndRestoreInstanceIndex)
 
-	stdout, stderr, exitCode, err := d.logAndRun("sudo mkdir -p /var/vcap/store/backup && ls /var/vcap/jobs/*/bin/p-backup | xargs -IN sudo sh -c N", "backup")
+	var foundErrors error
 
-	if exitCode != 0 {
-		return fmt.Errorf(
-			"One or more backup scripts failed on %s/%s.\nStdout: %s\nStderr: %s",
-			d.InstanceGroupName,
-			d.BoshInstanceID,
-			stdout,
-			stderr,
+	for _, script := range d.BackupAndRestoreScripts.BackupOnly(){
+		d.Logger.Debug("", "> %s", script)
+
+		jobName, _ := script.JobName()
+		artifactDirectory := fmt.Sprintf("/var/vcap/store/backup/%s", jobName)
+		stdout, stderr, exitCode, err := d.logAndRun(
+			fmt.Sprintf(
+				"sudo mkdir -p %s && ARTIFACT_DIRECTORY=%s/ sudo %s",
+				artifactDirectory,
+				artifactDirectory,
+				script,
+			),
+			"backup",
 		)
+
+		if err != nil {
+			d.Logger.Error("", fmt.Sprintf(
+				"Error attempting to run backup script for job %s on %s/%s. Error: %s",
+				jobName,
+				d.InstanceGroupName,
+				d.BackupAndRestoreInstanceIndex,
+				err.Error(),
+			))
+			foundErrors = multierror.Append(foundErrors, err)
+		}
+
+		if exitCode != 0 {
+			errorString := fmt.Sprintf(
+				"Backup script for job %s failed on %s/%s.\nStdout: %s\nStderr: %s",
+				jobName,
+				d.InstanceGroupName,
+				d.BackupAndRestoreInstanceIndex,
+				stdout,
+				stderr,
+			)
+
+			foundErrors = multierror.Append(foundErrors, errors.New(errorString))
+
+			d.Logger.Error("", errorString)
+		}
+	}
+
+	if foundErrors != nil {
+		return foundErrors
 	}
 
 	d.Logger.Info("", "Done.")
-	return err
+	return foundErrors
 }
 
 func (d *DeployedInstance) PostBackupUnlock() error {
