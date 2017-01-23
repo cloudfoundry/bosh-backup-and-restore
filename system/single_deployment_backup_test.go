@@ -64,8 +64,8 @@ var _ = Describe("Single deployment", func() {
 
 func populateRedisFixtureOnInstances() {
 	dataFixture := "../fixtures/redis_test_commands"
-	RunBoshCommand(RedisDeploymentSCPCommand(), dataFixture, "redis/0:/tmp")
 	runOnAllInstances(func(instName, instIndex string) {
+		RunBoshCommand(RedisDeploymentSCPCommand(), dataFixture, fmt.Sprintf("%s/%s:/tmp", instName, instIndex))
 		Eventually(
 			RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
 				"cat /tmp/redis_test_commands | /var/vcap/packages/redis/bin/redis-cli > /dev/null",
