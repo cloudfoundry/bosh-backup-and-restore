@@ -159,7 +159,7 @@ func (d *DeployedInstance) Backup() error {
 	}
 
 	d.Logger.Info("", "Done.")
-	return foundErrors
+	return nil
 }
 
 func (d *DeployedInstance) PostBackupUnlock() error {
@@ -196,14 +196,57 @@ func (d *DeployedInstance) PostBackupUnlock() error {
 }
 
 func (d *DeployedInstance) Restore() error {
-	d.filesPresent("/var/vcap/jobs/*/bin/p-restore")
-	_, stderr, exitCode, err := d.logAndRun("ls /var/vcap/jobs/*/bin/p-restore | xargs -IN sudo sh -c N", "restore")
+	d.Logger.Info("", "Restoring to %s/%s...", d.InstanceGroupName, d.BoshInstanceID)
 
-	if exitCode != 0 {
-		return fmt.Errorf("Instance restore scripts returned %d. Error: %s", exitCode, stderr)
+	var restoreErrors error
+
+	for _, script := range d.BackupAndRestoreScripts.RestoreOnly() {
+		d.Logger.Debug("", "> %s", script)
+
+		jobName, _ := script.JobName()
+		artifactDirectory := fmt.Sprintf("/var/vcap/store/backup/%s", jobName)
+		stdout, stderr, exitCode, err := d.logAndRun(
+			fmt.Sprintf(
+				"ARTIFACT_DIRECTORY=%s/ sudo %s",
+				artifactDirectory,
+				script,
+			),
+			"restore",
+		)
+
+		if err != nil {
+			d.Logger.Error("", fmt.Sprintf(
+				"Error attempting to run restore script for job %s on %s/%s. Error: %s",
+				jobName,
+				d.InstanceGroupName,
+				d.BoshInstanceID,
+				err.Error(),
+			))
+			restoreErrors = multierror.Append(restoreErrors, err)
+		}
+
+		if exitCode != 0 {
+			errorString := fmt.Sprintf(
+				"Restore script for job %s failed on %s/%s.\nStdout: %s\nStderr: %s",
+				jobName,
+				d.InstanceGroupName,
+				d.BoshInstanceID,
+				stdout,
+				stderr,
+			)
+
+			restoreErrors = multierror.Append(restoreErrors, errors.New(errorString))
+
+			d.Logger.Error("", errorString)
+		}
 	}
 
-	return err
+	if restoreErrors != nil {
+		return restoreErrors
+	}
+
+	d.Logger.Info("", "Done.")
+	return nil
 }
 
 func (d *DeployedInstance) StreamBackupFromRemote(writer io.Writer) error {

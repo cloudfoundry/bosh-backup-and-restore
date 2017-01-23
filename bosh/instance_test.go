@@ -691,7 +691,7 @@ var _ = Describe("Instance", func() {
 			})
 		})
 
-		Context("when there are several scripts and one of them fails to backup", func() {
+		Context("when there are several scripts and two of them fail to backup", func() {
 			expectedStdout := "some stdout"
 			expectedStderr := "some stderr"
 
@@ -913,44 +913,249 @@ var _ = Describe("Instance", func() {
 		})
 	})
 
-	Context("Restore", func() {
+	Describe("Restore", func() {
 		var actualError error
 
 		JustBeforeEach(func() {
 			actualError = instance.Restore()
 		})
 
-		Describe("runs restore successfully", func() {
+		Context("when there is one backup script in the job directories", func() {
 			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, nil)
+				backupAndRestoreScripts = []bosh.Script{"/var/vcap/jobs/bar/bin/p-restore"}
 			})
+
+			It("uses the ssh connection run the restore script providing the ARTIFACT_DIRECTORY environment variable", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
+					"ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ sudo /var/vcap/jobs/bar/bin/p-restore",
+				))
+			})
+
+			It("logs the paths to the scripts being run", func() {
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/p-restore`))
+				Expect(string(stdout.Contents())).NotTo(ContainSubstring("> \n"))
+			})
+
+			It("logs that it is restoring the instance", func() {
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"Restoring to %s/%s",
+					jobName,
+					jobID,
+				)))
+			})
+
+			It("logs Done.", func() {
+				Expect(string(stdout.Contents())).To(ContainSubstring("Done."))
+			})
+
 			It("succeeds", func() {
 				Expect(actualError).NotTo(HaveOccurred())
 			})
+		})
 
-			It("lists, then runs, all restore scripts", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(2))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-restore"))
-				Expect(sshConnection.RunArgsForCall(1)).To(Equal("ls /var/vcap/jobs/*/bin/p-restore | xargs -IN sudo sh -c N"))
+		Context("when there are multiple restore scripts in multiple job directories", func() {
+			BeforeEach(func() {
+				backupAndRestoreScripts = []bosh.Script{
+					"/var/vcap/jobs/foo/bin/p-restore",
+					"/var/vcap/jobs/bar/bin/p-restore",
+					"/var/vcap/jobs/baz/bin/p-restore",
+				}
+			})
+
+			It("uses the ssh connection to run each restore script providing the correct ARTIFACT_DIRECTORTY", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(3))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
+					"ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ sudo /var/vcap/jobs/foo/bin/p-restore",
+				))
+				Expect(sshConnection.RunArgsForCall(1)).To(Equal(
+					"ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ sudo /var/vcap/jobs/bar/bin/p-restore",
+				))
+				Expect(sshConnection.RunArgsForCall(2)).To(Equal(
+					"ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ sudo /var/vcap/jobs/baz/bin/p-restore",
+				))
+			})
+
+			It("logs the paths to the scripts being run", func() {
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/foo/bin/p-restore`))
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/p-restore`))
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/baz/bin/p-restore`))
+				Expect(string(stdout.Contents())).NotTo(ContainSubstring("> \n"))
+			})
+
+			It("succeeds", func() {
+				Expect(actualError).NotTo(HaveOccurred())
 			})
 		})
 
-		Describe("error while running command", func() {
-			var expectedError = fmt.Errorf("we need to build a wall")
+		Context("when there is one script and it fails to restore", func() {
+			expectedStdout := "some stdout"
+			expectedStderr := "some stderr"
+
 			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, expectedError)
+				backupAndRestoreScripts = []bosh.Script{"/var/vcap/jobs/bar/bin/p-restore"}
+				sshConnection.RunReturns([]byte(expectedStdout), []byte(expectedStderr), 1, nil)
 			})
-			It("returns error", func() {
+
+			It("fails", func() {
 				Expect(actualError).To(HaveOccurred())
 			})
+
+			It("returns an error with appropriate message", func() {
+				Expect(actualError.Error()).To(ContainSubstring(
+					fmt.Sprintf("Restore script for job bar failed on %s/%s", jobName, jobID),
+				))
+			})
+
+			It("prints stdout", func() {
+				Expect(actualError.Error()).To(ContainSubstring(fmt.Sprintf("Stdout: %s", expectedStdout)))
+			})
+
+			It("prints stderr", func() {
+				Expect(actualError.Error()).To(ContainSubstring(fmt.Sprintf("Stderr: %s", expectedStderr)))
+			})
+
+			It("doesn't log Done", func() {
+				Expect(string(stdout.Contents())).NotTo(ContainSubstring("Done."))
+			})
+
+			It("logs the failure", func() {
+				Expect(string(stderr.Contents())).To(ContainSubstring(
+					fmt.Sprintf("Restore script for job bar failed on %s/%s", jobName, jobID),
+				))
+			})
 		})
 
-		Describe("restore scripts return an error", func() {
+		Context("when there are several scripts and two of them fail to restore", func() {
+			expectedStdout := "some stdout"
+			expectedStderr := "some stderr"
+
 			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("not relevant"), []byte("my fingers are long and beautiful"), 1, nil)
+				backupAndRestoreScripts = []bosh.Script{
+					"/var/vcap/jobs/foo/bin/p-restore",
+					"/var/vcap/jobs/bar/bin/p-restore",
+					"/var/vcap/jobs/baz/bin/p-restore",
+				}
+				sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
+					if strings.Contains(cmd, "jobs/ba") {
+						return []byte(expectedStdout), []byte(expectedStderr), 1, nil
+					}
+					return []byte("not relevant"), []byte("not relevant"), 0, nil
+				}
 			})
-			It("returns error", func() {
-				Expect(actualError.Error()).To(ContainSubstring("Instance restore scripts returned %d. Error: %s", 1, "my fingers are long and beautiful"))
+
+			It("fails", func() {
+				Expect(actualError).To(HaveOccurred())
+			})
+
+			It("returns an error containing messages related to the scripts which failed", func() {
+				Expect(actualError.Error()).To(ContainSubstring(
+					fmt.Sprintf("Restore script for job bar failed on %s/%s", jobName, jobID),
+				))
+				Expect(actualError.Error()).To(ContainSubstring(
+					fmt.Sprintf("Restore script for job baz failed on %s/%s", jobName, jobID),
+				))
+			})
+
+			It("returns an error without a message related to the script which passed", func() {
+				Expect(actualError.Error()).NotTo(ContainSubstring(
+					fmt.Sprintf("Restore script for job foo failed on %s/%s", jobName, jobID),
+				))
+			})
+
+			It("doesn't log Done", func() {
+				Expect(string(stdout.Contents())).NotTo(ContainSubstring("Done."))
+			})
+
+			It("logs the failures", func() {
+				Expect(string(stderr.Contents())).To(ContainSubstring(
+					fmt.Sprintf("Restore script for job bar failed on %s/%s", jobName, jobID),
+				))
+				Expect(string(stderr.Contents())).To(ContainSubstring(
+					fmt.Sprintf("Restore script for job baz failed on %s/%s", jobName, jobID),
+				))
+			})
+		})
+
+		Context("when there is one script and attempting to run it causes an error", func() {
+			expectedError := fmt.Errorf("you are an alternative fact")
+
+			BeforeEach(func() {
+				backupAndRestoreScripts = []bosh.Script{"/var/vcap/jobs/bar/bin/p-restore"}
+				sshConnection.RunReturns([]byte("never mind"), []byte("never mind"), 0, expectedError)
+			})
+
+			It("fails", func() {
+				Expect(actualError).To(HaveOccurred())
+			})
+
+			It("returns an error containing the failure message", func() {
+				Expect(actualError.Error()).To(ContainSubstring(expectedError.Error()))
+			})
+
+			It("logs the error", func() {
+				Expect(string(stderr.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"Error attempting to run restore script for job bar on %s/%s. Error: %s",
+					jobName,
+					jobID,
+					expectedError.Error(),
+				)))
+			})
+		})
+
+		Context("when there are several scripts and one of them fails to run restore while another one causes an error", func() {
+			expectedStdout := "some stdout"
+			expectedStderr := "some stderr"
+			expectedError := fmt.Errorf("i saw a million and a half people")
+
+			BeforeEach(func() {
+				backupAndRestoreScripts = []bosh.Script{
+					"/var/vcap/jobs/foo/bin/p-restore",
+					"/var/vcap/jobs/bar/bin/p-restore",
+					"/var/vcap/jobs/baz/bin/p-restore",
+				}
+				sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
+					if strings.Contains(cmd, "jobs/bar") {
+						return []byte(expectedStdout), []byte(expectedStderr), 1, nil
+					}
+					if strings.Contains(cmd, "jobs/baz") {
+						return []byte("not relevant"), []byte("not relevant"), 0, expectedError
+					}
+					return []byte("not relevant"), []byte("not relevant"), 0, nil
+				}
+			})
+
+			It("fails", func() {
+				Expect(actualError).To(HaveOccurred())
+			})
+
+			It("returns an error including the failure for the failed script", func() {
+				Expect(actualError.Error()).To(ContainSubstring(
+					fmt.Sprintf("Restore script for job bar failed on %s/%s", jobName, jobID),
+				))
+			})
+
+			It("logs the failures related to the failed script", func() {
+				Expect(string(stderr.Contents())).To(ContainSubstring(
+					fmt.Sprintf("Restore script for job bar failed on %s/%s", jobName, jobID),
+				))
+			})
+
+			It("returns an error including the error from running the command", func() {
+				Expect(actualError.Error()).To(ContainSubstring(expectedError.Error()))
+			})
+
+			It("logs the error caused when running the command", func() {
+				Expect(string(stderr.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"Error attempting to run restore script for job baz on %s/%s. Error: %s",
+					jobName,
+					jobID,
+					expectedError.Error(),
+				)))
+			})
+
+			It("doesn't log Done", func() {
+				Expect(string(stdout.Contents())).NotTo(ContainSubstring("Done."))
 			})
 		})
 	})
