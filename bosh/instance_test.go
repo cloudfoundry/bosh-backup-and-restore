@@ -43,7 +43,7 @@ var _ = Describe("Instance", func() {
 
 	JustBeforeEach(func() {
 		sshConnection.UsernameReturns("sshUsername")
-		instance = bosh.NewBoshInstance(jobName, jobIndex, jobID, sshConnection, boshDeployment, boshLogger,backupAndRestoreScripts)
+		instance = bosh.NewBoshInstance(jobName, jobIndex, jobID, sshConnection, boshDeployment, boshLogger, backupAndRestoreScripts)
 	})
 
 	Context("IsBackupable", func() {

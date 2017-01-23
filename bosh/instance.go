@@ -108,7 +108,7 @@ func (d *DeployedInstance) PreBackupLock() error {
 }
 
 func (d *DeployedInstance) Backup() error {
-	d.Logger.Info("", "Backing up %s-%s...", d.InstanceGroupName, d.BackupAndRestoreInstanceIndex)
+	d.Logger.Info("", "Backing up %s/%s...", d.InstanceGroupName, d.BackupAndRestoreInstanceIndex)
 
 	var foundErrors error
 
