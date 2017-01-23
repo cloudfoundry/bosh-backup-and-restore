@@ -119,7 +119,7 @@ func (d *DeployedInstance) Backup() error {
 		artifactDirectory := fmt.Sprintf("/var/vcap/store/backup/%s", jobName)
 		stdout, stderr, exitCode, err := d.logAndRun(
 			fmt.Sprintf(
-				"sudo mkdir -p %s && ARTIFACT_DIRECTORY=%s/ sudo %s",
+				"sudo mkdir -p %s && sudo ARTIFACT_DIRECTORY=%s/ %s",
 				artifactDirectory,
 				artifactDirectory,
 				script,
@@ -207,7 +207,7 @@ func (d *DeployedInstance) Restore() error {
 		artifactDirectory := fmt.Sprintf("/var/vcap/store/backup/%s", jobName)
 		stdout, stderr, exitCode, err := d.logAndRun(
 			fmt.Sprintf(
-				"ARTIFACT_DIRECTORY=%s/ sudo %s",
+				"sudo ARTIFACT_DIRECTORY=%s/ %s",
 				artifactDirectory,
 				script,
 			),

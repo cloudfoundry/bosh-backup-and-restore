@@ -605,7 +605,7 @@ var _ = Describe("Instance", func() {
 			It("uses the ssh connection to create the job specific backup folder and run the backup script providing the ARTIFACT_DIRECTORY environment variable", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
-					"sudo mkdir -p /var/vcap/store/backup/bar && ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ sudo /var/vcap/jobs/bar/bin/p-backup",
+					"sudo mkdir -p /var/vcap/store/backup/bar && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/p-backup",
 				))
 			})
 
@@ -631,13 +631,13 @@ var _ = Describe("Instance", func() {
 			It("uses the ssh connection to create each job's backup folder and run each backup script providing the correct ARTIFACT_DIRECTORTY", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(3))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
-					"sudo mkdir -p /var/vcap/store/backup/foo && ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ sudo /var/vcap/jobs/foo/bin/p-backup",
+					"sudo mkdir -p /var/vcap/store/backup/foo && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/p-backup",
 				))
 				Expect(sshConnection.RunArgsForCall(1)).To(Equal(
-					"sudo mkdir -p /var/vcap/store/backup/bar && ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ sudo /var/vcap/jobs/bar/bin/p-backup",
+					"sudo mkdir -p /var/vcap/store/backup/bar && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/p-backup",
 				))
 				Expect(sshConnection.RunArgsForCall(2)).To(Equal(
-					"sudo mkdir -p /var/vcap/store/backup/baz && ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ sudo /var/vcap/jobs/baz/bin/p-backup",
+					"sudo mkdir -p /var/vcap/store/backup/baz && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ /var/vcap/jobs/baz/bin/p-backup",
 				))
 			})
 
@@ -928,7 +928,7 @@ var _ = Describe("Instance", func() {
 			It("uses the ssh connection run the restore script providing the ARTIFACT_DIRECTORY environment variable", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
-					"ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ sudo /var/vcap/jobs/bar/bin/p-restore",
+					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/p-restore",
 				))
 			})
 
@@ -966,13 +966,13 @@ var _ = Describe("Instance", func() {
 			It("uses the ssh connection to run each restore script providing the correct ARTIFACT_DIRECTORTY", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(3))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
-					"ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ sudo /var/vcap/jobs/foo/bin/p-restore",
+					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/p-restore",
 				))
 				Expect(sshConnection.RunArgsForCall(1)).To(Equal(
-					"ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ sudo /var/vcap/jobs/bar/bin/p-restore",
+					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/p-restore",
 				))
 				Expect(sshConnection.RunArgsForCall(2)).To(Equal(
-					"ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ sudo /var/vcap/jobs/baz/bin/p-restore",
+					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ /var/vcap/jobs/baz/bin/p-restore",
 				))
 			})
 
