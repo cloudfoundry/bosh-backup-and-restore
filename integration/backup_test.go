@@ -223,7 +223,7 @@ echo "Unlocking release"`)
 				})
 
 				It("prints unlock progress to the screen", func() {
-					Eventually(session).Should(gbytes.Say("Running post backup unlock on redis-dedicated-node/fake-uuid"))
+					Eventually(session).Should(gbytes.Say("Running unlock on redis-dedicated-node/fake-uuid"))
 					Eventually(session).Should(gbytes.Say("Done."))
 				})
 
@@ -248,7 +248,7 @@ exit 1`)
 					})
 
 					It("prints an error", func() {
-						Expect(session.Err.Contents()).To(ContainSubstring("One or more post-backup-unlock scripts failed on redis-dedicated-node/fake-uuid."))
+						Expect(session.Err.Contents()).To(ContainSubstring("Unlock script for job redis failed on redis-dedicated-node/fake-uuid."))
 					})
 				})
 			})

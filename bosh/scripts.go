@@ -11,13 +11,15 @@ type BackupAndRestoreScripts []Script
 const (
 	backupScriptName  = "p-backup"
 	restoreScriptName = "p-restore"
-	preBackupScriptName = "p-pre-backup-lock"
+	preBackupLockScriptName = "p-pre-backup-lock"
+	postBackupUnlockScriptName = "p-post-backup-unlock"
 
 	jobBaseDirectory = "/var/vcap/jobs/"
 	jobDirectoryMatcher  = jobBaseDirectory + "*/bin/"
 	backupScriptMatcher  = jobDirectoryMatcher + backupScriptName
 	restoreScriptMatcher = jobDirectoryMatcher + restoreScriptName
-	preBackupUnlockScriptMatcher = jobDirectoryMatcher + preBackupScriptName
+	preBackupLockScriptMatcher = jobDirectoryMatcher + preBackupLockScriptName
+	postBackupUnlockScriptMatcher = jobDirectoryMatcher + postBackupUnlockScriptName
 )
 
 type Script string
@@ -33,12 +35,17 @@ func (s Script) isRestore() bool {
 }
 
 func (s Script) isPreBackupUnlock() bool {
-	match, _ := filepath.Match(preBackupUnlockScriptMatcher, string(s))
+	match, _ := filepath.Match(preBackupLockScriptMatcher, string(s))
+	return match
+}
+
+func (s Script) isPostBackupUnlock() bool {
+	match, _ := filepath.Match(postBackupUnlockScriptMatcher, string(s))
 	return match
 }
 
 func (s Script) isPlatformScript() bool {
-	return s.isBackup() || s.isRestore() || s.isPreBackupUnlock()
+	return s.isBackup() || s.isRestore() || s.isPreBackupUnlock() || s.isPostBackupUnlock()
 }
 
 func (s Script) JobName() (string, error) {
@@ -86,6 +93,16 @@ func (s BackupAndRestoreScripts) PreBackupLockOnly() BackupAndRestoreScripts {
 	scripts := BackupAndRestoreScripts{}
 	for _, script := range s {
 		if script.isPreBackupUnlock() {
+			scripts  = append(scripts , script)
+		}
+	}
+	return scripts
+}
+
+func (s BackupAndRestoreScripts) PostBackupUnlockOnly() BackupAndRestoreScripts {
+	scripts := BackupAndRestoreScripts{}
+	for _, script := range s {
+		if script.isPostBackupUnlock() {
 			scripts  = append(scripts , script)
 		}
 	}

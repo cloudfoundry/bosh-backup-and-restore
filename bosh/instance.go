@@ -193,32 +193,52 @@ func (d *DeployedInstance) Backup() error {
 }
 
 func (d *DeployedInstance) PostBackupUnlock() error {
-	d.Logger.Info("", "Running post backup unlock on %s/%s", d.InstanceGroupName, d.BoshInstanceID)
+	d.Logger.Info("", "Unlocking %s/%s...", d.InstanceGroupName, d.BoshInstanceID)
 
-	stdout, stderr, exitCode, err := d.Run("sudo ls /var/vcap/jobs/*/bin/p-post-backup-unlock | xargs -IN sudo sh -c N")
+	var foundErrors error
 
-	d.Logger.Debug("", "Stdout: %s", string(stdout))
-	d.Logger.Debug("", "Stderr: %s", string(stderr))
+	for _, script := range d.BackupAndRestoreScripts.PostBackupUnlockOnly(){
+		d.Logger.Debug("", "> %s", script)
 
-	if err != nil {
-		d.Logger.Error(
-			"",
-			"Error running post backup unlock on instance %s/%s. Error: %s",
-			d.InstanceGroupName,
-			d.BoshInstanceID,
-			err,
+		jobName, _ := script.JobName()
+
+		stdout, stderr, exitCode, err := d.logAndRun(
+			fmt.Sprintf(
+				"sudo %s",
+				script,
+			),
+			"unlock",
 		)
-		return err
+
+		if err != nil {
+			d.Logger.Error("", fmt.Sprintf(
+				"Error attempting to run unlock script for job %s on %s/%s. Error: %s",
+				jobName,
+				d.InstanceGroupName,
+				d.BoshInstanceID,
+				err.Error(),
+			))
+			foundErrors = multierror.Append(foundErrors, err)
+		}
+
+		if exitCode != 0 {
+			errorString := fmt.Sprintf(
+				"Unlock script for job %s failed on %s/%s.\nStdout: %s\nStderr: %s",
+				jobName,
+				d.InstanceGroupName,
+				d.BoshInstanceID,
+				stdout,
+				stderr,
+			)
+
+			foundErrors = multierror.Append(foundErrors, errors.New(errorString))
+
+			d.Logger.Error("", errorString)
+		}
 	}
 
-	if exitCode != 0 {
-		return fmt.Errorf(
-			"One or more post-backup-unlock scripts failed on %s/%s.\nStdout: %s\nStderr: %s",
-			d.InstanceGroupName,
-			d.BoshInstanceID,
-			stdout,
-			stderr,
-		)
+	if foundErrors != nil {
+		return foundErrors
 	}
 
 	d.Logger.Info("", "Done.")
