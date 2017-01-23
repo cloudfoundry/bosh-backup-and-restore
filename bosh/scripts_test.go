@@ -157,6 +157,36 @@ var _ = Describe("Backup and Restore Scripts", func() {
 			}))
 		})
 	})
+
+	Describe("PreBackupLockOnly", func() {
+		It("returns the p-pre-backup-lock scripts when it only has one", func() {
+			s := BackupAndRestoreScripts{"/var/vcap/jobs/cloud_controller_clock/bin/baz",
+										 "/var/vcap/jobs/cloud_controller_clock/bin/cloud_controller_clock_ctl",
+										 "/var/vcap/jobs/cloud_controller_clock/bin/p-backup",
+										 "/var/vcap/jobs/cloud_controller_clock/bin/p-pre-backup-lock",
+										 "/var/vcap/jobs/cloud_controller_clock/bin/foo/bar",
+										 "/var/vcap/jobs/cloud_controller_clock/bin/pre-start"}
+			Expect(s.PreBackupLockOnly()).To(Equal(BackupAndRestoreScripts{"/var/vcap/jobs/cloud_controller_clock/bin/p-pre-backup-lock"}))
+		})
+
+		It("returns empty when it has none", func() {
+			s := BackupAndRestoreScripts{"/var/vcap/jobs/cloud_controller_clock/bin/baz",
+										 "/var/vcap/jobs/cloud_controller_clock/bin/cloud_controller_clock_ctl",
+										 "/var/vcap/jobs/cloud_controller_clock/bin/foo/bar",
+										 "/var/vcap/jobs/cloud_controller_clock/bin/pre-start"}
+			Expect(s.PreBackupLockOnly()).To(Equal(BackupAndRestoreScripts{}))
+		})
+
+		It("returns all p-pre-backup-lock scripts when there are several", func() {
+			s := BackupAndRestoreScripts{"/var/vcap/jobs/cloud_controller_clock/bin/p-pre-backup-lock",
+										 "/var/vcap/jobs/cloud_controller/bin/p-pre-backup-lock",
+										 "/var/vcap/jobs/cloud_controller_clock/bin/foo/bar",
+										 "/var/vcap/jobs/cloud_controller_clock/bin/pre-start"}
+			Expect(s.PreBackupLockOnly()).To(Equal(BackupAndRestoreScripts{"/var/vcap/jobs/cloud_controller_clock/bin/p-pre-backup-lock",
+																	"/var/vcap/jobs/cloud_controller/bin/p-pre-backup-lock",
+			}))
+		})
+	})
 })
 
 var _ = Describe("Script", func() {

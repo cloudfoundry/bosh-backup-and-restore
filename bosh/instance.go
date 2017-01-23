@@ -91,20 +91,50 @@ func (d *DeployedInstance) IsPreBackupLockable() (bool, error) {
 }
 
 func (d *DeployedInstance) PreBackupLock() error {
-	d.filesPresent("/var/vcap/jobs/*/bin/p-pre-backup-lock")
-	stdout, stderr, exitCode, err := d.logAndRun("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock | xargs -IN sudo sh -c N", "pre-backup-lock")
+	d.Logger.Info("", "Locking %s/%s for backup...", d.InstanceGroupName, d.BoshInstanceID)
 
-	if exitCode != 0 {
-		return fmt.Errorf(
-			"One or more pre-backup-lock scripts failed on %s/%s.\nStdout: %s\nStderr: %s",
-			d.InstanceGroupName,
-			d.BoshInstanceID,
-			stdout,
-			stderr,
-		)
+	var foundErrors error
+
+	for _, script := range d.BackupAndRestoreScripts.PreBackupLockOnly(){
+		d.Logger.Debug("", "> %s", script)
+
+		jobName, _ := script.JobName()
+
+		stdout, stderr, exitCode, err := d.logAndRun(fmt.Sprintf("sudo %s", script), "backup")
+
+		if err != nil {
+			d.Logger.Error("", fmt.Sprintf(
+				"Error attempting to run pre backup lock script for job %s on %s/%s. Error: %s",
+				jobName,
+				d.InstanceGroupName,
+				d.BoshInstanceID,
+				err.Error(),
+			))
+			foundErrors = multierror.Append(foundErrors, err)
+		}
+
+		if exitCode != 0 {
+			errorString := fmt.Sprintf(
+				"Pre backup lock script for job %s failed on %s/%s.\nStdout: %s\nStderr: %s",
+				jobName,
+				d.InstanceGroupName,
+				d.BoshInstanceID,
+				stdout,
+				stderr,
+			)
+
+			foundErrors = multierror.Append(foundErrors, errors.New(errorString))
+
+			d.Logger.Error("", errorString)
+		}
 	}
 
-	return err
+	if foundErrors != nil {
+		return foundErrors
+	}
+
+	d.Logger.Info("", "Done.")
+	return nil
 }
 
 func (d *DeployedInstance) Backup() error {

@@ -102,8 +102,8 @@ touch /tmp/pre-backup-lock-output
 					Expect(instance1.FileExists("/tmp/pre-backup-lock-output")).To(BeTrue())
 				})
 
-				It("logs that it looked for, and found, the scripts", func() {
-					Expect(session.Out.Contents()).Should(ContainSubstring(`Listing contents of /var/vcap/jobs/*/bin/p-pre-backup-lock on redis-dedicated-node/fake-uuid`))
+				It("logs that it is locking the instance, and lists the scripts", func() {
+					Expect(session.Out.Contents()).Should(ContainSubstring(`Locking redis-dedicated-node/fake-uuid for backup`))
 					Expect(session.Out.Contents()).Should(ContainSubstring("> /var/vcap/jobs/redis/bin/p-pre-backup-lock"))
 					Expect(session.Out.Contents()).Should(ContainSubstring("> /var/vcap/jobs/redis-broker/bin/p-pre-backup-lock"))
 				})
@@ -128,7 +128,7 @@ touch /tmp/post-backup-unlock-output
 				})
 
 				It("logs the error", func() {
-					Expect(session.Err.Contents()).To(ContainSubstring("One or more pre-backup-lock scripts failed on redis-dedicated-node/fake-uuid."))
+					Expect(session.Err.Contents()).To(ContainSubstring("Pre backup lock script for job redis failed on redis-dedicated-node/fake-uuid."))
 				})
 
 				It("logs stdout", func() {
