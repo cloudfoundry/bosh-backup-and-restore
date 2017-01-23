@@ -668,7 +668,7 @@ var _ = Describe("Instance", func() {
 
 			It("returns an error with appropriate message", func() {
 				Expect(err.Error()).To(ContainSubstring(
-					fmt.Sprintf("Backup script for job bar failed on %s/%s", jobName, jobIndex),
+					fmt.Sprintf("Backup script for job bar failed on %s/%s", jobName, jobID),
 				))
 			})
 
@@ -686,7 +686,7 @@ var _ = Describe("Instance", func() {
 
 			It("logs the failure", func() {
 				Expect(string(stderr.Contents())).To(ContainSubstring(
-					fmt.Sprintf("Backup script for job bar failed on %s/%s", jobName, jobIndex),
+					fmt.Sprintf("Backup script for job bar failed on %s/%s", jobName, jobID),
 				))
 			})
 		})
@@ -715,16 +715,16 @@ var _ = Describe("Instance", func() {
 
 			It("returns an error containing messages related to the scripts which failed", func() {
 				Expect(err.Error()).To(ContainSubstring(
-					fmt.Sprintf("Backup script for job bar failed on %s/%s", jobName, jobIndex),
+					fmt.Sprintf("Backup script for job bar failed on %s/%s", jobName, jobID),
 				))
 				Expect(err.Error()).To(ContainSubstring(
-					fmt.Sprintf("Backup script for job baz failed on %s/%s", jobName, jobIndex),
+					fmt.Sprintf("Backup script for job baz failed on %s/%s", jobName, jobID),
 				))
 			})
 
 			It("returns an error without a message related to the script which passed", func() {
 				Expect(err.Error()).NotTo(ContainSubstring(
-					fmt.Sprintf("Backup script for job foo failed on %s/%s", jobName, jobIndex),
+					fmt.Sprintf("Backup script for job foo failed on %s/%s", jobName, jobID),
 				))
 			})
 
@@ -734,10 +734,10 @@ var _ = Describe("Instance", func() {
 
 			It("logs the failures", func() {
 				Expect(string(stderr.Contents())).To(ContainSubstring(
-					fmt.Sprintf("Backup script for job bar failed on %s/%s", jobName, jobIndex),
+					fmt.Sprintf("Backup script for job bar failed on %s/%s", jobName, jobID),
 				))
 				Expect(string(stderr.Contents())).To(ContainSubstring(
-					fmt.Sprintf("Backup script for job baz failed on %s/%s", jobName, jobIndex),
+					fmt.Sprintf("Backup script for job baz failed on %s/%s", jobName, jobID),
 				))
 			})
 		})
@@ -762,7 +762,7 @@ var _ = Describe("Instance", func() {
 				Expect(string(stderr.Contents())).To(ContainSubstring(fmt.Sprintf(
 					"Error attempting to run backup script for job bar on %s/%s. Error: %s",
 					jobName,
-					jobIndex,
+					jobID,
 					expectedError.Error(),
 				)))
 			})
@@ -796,13 +796,13 @@ var _ = Describe("Instance", func() {
 
 			It("returns an error including the failure for the failed script", func() {
 				Expect(err.Error()).To(ContainSubstring(
-					fmt.Sprintf("Backup script for job bar failed on %s/%s", jobName, jobIndex),
+					fmt.Sprintf("Backup script for job bar failed on %s/%s", jobName, jobID),
 				))
 			})
 
 			It("logs the failures related to the failed script", func() {
 				Expect(string(stderr.Contents())).To(ContainSubstring(
-					fmt.Sprintf("Backup script for job bar failed on %s/%s", jobName, jobIndex),
+					fmt.Sprintf("Backup script for job bar failed on %s/%s", jobName, jobID),
 				))
 			})
 
@@ -814,7 +814,7 @@ var _ = Describe("Instance", func() {
 				Expect(string(stderr.Contents())).To(ContainSubstring(fmt.Sprintf(
 					"Error attempting to run backup script for job baz on %s/%s. Error: %s",
 					jobName,
-					jobIndex,
+					jobID,
 					expectedError.Error(),
 				)))
 			})

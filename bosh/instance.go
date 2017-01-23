@@ -108,7 +108,7 @@ func (d *DeployedInstance) PreBackupLock() error {
 }
 
 func (d *DeployedInstance) Backup() error {
-	d.Logger.Info("", "Backing up %s/%s...", d.InstanceGroupName, d.BackupAndRestoreInstanceIndex)
+	d.Logger.Info("", "Backing up %s/%s...", d.InstanceGroupName, d.BoshInstanceID)
 
 	var foundErrors error
 
@@ -132,7 +132,7 @@ func (d *DeployedInstance) Backup() error {
 				"Error attempting to run backup script for job %s on %s/%s. Error: %s",
 				jobName,
 				d.InstanceGroupName,
-				d.BackupAndRestoreInstanceIndex,
+				d.BoshInstanceID,
 				err.Error(),
 			))
 			foundErrors = multierror.Append(foundErrors, err)
@@ -143,7 +143,7 @@ func (d *DeployedInstance) Backup() error {
 				"Backup script for job %s failed on %s/%s.\nStdout: %s\nStderr: %s",
 				jobName,
 				d.InstanceGroupName,
-				d.BackupAndRestoreInstanceIndex,
+				d.BoshInstanceID,
 				stdout,
 				stderr,
 			)
