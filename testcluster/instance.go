@@ -11,6 +11,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"os"
+	"net/url"
+	"net"
 )
 
 type Instance struct {
@@ -30,15 +32,19 @@ func NewInstance() *Instance {
 }
 
 func (i *Instance) Address() string {
-	return strings.TrimSpace(strings.Replace(dockerRunAndWaitForSuccess("port", i.dockerID, "22"), "0.0.0.0", i.dockerHostIp(),-1))
+	return strings.TrimSpace(strings.Replace(dockerRunAndWaitForSuccess("port", i.dockerID, "22"), "0.0.0.0", i.dockerHostIp(), -1))
 }
 
 func (i *Instance) dockerHostIp() string {
 	dockerHost := os.Getenv("DOCKER_HOST")
-	if dockerHost==""{
+	if dockerHost == "" {
 		return "0.0.0.0"
 	} else {
-		return strings.Split(dockerHost, ":")[0]
+		uri, err := url.Parse(dockerHost)
+		Expect(err).NotTo(HaveOccurred())
+		host, _, err := net.SplitHostPort(uri.Host)
+		Expect(err).NotTo(HaveOccurred())
+		return host
 	}
 }
 func (i *Instance) CreateUser(username, key string) {
