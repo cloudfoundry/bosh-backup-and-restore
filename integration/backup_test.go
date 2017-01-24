@@ -81,8 +81,8 @@ var _ = Describe("Backup", func() {
 				)...)
 
 				instance1.CreateScript("/var/vcap/jobs/redis/bin/p-backup", `#!/usr/bin/env sh
-printf "backupcontent1" > /var/vcap/store/backup/backupdump1
-printf "backupcontent2" > /var/vcap/store/backup/backupdump2
+printf "backupcontent1" > $ARTIFACT_DIRECTORY/backupdump1
+printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
 `)
 
 				backupArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")
@@ -173,8 +173,8 @@ touch /tmp/post-backup-unlock-output
 - instance_name: redis-dedicated-node
   instance_index: "0"
   checksums:
-    ./backupdump1: %s
-    ./backupdump2: %s`, shaFor("backupcontent1"), shaFor("backupcontent2"))))
+    ./redis/backupdump1: %s
+    ./redis/backupdump2: %s`, shaFor("backupcontent1"), shaFor("backupcontent2"))))
 			})
 
 			It("prints the backup progress to the screen", func() {
@@ -197,14 +197,14 @@ touch /tmp/post-backup-unlock-output
 				BeforeEach(func() {
 					instance1.CreateScript("/var/vcap/jobs/redis/bin/p-backup", `#!/usr/bin/env sh
 
-dd if=/dev/urandom of=/var/vcap/store/backup/backupdump1 bs=1KB count=1024
-dd if=/dev/urandom of=/var/vcap/store/backup/backupdump2 bs=1KB count=1024
+dd if=/dev/urandom of=$ARTIFACT_DIRECTORY/backupdump1 bs=1KB count=1024
+dd if=/dev/urandom of=$ARTIFACT_DIRECTORY/backupdump2 bs=1KB count=1024
 
-mkdir /var/vcap/store/backup/backupdump3
-dd if=/dev/urandom of=/var/vcap/store/backup/backupdump3/dump bs=1KB count=1024
+mkdir $ARTIFACT_DIRECTORY/backupdump3
+dd if=/dev/urandom of=$ARTIFACT_DIRECTORY/backupdump3/dump bs=1KB count=1024
 
-chown vcap:vcap /var/vcap/store/backup/backupdump3
-chmod 0700 /var/vcap/store/backup/backupdump3`)
+chown vcap:vcap $ARTIFACT_DIRECTORY/backupdump3
+chmod 0700 $ARTIFACT_DIRECTORY/backupdump3`)
 				})
 
 				It("exits zero", func() {
