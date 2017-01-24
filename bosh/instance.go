@@ -142,7 +142,7 @@ func (d *DeployedInstance) Backup() error {
 
 	var foundErrors error
 
-	for _, job := range d.jobs(){
+	for _, job := range d.jobs().Backupable(){
 		d.Logger.Debug("", "> %s", job.BackupScript())
 
 		stdout, stderr, exitCode, err := d.logAndRun(

@@ -604,7 +604,6 @@ var _ = Describe("Instance", func() {
 				Expect(string(stdout.Contents())).To(ContainSubstring("Done."))
 			})
 
-
 			It("succeeds", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
@@ -732,6 +731,17 @@ var _ = Describe("Instance", func() {
 
 			It("succeeds", func() {
 				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+		Context("when there are multiple jobs with no backup scripts", func() {
+			BeforeEach(func() {
+				backupAndRestoreScripts = []bosh.Script{
+					"/var/vcap/jobs/foo/bin/p-restore",
+					"/var/vcap/jobs/bar/bin/p-restore",
+				}
+			})
+			It("makes calls to the instance over the ssh connection", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(0))
 			})
 		})
 
