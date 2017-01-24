@@ -142,17 +142,15 @@ func (d *DeployedInstance) Backup() error {
 
 	var foundErrors error
 
-	for _, script := range d.BackupAndRestoreScripts.BackupOnly(){
-		d.Logger.Debug("", "> %s", script)
+	for _, job := range d.jobs(){
+		d.Logger.Debug("", "> %s", job.BackupScript())
 
-		jobName, _ := script.JobName()
-		artifactDirectory := fmt.Sprintf("/var/vcap/store/backup/%s", jobName)
 		stdout, stderr, exitCode, err := d.logAndRun(
 			fmt.Sprintf(
 				"sudo mkdir -p %s && sudo ARTIFACT_DIRECTORY=%s/ %s",
-				artifactDirectory,
-				artifactDirectory,
-				script,
+				job.ArtifactDirectory(),
+				job.ArtifactDirectory(),
+				job.BackupScript(),
 			),
 			"backup",
 		)
@@ -160,7 +158,7 @@ func (d *DeployedInstance) Backup() error {
 		if err != nil {
 			d.Logger.Error("", fmt.Sprintf(
 				"Error attempting to run backup script for job %s on %s/%s. Error: %s",
-				jobName,
+				job.Name(),
 				d.InstanceGroupName,
 				d.BoshInstanceID,
 				err.Error(),
@@ -171,7 +169,7 @@ func (d *DeployedInstance) Backup() error {
 		if exitCode != 0 {
 			errorString := fmt.Sprintf(
 				"Backup script for job %s failed on %s/%s.\nStdout: %s\nStderr: %s",
-				jobName,
+				job.Name(),
 				d.InstanceGroupName,
 				d.BoshInstanceID,
 				stdout,
@@ -439,6 +437,10 @@ func (d *DeployedInstance) ID() string {
 func (d *DeployedInstance) removeBackupArtifacts() error {
 	_, _, _, err := d.logAndRun("sudo rm -rf /var/vcap/store/backup", "remove backup artifacts")
 	return err
+}
+
+func (d *DeployedInstance) jobs() Jobs {
+	return NewJobs(d.BackupAndRestoreScripts)
 }
 
 func convertShasToMap(shas string) map[string]string {

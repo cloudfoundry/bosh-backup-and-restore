@@ -9,18 +9,20 @@ import (
 type BackupAndRestoreScripts []Script
 
 const (
-	backupScriptName  = "p-backup"
-	restoreScriptName = "p-restore"
-	preBackupLockScriptName = "p-pre-backup-lock"
+	backupScriptName           = "p-backup"
+	restoreScriptName          = "p-restore"
+	preBackupLockScriptName    = "p-pre-backup-lock"
 	postBackupUnlockScriptName = "p-post-backup-unlock"
 
-	jobBaseDirectory = "/var/vcap/jobs/"
-	jobDirectoryMatcher  = jobBaseDirectory + "*/bin/"
-	backupScriptMatcher  = jobDirectoryMatcher + backupScriptName
-	restoreScriptMatcher = jobDirectoryMatcher + restoreScriptName
-	preBackupLockScriptMatcher = jobDirectoryMatcher + preBackupLockScriptName
+	jobBaseDirectory              = "/var/vcap/jobs/"
+	jobDirectoryMatcher           = jobBaseDirectory + "*/bin/"
+	backupScriptMatcher           = jobDirectoryMatcher + backupScriptName
+	restoreScriptMatcher          = jobDirectoryMatcher + restoreScriptName
+	preBackupLockScriptMatcher    = jobDirectoryMatcher + preBackupLockScriptName
 	postBackupUnlockScriptMatcher = jobDirectoryMatcher + postBackupUnlockScriptName
 )
+
+
 
 type Script string
 
@@ -50,7 +52,7 @@ func (s Script) isPlatformScript() bool {
 
 func (s Script) JobName() (string, error) {
 	if !strings.HasPrefix(string(s), jobBaseDirectory) {
-		return "", fmt.Errorf("script %s is not a job script", string(s))
+		return "", fmt.Errorf("script %s is not a Job script", string(s))
 	}
 
 	strippedPrefix := strings.TrimPrefix(string(s), jobBaseDirectory)
@@ -61,19 +63,23 @@ func (s Script) JobName() (string, error) {
 func NewBackupAndRestoreScripts(files []string) BackupAndRestoreScripts {
 	bandrScripts := []Script{}
 	for _, s := range files {
-		s:=Script(s)
-		if s.isPlatformScript(){
+		s := Script(s)
+		if s.isPlatformScript() {
 			bandrScripts = append(bandrScripts, s)
 		}
 	}
 	return bandrScripts
 }
 
+func (s BackupAndRestoreScripts) HasBackup() bool {
+	return len(s.BackupOnly()) > 0
+}
+
 func (s BackupAndRestoreScripts) BackupOnly() BackupAndRestoreScripts {
 	scripts := BackupAndRestoreScripts{}
 	for _, script := range s {
 		if script.isBackup() {
-			scripts  = append(scripts , script)
+			scripts = append(scripts, script)
 		}
 	}
 	return scripts
@@ -83,7 +89,7 @@ func (s BackupAndRestoreScripts) RestoreOnly() BackupAndRestoreScripts {
 	scripts := BackupAndRestoreScripts{}
 	for _, script := range s {
 		if script.isRestore() {
-			scripts  = append(scripts , script)
+			scripts = append(scripts, script)
 		}
 	}
 	return scripts
@@ -93,7 +99,7 @@ func (s BackupAndRestoreScripts) PreBackupLockOnly() BackupAndRestoreScripts {
 	scripts := BackupAndRestoreScripts{}
 	for _, script := range s {
 		if script.isPreBackupUnlock() {
-			scripts  = append(scripts , script)
+			scripts = append(scripts, script)
 		}
 	}
 	return scripts
@@ -103,7 +109,7 @@ func (s BackupAndRestoreScripts) PostBackupUnlockOnly() BackupAndRestoreScripts 
 	scripts := BackupAndRestoreScripts{}
 	for _, script := range s {
 		if script.isPostBackupUnlock() {
-			scripts  = append(scripts , script)
+			scripts = append(scripts, script)
 		}
 	}
 	return scripts
