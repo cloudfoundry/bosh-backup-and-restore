@@ -27,12 +27,11 @@ type FakeInstance struct {
 	iDReturns     struct {
 		result1 string
 	}
-	IsBackupableStub        func() (bool, error)
+	IsBackupableStub        func() bool
 	isBackupableMutex       sync.RWMutex
 	isBackupableArgsForCall []struct{}
 	isBackupableReturns     struct {
 		result1 bool
-		result2 error
 	}
 	IsPostBackupUnlockableStub        func() (bool, error)
 	isPostBackupUnlockableMutex       sync.RWMutex
@@ -126,9 +125,8 @@ func (fake *FakeInstance) Name() string {
 	fake.nameMutex.Unlock()
 	if fake.NameStub != nil {
 		return fake.NameStub()
-	} else {
-		return fake.nameReturns.result1
 	}
+	return fake.nameReturns.result1
 }
 
 func (fake *FakeInstance) NameCallCount() int {
@@ -151,9 +149,8 @@ func (fake *FakeInstance) Index() string {
 	fake.indexMutex.Unlock()
 	if fake.IndexStub != nil {
 		return fake.IndexStub()
-	} else {
-		return fake.indexReturns.result1
 	}
+	return fake.indexReturns.result1
 }
 
 func (fake *FakeInstance) IndexCallCount() int {
@@ -176,9 +173,8 @@ func (fake *FakeInstance) ID() string {
 	fake.iDMutex.Unlock()
 	if fake.IDStub != nil {
 		return fake.IDStub()
-	} else {
-		return fake.iDReturns.result1
 	}
+	return fake.iDReturns.result1
 }
 
 func (fake *FakeInstance) IDCallCount() int {
@@ -194,16 +190,15 @@ func (fake *FakeInstance) IDReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeInstance) IsBackupable() (bool, error) {
+func (fake *FakeInstance) IsBackupable() bool {
 	fake.isBackupableMutex.Lock()
 	fake.isBackupableArgsForCall = append(fake.isBackupableArgsForCall, struct{}{})
 	fake.recordInvocation("IsBackupable", []interface{}{})
 	fake.isBackupableMutex.Unlock()
 	if fake.IsBackupableStub != nil {
 		return fake.IsBackupableStub()
-	} else {
-		return fake.isBackupableReturns.result1, fake.isBackupableReturns.result2
 	}
+	return fake.isBackupableReturns.result1
 }
 
 func (fake *FakeInstance) IsBackupableCallCount() int {
@@ -212,12 +207,11 @@ func (fake *FakeInstance) IsBackupableCallCount() int {
 	return len(fake.isBackupableArgsForCall)
 }
 
-func (fake *FakeInstance) IsBackupableReturns(result1 bool, result2 error) {
+func (fake *FakeInstance) IsBackupableReturns(result1 bool) {
 	fake.IsBackupableStub = nil
 	fake.isBackupableReturns = struct {
 		result1 bool
-		result2 error
-	}{result1, result2}
+	}{result1}
 }
 
 func (fake *FakeInstance) IsPostBackupUnlockable() (bool, error) {
@@ -227,9 +221,8 @@ func (fake *FakeInstance) IsPostBackupUnlockable() (bool, error) {
 	fake.isPostBackupUnlockableMutex.Unlock()
 	if fake.IsPostBackupUnlockableStub != nil {
 		return fake.IsPostBackupUnlockableStub()
-	} else {
-		return fake.isPostBackupUnlockableReturns.result1, fake.isPostBackupUnlockableReturns.result2
 	}
+	return fake.isPostBackupUnlockableReturns.result1, fake.isPostBackupUnlockableReturns.result2
 }
 
 func (fake *FakeInstance) IsPostBackupUnlockableCallCount() int {
@@ -253,9 +246,8 @@ func (fake *FakeInstance) IsPreBackupLockable() (bool, error) {
 	fake.isPreBackupLockableMutex.Unlock()
 	if fake.IsPreBackupLockableStub != nil {
 		return fake.IsPreBackupLockableStub()
-	} else {
-		return fake.isPreBackupLockableReturns.result1, fake.isPreBackupLockableReturns.result2
 	}
+	return fake.isPreBackupLockableReturns.result1, fake.isPreBackupLockableReturns.result2
 }
 
 func (fake *FakeInstance) IsPreBackupLockableCallCount() int {
@@ -279,9 +271,8 @@ func (fake *FakeInstance) IsRestorable() (bool, error) {
 	fake.isRestorableMutex.Unlock()
 	if fake.IsRestorableStub != nil {
 		return fake.IsRestorableStub()
-	} else {
-		return fake.isRestorableReturns.result1, fake.isRestorableReturns.result2
 	}
+	return fake.isRestorableReturns.result1, fake.isRestorableReturns.result2
 }
 
 func (fake *FakeInstance) IsRestorableCallCount() int {
@@ -305,9 +296,8 @@ func (fake *FakeInstance) PreBackupLock() error {
 	fake.preBackupLockMutex.Unlock()
 	if fake.PreBackupLockStub != nil {
 		return fake.PreBackupLockStub()
-	} else {
-		return fake.preBackupLockReturns.result1
 	}
+	return fake.preBackupLockReturns.result1
 }
 
 func (fake *FakeInstance) PreBackupLockCallCount() int {
@@ -330,9 +320,8 @@ func (fake *FakeInstance) Backup() error {
 	fake.backupMutex.Unlock()
 	if fake.BackupStub != nil {
 		return fake.BackupStub()
-	} else {
-		return fake.backupReturns.result1
 	}
+	return fake.backupReturns.result1
 }
 
 func (fake *FakeInstance) BackupCallCount() int {
@@ -355,9 +344,8 @@ func (fake *FakeInstance) PostBackupUnlock() error {
 	fake.postBackupUnlockMutex.Unlock()
 	if fake.PostBackupUnlockStub != nil {
 		return fake.PostBackupUnlockStub()
-	} else {
-		return fake.postBackupUnlockReturns.result1
 	}
+	return fake.postBackupUnlockReturns.result1
 }
 
 func (fake *FakeInstance) PostBackupUnlockCallCount() int {
@@ -380,9 +368,8 @@ func (fake *FakeInstance) Restore() error {
 	fake.restoreMutex.Unlock()
 	if fake.RestoreStub != nil {
 		return fake.RestoreStub()
-	} else {
-		return fake.restoreReturns.result1
 	}
+	return fake.restoreReturns.result1
 }
 
 func (fake *FakeInstance) RestoreCallCount() int {
@@ -405,9 +392,8 @@ func (fake *FakeInstance) Cleanup() error {
 	fake.cleanupMutex.Unlock()
 	if fake.CleanupStub != nil {
 		return fake.CleanupStub()
-	} else {
-		return fake.cleanupReturns.result1
 	}
+	return fake.cleanupReturns.result1
 }
 
 func (fake *FakeInstance) CleanupCallCount() int {
@@ -432,9 +418,8 @@ func (fake *FakeInstance) StreamBackupFromRemote(arg1 io.Writer) error {
 	fake.streamBackupFromRemoteMutex.Unlock()
 	if fake.StreamBackupFromRemoteStub != nil {
 		return fake.StreamBackupFromRemoteStub(arg1)
-	} else {
-		return fake.streamBackupFromRemoteReturns.result1
 	}
+	return fake.streamBackupFromRemoteReturns.result1
 }
 
 func (fake *FakeInstance) StreamBackupFromRemoteCallCount() int {
@@ -465,9 +450,8 @@ func (fake *FakeInstance) StreamBackupToRemote(arg1 io.Reader) error {
 	fake.streamBackupToRemoteMutex.Unlock()
 	if fake.StreamBackupToRemoteStub != nil {
 		return fake.StreamBackupToRemoteStub(arg1)
-	} else {
-		return fake.streamBackupToRemoteReturns.result1
 	}
+	return fake.streamBackupToRemoteReturns.result1
 }
 
 func (fake *FakeInstance) StreamBackupToRemoteCallCount() int {
@@ -496,9 +480,8 @@ func (fake *FakeInstance) BackupSize() (string, error) {
 	fake.backupSizeMutex.Unlock()
 	if fake.BackupSizeStub != nil {
 		return fake.BackupSizeStub()
-	} else {
-		return fake.backupSizeReturns.result1, fake.backupSizeReturns.result2
 	}
+	return fake.backupSizeReturns.result1, fake.backupSizeReturns.result2
 }
 
 func (fake *FakeInstance) BackupSizeCallCount() int {
@@ -522,9 +505,8 @@ func (fake *FakeInstance) BackupChecksum() (backuper.BackupChecksum, error) {
 	fake.backupChecksumMutex.Unlock()
 	if fake.BackupChecksumStub != nil {
 		return fake.BackupChecksumStub()
-	} else {
-		return fake.backupChecksumReturns.result1, fake.backupChecksumReturns.result2
 	}
+	return fake.backupChecksumReturns.result1, fake.backupChecksumReturns.result2
 }
 
 func (fake *FakeInstance) BackupChecksumCallCount() int {

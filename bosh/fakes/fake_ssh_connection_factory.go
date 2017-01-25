@@ -34,9 +34,8 @@ func (fake *FakeSSHConnectionFactory) Spy(host string, user string, privateKey s
 	fake.mutex.Unlock()
 	if fake.Stub != nil {
 		return fake.Stub(host, user, privateKey)
-	} else {
-		return fake.returns.result1, fake.returns.result2
 	}
+	return fake.returns.result1, fake.returns.result2
 }
 
 func (fake *FakeSSHConnectionFactory) CallCount() int {

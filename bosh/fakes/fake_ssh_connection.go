@@ -69,9 +69,8 @@ func (fake *FakeSSHConnection) Stream(cmd string, writer io.Writer) ([]byte, int
 	fake.streamMutex.Unlock()
 	if fake.StreamStub != nil {
 		return fake.StreamStub(cmd, writer)
-	} else {
-		return fake.streamReturns.result1, fake.streamReturns.result2, fake.streamReturns.result3
 	}
+	return fake.streamReturns.result1, fake.streamReturns.result2, fake.streamReturns.result3
 }
 
 func (fake *FakeSSHConnection) StreamCallCount() int {
@@ -105,9 +104,8 @@ func (fake *FakeSSHConnection) StreamStdin(cmd string, reader io.Reader) ([]byte
 	fake.streamStdinMutex.Unlock()
 	if fake.StreamStdinStub != nil {
 		return fake.StreamStdinStub(cmd, reader)
-	} else {
-		return fake.streamStdinReturns.result1, fake.streamStdinReturns.result2, fake.streamStdinReturns.result3, fake.streamStdinReturns.result4
 	}
+	return fake.streamStdinReturns.result1, fake.streamStdinReturns.result2, fake.streamStdinReturns.result3, fake.streamStdinReturns.result4
 }
 
 func (fake *FakeSSHConnection) StreamStdinCallCount() int {
@@ -141,9 +139,8 @@ func (fake *FakeSSHConnection) Run(cmd string) ([]byte, []byte, int, error) {
 	fake.runMutex.Unlock()
 	if fake.RunStub != nil {
 		return fake.RunStub(cmd)
-	} else {
-		return fake.runReturns.result1, fake.runReturns.result2, fake.runReturns.result3, fake.runReturns.result4
 	}
+	return fake.runReturns.result1, fake.runReturns.result2, fake.runReturns.result3, fake.runReturns.result4
 }
 
 func (fake *FakeSSHConnection) RunCallCount() int {
@@ -175,9 +172,8 @@ func (fake *FakeSSHConnection) Cleanup() error {
 	fake.cleanupMutex.Unlock()
 	if fake.CleanupStub != nil {
 		return fake.CleanupStub()
-	} else {
-		return fake.cleanupReturns.result1
 	}
+	return fake.cleanupReturns.result1
 }
 
 func (fake *FakeSSHConnection) CleanupCallCount() int {
@@ -200,9 +196,8 @@ func (fake *FakeSSHConnection) Username() string {
 	fake.usernameMutex.Unlock()
 	if fake.UsernameStub != nil {
 		return fake.UsernameStub()
-	} else {
-		return fake.usernameReturns.result1
 	}
+	return fake.usernameReturns.result1
 }
 
 func (fake *FakeSSHConnection) UsernameCallCount() int {

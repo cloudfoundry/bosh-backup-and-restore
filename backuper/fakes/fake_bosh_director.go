@@ -39,9 +39,8 @@ func (fake *FakeBoshDirector) FindInstances(deploymentName string) ([]backuper.I
 	fake.findInstancesMutex.Unlock()
 	if fake.FindInstancesStub != nil {
 		return fake.FindInstancesStub(deploymentName)
-	} else {
-		return fake.findInstancesReturns.result1, fake.findInstancesReturns.result2
 	}
+	return fake.findInstancesReturns.result1, fake.findInstancesReturns.result2
 }
 
 func (fake *FakeBoshDirector) FindInstancesCallCount() int {
@@ -73,9 +72,8 @@ func (fake *FakeBoshDirector) GetManifest(deploymentName string) (string, error)
 	fake.getManifestMutex.Unlock()
 	if fake.GetManifestStub != nil {
 		return fake.GetManifestStub(deploymentName)
-	} else {
-		return fake.getManifestReturns.result1, fake.getManifestReturns.result2
 	}
+	return fake.getManifestReturns.result1, fake.getManifestReturns.result2
 }
 
 func (fake *FakeBoshDirector) GetManifestCallCount() int {

@@ -92,9 +92,8 @@ func (fake *FakeArtifact) CreateFile(arg1 backuper.InstanceIdentifer) (io.WriteC
 	fake.createFileMutex.Unlock()
 	if fake.CreateFileStub != nil {
 		return fake.CreateFileStub(arg1)
-	} else {
-		return fake.createFileReturns.result1, fake.createFileReturns.result2
 	}
+	return fake.createFileReturns.result1, fake.createFileReturns.result2
 }
 
 func (fake *FakeArtifact) CreateFileCallCount() int {
@@ -126,9 +125,8 @@ func (fake *FakeArtifact) ReadFile(arg1 backuper.InstanceIdentifer) (io.ReadClos
 	fake.readFileMutex.Unlock()
 	if fake.ReadFileStub != nil {
 		return fake.ReadFileStub(arg1)
-	} else {
-		return fake.readFileReturns.result1, fake.readFileReturns.result2
 	}
+	return fake.readFileReturns.result1, fake.readFileReturns.result2
 }
 
 func (fake *FakeArtifact) ReadFileCallCount() int {
@@ -161,9 +159,8 @@ func (fake *FakeArtifact) AddChecksum(arg1 backuper.InstanceIdentifer, arg2 back
 	fake.addChecksumMutex.Unlock()
 	if fake.AddChecksumStub != nil {
 		return fake.AddChecksumStub(arg1, arg2)
-	} else {
-		return fake.addChecksumReturns.result1
 	}
+	return fake.addChecksumReturns.result1
 }
 
 func (fake *FakeArtifact) AddChecksumCallCount() int {
@@ -194,9 +191,8 @@ func (fake *FakeArtifact) FetchChecksum(arg1 backuper.InstanceIdentifer) (backup
 	fake.fetchChecksumMutex.Unlock()
 	if fake.FetchChecksumStub != nil {
 		return fake.FetchChecksumStub(arg1)
-	} else {
-		return fake.fetchChecksumReturns.result1, fake.fetchChecksumReturns.result2
 	}
+	return fake.fetchChecksumReturns.result1, fake.fetchChecksumReturns.result2
 }
 
 func (fake *FakeArtifact) FetchChecksumCallCount() int {
@@ -228,9 +224,8 @@ func (fake *FakeArtifact) CalculateChecksum(arg1 backuper.InstanceIdentifer) (ba
 	fake.calculateChecksumMutex.Unlock()
 	if fake.CalculateChecksumStub != nil {
 		return fake.CalculateChecksumStub(arg1)
-	} else {
-		return fake.calculateChecksumReturns.result1, fake.calculateChecksumReturns.result2
 	}
+	return fake.calculateChecksumReturns.result1, fake.calculateChecksumReturns.result2
 }
 
 func (fake *FakeArtifact) CalculateChecksumCallCount() int {
@@ -268,9 +263,8 @@ func (fake *FakeArtifact) DeploymentMatches(arg1 string, arg2 []backuper.Instanc
 	fake.deploymentMatchesMutex.Unlock()
 	if fake.DeploymentMatchesStub != nil {
 		return fake.DeploymentMatchesStub(arg1, arg2)
-	} else {
-		return fake.deploymentMatchesReturns.result1, fake.deploymentMatchesReturns.result2
 	}
+	return fake.deploymentMatchesReturns.result1, fake.deploymentMatchesReturns.result2
 }
 
 func (fake *FakeArtifact) DeploymentMatchesCallCount() int {
@@ -302,9 +296,8 @@ func (fake *FakeArtifact) SaveManifest(manifest string) error {
 	fake.saveManifestMutex.Unlock()
 	if fake.SaveManifestStub != nil {
 		return fake.SaveManifestStub(manifest)
-	} else {
-		return fake.saveManifestReturns.result1
 	}
+	return fake.saveManifestReturns.result1
 }
 
 func (fake *FakeArtifact) SaveManifestCallCount() int {
@@ -333,9 +326,8 @@ func (fake *FakeArtifact) Valid() (bool, error) {
 	fake.validMutex.Unlock()
 	if fake.ValidStub != nil {
 		return fake.ValidStub()
-	} else {
-		return fake.validReturns.result1, fake.validReturns.result2
 	}
+	return fake.validReturns.result1, fake.validReturns.result2
 }
 
 func (fake *FakeArtifact) ValidCallCount() int {

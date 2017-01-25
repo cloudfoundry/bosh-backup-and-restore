@@ -30,9 +30,8 @@ func (fake *FakeDeploymentManager) Find(deploymentName string) (backuper.Deploym
 	fake.findMutex.Unlock()
 	if fake.FindStub != nil {
 		return fake.FindStub(deploymentName)
-	} else {
-		return fake.findReturns.result1, fake.findReturns.result2
 	}
+	return fake.findReturns.result1, fake.findReturns.result2
 }
 
 func (fake *FakeDeploymentManager) FindCallCount() int {

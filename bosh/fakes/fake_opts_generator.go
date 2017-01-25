@@ -33,9 +33,8 @@ func (fake *FakeSSHOptsGenerator) Spy(uuidGen uuid.Generator) (director.SSHOpts,
 	fake.mutex.Unlock()
 	if fake.Stub != nil {
 		return fake.Stub(uuidGen)
-	} else {
-		return fake.returns.result1, fake.returns.result2, fake.returns.result3
 	}
+	return fake.returns.result1, fake.returns.result2, fake.returns.result3
 }
 
 func (fake *FakeSSHOptsGenerator) CallCount() int {

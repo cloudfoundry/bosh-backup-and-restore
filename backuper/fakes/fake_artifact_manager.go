@@ -50,9 +50,8 @@ func (fake *FakeArtifactManager) Create(arg1 string, arg2 backuper.Logger) (back
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
 		return fake.CreateStub(arg1, arg2)
-	} else {
-		return fake.createReturns.result1, fake.createReturns.result2
 	}
+	return fake.createReturns.result1, fake.createReturns.result2
 }
 
 func (fake *FakeArtifactManager) CreateCallCount() int {
@@ -85,9 +84,8 @@ func (fake *FakeArtifactManager) Open(arg1 string, arg2 backuper.Logger) (backup
 	fake.openMutex.Unlock()
 	if fake.OpenStub != nil {
 		return fake.OpenStub(arg1, arg2)
-	} else {
-		return fake.openReturns.result1, fake.openReturns.result2
 	}
+	return fake.openReturns.result1, fake.openReturns.result2
 }
 
 func (fake *FakeArtifactManager) OpenCallCount() int {
@@ -119,9 +117,8 @@ func (fake *FakeArtifactManager) Exists(arg1 string) bool {
 	fake.existsMutex.Unlock()
 	if fake.ExistsStub != nil {
 		return fake.ExistsStub(arg1)
-	} else {
-		return fake.existsReturns.result1
 	}
+	return fake.existsReturns.result1
 }
 
 func (fake *FakeArtifactManager) ExistsCallCount() int {

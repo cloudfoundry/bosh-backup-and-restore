@@ -47,18 +47,8 @@ func NewBoshInstance(instanceGroupName, instanceIndex, instanceID string, connec
 	}
 }
 
-func (d *DeployedInstance) IsBackupable() (bool, error) {
-	if d.backupable != nil {
-		return *d.backupable, nil
-	}
-	_, _, exitCode, err := d.logAndRun("sudo ls /var/vcap/jobs/*/bin/p-backup", "check for backup scripts")
-	if err != nil {
-		return false, err
-	}
-	backupable := exitCode == 0
-	d.backupable = &backupable
-
-	return *d.backupable, err
+func (d *DeployedInstance) IsBackupable() bool {
+	return d.Jobs.AnyAreBackupable()
 }
 
 func (d *DeployedInstance) IsPostBackupUnlockable() (bool, error) {

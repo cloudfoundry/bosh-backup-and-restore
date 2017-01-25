@@ -84,8 +84,8 @@ var _ = Describe("Deployment", func() {
 
 		Context("Multiple instances, some pre-backup-lockable", func() {
 			BeforeEach(func() {
-				instance1.IsBackupableReturns(true, nil)
-				instance2.IsBackupableReturns(true, nil)
+				instance1.IsBackupableReturns(true)
+				instance2.IsBackupableReturns(true)
 				instance1.IsPreBackupLockableReturns(true, nil)
 				instance2.IsPreBackupLockableReturns(false, nil)
 				instances = []backuper.Instance{instance1, instance2}
@@ -113,7 +113,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("Single instance, backupable", func() {
 			BeforeEach(func() {
-				instance1.IsBackupableReturns(true, nil)
+				instance1.IsBackupableReturns(true)
 				instances = []backuper.Instance{instance1}
 			})
 			It("does not fail", func() {
@@ -126,8 +126,8 @@ var _ = Describe("Deployment", func() {
 
 		Context("Multiple instances, all backupable", func() {
 			BeforeEach(func() {
-				instance1.IsBackupableReturns(true, nil)
-				instance2.IsBackupableReturns(true, nil)
+				instance1.IsBackupableReturns(true)
+				instance2.IsBackupableReturns(true)
 				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
@@ -140,8 +140,8 @@ var _ = Describe("Deployment", func() {
 		})
 		Context("Multiple instances, some backupable", func() {
 			BeforeEach(func() {
-				instance1.IsBackupableReturns(true, nil)
-				instance2.IsBackupableReturns(false, nil)
+				instance1.IsBackupableReturns(true)
+				instance2.IsBackupableReturns(false)
 				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
@@ -158,8 +158,8 @@ var _ = Describe("Deployment", func() {
 		Context("Multiple instances, some failing to backup", func() {
 			BeforeEach(func() {
 				backupError := fmt.Errorf("My IQ is one of the highest — and you all know it!")
-				instance1.IsBackupableReturns(true, nil)
-				instance2.IsBackupableReturns(true, nil)
+				instance1.IsBackupableReturns(true)
+				instance2.IsBackupableReturns(true)
 				instance1.BackupReturns(backupError)
 				instances = []backuper.Instance{instance1, instance2}
 			})
@@ -353,7 +353,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("Single instance, backupable", func() {
 			BeforeEach(func() {
-				instance1.IsBackupableReturns(true, nil)
+				instance1.IsBackupableReturns(true)
 				instances = []backuper.Instance{instance1}
 			})
 
@@ -371,7 +371,7 @@ var _ = Describe("Deployment", func() {
 		})
 		Context("Single instance, not backupable", func() {
 			BeforeEach(func() {
-				instance1.IsBackupableReturns(false, nil)
+				instance1.IsBackupableReturns(false)
 				instances = []backuper.Instance{instance1}
 			})
 
@@ -390,8 +390,8 @@ var _ = Describe("Deployment", func() {
 
 		Context("Multiple instances, some backupable", func() {
 			BeforeEach(func() {
-				instance1.IsBackupableReturns(false, nil)
-				instance2.IsBackupableReturns(true, nil)
+				instance1.IsBackupableReturns(false)
+				instance2.IsBackupableReturns(true)
 				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
@@ -406,8 +406,8 @@ var _ = Describe("Deployment", func() {
 		})
 		Context("Multiple instances, none backupable", func() {
 			BeforeEach(func() {
-				instance1.IsBackupableReturns(false, nil)
-				instance2.IsBackupableReturns(false, nil)
+				instance1.IsBackupableReturns(false)
+				instance2.IsBackupableReturns(false)
 				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
@@ -418,23 +418,6 @@ var _ = Describe("Deployment", func() {
 				Expect(instance1.IsBackupableCallCount()).To(Equal(1))
 				Expect(instance2.IsBackupableCallCount()).To(Equal(1))
 				Expect(isBackupable).To(BeFalse())
-			})
-		})
-
-		Context("Multiple instances, one fails to check if backupable", func() {
-			var actualError = fmt.Errorf("No one has a higher IQ than me")
-			BeforeEach(func() {
-				instance1.IsBackupableReturns(false, actualError)
-				instance2.IsBackupableReturns(true, nil)
-				instances = []backuper.Instance{instance1, instance2}
-			})
-			It("fails", func() {
-				Expect(isBackupableError).To(MatchError(actualError))
-			})
-
-			It("stops checking when an error occours", func() {
-				Expect(instance1.IsBackupableCallCount()).To(Equal(1))
-				Expect(instance2.IsBackupableCallCount()).To(Equal(0))
 			})
 		})
 	})
@@ -822,7 +805,7 @@ var _ = Describe("Deployment", func() {
 				writeCloser = new(fakes.FakeWriteCloser)
 				artifact.CreateFileReturns(writeCloser, nil)
 
-				instance1.IsBackupableReturns(true, nil)
+				instance1.IsBackupableReturns(true)
 				artifact.CalculateChecksumReturns(instanceChecksum, nil)
 				instances = []backuper.Instance{instance1}
 				instance1.BackupChecksumReturns(instanceChecksum, nil)
@@ -875,8 +858,8 @@ var _ = Describe("Deployment", func() {
 					}
 				}
 
-				instance1.IsBackupableReturns(true, nil)
-				instance2.IsBackupableReturns(true, nil)
+				instance1.IsBackupableReturns(true)
+				instance2.IsBackupableReturns(true)
 				artifact.CalculateChecksumReturns(instanceChecksum, nil)
 				instances = []backuper.Instance{instance1, instance2}
 				instance1.BackupChecksumReturns(instanceChecksum, nil)
@@ -933,8 +916,8 @@ var _ = Describe("Deployment", func() {
 
 				artifact.CreateFileReturns(writeCloser1, nil)
 
-				instance1.IsBackupableReturns(true, nil)
-				instance2.IsBackupableReturns(false, nil)
+				instance1.IsBackupableReturns(true)
+				instance2.IsBackupableReturns(false)
 				artifact.CalculateChecksumReturns(instanceChecksum, nil)
 				instances = []backuper.Instance{instance1, instance2}
 				instance1.BackupChecksumReturns(instanceChecksum, nil)
@@ -974,24 +957,11 @@ var _ = Describe("Deployment", func() {
 		})
 
 		Describe("failures", func() {
-			var expectedError = fmt.Errorf("Jesus!")
-
-			Context("fails when checking if instances are backupable", func() {
-				BeforeEach(func() {
-					instance1.IsBackupableReturns(false, expectedError)
-					instances = []backuper.Instance{instance1}
-				})
-
-				It("fails the copy process", func() {
-					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(expectedError))
-				})
-			})
-
 			Context("fails if backup cannot be drained", func() {
 				var drainError = fmt.Errorf("they are bringing crime")
 				BeforeEach(func() {
 					instances = []backuper.Instance{instance1}
-					instance1.IsBackupableReturns(true, nil)
+					instance1.IsBackupableReturns(true)
 					instance1.StreamBackupFromRemoteReturns(drainError)
 				})
 
@@ -1004,7 +974,7 @@ var _ = Describe("Deployment", func() {
 				var fileError = fmt.Errorf("i have a very good brain")
 				BeforeEach(func() {
 					instances = []backuper.Instance{instance1}
-					instance1.IsBackupableReturns(true, nil)
+					instance1.IsBackupableReturns(true)
 					artifact.CreateFileReturns(nil, fileError)
 				})
 
@@ -1020,7 +990,7 @@ var _ = Describe("Deployment", func() {
 				BeforeEach(func() {
 					writeCloser1 = new(fakes.FakeWriteCloser)
 					instances = []backuper.Instance{instance1}
-					instance1.IsBackupableReturns(true, nil)
+					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
 					artifact.CreateFileReturns(writeCloser1, nil)
 
@@ -1040,7 +1010,7 @@ var _ = Describe("Deployment", func() {
 					writeCloser1 = new(fakes.FakeWriteCloser)
 					instances = []backuper.Instance{instance1}
 
-					instance1.IsBackupableReturns(true, nil)
+					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
 					artifact.CreateFileReturns(writeCloser1, nil)
 
@@ -1063,7 +1033,7 @@ var _ = Describe("Deployment", func() {
 					writeCloser1 = new(fakes.FakeWriteCloser)
 					instances = []backuper.Instance{instance1}
 
-					instance1.IsBackupableReturns(true, nil)
+					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
 					artifact.CreateFileReturns(writeCloser1, nil)
 
@@ -1087,7 +1057,7 @@ var _ = Describe("Deployment", func() {
 					writeCloser1 = new(fakes.FakeWriteCloser)
 					instances = []backuper.Instance{instance1}
 
-					instance1.IsBackupableReturns(true, nil)
+					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
 					artifact.CreateFileReturns(writeCloser1, nil)
 

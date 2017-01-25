@@ -50,114 +50,32 @@ var _ = Describe("Instance", func() {
 
 	Context("IsBackupable", func() {
 		var actualBackupable bool
-		var actualError error
 
 		JustBeforeEach(func() {
-			actualBackupable, actualError = instance.IsBackupable()
+			actualBackupable = instance.IsBackupable()
 		})
 
 		Describe("there are backup scripts in the job directories", func() {
 			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, nil)
-			})
-
-			It("succeeds", func() {
-				Expect(actualError).NotTo(HaveOccurred())
+				backupAndRestoreScripts = []bosh.Script{
+					"/var/vcap/jobs/dave/bin/p-backup",
+				}
 			})
 
 			It("returns true", func() {
 				Expect(actualBackupable).To(BeTrue())
 			})
-
-			It("invokes the ssh connection, to find files", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-backup"))
-			})
-
-			Describe("when is backupable is called again", func() {
-				var secondInvocationActualBackupable bool
-				var secondInvocationActualError error
-				JustBeforeEach(func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					secondInvocationActualBackupable, secondInvocationActualError = instance.IsBackupable()
-				})
-
-				It("only invokes the ssh connection once", func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-				})
-				It("returns true", func() {
-					Expect(secondInvocationActualBackupable).To(BeTrue())
-				})
-				It("succeeds", func() {
-					Expect(secondInvocationActualError).NotTo(HaveOccurred())
-				})
-			})
 		})
 
 		Describe("there are no backup scripts in the job directories", func() {
 			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 1, nil)
+				backupAndRestoreScripts = []bosh.Script{
+					"/var/vcap/jobs/dave/bin/foo",
+				}
 			})
-			It("succeeds", func() {
-				Expect(actualError).NotTo(HaveOccurred())
-			})
+
 			It("returns false", func() {
 				Expect(actualBackupable).To(BeFalse())
-			})
-			It("invokes the ssh connection, to find files", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-backup"))
-			})
-
-			Describe("when is backupable is called again", func() {
-				var secondInvocationActualBackupable bool
-				var secondInvocationActualError error
-				JustBeforeEach(func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					secondInvocationActualBackupable, secondInvocationActualError = instance.IsBackupable()
-				})
-
-				It("only invokes the ssh connection once", func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-				})
-				It("returns false", func() {
-					Expect(secondInvocationActualBackupable).To(BeFalse())
-				})
-				It("succeeds", func() {
-					Expect(secondInvocationActualError).NotTo(HaveOccurred())
-				})
-			})
-		})
-
-		Describe("error while running command", func() {
-			var expectedError = fmt.Errorf("we need to build a wall")
-			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, expectedError)
-			})
-			It("fails", func() {
-				Expect(actualError).To(HaveOccurred())
-			})
-
-			It("invokes the ssh connection, to find files", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-backup"))
-			})
-
-			Describe("when is backupable is called again", func() {
-				var secondInvocationActualBackupable bool
-				var secondInvocationActualError error
-				JustBeforeEach(func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					secondInvocationActualBackupable, secondInvocationActualError = instance.IsBackupable()
-				})
-
-				It("invokes the ssh connection again", func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(2))
-				})
-
-				It("fails", func() {
-					Expect(secondInvocationActualError).To(HaveOccurred())
-				})
 			})
 		})
 	})

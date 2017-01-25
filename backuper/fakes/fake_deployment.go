@@ -85,9 +85,8 @@ func (fake *FakeDeployment) IsBackupable() (bool, error) {
 	fake.isBackupableMutex.Unlock()
 	if fake.IsBackupableStub != nil {
 		return fake.IsBackupableStub()
-	} else {
-		return fake.isBackupableReturns.result1, fake.isBackupableReturns.result2
 	}
+	return fake.isBackupableReturns.result1, fake.isBackupableReturns.result2
 }
 
 func (fake *FakeDeployment) IsBackupableCallCount() int {
@@ -111,9 +110,8 @@ func (fake *FakeDeployment) IsRestorable() (bool, error) {
 	fake.isRestorableMutex.Unlock()
 	if fake.IsRestorableStub != nil {
 		return fake.IsRestorableStub()
-	} else {
-		return fake.isRestorableReturns.result1, fake.isRestorableReturns.result2
 	}
+	return fake.isRestorableReturns.result1, fake.isRestorableReturns.result2
 }
 
 func (fake *FakeDeployment) IsRestorableCallCount() int {
@@ -137,9 +135,8 @@ func (fake *FakeDeployment) PreBackupLock() error {
 	fake.preBackupLockMutex.Unlock()
 	if fake.PreBackupLockStub != nil {
 		return fake.PreBackupLockStub()
-	} else {
-		return fake.preBackupLockReturns.result1
 	}
+	return fake.preBackupLockReturns.result1
 }
 
 func (fake *FakeDeployment) PreBackupLockCallCount() int {
@@ -162,9 +159,8 @@ func (fake *FakeDeployment) Backup() error {
 	fake.backupMutex.Unlock()
 	if fake.BackupStub != nil {
 		return fake.BackupStub()
-	} else {
-		return fake.backupReturns.result1
 	}
+	return fake.backupReturns.result1
 }
 
 func (fake *FakeDeployment) BackupCallCount() int {
@@ -187,9 +183,8 @@ func (fake *FakeDeployment) PostBackupUnlock() error {
 	fake.postBackupUnlockMutex.Unlock()
 	if fake.PostBackupUnlockStub != nil {
 		return fake.PostBackupUnlockStub()
-	} else {
-		return fake.postBackupUnlockReturns.result1
 	}
+	return fake.postBackupUnlockReturns.result1
 }
 
 func (fake *FakeDeployment) PostBackupUnlockCallCount() int {
@@ -212,9 +207,8 @@ func (fake *FakeDeployment) Restore() error {
 	fake.restoreMutex.Unlock()
 	if fake.RestoreStub != nil {
 		return fake.RestoreStub()
-	} else {
-		return fake.restoreReturns.result1
 	}
+	return fake.restoreReturns.result1
 }
 
 func (fake *FakeDeployment) RestoreCallCount() int {
@@ -239,9 +233,8 @@ func (fake *FakeDeployment) CopyRemoteBackupToLocal(arg1 backuper.Artifact) erro
 	fake.copyRemoteBackupToLocalMutex.Unlock()
 	if fake.CopyRemoteBackupToLocalStub != nil {
 		return fake.CopyRemoteBackupToLocalStub(arg1)
-	} else {
-		return fake.copyRemoteBackupToLocalReturns.result1
 	}
+	return fake.copyRemoteBackupToLocalReturns.result1
 }
 
 func (fake *FakeDeployment) CopyRemoteBackupToLocalCallCount() int {
@@ -272,9 +265,8 @@ func (fake *FakeDeployment) CopyLocalBackupToRemote(arg1 backuper.Artifact) erro
 	fake.copyLocalBackupToRemoteMutex.Unlock()
 	if fake.CopyLocalBackupToRemoteStub != nil {
 		return fake.CopyLocalBackupToRemoteStub(arg1)
-	} else {
-		return fake.copyLocalBackupToRemoteReturns.result1
 	}
+	return fake.copyLocalBackupToRemoteReturns.result1
 }
 
 func (fake *FakeDeployment) CopyLocalBackupToRemoteCallCount() int {
@@ -303,9 +295,8 @@ func (fake *FakeDeployment) Cleanup() error {
 	fake.cleanupMutex.Unlock()
 	if fake.CleanupStub != nil {
 		return fake.CleanupStub()
-	} else {
-		return fake.cleanupReturns.result1
 	}
+	return fake.cleanupReturns.result1
 }
 
 func (fake *FakeDeployment) CleanupCallCount() int {
@@ -328,9 +319,8 @@ func (fake *FakeDeployment) Instances() []backuper.Instance {
 	fake.instancesMutex.Unlock()
 	if fake.InstancesStub != nil {
 		return fake.InstancesStub()
-	} else {
-		return fake.instancesReturns.result1
 	}
+	return fake.instancesReturns.result1
 }
 
 func (fake *FakeDeployment) InstancesCallCount() int {

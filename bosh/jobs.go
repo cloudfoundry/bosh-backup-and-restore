@@ -11,6 +11,9 @@ func (jobs Jobs) Backupable() Jobs {
 	}
 	return backupableJobs
 }
+func (jobs Jobs) AnyAreBackupable() bool {
+	return len(jobs.Backupable()) > 0
+}
 
 func (jobs Jobs) Restorable() Jobs {
 	restorableJobs := Jobs{}
