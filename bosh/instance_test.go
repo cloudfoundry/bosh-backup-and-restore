@@ -574,13 +574,13 @@ var _ = Describe("Instance", func() {
 
 			It("uses the ssh connection to run each of the pre-backup-lock scripts", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(3))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
+				Expect([]string{
+					sshConnection.RunArgsForCall(0),
+					sshConnection.RunArgsForCall(1),
+					sshConnection.RunArgsForCall(2),
+				}).To(ConsistOf(
 					"sudo /var/vcap/jobs/foo/bin/p-pre-backup-lock",
-				))
-				Expect(sshConnection.RunArgsForCall(1)).To(Equal(
 					"sudo /var/vcap/jobs/bar/bin/p-pre-backup-lock",
-				))
-				Expect(sshConnection.RunArgsForCall(2)).To(Equal(
 					"sudo /var/vcap/jobs/baz/bin/p-pre-backup-lock",
 				))
 			})
@@ -637,19 +637,19 @@ var _ = Describe("Instance", func() {
 
 			It("returns an error including the failure for the failed script", func() {
 				Expect(err.Error()).To(ContainSubstring(
-					fmt.Sprintf("Pre backup lock script for job bar failed on %s/%s", jobName, jobID),
+					fmt.Sprintf("pre backup lock script for job bar failed on %s/%s", jobName, jobID),
 				))
 			})
 
 			It("logs the failures related to the failed script", func() {
 				Expect(string(stderr.Contents())).To(ContainSubstring(
-					fmt.Sprintf("Pre backup lock script for job bar failed on %s/%s", jobName, jobID),
+					fmt.Sprintf("pre backup lock script for job bar failed on %s/%s", jobName, jobID),
 				))
 			})
 
 			It("returns an error without a message related to the script which passed", func() {
 				Expect(err.Error()).NotTo(ContainSubstring(
-					fmt.Sprintf("Pre backup lock script for job foo failed on %s/%s", jobName, jobID),
+					fmt.Sprintf("pre backup lock script for job foo failed on %s/%s", jobName, jobID),
 				))
 			})
 
@@ -699,13 +699,13 @@ var _ = Describe("Instance", func() {
 
 			It("uses the ssh connection to create each job's backup folder and run each backup script providing the correct ARTIFACT_DIRECTORTY", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(3))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
+				Expect([]string{
+					sshConnection.RunArgsForCall(0),
+					sshConnection.RunArgsForCall(1),
+					sshConnection.RunArgsForCall(2),
+				}).To(ConsistOf(
 					"sudo mkdir -p /var/vcap/store/backup/foo && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/p-backup",
-				))
-				Expect(sshConnection.RunArgsForCall(1)).To(Equal(
 					"sudo mkdir -p /var/vcap/store/backup/bar && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/p-backup",
-				))
-				Expect(sshConnection.RunArgsForCall(2)).To(Equal(
 					"sudo mkdir -p /var/vcap/store/backup/baz && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ /var/vcap/jobs/baz/bin/p-backup",
 				))
 			})
@@ -773,19 +773,19 @@ var _ = Describe("Instance", func() {
 
 			It("returns an error including the failure for the failed script", func() {
 				Expect(err.Error()).To(ContainSubstring(
-					fmt.Sprintf("Backup script for job bar failed on %s/%s", jobName, jobID),
+					fmt.Sprintf("backup script for job bar failed on %s/%s", jobName, jobID),
 				))
 			})
 
 			It("logs the failures related to the failed script", func() {
 				Expect(string(stderr.Contents())).To(ContainSubstring(
-					fmt.Sprintf("Backup script for job bar failed on %s/%s", jobName, jobID),
+					fmt.Sprintf("backup script for job bar failed on %s/%s", jobName, jobID),
 				))
 			})
 
 			It("returns an error without a message related to the script which passed", func() {
 				Expect(err.Error()).NotTo(ContainSubstring(
-					fmt.Sprintf("Backup script for job foo failed on %s/%s", jobName, jobID),
+					fmt.Sprintf("backup script for job foo failed on %s/%s", jobName, jobID),
 				))
 			})
 
@@ -834,13 +834,13 @@ var _ = Describe("Instance", func() {
 
 			It("uses the ssh connection to run each post-backup-unlock script", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(3))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
+				Expect([]string{
+					sshConnection.RunArgsForCall(0),
+					sshConnection.RunArgsForCall(1),
+					sshConnection.RunArgsForCall(2),
+				}).To(ConsistOf(
 					"sudo /var/vcap/jobs/foo/bin/p-post-backup-unlock",
-				))
-				Expect(sshConnection.RunArgsForCall(1)).To(Equal(
 					"sudo /var/vcap/jobs/bar/bin/p-post-backup-unlock",
-				))
-				Expect(sshConnection.RunArgsForCall(2)).To(Equal(
 					"sudo /var/vcap/jobs/baz/bin/p-post-backup-unlock",
 				))
 			})
@@ -897,19 +897,19 @@ var _ = Describe("Instance", func() {
 
 			It("returns an error including the failure for the failed script", func() {
 				Expect(err.Error()).To(ContainSubstring(
-					fmt.Sprintf("Unlock script for job bar failed on %s/%s", jobName, jobID),
+					fmt.Sprintf("unlock script for job bar failed on %s/%s", jobName, jobID),
 				))
 			})
 
 			It("logs the failures related to the failed script", func() {
 				Expect(string(stderr.Contents())).To(ContainSubstring(
-					fmt.Sprintf("Unlock script for job bar failed on %s/%s", jobName, jobID),
+					fmt.Sprintf("unlock script for job bar failed on %s/%s", jobName, jobID),
 				))
 			})
 
 			It("returns an error without a message related to the script which passed", func() {
 				Expect(err.Error()).NotTo(ContainSubstring(
-					fmt.Sprintf("Unlock script for job foo failed on %s/%s", jobName, jobID),
+					fmt.Sprintf("unlock script for job foo failed on %s/%s", jobName, jobID),
 				))
 			})
 
@@ -958,13 +958,13 @@ var _ = Describe("Instance", func() {
 
 			It("uses the ssh connection to run each restore script providing the correct ARTIFACT_DIRECTORTY", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(3))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
+				Expect([]string{
+					sshConnection.RunArgsForCall(0),
+					sshConnection.RunArgsForCall(1),
+					sshConnection.RunArgsForCall(2),
+				}).To(ConsistOf(
 					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/p-restore",
-				))
-				Expect(sshConnection.RunArgsForCall(1)).To(Equal(
 					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/p-restore",
-				))
-				Expect(sshConnection.RunArgsForCall(2)).To(Equal(
 					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ /var/vcap/jobs/baz/bin/p-restore",
 				))
 			})
@@ -1021,19 +1021,19 @@ var _ = Describe("Instance", func() {
 
 			It("returns an error including the failure for the failed script", func() {
 				Expect(actualError.Error()).To(ContainSubstring(
-					fmt.Sprintf("Restore script for job bar failed on %s/%s", jobName, jobID),
+					fmt.Sprintf("restore script for job bar failed on %s/%s", jobName, jobID),
 				))
 			})
 
 			It("logs the failures related to the failed script", func() {
 				Expect(string(stderr.Contents())).To(ContainSubstring(
-					fmt.Sprintf("Restore script for job bar failed on %s/%s", jobName, jobID),
+					fmt.Sprintf("restore script for job bar failed on %s/%s", jobName, jobID),
 				))
 			})
 
 			It("returns an error without a message related to the script which passed", func() {
 				Expect(actualError.Error()).NotTo(ContainSubstring(
-					fmt.Sprintf("Restore script for job foo failed on %s/%s", jobName, jobID),
+					fmt.Sprintf("restore script for job foo failed on %s/%s", jobName, jobID),
 				))
 			})
 

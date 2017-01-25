@@ -95,37 +95,9 @@ func (d *DeployedInstance) PreBackupLock() error {
 
 	var foundErrors error
 
-	for _, script := range d.BackupAndRestoreScripts.PreBackupLockOnly(){
-		d.Logger.Debug("", "> %s", script)
-
-		jobName, _ := script.JobName()
-
-		stdout, stderr, exitCode, err := d.logAndRun(fmt.Sprintf("sudo %s", script), "backup")
-
-		if err != nil {
-			d.Logger.Error("", fmt.Sprintf(
-				"Error attempting to run pre backup lock script for job %s on %s/%s. Error: %s",
-				jobName,
-				d.InstanceGroupName,
-				d.BoshInstanceID,
-				err.Error(),
-			))
+	for _, job := range d.jobs().PreBackupable(){
+		if err := d.runAndHandleErrs("pre backup lock", job.Name(), job.PreBackupScript()); err != nil {
 			foundErrors = multierror.Append(foundErrors, err)
-		}
-
-		if exitCode != 0 {
-			errorString := fmt.Sprintf(
-				"Pre backup lock script for job %s failed on %s/%s.\nStdout: %s\nStderr: %s",
-				jobName,
-				d.InstanceGroupName,
-				d.BoshInstanceID,
-				stdout,
-				stderr,
-			)
-
-			foundErrors = multierror.Append(foundErrors, errors.New(errorString))
-
-			d.Logger.Error("", errorString)
 		}
 	}
 
@@ -155,30 +127,8 @@ func (d *DeployedInstance) Backup() error {
 			"backup",
 		)
 
-		if err != nil {
-			d.Logger.Error("", fmt.Sprintf(
-				"Error attempting to run backup script for job %s on %s/%s. Error: %s",
-				job.Name(),
-				d.InstanceGroupName,
-				d.BoshInstanceID,
-				err.Error(),
-			))
+		if err := d.handleErrs(job.Name(), "backup", err, exitCode, stdout, stderr); err != nil {
 			foundErrors = multierror.Append(foundErrors, err)
-		}
-
-		if exitCode != 0 {
-			errorString := fmt.Sprintf(
-				"Backup script for job %s failed on %s/%s.\nStdout: %s\nStderr: %s",
-				job.Name(),
-				d.InstanceGroupName,
-				d.BoshInstanceID,
-				stdout,
-				stderr,
-			)
-
-			foundErrors = multierror.Append(foundErrors, errors.New(errorString))
-
-			d.Logger.Error("", errorString)
 		}
 	}
 
@@ -195,43 +145,9 @@ func (d *DeployedInstance) PostBackupUnlock() error {
 
 	var foundErrors error
 
-	for _, script := range d.BackupAndRestoreScripts.PostBackupUnlockOnly(){
-		d.Logger.Debug("", "> %s", script)
-
-		jobName, _ := script.JobName()
-
-		stdout, stderr, exitCode, err := d.logAndRun(
-			fmt.Sprintf(
-				"sudo %s",
-				script,
-			),
-			"unlock",
-		)
-
-		if err != nil {
-			d.Logger.Error("", fmt.Sprintf(
-				"Error attempting to run unlock script for job %s on %s/%s. Error: %s",
-				jobName,
-				d.InstanceGroupName,
-				d.BoshInstanceID,
-				err.Error(),
-			))
+	for _, job := range d.jobs().PostBackupable() {
+		if err := d.runAndHandleErrs("unlock", job.Name(), job.PostBackupScript()); err != nil {
 			foundErrors = multierror.Append(foundErrors, err)
-		}
-
-		if exitCode != 0 {
-			errorString := fmt.Sprintf(
-				"Unlock script for job %s failed on %s/%s.\nStdout: %s\nStderr: %s",
-				jobName,
-				d.InstanceGroupName,
-				d.BoshInstanceID,
-				stdout,
-				stderr,
-			)
-
-			foundErrors = multierror.Append(foundErrors, errors.New(errorString))
-
-			d.Logger.Error("", errorString)
 		}
 	}
 
@@ -248,44 +164,21 @@ func (d *DeployedInstance) Restore() error {
 
 	var restoreErrors error
 
-	for _, script := range d.BackupAndRestoreScripts.RestoreOnly() {
-		d.Logger.Debug("", "> %s", script)
+	for _, job := range d.jobs().Restorable() {
+		d.Logger.Debug("", "> %s", job.RestoreScript())
 
-		jobName, _ := script.JobName()
-		artifactDirectory := fmt.Sprintf("/var/vcap/store/backup/%s", jobName)
+		artifactDirectory := fmt.Sprintf("/var/vcap/store/backup/%s", job.Name())
 		stdout, stderr, exitCode, err := d.logAndRun(
 			fmt.Sprintf(
 				"sudo ARTIFACT_DIRECTORY=%s/ %s",
 				artifactDirectory,
-				script,
+				job.RestoreScript(),
 			),
 			"restore",
 		)
 
-		if err != nil {
-			d.Logger.Error("", fmt.Sprintf(
-				"Error attempting to run restore script for job %s on %s/%s. Error: %s",
-				jobName,
-				d.InstanceGroupName,
-				d.BoshInstanceID,
-				err.Error(),
-			))
+		if err := d.handleErrs(job.Name(), "restore", err, exitCode, stdout, stderr); err != nil {
 			restoreErrors = multierror.Append(restoreErrors, err)
-		}
-
-		if exitCode != 0 {
-			errorString := fmt.Sprintf(
-				"Restore script for job %s failed on %s/%s.\nStdout: %s\nStderr: %s",
-				jobName,
-				d.InstanceGroupName,
-				d.BoshInstanceID,
-				stdout,
-				stderr,
-			)
-
-			restoreErrors = multierror.Append(restoreErrors, errors.New(errorString))
-
-			d.Logger.Error("", errorString)
 		}
 	}
 
@@ -432,6 +325,54 @@ func (d *DeployedInstance) Index() string {
 
 func (d *DeployedInstance) ID() string {
 	return d.BoshInstanceID
+}
+
+func (d *DeployedInstance) runAndHandleErrs(label, jobName string, script Script) error {
+	d.Logger.Debug("", "> %s", script)
+
+	stdout, stderr, exitCode, err := d.logAndRun(
+		fmt.Sprintf(
+			"sudo %s",
+			script,
+		),
+		label,
+	)
+
+	return d.handleErrs(jobName, label, err, exitCode, stdout, stderr)
+}
+
+func (d *DeployedInstance) handleErrs(jobName, label string, err error, exitCode int, stdout, stderr []byte) error {
+	var foundErrors error
+
+	if err != nil {
+		d.Logger.Error("", fmt.Sprintf(
+			"Error attempting to run %s script for job %s on %s/%s. Error: %s",
+			label,
+			jobName,
+			d.InstanceGroupName,
+			d.BoshInstanceID,
+			err.Error(),
+		))
+		foundErrors = multierror.Append(foundErrors, err)
+	}
+
+	if exitCode != 0 {
+		errorString := fmt.Sprintf(
+			"%s script for job %s failed on %s/%s.\nStdout: %s\nStderr: %s",
+			label,
+			jobName,
+			d.InstanceGroupName,
+			d.BoshInstanceID,
+			stdout,
+			stderr,
+		)
+
+		foundErrors = multierror.Append(foundErrors, errors.New(errorString))
+
+		d.Logger.Error("", errorString)
+	}
+
+	return foundErrors
 }
 
 func (d *DeployedInstance) removeBackupArtifacts() error {

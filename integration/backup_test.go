@@ -177,7 +177,7 @@ touch /tmp/post-backup-unlock-output
 				})
 
 				It("logs the error", func() {
-					Expect(session.Err.Contents()).To(ContainSubstring("Pre backup lock script for job redis failed on redis-dedicated-node/fake-uuid."))
+					Expect(session.Err.Contents()).To(ContainSubstring("pre backup lock script for job redis failed on redis-dedicated-node/fake-uuid."))
 				})
 
 				It("logs stdout", func() {
@@ -248,7 +248,7 @@ exit 1`)
 					})
 
 					It("prints an error", func() {
-						Expect(session.Err.Contents()).To(ContainSubstring("Unlock script for job redis failed on redis-dedicated-node/fake-uuid."))
+						Expect(session.Err.Contents()).To(ContainSubstring("unlock script for job redis failed on redis-dedicated-node/fake-uuid."))
 					})
 				})
 			})
@@ -337,7 +337,7 @@ exit 1`)
 			})
 
 			It("prints an error", func() {
-				Expect(string(session.Err.Contents())).To(ContainSubstring("Backup script for job redis failed on redis-dedicated-node/fake-uuid."))
+				Expect(string(session.Err.Contents())).To(ContainSubstring("backup script for job redis failed on redis-dedicated-node/fake-uuid."))
 				Expect(string(session.Err.Contents())).To(ContainSubstring("ultra-baz"))
 				Expect(string(session.Err.Contents())).To(ContainSubstring("ultra-foo"))
 			})

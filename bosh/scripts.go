@@ -22,8 +22,6 @@ const (
 	postBackupUnlockScriptMatcher = jobDirectoryMatcher + postBackupUnlockScriptName
 )
 
-
-
 type Script string
 
 func (s Script) isBackup() bool {
@@ -69,6 +67,12 @@ func NewBackupAndRestoreScripts(files []string) BackupAndRestoreScripts {
 		}
 	}
 	return bandrScripts
+}
+func (s BackupAndRestoreScripts) firstOrBlank() Script {
+	if len(s) == 0 {
+		return ""
+	}
+	return s[0]
 }
 
 func (s BackupAndRestoreScripts) HasBackup() bool {
