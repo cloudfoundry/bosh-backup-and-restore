@@ -23,7 +23,7 @@ type DeployedInstance struct {
 	restorable                    *bool
 	unlockable                    *bool
 	lockable                      *bool
-	BackupAndRestoreScripts
+	Jobs
 }
 
 //go:generate counterfeiter -o fakes/fake_ssh_connection.go . SSHConnection
@@ -35,15 +35,15 @@ type SSHConnection interface {
 	Username() string
 }
 
-func NewBoshInstance(instanceGroupName, instanceIndex, instanceID string, connection SSHConnection, deployment director.Deployment, logger Logger, scripts BackupAndRestoreScripts) backuper.Instance {
+func NewBoshInstance(instanceGroupName, instanceIndex, instanceID string, connection SSHConnection, deployment director.Deployment, logger Logger, jobs Jobs) backuper.Instance {
 	return &DeployedInstance{
 		BackupAndRestoreInstanceIndex:     instanceIndex,
-		InstanceGroupName: instanceGroupName,
-		BoshInstanceID:        instanceID,
-		SSHConnection:     connection,
-		Deployment:        deployment,
-		Logger:            logger,
-		BackupAndRestoreScripts: scripts,
+		InstanceGroupName:                 instanceGroupName,
+		BoshInstanceID:                    instanceID,
+		SSHConnection:                     connection,
+		Deployment:                        deployment,
+		Logger:                            logger,
+		Jobs:                              jobs,
 	}
 }
 
@@ -95,7 +95,7 @@ func (d *DeployedInstance) PreBackupLock() error {
 
 	var foundErrors error
 
-	for _, job := range d.jobs().PreBackupable(){
+	for _, job := range d.Jobs.PreBackupable() {
 		if err := d.runAndHandleErrs("pre backup lock", job.Name(), job.PreBackupScript()); err != nil {
 			foundErrors = multierror.Append(foundErrors, err)
 		}
@@ -114,7 +114,7 @@ func (d *DeployedInstance) Backup() error {
 
 	var foundErrors error
 
-	for _, job := range d.jobs().Backupable(){
+	for _, job := range d.Jobs.Backupable() {
 		d.Logger.Debug("", "> %s", job.BackupScript())
 
 		stdout, stderr, exitCode, err := d.logAndRun(
@@ -145,7 +145,7 @@ func (d *DeployedInstance) PostBackupUnlock() error {
 
 	var foundErrors error
 
-	for _, job := range d.jobs().PostBackupable() {
+	for _, job := range d.Jobs.PostBackupable() {
 		if err := d.runAndHandleErrs("unlock", job.Name(), job.PostBackupScript()); err != nil {
 			foundErrors = multierror.Append(foundErrors, err)
 		}
@@ -164,7 +164,7 @@ func (d *DeployedInstance) Restore() error {
 
 	var restoreErrors error
 
-	for _, job := range d.jobs().Restorable() {
+	for _, job := range d.Jobs.Restorable() {
 		d.Logger.Debug("", "> %s", job.RestoreScript())
 
 		artifactDirectory := fmt.Sprintf("/var/vcap/store/backup/%s", job.Name())
@@ -378,10 +378,6 @@ func (d *DeployedInstance) handleErrs(jobName, label string, err error, exitCode
 func (d *DeployedInstance) removeBackupArtifacts() error {
 	_, _, _, err := d.logAndRun("sudo rm -rf /var/vcap/store/backup", "remove backup artifacts")
 	return err
-}
-
-func (d *DeployedInstance) jobs() Jobs {
-	return NewJobs(d.BackupAndRestoreScripts)
 }
 
 func convertShasToMap(shas string) map[string]string {

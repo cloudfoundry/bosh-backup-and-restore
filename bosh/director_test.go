@@ -74,8 +74,9 @@ var _ = Describe("Director", func() {
 				}}, nil)
 				sshConnectionFactory.Returns(sshConnection, nil)
 				sshConnection.RunReturns([]byte("/var/vcap/jobs/consul_agent/bin/p-backup\n"+
-					"/var/vcap/jobs/metron_agent/bin/p-backup"), nil, 0, nil)
+					"/var/vcap/jobs/consul_agent/bin/p-restore"), nil, 0, nil)
 			})
+
 			It("collects the instances", func() {
 				Expect(actualInstances).To(Equal([]backuper.Instance{bosh.NewBoshInstance("job1",
 					"0",
@@ -83,12 +84,13 @@ var _ = Describe("Director", func() {
 					sshConnection,
 					boshDeployment,
 					boshLogger,
-					bosh.BackupAndRestoreScripts{
+					bosh.NewJobs(bosh.BackupAndRestoreScripts{
 						"/var/vcap/jobs/consul_agent/bin/p-backup",
-						"/var/vcap/jobs/metron_agent/bin/p-backup",
-					},
+						"/var/vcap/jobs/consul_agent/bin/p-restore",
+					}),
 				)}))
 			})
+
 			It("does not fail", func() {
 				Expect(acutalError).NotTo(HaveOccurred())
 			})
@@ -161,7 +163,7 @@ var _ = Describe("Director", func() {
 					sshConnection,
 					boshDeployment,
 					boshLogger,
-					bosh.BackupAndRestoreScripts{},
+					bosh.NewJobs(bosh.BackupAndRestoreScripts{}),
 				)}))
 			})
 
@@ -251,8 +253,8 @@ var _ = Describe("Director", func() {
 			})
 			It("collects the instances", func() {
 				Expect(actualInstances).To(Equal([]backuper.Instance{
-					bosh.NewBoshInstance("job1", "0", "id1", sshConnection, boshDeployment, boshLogger, bosh.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"}),
-					bosh.NewBoshInstance("job1", "1", "id2", sshConnection, boshDeployment, boshLogger, bosh.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"}),
+					bosh.NewBoshInstance("job1", "0", "id1", sshConnection, boshDeployment, boshLogger, bosh.NewJobs(bosh.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"})),
+					bosh.NewBoshInstance("job1", "1", "id2", sshConnection, boshDeployment, boshLogger, bosh.NewJobs(bosh.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"})),
 				}))
 			})
 			It("does not fail", func() {

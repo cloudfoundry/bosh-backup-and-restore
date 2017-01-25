@@ -25,6 +25,7 @@ var _ = Describe("Instance", func() {
 	var stdout, stderr *gbytes.Buffer
 	var jobName, jobIndex, jobID, expectedStdout, expectedStderr string
 	var backupAndRestoreScripts []bosh.Script
+	var jobs bosh.Jobs
 
 	var instance backuper.Instance
 	BeforeEach(func() {
@@ -42,8 +43,9 @@ var _ = Describe("Instance", func() {
 	})
 
 	JustBeforeEach(func() {
+		jobs = bosh.NewJobs(backupAndRestoreScripts)
 		sshConnection.UsernameReturns("sshUsername")
-		instance = bosh.NewBoshInstance(jobName, jobIndex, jobID, sshConnection, boshDeployment, boshLogger, backupAndRestoreScripts)
+		instance = bosh.NewBoshInstance(jobName, jobIndex, jobID, sshConnection, boshDeployment, boshLogger, jobs)
 	})
 
 	Context("IsBackupable", func() {

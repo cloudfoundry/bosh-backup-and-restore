@@ -99,7 +99,7 @@ func (c client) FindInstances(deploymentName string) ([]backuper.Instance, error
 					sshConnection,
 					deployment,
 					c.Logger,
-					NewBackupAndRestoreScripts(scripts),
+					NewJobs(NewBackupAndRestoreScripts(scripts)),
 				),
 			)
 		}
