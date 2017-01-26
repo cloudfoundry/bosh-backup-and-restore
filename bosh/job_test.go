@@ -21,13 +21,27 @@ var _ = Describe("Job", func() {
 	})
 
 	JustBeforeEach(func() {
-		job = bosh.NewJob(jobScripts)
+		job = bosh.NewJob(jobScripts, "")
 	})
+
 	Describe("ArtifactDirectory", func() {
 		It("calculates the artifact directory based on the name", func() {
 			Expect(job.ArtifactDirectory()).To(Equal("/var/vcap/store/backup/foo"))
 		})
+
+		Context("when an artifact name is provided", func() {
+			var jobWithName bosh.Job
+
+			JustBeforeEach(func() {
+				jobWithName = bosh.NewJob(jobScripts, "a-bosh-backup")
+			})
+
+			It("calculates the artifact directory based on the artifact name", func() {
+				Expect(jobWithName.ArtifactDirectory()).To(Equal("/var/vcap/store/backup/a-bosh-backup"))
+			})
+		})
 	})
+
 	Describe("BackupScript", func() {
 		It("returns the backup script", func() {
 			Expect(job.BackupScript()).To(Equal(bosh.Script("/var/vcap/jobs/foo/bin/p-backup")))
@@ -41,6 +55,7 @@ var _ = Describe("Job", func() {
 			})
 		})
 	})
+
 	Describe("HasBackup", func() {
 		It("returns true", func() {
 			Expect(job.HasBackup()).To(BeTrue())

@@ -2,10 +2,11 @@ package bosh
 
 import "fmt"
 
-func NewJob(jobScripts BackupAndRestoreScripts) Job {
+func NewJob(jobScripts BackupAndRestoreScripts, artifactName string) Job {
 	jobName, _ := jobScripts[0].JobName()
 	return Job{
 		name:              jobName,
+		artifactName: 	   artifactName,
 		backupScript:      jobScripts.BackupOnly().firstOrBlank(),
 		restoreScript:     jobScripts.RestoreOnly().firstOrBlank(),
 		preBackupScript:   jobScripts.PreBackupLockOnly().firstOrBlank(),
@@ -15,6 +16,7 @@ func NewJob(jobScripts BackupAndRestoreScripts) Job {
 
 type Job struct {
 	name             string
+	artifactName     string
 	backupScript     Script
 	preBackupScript  Script
 	postBackupScript Script
@@ -26,7 +28,7 @@ func (j Job) Name() string {
 }
 
 func (j Job) ArtifactDirectory() string {
-	return fmt.Sprintf("/var/vcap/store/backup/%s", j.name)
+	return fmt.Sprintf("/var/vcap/store/backup/%s", j.artifactOrJobName())
 }
 
 func (j Job) BackupScript() Script {
@@ -59,4 +61,12 @@ func (j Job) HasPreBackup() bool {
 
 func (j Job) HasPostBackup() bool {
 	return j.PostBackupScript() != ""
+}
+
+func (j Job) artifactOrJobName() string {
+	if len(j.artifactName) == 0 {
+		return j.name
+	} else {
+		return j.artifactName
+	}
 }

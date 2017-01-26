@@ -5,10 +5,12 @@ import (
 
 	"strconv"
 
+	"fmt"
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
-	"fmt"
+	"gopkg.in/yaml.v2"
+	"errors"
 )
 
 func New(boshDirector director.Director,
@@ -40,6 +42,10 @@ type Logger interface {
 	Debug(tag, msg string, args ...interface{})
 	Info(tag, msg string, args ...interface{})
 	Error(tag, msg string, args ...interface{})
+}
+
+type jobMetadata struct {
+	BackupName string `yaml:"backup_name"`
 }
 
 func (c client) FindInstances(deploymentName string) ([]backuper.Instance, error) {
@@ -91,6 +97,14 @@ func (c client) FindInstances(deploymentName string) ([]backuper.Instance, error
 				return nil, err
 			}
 
+			metadata, err := c.getMetadata(host, sshConnection)
+
+			if err != nil {
+				return nil, err
+			}
+
+			jobs, _ := NewJobs(NewBackupAndRestoreScripts(scripts), metadata)
+
 			instances = append(instances,
 				NewBoshInstance(
 					instanceGroupName,
@@ -99,7 +113,7 @@ func (c client) FindInstances(deploymentName string) ([]backuper.Instance, error
 					sshConnection,
 					deployment,
 					c.Logger,
-					NewJobs(NewBackupAndRestoreScripts(scripts)),
+					jobs,
 				),
 			)
 		}
@@ -144,6 +158,81 @@ func contains(s []string, e string) bool {
 	return false
 }
 
+func (c client) getMetadata(host director.Host, sshConnection SSHConnection) (map[string]string, error) {
+	metadata := map[string]string{}
+
+	stdout, stderr, exitCode, err := sshConnection.Run("ls -1 /var/vcap/jobs/*/bin/p-metadata")
+
+	if exitCode != 0 && !strings.Contains(string(stderr), "No such file or directory") {
+		errorString := fmt.Sprintf(
+			"Failed to check for job metadata scripts on %s/%s.\nStdout: %s\nStderr: %s",
+			host.Host,
+			host.IndexOrID,
+			stdout,
+			stderr,
+		)
+		return map[string]string{}, errors.New(errorString)
+	}
+
+	if err != nil {
+		errorString := fmt.Sprintf(
+			"An error occurred while checking for job metadata scripts on %s/%s: %s",
+			host.Host,
+			host.IndexOrID,
+			err,
+		)
+		c.Logger.Error("", errorString)
+		return map[string]string{}, errors.New(errorString)
+	}
+
+	files := strings.Split(string(stdout), "\n")
+
+	for _, file := range files {
+		jobName, _ := Script(file).JobName()
+		metadataContent, stderr, exitCode, err := sshConnection.Run(file)
+
+		if exitCode != 0 && !strings.Contains(string(stderr), "No such file or directory") {
+			errorString := fmt.Sprintf(
+				"Failed to run job metadata scripts on %s/%s.\nStdout: %s\nStderr: %s",
+				host.Host,
+				host.IndexOrID,
+				stdout,
+				stderr,
+			)
+			return map[string]string{}, errors.New(errorString)
+		}
+
+		if err != nil {
+			errorString := fmt.Sprintf(
+				"An error occurred while running job metadata scripts on %s/%s: %s",
+				host.Host,
+				host.IndexOrID,
+				err,
+			)
+			c.Logger.Error("", errorString)
+			return map[string]string{}, errors.New(errorString)
+		}
+
+		m := jobMetadata{}
+		err = yaml.Unmarshal(metadataContent, &m)
+
+		if err != nil {
+			errorString := fmt.Sprintf(
+				"Reading job metadata for %s/%s failed: %s",
+				host.Host,
+				host.IndexOrID,
+				err.Error(),
+			)
+			c.Logger.Error("", errorString)
+			return map[string]string{}, errors.New(errorString)
+		}
+
+		metadata[jobName] = string(m.BackupName)
+	}
+
+	return metadata, nil
+}
+
 func (c client) findScripts(host director.Host, sshConnection SSHConnection) ([]string, error) {
 	c.Logger.Debug("", "Attempting to find scripts on %s/%s", host.Host, host.IndexOrID)
 
@@ -151,7 +240,7 @@ func (c client) findScripts(host director.Host, sshConnection SSHConnection) ([]
 	if err != nil {
 		c.Logger.Error(
 			"",
-			"Failed to run find on %s/%s. Error: %s'nStdout: %s\nStderr%s",
+			"Failed to run find on %s/%s. Error: %s\nStdout: %s\nStderr%s",
 			host.Host,
 			host.IndexOrID,
 			err,

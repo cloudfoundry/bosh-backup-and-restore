@@ -15,6 +15,7 @@ import (
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh/fakes"
+	"strings"
 )
 
 var _ = Describe("Director", func() {
@@ -50,11 +51,52 @@ var _ = Describe("Director", func() {
 		boshLogger = boshlog.New(boshlog.LevelDebug, combinecOutLog, combinedErrLog)
 	})
 	Describe("FindInstances", func() {
-		var stubbedSshOpts director.SSHOpts = director.SSHOpts{Username: "user"}
-		var actualInstances []backuper.Instance
-		var acutalError error
+		var (
+			findScriptsSshStdout,
+			findScriptsSshStderr,
+			lsMetadataSshStdout,
+			lsMetadataSshStderr,
+			runMetadataSshStdout,
+			runMetadataSshStderr []byte
+
+			findScriptsExitCode, lsMetadataExitCode, runMetadataExitCode int
+			stubbedSshOpts director.SSHOpts = director.SSHOpts{Username: "user"}
+			actualInstances []backuper.Instance
+			actualError, findScriptsError, lsMetadataError, runMetadataError error
+		)
+
 		JustBeforeEach(func() {
-			actualInstances, acutalError = b.FindInstances(deploymentName)
+			sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
+				switch {
+				case strings.HasPrefix(cmd, "find "):
+					return findScriptsSshStdout, findScriptsSshStderr, findScriptsExitCode, findScriptsError
+				case strings.HasPrefix(cmd, "ls "):
+					return lsMetadataSshStdout, lsMetadataSshStderr, lsMetadataExitCode, lsMetadataError
+				case strings.HasPrefix(cmd, "/var/vcap/jobs/"):
+					return runMetadataSshStdout, runMetadataSshStderr, runMetadataExitCode, runMetadataError
+				}
+
+				return nil, nil, 0, nil
+			}
+
+			actualInstances, actualError = b.FindInstances(deploymentName)
+		})
+
+		BeforeEach(func() {
+			findScriptsSshStdout = []byte{}
+			findScriptsSshStderr = []byte{}
+
+			lsMetadataSshStdout = []byte{}
+			lsMetadataSshStderr = []byte("No such file or directory")
+			lsMetadataExitCode = 1
+			lsMetadataError = nil
+
+			runMetadataSshStdout = []byte{}
+			runMetadataError = nil
+			runMetadataExitCode = 0
+
+			findScriptsExitCode = 0
+			findScriptsError = nil
 		})
 
 		Context("finds instances for the deployment", func() {
@@ -73,26 +115,29 @@ var _ = Describe("Director", func() {
 					},
 				}}, nil)
 				sshConnectionFactory.Returns(sshConnection, nil)
-				sshConnection.RunReturns([]byte("/var/vcap/jobs/consul_agent/bin/p-backup\n"+
-					"/var/vcap/jobs/consul_agent/bin/p-restore"), nil, 0, nil)
+				findScriptsSshStdout = []byte("/var/vcap/jobs/consul_agent/bin/p-backup\n"+
+					"/var/vcap/jobs/consul_agent/bin/p-restore")
 			})
 
 			It("collects the instances", func() {
-				Expect(actualInstances).To(Equal([]backuper.Instance{bosh.NewBoshInstance("job1",
+				jobs, _ := bosh.NewJobs(bosh.BackupAndRestoreScripts{
+					"/var/vcap/jobs/consul_agent/bin/p-backup",
+					"/var/vcap/jobs/consul_agent/bin/p-restore",
+				}, map[string]string{})
+
+				Expect(actualInstances).To(Equal([]backuper.Instance{bosh.NewBoshInstance(
+					"job1",
 					"0",
 					"jobID",
 					sshConnection,
 					boshDeployment,
 					boshLogger,
-					bosh.NewJobs(bosh.BackupAndRestoreScripts{
-						"/var/vcap/jobs/consul_agent/bin/p-backup",
-						"/var/vcap/jobs/consul_agent/bin/p-restore",
-					}),
+					jobs,
 				)}))
 			})
 
 			It("does not fail", func() {
-				Expect(acutalError).NotTo(HaveOccurred())
+				Expect(actualError).NotTo(HaveOccurred())
 			})
 
 			It("fetches the deployment by name", func() {
@@ -123,9 +168,159 @@ var _ = Describe("Director", func() {
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
 			})
+			
 			It("finds the scripts on each host", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal("find /var/vcap/jobs/*/bin/* -type f"))
+			})
+
+			Context("when job does not specify a custom artifact name", func() {
+				BeforeEach(func() {
+					lsMetadataSshStderr = []byte("No such file or directory")
+					lsMetadataExitCode = 1
+				})
+
+				It("does not fail", func() {
+					Expect(actualError).NotTo(HaveOccurred())
+				})
+			})
+			
+			Context("when job specifies a custom artifact name", func() {
+				BeforeEach(func() {
+					lsMetadataSshStdout = []byte("/var/vcap/jobs/consul_agent/bin/p-metadata")
+					runMetadataSshStdout = []byte(`---
+backup_name: consul_backup`)
+				})
+
+				It("collects the instances with the custom artifact name", func() {
+					metadata := map[string]string{
+						"consul_agent": "consul_backup",
+					}
+
+					jobs, _ := bosh.NewJobs(bosh.BackupAndRestoreScripts{
+						"/var/vcap/jobs/consul_agent/bin/p-backup",
+						"/var/vcap/jobs/consul_agent/bin/p-restore",
+					}, metadata)
+
+					Expect(actualInstances).To(Equal([]backuper.Instance{bosh.NewBoshInstance(
+						"job1",
+						"0",
+						"jobID",
+						sshConnection,
+						boshDeployment,
+						boshLogger,
+						jobs,
+					)}))
+				})
+
+				Context("when the metadata YAML is malformed", func() {
+					BeforeEach(func() {
+						runMetadataSshStdout = []byte(`this-is-terrible`)
+					})
+
+					It("fails", func() {
+						Expect(actualError).To(HaveOccurred())
+					})
+
+					It("returns an error with an explanation of the failure", func() {
+						Expect(actualError.Error()).To(ContainSubstring(
+							"Reading job metadata for hostname/jobID failed",
+						))
+					})
+
+					It("logs an error message", func() {
+						Expect(stderrLogStream.String()).To(ContainSubstring(
+							"Reading job metadata for hostname/jobID failed",
+						))
+					})
+				})
+
+				Context("when listing metadata scripts fails", func() {
+					BeforeEach(func() {
+						lsMetadataSshStdout = []byte("some stdout")
+						lsMetadataSshStderr = []byte("some stderr")
+						lsMetadataExitCode = 1
+					})
+
+					It("fails", func() {
+						Expect(actualError).To(HaveOccurred())
+					})
+
+					It("returns an error with an explanation of the failure and the stdout and stderr", func() {
+						Expect(actualError.Error()).To(ContainSubstring(
+							"Failed to check for job metadata scripts on hostname/jobID",
+						))
+
+						Expect(actualError.Error()).To(ContainSubstring(
+							fmt.Sprintf("Stdout: %s", string(lsMetadataSshStdout)),
+						))
+
+						Expect(actualError.Error()).To(ContainSubstring(
+							fmt.Sprintf("Stderr: %s", string(lsMetadataSshStderr)),
+						))
+					})
+				})
+
+				Context("when an SSH error occurs while listing metadata scripts fails", func(){
+					BeforeEach(func() {
+						lsMetadataError = fmt.Errorf("this is a boring error")
+					})
+
+					It("fails", func() {
+						Expect(actualError).To(HaveOccurred())
+					})
+
+					It("returns an error with an explanation of the failure", func() {
+						Expect(actualError.Error()).To(ContainSubstring(
+							"An error occurred while checking for job metadata scripts on hostname/jobID",
+						))
+					})
+
+					It("logs an error message", func() {
+						Expect(stderrLogStream.String()).To(ContainSubstring(
+							"An error occurred while checking for job metadata scripts on hostname/jobID",
+						))
+					})
+				})
+
+				Context("when running a metadata script fails", func() {
+					BeforeEach(func() {
+						runMetadataSshStdout = []byte("some stdout")
+						runMetadataSshStderr = []byte("It went very wrong")
+						runMetadataExitCode = 1
+					})
+
+					It("fails", func() {
+						Expect(actualError).To(HaveOccurred())
+					})
+
+					It("returns an error with an explanation of the failure", func() {
+						Expect(actualError.Error()).To(ContainSubstring(
+							"Failed to run job metadata scripts on hostname/jobID",
+						))
+					})
+				})
+
+				Context("when an SSH error occurs while running metadata scripts", func(){
+					BeforeEach(func() {
+						runMetadataError = fmt.Errorf("everything is awful")
+					})
+
+					It("fails", func() {
+						Expect(actualError).To(HaveOccurred())
+					})
+
+					It("returns an error with an explanation of the failure", func() {
+						Expect(actualError.Error()).To(ContainSubstring(
+							"An error occurred while running job metadata scripts on hostname/jobID",
+						))
+					})
+
+					It("logs an error message", func() {
+						Expect(stderrLogStream.String()).To(ContainSubstring(
+							"An error occurred while running job metadata scripts on hostname/jobID",
+						))
+					})
+				})
 			})
 		})
 
@@ -149,21 +344,25 @@ var _ = Describe("Director", func() {
 					},
 				}}, nil)
 				sshConnectionFactory.Returns(sshConnection, nil)
-				sshConnection.RunReturns([]byte(actualStdOut), []byte(actualStdErr), 1, nil)
+				findScriptsSshStdout = []byte(actualStdOut)
+				findScriptsSshStderr = []byte(actualStdErr)
+				findScriptsExitCode = 1
 			})
 
 			It("does not fail", func() {
-				Expect(acutalError).NotTo(HaveOccurred())
+				Expect(actualError).NotTo(HaveOccurred())
 			})
 
 			It("collects the instances, with no scripts", func() {
+				jobs, _ := bosh.NewJobs(bosh.BackupAndRestoreScripts{}, map[string]string{})
+
 				Expect(actualInstances).To(Equal([]backuper.Instance{bosh.NewBoshInstance("job1",
 					"0",
 					"index",
 					sshConnection,
 					boshDeployment,
 					boshLogger,
-					bosh.NewJobs(bosh.BackupAndRestoreScripts{}),
+					jobs,
 				)}))
 			})
 
@@ -171,7 +370,7 @@ var _ = Describe("Director", func() {
 				Expect(sshConnectionFactory.CallCount()).To(Equal(1))
 			})
 
-			It("fetchs vm infos", func() {
+			It("fetches vm infos", func() {
 				Expect(boshDeployment.VMInfosCallCount()).To(Equal(1))
 			})
 
@@ -179,23 +378,22 @@ var _ = Describe("Director", func() {
 				Expect(boshDirector.FindDeploymentCallCount()).To(Equal(1))
 				Expect(boshDirector.FindDeploymentArgsForCall(0)).To(Equal(deploymentName))
 			})
+
 			It("generates ssh opts", func() {
 				Expect(optsGenerator.CallCount()).To(Equal(1))
-			})
-
-			It("uses the ssh connnection to run find", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
 			})
 
 			It("logs the stdout", func() {
 				Expect(stdoutLogStream.String()).To(ContainSubstring(actualStdOut))
 
 			})
+
 			It("logs the stderr", func() {
 				Expect(stdoutLogStream.String()).To(ContainSubstring(actualStdErr))
 
 			})
 		})
+
 		Context("finds instances for the deployment, with port specified in host", func() {
 			BeforeEach(func() {
 				boshDirector.FindDeploymentReturns(boshDeployment, nil)
@@ -249,16 +447,42 @@ var _ = Describe("Director", func() {
 					},
 				}}, nil)
 				sshConnectionFactory.Returns(sshConnection, nil)
-				sshConnection.RunReturns([]byte("/var/vcap/jobs/consul_agent/bin/p-backup"), nil, 0, nil)
+				findScriptsSshStdout = []byte("/var/vcap/jobs/consul_agent/bin/p-backup")
 			})
 			It("collects the instances", func() {
+				instance0Jobs, _ := bosh.NewJobs(
+					bosh.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"},
+					map[string]string{},
+				)
+
+				instance1Jobs, _ := bosh.NewJobs(
+					bosh.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"},
+					map[string]string{},
+				)
+
 				Expect(actualInstances).To(Equal([]backuper.Instance{
-					bosh.NewBoshInstance("job1", "0", "id1", sshConnection, boshDeployment, boshLogger, bosh.NewJobs(bosh.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"})),
-					bosh.NewBoshInstance("job1", "1", "id2", sshConnection, boshDeployment, boshLogger, bosh.NewJobs(bosh.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"})),
+					bosh.NewBoshInstance(
+						"job1",
+						"0",
+						"id1",
+						sshConnection,
+						boshDeployment,
+						boshLogger,
+						instance0Jobs,
+					),
+					bosh.NewBoshInstance(
+						"job1",
+						"1",
+						"id2",
+						sshConnection,
+						boshDeployment,
+						boshLogger,
+						instance1Jobs,
+					),
 				}))
 			})
 			It("does not fail", func() {
-				Expect(acutalError).NotTo(HaveOccurred())
+				Expect(actualError).NotTo(HaveOccurred())
 			})
 
 			It("fetches the deployment by name", func() {
@@ -297,9 +521,8 @@ var _ = Describe("Director", func() {
 			})
 
 			It("finds the scripts on each host", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(2))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal("find /var/vcap/jobs/*/bin/* -type f"))
-				Expect(sshConnection.RunArgsForCall(1)).To(Equal("find /var/vcap/jobs/*/bin/* -type f"))
+				Expect(sshConnection.RunArgsForCall(3)).To(Equal("find /var/vcap/jobs/*/bin/* -type f"))
 			})
 		})
 
@@ -313,7 +536,7 @@ var _ = Describe("Director", func() {
 				})
 
 				It("does fails", func() {
-					Expect(acutalError).To(MatchError(expectedError))
+					Expect(actualError).To(MatchError(expectedError))
 				})
 
 				It("tries to fetch deployment", func() {
@@ -329,7 +552,7 @@ var _ = Describe("Director", func() {
 				})
 
 				It("does fails", func() {
-					Expect(acutalError).To(MatchError(expectedError))
+					Expect(actualError).To(MatchError(expectedError))
 				})
 				It("tries to fetch vm infos", func() {
 					Expect(boshDeployment.VMInfosCallCount()).To(Equal(1))
@@ -347,7 +570,7 @@ var _ = Describe("Director", func() {
 					optsGenerator.Returns(director.SSHOpts{}, "", expectedError)
 				})
 				It("does fails", func() {
-					Expect(acutalError).To(MatchError(expectedError))
+					Expect(actualError).To(MatchError(expectedError))
 				})
 
 				It("tries to generate ssh keys", func() {
@@ -363,7 +586,7 @@ var _ = Describe("Director", func() {
 					}}, nil)
 				})
 				It("does fails", func() {
-					Expect(acutalError).To(HaveOccurred())
+					Expect(actualError).To(HaveOccurred())
 				})
 
 				It("tries to fetch deployment", func() {
@@ -387,7 +610,7 @@ var _ = Describe("Director", func() {
 				})
 
 				It("does fails", func() {
-					Expect(acutalError).To(MatchError(expectedError))
+					Expect(actualError).To(MatchError(expectedError))
 				})
 
 				It("tries to fetch vm infos", func() {
@@ -421,7 +644,7 @@ var _ = Describe("Director", func() {
 				})
 
 				It("does fails", func() {
-					Expect(acutalError).To(MatchError(expectedError))
+					Expect(actualError).To(MatchError(expectedError))
 				})
 
 				It("tries to connect to the vm", func() {
@@ -461,11 +684,13 @@ var _ = Describe("Director", func() {
 						},
 					}}, nil)
 					sshConnectionFactory.Returns(sshConnection, nil)
-					sshConnection.RunReturns([]byte(actualStdOut), []byte(actualStdErr), 0, expectedError)
+					findScriptsSshStdout = []byte(actualStdOut)
+					findScriptsSshStderr = []byte(actualStdErr)
+					findScriptsError = expectedError
 				})
 
 				It("does fail", func() {
-					Expect(acutalError).To(MatchError(expectedError))
+					Expect(actualError).To(MatchError(expectedError))
 				})
 
 				It("tries to connect to the vm", func() {
@@ -521,11 +746,13 @@ var _ = Describe("Director", func() {
 						},
 					}}, nil)
 					sshConnectionFactory.Returns(sshConnection, nil)
-					sshConnection.RunReturns([]byte(actualStdOut), []byte(actualStdErr), 1, nil)
+					findScriptsSshStdout = []byte(actualStdOut)
+					findScriptsSshStderr = []byte(actualStdErr)
+					findScriptsExitCode = 1
 				})
 
 				It("does fail", func() {
-					Expect(acutalError).To(HaveOccurred())
+					Expect(actualError).To(HaveOccurred())
 				})
 
 				It("tries to connect to the vm", func() {

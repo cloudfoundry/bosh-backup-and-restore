@@ -8,9 +8,16 @@ import (
 
 var _ = Describe("Jobs", func() {
 	var jobs bosh.Jobs
+	var err error
 	var scripts bosh.BackupAndRestoreScripts
+	var artifactNames map[string]string
+
+	BeforeEach(func() {
+		artifactNames = map[string]string{}
+	})
+
 	JustBeforeEach(func() {
-		jobs = bosh.NewJobs(scripts)
+		jobs, err = bosh.NewJobs(scripts, artifactNames)
 	})
 
 	Describe("NewJobs", func() {
@@ -23,8 +30,8 @@ var _ = Describe("Jobs", func() {
 			})
 			It("groups scripts to create jobs", func() {
 				Expect(jobs).To(ConsistOf(
-					bosh.NewJob(bosh.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/p-backup"}),
-					bosh.NewJob(bosh.BackupAndRestoreScripts{"/var/vcap/jobs/bar/bin/p-backup"}),
+					bosh.NewJob(bosh.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/p-backup"}, ""),
+					bosh.NewJob(bosh.BackupAndRestoreScripts{"/var/vcap/jobs/bar/bin/p-backup"}, ""),
 				))
 			})
 		})
@@ -37,8 +44,75 @@ var _ = Describe("Jobs", func() {
 			})
 			It("groups scripts to create jobs", func() {
 				Expect(jobs).To(ConsistOf(
-					bosh.NewJob(bosh.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/p-backup"}),
+					bosh.NewJob(bosh.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/p-backup"}, ""),
 				))
+			})
+		})
+
+		Context("when there is one job with a backup script and an artifact name", func() {
+			BeforeEach(func() {
+				scripts = bosh.BackupAndRestoreScripts{
+					"/var/vcap/jobs/foo/bin/p-backup",
+				}
+				artifactNames = map[string]string{
+					"foo": "a-bosh-backup",
+				}
+			})
+
+			It("creates a job with the correct artifact name", func() {
+				Expect(jobs).To(ConsistOf(
+					bosh.NewJob(
+						bosh.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/p-backup"},
+						"a-bosh-backup",
+					),
+				))
+			})
+		})
+
+		Context("when there are two jobs, both with backup scripts and unique metadata names", func() {
+			BeforeEach(func() {
+				scripts = bosh.BackupAndRestoreScripts{
+					"/var/vcap/jobs/foo/bin/p-backup",
+					"/var/vcap/jobs/bar/bin/p-backup",
+				}
+				artifactNames = map[string]string{
+					"foo": "a-bosh-backup",
+					"bar": "another-backup",
+				}
+			})
+
+			It("creates two jobs with the correct artifact names", func() {
+				Expect(jobs).To(ConsistOf(
+					bosh.NewJob(
+						bosh.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/p-backup"},
+						"a-bosh-backup",
+					),
+					bosh.NewJob(
+						bosh.BackupAndRestoreScripts{"/var/vcap/jobs/bar/bin/p-backup"},
+						"another-backup",
+					),
+				))
+			})
+		})
+
+		Context("when there are two jobs, both with backup scripts and the same metadata name", func() {
+			BeforeEach(func() {
+				scripts = bosh.BackupAndRestoreScripts{
+					"/var/vcap/jobs/foo/bin/p-backup",
+					"/var/vcap/jobs/bar/bin/p-backup",
+				}
+				artifactNames = map[string]string{
+					"foo": "a-bosh-backup",
+					"bar": "a-bosh-backup",
+				}
+			})
+
+			It("fails", func() {
+				Expect(err).To(HaveOccurred())
+			})
+
+			It("returns the expected error messages", func() {
+				Expect(err.Error()).To(ContainSubstring("Multiple jobs have specified artifact name 'a-bosh-backup'"))
 			})
 		})
 	})
@@ -53,7 +127,9 @@ var _ = Describe("Jobs", func() {
 
 		Describe("Backupable", func() {
 			It("returns the backupable job", func() {
-				Expect(jobs.Backupable()).To(ConsistOf(bosh.NewJob(bosh.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/p-backup"}), ))
+				Expect(jobs.Backupable()).To(ConsistOf(
+					bosh.NewJob(bosh.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/p-backup"}, ""),
+				))
 			})
 		})
 
@@ -98,7 +174,10 @@ var _ = Describe("Jobs", func() {
 		Describe("PreBackupable", func() {
 			It("returns the lockable job",func(){
 				Expect(jobs.PreBackupable()).To(ConsistOf(bosh.NewJob(
-					bosh.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/p-pre-backup-lock","/var/vcap/jobs/foo/bin/p-backup"}),
+					bosh.BackupAndRestoreScripts{
+						"/var/vcap/jobs/foo/bin/p-pre-backup-lock",
+						"/var/vcap/jobs/foo/bin/p-backup",
+					}, ""),
 				))
 			})
 		})
@@ -127,7 +206,10 @@ var _ = Describe("Jobs", func() {
 
 			It("returns the unlockable job",func(){
 				Expect(jobs.PostBackupable()).To(ConsistOf(bosh.NewJob(
-					bosh.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/p-post-backup-unlock","/var/vcap/jobs/foo/bin/p-backup"}),
+					bosh.BackupAndRestoreScripts{
+						"/var/vcap/jobs/foo/bin/p-post-backup-unlock",
+						"/var/vcap/jobs/foo/bin/p-backup",
+					}, ""),
 				))
 			})
 		})
@@ -156,7 +238,7 @@ var _ = Describe("Jobs", func() {
 
 			It("returns the unlockable job",func(){
 				Expect(jobs.Restorable()).To(ConsistOf(bosh.NewJob(
-					bosh.BackupAndRestoreScripts{"/var/vcap/jobs/bar/bin/p-restore"}),
+					bosh.BackupAndRestoreScripts{"/var/vcap/jobs/bar/bin/p-restore"}, ""),
 				))
 			})
 		})

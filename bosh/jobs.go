@@ -1,5 +1,9 @@
 package bosh
 
+import (
+	"fmt"
+)
+
 type Jobs []Job
 
 func (jobs Jobs) Backupable() Jobs {
@@ -45,7 +49,7 @@ func (jobs Jobs) PostBackupable() Jobs {
 	return postBackupableJobs
 }
 
-func NewJobs(scripts BackupAndRestoreScripts) Jobs {
+func NewJobs(scripts BackupAndRestoreScripts, artifactNames map[string]string) (Jobs, error) {
 	groupedByJobName := map[string]BackupAndRestoreScripts{}
 	for _, script := range scripts {
 		jobName, _ := script.JobName()
@@ -54,8 +58,19 @@ func NewJobs(scripts BackupAndRestoreScripts) Jobs {
 	}
 	var jobs []Job
 
-	for _, jobScripts := range groupedByJobName {
-		jobs = append(jobs, NewJob(jobScripts))
+	var foundNames = map[string]bool{}
+	for _, name := range artifactNames {
+		if foundNames[name] {
+			return nil, fmt.Errorf("Multiple jobs have specified artifact name '%s'", name)
+		}
+		foundNames[name] = true
 	}
-	return jobs
+
+	for jobName, jobScripts := range groupedByJobName {
+		artifactName := artifactNames[jobName]
+
+		jobs = append(jobs, NewJob(jobScripts, artifactName))
+	}
+
+	return jobs, nil
 }

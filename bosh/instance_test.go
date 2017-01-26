@@ -43,7 +43,7 @@ var _ = Describe("Instance", func() {
 	})
 
 	JustBeforeEach(func() {
-		jobs = bosh.NewJobs(backupAndRestoreScripts)
+		jobs, _ = bosh.NewJobs(backupAndRestoreScripts, map[string]string{})
 		sshConnection.UsernameReturns("sshUsername")
 		instance = bosh.NewBoshInstance(jobName, jobIndex, jobID, sshConnection, boshDeployment, boshLogger, jobs)
 	})
