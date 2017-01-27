@@ -105,11 +105,3 @@ func cleanupAndReturnErrors(d Deployment, err error) error {
 	}
 	return err
 }
-
-func cleanupAndReturnErrorsArray(d Deployment, err Error) Error {
-	cleanupErr := d.Cleanup()
-	if cleanupErr != nil {
-		return append(err, CleanupError{cleanupErr})
-	}
-	return err
-}

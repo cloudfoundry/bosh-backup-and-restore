@@ -569,15 +569,19 @@ exit 1`)
 	})
 })
 
-func filesInTar(path string) []string {
+func getTarReader(path string) *tar.Reader {
 	reader, err := os.Open(path)
 	Expect(err).NotTo(HaveOccurred())
 	defer reader.Close()
-
 	archive, err := gzip.NewReader(reader)
 	Expect(err).NotTo(HaveOccurred())
-
 	tarReader := tar.NewReader(archive)
+	return tarReader
+}
+
+func filesInTar(path string) []string {
+	tarReader := getTarReader(path)
+
 	filenames := []string{}
 	for {
 		header, err := tarReader.Next()
@@ -594,15 +598,28 @@ func filesInTar(path string) []string {
 	return filenames
 }
 
+func dirsInTar(path string) []string {
+	tarReader := getTarReader(path)
+
+	dirs := []string{}
+	for {
+		header, err := tarReader.Next()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			Expect(err).NotTo(HaveOccurred())
+		}
+		info := header.FileInfo()
+		if info.IsDir() {
+			dirs = append(dirs, info.Name())
+		}
+	}
+	return dirs
+}
+
 func contentsInTar(tarFile, file string) string {
-	reader, err := os.Open(tarFile)
-	Expect(err).NotTo(HaveOccurred())
-	defer reader.Close()
+	tarReader := getTarReader(tarFile)
 
-	archive, err := gzip.NewReader(reader)
-	Expect(err).NotTo(HaveOccurred())
-
-	tarReader := tar.NewReader(archive)
 	for {
 		header, err := tarReader.Next()
 		if err == io.EOF {
@@ -620,6 +637,7 @@ func contentsInTar(tarFile, file string) string {
 	Fail("File " + file + " not found in tar " + tarFile)
 	return ""
 }
+
 func shaForFile(filename string) string {
 	contents, err := ioutil.ReadFile(filename)
 	Expect(err).NotTo(HaveOccurred())

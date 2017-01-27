@@ -159,6 +159,8 @@ func contains(s []string, e string) bool {
 }
 
 func (c client) getMetadata(host director.Host, sshConnection SSHConnection) (map[string]string, error) {
+	c.Logger.Debug("", "Attempting to fetch metadata on %s/%s", host.Host, host.IndexOrID)
+
 	metadata := map[string]string{}
 
 	stdout, stderr, exitCode, err := sshConnection.Run("ls -1 /var/vcap/jobs/*/bin/p-metadata")

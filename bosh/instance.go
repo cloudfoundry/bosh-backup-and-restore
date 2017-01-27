@@ -1,10 +1,10 @@
 package bosh
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strings"
-	"errors"
 
 	"bytes"
 	"github.com/cloudfoundry/bosh-cli/director"
@@ -19,10 +19,10 @@ type DeployedInstance struct {
 	BoshInstanceID                string
 	SSHConnection
 	Logger
-	backupable                    *bool
-	restorable                    *bool
-	unlockable                    *bool
-	lockable                      *bool
+	backupable *bool
+	restorable *bool
+	unlockable *bool
+	lockable   *bool
 	Jobs
 }
 
@@ -35,15 +35,22 @@ type SSHConnection interface {
 	Username() string
 }
 
-func NewBoshInstance(instanceGroupName, instanceIndex, instanceID string, connection SSHConnection, deployment director.Deployment, logger Logger, jobs Jobs) backuper.Instance {
+func NewBoshInstance(instanceGroupName,
+	instanceIndex,
+	instanceID string,
+	connection SSHConnection,
+	deployment director.Deployment,
+	logger Logger,
+	jobs Jobs,
+) backuper.Instance {
 	return &DeployedInstance{
-		BackupAndRestoreInstanceIndex:     instanceIndex,
-		InstanceGroupName:                 instanceGroupName,
-		BoshInstanceID:                    instanceID,
-		SSHConnection:                     connection,
-		Deployment:                        deployment,
-		Logger:                            logger,
-		Jobs:                              jobs,
+		BackupAndRestoreInstanceIndex: instanceIndex,
+		InstanceGroupName:             instanceGroupName,
+		BoshInstanceID:                instanceID,
+		SSHConnection:                 connection,
+		Deployment:                    deployment,
+		Logger:                        logger,
+		Jobs:                          jobs,
 	}
 }
 

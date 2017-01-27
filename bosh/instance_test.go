@@ -653,6 +653,7 @@ var _ = Describe("Instance", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
+
 		Context("when there are multiple jobs with no backup scripts", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []bosh.Script{
