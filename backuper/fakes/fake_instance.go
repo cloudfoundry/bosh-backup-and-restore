@@ -106,11 +106,11 @@ type FakeInstance struct {
 		result1 backuper.BackupChecksum
 		result2 error
 	}
-	RemoteArtifactStub        func() backuper.RemoteArtifact
-	remoteArtifactMutex       sync.RWMutex
-	remoteArtifactArgsForCall []struct{}
-	remoteArtifactReturns     struct {
-		result1 backuper.RemoteArtifact
+	RemoteArtifactsStub        func() []backuper.RemoteArtifact
+	remoteArtifactsMutex       sync.RWMutex
+	remoteArtifactsArgsForCall []struct{}
+	remoteArtifactsReturns     struct {
+		result1 []backuper.RemoteArtifact
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -489,27 +489,27 @@ func (fake *FakeInstance) BackupChecksumReturns(result1 backuper.BackupChecksum,
 	}{result1, result2}
 }
 
-func (fake *FakeInstance) RemoteArtifact() backuper.RemoteArtifact {
-	fake.remoteArtifactMutex.Lock()
-	fake.remoteArtifactArgsForCall = append(fake.remoteArtifactArgsForCall, struct{}{})
-	fake.recordInvocation("RemoteArtifact", []interface{}{})
-	fake.remoteArtifactMutex.Unlock()
-	if fake.RemoteArtifactStub != nil {
-		return fake.RemoteArtifactStub()
+func (fake *FakeInstance) RemoteArtifacts() []backuper.RemoteArtifact {
+	fake.remoteArtifactsMutex.Lock()
+	fake.remoteArtifactsArgsForCall = append(fake.remoteArtifactsArgsForCall, struct{}{})
+	fake.recordInvocation("RemoteArtifacts", []interface{}{})
+	fake.remoteArtifactsMutex.Unlock()
+	if fake.RemoteArtifactsStub != nil {
+		return fake.RemoteArtifactsStub()
 	}
-	return fake.remoteArtifactReturns.result1
+	return fake.remoteArtifactsReturns.result1
 }
 
-func (fake *FakeInstance) RemoteArtifactCallCount() int {
-	fake.remoteArtifactMutex.RLock()
-	defer fake.remoteArtifactMutex.RUnlock()
-	return len(fake.remoteArtifactArgsForCall)
+func (fake *FakeInstance) RemoteArtifactsCallCount() int {
+	fake.remoteArtifactsMutex.RLock()
+	defer fake.remoteArtifactsMutex.RUnlock()
+	return len(fake.remoteArtifactsArgsForCall)
 }
 
-func (fake *FakeInstance) RemoteArtifactReturns(result1 backuper.RemoteArtifact) {
-	fake.RemoteArtifactStub = nil
-	fake.remoteArtifactReturns = struct {
-		result1 backuper.RemoteArtifact
+func (fake *FakeInstance) RemoteArtifactsReturns(result1 []backuper.RemoteArtifact) {
+	fake.RemoteArtifactsStub = nil
+	fake.remoteArtifactsReturns = struct {
+		result1 []backuper.RemoteArtifact
 	}{result1}
 }
 
@@ -546,8 +546,8 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.backupSizeMutex.RUnlock()
 	fake.backupChecksumMutex.RLock()
 	defer fake.backupChecksumMutex.RUnlock()
-	fake.remoteArtifactMutex.RLock()
-	defer fake.remoteArtifactMutex.RUnlock()
+	fake.remoteArtifactsMutex.RLock()
+	defer fake.remoteArtifactsMutex.RUnlock()
 	return fake.invocations
 }
 

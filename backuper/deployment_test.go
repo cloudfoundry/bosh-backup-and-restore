@@ -789,7 +789,7 @@ var _ = Describe("Deployment", func() {
 	Context("CopyRemoteBackupsToLocal", func() {
 		var (
 			artifact                              *fakes.FakeArtifact
-			remoteArtifact *fakes.FakeRemoteArtifact
+			remoteArtifact                        *fakes.FakeRemoteArtifact
 			copyRemoteBackupsToLocalArtifactError error
 		)
 		BeforeEach(func() {
@@ -808,7 +808,7 @@ var _ = Describe("Deployment", func() {
 				localArtifactWriteCloser = new(fakes.FakeWriteCloser)
 				artifact.CreateFileReturns(localArtifactWriteCloser, nil)
 
-				instance1.RemoteArtifactReturns(remoteArtifact)
+				instance1.RemoteArtifactsReturns([]backuper.RemoteArtifact{remoteArtifact})
 				instance1.IsBackupableReturns(true)
 				artifact.CalculateChecksumReturns(remoteArtifactChecksum, nil)
 				remoteArtifact.BackupChecksumReturns(remoteArtifactChecksum, nil)
@@ -869,8 +869,8 @@ var _ = Describe("Deployment", func() {
 					}
 				}
 
-				instance1.RemoteArtifactReturns(remoteArtifact1)
-				instance2.RemoteArtifactReturns(remoteArtifact2)
+				instance1.RemoteArtifactsReturns([]backuper.RemoteArtifact{remoteArtifact1})
+				instance2.RemoteArtifactsReturns([]backuper.RemoteArtifact{remoteArtifact2})
 
 				instance1.IsBackupableReturns(true)
 				instance2.IsBackupableReturns(true)
@@ -935,7 +935,7 @@ var _ = Describe("Deployment", func() {
 				artifact.CreateFileReturns(writeCloser1, nil)
 
 				instance1.IsBackupableReturns(true)
-				instance1.RemoteArtifactReturns(remoteArtifact1)
+				instance1.RemoteArtifactsReturns([]backuper.RemoteArtifact{remoteArtifact1})
 
 				instance2.IsBackupableReturns(false)
 				artifact.CalculateChecksumReturns(instanceChecksum, nil)
@@ -943,7 +943,7 @@ var _ = Describe("Deployment", func() {
 				instances = []backuper.Instance{instance1, instance2}
 				remoteArtifact1.BackupChecksumReturns(instanceChecksum, nil)
 			})
-			It("succeeds",func(){
+			It("succeeds", func() {
 				Expect(copyRemoteBackupsToLocalArtifactError).To(Succeed())
 			})
 			It("creates an artifact file with the instance", func() {
@@ -986,7 +986,7 @@ var _ = Describe("Deployment", func() {
 
 					instances = []backuper.Instance{instance1}
 					instance1.IsBackupableReturns(true)
-					instance1.RemoteArtifactReturns(remoteArtifact)
+					instance1.RemoteArtifactsReturns([]backuper.RemoteArtifact{remoteArtifact})
 
 					remoteArtifact.StreamBackupFromRemoteReturns(drainError)
 				})
@@ -1000,6 +1000,7 @@ var _ = Describe("Deployment", func() {
 				var fileError = fmt.Errorf("i have a very good brain")
 				BeforeEach(func() {
 					instances = []backuper.Instance{instance1}
+					instance1.RemoteArtifactsReturns([]backuper.RemoteArtifact{remoteArtifact})
 					instance1.IsBackupableReturns(true)
 					artifact.CreateFileReturns(nil, fileError)
 				})
@@ -1018,7 +1019,7 @@ var _ = Describe("Deployment", func() {
 					instances = []backuper.Instance{instance1}
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.RemoteArtifactReturns(remoteArtifact)
+					instance1.RemoteArtifactsReturns([]backuper.RemoteArtifact{remoteArtifact})
 
 					artifact.CreateFileReturns(writeCloser1, nil)
 					artifact.CalculateChecksumReturns(nil, shasumError)
@@ -1039,7 +1040,7 @@ var _ = Describe("Deployment", func() {
 
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.RemoteArtifactReturns(remoteArtifact)
+					instance1.RemoteArtifactsReturns([]backuper.RemoteArtifact{remoteArtifact})
 					remoteArtifact.BackupChecksumReturns(nil, remoteShasumError)
 
 					artifact.CreateFileReturns(writeCloser1, nil)
@@ -1063,7 +1064,7 @@ var _ = Describe("Deployment", func() {
 
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.RemoteArtifactReturns(remoteArtifact)
+					instance1.RemoteArtifactsReturns([]backuper.RemoteArtifact{remoteArtifact})
 
 					artifact.CreateFileReturns(writeCloser1, nil)
 
@@ -1089,7 +1090,7 @@ var _ = Describe("Deployment", func() {
 
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.RemoteArtifactReturns(remoteArtifact)
+					instance1.RemoteArtifactsReturns([]backuper.RemoteArtifact{remoteArtifact})
 
 					artifact.CreateFileReturns(writeCloser1, nil)
 					artifact.CalculateChecksumReturns(backuper.BackupChecksum{"file": "this will match", "extra": "this won't match"}, nil)

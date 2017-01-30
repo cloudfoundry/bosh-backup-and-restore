@@ -269,11 +269,13 @@ func (d *DeployedInstance) Cleanup() error {
 	return errs
 }
 
-func (d *DeployedInstance) RemoteArtifact() backuper.RemoteArtifact {
-	return &DefaultRemoteArtifact{
-		Instance: d,
-		SSHConnection: d.SSHConnection,
-		Logger: d.Logger,
+func (d *DeployedInstance) RemoteArtifacts() []backuper.RemoteArtifact {
+	return []backuper.RemoteArtifact{
+		&DefaultRemoteArtifact{
+			Instance:      d,
+			SSHConnection: d.SSHConnection,
+			Logger:        d.Logger,
+		},
 	}
 }
 
@@ -384,4 +386,3 @@ func convertShasToMap(shas string) map[string]string {
 	}
 	return mapOfSha
 }
-

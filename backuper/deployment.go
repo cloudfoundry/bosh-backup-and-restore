@@ -92,42 +92,43 @@ func (bd *BoshDeployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 		return err
 	}
 	for _, instance := range instances {
-		remoteArtifact := instance.RemoteArtifact()
-		writer, err := artifact.CreateFile(remoteArtifact)
+		for _, remoteArtifact := range instance.RemoteArtifacts() {
+			writer, err := artifact.CreateFile(remoteArtifact)
 
-		if err != nil {
-			return err
-		}
+			if err != nil {
+				return err
+			}
 
-		size, err := remoteArtifact.BackupSize()
-		if err != nil {
-			return err
-		}
+			size, err := remoteArtifact.BackupSize()
+			if err != nil {
+				return err
+			}
 
-		bd.Logger.Info("", "Copying backup -- %s uncompressed -- from %s/%s...", size, instance.Name(), instance.ID())
-		if err := remoteArtifact.StreamBackupFromRemote(writer); err != nil {
-			return err
-		}
+			bd.Logger.Info("", "Copying backup -- %s uncompressed -- from %s/%s...", size, instance.Name(), instance.ID())
+			if err := remoteArtifact.StreamBackupFromRemote(writer); err != nil {
+				return err
+			}
 
-		if err := writer.Close(); err != nil {
-			return err
-		}
+			if err := writer.Close(); err != nil {
+				return err
+			}
 
-		localChecksum, err := artifact.CalculateChecksum(remoteArtifact)
-		if err != nil {
-			return err
-		}
+			localChecksum, err := artifact.CalculateChecksum(remoteArtifact)
+			if err != nil {
+				return err
+			}
 
-		remoteChecksum, err := remoteArtifact.BackupChecksum()
-		if err != nil {
-			return err
-		}
-		if !localChecksum.Match(remoteChecksum) {
-			return fmt.Errorf("Backup artifact is corrupted, checksum failed for %s/%s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), remoteChecksum, localChecksum)
-		}
+			remoteChecksum, err := remoteArtifact.BackupChecksum()
+			if err != nil {
+				return err
+			}
+			if !localChecksum.Match(remoteChecksum) {
+				return fmt.Errorf("Backup artifact is corrupted, checksum failed for %s/%s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), remoteChecksum, localChecksum)
+			}
 
-		artifact.AddChecksum(remoteArtifact, localChecksum)
-		bd.Logger.Info("", "Done.")
+			artifact.AddChecksum(remoteArtifact, localChecksum)
+			bd.Logger.Info("", "Done.")
+		}
 	}
 	return nil
 }

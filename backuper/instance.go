@@ -24,7 +24,7 @@ type Instance interface {
 	StreamBackupToRemote(io.Reader) error
 	BackupSize() (string, error)
 	BackupChecksum() (BackupChecksum, error)
-	RemoteArtifact() RemoteArtifact
+	RemoteArtifacts() []RemoteArtifact
 }
 
 //go:generate counterfeiter -o fakes/fake_remote_artifact.go . RemoteArtifact
