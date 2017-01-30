@@ -187,23 +187,6 @@ func (d *DeployedInstance) Restore() error {
 	return nil
 }
 
-func (d *DeployedInstance) StreamBackupFromRemote(writer io.Writer) error {
-	d.Logger.Debug("", "Streaming backup from instance %s/%s", d.InstanceGroupName, d.BoshInstanceID)
-	stderr, exitCode, err := d.Stream("sudo tar -C /var/vcap/store/backup -zc .", writer)
-
-	d.Logger.Debug("", "Stderr: %s", string(stderr))
-
-	if err != nil {
-		d.Logger.Debug("", "Error running instance backup scripts. Exit code %d, error %s", exitCode, err.Error())
-	}
-
-	if exitCode != 0 {
-		return fmt.Errorf("Instance backup scripts returned %d. Error: %s", exitCode, stderr)
-	}
-
-	return err
-}
-
 func (d *DeployedInstance) StreamBackupToRemote(reader io.Reader) error {
 	stdout, stderr, exitCode, err := d.logAndRun("sudo mkdir -p /var/vcap/store/backup/", "create backup directory on remote")
 
@@ -284,6 +267,14 @@ func (d *DeployedInstance) Cleanup() error {
 		errs = multierror.Append(errs, cleanupSSHError)
 	}
 	return errs
+}
+
+func (d *DeployedInstance) RemoteArtifact() backuper.RemoteArtifact {
+	return &DefaultRemoteArtifact{
+		Instance: d,
+		SSHConnection: d.SSHConnection,
+		Logger: d.Logger,
+	}
 }
 
 func (d *DeployedInstance) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
@@ -393,3 +384,4 @@ func convertShasToMap(shas string) map[string]string {
 	}
 	return mapOfSha
 }
+

@@ -21,10 +21,20 @@ type Instance interface {
 	PostBackupUnlock() error
 	Restore() error
 	Cleanup() error
-	StreamBackupFromRemote(io.Writer) error
 	StreamBackupToRemote(io.Reader) error
 	BackupSize() (string, error)
 	BackupChecksum() (BackupChecksum, error)
+	RemoteArtifact() RemoteArtifact
+}
+
+//go:generate counterfeiter -o fakes/fake_remote_artifact.go . RemoteArtifact
+type RemoteArtifact interface {
+	Name() string
+	Index() string
+	ID() string //TODO: Delete me, maybe
+	BackupSize() (string, error)
+	BackupChecksum() (BackupChecksum, error)
+	StreamBackupFromRemote(io.Writer) error
 }
 
 type instances []Instance

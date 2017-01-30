@@ -84,14 +84,6 @@ type FakeInstance struct {
 	cleanupReturns     struct {
 		result1 error
 	}
-	StreamBackupFromRemoteStub        func(io.Writer) error
-	streamBackupFromRemoteMutex       sync.RWMutex
-	streamBackupFromRemoteArgsForCall []struct {
-		arg1 io.Writer
-	}
-	streamBackupFromRemoteReturns struct {
-		result1 error
-	}
 	StreamBackupToRemoteStub        func(io.Reader) error
 	streamBackupToRemoteMutex       sync.RWMutex
 	streamBackupToRemoteArgsForCall []struct {
@@ -113,6 +105,12 @@ type FakeInstance struct {
 	backupChecksumReturns     struct {
 		result1 backuper.BackupChecksum
 		result2 error
+	}
+	RemoteArtifactStub        func() backuper.RemoteArtifact
+	remoteArtifactMutex       sync.RWMutex
+	remoteArtifactArgsForCall []struct{}
+	remoteArtifactReturns     struct {
+		result1 backuper.RemoteArtifact
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -409,38 +407,6 @@ func (fake *FakeInstance) CleanupReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeInstance) StreamBackupFromRemote(arg1 io.Writer) error {
-	fake.streamBackupFromRemoteMutex.Lock()
-	fake.streamBackupFromRemoteArgsForCall = append(fake.streamBackupFromRemoteArgsForCall, struct {
-		arg1 io.Writer
-	}{arg1})
-	fake.recordInvocation("StreamBackupFromRemote", []interface{}{arg1})
-	fake.streamBackupFromRemoteMutex.Unlock()
-	if fake.StreamBackupFromRemoteStub != nil {
-		return fake.StreamBackupFromRemoteStub(arg1)
-	}
-	return fake.streamBackupFromRemoteReturns.result1
-}
-
-func (fake *FakeInstance) StreamBackupFromRemoteCallCount() int {
-	fake.streamBackupFromRemoteMutex.RLock()
-	defer fake.streamBackupFromRemoteMutex.RUnlock()
-	return len(fake.streamBackupFromRemoteArgsForCall)
-}
-
-func (fake *FakeInstance) StreamBackupFromRemoteArgsForCall(i int) io.Writer {
-	fake.streamBackupFromRemoteMutex.RLock()
-	defer fake.streamBackupFromRemoteMutex.RUnlock()
-	return fake.streamBackupFromRemoteArgsForCall[i].arg1
-}
-
-func (fake *FakeInstance) StreamBackupFromRemoteReturns(result1 error) {
-	fake.StreamBackupFromRemoteStub = nil
-	fake.streamBackupFromRemoteReturns = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeInstance) StreamBackupToRemote(arg1 io.Reader) error {
 	fake.streamBackupToRemoteMutex.Lock()
 	fake.streamBackupToRemoteArgsForCall = append(fake.streamBackupToRemoteArgsForCall, struct {
@@ -523,6 +489,30 @@ func (fake *FakeInstance) BackupChecksumReturns(result1 backuper.BackupChecksum,
 	}{result1, result2}
 }
 
+func (fake *FakeInstance) RemoteArtifact() backuper.RemoteArtifact {
+	fake.remoteArtifactMutex.Lock()
+	fake.remoteArtifactArgsForCall = append(fake.remoteArtifactArgsForCall, struct{}{})
+	fake.recordInvocation("RemoteArtifact", []interface{}{})
+	fake.remoteArtifactMutex.Unlock()
+	if fake.RemoteArtifactStub != nil {
+		return fake.RemoteArtifactStub()
+	}
+	return fake.remoteArtifactReturns.result1
+}
+
+func (fake *FakeInstance) RemoteArtifactCallCount() int {
+	fake.remoteArtifactMutex.RLock()
+	defer fake.remoteArtifactMutex.RUnlock()
+	return len(fake.remoteArtifactArgsForCall)
+}
+
+func (fake *FakeInstance) RemoteArtifactReturns(result1 backuper.RemoteArtifact) {
+	fake.RemoteArtifactStub = nil
+	fake.remoteArtifactReturns = struct {
+		result1 backuper.RemoteArtifact
+	}{result1}
+}
+
 func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -550,14 +540,14 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.restoreMutex.RUnlock()
 	fake.cleanupMutex.RLock()
 	defer fake.cleanupMutex.RUnlock()
-	fake.streamBackupFromRemoteMutex.RLock()
-	defer fake.streamBackupFromRemoteMutex.RUnlock()
 	fake.streamBackupToRemoteMutex.RLock()
 	defer fake.streamBackupToRemoteMutex.RUnlock()
 	fake.backupSizeMutex.RLock()
 	defer fake.backupSizeMutex.RUnlock()
 	fake.backupChecksumMutex.RLock()
 	defer fake.backupChecksumMutex.RUnlock()
+	fake.remoteArtifactMutex.RLock()
+	defer fake.remoteArtifactMutex.RUnlock()
 	return fake.invocations
 }
 
