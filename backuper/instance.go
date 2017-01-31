@@ -24,22 +24,22 @@ type Instance interface {
 	StreamBackupToRemote(io.Reader) error
 	BackupSize() (string, error)
 	BackupChecksum() (BackupChecksum, error)
-	RemoteArtifacts() []RemoteArtifact
+	RemoteArtifacts() []BackupBlob
 
 	IsNamed() bool //TODO: Method here to enable continuous integration, delete after the restore flow works with remote artifacts
 }
 
-type ArtifactIdentifer interface {
+type BackupBlobIdentifier interface {
 	InstanceIdentifer
 	IsNamed() bool
 }
 
-//go:generate counterfeiter -o fakes/fake_remote_artifact.go . RemoteArtifact
-type RemoteArtifact interface {
-	ArtifactIdentifer
+//go:generate counterfeiter -o fakes/fake_backup_blob.go . BackupBlob
+type BackupBlob interface {
+	BackupBlobIdentifier
 	BackupSize() (string, error)
 	BackupChecksum() (BackupChecksum, error)
-	StreamBackupFromRemote(io.Writer) error
+	StreamFromRemote(io.Writer) error
 }
 
 type instances []Instance

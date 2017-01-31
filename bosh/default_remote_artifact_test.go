@@ -37,12 +37,12 @@ var _ = Describe("DefaultRemoteArtifact", func() {
 		defaultRemoteArtifact = bosh.NewDefaultRemoteArtifact(instance, sshConnection, boshLogger)
 	})
 
-	Describe("StreamBackupFromRemote", func() {
+	Describe("StreamFromRemote", func() {
 		var err error
 		var writer = bytes.NewBufferString("dave")
 
 		JustBeforeEach(func() {
-			err = defaultRemoteArtifact.StreamBackupFromRemote(writer)
+			err = defaultRemoteArtifact.StreamFromRemote(writer)
 		})
 
 		Describe("when successful", func() {

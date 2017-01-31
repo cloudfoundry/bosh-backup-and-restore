@@ -106,11 +106,11 @@ type FakeInstance struct {
 		result1 backuper.BackupChecksum
 		result2 error
 	}
-	RemoteArtifactsStub        func() []backuper.RemoteArtifact
+	RemoteArtifactsStub        func() []backuper.BackupBlob
 	remoteArtifactsMutex       sync.RWMutex
 	remoteArtifactsArgsForCall []struct{}
 	remoteArtifactsReturns     struct {
-		result1 []backuper.RemoteArtifact
+		result1 []backuper.BackupBlob
 	}
 	IsNamedStub        func() bool
 	isNamedMutex       sync.RWMutex
@@ -495,7 +495,7 @@ func (fake *FakeInstance) BackupChecksumReturns(result1 backuper.BackupChecksum,
 	}{result1, result2}
 }
 
-func (fake *FakeInstance) RemoteArtifacts() []backuper.RemoteArtifact {
+func (fake *FakeInstance) RemoteArtifacts() []backuper.BackupBlob {
 	fake.remoteArtifactsMutex.Lock()
 	fake.remoteArtifactsArgsForCall = append(fake.remoteArtifactsArgsForCall, struct{}{})
 	fake.recordInvocation("RemoteArtifacts", []interface{}{})
@@ -512,10 +512,10 @@ func (fake *FakeInstance) RemoteArtifactsCallCount() int {
 	return len(fake.remoteArtifactsArgsForCall)
 }
 
-func (fake *FakeInstance) RemoteArtifactsReturns(result1 []backuper.RemoteArtifact) {
+func (fake *FakeInstance) RemoteArtifactsReturns(result1 []backuper.BackupBlob) {
 	fake.RemoteArtifactsStub = nil
 	fake.remoteArtifactsReturns = struct {
-		result1 []backuper.RemoteArtifact
+		result1 []backuper.BackupBlob
 	}{result1}
 }
 

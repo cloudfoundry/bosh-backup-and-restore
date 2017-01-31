@@ -20,7 +20,7 @@ type DefaultRemoteArtifact struct {
 	Logger
 }
 
-func (d *DefaultRemoteArtifact) StreamBackupFromRemote(writer io.Writer) error {
+func (d *DefaultRemoteArtifact) StreamFromRemote(writer io.Writer) error {
 	d.Logger.Debug("", "Streaming backup from instance %s/%s", d.Name(), d.ID())
 	stderr, exitCode, err := d.Stream("sudo tar -C /var/vcap/store/backup -zc .", writer)
 

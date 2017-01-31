@@ -269,8 +269,8 @@ func (d *DeployedInstance) Cleanup() error {
 	return errs
 }
 
-func (d *DeployedInstance) RemoteArtifacts() []backuper.RemoteArtifact {
-	return []backuper.RemoteArtifact{
+func (d *DeployedInstance) RemoteArtifacts() []backuper.BackupBlob {
+	return []backuper.BackupBlob{
 		&DefaultRemoteArtifact{
 			Instance:      d,
 			SSHConnection: d.SSHConnection,

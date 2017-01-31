@@ -234,16 +234,16 @@ instances:
 		var artifact backuper.Artifact
 		var fileCreationError error
 		var writer io.Writer
-		var fakeRemoteArtifact *fakes.FakeRemoteArtifact
+		var fakeBackupBlob *fakes.FakeBackupBlob
 
 		BeforeEach(func() {
 			artifact, _ = artifactManager.Create(artifactName, logger)
-			fakeRemoteArtifact = new(fakes.FakeRemoteArtifact)
-			fakeRemoteArtifact.IndexReturns("0")
-			fakeRemoteArtifact.NameReturns("redis")
+			fakeBackupBlob = new(fakes.FakeBackupBlob)
+			fakeBackupBlob.IndexReturns("0")
+			fakeBackupBlob.NameReturns("redis")
 		})
 		JustBeforeEach(func() {
-			writer, fileCreationError = artifact.CreateFile(fakeRemoteArtifact)
+			writer, fileCreationError = artifact.CreateFile(fakeBackupBlob)
 		})
 		Context("with a default artifact", func() {
 			Context("Can create a file", func() {
@@ -263,8 +263,8 @@ instances:
 		})
 		Context("with a named artifact", func() {
 			BeforeEach(func() {
-				fakeRemoteArtifact.IsNamedReturns(true)
-				fakeRemoteArtifact.NameReturns("my-backup-artifact")
+				fakeBackupBlob.IsNamedReturns(true)
+				fakeBackupBlob.NameReturns("my-backup-artifact")
 			})
 
 			It("creates the named file in the artifact directory", func() {
@@ -283,7 +283,7 @@ instances:
 
 		Context("Cannot create file", func() {
 			BeforeEach(func() {
-				fakeRemoteArtifact.NameReturns("foo/bar/baz")
+				fakeBackupBlob.NameReturns("foo/bar/baz")
 			})
 			It("fails", func() {
 				Expect(fileCreationError).To(HaveOccurred())
@@ -313,11 +313,11 @@ instances:
 		var artifact backuper.Artifact
 		var fileReadError error
 		var reader io.Reader
-		var fakeRemoteArtifact *fakes.FakeRemoteArtifact
+		var fakeRemoteArtifact *fakes.FakeBackupBlob
 
 		BeforeEach(func() {
 			artifact, _ = artifactManager.Open(artifactName, logger)
-			fakeRemoteArtifact = new(fakes.FakeRemoteArtifact)
+			fakeRemoteArtifact = new(fakes.FakeBackupBlob)
 			fakeRemoteArtifact.IndexReturns("0")
 			fakeRemoteArtifact.NameReturns("redis")
 		})
@@ -387,14 +387,14 @@ instances:
 
 	Describe("Checksum", func() {
 		var artifact backuper.Artifact
-		var fakeRemoteArtifact *fakes.FakeRemoteArtifact
+		var fakeRemoteArtifact *fakes.FakeBackupBlob
 
 		BeforeEach(func() {
-			fakeRemoteArtifact = new(fakes.FakeRemoteArtifact)
+			fakeRemoteArtifact = new(fakes.FakeBackupBlob)
 			fakeRemoteArtifact.IndexReturns("0")
 			fakeRemoteArtifact.NameReturns("redis")
 		})
-		JustBeforeEach(func(){
+		JustBeforeEach(func() {
 			artifact, _ = artifactManager.Create(artifactName, logger)
 		})
 		Context("file exists", func() {
@@ -424,7 +424,7 @@ instances:
 			})
 
 			Context("named artifact", func() {
-				BeforeEach(func(){
+				BeforeEach(func() {
 					fakeRemoteArtifact.IsNamedReturns(true)
 				})
 				JustBeforeEach(func() {
@@ -497,12 +497,12 @@ instances:
 	Describe("AddChecksum", func() {
 		var artifact backuper.Artifact
 		var addChecksumError error
-		var fakeRemoteArtifact *fakes.FakeRemoteArtifact
+		var fakeRemoteArtifact *fakes.FakeBackupBlob
 		var checksum map[string]string
 
 		BeforeEach(func() {
 			artifact, _ = artifactManager.Create(artifactName, logger)
-			fakeRemoteArtifact = new(fakes.FakeRemoteArtifact)
+			fakeRemoteArtifact = new(fakes.FakeBackupBlob)
 			fakeRemoteArtifact.IndexReturns("0")
 			fakeRemoteArtifact.NameReturns("redis")
 			checksum = map[string]string{"filename": "foobar"}
@@ -572,7 +572,7 @@ instances:
 		Context("Appends to a checksum file, if already exists, with a named artifact", func() {
 			BeforeEach(func() {
 				fakeRemoteArtifact.IsNamedReturns(true)
-				anotherRemoteArtifact := new(fakes.FakeRemoteArtifact)
+				anotherRemoteArtifact := new(fakes.FakeBackupBlob)
 				anotherRemoteArtifact.NameReturns("broker")
 				anotherRemoteArtifact.IsNamedReturns(true)
 				Expect(artifact.AddChecksum(anotherRemoteArtifact, map[string]string{"filename1": "orignal_checksum"})).NotTo(HaveOccurred())
@@ -597,7 +597,7 @@ artifacts:
 		Context("Appends to a checksum file, if already exists, with a default artifact and a named artifact", func() {
 			BeforeEach(func() {
 				fakeRemoteArtifact.IsNamedReturns(true)
-				anotherRemoteArtifact := new(fakes.FakeRemoteArtifact)
+				anotherRemoteArtifact := new(fakes.FakeBackupBlob)
 				anotherRemoteArtifact.NameReturns("broker")
 				anotherRemoteArtifact.IndexReturns("0")
 				Expect(artifact.AddChecksum(anotherRemoteArtifact, map[string]string{"filename1": "orignal_checksum"})).NotTo(HaveOccurred())
