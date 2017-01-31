@@ -9,10 +9,10 @@ import (
 )
 
 type FakeArtifact struct {
-	CreateFileStub        func(backuper.InstanceIdentifer) (io.WriteCloser, error)
+	CreateFileStub        func(backuper.ArtifactIdentifer) (io.WriteCloser, error)
 	createFileMutex       sync.RWMutex
 	createFileArgsForCall []struct {
-		arg1 backuper.InstanceIdentifer
+		arg1 backuper.ArtifactIdentifer
 	}
 	createFileReturns struct {
 		result1 io.WriteCloser
@@ -27,28 +27,28 @@ type FakeArtifact struct {
 		result1 io.ReadCloser
 		result2 error
 	}
-	AddChecksumStub        func(backuper.InstanceIdentifer, backuper.BackupChecksum) error
+	AddChecksumStub        func(backuper.ArtifactIdentifer, backuper.BackupChecksum) error
 	addChecksumMutex       sync.RWMutex
 	addChecksumArgsForCall []struct {
-		arg1 backuper.InstanceIdentifer
+		arg1 backuper.ArtifactIdentifer
 		arg2 backuper.BackupChecksum
 	}
 	addChecksumReturns struct {
 		result1 error
 	}
-	FetchChecksumStub        func(backuper.InstanceIdentifer) (backuper.BackupChecksum, error)
+	FetchChecksumStub        func(backuper.ArtifactIdentifer) (backuper.BackupChecksum, error)
 	fetchChecksumMutex       sync.RWMutex
 	fetchChecksumArgsForCall []struct {
-		arg1 backuper.InstanceIdentifer
+		arg1 backuper.ArtifactIdentifer
 	}
 	fetchChecksumReturns struct {
 		result1 backuper.BackupChecksum
 		result2 error
 	}
-	CalculateChecksumStub        func(backuper.InstanceIdentifer) (backuper.BackupChecksum, error)
+	CalculateChecksumStub        func(backuper.ArtifactIdentifer) (backuper.BackupChecksum, error)
 	calculateChecksumMutex       sync.RWMutex
 	calculateChecksumArgsForCall []struct {
-		arg1 backuper.InstanceIdentifer
+		arg1 backuper.ArtifactIdentifer
 	}
 	calculateChecksumReturns struct {
 		result1 backuper.BackupChecksum
@@ -83,10 +83,10 @@ type FakeArtifact struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeArtifact) CreateFile(arg1 backuper.InstanceIdentifer) (io.WriteCloser, error) {
+func (fake *FakeArtifact) CreateFile(arg1 backuper.ArtifactIdentifer) (io.WriteCloser, error) {
 	fake.createFileMutex.Lock()
 	fake.createFileArgsForCall = append(fake.createFileArgsForCall, struct {
-		arg1 backuper.InstanceIdentifer
+		arg1 backuper.ArtifactIdentifer
 	}{arg1})
 	fake.recordInvocation("CreateFile", []interface{}{arg1})
 	fake.createFileMutex.Unlock()
@@ -102,7 +102,7 @@ func (fake *FakeArtifact) CreateFileCallCount() int {
 	return len(fake.createFileArgsForCall)
 }
 
-func (fake *FakeArtifact) CreateFileArgsForCall(i int) backuper.InstanceIdentifer {
+func (fake *FakeArtifact) CreateFileArgsForCall(i int) backuper.ArtifactIdentifer {
 	fake.createFileMutex.RLock()
 	defer fake.createFileMutex.RUnlock()
 	return fake.createFileArgsForCall[i].arg1
@@ -149,10 +149,10 @@ func (fake *FakeArtifact) ReadFileReturns(result1 io.ReadCloser, result2 error) 
 	}{result1, result2}
 }
 
-func (fake *FakeArtifact) AddChecksum(arg1 backuper.InstanceIdentifer, arg2 backuper.BackupChecksum) error {
+func (fake *FakeArtifact) AddChecksum(arg1 backuper.ArtifactIdentifer, arg2 backuper.BackupChecksum) error {
 	fake.addChecksumMutex.Lock()
 	fake.addChecksumArgsForCall = append(fake.addChecksumArgsForCall, struct {
-		arg1 backuper.InstanceIdentifer
+		arg1 backuper.ArtifactIdentifer
 		arg2 backuper.BackupChecksum
 	}{arg1, arg2})
 	fake.recordInvocation("AddChecksum", []interface{}{arg1, arg2})
@@ -169,7 +169,7 @@ func (fake *FakeArtifact) AddChecksumCallCount() int {
 	return len(fake.addChecksumArgsForCall)
 }
 
-func (fake *FakeArtifact) AddChecksumArgsForCall(i int) (backuper.InstanceIdentifer, backuper.BackupChecksum) {
+func (fake *FakeArtifact) AddChecksumArgsForCall(i int) (backuper.ArtifactIdentifer, backuper.BackupChecksum) {
 	fake.addChecksumMutex.RLock()
 	defer fake.addChecksumMutex.RUnlock()
 	return fake.addChecksumArgsForCall[i].arg1, fake.addChecksumArgsForCall[i].arg2
@@ -182,10 +182,10 @@ func (fake *FakeArtifact) AddChecksumReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeArtifact) FetchChecksum(arg1 backuper.InstanceIdentifer) (backuper.BackupChecksum, error) {
+func (fake *FakeArtifact) FetchChecksum(arg1 backuper.ArtifactIdentifer) (backuper.BackupChecksum, error) {
 	fake.fetchChecksumMutex.Lock()
 	fake.fetchChecksumArgsForCall = append(fake.fetchChecksumArgsForCall, struct {
-		arg1 backuper.InstanceIdentifer
+		arg1 backuper.ArtifactIdentifer
 	}{arg1})
 	fake.recordInvocation("FetchChecksum", []interface{}{arg1})
 	fake.fetchChecksumMutex.Unlock()
@@ -201,7 +201,7 @@ func (fake *FakeArtifact) FetchChecksumCallCount() int {
 	return len(fake.fetchChecksumArgsForCall)
 }
 
-func (fake *FakeArtifact) FetchChecksumArgsForCall(i int) backuper.InstanceIdentifer {
+func (fake *FakeArtifact) FetchChecksumArgsForCall(i int) backuper.ArtifactIdentifer {
 	fake.fetchChecksumMutex.RLock()
 	defer fake.fetchChecksumMutex.RUnlock()
 	return fake.fetchChecksumArgsForCall[i].arg1
@@ -215,10 +215,10 @@ func (fake *FakeArtifact) FetchChecksumReturns(result1 backuper.BackupChecksum, 
 	}{result1, result2}
 }
 
-func (fake *FakeArtifact) CalculateChecksum(arg1 backuper.InstanceIdentifer) (backuper.BackupChecksum, error) {
+func (fake *FakeArtifact) CalculateChecksum(arg1 backuper.ArtifactIdentifer) (backuper.BackupChecksum, error) {
 	fake.calculateChecksumMutex.Lock()
 	fake.calculateChecksumArgsForCall = append(fake.calculateChecksumArgsForCall, struct {
-		arg1 backuper.InstanceIdentifer
+		arg1 backuper.ArtifactIdentifer
 	}{arg1})
 	fake.recordInvocation("CalculateChecksum", []interface{}{arg1})
 	fake.calculateChecksumMutex.Unlock()
@@ -234,7 +234,7 @@ func (fake *FakeArtifact) CalculateChecksumCallCount() int {
 	return len(fake.calculateChecksumArgsForCall)
 }
 
-func (fake *FakeArtifact) CalculateChecksumArgsForCall(i int) backuper.InstanceIdentifer {
+func (fake *FakeArtifact) CalculateChecksumArgsForCall(i int) backuper.ArtifactIdentifer {
 	fake.calculateChecksumMutex.RLock()
 	defer fake.calculateChecksumMutex.RUnlock()
 	return fake.calculateChecksumArgsForCall[i].arg1

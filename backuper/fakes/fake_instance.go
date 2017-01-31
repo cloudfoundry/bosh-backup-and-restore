@@ -112,6 +112,12 @@ type FakeInstance struct {
 	remoteArtifactsReturns     struct {
 		result1 []backuper.RemoteArtifact
 	}
+	IsNamedStub        func() bool
+	isNamedMutex       sync.RWMutex
+	isNamedArgsForCall []struct{}
+	isNamedReturns     struct {
+		result1 bool
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -513,6 +519,30 @@ func (fake *FakeInstance) RemoteArtifactsReturns(result1 []backuper.RemoteArtifa
 	}{result1}
 }
 
+func (fake *FakeInstance) IsNamed() bool {
+	fake.isNamedMutex.Lock()
+	fake.isNamedArgsForCall = append(fake.isNamedArgsForCall, struct{}{})
+	fake.recordInvocation("IsNamed", []interface{}{})
+	fake.isNamedMutex.Unlock()
+	if fake.IsNamedStub != nil {
+		return fake.IsNamedStub()
+	}
+	return fake.isNamedReturns.result1
+}
+
+func (fake *FakeInstance) IsNamedCallCount() int {
+	fake.isNamedMutex.RLock()
+	defer fake.isNamedMutex.RUnlock()
+	return len(fake.isNamedArgsForCall)
+}
+
+func (fake *FakeInstance) IsNamedReturns(result1 bool) {
+	fake.IsNamedStub = nil
+	fake.isNamedReturns = struct {
+		result1 bool
+	}{result1}
+}
+
 func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -548,6 +578,8 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.backupChecksumMutex.RUnlock()
 	fake.remoteArtifactsMutex.RLock()
 	defer fake.remoteArtifactsMutex.RUnlock()
+	fake.isNamedMutex.RLock()
+	defer fake.isNamedMutex.RUnlock()
 	return fake.invocations
 }
 

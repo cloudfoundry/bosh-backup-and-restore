@@ -370,6 +370,12 @@ func (d *DeployedInstance) removeBackupArtifacts() error {
 	return err
 }
 
+//TODO: Method here to enable continuous integration, delete after the restore flow works with remote artifacts
+func (d *DeployedInstance) IsNamed() bool {
+	return false
+}
+
+
 func convertShasToMap(shas string) map[string]string {
 	mapOfSha := map[string]string{}
 	shas = strings.TrimSpace(shas)

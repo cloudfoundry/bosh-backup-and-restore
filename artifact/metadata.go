@@ -21,6 +21,11 @@ func (m instanceMetadata) ID() string {
 	return m.Index()
 }
 
+func (m instanceMetadata) IsNamed() bool {
+	return false
+}
+
+
 type metadata struct {
 	MetadataForEachInstance []instanceMetadata `yaml:"instances"`
 }

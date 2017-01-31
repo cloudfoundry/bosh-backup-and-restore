@@ -25,13 +25,18 @@ type Instance interface {
 	BackupSize() (string, error)
 	BackupChecksum() (BackupChecksum, error)
 	RemoteArtifacts() []RemoteArtifact
+
+	IsNamed() bool //TODO: Method here to enable continuous integration, delete after the restore flow works with remote artifacts
+}
+
+type ArtifactIdentifer interface {
+	InstanceIdentifer
+	IsNamed() bool
 }
 
 //go:generate counterfeiter -o fakes/fake_remote_artifact.go . RemoteArtifact
 type RemoteArtifact interface {
-	Name() string
-	Index() string
-	ID() string //TODO: Delete me, maybe
+	ArtifactIdentifer
 	BackupSize() (string, error)
 	BackupChecksum() (BackupChecksum, error)
 	StreamBackupFromRemote(io.Writer) error

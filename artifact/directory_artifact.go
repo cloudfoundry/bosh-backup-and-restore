@@ -43,7 +43,7 @@ func (d *DirectoryArtifact) DeploymentMatches(deployment string, instances []bac
 	return true, nil
 }
 
-func (d *DirectoryArtifact) CreateFile(inst backuper.InstanceIdentifer) (io.WriteCloser, error) {
+func (d *DirectoryArtifact) CreateFile(inst backuper.ArtifactIdentifer) (io.WriteCloser, error) {
 	d.Debug(TAG, "Trying to create file %s", fileName(inst))
 	return os.Create(path.Join(d.baseDirName, fileName(inst)))
 }
@@ -59,7 +59,7 @@ func (d *DirectoryArtifact) ReadFile(inst backuper.InstanceIdentifer) (io.ReadCl
 	return file, nil
 }
 
-func (d *DirectoryArtifact) FetchChecksum(inst backuper.InstanceIdentifer) (backuper.BackupChecksum, error) {
+func (d *DirectoryArtifact) FetchChecksum(inst backuper.ArtifactIdentifer) (backuper.BackupChecksum, error) {
 	metadata, err := readMetadata(d.metadataFilename())
 	if err != nil {
 		d.Debug(TAG, "Error reading metadata from %s %v", d.metadataFilename(), err)
@@ -74,7 +74,7 @@ func (d *DirectoryArtifact) FetchChecksum(inst backuper.InstanceIdentifer) (back
 	return nil, nil
 }
 
-func (d *DirectoryArtifact) CalculateChecksum(inst backuper.InstanceIdentifer) (backuper.BackupChecksum, error) {
+func (d *DirectoryArtifact) CalculateChecksum(inst backuper.ArtifactIdentifer) (backuper.BackupChecksum, error) {
 	file, err := d.ReadFile(inst)
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func (d *DirectoryArtifact) CalculateChecksum(inst backuper.InstanceIdentifer) (
 
 	return checksum, nil
 }
-func (d *DirectoryArtifact) AddChecksum(inst backuper.InstanceIdentifer, shasum backuper.BackupChecksum) error {
+func (d *DirectoryArtifact) AddChecksum(inst backuper.ArtifactIdentifer, shasum backuper.BackupChecksum) error {
 	metadata := metadata{}
 	if exists, _ := d.metadataExistsAndIsReadable(); exists {
 		var err error

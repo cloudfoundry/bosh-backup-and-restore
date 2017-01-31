@@ -861,7 +861,7 @@ var _ = Describe("Deployment", func() {
 				remoteArtifact1 = new(fakes.FakeRemoteArtifact)
 				remoteArtifact2 = new(fakes.FakeRemoteArtifact)
 
-				artifact.CreateFileStub = func(i backuper.InstanceIdentifer) (io.WriteCloser, error) {
+				artifact.CreateFileStub = func(i backuper.ArtifactIdentifer) (io.WriteCloser, error) {
 					if i == remoteArtifact1 {
 						return writeCloser1, nil
 					} else {
