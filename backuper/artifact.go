@@ -12,7 +12,7 @@ type ArtifactManager interface {
 //go:generate counterfeiter -o fakes/fake_artifact.go . Artifact
 type Artifact interface {
 	CreateFile(ArtifactIdentifer) (io.WriteCloser, error)
-	ReadFile(InstanceIdentifer) (io.ReadCloser, error)
+	ReadFile(ArtifactIdentifer) (io.ReadCloser, error)
 	AddChecksum(ArtifactIdentifer, BackupChecksum) error
 	FetchChecksum(ArtifactIdentifer) (BackupChecksum, error)
 	CalculateChecksum(ArtifactIdentifer) (BackupChecksum, error)

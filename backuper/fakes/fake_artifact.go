@@ -18,10 +18,10 @@ type FakeArtifact struct {
 		result1 io.WriteCloser
 		result2 error
 	}
-	ReadFileStub        func(backuper.InstanceIdentifer) (io.ReadCloser, error)
+	ReadFileStub        func(backuper.ArtifactIdentifer) (io.ReadCloser, error)
 	readFileMutex       sync.RWMutex
 	readFileArgsForCall []struct {
-		arg1 backuper.InstanceIdentifer
+		arg1 backuper.ArtifactIdentifer
 	}
 	readFileReturns struct {
 		result1 io.ReadCloser
@@ -116,10 +116,10 @@ func (fake *FakeArtifact) CreateFileReturns(result1 io.WriteCloser, result2 erro
 	}{result1, result2}
 }
 
-func (fake *FakeArtifact) ReadFile(arg1 backuper.InstanceIdentifer) (io.ReadCloser, error) {
+func (fake *FakeArtifact) ReadFile(arg1 backuper.ArtifactIdentifer) (io.ReadCloser, error) {
 	fake.readFileMutex.Lock()
 	fake.readFileArgsForCall = append(fake.readFileArgsForCall, struct {
-		arg1 backuper.InstanceIdentifer
+		arg1 backuper.ArtifactIdentifer
 	}{arg1})
 	fake.recordInvocation("ReadFile", []interface{}{arg1})
 	fake.readFileMutex.Unlock()
@@ -135,7 +135,7 @@ func (fake *FakeArtifact) ReadFileCallCount() int {
 	return len(fake.readFileArgsForCall)
 }
 
-func (fake *FakeArtifact) ReadFileArgsForCall(i int) backuper.InstanceIdentifer {
+func (fake *FakeArtifact) ReadFileArgsForCall(i int) backuper.ArtifactIdentifer {
 	fake.readFileMutex.RLock()
 	defer fake.readFileMutex.RUnlock()
 	return fake.readFileArgsForCall[i].arg1

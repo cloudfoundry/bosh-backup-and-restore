@@ -313,16 +313,16 @@ instances:
 		var artifact backuper.Artifact
 		var fileReadError error
 		var reader io.Reader
-		var fakeInstance *fakes.FakeInstance
+		var fakeRemoteArtifact *fakes.FakeRemoteArtifact
 
 		BeforeEach(func() {
 			artifact, _ = artifactManager.Open(artifactName, logger)
-			fakeInstance = new(fakes.FakeInstance)
-			fakeInstance.IndexReturns("0")
-			fakeInstance.NameReturns("redis")
+			fakeRemoteArtifact = new(fakes.FakeRemoteArtifact)
+			fakeRemoteArtifact.IndexReturns("0")
+			fakeRemoteArtifact.NameReturns("redis")
 		})
 
-		Context("File exists and is readable", func() {
+		Context("Default artifact - file exists and is readable", func() {
 			BeforeEach(func() {
 				err := os.MkdirAll(artifactName, 0700)
 				Expect(err).NotTo(HaveOccurred())
@@ -333,7 +333,36 @@ instances:
 			})
 
 			JustBeforeEach(func() {
-				reader, fileReadError = artifact.ReadFile(fakeInstance)
+				reader, fileReadError = artifact.ReadFile(fakeRemoteArtifact)
+			})
+
+			It("does not fail", func() {
+				Expect(fileReadError).NotTo(HaveOccurred())
+			})
+
+			It("reads the correct file", func() {
+				contents, err := ioutil.ReadAll(reader)
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(contents).To(ContainSubstring("backup-content"))
+			})
+		})
+
+		Context("Named artifact - file exists and is readable", func() {
+			BeforeEach(func() {
+				fakeRemoteArtifact.IsNamedReturns(true)
+				fakeRemoteArtifact.NameReturns("foo-bar")
+
+				err := os.MkdirAll(artifactName, 0700)
+				Expect(err).NotTo(HaveOccurred())
+				_, err = os.Create(artifactName + "/foo-bar.tgz")
+				Expect(err).NotTo(HaveOccurred())
+				err = ioutil.WriteFile(artifactName+"/foo-bar.tgz", []byte("backup-content"), 0700)
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			JustBeforeEach(func() {
+				reader, fileReadError = artifact.ReadFile(fakeRemoteArtifact)
 			})
 
 			It("does not fail", func() {
@@ -350,7 +379,7 @@ instances:
 
 		Context("File is not readable", func() {
 			It("fails", func() {
-				_, fileReadError = artifact.ReadFile(fakeInstance)
+				_, fileReadError = artifact.ReadFile(fakeRemoteArtifact)
 				Expect(fileReadError).To(HaveOccurred())
 			})
 		})
@@ -358,41 +387,74 @@ instances:
 
 	Describe("Checksum", func() {
 		var artifact backuper.Artifact
-		var fakeInstance *fakes.FakeInstance
+		var fakeRemoteArtifact *fakes.FakeRemoteArtifact
 
 		BeforeEach(func() {
+			fakeRemoteArtifact = new(fakes.FakeRemoteArtifact)
+			fakeRemoteArtifact.IndexReturns("0")
+			fakeRemoteArtifact.NameReturns("redis")
+		})
+		JustBeforeEach(func(){
 			artifact, _ = artifactManager.Create(artifactName, logger)
-			fakeInstance = new(fakes.FakeInstance)
-			fakeInstance.IndexReturns("0")
-			fakeInstance.NameReturns("redis")
 		})
 		Context("file exists", func() {
-			JustBeforeEach(func() {
-				writer, fileCreationError := artifact.CreateFile(fakeInstance)
-				Expect(fileCreationError).NotTo(HaveOccurred())
+			Context("default artifact", func() {
+				JustBeforeEach(func() {
+					writer, fileCreationError := artifact.CreateFile(fakeRemoteArtifact)
+					Expect(fileCreationError).NotTo(HaveOccurred())
 
-				contents := gzipContents(createTarWithContents(map[string]string{
-					"readme.txt": "This archive contains some text files.",
-					"gopher.txt": "Gopher names:\nGeorge\nGeoffrey\nGonzo",
-					"todo.txt":   "Get animal handling license.",
-				}))
+					contents := gzipContents(createTarWithContents(map[string]string{
+						"readme.txt": "This archive contains some text files.",
+						"gopher.txt": "Gopher names:\nGeorge\nGeoffrey\nGonzo",
+						"todo.txt":   "Get animal handling license.",
+					}))
 
-				writer.Write(contents)
-				Expect(writer.Close()).NotTo(HaveOccurred())
+					writer.Write(contents)
+					Expect(writer.Close()).NotTo(HaveOccurred())
+				})
+
+				It("returns the checksum for the saved instance data", func() {
+					Expect(artifact.CalculateChecksum(fakeRemoteArtifact)).To(Equal(
+						backuper.BackupChecksum{
+							"readme.txt": fmt.Sprintf("%x", sha1.Sum([]byte("This archive contains some text files."))),
+							"gopher.txt": fmt.Sprintf("%x", sha1.Sum([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo"))),
+							"todo.txt":   fmt.Sprintf("%x", sha1.Sum([]byte("Get animal handling license."))),
+						}))
+				})
 			})
 
-			It("returns the checksum for the saved instance data", func() {
-				Expect(artifact.CalculateChecksum(fakeInstance)).To(Equal(
-					backuper.BackupChecksum{
-						"readme.txt": fmt.Sprintf("%x", sha1.Sum([]byte("This archive contains some text files."))),
-						"gopher.txt": fmt.Sprintf("%x", sha1.Sum([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo"))),
-						"todo.txt":   fmt.Sprintf("%x", sha1.Sum([]byte("Get animal handling license."))),
+			Context("named artifact", func() {
+				BeforeEach(func(){
+					fakeRemoteArtifact.IsNamedReturns(true)
+				})
+				JustBeforeEach(func() {
+					writer, fileCreationError := artifact.CreateFile(fakeRemoteArtifact)
+					Expect(fileCreationError).NotTo(HaveOccurred())
+
+					contents := gzipContents(createTarWithContents(map[string]string{
+						"readme.txt": "This archive contains some text files.",
+						"gopher.txt": "Gopher names:\nGeorge\nGeoffrey\nGonzo",
+						"todo.txt":   "Get animal handling license.",
 					}))
+
+					writer.Write(contents)
+					Expect(writer.Close()).NotTo(HaveOccurred())
+				})
+
+				It("returns the checksum for the saved instance data", func() {
+					Expect(artifact.CalculateChecksum(fakeRemoteArtifact)).To(Equal(
+						backuper.BackupChecksum{
+							"readme.txt": fmt.Sprintf("%x", sha1.Sum([]byte("This archive contains some text files."))),
+							"gopher.txt": fmt.Sprintf("%x", sha1.Sum([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo"))),
+							"todo.txt":   fmt.Sprintf("%x", sha1.Sum([]byte("Get animal handling license."))),
+						}))
+				})
 			})
 		})
+
 		Context("invalid tar file", func() {
 			JustBeforeEach(func() {
-				writer, fileCreationError := artifact.CreateFile(fakeInstance)
+				writer, fileCreationError := artifact.CreateFile(fakeRemoteArtifact)
 				Expect(fileCreationError).NotTo(HaveOccurred())
 
 				contents := gzipContents([]byte("this ain't a tarball"))
@@ -402,13 +464,13 @@ instances:
 			})
 
 			It("fails to read", func() {
-				_, err := artifact.CalculateChecksum(fakeInstance)
+				_, err := artifact.CalculateChecksum(fakeRemoteArtifact)
 				Expect(err).To(HaveOccurred())
 			})
 		})
 		Context("invalid gz file", func() {
 			JustBeforeEach(func() {
-				writer, fileCreationError := artifact.CreateFile(fakeInstance)
+				writer, fileCreationError := artifact.CreateFile(fakeRemoteArtifact)
 				Expect(fileCreationError).NotTo(HaveOccurred())
 
 				contents := createTarWithContents(map[string]string{
@@ -420,13 +482,13 @@ instances:
 			})
 
 			It("fails to read", func() {
-				_, err := artifact.CalculateChecksum(fakeInstance)
+				_, err := artifact.CalculateChecksum(fakeRemoteArtifact)
 				Expect(err).To(HaveOccurred())
 			})
 		})
 		Context("file doesn't exist", func() {
 			It("fails", func() {
-				_, err := artifact.CalculateChecksum(fakeInstance)
+				_, err := artifact.CalculateChecksum(fakeRemoteArtifact)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -532,7 +594,7 @@ artifacts:
 			})
 		})
 
-		Context("Appends to a checksum file, if already exists, with a default artifact and a named artifact", func(){
+		Context("Appends to a checksum file, if already exists, with a default artifact and a named artifact", func() {
 			BeforeEach(func() {
 				fakeRemoteArtifact.IsNamedReturns(true)
 				anotherRemoteArtifact := new(fakes.FakeRemoteArtifact)
@@ -585,7 +647,29 @@ artifacts:
 
 			checksum, fetchChecksumError = artifact.FetchChecksum(fakeInstance)
 		})
-		Context("the instance is found in metadata", func() {
+		Context("the named artifact is found in metadata", func() {
+			BeforeEach(func() {
+				fakeInstance.IsNamedReturns(true)
+				fakeInstance.NameReturns("foo")
+
+				createTestMetadata(artifactName, `---
+instances: []
+artifacts:
+- artifact_name: foo
+  checksums:
+    filename1: orignal_checksum`)
+			})
+
+			It("dosen't fail", func() {
+				Expect(fetchChecksumError).NotTo(HaveOccurred())
+			})
+
+			It("fetches the checksum", func() {
+				Expect(checksum).To(Equal(backuper.BackupChecksum{"filename1": "orignal_checksum"}))
+			})
+		})
+
+		Context("the default artifact is found in metadata", func() {
 			BeforeEach(func() {
 				fakeInstance.NameReturns("foo")
 				fakeInstance.IndexReturns("bar")
@@ -606,6 +690,50 @@ instances:
 				Expect(checksum).To(Equal(backuper.BackupChecksum{"filename1": "orignal_checksum"}))
 			})
 		})
+		Context("the default artifact is not found in metadata", func() {
+			BeforeEach(func() {
+				fakeInstance.NameReturns("not-foo")
+				fakeInstance.IndexReturns("bar")
+
+				createTestMetadata(artifactName, `---
+instances:
+- instance_name: foo
+  instance_index: "bar"
+  checksums:
+    filename1: orignal_checksum`)
+			})
+
+			It("dosen't fail", func() {
+				Expect(fetchChecksumError).ToNot(HaveOccurred())
+			})
+
+			It("returns nil", func() {
+				Expect(checksum).To(BeNil())
+			})
+		})
+
+		Context("the named artifact is not found in metadata", func() {
+			BeforeEach(func() {
+				fakeInstance.NameReturns("not-foo")
+				fakeInstance.IsNamedReturns(true)
+
+				createTestMetadata(artifactName, `---
+instances:
+- instance_name: foo
+  instance_index: "bar"
+  checksums:
+    filename1: orignal_checksum`)
+			})
+
+			It("dosen't fail", func() {
+				Expect(fetchChecksumError).ToNot(HaveOccurred())
+			})
+
+			It("returns nil", func() {
+				Expect(checksum).To(BeNil())
+			})
+		})
+
 		Context("the instance is not found in metadata", func() {
 			BeforeEach(func() {
 				fakeInstance.NameReturns("not-foo")

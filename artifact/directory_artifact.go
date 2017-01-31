@@ -48,8 +48,8 @@ func (d *DirectoryArtifact) CreateFile(artifactIdentifer backuper.ArtifactIdenti
 	return os.Create(path.Join(d.baseDirName, fileName(artifactIdentifer)))
 }
 
-func (d *DirectoryArtifact) ReadFile(inst backuper.InstanceIdentifer) (io.ReadCloser, error) {
-	filename := d.instanceFilename(inst)
+func (d *DirectoryArtifact) ReadFile(artifactIdentifer backuper.ArtifactIdentifer) (io.ReadCloser, error) {
+	filename := d.instanceFilename(artifactIdentifer)
 	d.Debug(TAG, "Trying to open %s", filename)
 	file, err := os.Open(filename)
 	if err != nil {
@@ -60,18 +60,29 @@ func (d *DirectoryArtifact) ReadFile(inst backuper.InstanceIdentifer) (io.ReadCl
 	return file, nil
 }
 
-func (d *DirectoryArtifact) FetchChecksum(inst backuper.ArtifactIdentifer) (backuper.BackupChecksum, error) {
+func (d *DirectoryArtifact) FetchChecksum(artifactIdentifer backuper.ArtifactIdentifer) (backuper.BackupChecksum, error) {
 	metadata, err := readMetadata(d.metadataFilename())
+
 	if err != nil {
 		d.Debug(TAG, "Error reading metadata from %s %v", d.metadataFilename(), err)
 		return nil, err
 	}
-	for _, instanceInMetadata := range metadata.MetadataForEachInstance {
-		if instanceInMetadata.Index() == inst.Index() && instanceInMetadata.Name() == inst.Name() {
-			return instanceInMetadata.Checksum, nil
+
+	if artifactIdentifer.IsNamed() {
+		for _, instanceInMetadata := range metadata.MetadataForEachArtifact {
+			if instanceInMetadata.Name() == artifactIdentifer.Name() {
+				return instanceInMetadata.Checksum, nil
+			}
+		}
+	} else {
+		for _, instanceInMetadata := range metadata.MetadataForEachInstance {
+			if instanceInMetadata.Index() == artifactIdentifer.Index() && instanceInMetadata.Name() == artifactIdentifer.Name() {
+				return instanceInMetadata.Checksum, nil
+			}
 		}
 	}
-	d.Warn(TAG, "Checksum for %s/%s not found in artifact", inst.Name(), inst.Index())
+
+	d.Warn(TAG, "Checksum for %s/%s not found in artifact", artifactIdentifer.Name(), artifactIdentifer.Index())
 	return nil, nil
 }
 
@@ -173,8 +184,8 @@ func (d *DirectoryArtifact) backupInstanceIsPresent(backupInstance instanceMetad
 	return false
 }
 
-func (d *DirectoryArtifact) instanceFilename(inst backuper.InstanceIdentifer) string {
-	return path.Join(d.baseDirName, inst.Name()+"-"+inst.Index()+".tgz")
+func (d *DirectoryArtifact) instanceFilename(artifactIdentifer backuper.ArtifactIdentifer) string {
+	return path.Join(d.baseDirName, fileName(artifactIdentifer))
 }
 
 func (d *DirectoryArtifact) metadataFilename() string {
