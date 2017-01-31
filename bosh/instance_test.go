@@ -26,6 +26,7 @@ var _ = Describe("Instance", func() {
 	var jobName, jobIndex, jobID, expectedStdout, expectedStderr string
 	var backupAndRestoreScripts []bosh.Script
 	var jobs bosh.Jobs
+	var artifactNames map[string]string
 
 	var instance backuper.Instance
 	BeforeEach(func() {
@@ -40,10 +41,11 @@ var _ = Describe("Instance", func() {
 		stderr = gbytes.NewBuffer()
 		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile), log.New(stderr, "[bosh-package] ", log.Lshortfile))
 		backupAndRestoreScripts = []bosh.Script{}
+		artifactNames = map[string]string{}
 	})
 
 	JustBeforeEach(func() {
-		jobs, _ = bosh.NewJobs(backupAndRestoreScripts, map[string]string{})
+		jobs, _ = bosh.NewJobs(backupAndRestoreScripts, artifactNames)
 		sshConnection.UsernameReturns("sshUsername")
 		instance = bosh.NewBoshInstance(jobName, jobIndex, jobID, sshConnection, boshDeployment, boshLogger, jobs)
 	})
@@ -617,7 +619,7 @@ var _ = Describe("Instance", func() {
 				}
 			})
 
-			It("uses the ssh connection to create each job's backup folder and run each backup script providing the correct ARTIFACT_DIRECTORTY", func() {
+			It("uses the ssh connection to create each job's backup folder and run each backup script providing the correct ARTIFACT_DIRECTORY", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(3))
 				Expect([]string{
 					sshConnection.RunArgsForCall(0),
@@ -651,6 +653,32 @@ var _ = Describe("Instance", func() {
 
 			It("succeeds", func() {
 				Expect(err).NotTo(HaveOccurred())
+			})
+		})
+
+		Context("when there are multiple backup scripts and one of them is named", func() {
+			BeforeEach(func() {
+				artifactNames = map[string]string{
+					"baz": "special-backup",
+				}
+				backupAndRestoreScripts = []bosh.Script{
+					"/var/vcap/jobs/foo/bin/p-backup",
+					"/var/vcap/jobs/bar/bin/p-backup",
+					"/var/vcap/jobs/baz/bin/p-backup",
+				}
+			})
+
+			It("uses the ssh connection to create each job's backup folder and run each backup script providing the correct ARTIFACT_DIRECTORY", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(3))
+				Expect([]string{
+					sshConnection.RunArgsForCall(0),
+					sshConnection.RunArgsForCall(1),
+					sshConnection.RunArgsForCall(2),
+				}).To(ConsistOf(
+					"sudo mkdir -p /var/vcap/store/backup/foo && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/p-backup",
+					"sudo mkdir -p /var/vcap/store/backup/bar && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/p-backup",
+					"sudo mkdir -p /var/vcap/store/backup/special-backup && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/special-backup/ /var/vcap/jobs/baz/bin/p-backup",
+				))
 			})
 		})
 
