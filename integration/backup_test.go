@@ -160,7 +160,7 @@ backup_name: foo_redis
 					Expect(filesInTar(redisNodeArtifactFile)).NotTo(ConsistOf("backupdump1", "backupdump2"))
 				})
 
-				It("the custom named artifact contains the artifact files", func() {
+				It("the custom named backup blob contains the artifact files", func() {
 					Expect(filesInTar(redisCustomArtifactFile)).NotTo(ConsistOf("backupdump1", "backupdump2"))
 					Expect(contentsInTar(redisCustomArtifactFile, "backupdump1")).To(Equal("backupcontent1"))
 					Expect(contentsInTar(redisCustomArtifactFile, "backupdump2")).To(Equal("backupcontent2"))
