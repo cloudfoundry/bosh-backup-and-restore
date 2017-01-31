@@ -234,25 +234,46 @@ instances:
 		var artifact backuper.Artifact
 		var fileCreationError error
 		var writer io.Writer
-		var fakeInstance *fakes.FakeInstance
+		var fakeRemoteArtifact *fakes.FakeRemoteArtifact
 
 		BeforeEach(func() {
 			artifact, _ = artifactManager.Create(artifactName, logger)
-			fakeInstance = new(fakes.FakeInstance)
-			fakeInstance.IndexReturns("0")
-			fakeInstance.NameReturns("redis")
+			fakeRemoteArtifact = new(fakes.FakeRemoteArtifact)
+			fakeRemoteArtifact.IndexReturns("0")
+			fakeRemoteArtifact.NameReturns("redis")
 		})
 		JustBeforeEach(func() {
-			writer, fileCreationError = artifact.CreateFile(fakeInstance)
+			writer, fileCreationError = artifact.CreateFile(fakeRemoteArtifact)
 		})
-		Context("Can create a file", func() {
-			It("creates a file in the artifact directory", func() {
-				Expect(artifactName + "/redis-0.tgz").To(BeARegularFile())
+		Context("with a default artifact", func() {
+			Context("Can create a file", func() {
+				It("creates a file in the artifact directory", func() {
+					Expect(artifactName + "/redis-0.tgz").To(BeARegularFile())
+				})
+
+				It("writer writes contents to the file", func() {
+					writer.Write([]byte("they are taking our jobs"))
+					Expect(ioutil.ReadFile(artifactName + "/redis-0.tgz")).To(Equal([]byte("they are taking our jobs")))
+				})
+
+				It("does not fail", func() {
+					Expect(fileCreationError).NotTo(HaveOccurred())
+				})
+			})
+		})
+		Context("with a named artifact", func() {
+			BeforeEach(func() {
+				fakeRemoteArtifact.IsNamedReturns(true)
+				fakeRemoteArtifact.NameReturns("my-backup-artifact")
+			})
+
+			It("creates the named file in the artifact directory", func() {
+				Expect(artifactName + "/my-backup-artifact.tgz").To(BeARegularFile())
 			})
 
 			It("writer writes contents to the file", func() {
 				writer.Write([]byte("they are taking our jobs"))
-				Expect(ioutil.ReadFile(artifactName + "/redis-0.tgz")).To(Equal([]byte("they are taking our jobs")))
+				Expect(ioutil.ReadFile(artifactName + "/my-backup-artifact.tgz")).To(Equal([]byte("they are taking our jobs")))
 			})
 
 			It("does not fail", func() {
@@ -262,7 +283,7 @@ instances:
 
 		Context("Cannot create file", func() {
 			BeforeEach(func() {
-				fakeInstance.NameReturns("foo/bar/baz")
+				fakeRemoteArtifact.NameReturns("foo/bar/baz")
 			})
 			It("fails", func() {
 				Expect(fileCreationError).To(HaveOccurred())
@@ -414,21 +435,21 @@ instances:
 	Describe("AddChecksum", func() {
 		var artifact backuper.Artifact
 		var addChecksumError error
-		var fakeInstance *fakes.FakeInstance
+		var fakeRemoteArtifact *fakes.FakeRemoteArtifact
 		var checksum map[string]string
 
 		BeforeEach(func() {
 			artifact, _ = artifactManager.Create(artifactName, logger)
-			fakeInstance = new(fakes.FakeInstance)
-			fakeInstance.IndexReturns("0")
-			fakeInstance.NameReturns("redis")
+			fakeRemoteArtifact = new(fakes.FakeRemoteArtifact)
+			fakeRemoteArtifact.IndexReturns("0")
+			fakeRemoteArtifact.NameReturns("redis")
 			checksum = map[string]string{"filename": "foobar"}
 		})
 		JustBeforeEach(func() {
-			addChecksumError = artifact.AddChecksum(fakeInstance, checksum)
+			addChecksumError = artifact.AddChecksum(fakeRemoteArtifact, checksum)
 		})
 
-		Context("Succesfully creates a checksum file, if none exists", func() {
+		Context("Succesfully creates a checksum file, if none exists, with a default artifact", func() {
 			It("makes a file", func() {
 				Expect(artifactName + "/metadata").To(BeARegularFile())
 
@@ -441,12 +462,32 @@ instances:
 				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
 			})
 		})
-		Context("Appends to a checksum file, if already exists", func() {
+
+		Context("Succesfully creates a checksum file, if none exists, with a named artifact", func() {
 			BeforeEach(func() {
-				firstInstance := new(fakes.FakeInstance)
-				firstInstance.IndexReturns("0")
-				firstInstance.NameReturns("broker")
-				Expect(artifact.AddChecksum(firstInstance, map[string]string{"filename1": "orignal_checksum"})).NotTo(HaveOccurred())
+				fakeRemoteArtifact.IsNamedReturns(true)
+				fakeRemoteArtifact.NameReturns("my-amazing-artifact")
+			})
+
+			It("makes a file", func() {
+				Expect(artifactName + "/metadata").To(BeARegularFile())
+
+				expectedMetadata := `---
+instances: []
+artifacts:
+- artifact_name: my-amazing-artifact
+  checksums:
+    filename: foobar`
+				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+			})
+		})
+
+		Context("Appends to a checksum file, if already exists, with a default artifact", func() {
+			BeforeEach(func() {
+				anotherRemoteArtifact := new(fakes.FakeInstance)
+				anotherRemoteArtifact.IndexReturns("0")
+				anotherRemoteArtifact.NameReturns("broker")
+				Expect(artifact.AddChecksum(anotherRemoteArtifact, map[string]string{"filename1": "orignal_checksum"})).NotTo(HaveOccurred())
 			})
 
 			It("appends to file", func() {
@@ -460,6 +501,57 @@ instances:
     filename1: orignal_checksum
 - instance_name: redis
   instance_index: "0"
+  checksums:
+    filename: foobar`
+				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+			})
+		})
+
+		Context("Appends to a checksum file, if already exists, with a named artifact", func() {
+			BeforeEach(func() {
+				fakeRemoteArtifact.IsNamedReturns(true)
+				anotherRemoteArtifact := new(fakes.FakeRemoteArtifact)
+				anotherRemoteArtifact.NameReturns("broker")
+				anotherRemoteArtifact.IsNamedReturns(true)
+				Expect(artifact.AddChecksum(anotherRemoteArtifact, map[string]string{"filename1": "orignal_checksum"})).NotTo(HaveOccurred())
+			})
+
+			It("appends to file", func() {
+				Expect(artifactName + "/metadata").To(BeARegularFile())
+
+				expectedMetadata := `---
+instances: []
+artifacts:
+- artifact_name: broker
+  checksums:
+    filename1: orignal_checksum
+- artifact_name: redis
+  checksums:
+    filename: foobar`
+				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+			})
+		})
+
+		Context("Appends to a checksum file, if already exists, with a default artifact and a named artifact", func(){
+			BeforeEach(func() {
+				fakeRemoteArtifact.IsNamedReturns(true)
+				anotherRemoteArtifact := new(fakes.FakeRemoteArtifact)
+				anotherRemoteArtifact.NameReturns("broker")
+				anotherRemoteArtifact.IndexReturns("0")
+				Expect(artifact.AddChecksum(anotherRemoteArtifact, map[string]string{"filename1": "orignal_checksum"})).NotTo(HaveOccurred())
+			})
+
+			It("appends to file", func() {
+				Expect(artifactName + "/metadata").To(BeARegularFile())
+
+				expectedMetadata := `---
+instances:
+- instance_name: broker
+  instance_index: "0"
+  checksums:
+    filename1: orignal_checksum
+artifacts:
+- artifact_name: redis
   checksums:
     filename: foobar`
 				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))

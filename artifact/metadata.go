@@ -3,30 +3,10 @@ package artifact
 import "gopkg.in/yaml.v2"
 import "io/ioutil"
 
-type instanceMetadata struct {
-	InstanceName  string            `yaml:"instance_name"`
-	InstanceIndex string            `yaml:"instance_index"`
-	Checksum      map[string]string `yaml:"checksums"`
-}
-
-func (m instanceMetadata) Name() string {
-	return m.InstanceName
-}
-
-func (m instanceMetadata) Index() string {
-	return m.InstanceIndex
-}
-
-func (m instanceMetadata) ID() string {
-	return m.Index()
-}
-
-func (m instanceMetadata) IsNamed() bool {
-	return false
-}
 
 type metadata struct {
 	MetadataForEachInstance []instanceMetadata `yaml:"instances"`
+	MetadataForEachArtifact []artifactMetadata `yaml:"artifacts,omitempty"`
 }
 
 func readMetadata(filename string) (metadata, error) {

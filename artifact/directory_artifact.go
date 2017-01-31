@@ -43,10 +43,11 @@ func (d *DirectoryArtifact) DeploymentMatches(deployment string, instances []bac
 	return true, nil
 }
 
-func (d *DirectoryArtifact) CreateFile(inst backuper.ArtifactIdentifer) (io.WriteCloser, error) {
-	d.Debug(TAG, "Trying to create file %s", fileName(inst))
-	return os.Create(path.Join(d.baseDirName, fileName(inst)))
+func (d *DirectoryArtifact) CreateFile(artifactIdentifer backuper.ArtifactIdentifer) (io.WriteCloser, error) {
+	d.Debug(TAG, "Trying to create file %s", fileName(artifactIdentifer))
+	return os.Create(path.Join(d.baseDirName, fileName(artifactIdentifer)))
 }
+
 func (d *DirectoryArtifact) ReadFile(inst backuper.InstanceIdentifer) (io.ReadCloser, error) {
 	filename := d.instanceFilename(inst)
 	d.Debug(TAG, "Trying to open %s", filename)
@@ -111,7 +112,7 @@ func (d *DirectoryArtifact) CalculateChecksum(inst backuper.ArtifactIdentifer) (
 
 	return checksum, nil
 }
-func (d *DirectoryArtifact) AddChecksum(inst backuper.ArtifactIdentifer, shasum backuper.BackupChecksum) error {
+func (d *DirectoryArtifact) AddChecksum(artifactIdentifer backuper.ArtifactIdentifer, shasum backuper.BackupChecksum) error {
 	metadata := metadata{}
 	if exists, _ := d.metadataExistsAndIsReadable(); exists {
 		var err error
@@ -122,11 +123,18 @@ func (d *DirectoryArtifact) AddChecksum(inst backuper.ArtifactIdentifer, shasum 
 		}
 	}
 
-	metadata.MetadataForEachInstance = append(metadata.MetadataForEachInstance, instanceMetadata{
-		InstanceName:  inst.Name(),
-		InstanceIndex: inst.Index(),
-		Checksum:      shasum,
-	})
+	if artifactIdentifer.IsNamed() {
+		metadata.MetadataForEachArtifact = append(metadata.MetadataForEachArtifact, artifactMetadata{
+			ArtifactName: artifactIdentifer.Name(),
+			Checksum:     shasum,
+		})
+	} else {
+		metadata.MetadataForEachInstance = append(metadata.MetadataForEachInstance, instanceMetadata{
+			InstanceName:  artifactIdentifer.Name(),
+			InstanceIndex: artifactIdentifer.Index(),
+			Checksum:      shasum,
+		})
+	}
 
 	return metadata.save(d.metadataFilename())
 }
@@ -184,6 +192,10 @@ func (d *DirectoryArtifact) metadataExistsAndIsReadable() (bool, error) {
 	return true, nil
 }
 
-func fileName(inst backuper.InstanceIdentifer) string {
-	return inst.Name() + "-" + inst.Index() + ".tgz"
+func fileName(artifactIdentifer backuper.ArtifactIdentifer) string {
+	if artifactIdentifer.IsNamed() {
+		return artifactIdentifer.Name() + ".tgz"
+	}
+
+	return artifactIdentifer.Name() + "-" + artifactIdentifer.Index() + ".tgz"
 }
