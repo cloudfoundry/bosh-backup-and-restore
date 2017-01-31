@@ -252,4 +252,35 @@ var _ = Describe("Jobs", func() {
 			})
 		})
 	})
+
+	Describe("WithNamedBlobs", func() {
+		Context("contains no jobs with named blobs", func() {
+			It("returns empty", func() {
+				Expect(jobs.WithNamedBlobs()).To(BeEmpty())
+			})
+		})
+
+		Context("contains jobs with named blobs", func() {
+			BeforeEach(func() {
+				artifactNames = map[string]string{
+					"bar": "my-cool-blob",
+				}
+				scripts = bosh.BackupAndRestoreScripts{
+					"/var/vcap/jobs/bar/bin/p-backup",
+					"/var/vcap/jobs/bar/bin/p-restore",
+					"/var/vcap/jobs/foo/bin/p-backup",
+					"/var/vcap/jobs/baz/bin/p-restore",
+				}
+			})
+
+			It("returns jobs with named blobs", func() {
+				Expect(jobs.WithNamedBlobs()).To(ConsistOf(bosh.NewJob(
+					bosh.BackupAndRestoreScripts{
+						"/var/vcap/jobs/bar/bin/p-backup",
+						"/var/vcap/jobs/bar/bin/p-restore",
+					}, "my-cool-blob"),
+				))
+			})
+		})
+	})
 })

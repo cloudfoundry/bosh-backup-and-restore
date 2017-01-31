@@ -10,6 +10,7 @@ import (
 var _ = Describe("Job", func() {
 	var job bosh.Job
 	var jobScripts bosh.BackupAndRestoreScripts
+	var artifactName string
 
 	BeforeEach(func() {
 		jobScripts = bosh.BackupAndRestoreScripts{
@@ -18,10 +19,11 @@ var _ = Describe("Job", func() {
 			"/var/vcap/jobs/foo/bin/p-pre-backup-lock",
 			"/var/vcap/jobs/foo/bin/p-post-backup-unlock",
 		}
+		artifactName = ""
 	})
 
 	JustBeforeEach(func() {
-		job = bosh.NewJob(jobScripts, "")
+		job = bosh.NewJob(jobScripts, artifactName)
 	})
 
 	Describe("ArtifactDirectory", func() {
@@ -154,6 +156,22 @@ var _ = Describe("Job", func() {
 			})
 			It("returns false", func() {
 				Expect(job.HasRestore()).To(BeFalse())
+			})
+		})
+	})
+
+	Describe("HasNamedBlob", func() {
+		It("returns false", func() {
+			Expect(job.HasNamedBlob()).To(BeFalse())
+		})
+
+		Context("when the job has a named blob", func() {
+			BeforeEach(func() {
+				artifactName = "foo"
+			})
+
+			It("returns true", func() {
+				Expect(job.HasNamedBlob()).To(BeTrue())
 			})
 		})
 	})

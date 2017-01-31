@@ -270,13 +270,18 @@ func (d *DeployedInstance) Cleanup() error {
 }
 
 func (d *DeployedInstance) Blobs() []backuper.BackupBlob {
-	return []backuper.BackupBlob{
-		&DefaultRemoteArtifact{
-			Instance:      d,
-			SSHConnection: d.SSHConnection,
-			Logger:        d.Logger,
-		},
+	blobs := []backuper.BackupBlob{}
+
+	for _, job := range d.Jobs.WithNamedBlobs() {
+		blobs = append(blobs, NewNamedRemoteArtifact(d, job, d.SSHConnection, d.Logger))
 	}
+
+	blobs = append(blobs, &DefaultRemoteArtifact{
+		Instance:      d,
+		SSHConnection: d.SSHConnection,
+		Logger:        d.Logger,
+	})
+	return blobs
 }
 
 func (d *DeployedInstance) logAndRun(cmd, label string) ([]byte, []byte, int, error) {

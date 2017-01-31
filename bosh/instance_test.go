@@ -1298,4 +1298,39 @@ var _ = Describe("Instance", func() {
 		})
 
 	})
+
+	Describe("Blobs", func() {
+		var actualBlobs []backuper.BackupBlob
+
+		JustBeforeEach(func() {
+			actualBlobs = instance.Blobs()
+		})
+
+		Context("Has no named blobs", func() {
+			It("returns the default blob", func() {
+				Expect(actualBlobs).To(Equal([]backuper.BackupBlob{bosh.NewDefaultRemoteArtifact(instance, sshConnection, boshLogger)}))
+			})
+		})
+
+		Context("has a named blob", func() {
+			BeforeEach(func() {
+				backupAndRestoreScripts = []bosh.Script{
+					"/var/vcap/jobs/job-name/bin/p-backup",
+				}
+				artifactNames = map[string]string{
+					"job-name": "my-artifact",
+				}
+			})
+
+			It("returns the named blob and the default blob", func() {
+				Expect(actualBlobs).To(Equal(
+					[]backuper.BackupBlob{
+						bosh.NewNamedRemoteArtifact(instance, bosh.NewJob(backupAndRestoreScripts, "my-artifact"), sshConnection, boshLogger),
+						bosh.NewDefaultRemoteArtifact(instance, sshConnection, boshLogger),
+					},
+				))
+			})
+		})
+	})
+
 })

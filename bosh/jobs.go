@@ -49,6 +49,16 @@ func (jobs Jobs) PostBackupable() Jobs {
 	return postBackupableJobs
 }
 
+func (jobs Jobs) WithNamedBlobs() Jobs {
+	jobsWithNamedBlobs := Jobs{}
+	for _, job := range jobs {
+		if job.HasNamedBlob() {
+			jobsWithNamedBlobs = append(jobsWithNamedBlobs, job)
+		}
+	}
+	return jobsWithNamedBlobs
+}
+
 func NewJobs(scripts BackupAndRestoreScripts, artifactNames map[string]string) (Jobs, error) {
 	groupedByJobName := map[string]BackupAndRestoreScripts{}
 	for _, script := range scripts {

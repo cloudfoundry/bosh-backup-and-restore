@@ -63,10 +63,14 @@ func (j Job) HasPostBackup() bool {
 	return j.PostBackupScript() != ""
 }
 
+func (j Job) HasNamedBlob() bool {
+	return len(j.artifactName) != 0
+}
+
 func (j Job) artifactOrJobName() string {
-	if len(j.artifactName) == 0 {
-		return j.name
-	} else {
+	if j.HasNamedBlob() {
 		return j.artifactName
 	}
+
+	return j.name
 }
