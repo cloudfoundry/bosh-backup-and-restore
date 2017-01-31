@@ -45,7 +45,7 @@ var _ = Describe("Instance", func() {
 	})
 
 	JustBeforeEach(func() {
-		jobs, _ = bosh.NewJobs(backupAndRestoreScripts, artifactNames)
+		jobs, _ = bosh.NewJobs(backupAndRestoreScripts, blobNames)
 		sshConnection.UsernameReturns("sshUsername")
 		instance = bosh.NewBoshInstance(jobName, jobIndex, jobID, sshConnection, boshDeployment, boshLogger, jobs)
 	})
@@ -658,7 +658,7 @@ var _ = Describe("Instance", func() {
 
 		Context("when there are multiple backup scripts and one of them is named", func() {
 			BeforeEach(func() {
-				artifactNames = map[string]string{
+				blobNames = map[string]string{
 					"baz": "special-backup",
 				}
 				backupAndRestoreScripts = []bosh.Script{

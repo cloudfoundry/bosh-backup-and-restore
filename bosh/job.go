@@ -67,6 +67,7 @@ func (j Job) HasNamedBlob() bool {
 	return len(j.blobName) != 0
 }
 
+
 func (j Job) artifactOrJobName() string {
 	if j.HasNamedBlob() {
 		return j.blobName
