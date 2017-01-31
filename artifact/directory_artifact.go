@@ -82,8 +82,14 @@ func (d *DirectoryArtifact) FetchChecksum(artifactIdentifer backuper.ArtifactIde
 		}
 	}
 
-	d.Warn(TAG, "Checksum for %s/%s not found in artifact", artifactIdentifer.Name(), artifactIdentifer.Index())
+	d.Warn(TAG, "Checksum for %s not found in artifact", logName(artifactIdentifer))
 	return nil, nil
+}
+func logName(artifactIdentifer backuper.ArtifactIdentifer) string {
+	if artifactIdentifer.IsNamed() {
+		return fmt.Sprintf("%s", artifactIdentifer.Name())
+	}
+	return fmt.Sprintf("%s/%s", artifactIdentifer.Name(), artifactIdentifer.Index())
 }
 
 func (d *DirectoryArtifact) CalculateChecksum(inst backuper.ArtifactIdentifer) (backuper.BackupChecksum, error) {
@@ -95,7 +101,7 @@ func (d *DirectoryArtifact) CalculateChecksum(inst backuper.ArtifactIdentifer) (
 
 	gzipedReader, err := gzip.NewReader(file)
 	if err != nil {
-		d.Debug(TAG, "Cant open gzip for %s/%s %v", inst.Index(), inst.Name(), err)
+		d.Debug(TAG, "Cant open gzip for %s %v", logName(inst), err)
 		return nil, err
 	}
 	tarReader := tar.NewReader(gzipedReader)
@@ -106,7 +112,7 @@ func (d *DirectoryArtifact) CalculateChecksum(inst backuper.ArtifactIdentifer) (
 			break
 		}
 		if err != nil {
-			d.Debug(TAG, "Error reading tar for %s/%s %v", inst.Index(), inst.Name(), err)
+			d.Debug(TAG, "Error reading tar for %s %v", logName(inst), err)
 			return nil, err
 		}
 		if tarHeader.FileInfo().IsDir() || tarHeader.FileInfo().Name() == "./" {
@@ -115,7 +121,7 @@ func (d *DirectoryArtifact) CalculateChecksum(inst backuper.ArtifactIdentifer) (
 
 		fileShasum := sha1.New()
 		if _, err := io.Copy(fileShasum, tarReader); err != nil {
-			d.Debug(TAG, "Error calculating sha for %s/%s %v", inst.Index(), inst.Name(), err)
+			d.Debug(TAG, "Error calculating sha for %s %v", logName(inst), err)
 			return nil, err
 		}
 		checksum[tarHeader.Name] = fmt.Sprintf("%x", fileShasum.Sum(nil))
@@ -167,7 +173,7 @@ func (d *DirectoryArtifact) Valid() (bool, error) {
 			return false, err
 		}
 		if !actualInstanceChecksum.Match(inst.Checksum) {
-			d.Debug(TAG, "Can't match checksums for %s/%s, in metadata: %v, in actual file: %v", inst.Name(), inst.Index(), actualInstanceChecksum, inst.Checksum)
+			d.Debug(TAG, "Can't match checksums for %s, in metadata: %v, in actual file: %v", logName(inst), actualInstanceChecksum, inst.Checksum)
 			return false, nil
 		}
 
