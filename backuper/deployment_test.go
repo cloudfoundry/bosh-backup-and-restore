@@ -808,7 +808,7 @@ var _ = Describe("Deployment", func() {
 				localArtifactWriteCloser = new(fakes.FakeWriteCloser)
 				artifact.CreateFileReturns(localArtifactWriteCloser, nil)
 
-				instance1.RemoteArtifactsReturns([]backuper.BackupBlob{backupBlob})
+				instance1.BlobsReturns([]backuper.BackupBlob{backupBlob})
 				instance1.IsBackupableReturns(true)
 				artifact.CalculateChecksumReturns(remoteArtifactChecksum, nil)
 				backupBlob.BackupChecksumReturns(remoteArtifactChecksum, nil)
@@ -869,8 +869,8 @@ var _ = Describe("Deployment", func() {
 					}
 				}
 
-				instance1.RemoteArtifactsReturns([]backuper.BackupBlob{remoteArtifact1})
-				instance2.RemoteArtifactsReturns([]backuper.BackupBlob{remoteArtifact2})
+				instance1.BlobsReturns([]backuper.BackupBlob{remoteArtifact1})
+				instance2.BlobsReturns([]backuper.BackupBlob{remoteArtifact2})
 
 				instance1.IsBackupableReturns(true)
 				instance2.IsBackupableReturns(true)
@@ -935,7 +935,7 @@ var _ = Describe("Deployment", func() {
 				artifact.CreateFileReturns(writeCloser1, nil)
 
 				instance1.IsBackupableReturns(true)
-				instance1.RemoteArtifactsReturns([]backuper.BackupBlob{remoteArtifact1})
+				instance1.BlobsReturns([]backuper.BackupBlob{remoteArtifact1})
 
 				instance2.IsBackupableReturns(false)
 				artifact.CalculateChecksumReturns(instanceChecksum, nil)
@@ -986,7 +986,7 @@ var _ = Describe("Deployment", func() {
 
 					instances = []backuper.Instance{instance1}
 					instance1.IsBackupableReturns(true)
-					instance1.RemoteArtifactsReturns([]backuper.BackupBlob{backupBlob})
+					instance1.BlobsReturns([]backuper.BackupBlob{backupBlob})
 
 					backupBlob.StreamFromRemoteReturns(drainError)
 				})
@@ -1000,7 +1000,7 @@ var _ = Describe("Deployment", func() {
 				var fileError = fmt.Errorf("i have a very good brain")
 				BeforeEach(func() {
 					instances = []backuper.Instance{instance1}
-					instance1.RemoteArtifactsReturns([]backuper.BackupBlob{backupBlob})
+					instance1.BlobsReturns([]backuper.BackupBlob{backupBlob})
 					instance1.IsBackupableReturns(true)
 					artifact.CreateFileReturns(nil, fileError)
 				})
@@ -1019,7 +1019,7 @@ var _ = Describe("Deployment", func() {
 					instances = []backuper.Instance{instance1}
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.RemoteArtifactsReturns([]backuper.BackupBlob{backupBlob})
+					instance1.BlobsReturns([]backuper.BackupBlob{backupBlob})
 
 					artifact.CreateFileReturns(writeCloser1, nil)
 					artifact.CalculateChecksumReturns(nil, shasumError)
@@ -1040,7 +1040,7 @@ var _ = Describe("Deployment", func() {
 
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.RemoteArtifactsReturns([]backuper.BackupBlob{backupBlob})
+					instance1.BlobsReturns([]backuper.BackupBlob{backupBlob})
 					backupBlob.BackupChecksumReturns(nil, remoteShasumError)
 
 					artifact.CreateFileReturns(writeCloser1, nil)
@@ -1064,7 +1064,7 @@ var _ = Describe("Deployment", func() {
 
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.RemoteArtifactsReturns([]backuper.BackupBlob{backupBlob})
+					instance1.BlobsReturns([]backuper.BackupBlob{backupBlob})
 
 					artifact.CreateFileReturns(writeCloser1, nil)
 
@@ -1090,7 +1090,7 @@ var _ = Describe("Deployment", func() {
 
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.RemoteArtifactsReturns([]backuper.BackupBlob{backupBlob})
+					instance1.BlobsReturns([]backuper.BackupBlob{backupBlob})
 
 					artifact.CreateFileReturns(writeCloser1, nil)
 					artifact.CalculateChecksumReturns(backuper.BackupChecksum{"file": "this will match", "extra": "this won't match"}, nil)

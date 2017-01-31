@@ -106,10 +106,10 @@ type FakeInstance struct {
 		result1 backuper.BackupChecksum
 		result2 error
 	}
-	RemoteArtifactsStub        func() []backuper.BackupBlob
-	remoteArtifactsMutex       sync.RWMutex
-	remoteArtifactsArgsForCall []struct{}
-	remoteArtifactsReturns     struct {
+	BlobsStub        func() []backuper.BackupBlob
+	blobsMutex       sync.RWMutex
+	blobsArgsForCall []struct{}
+	blobsReturns     struct {
 		result1 []backuper.BackupBlob
 	}
 	IsNamedStub        func() bool
@@ -495,26 +495,26 @@ func (fake *FakeInstance) BackupChecksumReturns(result1 backuper.BackupChecksum,
 	}{result1, result2}
 }
 
-func (fake *FakeInstance) RemoteArtifacts() []backuper.BackupBlob {
-	fake.remoteArtifactsMutex.Lock()
-	fake.remoteArtifactsArgsForCall = append(fake.remoteArtifactsArgsForCall, struct{}{})
-	fake.recordInvocation("RemoteArtifacts", []interface{}{})
-	fake.remoteArtifactsMutex.Unlock()
-	if fake.RemoteArtifactsStub != nil {
-		return fake.RemoteArtifactsStub()
+func (fake *FakeInstance) Blobs() []backuper.BackupBlob {
+	fake.blobsMutex.Lock()
+	fake.blobsArgsForCall = append(fake.blobsArgsForCall, struct{}{})
+	fake.recordInvocation("Blobs", []interface{}{})
+	fake.blobsMutex.Unlock()
+	if fake.BlobsStub != nil {
+		return fake.BlobsStub()
 	}
-	return fake.remoteArtifactsReturns.result1
+	return fake.blobsReturns.result1
 }
 
-func (fake *FakeInstance) RemoteArtifactsCallCount() int {
-	fake.remoteArtifactsMutex.RLock()
-	defer fake.remoteArtifactsMutex.RUnlock()
-	return len(fake.remoteArtifactsArgsForCall)
+func (fake *FakeInstance) BlobsCallCount() int {
+	fake.blobsMutex.RLock()
+	defer fake.blobsMutex.RUnlock()
+	return len(fake.blobsArgsForCall)
 }
 
-func (fake *FakeInstance) RemoteArtifactsReturns(result1 []backuper.BackupBlob) {
-	fake.RemoteArtifactsStub = nil
-	fake.remoteArtifactsReturns = struct {
+func (fake *FakeInstance) BlobsReturns(result1 []backuper.BackupBlob) {
+	fake.BlobsStub = nil
+	fake.blobsReturns = struct {
 		result1 []backuper.BackupBlob
 	}{result1}
 }
@@ -576,8 +576,8 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.backupSizeMutex.RUnlock()
 	fake.backupChecksumMutex.RLock()
 	defer fake.backupChecksumMutex.RUnlock()
-	fake.remoteArtifactsMutex.RLock()
-	defer fake.remoteArtifactsMutex.RUnlock()
+	fake.blobsMutex.RLock()
+	defer fake.blobsMutex.RUnlock()
 	fake.isNamedMutex.RLock()
 	defer fake.isNamedMutex.RUnlock()
 	return fake.invocations

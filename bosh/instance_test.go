@@ -48,7 +48,7 @@ var _ = Describe("Instance", func() {
 		instance = bosh.NewBoshInstance(jobName, jobIndex, jobID, sshConnection, boshDeployment, boshLogger, jobs)
 	})
 
-	Context("IsBackupable", func() {
+	Describe("IsBackupable", func() {
 		var actualBackupable bool
 
 		JustBeforeEach(func() {
@@ -330,7 +330,7 @@ var _ = Describe("Instance", func() {
 		})
 	})
 
-	Context("IsRestorable", func() {
+	Describe("IsRestorable", func() {
 		var actualRestorable bool
 		var actualError error
 
@@ -985,7 +985,7 @@ var _ = Describe("Instance", func() {
 		})
 	})
 
-	Context("StreamBackupToRemote", func() {
+	Describe("StreamBackupToRemote", func() {
 		var err error
 		var reader = bytes.NewBufferString("dave")
 
@@ -1057,7 +1057,7 @@ var _ = Describe("Instance", func() {
 		})
 	})
 
-	Context("Cleanup", func() {
+	Describe("Cleanup", func() {
 		var actualError error
 		var expectedError error
 
@@ -1125,7 +1125,7 @@ var _ = Describe("Instance", func() {
 		})
 	})
 
-	Context("BackupChecksum", func() {
+	Describe("BackupChecksum", func() {
 		var actualChecksum map[string]string
 		var actualChecksumError error
 		JustBeforeEach(func() {
@@ -1202,19 +1202,19 @@ var _ = Describe("Instance", func() {
 		})
 	})
 
-	Context("Name", func() {
+	Describe("Name", func() {
 		It("returns the instance name", func() {
 			Expect(instance.Name()).To(Equal("job-name"))
 		})
 	})
 
-	Context("Index", func() {
+	Describe("Index", func() {
 		It("returns the instance Index", func() {
 			Expect(instance.Index()).To(Equal("job-index"))
 		})
 	})
 
-	Context("BackupSize", func() {
+	Describe("BackupSize", func() {
 		Context("when there is a backup", func() {
 			var size string
 

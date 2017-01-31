@@ -24,7 +24,7 @@ type Instance interface {
 	StreamBackupToRemote(io.Reader) error
 	BackupSize() (string, error)
 	BackupChecksum() (BackupChecksum, error)
-	RemoteArtifacts() []BackupBlob
+	Blobs() []BackupBlob
 
 	IsNamed() bool //TODO: Method here to enable continuous integration, delete after the restore flow works with remote artifacts
 }

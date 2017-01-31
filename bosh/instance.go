@@ -269,7 +269,7 @@ func (d *DeployedInstance) Cleanup() error {
 	return errs
 }
 
-func (d *DeployedInstance) RemoteArtifacts() []backuper.BackupBlob {
+func (d *DeployedInstance) Blobs() []backuper.BackupBlob {
 	return []backuper.BackupBlob{
 		&DefaultRemoteArtifact{
 			Instance:      d,

@@ -92,7 +92,7 @@ func (bd *BoshDeployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 		return err
 	}
 	for _, instance := range instances {
-		for _, remoteArtifact := range instance.RemoteArtifacts() {
+		for _, remoteArtifact := range instance.Blobs() {
 			writer, err := artifact.CreateFile(remoteArtifact)
 
 			if err != nil {
