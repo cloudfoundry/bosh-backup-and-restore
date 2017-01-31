@@ -5,8 +5,8 @@ import (
 	"io"
 )
 
-func NewNamedRemoteArtifact(instance backuper.Instance, job Job, sshConn SSHConnection, logger Logger) *NamedRemoteArtifact {
-	return &NamedRemoteArtifact{
+func NewNamedBlob(instance backuper.Instance, job Job, sshConn SSHConnection, logger Logger) *NamedBlob {
+	return &NamedBlob{
 		Job:           job,
 		Instance:      instance,
 		SSHConnection: sshConn,
@@ -14,18 +14,18 @@ func NewNamedRemoteArtifact(instance backuper.Instance, job Job, sshConn SSHConn
 	}
 }
 
-type NamedRemoteArtifact struct {
+type NamedBlob struct {
 	Job Job
 	backuper.Instance
 	SSHConnection
 	Logger
 }
 
-func (d *NamedRemoteArtifact) StreamFromRemote(writer io.Writer) error {
+func (d *NamedBlob) StreamFromRemote(writer io.Writer) error {
 	return nil
 }
 
-func (d *NamedRemoteArtifact) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
+func (d *NamedBlob) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
 	d.Logger.Debug("", "Running %s on %s/%s", label, d.Name(), d.ID())
 
 	stdout, stderr, exitCode, err := d.Run(cmd)

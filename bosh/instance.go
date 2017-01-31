@@ -273,10 +273,10 @@ func (d *DeployedInstance) Blobs() []backuper.BackupBlob {
 	blobs := []backuper.BackupBlob{}
 
 	for _, job := range d.Jobs.WithNamedBlobs() {
-		blobs = append(blobs, NewNamedRemoteArtifact(d, job, d.SSHConnection, d.Logger))
+		blobs = append(blobs, NewNamedBlob(d, job, d.SSHConnection, d.Logger))
 	}
 
-	blobs = append(blobs, &DefaultRemoteArtifact{
+	blobs = append(blobs, &DefaultBlob{
 		Instance:      d,
 		SSHConnection: d.SSHConnection,
 		Logger:        d.Logger,

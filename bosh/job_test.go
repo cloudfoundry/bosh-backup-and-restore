@@ -27,18 +27,18 @@ var _ = Describe("Job", func() {
 	})
 
 	Describe("ArtifactDirectory", func() {
-		It("calculates the artifact directory based on the name", func() {
+		It("calculates the blob directory based on the name", func() {
 			Expect(job.ArtifactDirectory()).To(Equal("/var/vcap/store/backup/foo"))
 		})
 
-		Context("when an artifact name is provided", func() {
+		Context("when an blob name is provided", func() {
 			var jobWithName bosh.Job
 
 			JustBeforeEach(func() {
 				jobWithName = bosh.NewJob(jobScripts, "a-bosh-backup")
 			})
 
-			It("calculates the artifact directory based on the artifact name", func() {
+			It("calculates the blob directory based on the blob name", func() {
 				Expect(jobWithName.ArtifactDirectory()).To(Equal("/var/vcap/store/backup/a-bosh-backup"))
 			})
 		})

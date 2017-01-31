@@ -71,7 +71,7 @@ func NewJobs(scripts BackupAndRestoreScripts, artifactNames map[string]string) (
 	var foundNames = map[string]bool{}
 	for _, name := range artifactNames {
 		if foundNames[name] {
-			return nil, fmt.Errorf("Multiple jobs have specified artifact name '%s'", name)
+			return nil, fmt.Errorf("Multiple jobs have specified blob name '%s'", name)
 		}
 		foundNames[name] = true
 	}

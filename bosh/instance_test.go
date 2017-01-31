@@ -26,7 +26,7 @@ var _ = Describe("Instance", func() {
 	var jobName, jobIndex, jobID, expectedStdout, expectedStderr string
 	var backupAndRestoreScripts []bosh.Script
 	var jobs bosh.Jobs
-	var artifactNames map[string]string
+	var blobNames map[string]string
 
 	var instance backuper.Instance
 	BeforeEach(func() {
@@ -41,7 +41,7 @@ var _ = Describe("Instance", func() {
 		stderr = gbytes.NewBuffer()
 		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile), log.New(stderr, "[bosh-package] ", log.Lshortfile))
 		backupAndRestoreScripts = []bosh.Script{}
-		artifactNames = map[string]string{}
+		blobNames = map[string]string{}
 	})
 
 	JustBeforeEach(func() {
@@ -1130,7 +1130,7 @@ var _ = Describe("Instance", func() {
 				boshDeployment.CleanUpSSHReturns(expectedErrorWhileCleaningUp)
 			})
 
-			It("tries delete the artifact", func() {
+			It("tries delete the blob", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 			})
 			It("tries to cleanup ssh connection", func() {
@@ -1308,7 +1308,7 @@ var _ = Describe("Instance", func() {
 
 		Context("Has no named blobs", func() {
 			It("returns the default blob", func() {
-				Expect(actualBlobs).To(Equal([]backuper.BackupBlob{bosh.NewDefaultRemoteArtifact(instance, sshConnection, boshLogger)}))
+				Expect(actualBlobs).To(Equal([]backuper.BackupBlob{bosh.NewDefaultBlob(instance, sshConnection, boshLogger)}))
 			})
 		})
 
@@ -1317,16 +1317,16 @@ var _ = Describe("Instance", func() {
 				backupAndRestoreScripts = []bosh.Script{
 					"/var/vcap/jobs/job-name/bin/p-backup",
 				}
-				artifactNames = map[string]string{
-					"job-name": "my-artifact",
+				blobNames = map[string]string{
+					"job-name": "my-blob",
 				}
 			})
 
 			It("returns the named blob and the default blob", func() {
 				Expect(actualBlobs).To(Equal(
 					[]backuper.BackupBlob{
-						bosh.NewNamedRemoteArtifact(instance, bosh.NewJob(backupAndRestoreScripts, "my-artifact"), sshConnection, boshLogger),
-						bosh.NewDefaultRemoteArtifact(instance, sshConnection, boshLogger),
+						bosh.NewNamedBlob(instance, bosh.NewJob(backupAndRestoreScripts, "my-blob"), sshConnection, boshLogger),
+						bosh.NewDefaultBlob(instance, sshConnection, boshLogger),
 					},
 				))
 			})

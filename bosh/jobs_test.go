@@ -49,7 +49,7 @@ var _ = Describe("Jobs", func() {
 			})
 		})
 
-		Context("when there is one job with a backup script and an artifact name", func() {
+		Context("when there is one job with a backup script and an blob name", func() {
 			BeforeEach(func() {
 				scripts = bosh.BackupAndRestoreScripts{
 					"/var/vcap/jobs/foo/bin/p-backup",
@@ -59,7 +59,7 @@ var _ = Describe("Jobs", func() {
 				}
 			})
 
-			It("creates a job with the correct artifact name", func() {
+			It("creates a job with the correct blob name", func() {
 				Expect(jobs).To(ConsistOf(
 					bosh.NewJob(
 						bosh.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/p-backup"},
@@ -81,7 +81,7 @@ var _ = Describe("Jobs", func() {
 				}
 			})
 
-			It("creates two jobs with the correct artifact names", func() {
+			It("creates two jobs with the correct blob names", func() {
 				Expect(jobs).To(ConsistOf(
 					bosh.NewJob(
 						bosh.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/p-backup"},
@@ -112,7 +112,7 @@ var _ = Describe("Jobs", func() {
 			})
 
 			It("returns the expected error messages", func() {
-				Expect(err.Error()).To(ContainSubstring("Multiple jobs have specified artifact name 'a-bosh-backup'"))
+				Expect(err.Error()).To(ContainSubstring("Multiple jobs have specified blob name 'a-bosh-backup'"))
 			})
 		})
 	})

@@ -14,14 +14,14 @@ import (
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh/fakes"
 )
 
-var _ = Describe("DefaultRemoteArtifact", func() {
+var _ = Describe("DefaultBlob", func() {
 
 	var sshConnection *fakes.FakeSSHConnection
 	var boshLogger boshlog.Logger
 	var instance *backuperfakes.FakeInstance
 	var stdout, stderr *gbytes.Buffer
 
-	var defaultRemoteArtifact *bosh.DefaultRemoteArtifact
+	var defaultBlob *bosh.DefaultBlob
 
 	BeforeEach(func() {
 		sshConnection = new(fakes.FakeSSHConnection)
@@ -34,7 +34,7 @@ var _ = Describe("DefaultRemoteArtifact", func() {
 	})
 
 	JustBeforeEach(func() {
-		defaultRemoteArtifact = bosh.NewDefaultRemoteArtifact(instance, sshConnection, boshLogger)
+		defaultBlob = bosh.NewDefaultBlob(instance, sshConnection, boshLogger)
 	})
 
 	Describe("StreamFromRemote", func() {
@@ -42,7 +42,7 @@ var _ = Describe("DefaultRemoteArtifact", func() {
 		var writer = bytes.NewBufferString("dave")
 
 		JustBeforeEach(func() {
-			err = defaultRemoteArtifact.StreamFromRemote(writer)
+			err = defaultBlob.StreamFromRemote(writer)
 		})
 
 		Describe("when successful", func() {

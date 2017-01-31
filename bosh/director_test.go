@@ -173,7 +173,7 @@ var _ = Describe("Director", func() {
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal("find /var/vcap/jobs/*/bin/* -type f"))
 			})
 
-			Context("when job does not specify a custom artifact name", func() {
+			Context("when job does not specify a custom blob name", func() {
 				BeforeEach(func() {
 					lsMetadataSshStderr = []byte("No such file or directory")
 					lsMetadataExitCode = 1
@@ -184,14 +184,14 @@ var _ = Describe("Director", func() {
 				})
 			})
 
-			Context("when job specifies a custom artifact name", func() {
+			Context("when job specifies a custom blob name", func() {
 				BeforeEach(func() {
 					lsMetadataSshStdout = []byte("/var/vcap/jobs/consul_agent/bin/p-metadata")
 					runMetadataSshStdout = []byte(`---
 backup_name: consul_backup`)
 				})
 
-				It("collects the instances with the custom artifact name", func() {
+				It("collects the instances with the custom blob name", func() {
 					metadata := map[string]string{
 						"consul_agent": "consul_backup",
 					}

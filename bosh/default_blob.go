@@ -6,21 +6,21 @@ import (
 	"io"
 )
 
-func NewDefaultRemoteArtifact(instance backuper.Instance, sshConn SSHConnection, logger Logger) *DefaultRemoteArtifact {
-	return &DefaultRemoteArtifact{
+func NewDefaultBlob(instance backuper.Instance, sshConn SSHConnection, logger Logger) *DefaultBlob {
+	return &DefaultBlob{
 		Instance:      instance,
 		SSHConnection: sshConn,
 		Logger:        logger,
 	}
 }
 
-type DefaultRemoteArtifact struct {
+type DefaultBlob struct {
 	backuper.Instance
 	SSHConnection
 	Logger
 }
 
-func (d *DefaultRemoteArtifact) StreamFromRemote(writer io.Writer) error {
+func (d *DefaultBlob) StreamFromRemote(writer io.Writer) error {
 	d.Logger.Debug("", "Streaming backup from instance %s/%s", d.Name(), d.ID())
 	stderr, exitCode, err := d.Stream("sudo tar -C /var/vcap/store/backup -zc .", writer)
 
@@ -37,7 +37,7 @@ func (d *DefaultRemoteArtifact) StreamFromRemote(writer io.Writer) error {
 	return err
 }
 
-func (d *DefaultRemoteArtifact) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
+func (d *DefaultBlob) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
 	d.Logger.Debug("", "Running %s on %s/%s", label, d.Name(), d.ID())
 
 	stdout, stderr, exitCode, err := d.Run(cmd)
