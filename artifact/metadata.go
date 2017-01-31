@@ -25,7 +25,6 @@ func (m instanceMetadata) IsNamed() bool {
 	return false
 }
 
-
 type metadata struct {
 	MetadataForEachInstance []instanceMetadata `yaml:"instances"`
 }

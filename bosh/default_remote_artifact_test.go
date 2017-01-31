@@ -9,9 +9,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	backuperfakes "github.com/pivotal-cf/pcf-backup-and-restore/backuper/fakes"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh/fakes"
-	backuperfakes "github.com/pivotal-cf/pcf-backup-and-restore/backuper/fakes"
 )
 
 var _ = Describe("DefaultRemoteArtifact", func() {
@@ -22,7 +22,6 @@ var _ = Describe("DefaultRemoteArtifact", func() {
 	var stdout, stderr *gbytes.Buffer
 
 	var defaultRemoteArtifact *bosh.DefaultRemoteArtifact
-
 
 	BeforeEach(func() {
 		sshConnection = new(fakes.FakeSSHConnection)
@@ -37,7 +36,6 @@ var _ = Describe("DefaultRemoteArtifact", func() {
 	JustBeforeEach(func() {
 		defaultRemoteArtifact = bosh.NewDefaultRemoteArtifact(instance, sshConnection, boshLogger)
 	})
-
 
 	Describe("StreamBackupFromRemote", func() {
 		var err error

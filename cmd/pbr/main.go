@@ -134,7 +134,6 @@ func processBackupError(err backuper.Error) error {
 	}
 }
 
-
 func processRestoreError(err error) error {
 	switch err := err.(type) {
 	case backuper.CleanupError:

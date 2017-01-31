@@ -123,9 +123,9 @@ func (d *DirectoryArtifact) AddChecksum(inst backuper.ArtifactIdentifer, shasum 
 	}
 
 	metadata.MetadataForEachInstance = append(metadata.MetadataForEachInstance, instanceMetadata{
-		InstanceName: inst.Name(),
-		InstanceIndex:   inst.Index(),
-		Checksum:     shasum,
+		InstanceName:  inst.Name(),
+		InstanceIndex: inst.Index(),
+		Checksum:      shasum,
 	})
 
 	return metadata.save(d.metadataFilename())

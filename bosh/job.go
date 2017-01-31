@@ -5,12 +5,12 @@ import "fmt"
 func NewJob(jobScripts BackupAndRestoreScripts, artifactName string) Job {
 	jobName, _ := jobScripts[0].JobName()
 	return Job{
-		name:              jobName,
-		artifactName: 	   artifactName,
-		backupScript:      jobScripts.BackupOnly().firstOrBlank(),
-		restoreScript:     jobScripts.RestoreOnly().firstOrBlank(),
-		preBackupScript:   jobScripts.PreBackupLockOnly().firstOrBlank(),
-		postBackupScript:  jobScripts.PostBackupUnlockOnly().firstOrBlank(),
+		name:             jobName,
+		artifactName:     artifactName,
+		backupScript:     jobScripts.BackupOnly().firstOrBlank(),
+		restoreScript:    jobScripts.RestoreOnly().firstOrBlank(),
+		preBackupScript:  jobScripts.PreBackupLockOnly().firstOrBlank(),
+		postBackupScript: jobScripts.PostBackupUnlockOnly().firstOrBlank(),
 	}
 }
 

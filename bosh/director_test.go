@@ -59,9 +59,9 @@ var _ = Describe("Director", func() {
 			runMetadataSshStdout,
 			runMetadataSshStderr []byte
 
-			findScriptsExitCode, lsMetadataExitCode, runMetadataExitCode int
-			stubbedSshOpts director.SSHOpts = director.SSHOpts{Username: "user"}
-			actualInstances []backuper.Instance
+			findScriptsExitCode, lsMetadataExitCode, runMetadataExitCode     int
+			stubbedSshOpts                                                   director.SSHOpts = director.SSHOpts{Username: "user"}
+			actualInstances                                                  []backuper.Instance
 			actualError, findScriptsError, lsMetadataError, runMetadataError error
 		)
 
@@ -115,7 +115,7 @@ var _ = Describe("Director", func() {
 					},
 				}}, nil)
 				sshConnectionFactory.Returns(sshConnection, nil)
-				findScriptsSshStdout = []byte("/var/vcap/jobs/consul_agent/bin/p-backup\n"+
+				findScriptsSshStdout = []byte("/var/vcap/jobs/consul_agent/bin/p-backup\n" +
 					"/var/vcap/jobs/consul_agent/bin/p-restore")
 			})
 
@@ -168,7 +168,7 @@ var _ = Describe("Director", func() {
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
 			})
-			
+
 			It("finds the scripts on each host", func() {
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal("find /var/vcap/jobs/*/bin/* -type f"))
 			})
@@ -183,7 +183,7 @@ var _ = Describe("Director", func() {
 					Expect(actualError).NotTo(HaveOccurred())
 				})
 			})
-			
+
 			Context("when job specifies a custom artifact name", func() {
 				BeforeEach(func() {
 					lsMetadataSshStdout = []byte("/var/vcap/jobs/consul_agent/bin/p-metadata")
@@ -260,7 +260,7 @@ backup_name: consul_backup`)
 					})
 				})
 
-				Context("when an SSH error occurs while listing metadata scripts fails", func(){
+				Context("when an SSH error occurs while listing metadata scripts fails", func() {
 					BeforeEach(func() {
 						lsMetadataError = fmt.Errorf("this is a boring error")
 					})
@@ -300,7 +300,7 @@ backup_name: consul_backup`)
 					})
 				})
 
-				Context("when an SSH error occurs while running metadata scripts", func(){
+				Context("when an SSH error occurs while running metadata scripts", func() {
 					BeforeEach(func() {
 						runMetadataError = fmt.Errorf("everything is awful")
 					})

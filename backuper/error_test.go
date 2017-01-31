@@ -3,9 +3,9 @@ package backuper_test
 import (
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
 
+	"errors"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"errors"
 )
 
 var _ = Describe("Error", func() {
@@ -25,7 +25,7 @@ var _ = Describe("Error", func() {
 		})
 
 		It("returns false when empty", func() {
-			var  errors backuper.Error
+			var errors backuper.Error
 			Expect(errors.IsCleanup()).To(BeFalse())
 		})
 

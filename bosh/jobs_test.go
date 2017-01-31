@@ -117,7 +117,7 @@ var _ = Describe("Jobs", func() {
 		})
 	})
 
-	Context("contains jobs with backup script",func() {
+	Context("contains jobs with backup script", func() {
 		BeforeEach(func() {
 			scripts = bosh.BackupAndRestoreScripts{
 				"/var/vcap/jobs/foo/bin/p-backup",
@@ -140,7 +140,7 @@ var _ = Describe("Jobs", func() {
 		})
 	})
 
-	Context("contains no jobs with backup script",func(){
+	Context("contains no jobs with backup script", func() {
 		BeforeEach(func() {
 			scripts = bosh.BackupAndRestoreScripts{
 				"/var/vcap/jobs/bar/bin/p-restore",
@@ -148,7 +148,7 @@ var _ = Describe("Jobs", func() {
 		})
 
 		Describe("Backupable", func() {
-			It("returns empty",func(){
+			It("returns empty", func() {
 				Expect(jobs.Backupable()).To(BeEmpty())
 			})
 		})
@@ -160,9 +160,7 @@ var _ = Describe("Jobs", func() {
 		})
 	})
 
-
-
-	Context("contains jobs with pre-backup-lock scripts",func(){
+	Context("contains jobs with pre-backup-lock scripts", func() {
 		BeforeEach(func() {
 			scripts = bosh.BackupAndRestoreScripts{
 				"/var/vcap/jobs/foo/bin/p-pre-backup-lock",
@@ -172,7 +170,7 @@ var _ = Describe("Jobs", func() {
 		})
 
 		Describe("PreBackupable", func() {
-			It("returns the lockable job",func(){
+			It("returns the lockable job", func() {
 				Expect(jobs.PreBackupable()).To(ConsistOf(bosh.NewJob(
 					bosh.BackupAndRestoreScripts{
 						"/var/vcap/jobs/foo/bin/p-pre-backup-lock",
@@ -181,21 +179,21 @@ var _ = Describe("Jobs", func() {
 				))
 			})
 		})
-		Context("contains no jobs with backup script",func(){
+		Context("contains no jobs with backup script", func() {
 			BeforeEach(func() {
 				scripts = bosh.BackupAndRestoreScripts{
 					"/var/vcap/jobs/bar/bin/p-restore",
 				}
 			})
 
-			It("returns empty",func(){
+			It("returns empty", func() {
 				Expect(jobs.PreBackupable()).To(BeEmpty())
 			})
 		})
 	})
 
 	Describe("PostBackupable", func() {
-		Context("contains jobs with pre-backup-lock scripts",func(){
+		Context("contains jobs with pre-backup-lock scripts", func() {
 			BeforeEach(func() {
 				scripts = bosh.BackupAndRestoreScripts{
 					"/var/vcap/jobs/foo/bin/p-backup",
@@ -204,7 +202,7 @@ var _ = Describe("Jobs", func() {
 				}
 			})
 
-			It("returns the unlockable job",func(){
+			It("returns the unlockable job", func() {
 				Expect(jobs.PostBackupable()).To(ConsistOf(bosh.NewJob(
 					bosh.BackupAndRestoreScripts{
 						"/var/vcap/jobs/foo/bin/p-post-backup-unlock",
@@ -213,21 +211,21 @@ var _ = Describe("Jobs", func() {
 				))
 			})
 		})
-		Context("contains no jobs with backup script",func(){
+		Context("contains no jobs with backup script", func() {
 			BeforeEach(func() {
 				scripts = bosh.BackupAndRestoreScripts{
 					"/var/vcap/jobs/bar/bin/p-restore",
 				}
 			})
 
-			It("returns empty",func(){
+			It("returns empty", func() {
 				Expect(jobs.PostBackupable()).To(BeEmpty())
 			})
 		})
 	})
 
 	Describe("Restorable", func() {
-		Context("contains jobs with restore scripts",func(){
+		Context("contains jobs with restore scripts", func() {
 			BeforeEach(func() {
 				scripts = bosh.BackupAndRestoreScripts{
 					"/var/vcap/jobs/foo/bin/p-backup",
@@ -236,20 +234,20 @@ var _ = Describe("Jobs", func() {
 				}
 			})
 
-			It("returns the unlockable job",func(){
+			It("returns the unlockable job", func() {
 				Expect(jobs.Restorable()).To(ConsistOf(bosh.NewJob(
 					bosh.BackupAndRestoreScripts{"/var/vcap/jobs/bar/bin/p-restore"}, ""),
 				))
 			})
 		})
-		Context("contains no jobs with backup script",func(){
+		Context("contains no jobs with backup script", func() {
 			BeforeEach(func() {
 				scripts = bosh.BackupAndRestoreScripts{
 					"/var/vcap/jobs/bar/bin/p-backup",
 				}
 			})
 
-			It("returns empty",func(){
+			It("returns empty", func() {
 				Expect(jobs.Restorable()).To(BeEmpty())
 			})
 		})

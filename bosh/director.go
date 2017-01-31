@@ -5,12 +5,12 @@ import (
 
 	"strconv"
 
+	"errors"
 	"fmt"
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
 	"gopkg.in/yaml.v2"
-	"errors"
 )
 
 func New(boshDirector director.Director,

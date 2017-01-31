@@ -135,7 +135,7 @@ var _ = Describe("Backuper", func() {
 			})
 
 			It("fails the backup process", func() {
-				Expect(actualBackupError).To(ConsistOf( MatchError(expectedError)))
+				Expect(actualBackupError).To(ConsistOf(MatchError(expectedError)))
 			})
 		})
 
@@ -149,7 +149,7 @@ var _ = Describe("Backuper", func() {
 			})
 
 			It("fails the backup process", func() {
-				Expect(actualBackupError).To(ConsistOf( expectedError))
+				Expect(actualBackupError).To(ConsistOf(expectedError))
 			})
 		})
 
@@ -207,7 +207,7 @@ var _ = Describe("Backuper", func() {
 				Expect(deployment.IsBackupableCallCount()).To(Equal(1))
 			})
 			It("fails the backup process", func() {
-				Expect(actualBackupError).To(ConsistOf(MatchError( "Deployment '" + deploymentName + "' has no backup scripts")))
+				Expect(actualBackupError).To(ConsistOf(MatchError("Deployment '" + deploymentName + "' has no backup scripts")))
 			})
 			It("ensures that deployment is cleaned up", func() {
 				Expect(deployment.CleanupCallCount()).To(Equal(1))
@@ -234,7 +234,7 @@ var _ = Describe("Backuper", func() {
 				Expect(actualBackupError).To(ConsistOf(lockError))
 			})
 
-			It("also runs post-backup-unlock", func(){
+			It("also runs post-backup-unlock", func() {
 				Expect(deployment.PostBackupUnlockCallCount()).To(Equal(1))
 			})
 
@@ -260,7 +260,7 @@ var _ = Describe("Backuper", func() {
 				Expect(actualBackupError).To(MatchError(ContainSubstring(unlockError.Error())))
 			})
 
-			It("fails with the correct error type", func(){
+			It("fails with the correct error type", func() {
 				Expect(actualBackupError).To(ConsistOf(BeAssignableToTypeOf(backuper.PostBackupUnlockError{})))
 			})
 
@@ -278,8 +278,7 @@ var _ = Describe("Backuper", func() {
 					deployment.CopyRemoteBackupToLocalReturns(drainError)
 				})
 
-
-				It("returns an error of type PostBackupUnlockError and " +
+				It("returns an error of type PostBackupUnlockError and "+
 					"includes the drain error in the returned error", func() {
 					Expect(actualBackupError).To(ConsistOf(drainError, BeAssignableToTypeOf(backuper.PostBackupUnlockError{})))
 				})
@@ -290,8 +289,8 @@ var _ = Describe("Backuper", func() {
 						deployment.CleanupReturns(cleanupError)
 					})
 
-					It("includes the cleanup error in the returned error and " +
-						"includes the drain error in the returned error and " +
+					It("includes the cleanup error in the returned error and "+
+						"includes the drain error in the returned error and "+
 						"includes the cleanup error in the returned error", func() {
 						Expect(actualBackupError).To(ConsistOf(
 							BeAssignableToTypeOf(backuper.PostBackupUnlockError{}),
@@ -311,7 +310,7 @@ var _ = Describe("Backuper", func() {
 					deployment.CleanupReturns(cleanupError)
 				})
 
-				It("includes the cleanup error in the returned error " +
+				It("includes the cleanup error in the returned error "+
 					"and returns an error of type PostBackupUnlockError", func() {
 					Expect(actualBackupError).To(ConsistOf(
 						MatchError(ContainSubstring(cleanupError.Error())),
@@ -405,7 +404,7 @@ var _ = Describe("Backuper", func() {
 
 			})
 			It("returns a cleanup error", func() {
-				Expect(actualBackupError).To(ConsistOf( BeAssignableToTypeOf(backuper.CleanupError{})))
+				Expect(actualBackupError).To(ConsistOf(BeAssignableToTypeOf(backuper.CleanupError{})))
 			})
 
 			Context("cleanup fails as well", assertCleanupError)

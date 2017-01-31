@@ -1,9 +1,9 @@
 package bosh
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
-	"fmt"
 )
 
 type BackupAndRestoreScripts []Script

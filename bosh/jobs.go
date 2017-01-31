@@ -43,7 +43,7 @@ func (jobs Jobs) PostBackupable() Jobs {
 	postBackupableJobs := Jobs{}
 	for _, job := range jobs {
 		if job.HasPostBackup() {
-			postBackupableJobs= append(postBackupableJobs, job)
+			postBackupableJobs = append(postBackupableJobs, job)
 		}
 	}
 	return postBackupableJobs

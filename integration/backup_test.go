@@ -166,7 +166,6 @@ backup_name: foo_redis
 					Expect(contentsInTar(redisCustomArtifactFile, "backupdump2")).To(Equal("backupcontent2"))
 				})
 
-
 				It("creates a metadata file", func() {
 					Expect(metadataFile).To(BeARegularFile())
 				})
