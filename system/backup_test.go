@@ -12,9 +12,14 @@ import (
 var workspaceDir = "/var/vcap/store/backup_workspace"
 
 var _ = Describe("backup", func() {
+	var instanceCollection = map[string][]string{
+		"redis":       {"0", "1"},
+		"other-redis": {"0"},
+	}
+
 	It("backs up, and cleans up the backup on the remote", func() {
 		By("populating data in redis")
-		populateRedisFixtureOnInstances()
+		populateRedisFixtureOnInstances(instanceCollection)
 
 		By("running the backup command")
 		Eventually(RunCommandOnRemoteAsVcap(
@@ -24,7 +29,7 @@ var _ = Describe("backup", func() {
 		)).Should(gexec.Exit(0))
 
 		By("running the pre-backup lock script")
-		runOnAllInstances(func(instName, instIndex string) {
+		runOnAllInstances(instanceCollection, func(instName, instIndex string) {
 			session := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
 				"cat /tmp/pre-backup-lock.out",
 			)
@@ -34,7 +39,7 @@ var _ = Describe("backup", func() {
 		})
 
 		By("running the post backup unlock script")
-		runOnAllInstances(func(instName, instIndex string) {
+		runOnAllInstances(instanceCollection, func(instName, instIndex string) {
 			session := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
 				"cat /tmp/post-backup-unlock.out",
 			)
@@ -51,7 +56,7 @@ var _ = Describe("backup", func() {
 		})
 
 		By("cleaning up artifacts from the remote instances")
-		runOnAllInstances(func(instName, instIndex string) {
+		runOnAllInstances(instanceCollection, func(instName, instIndex string) {
 			session := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
 				"ls -l /var/vcap/store/backup",
 			)
@@ -62,9 +67,9 @@ var _ = Describe("backup", func() {
 	})
 })
 
-func populateRedisFixtureOnInstances() {
+func populateRedisFixtureOnInstances(instanceCollection map[string][]string) {
 	dataFixture := "../fixtures/redis_test_commands"
-	runOnAllInstances(func(instName, instIndex string) {
+	runOnAllInstances(instanceCollection, func(instName, instIndex string) {
 		RunBoshCommand(RedisDeploymentSCPCommand(), dataFixture, fmt.Sprintf("%s/%s:/tmp", instName, instIndex))
 		Eventually(
 			RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),

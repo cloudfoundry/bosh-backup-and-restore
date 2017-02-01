@@ -22,10 +22,6 @@ var (
 	err         error
 )
 
-var instanceCollection = map[string][]string{
-	"redis":       {"0", "1"},
-	"other-redis": {"0"},
-}
 var fixturesPath = "../fixtures/redis-backup/"
 
 var _ = BeforeEach(func() {
@@ -98,7 +94,7 @@ var _ = AfterEach(func() {
 	wg.Wait()
 })
 
-func runOnAllInstances(f func(string, string)) {
+func runOnAllInstances(instanceCollection map[string][]string, f func(string, string)) {
 	for instanceGroup, instances := range instanceCollection {
 		for _, instanceIndex := range instances {
 			f(instanceGroup, instanceIndex)

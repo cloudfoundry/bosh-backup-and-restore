@@ -12,6 +12,10 @@ import (
 var _ = Describe("Restores a deployment", func() {
 	var workspaceDir = "/var/vcap/store/restore_workspace"
 	var backupMetadata = "../fixtures/redis-backup/metadata"
+	var instanceCollection = map[string][]string{
+		"redis":       {"0", "1"},
+		"other-redis": {"0"},
+	}
 
 	It("restores", func() {
 		By("setting up the jump box")
@@ -23,7 +27,7 @@ var _ = Describe("Restores a deployment", func() {
 		RunBoshCommand(JumpBoxSCPCommand(), MustHaveEnv("BOSH_CERT_PATH"), "jumpbox/0:"+workspaceDir+"/bosh.crt")
 		RunBoshCommand(JumpBoxSCPCommand(), commandPath, "jumpbox/0:"+workspaceDir)
 		RunBoshCommand(JumpBoxSCPCommand(), backupMetadata, "jumpbox/0:"+workspaceDir+"/"+RedisDeployment()+"/metadata")
-		runOnAllInstances(func(in, ii string) {
+		runOnAllInstances(instanceCollection, func(in, ii string) {
 			fileName := fmt.Sprintf("%s-%s.tgz", in, ii)
 			RunBoshCommand(
 				JumpBoxSCPCommand(),
@@ -45,7 +49,7 @@ var _ = Describe("Restores a deployment", func() {
 		)).Should(gexec.Exit(0))
 
 		By("cleaning up artifacts from the remote instances")
-		runOnAllInstances(func(instName, instIndex string) {
+		runOnAllInstances(instanceCollection, func(instName, instIndex string) {
 			session := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
 				"ls -l /var/vcap/store/backup",
 			)
@@ -55,7 +59,7 @@ var _ = Describe("Restores a deployment", func() {
 		})
 
 		By("ensuring data is restored")
-		runOnAllInstances(func(instName, instIndex string) {
+		runOnAllInstances(instanceCollection, func(instName, instIndex string) {
 			Eventually(RunCommandOnRemote(
 				RedisDeploymentSSHCommand(instName, instIndex),
 				fmt.Sprintf("sudo ls -la /var/vcap/store/redis-server"),
