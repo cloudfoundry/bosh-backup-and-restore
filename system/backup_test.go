@@ -11,7 +11,7 @@ import (
 
 var workspaceDir = "/var/vcap/store/backup_workspace"
 
-var _ = Describe("Single deployment", func() {
+var _ = Describe("backup", func() {
 	It("backs up, and cleans up the backup on the remote", func() {
 		By("populating data in redis")
 		populateRedisFixtureOnInstances()
