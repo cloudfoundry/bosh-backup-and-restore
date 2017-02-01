@@ -72,9 +72,18 @@ func AnotherRedisDeploymentBoshCommand() string {
 	return fmt.Sprintf("%s --deployment=%s", GenericBoshCommand(), AnotherRedisDeployment())
 }
 
+func RedisWithMetadataDeploymentBoshCommand() string {
+	return fmt.Sprintf("%s --deployment=%s", GenericBoshCommand(), RedisWithMetadataDeployment())
+}
+
 func RedisDeploymentSCPCommand() string {
 	return fmt.Sprintf("%s scp --gw-user=%s --gw-host=%s --gw-private-key=%s", RedisDeploymentBoshCommand(), MustHaveEnv("BOSH_GATEWAY_USER"), MustHaveEnv("BOSH_GATEWAY_HOST"), MustHaveEnv("BOSH_GATEWAY_KEY"))
 }
+
+func RedisWithMetadataDeploymentSCPCommand() string {
+	return fmt.Sprintf("%s scp --gw-user=%s --gw-host=%s --gw-private-key=%s", RedisWithMetadataDeploymentBoshCommand(), MustHaveEnv("BOSH_GATEWAY_USER"), MustHaveEnv("BOSH_GATEWAY_HOST"), MustHaveEnv("BOSH_GATEWAY_KEY"))
+}
+
 func RedisDeploymentSSHCommand(instanceName, instanceIndex string) string {
 	return fmt.Sprintf(
 		"%s ssh --gw-user=%s --gw-host=%s --gw-private-key=%s %s/%s",
@@ -87,8 +96,24 @@ func RedisDeploymentSSHCommand(instanceName, instanceIndex string) string {
 	)
 }
 
+func RedisWithMetadataDeploymentSSHCommand(instanceName, instanceIndex string) string {
+	return fmt.Sprintf(
+		"%s ssh --gw-user=%s --gw-host=%s --gw-private-key=%s %s/%s",
+		RedisWithMetadataDeploymentBoshCommand(),
+		MustHaveEnv("BOSH_GATEWAY_USER"),
+		MustHaveEnv("BOSH_GATEWAY_HOST"),
+		MustHaveEnv("BOSH_GATEWAY_KEY"),
+		instanceName,
+		instanceIndex,
+	)
+}
+
 func RedisDeployment() string {
 	return "redis-" + TestEnv()
+}
+
+func RedisWithMetadataDeployment() string {
+	return "redis-with-metadata-" + TestEnv()
 }
 
 func AnotherRedisDeployment() string {
@@ -102,6 +127,11 @@ func JumpboxDeployment() string {
 func RedisDeploymentManifest() string {
 	return "../fixtures/redis.yml"
 }
+
+func RedisWithMetadataDeploymentManifest() string {
+	return "../fixtures/redis-with-metadata.yml"
+}
+
 
 func AnotherRedisDeploymentManifest() string {
 	return "../fixtures/another-redis.yml"
