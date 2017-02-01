@@ -40,6 +40,7 @@ func RunCommandOnRemote(cmd string, remoteComand string) *gexec.Session {
 	Expect(err).ToNot(HaveOccurred())
 	return session
 }
+
 func RunCommandOnRemoteAsVcap(cmd string, remoteComand string) *gexec.Session {
 	return RunCommandOnRemote(cmd, fmt.Sprintf("sudo su vcap -c '%s'", remoteComand))
 }
@@ -64,42 +65,70 @@ func GenericBoshCommand() string {
 	)
 }
 
+func JumpBoxBoshCommand() string {
+	return getBoshCommand(JumpboxDeployment)
+}
+
 func RedisDeploymentBoshCommand() string {
-	return fmt.Sprintf("%s --deployment=%s", GenericBoshCommand(), RedisDeployment())
+	return getBoshCommand(RedisDeployment)
 }
 
 func AnotherRedisDeploymentBoshCommand() string {
-	return fmt.Sprintf("%s --deployment=%s", GenericBoshCommand(), AnotherRedisDeployment())
+	return getBoshCommand(AnotherRedisDeployment)
 }
 
 func RedisWithMetadataDeploymentBoshCommand() string {
-	return fmt.Sprintf("%s --deployment=%s", GenericBoshCommand(), RedisWithMetadataDeployment())
+	return getBoshCommand(RedisWithMetadataDeployment)
+}
+
+func JumpBoxSCPCommand() string {
+	return getSCPCommand(JumpBoxBoshCommand)
 }
 
 func RedisDeploymentSCPCommand() string {
-	return fmt.Sprintf("%s scp --gw-user=%s --gw-host=%s --gw-private-key=%s", RedisDeploymentBoshCommand(), MustHaveEnv("BOSH_GATEWAY_USER"), MustHaveEnv("BOSH_GATEWAY_HOST"), MustHaveEnv("BOSH_GATEWAY_KEY"))
+	return getSCPCommand(RedisDeploymentBoshCommand)
 }
 
 func RedisWithMetadataDeploymentSCPCommand() string {
-	return fmt.Sprintf("%s scp --gw-user=%s --gw-host=%s --gw-private-key=%s", RedisWithMetadataDeploymentBoshCommand(), MustHaveEnv("BOSH_GATEWAY_USER"), MustHaveEnv("BOSH_GATEWAY_HOST"), MustHaveEnv("BOSH_GATEWAY_KEY"))
+	return getSCPCommand(RedisWithMetadataDeploymentBoshCommand)
+}
+
+func JumpBoxSSHCommand() string {
+	return getSSHCommand(JumpBoxBoshCommand, "jumpbox", "0")
 }
 
 func RedisDeploymentSSHCommand(instanceName, instanceIndex string) string {
-	return fmt.Sprintf(
-		"%s ssh --gw-user=%s --gw-host=%s --gw-private-key=%s %s/%s",
-		RedisDeploymentBoshCommand(),
-		MustHaveEnv("BOSH_GATEWAY_USER"),
-		MustHaveEnv("BOSH_GATEWAY_HOST"),
-		MustHaveEnv("BOSH_GATEWAY_KEY"),
-		instanceName,
-		instanceIndex,
-	)
+	return getSSHCommand(RedisDeploymentBoshCommand, instanceName, instanceIndex)
 }
 
 func RedisWithMetadataDeploymentSSHCommand(instanceName, instanceIndex string) string {
+	return getSSHCommand(RedisWithMetadataDeploymentBoshCommand, instanceName, instanceIndex)
+}
+
+
+
+func getSCPCommand(boshCommand func() string) string {
+	return fmt.Sprintf(
+		"%s scp --gw-user=%s --gw-host=%s --gw-private-key=%s",
+		boshCommand(),
+		MustHaveEnv("BOSH_GATEWAY_USER"),
+		MustHaveEnv("BOSH_GATEWAY_HOST"),
+		MustHaveEnv("BOSH_GATEWAY_KEY"),
+	)
+}
+
+func getBoshCommand(deploymentName func() string) string {
+	return fmt.Sprintf(
+		"%s --deployment=%s",
+		GenericBoshCommand(),
+		deploymentName(),
+	)
+}
+
+func getSSHCommand(boshCmd func() string, instanceName, instanceIndex string) string {
 	return fmt.Sprintf(
 		"%s ssh --gw-user=%s --gw-host=%s --gw-private-key=%s %s/%s",
-		RedisWithMetadataDeploymentBoshCommand(),
+		boshCmd(),
 		MustHaveEnv("BOSH_GATEWAY_USER"),
 		MustHaveEnv("BOSH_GATEWAY_HOST"),
 		MustHaveEnv("BOSH_GATEWAY_KEY"),
@@ -109,19 +138,19 @@ func RedisWithMetadataDeploymentSSHCommand(instanceName, instanceIndex string) s
 }
 
 func RedisDeployment() string {
-	return "redis-" + TestEnv()
+	return "redis-" + testEnv()
 }
 
 func RedisWithMetadataDeployment() string {
-	return "redis-with-metadata-" + TestEnv()
+	return "redis-with-metadata-" + testEnv()
 }
 
 func AnotherRedisDeployment() string {
-	return "another-redis-" + TestEnv()
+	return "another-redis-" + testEnv()
 }
 
 func JumpboxDeployment() string {
-	return "jumpbox-" + TestEnv()
+	return "jumpbox-" + testEnv()
 }
 
 func RedisDeploymentManifest() string {
@@ -132,7 +161,6 @@ func RedisWithMetadataDeploymentManifest() string {
 	return "../fixtures/redis-with-metadata.yml"
 }
 
-
 func AnotherRedisDeploymentManifest() string {
 	return "../fixtures/another-redis.yml"
 }
@@ -141,17 +169,6 @@ func JumpboxDeploymentManifest() string {
 	return "../fixtures/jumpbox.yml"
 }
 
-func TestEnv() string {
+func testEnv() string {
 	return MustHaveEnv("TEST_ENV")
-}
-
-func JumpBoxBoshCommand() string {
-	return fmt.Sprintf("%s --deployment=%s", GenericBoshCommand(), JumpboxDeployment())
-}
-
-func JumpBoxSCPCommand() string {
-	return fmt.Sprintf("%s scp --gw-user=%s --gw-host=%s --gw-private-key=%s", JumpBoxBoshCommand(), MustHaveEnv("BOSH_GATEWAY_USER"), MustHaveEnv("BOSH_GATEWAY_HOST"), MustHaveEnv("BOSH_GATEWAY_KEY"))
-}
-func JumpBoxSSHCommand() string {
-	return fmt.Sprintf("%s ssh --gw-user=%s --gw-host=%s --gw-private-key=%s jumpbox/0", JumpBoxBoshCommand(), MustHaveEnv("BOSH_GATEWAY_USER"), MustHaveEnv("BOSH_GATEWAY_HOST"), MustHaveEnv("BOSH_GATEWAY_KEY"))
 }
