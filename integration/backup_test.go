@@ -137,7 +137,7 @@ printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
 				Expect(instance1.FileExists("/var/vcap/store/backup")).To(BeFalse())
 			})
 
-			XContext("when the backup artifact name is specified in the metadata", func() {
+			Context("when the backup artifact name is specified in the metadata", func() {
 				var redisCustomArtifactFile string
 				BeforeEach(func() {
 					instance1.CreateScript("/var/vcap/jobs/redis/bin/p-metadata", `#!/usr/bin/env sh
@@ -152,16 +152,12 @@ backup_name: foo_redis
 					Expect(instance1.FileExists("/tmp/p-metadata-output")).To(BeTrue())
 				})
 
-				It("logs that metadata script is invoked", func() {
-					Expect(session.Out.Contents()).Should(ContainSubstring(`Fetching metadata for redis-dedicated-node/fake-uuid for backup`))
-				})
-
 				It("the redis artifact does not contain the artifact files", func() {
 					Expect(filesInTar(redisNodeArtifactFile)).NotTo(ConsistOf("backupdump1", "backupdump2"))
 				})
 
 				It("the custom named backup blob contains the artifact files", func() {
-					Expect(filesInTar(redisCustomArtifactFile)).NotTo(ConsistOf("backupdump1", "backupdump2"))
+					Expect(filesInTar(redisCustomArtifactFile)).To(ConsistOf("backupdump1", "backupdump2"))
 					Expect(contentsInTar(redisCustomArtifactFile, "backupdump1")).To(Equal("backupcontent1"))
 					Expect(contentsInTar(redisCustomArtifactFile, "backupdump2")).To(Equal("backupcontent2"))
 				})
@@ -174,12 +170,12 @@ backup_name: foo_redis
 					Expect(ioutil.ReadFile(metadataFile)).To(MatchYAML(fmt.Sprintf(`instances:
 - instance_name: redis-dedicated-node
   instance_index: "0"
-  checksums: []
-named_artifacts:
+  checksums: {}
+artifacts:
 - artifact_name: foo_redis
   checksums:
-    ./foo_redis/backupdump1: %s
-    ./foo_redis/backupdump2: %s
+    ./backupdump1: %s
+    ./backupdump2: %s
 `, shaFor("backupcontent1"), shaFor("backupcontent2"))))
 				})
 			})

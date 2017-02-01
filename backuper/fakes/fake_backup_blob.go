@@ -55,6 +55,12 @@ type FakeBackupBlob struct {
 	streamFromRemoteReturns struct {
 		result1 error
 	}
+	DeleteStub        func() error
+	deleteMutex       sync.RWMutex
+	deleteArgsForCall []struct{}
+	deleteReturns     struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -237,6 +243,30 @@ func (fake *FakeBackupBlob) StreamFromRemoteReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeBackupBlob) Delete() error {
+	fake.deleteMutex.Lock()
+	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct{}{})
+	fake.recordInvocation("Delete", []interface{}{})
+	fake.deleteMutex.Unlock()
+	if fake.DeleteStub != nil {
+		return fake.DeleteStub()
+	}
+	return fake.deleteReturns.result1
+}
+
+func (fake *FakeBackupBlob) DeleteCallCount() int {
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
+	return len(fake.deleteArgsForCall)
+}
+
+func (fake *FakeBackupBlob) DeleteReturns(result1 error) {
+	fake.DeleteStub = nil
+	fake.deleteReturns = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeBackupBlob) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -254,6 +284,8 @@ func (fake *FakeBackupBlob) Invocations() map[string][][]interface{} {
 	defer fake.backupChecksumMutex.RUnlock()
 	fake.streamFromRemoteMutex.RLock()
 	defer fake.streamFromRemoteMutex.RUnlock()
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
 	return fake.invocations
 }
 

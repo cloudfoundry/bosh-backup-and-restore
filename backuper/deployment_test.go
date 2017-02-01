@@ -830,6 +830,10 @@ var _ = Describe("Deployment", func() {
 				Expect(localArtifactWriteCloser.CloseCallCount()).To(Equal(1))
 			})
 
+			It("deletes the blob on the remote", func() {
+				Expect(backupBlob.DeleteCallCount()).To(Equal(1))
+			})
+
 			It("calculates checksum for the artifact", func() {
 				Expect(artifact.CalculateChecksumCallCount()).To(Equal(1))
 				Expect(artifact.CalculateChecksumArgsForCall(0)).To(Equal(backupBlob))
@@ -852,25 +856,25 @@ var _ = Describe("Deployment", func() {
 			var writeCloser1 *fakes.FakeWriteCloser
 			var writeCloser2 *fakes.FakeWriteCloser
 
-			var remoteArtifact1 *fakes.FakeBackupBlob
-			var remoteArtifact2 *fakes.FakeBackupBlob
+			var blob1 *fakes.FakeBackupBlob
+			var blob2 *fakes.FakeBackupBlob
 
 			BeforeEach(func() {
 				writeCloser1 = new(fakes.FakeWriteCloser)
 				writeCloser2 = new(fakes.FakeWriteCloser)
-				remoteArtifact1 = new(fakes.FakeBackupBlob)
-				remoteArtifact2 = new(fakes.FakeBackupBlob)
+				blob1 = new(fakes.FakeBackupBlob)
+				blob2 = new(fakes.FakeBackupBlob)
 
 				artifact.CreateFileStub = func(i backuper.BackupBlobIdentifier) (io.WriteCloser, error) {
-					if i == remoteArtifact1 {
+					if i == blob1 {
 						return writeCloser1, nil
 					} else {
 						return writeCloser2, nil
 					}
 				}
 
-				instance1.BlobsReturns([]backuper.BackupBlob{remoteArtifact1})
-				instance2.BlobsReturns([]backuper.BackupBlob{remoteArtifact2})
+				instance1.BlobsReturns([]backuper.BackupBlob{blob1})
+				instance2.BlobsReturns([]backuper.BackupBlob{blob2})
 
 				instance1.IsBackupableReturns(true)
 				instance2.IsBackupableReturns(true)
@@ -878,21 +882,21 @@ var _ = Describe("Deployment", func() {
 				artifact.CalculateChecksumReturns(instanceChecksum, nil)
 
 				instances = []backuper.Instance{instance1, instance2}
-				remoteArtifact1.BackupChecksumReturns(instanceChecksum, nil)
-				remoteArtifact2.BackupChecksumReturns(instanceChecksum, nil)
+				blob1.BackupChecksumReturns(instanceChecksum, nil)
+				blob2.BackupChecksumReturns(instanceChecksum, nil)
 			})
 			It("creates an artifact file with the instance", func() {
 				Expect(artifact.CreateFileCallCount()).To(Equal(2))
-				Expect(artifact.CreateFileArgsForCall(0)).To(Equal(remoteArtifact1))
-				Expect(artifact.CreateFileArgsForCall(1)).To(Equal(remoteArtifact2))
+				Expect(artifact.CreateFileArgsForCall(0)).To(Equal(blob1))
+				Expect(artifact.CreateFileArgsForCall(1)).To(Equal(blob2))
 			})
 
 			It("streams the backup to the writer for the artifact file", func() {
-				Expect(remoteArtifact1.StreamFromRemoteCallCount()).To(Equal(1))
-				Expect(remoteArtifact1.StreamFromRemoteArgsForCall(0)).To(Equal(writeCloser1))
+				Expect(blob1.StreamFromRemoteCallCount()).To(Equal(1))
+				Expect(blob1.StreamFromRemoteArgsForCall(0)).To(Equal(writeCloser1))
 
-				Expect(remoteArtifact2.StreamFromRemoteCallCount()).To(Equal(1))
-				Expect(remoteArtifact2.StreamFromRemoteArgsForCall(0)).To(Equal(writeCloser2))
+				Expect(blob2.StreamFromRemoteCallCount()).To(Equal(1))
+				Expect(blob2.StreamFromRemoteArgsForCall(0)).To(Equal(writeCloser2))
 			})
 
 			It("closes the writer after its been streamed", func() {
@@ -902,23 +906,28 @@ var _ = Describe("Deployment", func() {
 
 			It("calculates checksum for the instance on the artifact", func() {
 				Expect(artifact.CalculateChecksumCallCount()).To(Equal(2))
-				Expect(artifact.CalculateChecksumArgsForCall(0)).To(Equal(remoteArtifact1))
-				Expect(artifact.CalculateChecksumArgsForCall(1)).To(Equal(remoteArtifact2))
+				Expect(artifact.CalculateChecksumArgsForCall(0)).To(Equal(blob1))
+				Expect(artifact.CalculateChecksumArgsForCall(1)).To(Equal(blob2))
 			})
 
 			It("calculates checksum for the instance on remote", func() {
-				Expect(remoteArtifact1.BackupChecksumCallCount()).To(Equal(1))
-				Expect(remoteArtifact2.BackupChecksumCallCount()).To(Equal(1))
+				Expect(blob1.BackupChecksumCallCount()).To(Equal(1))
+				Expect(blob2.BackupChecksumCallCount()).To(Equal(1))
+			})
+
+			It("deletes both the blobs", func() {
+				Expect(blob1.DeleteCallCount()).To(Equal(1))
+				Expect(blob2.DeleteCallCount()).To(Equal(1))
 			})
 
 			It("appends the checksum for the instance on the artifact", func() {
 				Expect(artifact.AddChecksumCallCount()).To(Equal(2))
 				actualRemoteArtifact, acutalChecksum := artifact.AddChecksumArgsForCall(0)
-				Expect(actualRemoteArtifact).To(Equal(remoteArtifact1))
+				Expect(actualRemoteArtifact).To(Equal(blob1))
 				Expect(acutalChecksum).To(Equal(instanceChecksum))
 
 				actualRemoteArtifact, acutalChecksum = artifact.AddChecksumArgsForCall(1)
-				Expect(actualRemoteArtifact).To(Equal(remoteArtifact2))
+				Expect(actualRemoteArtifact).To(Equal(blob2))
 				Expect(acutalChecksum).To(Equal(instanceChecksum))
 			})
 		})
@@ -1103,6 +1112,33 @@ var _ = Describe("Deployment", func() {
 
 				It("dosen't try to append shasum to metadata", func() {
 					Expect(artifact.AddChecksumCallCount()).To(BeZero())
+				})
+			})
+
+			Context("fails if unable to delete blobs", func(){
+				var writeCloser1 *fakes.FakeWriteCloser
+				var instanceChecksum = backuper.BackupChecksum{"file1": "abcd", "file2": "efgh"}
+				var expectedError = fmt.Errorf("brr")
+
+				BeforeEach(func() {
+					writeCloser1 = new(fakes.FakeWriteCloser)
+					instances = []backuper.Instance{instance1}
+
+					instance1.IsBackupableReturns(true)
+					instance1.BackupReturns(nil)
+					instance1.BlobsReturns([]backuper.BackupBlob{backupBlob})
+
+					artifact.CreateFileReturns(writeCloser1, nil)
+					artifact.CalculateChecksumReturns(backuper.BackupChecksum{"file": "this will match", "extra": "this won't match"}, nil)
+					artifact.CalculateChecksumReturns(instanceChecksum, nil)
+					backupBlob.BackupChecksumReturns(instanceChecksum, nil)
+
+
+					backupBlob.DeleteReturns(expectedError)
+				})
+
+				It("fails the backup process", func() {
+					Expect(copyRemoteBackupsToLocalArtifactError ).To(MatchError(expectedError))
 				})
 			})
 		})

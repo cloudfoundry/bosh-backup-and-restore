@@ -50,3 +50,7 @@ func (d *DefaultBlob) logAndRun(cmd, label string) ([]byte, []byte, int, error) 
 
 	return stdout, stderr, exitCode, err
 }
+
+func (d *DefaultBlob) Delete() error {
+	return nil
+}

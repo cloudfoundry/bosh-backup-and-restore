@@ -69,8 +69,18 @@ func (d *NamedBlob) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
 	d.Logger.Debug("", "Stderr: %s", string(stderr))
 
 	if err != nil {
-		d.Logger.Debug("", "Error running %s on instance %s/%s. Exit code %d, error: %s", label, d.Name(), d.ID(), exitCode, err.Error())
+		d.Logger.Debug("", "Error running %s on instance %s/%s. Exit code %d, error: %s", label, d.Instance.Name(), d.Instance.ID(), exitCode, err.Error())
 	}
 
 	return stdout, stderr, exitCode, err
+}
+
+func (d *NamedBlob) Delete() error {
+	_, _, exitCode, err := d.logAndRun(fmt.Sprintf("sudo rm -rf %s", d.Job.ArtifactDirectory()), "deleting named blobs")
+
+	if exitCode != 0 {
+		return fmt.Errorf("Error deleting blobs on instance %s/%s. Directory name %s. Exit code %d", d.Instance.Name(), d.Instance.ID(), d.Job.ArtifactDirectory(), exitCode)
+	}
+
+	return err
 }

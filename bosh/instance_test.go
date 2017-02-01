@@ -1330,6 +1330,15 @@ var _ = Describe("Instance", func() {
 					},
 				))
 			})
+
+			It("returns the default blob last", func() {
+				Expect(actualBlobs[1]).To(Equal(bosh.NewDefaultBlob(instance, sshConnection, boshLogger)))
+			})
+
+			It("returns the named blob first", func() {
+				Expect(actualBlobs[0]).To(Equal(bosh.NewNamedBlob(instance, bosh.NewJob(backupAndRestoreScripts, "my-blob"), sshConnection, boshLogger)))
+			})
+
 		})
 	})
 

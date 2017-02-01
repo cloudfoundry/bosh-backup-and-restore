@@ -104,4 +104,20 @@ var _ = Describe("DefaultBlob", func() {
 		})
 	})
 
+	Describe("Delete", func() {
+		var err error
+
+		JustBeforeEach(func() {
+			err = defaultBlob.Delete()
+		})
+
+		It("succeeds", func() {
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("does nothing", func() {
+			Expect(sshConnection.RunCallCount()).To(Equal(0))
+		})
+	})
+
 })

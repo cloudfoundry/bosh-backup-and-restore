@@ -127,6 +127,12 @@ func (bd *BoshDeployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 			}
 
 			artifact.AddChecksum(remoteArtifact, localChecksum)
+
+			err = remoteArtifact.Delete()
+			if err != nil {
+				return err
+			}
+
 			bd.Logger.Info("", "Done.")
 		}
 	}

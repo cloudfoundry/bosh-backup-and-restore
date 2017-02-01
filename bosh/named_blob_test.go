@@ -27,6 +27,8 @@ var _ = Describe("NamedBlob", func() {
 	BeforeEach(func() {
 		sshConnection = new(fakes.FakeSSHConnection)
 		instance = new(backuperfakes.FakeInstance)
+		instance.NameReturns("redis")
+		instance.IDReturns("foo")
 		job = bosh.NewJob(bosh.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/p-backup"}, "named-blob")
 
 		stdout = gbytes.NewBuffer()
@@ -194,6 +196,49 @@ var _ = Describe("NamedBlob", func() {
 			})
 			It("returns an error", func() {
 				Expect(actualChecksumError).To(HaveOccurred())
+			})
+		})
+	})
+
+	Describe("Delete", func() {
+		var err error
+
+		JustBeforeEach(func() {
+			err = namedBlob.Delete()
+		})
+
+		It("succeeds", func() {
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("deletes only the named blob's backup directory on the remote", func() {
+			Expect(sshConnection.RunCallCount()).To(Equal(1))
+			Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo rm -rf /var/vcap/store/backup/named-blob"))
+		})
+
+		Context("when there is an error with the SSH connection", func() {
+			var expectedErr error
+
+			BeforeEach(func() {
+				expectedErr = fmt.Errorf("you fool")
+				sshConnection.RunReturns([]byte("don't matter"), []byte("don't matter"), 0, expectedErr)
+			})
+
+			It("fails", func() {
+				Expect(err).To(MatchError(expectedErr))
+			})
+		})
+
+		Context("when the rm command returns an error", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("don't matter"), []byte("don't matter"), 1, nil)
+			})
+
+			It("fails", func() {
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring(
+					"Error deleting blobs on instance redis/foo. Directory name /var/vcap/store/backup/named-blob. Exit code 1",
+				))
 			})
 		})
 	})

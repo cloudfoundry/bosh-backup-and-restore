@@ -40,6 +40,7 @@ type BackupBlob interface {
 	BackupSize() (string, error)
 	BackupChecksum() (BackupChecksum, error)
 	StreamFromRemote(io.Writer) error
+	Delete() error
 }
 
 type instances []Instance
