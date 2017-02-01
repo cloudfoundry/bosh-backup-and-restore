@@ -23,18 +23,17 @@ var (
 )
 
 var instanceCollection = map[string][]string{
-	"redis":       []string{"0", "1"},
-	"other-redis": []string{"0"},
+	"redis":       {"0", "1"},
+	"other-redis": {"0"},
 }
 var fixturesPath = "../fixtures/redis-backup/"
 
 var _ = BeforeEach(func() {
 	SetDefaultEventuallyTimeout(2 * time.Minute)
-	// TODO: tests should build and upload the test release
-	// By("Creating the test release")
-	// RunBoshCommand(testDeploymentBoshCommand, "create-release", "--dir=../fixtures/releases/redis-test-release/", "--force")
-	// By("Uploading the test release")
-	// RunBoshCommand(testDeploymentBoshCommand, "upload-release", "--dir=../fixtures/releases/redis-test-release/", "--rebase")
+	 By("Creating the test release")
+	 RunBoshCommand(GenericBoshCommand(), "create-release", "--dir=../fixtures/releases/redis-test-release/", "--force")
+	 By("Uploading the test release")
+	 RunBoshCommand(GenericBoshCommand(), "upload-release", "--dir=../fixtures/releases/redis-test-release/", "--rebase")
 	var wg sync.WaitGroup
 
 	wg.Add(3)
