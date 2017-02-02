@@ -33,26 +33,23 @@ type FakeInstance struct {
 	isBackupableReturns     struct {
 		result1 bool
 	}
-	IsPostBackupUnlockableStub        func() (bool, error)
+	IsPostBackupUnlockableStub        func() bool
 	isPostBackupUnlockableMutex       sync.RWMutex
 	isPostBackupUnlockableArgsForCall []struct{}
 	isPostBackupUnlockableReturns     struct {
 		result1 bool
-		result2 error
 	}
-	IsPreBackupLockableStub        func() (bool, error)
+	IsPreBackupLockableStub        func() bool
 	isPreBackupLockableMutex       sync.RWMutex
 	isPreBackupLockableArgsForCall []struct{}
 	isPreBackupLockableReturns     struct {
 		result1 bool
-		result2 error
 	}
-	IsRestorableStub        func() (bool, error)
+	IsRestorableStub        func() bool
 	isRestorableMutex       sync.RWMutex
 	isRestorableArgsForCall []struct{}
 	isRestorableReturns     struct {
 		result1 bool
-		result2 error
 	}
 	PreBackupLockStub        func() error
 	preBackupLockMutex       sync.RWMutex
@@ -218,7 +215,7 @@ func (fake *FakeInstance) IsBackupableReturns(result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeInstance) IsPostBackupUnlockable() (bool, error) {
+func (fake *FakeInstance) IsPostBackupUnlockable() bool {
 	fake.isPostBackupUnlockableMutex.Lock()
 	fake.isPostBackupUnlockableArgsForCall = append(fake.isPostBackupUnlockableArgsForCall, struct{}{})
 	fake.recordInvocation("IsPostBackupUnlockable", []interface{}{})
@@ -226,7 +223,7 @@ func (fake *FakeInstance) IsPostBackupUnlockable() (bool, error) {
 	if fake.IsPostBackupUnlockableStub != nil {
 		return fake.IsPostBackupUnlockableStub()
 	}
-	return fake.isPostBackupUnlockableReturns.result1, fake.isPostBackupUnlockableReturns.result2
+	return fake.isPostBackupUnlockableReturns.result1
 }
 
 func (fake *FakeInstance) IsPostBackupUnlockableCallCount() int {
@@ -235,15 +232,14 @@ func (fake *FakeInstance) IsPostBackupUnlockableCallCount() int {
 	return len(fake.isPostBackupUnlockableArgsForCall)
 }
 
-func (fake *FakeInstance) IsPostBackupUnlockableReturns(result1 bool, result2 error) {
+func (fake *FakeInstance) IsPostBackupUnlockableReturns(result1 bool) {
 	fake.IsPostBackupUnlockableStub = nil
 	fake.isPostBackupUnlockableReturns = struct {
 		result1 bool
-		result2 error
-	}{result1, result2}
+	}{result1}
 }
 
-func (fake *FakeInstance) IsPreBackupLockable() (bool, error) {
+func (fake *FakeInstance) IsPreBackupLockable() bool {
 	fake.isPreBackupLockableMutex.Lock()
 	fake.isPreBackupLockableArgsForCall = append(fake.isPreBackupLockableArgsForCall, struct{}{})
 	fake.recordInvocation("IsPreBackupLockable", []interface{}{})
@@ -251,7 +247,7 @@ func (fake *FakeInstance) IsPreBackupLockable() (bool, error) {
 	if fake.IsPreBackupLockableStub != nil {
 		return fake.IsPreBackupLockableStub()
 	}
-	return fake.isPreBackupLockableReturns.result1, fake.isPreBackupLockableReturns.result2
+	return fake.isPreBackupLockableReturns.result1
 }
 
 func (fake *FakeInstance) IsPreBackupLockableCallCount() int {
@@ -260,15 +256,14 @@ func (fake *FakeInstance) IsPreBackupLockableCallCount() int {
 	return len(fake.isPreBackupLockableArgsForCall)
 }
 
-func (fake *FakeInstance) IsPreBackupLockableReturns(result1 bool, result2 error) {
+func (fake *FakeInstance) IsPreBackupLockableReturns(result1 bool) {
 	fake.IsPreBackupLockableStub = nil
 	fake.isPreBackupLockableReturns = struct {
 		result1 bool
-		result2 error
-	}{result1, result2}
+	}{result1}
 }
 
-func (fake *FakeInstance) IsRestorable() (bool, error) {
+func (fake *FakeInstance) IsRestorable() bool {
 	fake.isRestorableMutex.Lock()
 	fake.isRestorableArgsForCall = append(fake.isRestorableArgsForCall, struct{}{})
 	fake.recordInvocation("IsRestorable", []interface{}{})
@@ -276,7 +271,7 @@ func (fake *FakeInstance) IsRestorable() (bool, error) {
 	if fake.IsRestorableStub != nil {
 		return fake.IsRestorableStub()
 	}
-	return fake.isRestorableReturns.result1, fake.isRestorableReturns.result2
+	return fake.isRestorableReturns.result1
 }
 
 func (fake *FakeInstance) IsRestorableCallCount() int {
@@ -285,12 +280,11 @@ func (fake *FakeInstance) IsRestorableCallCount() int {
 	return len(fake.isRestorableArgsForCall)
 }
 
-func (fake *FakeInstance) IsRestorableReturns(result1 bool, result2 error) {
+func (fake *FakeInstance) IsRestorableReturns(result1 bool) {
 	fake.IsRestorableStub = nil
 	fake.isRestorableReturns = struct {
 		result1 bool
-		result2 error
-	}{result1, result2}
+	}{result1}
 }
 
 func (fake *FakeInstance) PreBackupLock() error {

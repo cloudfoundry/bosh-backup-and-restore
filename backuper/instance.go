@@ -13,9 +13,9 @@ type InstanceIdentifer interface {
 type Instance interface {
 	InstanceIdentifer
 	IsBackupable() bool
-	IsPostBackupUnlockable() (bool, error)
-	IsPreBackupLockable() (bool, error)
-	IsRestorable() (bool, error)
+	IsPostBackupUnlockable() bool
+	IsPreBackupLockable() bool
+	IsRestorable() bool
 	PreBackupLock() error
 	Backup() error
 	PostBackupUnlock() error
@@ -60,47 +60,39 @@ func (is instances) AllBackupable() (instances, error) {
 	return backupableInstances, nil
 }
 
-func (is instances) AllPreBackupLockable() (instances, error) {
+func (is instances) AllPreBackupLockable() instances {
 	var lockableInstances []Instance
-	var findLockableErrors error = nil
 
 	for _, instance := range is {
-		if lockable, err := instance.IsPreBackupLockable(); err != nil {
-			findLockableErrors = multierror.Append(err)
-		} else if lockable {
+		if instance.IsPreBackupLockable() {
 			lockableInstances = append(lockableInstances, instance)
 		}
 	}
 
-	return lockableInstances, findLockableErrors
+	return lockableInstances
 }
 
-func (is instances) AllPostBackupUnlockable() (instances, error) {
+func (is instances) AllPostBackupUnlockable() instances {
 	var unlockableInstances []Instance
-	var findUnlockableErrors error = nil
 
 	for _, instance := range is {
-		if unlockable, err := instance.IsPostBackupUnlockable(); err != nil {
-			findUnlockableErrors = multierror.Append(err)
-		} else if unlockable {
+		if instance.IsPostBackupUnlockable() {
 			unlockableInstances = append(unlockableInstances, instance)
 		}
 	}
 
-	return unlockableInstances, findUnlockableErrors
+	return unlockableInstances
 }
 
-func (is instances) AllRestoreable() (instances, error) {
-	var backupableInstances []Instance
+func (is instances) AllRestoreable() instances {
+	var instances []Instance
 
 	for _, instance := range is {
-		if backupable, err := instance.IsRestorable(); err != nil {
-			return backupableInstances, err
-		} else if backupable {
-			backupableInstances = append(backupableInstances, instance)
+		if instance.IsRestorable() {
+			instances = append(instances, instance)
 		}
 	}
-	return backupableInstances, nil
+	return instances
 }
 
 func (is instances) Cleanup() error {

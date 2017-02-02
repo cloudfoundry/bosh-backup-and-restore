@@ -6,7 +6,6 @@ import (
 	"io"
 	"strings"
 
-	"bytes"
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
@@ -20,10 +19,6 @@ type DeployedInstance struct {
 	BoshInstanceID                string
 	SSHConnection
 	Logger
-	backupable *bool
-	restorable *bool
-	unlockable *bool
-	lockable   *bool
 	instance.Jobs
 }
 
@@ -59,33 +54,12 @@ func (d *DeployedInstance) IsBackupable() bool {
 	return d.Jobs.AnyAreBackupable()
 }
 
-func (d *DeployedInstance) IsPostBackupUnlockable() (bool, error) {
-	if d.unlockable != nil {
-		return *d.unlockable, nil
-	}
-	_, _, exitCode, err := d.logAndRun("sudo ls /var/vcap/jobs/*/bin/p-post-backup-unlock", "check for post-backup-unlock scripts")
-	if err != nil {
-		return false, err
-	}
-	unlockable := exitCode == 0
-	d.unlockable = &unlockable
-
-	return *d.unlockable, err
+func (d *DeployedInstance) IsPostBackupUnlockable() bool{
+	return d.Jobs.AnyArePostBackupable()
 }
 
-func (d *DeployedInstance) IsPreBackupLockable() (bool, error) {
-	if d.lockable != nil {
-		return *d.lockable, nil
-	}
-	_, _, exitCode, err := d.logAndRun("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock", "check for pre-backup-lock scripts")
-	if err != nil {
-		return false, err
-	}
-
-	lockable := exitCode == 0
-	d.lockable = &lockable
-
-	return *d.lockable, err
+func (d *DeployedInstance) IsPreBackupLockable() bool{
+	return d.Jobs.AnyArePreBackupable()
 }
 
 func (d *DeployedInstance) PreBackupLock() error {
@@ -230,19 +204,8 @@ func (d *DeployedInstance) BackupChecksum() (backuper.BackupChecksum, error) {
 	return convertShasToMap(string(stdout)), nil
 }
 
-func (d *DeployedInstance) IsRestorable() (bool, error) {
-	if d.restorable != nil {
-		return *d.restorable, nil
-	}
-	_, _, exitCode, err := d.logAndRun("ls /var/vcap/jobs/*/bin/p-restore", "check for restore scripts")
-	if err != nil {
-		return false, err
-	}
-
-	restorable := exitCode == 0
-	d.restorable = &restorable
-
-	return *d.restorable, err
+func (d *DeployedInstance) IsRestorable() bool {
+	return d.Jobs.AnyAreRestorable()
 }
 
 func (d *DeployedInstance) BackupSize() (string, error) {
@@ -297,18 +260,6 @@ func (d *DeployedInstance) logAndRun(cmd, label string) ([]byte, []byte, int, er
 	}
 
 	return stdout, stderr, exitCode, err
-}
-
-func (d *DeployedInstance) filesPresent(path string) {
-	d.Logger.Debug("", "Listing contents of %s on %s/%s", path, d.InstanceGroupName, d.BoshInstanceID)
-
-	stdout, _, _, _ := d.Run("sudo ls " + path)
-	stdout = bytes.TrimSpace(stdout)
-	files := strings.Split(string(stdout), "\n")
-
-	for _, f := range files {
-		d.Logger.Debug("", "> %s", f)
-	}
 }
 
 func (d *DeployedInstance) Name() string {

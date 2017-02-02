@@ -85,374 +85,96 @@ var _ = Describe("Instance", func() {
 
 	Describe("IsPreBackupLockable", func() {
 		var actualLockable bool
-		var actualError error
 
 		JustBeforeEach(func() {
-			actualLockable, actualError = backuperInstance.IsPreBackupLockable()
+			actualLockable = backuperInstance.IsPreBackupLockable()
 		})
 
-		Context("there are p-pre-backup-lock scripts in the job directories", func() {
+		Describe("there are pre-backup-lock scripts in the job directories", func() {
 			BeforeEach(func() {
-				sshConnection.RunReturns([]byte(expectedStdout), []byte(expectedStderr), 0, nil)
-			})
-
-			It("succeeds", func() {
-				Expect(actualError).NotTo(HaveOccurred())
+				backupAndRestoreScripts = []instance.Script{
+					"/var/vcap/jobs/dave/bin/p-pre-backup-lock",
+				}
 			})
 
 			It("returns true", func() {
 				Expect(actualLockable).To(BeTrue())
 			})
-
-			It("invokes the ssh connection, to find files", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock"))
-			})
-
-			It("logs that we are checking for pre-backup-lock scripts", func() {
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running check for pre-backup-lock scripts on %s/%s", jobName, jobID)))
-			})
-
-			It("logs stdout and stderr", func() {
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stdout: %s", expectedStdout)))
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stderr: %s", expectedStderr)))
-			})
-
-			Describe("when is pre backup lockable is called again", func() {
-				var secondInvocationActualLockable bool
-				var secondInvocationActualError error
-				JustBeforeEach(func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					secondInvocationActualLockable, secondInvocationActualError = backuperInstance.IsPreBackupLockable()
-				})
-
-				It("only invokes the ssh connection once", func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-				})
-
-				It("returns true", func() {
-					Expect(secondInvocationActualLockable).To(BeTrue())
-				})
-
-				It("succeeds", func() {
-					Expect(secondInvocationActualError).NotTo(HaveOccurred())
-				})
-			})
 		})
 
-		Context("there are no p-pre-backup-lock scripts", func() {
+		Describe("there are no pre-backup-lock scripts", func() {
 			BeforeEach(func() {
-				sshConnection.RunReturns([]byte(expectedStdout), []byte(expectedStderr), 1, nil)
-			})
-
-			It("succeeds", func() {
-				Expect(actualError).NotTo(HaveOccurred())
+				backupAndRestoreScripts = []instance.Script{
+					"/var/vcap/jobs/dave/bin/foo",
+				}
 			})
 
 			It("returns false", func() {
 				Expect(actualLockable).To(BeFalse())
-			})
-
-			It("invokes the ssh connection, to find files", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock"))
-			})
-
-			It("logs that we are checking for pre-backup-lock scripts", func() {
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running check for pre-backup-lock scripts on %s/%s", jobName, jobID)))
-			})
-
-			It("logs stdout and stderr", func() {
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stdout: %s", expectedStdout)))
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stderr: %s", expectedStderr)))
-			})
-		})
-
-		Context("checking for p-pre-backup-lock scripts fails", func() {
-			BeforeEach(func() {
-				sshConnection.RunReturns([]byte(expectedStdout), []byte(expectedStderr), 0, fmt.Errorf("we have to deal with isis"))
-			})
-
-			It("fails", func() {
-				Expect(actualError).To(HaveOccurred())
-			})
-
-			It("returns false", func() {
-				Expect(actualLockable).To(BeFalse())
-			})
-
-			It("invokes the ssh connection, to find files", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-pre-backup-lock"))
-			})
-
-			It("logs that we are checking for pre-backup-lock scripts", func() {
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running check for pre-backup-lock scripts on %s/%s", jobName, jobID)))
-			})
-
-			It("logs stdout and stderr", func() {
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stdout: %s", expectedStdout)))
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stderr: %s", expectedStderr)))
 			})
 		})
 	})
 
 	Describe("IsPostBackupUnlockable", func() {
 		var actualUnlockable bool
-		var actualError error
 
 		JustBeforeEach(func() {
-			actualUnlockable, actualError = backuperInstance.IsPostBackupUnlockable()
+			actualUnlockable = backuperInstance.IsPostBackupUnlockable()
 		})
 
 		Context("there are p-post-backup-unlock scripts in the job directories", func() {
 			BeforeEach(func() {
-				sshConnection.RunReturns([]byte(expectedStdout), []byte(expectedStderr), 0, nil)
-			})
-
-			It("succeeds", func() {
-				Expect(actualError).NotTo(HaveOccurred())
+				backupAndRestoreScripts = []instance.Script{
+					"/var/vcap/jobs/dave/bin/p-post-backup-unlock",
+				}
 			})
 
 			It("returns true", func() {
 				Expect(actualUnlockable).To(BeTrue())
 			})
-
-			It("invokes the ssh connection, to find files", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo ls /var/vcap/jobs/*/bin/p-post-backup-unlock"))
-			})
-
-			It("logs that we are checking for post-backup-unlock scripts", func() {
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Running check for post-backup-unlock scripts on %s/%s", jobName, jobID)))
-			})
-
-			It("logs stdout and stderr", func() {
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stdout: %s", expectedStdout)))
-				Expect(stdout).To(gbytes.Say(fmt.Sprintf("Stderr: %s", expectedStderr)))
-			})
-
-			Describe("when is post backup unlockable is called again", func() {
-				var secondInvocationActualUnlockable bool
-				var secondInvocationActualError error
-				JustBeforeEach(func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					secondInvocationActualUnlockable, secondInvocationActualError = backuperInstance.IsPostBackupUnlockable()
-				})
-
-				It("only invokes the ssh connection once", func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-				})
-
-				It("returns true", func() {
-					Expect(secondInvocationActualUnlockable).To(BeTrue())
-				})
-
-				It("succeeds", func() {
-					Expect(secondInvocationActualError).NotTo(HaveOccurred())
-				})
-			})
 		})
 
-		Context("there are no p-post-backup-unlock scripts in the job directories", func() {
+		Context("there are no p-post-backup-unlock scripts", func() {
 			BeforeEach(func() {
-				sshConnection.RunReturns([]byte(expectedStdout), []byte(expectedStderr), 1, nil)
-			})
-
-			It("succeeds", func() {
-				Expect(actualError).NotTo(HaveOccurred())
+				backupAndRestoreScripts = []instance.Script{
+					"/var/vcap/jobs/dave/bin/foo",
+				}
 			})
 
 			It("returns false", func() {
 				Expect(actualUnlockable).To(BeFalse())
-			})
-
-			Describe("when is post backup unlockable is called again", func() {
-				var secondInvocationActualUnlockable bool
-				var secondInvocationActualError error
-
-				JustBeforeEach(func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					secondInvocationActualUnlockable, secondInvocationActualError = backuperInstance.IsPostBackupUnlockable()
-				})
-
-				It("only invokes the ssh connection once", func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-				})
-
-				It("returns false", func() {
-					Expect(secondInvocationActualUnlockable).To(BeFalse())
-				})
-
-				It("succeeds", func() {
-					Expect(secondInvocationActualError).NotTo(HaveOccurred())
-				})
-			})
-		})
-
-		Context("error while running command", func() {
-			var expectedError = fmt.Errorf("we need to build a wall")
-
-			BeforeEach(func() {
-				sshConnection.RunReturns([]byte(expectedStdout), []byte(expectedStderr), 0, expectedError)
-			})
-
-			It("fails", func() {
-				Expect(actualError).To(HaveOccurred())
-			})
-
-			It("logs the error to stderr", func() {
-				Expect(stdout).To(
-					gbytes.Say(
-						fmt.Sprintf(
-							"Error running check for post-backup-unlock scripts on instance %s/%s. Exit code 0, error: %s",
-							jobName,
-							jobID,
-							expectedError,
-						),
-					),
-				)
-			})
-
-			Describe("when is post backup backupable is called again", func() {
-				var secondInvocationActualUnlockable bool
-				var secondInvocationActualError error
-				JustBeforeEach(func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					secondInvocationActualUnlockable, secondInvocationActualError = backuperInstance.IsPostBackupUnlockable()
-				})
-
-				It("invokes the ssh connection again", func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(2))
-				})
-
-				It("fails", func() {
-					Expect(secondInvocationActualError).To(HaveOccurred())
-				})
 			})
 		})
 	})
 
 	Describe("IsRestorable", func() {
 		var actualRestorable bool
-		var actualError error
 
 		JustBeforeEach(func() {
-			actualRestorable, actualError = backuperInstance.IsRestorable()
+			actualRestorable = backuperInstance.IsRestorable()
 		})
 
 		Describe("there are restore scripts in the job directories", func() {
 			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, nil)
-			})
-
-			It("succeeds", func() {
-				Expect(actualError).NotTo(HaveOccurred())
+				backupAndRestoreScripts = []instance.Script{
+					"/var/vcap/jobs/dave/bin/p-restore",
+				}
 			})
 
 			It("returns true", func() {
 				Expect(actualRestorable).To(BeTrue())
 			})
-
-			It("invokes the ssh connection, to find files", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/p-restore"))
-			})
-
-			Describe("when is restoreable is called again", func() {
-				var secondInvocationActualRestorable bool
-				var secondInvocationActualError error
-
-				JustBeforeEach(func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					secondInvocationActualRestorable, secondInvocationActualError = backuperInstance.IsRestorable()
-				})
-
-				It("only invokes the ssh connection once", func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-				})
-
-				It("returns true", func() {
-					Expect(secondInvocationActualRestorable).To(BeTrue())
-				})
-
-				It("succeeds", func() {
-					Expect(secondInvocationActualError).NotTo(HaveOccurred())
-				})
-			})
-
 		})
 
-		Describe("there are no restore scripts in the job directories", func() {
+		Describe("there are no restore scripts", func() {
 			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 1, nil)
-			})
-
-			It("succeeds", func() {
-				Expect(actualError).NotTo(HaveOccurred())
+				backupAndRestoreScripts = []instance.Script{
+					"/var/vcap/jobs/dave/bin/foo",
+				}
 			})
 
 			It("returns false", func() {
 				Expect(actualRestorable).To(BeFalse())
-			})
-
-			It("invokes the ssh connection, to find files", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/p-restore"))
-			})
-
-			Describe("when is restoreable is called again", func() {
-				var secondInvocationActualRestorable bool
-				var secondInvocationActualError error
-
-				JustBeforeEach(func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					secondInvocationActualRestorable, secondInvocationActualError = backuperInstance.IsRestorable()
-				})
-
-				It("only invokes the ssh connection once", func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-				})
-
-				It("returns false", func() {
-					Expect(secondInvocationActualRestorable).To(BeFalse())
-				})
-
-				It("succeeds", func() {
-					Expect(secondInvocationActualError).NotTo(HaveOccurred())
-				})
-			})
-		})
-
-		Describe("error while running command", func() {
-			var expectedError = fmt.Errorf("we need to build a wall")
-			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, expectedError)
-			})
-			It("fails", func() {
-				Expect(actualError).To(HaveOccurred())
-			})
-
-			It("invokes the ssh connection, to find files", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("ls /var/vcap/jobs/*/bin/p-restore"))
-			})
-
-			Describe("when is restorable is called again", func() {
-				var secondInvocationActualRestorable bool
-				var secondInvocationActualError error
-				JustBeforeEach(func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					secondInvocationActualRestorable, secondInvocationActualError = backuperInstance.IsRestorable()
-				})
-
-				It("invokes the ssh connection again", func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(2))
-				})
-
-				It("fails", func() {
-					Expect(secondInvocationActualError).To(HaveOccurred())
-				})
 			})
 		})
 	})

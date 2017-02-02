@@ -16,7 +16,7 @@ func (jobs Jobs) Backupable() Jobs {
 	return backupableJobs
 }
 func (jobs Jobs) AnyAreBackupable() bool {
-	return len(jobs.Backupable()) > 0
+	return !jobs.Backupable().empty()
 }
 
 func (jobs Jobs) Restorable() Jobs {
@@ -29,6 +29,10 @@ func (jobs Jobs) Restorable() Jobs {
 	return restorableJobs
 }
 
+func (jobs Jobs) AnyAreRestorable() bool {
+	return !jobs.Restorable().empty()
+}
+
 func (jobs Jobs) PreBackupable() Jobs {
 	preBackupableJobs := Jobs{}
 	for _, job := range jobs {
@@ -39,6 +43,10 @@ func (jobs Jobs) PreBackupable() Jobs {
 	return preBackupableJobs
 }
 
+func (jobs Jobs) AnyArePreBackupable() bool {
+	return !jobs.PreBackupable().empty()
+}
+
 func (jobs Jobs) PostBackupable() Jobs {
 	postBackupableJobs := Jobs{}
 	for _, job := range jobs {
@@ -47,6 +55,10 @@ func (jobs Jobs) PostBackupable() Jobs {
 		}
 	}
 	return postBackupableJobs
+}
+
+func (jobs Jobs) AnyArePostBackupable() bool {
+	return !jobs.PostBackupable().empty()
 }
 
 func (jobs Jobs) WithNamedBlobs() Jobs {
@@ -83,4 +95,8 @@ func NewJobs(scripts BackupAndRestoreScripts, artifactNames map[string]string) (
 	}
 
 	return jobs, nil
+}
+
+func (jobs Jobs) empty() bool {
+	return len(jobs) == 0
 }

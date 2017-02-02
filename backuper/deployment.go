@@ -39,12 +39,7 @@ func (bd *BoshDeployment) IsBackupable() (bool, error) {
 }
 
 func (bd *BoshDeployment) PreBackupLock() error {
-	instances, err := bd.instances.AllPreBackupLockable()
-	if err != nil {
-		return err
-	}
-
-	return instances.PreBackupLock()
+	return bd.instances.AllPreBackupLockable().PreBackupLock()
 }
 
 func (bd *BoshDeployment) Backup() error {
@@ -56,20 +51,11 @@ func (bd *BoshDeployment) Backup() error {
 }
 
 func (bd *BoshDeployment) PostBackupUnlock() error {
-	instances, err := bd.instances.AllPostBackupUnlockable()
-	if err != nil {
-		return err
-	}
-
-	return instances.PostBackupUnlock()
+	return bd.instances.AllPostBackupUnlockable().PostBackupUnlock()
 }
 
 func (bd *BoshDeployment) Restore() error {
-	if instances, err := bd.instances.AllRestoreable(); err != nil {
-		return err
-	} else {
-		return instances.Restore()
-	}
+	return bd.instances.AllRestoreable().Restore()
 }
 
 func (bd *BoshDeployment) Cleanup() error {
@@ -78,11 +64,7 @@ func (bd *BoshDeployment) Cleanup() error {
 
 func (bd *BoshDeployment) IsRestorable() (bool, error) {
 	bd.Logger.Info("", "Finding instances with restore scripts...")
-	restoreableInstances, err := bd.instances.AllRestoreable()
-	if err != nil {
-		return false, err
-	}
-	bd.Logger.Info("", "Done.")
+	restoreableInstances := bd.instances.AllRestoreable()
 	return !restoreableInstances.IsEmpty(), nil
 }
 
@@ -140,10 +122,7 @@ func (bd *BoshDeployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 }
 
 func (bd *BoshDeployment) CopyLocalBackupToRemote(artifact Artifact) error {
-	instances, err := bd.instances.AllRestoreable()
-	if err != nil {
-		return err
-	}
+	instances := bd.instances.AllRestoreable()
 
 	for _, instance := range instances {
 		reader, err := artifact.ReadFile(instance)

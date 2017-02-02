@@ -43,7 +43,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("Single instance, backupable", func() {
 			BeforeEach(func() {
-				instance1.IsPreBackupLockableReturns(true, nil)
+				instance1.IsPreBackupLockableReturns(true)
 				instance1.PreBackupLockReturns(nil)
 				instances = []backuper.Instance{instance1}
 			})
@@ -54,19 +54,6 @@ var _ = Describe("Deployment", func() {
 
 			It("locks the instance", func() {
 				Expect(instance1.PreBackupLockCallCount()).To(Equal(1))
-			})
-
-			Context("if checking for the pre-backup-lock scripts fails", func() {
-				checkErr := fmt.Errorf("foobar")
-
-				BeforeEach(func() {
-					instance1.IsPreBackupLockableReturns(false, checkErr)
-				})
-
-				It("fails", func() {
-					Expect(lockError).To(HaveOccurred())
-					Expect(lockError).To(MatchError(ContainSubstring(checkErr.Error())))
-				})
 			})
 
 			Context("if the pre-backup-lock fails", func() {
@@ -86,8 +73,8 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(true)
 				instance2.IsBackupableReturns(true)
-				instance1.IsPreBackupLockableReturns(true, nil)
-				instance2.IsPreBackupLockableReturns(false, nil)
+				instance1.IsPreBackupLockableReturns(true)
+				instance2.IsPreBackupLockableReturns(false)
 				instances = []backuper.Instance{instance1, instance2}
 			})
 
@@ -187,7 +174,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("Single instance, with post backup unlock", func() {
 			BeforeEach(func() {
-				instance1.IsPostBackupUnlockableReturns(true, nil)
+				instance1.IsPostBackupUnlockableReturns(true)
 				instance1.PostBackupUnlockReturns(nil)
 				instances = []backuper.Instance{instance1}
 			})
@@ -203,7 +190,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("single instance, without post backup unlock", func() {
 			BeforeEach(func() {
-				instance1.IsPostBackupUnlockableReturns(false, nil)
+				instance1.IsPostBackupUnlockableReturns(false)
 				instances = []backuper.Instance{instance1}
 			})
 
@@ -218,7 +205,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("single instance that fails to unlock", func() {
 			BeforeEach(func() {
-				instance1.IsPostBackupUnlockableReturns(true, nil)
+				instance1.IsPostBackupUnlockableReturns(true)
 				instance1.PostBackupUnlockReturns(expectedError)
 				instances = []backuper.Instance{instance1}
 			})
@@ -232,29 +219,11 @@ var _ = Describe("Deployment", func() {
 			})
 		})
 
-		Context("single instance that fails checking for post-backup-unlock scripts", func() {
-			var checkUnlockableError = fmt.Errorf("i know a lot about hacking")
-
-			BeforeEach(func() {
-				instance1.IsPostBackupUnlockableReturns(false, checkUnlockableError)
-				instances = []backuper.Instance{instance1}
-			})
-
-			It("fails", func() {
-				Expect(unlockError).To(HaveOccurred())
-				Expect(unlockError).To(MatchError(ContainSubstring(checkUnlockableError.Error())))
-			})
-
-			It("does not attempt to unlock the instance", func() {
-				Expect(instance1.PostBackupUnlockCallCount()).To(Equal(0))
-			})
-		})
-
 		Context("Multiple instances, all with post backup unlock scripts", func() {
 			BeforeEach(func() {
-				instance1.IsPostBackupUnlockableReturns(true, nil)
+				instance1.IsPostBackupUnlockableReturns(true)
 				instance1.PostBackupUnlockReturns(nil)
-				instance2.IsPostBackupUnlockableReturns(true, nil)
+				instance2.IsPostBackupUnlockableReturns(true)
 				instance2.PostBackupUnlockReturns(nil)
 				instances = []backuper.Instance{instance1, instance2}
 			})
@@ -271,8 +240,8 @@ var _ = Describe("Deployment", func() {
 
 		Context("Multiple instances, one with post backup unlock scripts", func() {
 			BeforeEach(func() {
-				instance1.IsPostBackupUnlockableReturns(false, nil)
-				instance2.IsPostBackupUnlockableReturns(true, nil)
+				instance1.IsPostBackupUnlockableReturns(false)
+				instance2.IsPostBackupUnlockableReturns(true)
 				instance2.PostBackupUnlockReturns(nil)
 				instances = []backuper.Instance{instance1, instance2}
 			})
@@ -292,9 +261,9 @@ var _ = Describe("Deployment", func() {
 
 		Context("Multiple instances, where one fails to unlock", func() {
 			BeforeEach(func() {
-				instance1.IsPostBackupUnlockableReturns(true, nil)
+				instance1.IsPostBackupUnlockableReturns(true)
 				instance1.PostBackupUnlockReturns(expectedError)
-				instance2.IsPostBackupUnlockableReturns(true, nil)
+				instance2.IsPostBackupUnlockableReturns(true)
 				instance2.PostBackupUnlockReturns(nil)
 				instances = []backuper.Instance{instance1, instance2}
 			})
@@ -317,11 +286,11 @@ var _ = Describe("Deployment", func() {
 			var secondError error
 
 			BeforeEach(func() {
-				instance1.IsPostBackupUnlockableReturns(true, nil)
+				instance1.IsPostBackupUnlockableReturns(true)
 				instance1.PostBackupUnlockReturns(expectedError)
 
 				secondError = fmt.Errorf("something else went wrong")
-				instance2.IsPostBackupUnlockableReturns(true, nil)
+				instance2.IsPostBackupUnlockableReturns(true)
 				instance2.PostBackupUnlockReturns(secondError)
 				instances = []backuper.Instance{instance1, instance2}
 			})
@@ -432,7 +401,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("Single instance, restoreable", func() {
 			BeforeEach(func() {
-				instance1.IsRestorableReturns(true, nil)
+				instance1.IsRestorableReturns(true)
 				instances = []backuper.Instance{instance1}
 			})
 			It("does not fail", func() {
@@ -444,7 +413,7 @@ var _ = Describe("Deployment", func() {
 		})
 		Context("Single instance, not restoreable", func() {
 			BeforeEach(func() {
-				instance1.IsRestorableReturns(false, nil)
+				instance1.IsRestorableReturns(false)
 				instances = []backuper.Instance{instance1}
 			})
 			It("does not fail", func() {
@@ -457,8 +426,8 @@ var _ = Describe("Deployment", func() {
 
 		Context("Multiple instances, all restoreable", func() {
 			BeforeEach(func() {
-				instance1.IsRestorableReturns(true, nil)
-				instance2.IsRestorableReturns(true, nil)
+				instance1.IsRestorableReturns(true)
+				instance2.IsRestorableReturns(true)
 				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
@@ -471,8 +440,8 @@ var _ = Describe("Deployment", func() {
 		})
 		Context("Multiple instances, some restorable", func() {
 			BeforeEach(func() {
-				instance1.IsRestorableReturns(true, nil)
-				instance2.IsRestorableReturns(false, nil)
+				instance1.IsRestorableReturns(true)
+				instance2.IsRestorableReturns(false)
 				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
@@ -490,8 +459,8 @@ var _ = Describe("Deployment", func() {
 			var restoreError = fmt.Errorf("I have a plan, but I dont want to tell ISIS what it is")
 
 			BeforeEach(func() {
-				instance1.IsRestorableReturns(true, nil)
-				instance2.IsRestorableReturns(true, nil)
+				instance1.IsRestorableReturns(true)
+				instance2.IsRestorableReturns(true)
 				instance1.RestoreReturns(restoreError)
 				instances = []backuper.Instance{instance1, instance2}
 			})
@@ -514,7 +483,7 @@ var _ = Describe("Deployment", func() {
 		)
 
 		BeforeEach(func() {
-			instance1.IsRestorableReturns(true, nil)
+			instance1.IsRestorableReturns(true)
 			instance1.StreamBackupToRemoteReturns(nil)
 			instances = []backuper.Instance{instance1}
 			artifact = new(fakes.FakeArtifact)
@@ -621,7 +590,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("Single instance, restorable", func() {
 			BeforeEach(func() {
-				instance1.IsRestorableReturns(true, nil)
+				instance1.IsRestorableReturns(true)
 				instances = []backuper.Instance{instance1}
 			})
 
@@ -639,7 +608,7 @@ var _ = Describe("Deployment", func() {
 		})
 		Context("Single instance, not restorable", func() {
 			BeforeEach(func() {
-				instance1.IsRestorableReturns(false, nil)
+				instance1.IsRestorableReturns(false)
 				instances = []backuper.Instance{instance1}
 			})
 
@@ -658,8 +627,8 @@ var _ = Describe("Deployment", func() {
 
 		Context("Multiple instances, some restorable", func() {
 			BeforeEach(func() {
-				instance1.IsRestorableReturns(false, nil)
-				instance2.IsRestorableReturns(true, nil)
+				instance1.IsRestorableReturns(false)
+				instance2.IsRestorableReturns(true)
 				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
@@ -674,8 +643,8 @@ var _ = Describe("Deployment", func() {
 		})
 		Context("Multiple instances, none restorable", func() {
 			BeforeEach(func() {
-				instance1.IsRestorableReturns(false, nil)
-				instance2.IsRestorableReturns(false, nil)
+				instance1.IsRestorableReturns(false)
+				instance2.IsRestorableReturns(false)
 				instances = []backuper.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
@@ -686,23 +655,6 @@ var _ = Describe("Deployment", func() {
 				Expect(instance1.IsRestorableCallCount()).To(Equal(1))
 				Expect(instance2.IsRestorableCallCount()).To(Equal(1))
 				Expect(isRestorable).To(BeFalse())
-			})
-		})
-
-		Context("Multiple instances, one fails to check if restorable", func() {
-			var actualError = fmt.Errorf("No one has a higher IQ than me")
-			BeforeEach(func() {
-				instance1.IsRestorableReturns(false, actualError)
-				instance2.IsRestorableReturns(true, nil)
-				instances = []backuper.Instance{instance1, instance2}
-			})
-			It("fails", func() {
-				Expect(isRestorableError).To(MatchError(actualError))
-			})
-
-			It("stops checking when an error occours", func() {
-				Expect(instance1.IsRestorableCallCount()).To(Equal(1))
-				Expect(instance2.IsRestorableCallCount()).To(Equal(0))
 			})
 		})
 	})
