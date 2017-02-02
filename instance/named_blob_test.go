@@ -1,4 +1,4 @@
-package bosh_test
+package instance_test
 
 import (
 	"bytes"
@@ -10,26 +10,26 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	backuperfakes "github.com/pivotal-cf/pcf-backup-and-restore/backuper/fakes"
-	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
-	"github.com/pivotal-cf/pcf-backup-and-restore/bosh/fakes"
+	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
+	"github.com/pivotal-cf/pcf-backup-and-restore/instance/fakes"
 )
 
 var _ = Describe("NamedBlob", func() {
 
 	var sshConnection *fakes.FakeSSHConnection
 	var boshLogger boshlog.Logger
-	var instance *backuperfakes.FakeInstance
+	var instanceToBackup *backuperfakes.FakeInstance
 	var stdout, stderr *gbytes.Buffer
-	var job bosh.Job
+	var job instance.Job
 
-	var namedBlob *bosh.NamedBlob
+	var namedBlob *instance.NamedBlob
 
 	BeforeEach(func() {
 		sshConnection = new(fakes.FakeSSHConnection)
-		instance = new(backuperfakes.FakeInstance)
-		instance.NameReturns("redis")
-		instance.IDReturns("foo")
-		job = bosh.NewJob(bosh.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/p-backup"}, "named-blob")
+		instanceToBackup = new(backuperfakes.FakeInstance)
+		instanceToBackup.NameReturns("redis")
+		instanceToBackup.IDReturns("foo")
+		job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/p-backup"}, "named-blob")
 
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
@@ -38,7 +38,7 @@ var _ = Describe("NamedBlob", func() {
 	})
 
 	JustBeforeEach(func() {
-		namedBlob = bosh.NewNamedBlob(instance, job, sshConnection, boshLogger)
+		namedBlob = instance.NewNamedBlob(instanceToBackup, job, sshConnection, boshLogger)
 	})
 
 	Describe("StreamFromRemote", func() {

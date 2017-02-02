@@ -11,6 +11,7 @@ import (
 	"github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
 	"gopkg.in/yaml.v2"
+	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
 )
 
 func New(boshDirector director.Director,
@@ -103,7 +104,7 @@ func (c client) FindInstances(deploymentName string) ([]backuper.Instance, error
 				return nil, err
 			}
 
-			jobs, _ := NewJobs(NewBackupAndRestoreScripts(scripts), metadata)
+			jobs, _ := instance.NewJobs(instance.NewBackupAndRestoreScripts(scripts), metadata)
 
 			instances = append(instances,
 				NewBoshInstance(
@@ -190,7 +191,7 @@ func (c client) getMetadata(host director.Host, sshConnection SSHConnection) (ma
 	files := strings.Split(string(stdout), "\n")
 
 	for _, file := range files {
-		jobName, _ := Script(file).JobName()
+		jobName, _ := instance.Script(file).JobName()
 		metadataContent, stderr, exitCode, err := sshConnection.Run(file)
 
 		if exitCode != 0 && !strings.Contains(string(stderr), "No such file or directory") {

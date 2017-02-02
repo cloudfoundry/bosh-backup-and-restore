@@ -1,4 +1,4 @@
-package bosh_test
+package instance_test
 
 import (
 	"bytes"
@@ -10,22 +10,22 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	backuperfakes "github.com/pivotal-cf/pcf-backup-and-restore/backuper/fakes"
-	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
-	"github.com/pivotal-cf/pcf-backup-and-restore/bosh/fakes"
+	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
+	"github.com/pivotal-cf/pcf-backup-and-restore/instance/fakes"
 )
 
 var _ = Describe("DefaultBlob", func() {
 
 	var sshConnection *fakes.FakeSSHConnection
 	var boshLogger boshlog.Logger
-	var instance *backuperfakes.FakeInstance
+	var fakeInstance *backuperfakes.FakeInstance
 	var stdout, stderr *gbytes.Buffer
 
-	var defaultBlob *bosh.DefaultBlob
+	var defaultBlob *instance.DefaultBlob
 
 	BeforeEach(func() {
 		sshConnection = new(fakes.FakeSSHConnection)
-		instance = new(backuperfakes.FakeInstance)
+		fakeInstance = new(backuperfakes.FakeInstance)
 
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
@@ -34,7 +34,7 @@ var _ = Describe("DefaultBlob", func() {
 	})
 
 	JustBeforeEach(func() {
-		defaultBlob = bosh.NewDefaultBlob(instance, sshConnection, boshLogger)
+		defaultBlob = instance.NewDefaultBlob(fakeInstance, sshConnection, boshLogger)
 	})
 
 	Describe("StreamFromRemote", func() {

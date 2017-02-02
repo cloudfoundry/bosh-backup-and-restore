@@ -1,4 +1,4 @@
-package bosh
+package instance
 
 import (
 	"fmt"

@@ -1,7 +1,7 @@
-package bosh_test
+package instance_test
 
 import (
-	. "github.com/pivotal-cf/pcf-backup-and-restore/bosh"
+	. "github.com/pivotal-cf/pcf-backup-and-restore/instance"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

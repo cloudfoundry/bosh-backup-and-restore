@@ -10,6 +10,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
 )
 
 type DeployedInstance struct {
@@ -23,7 +24,7 @@ type DeployedInstance struct {
 	restorable *bool
 	unlockable *bool
 	lockable   *bool
-	Jobs
+	instance.Jobs
 }
 
 //go:generate counterfeiter -o fakes/fake_ssh_connection.go . SSHConnection
@@ -41,7 +42,7 @@ func NewBoshInstance(instanceGroupName,
 	connection SSHConnection,
 	deployment director.Deployment,
 	logger Logger,
-	jobs Jobs,
+	jobs instance.Jobs,
 ) backuper.Instance {
 	return &DeployedInstance{
 		BackupAndRestoreInstanceIndex: instanceIndex,
@@ -273,10 +274,10 @@ func (d *DeployedInstance) Blobs() []backuper.BackupBlob {
 	blobs := []backuper.BackupBlob{}
 
 	for _, job := range d.Jobs.WithNamedBlobs() {
-		blobs = append(blobs, NewNamedBlob(d, job, d.SSHConnection, d.Logger))
+		blobs = append(blobs, instance.NewNamedBlob(d, job, d.SSHConnection, d.Logger))
 	}
 
-	blobs = append(blobs, &DefaultBlob{
+	blobs = append(blobs, &instance.DefaultBlob{
 		Instance:      d,
 		SSHConnection: d.SSHConnection,
 		Logger:        d.Logger,
@@ -322,7 +323,7 @@ func (d *DeployedInstance) ID() string {
 	return d.BoshInstanceID
 }
 
-func (d *DeployedInstance) runAndHandleErrs(label, jobName string, script Script) error {
+func (d *DeployedInstance) runAndHandleErrs(label, jobName string, script instance.Script) error {
 	d.Logger.Debug("", "> %s", script)
 
 	stdout, stderr, exitCode, err := d.logAndRun(

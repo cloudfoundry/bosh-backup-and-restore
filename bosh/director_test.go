@@ -16,6 +16,7 @@ import (
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh/fakes"
 	"strings"
+	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
 )
 
 var _ = Describe("Director", func() {
@@ -120,7 +121,7 @@ var _ = Describe("Director", func() {
 			})
 
 			It("collects the instances", func() {
-				jobs, _ := bosh.NewJobs(bosh.BackupAndRestoreScripts{
+				jobs, _ := instance.NewJobs(instance.BackupAndRestoreScripts{
 					"/var/vcap/jobs/consul_agent/bin/p-backup",
 					"/var/vcap/jobs/consul_agent/bin/p-restore",
 				}, map[string]string{})
@@ -196,7 +197,7 @@ backup_name: consul_backup`)
 						"consul_agent": "consul_backup",
 					}
 
-					jobs, _ := bosh.NewJobs(bosh.BackupAndRestoreScripts{
+					jobs, _ := instance.NewJobs(instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/consul_agent/bin/p-backup",
 						"/var/vcap/jobs/consul_agent/bin/p-restore",
 					}, metadata)
@@ -354,7 +355,7 @@ backup_name: consul_backup`)
 			})
 
 			It("collects the instances, with no scripts", func() {
-				jobs, _ := bosh.NewJobs(bosh.BackupAndRestoreScripts{}, map[string]string{})
+				jobs, _ := instance.NewJobs(instance.BackupAndRestoreScripts{}, map[string]string{})
 
 				Expect(actualInstances).To(Equal([]backuper.Instance{bosh.NewBoshInstance("job1",
 					"0",
@@ -450,13 +451,13 @@ backup_name: consul_backup`)
 				findScriptsSshStdout = []byte("/var/vcap/jobs/consul_agent/bin/p-backup")
 			})
 			It("collects the instances", func() {
-				instance0Jobs, _ := bosh.NewJobs(
-					bosh.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"},
+				instance0Jobs, _ := instance.NewJobs(
+					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"},
 					map[string]string{},
 				)
 
-				instance1Jobs, _ := bosh.NewJobs(
-					bosh.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"},
+				instance1Jobs, _ := instance.NewJobs(
+					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"},
 					map[string]string{},
 				)
 

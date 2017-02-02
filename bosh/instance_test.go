@@ -16,6 +16,7 @@ import (
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh/fakes"
 	"strings"
+	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
 )
 
 var _ = Describe("Instance", func() {
@@ -24,11 +25,11 @@ var _ = Describe("Instance", func() {
 	var boshLogger boshlog.Logger
 	var stdout, stderr *gbytes.Buffer
 	var jobName, jobIndex, jobID, expectedStdout, expectedStderr string
-	var backupAndRestoreScripts []bosh.Script
-	var jobs bosh.Jobs
+	var backupAndRestoreScripts []instance.Script
+	var jobs instance.Jobs
 	var blobNames map[string]string
 
-	var instance backuper.Instance
+	var backuperInstance backuper.Instance
 	BeforeEach(func() {
 		sshConnection = new(fakes.FakeSSHConnection)
 		boshDeployment = new(boshfakes.FakeDeployment)
@@ -40,26 +41,26 @@ var _ = Describe("Instance", func() {
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
 		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile), log.New(stderr, "[bosh-package] ", log.Lshortfile))
-		backupAndRestoreScripts = []bosh.Script{}
+		backupAndRestoreScripts = []instance.Script{}
 		blobNames = map[string]string{}
 	})
 
 	JustBeforeEach(func() {
-		jobs, _ = bosh.NewJobs(backupAndRestoreScripts, blobNames)
+		jobs, _ = instance.NewJobs(backupAndRestoreScripts, blobNames)
 		sshConnection.UsernameReturns("sshUsername")
-		instance = bosh.NewBoshInstance(jobName, jobIndex, jobID, sshConnection, boshDeployment, boshLogger, jobs)
+		backuperInstance = bosh.NewBoshInstance(jobName, jobIndex, jobID, sshConnection, boshDeployment, boshLogger, jobs)
 	})
 
 	Describe("IsBackupable", func() {
 		var actualBackupable bool
 
 		JustBeforeEach(func() {
-			actualBackupable = instance.IsBackupable()
+			actualBackupable = backuperInstance.IsBackupable()
 		})
 
 		Describe("there are backup scripts in the job directories", func() {
 			BeforeEach(func() {
-				backupAndRestoreScripts = []bosh.Script{
+				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/dave/bin/p-backup",
 				}
 			})
@@ -71,7 +72,7 @@ var _ = Describe("Instance", func() {
 
 		Describe("there are no backup scripts in the job directories", func() {
 			BeforeEach(func() {
-				backupAndRestoreScripts = []bosh.Script{
+				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/dave/bin/foo",
 				}
 			})
@@ -87,7 +88,7 @@ var _ = Describe("Instance", func() {
 		var actualError error
 
 		JustBeforeEach(func() {
-			actualLockable, actualError = instance.IsPreBackupLockable()
+			actualLockable, actualError = backuperInstance.IsPreBackupLockable()
 		})
 
 		Context("there are p-pre-backup-lock scripts in the job directories", func() {
@@ -122,7 +123,7 @@ var _ = Describe("Instance", func() {
 				var secondInvocationActualError error
 				JustBeforeEach(func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					secondInvocationActualLockable, secondInvocationActualError = instance.IsPreBackupLockable()
+					secondInvocationActualLockable, secondInvocationActualError = backuperInstance.IsPreBackupLockable()
 				})
 
 				It("only invokes the ssh connection once", func() {
@@ -201,7 +202,7 @@ var _ = Describe("Instance", func() {
 		var actualError error
 
 		JustBeforeEach(func() {
-			actualUnlockable, actualError = instance.IsPostBackupUnlockable()
+			actualUnlockable, actualError = backuperInstance.IsPostBackupUnlockable()
 		})
 
 		Context("there are p-post-backup-unlock scripts in the job directories", func() {
@@ -236,7 +237,7 @@ var _ = Describe("Instance", func() {
 				var secondInvocationActualError error
 				JustBeforeEach(func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					secondInvocationActualUnlockable, secondInvocationActualError = instance.IsPostBackupUnlockable()
+					secondInvocationActualUnlockable, secondInvocationActualError = backuperInstance.IsPostBackupUnlockable()
 				})
 
 				It("only invokes the ssh connection once", func() {
@@ -272,7 +273,7 @@ var _ = Describe("Instance", func() {
 
 				JustBeforeEach(func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					secondInvocationActualUnlockable, secondInvocationActualError = instance.IsPostBackupUnlockable()
+					secondInvocationActualUnlockable, secondInvocationActualError = backuperInstance.IsPostBackupUnlockable()
 				})
 
 				It("only invokes the ssh connection once", func() {
@@ -318,7 +319,7 @@ var _ = Describe("Instance", func() {
 				var secondInvocationActualError error
 				JustBeforeEach(func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					secondInvocationActualUnlockable, secondInvocationActualError = instance.IsPostBackupUnlockable()
+					secondInvocationActualUnlockable, secondInvocationActualError = backuperInstance.IsPostBackupUnlockable()
 				})
 
 				It("invokes the ssh connection again", func() {
@@ -337,7 +338,7 @@ var _ = Describe("Instance", func() {
 		var actualError error
 
 		JustBeforeEach(func() {
-			actualRestorable, actualError = instance.IsRestorable()
+			actualRestorable, actualError = backuperInstance.IsRestorable()
 		})
 
 		Describe("there are restore scripts in the job directories", func() {
@@ -364,7 +365,7 @@ var _ = Describe("Instance", func() {
 
 				JustBeforeEach(func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					secondInvocationActualRestorable, secondInvocationActualError = instance.IsRestorable()
+					secondInvocationActualRestorable, secondInvocationActualError = backuperInstance.IsRestorable()
 				})
 
 				It("only invokes the ssh connection once", func() {
@@ -406,7 +407,7 @@ var _ = Describe("Instance", func() {
 
 				JustBeforeEach(func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					secondInvocationActualRestorable, secondInvocationActualError = instance.IsRestorable()
+					secondInvocationActualRestorable, secondInvocationActualError = backuperInstance.IsRestorable()
 				})
 
 				It("only invokes the ssh connection once", func() {
@@ -442,7 +443,7 @@ var _ = Describe("Instance", func() {
 				var secondInvocationActualError error
 				JustBeforeEach(func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					secondInvocationActualRestorable, secondInvocationActualError = instance.IsRestorable()
+					secondInvocationActualRestorable, secondInvocationActualError = backuperInstance.IsRestorable()
 				})
 
 				It("invokes the ssh connection again", func() {
@@ -460,12 +461,12 @@ var _ = Describe("Instance", func() {
 		var err error
 
 		JustBeforeEach(func() {
-			err = instance.PreBackupLock()
+			err = backuperInstance.PreBackupLock()
 		})
 
 		Context("when there is one pre-backup-lock script in the job directories", func() {
 			BeforeEach(func() {
-				backupAndRestoreScripts = []bosh.Script{"/var/vcap/jobs/bar/bin/p-pre-backup-lock"}
+				backupAndRestoreScripts = []instance.Script{"/var/vcap/jobs/bar/bin/p-pre-backup-lock"}
 			})
 
 			It("uses the ssh connection to run the pre-backup-lock script", func() {
@@ -487,7 +488,7 @@ var _ = Describe("Instance", func() {
 
 		Context("when there are multiple backup scripts in multiple job directories", func() {
 			BeforeEach(func() {
-				backupAndRestoreScripts = []bosh.Script{
+				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/foo/bin/p-pre-backup-lock",
 					"/var/vcap/jobs/bar/bin/p-pre-backup-lock",
 					"/var/vcap/jobs/baz/bin/p-pre-backup-lock",
@@ -537,7 +538,7 @@ var _ = Describe("Instance", func() {
 			expectedError := fmt.Errorf("you are fake news")
 
 			BeforeEach(func() {
-				backupAndRestoreScripts = []bosh.Script{
+				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/foo/bin/p-pre-backup-lock",
 					"/var/vcap/jobs/bar/bin/p-pre-backup-lock",
 					"/var/vcap/jobs/baz/bin/p-pre-backup-lock",
@@ -607,12 +608,12 @@ var _ = Describe("Instance", func() {
 		var err error
 
 		JustBeforeEach(func() {
-			err = instance.Backup()
+			err = backuperInstance.Backup()
 		})
 
 		Context("when there are multiple backup scripts in multiple job directories", func() {
 			BeforeEach(func() {
-				backupAndRestoreScripts = []bosh.Script{
+				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/foo/bin/p-backup",
 					"/var/vcap/jobs/bar/bin/p-backup",
 					"/var/vcap/jobs/baz/bin/p-backup",
@@ -661,7 +662,7 @@ var _ = Describe("Instance", func() {
 				blobNames = map[string]string{
 					"baz": "special-backup",
 				}
-				backupAndRestoreScripts = []bosh.Script{
+				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/foo/bin/p-backup",
 					"/var/vcap/jobs/bar/bin/p-backup",
 					"/var/vcap/jobs/baz/bin/p-backup",
@@ -684,7 +685,7 @@ var _ = Describe("Instance", func() {
 
 		Context("when there are multiple jobs with no backup scripts", func() {
 			BeforeEach(func() {
-				backupAndRestoreScripts = []bosh.Script{
+				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/foo/bin/p-restore",
 					"/var/vcap/jobs/bar/bin/p-restore",
 				}
@@ -700,7 +701,7 @@ var _ = Describe("Instance", func() {
 			expectedError := fmt.Errorf("you are fake news")
 
 			BeforeEach(func() {
-				backupAndRestoreScripts = []bosh.Script{
+				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/foo/bin/p-backup",
 					"/var/vcap/jobs/bar/bin/p-backup",
 					"/var/vcap/jobs/baz/bin/p-backup",
@@ -769,12 +770,12 @@ var _ = Describe("Instance", func() {
 		var err error
 
 		JustBeforeEach(func() {
-			err = instance.PostBackupUnlock()
+			err = backuperInstance.PostBackupUnlock()
 		})
 
 		Context("when there are multiple post-backup-unlock scripts in multiple job directories", func() {
 			BeforeEach(func() {
-				backupAndRestoreScripts = []bosh.Script{
+				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/foo/bin/p-post-backup-unlock",
 					"/var/vcap/jobs/bar/bin/p-post-backup-unlock",
 					"/var/vcap/jobs/baz/bin/p-post-backup-unlock",
@@ -824,7 +825,7 @@ var _ = Describe("Instance", func() {
 			expectedError := fmt.Errorf("you are fake news")
 
 			BeforeEach(func() {
-				backupAndRestoreScripts = []bosh.Script{
+				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/foo/bin/p-post-backup-unlock",
 					"/var/vcap/jobs/bar/bin/p-post-backup-unlock",
 					"/var/vcap/jobs/baz/bin/p-post-backup-unlock",
@@ -893,12 +894,12 @@ var _ = Describe("Instance", func() {
 		var actualError error
 
 		JustBeforeEach(func() {
-			actualError = instance.Restore()
+			actualError = backuperInstance.Restore()
 		})
 
 		Context("when there are multiple restore scripts in multiple job directories", func() {
 			BeforeEach(func() {
-				backupAndRestoreScripts = []bosh.Script{
+				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/foo/bin/p-restore",
 					"/var/vcap/jobs/bar/bin/p-restore",
 					"/var/vcap/jobs/baz/bin/p-restore",
@@ -948,7 +949,7 @@ var _ = Describe("Instance", func() {
 			expectedError := fmt.Errorf("i saw a million and a half people")
 
 			BeforeEach(func() {
-				backupAndRestoreScripts = []bosh.Script{
+				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/foo/bin/p-restore",
 					"/var/vcap/jobs/bar/bin/p-restore",
 					"/var/vcap/jobs/baz/bin/p-restore",
@@ -1018,7 +1019,7 @@ var _ = Describe("Instance", func() {
 		var reader = bytes.NewBufferString("dave")
 
 		JustBeforeEach(func() {
-			err = instance.StreamBackupToRemote(reader)
+			err = backuperInstance.StreamBackupToRemote(reader)
 		})
 
 		Describe("when successful", func() {
@@ -1090,7 +1091,7 @@ var _ = Describe("Instance", func() {
 		var expectedError error
 
 		JustBeforeEach(func() {
-			actualError = instance.Cleanup()
+			actualError = backuperInstance.Cleanup()
 		})
 		Describe("cleans up successfully", func() {
 			It("deletes the backup folder", func() {
@@ -1157,7 +1158,7 @@ var _ = Describe("Instance", func() {
 		var actualChecksum map[string]string
 		var actualChecksumError error
 		JustBeforeEach(func() {
-			actualChecksum, actualChecksumError = instance.BackupChecksum()
+			actualChecksum, actualChecksumError = backuperInstance.BackupChecksum()
 		})
 		Context("triggers find & shasum as root", func() {
 			BeforeEach(func() {
@@ -1232,13 +1233,13 @@ var _ = Describe("Instance", func() {
 
 	Describe("Name", func() {
 		It("returns the instance name", func() {
-			Expect(instance.Name()).To(Equal("job-name"))
+			Expect(backuperInstance.Name()).To(Equal("job-name"))
 		})
 	})
 
 	Describe("Index", func() {
 		It("returns the instance Index", func() {
-			Expect(instance.Index()).To(Equal("job-index"))
+			Expect(backuperInstance.Index()).To(Equal("job-index"))
 		})
 	})
 
@@ -1251,7 +1252,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			JustBeforeEach(func() {
-				size, _ = instance.BackupSize()
+				size, _ = backuperInstance.BackupSize()
 			})
 
 			It("returns the size of the backup according to the root user, as a string", func() {
@@ -1269,7 +1270,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			JustBeforeEach(func() {
-				_, err = instance.BackupSize()
+				_, err = backuperInstance.BackupSize()
 			})
 
 			It("returns the size of the backup according to the root user, as a string", func() {
@@ -1288,7 +1289,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			JustBeforeEach(func() {
-				_, err = instance.BackupSize()
+				_, err = backuperInstance.BackupSize()
 			})
 
 			It("returns the error", func() {
@@ -1303,18 +1304,18 @@ var _ = Describe("Instance", func() {
 		var actualBlobs []backuper.BackupBlob
 
 		JustBeforeEach(func() {
-			actualBlobs = instance.Blobs()
+			actualBlobs = backuperInstance.Blobs()
 		})
 
 		Context("Has no named blobs", func() {
 			It("returns the default blob", func() {
-				Expect(actualBlobs).To(Equal([]backuper.BackupBlob{bosh.NewDefaultBlob(instance, sshConnection, boshLogger)}))
+				Expect(actualBlobs).To(Equal([]backuper.BackupBlob{instance.NewDefaultBlob(backuperInstance, sshConnection, boshLogger)}))
 			})
 		})
 
 		Context("has a named blob", func() {
 			BeforeEach(func() {
-				backupAndRestoreScripts = []bosh.Script{
+				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/job-name/bin/p-backup",
 				}
 				blobNames = map[string]string{
@@ -1325,18 +1326,18 @@ var _ = Describe("Instance", func() {
 			It("returns the named blob and the default blob", func() {
 				Expect(actualBlobs).To(Equal(
 					[]backuper.BackupBlob{
-						bosh.NewNamedBlob(instance, bosh.NewJob(backupAndRestoreScripts, "my-blob"), sshConnection, boshLogger),
-						bosh.NewDefaultBlob(instance, sshConnection, boshLogger),
+						instance.NewNamedBlob(backuperInstance, instance.NewJob(backupAndRestoreScripts, "my-blob"), sshConnection, boshLogger),
+						instance.NewDefaultBlob(backuperInstance, sshConnection, boshLogger),
 					},
 				))
 			})
 
-			It("returns the default blob last", func() {
-				Expect(actualBlobs[1]).To(Equal(bosh.NewDefaultBlob(instance, sshConnection, boshLogger)))
+			It("returns the default blob the last", func() {
+				Expect(actualBlobs[1]).To(Equal(instance.NewDefaultBlob(backuperInstance, sshConnection, boshLogger)))
 			})
 
 			It("returns the named blob first", func() {
-				Expect(actualBlobs[0]).To(Equal(bosh.NewNamedBlob(instance, bosh.NewJob(backupAndRestoreScripts, "my-blob"), sshConnection, boshLogger)))
+				Expect(actualBlobs[0]).To(Equal(instance.NewNamedBlob(backuperInstance, instance.NewJob(backupAndRestoreScripts, "my-blob"), sshConnection, boshLogger)))
 			})
 
 		})

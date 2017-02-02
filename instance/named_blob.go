@@ -1,10 +1,23 @@
-package bosh
+package instance
 
 import (
 	"fmt"
 	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
 	"io"
+	"strings"
 )
+
+//go:generate counterfeiter -o fakes/fake_ssh_connection.go . SSHConnection
+type SSHConnection interface {
+	Stream(cmd string, writer io.Writer) ([]byte, int, error)
+	Run(cmd string) ([]byte, []byte, int, error)
+}
+
+type Logger interface {
+	Debug(tag, msg string, args ...interface{})
+	Info(tag, msg string, args ...interface{})
+	Error(tag, msg string, args ...interface{})
+}
 
 func NewNamedBlob(instance backuper.Instance, job Job, sshConn SSHConnection, logger Logger) *NamedBlob {
 	return &NamedBlob{
@@ -83,4 +96,21 @@ func (d *NamedBlob) Delete() error {
 	}
 
 	return err
+}
+
+func convertShasToMap(shas string) map[string]string {
+	mapOfSha := map[string]string{}
+	shas = strings.TrimSpace(shas)
+	if shas == "" {
+		return mapOfSha
+	}
+	for _, line := range strings.Split(shas, "\n") {
+		parts := strings.SplitN(line, " ", 2)
+		filename := strings.TrimSpace(parts[1])
+		if filename == "-" {
+			continue
+		}
+		mapOfSha[filename] = parts[0]
+	}
+	return mapOfSha
 }
