@@ -134,7 +134,8 @@ instances:
 				CleanupSSH(deploymentName, "redis-dedicated-node"))...)
 
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/p-restore", `#!/usr/bin/env sh
-cp /var/vcap/store/backup/* /var/vcap/store/redis-server`)
+set -u
+cp -r $ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
 
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
@@ -142,7 +143,7 @@ instances:
 - instance_name: redis-dedicated-node
   instance_index: 0
   checksums:
-    ./redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
+    ./redis/redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
 
 			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
 			Expect(err).NotTo(HaveOccurred())
@@ -155,6 +156,7 @@ instances:
 				[]string{"BOSH_CLIENT_SECRET=admin"},
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
+				"--debug",
 				"--target", director.URL,
 				"--deployment", deploymentName,
 				"restore")
@@ -174,7 +176,8 @@ instances:
 		})
 
 		It("Runs the restore script on the remote", func() {
-			Expect(instance1.FileExists("/var/vcap/store/redis-server/redis-backup"))
+			Expect(instance1.FileExists("" +
+				"/redis-backup"))
 		})
 
 		Context("when restore fails", func() {
@@ -210,7 +213,7 @@ instances:
 				CleanupSSHFails(deploymentName, "redis-dedicated-node", "cleanup err"))...)
 
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/p-restore", `#!/usr/bin/env sh
-cp /var/vcap/store/backup/* /var/vcap/store/redis-server`)
+cp -r $ARTIFACT_DIRECTORY* /var/vcap/store/`)
 
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
@@ -218,7 +221,7 @@ instances:
 - instance_name: redis-dedicated-node
   instance_index: 0
   checksums:
-    ./redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
+    ./redis/redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
 
 			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
 			Expect(err).NotTo(HaveOccurred())

@@ -80,6 +80,9 @@ var _ = Describe("Backup", func() {
 				)...)
 
 				instance1.CreateScript("/var/vcap/jobs/redis/bin/p-backup", `#!/usr/bin/env sh
+
+set -u
+
 printf "backupcontent1" > $ARTIFACT_DIRECTORY/backupdump1
 printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
 `)
@@ -237,6 +240,8 @@ touch /tmp/post-backup-unlock-output
 			Context("when backup file has owner only permissions of different user", func() {
 				BeforeEach(func() {
 					instance1.CreateScript("/var/vcap/jobs/redis/bin/p-backup", `#!/usr/bin/env sh
+
+set -u
 
 dd if=/dev/urandom of=$ARTIFACT_DIRECTORY/backupdump1 bs=1KB count=1024
 dd if=/dev/urandom of=$ARTIFACT_DIRECTORY/backupdump2 bs=1KB count=1024
