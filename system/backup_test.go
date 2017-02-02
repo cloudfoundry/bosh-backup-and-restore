@@ -29,7 +29,7 @@ var _ = Describe("backup", func() {
 		)).Should(gexec.Exit(0))
 
 		By("running the pre-backup lock script")
-		runOnAllInstances(instanceCollection, func(instName, instIndex string) {
+		runOnInstances(instanceCollection, func(instName, instIndex string) {
 			session := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
 				"cat /tmp/pre-backup-lock.out",
 			)
@@ -39,7 +39,7 @@ var _ = Describe("backup", func() {
 		})
 
 		By("running the post backup unlock script")
-		runOnAllInstances(instanceCollection, func(instName, instIndex string) {
+		runOnInstances(instanceCollection, func(instName, instIndex string) {
 			session := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
 				"cat /tmp/post-backup-unlock.out",
 			)
@@ -56,7 +56,7 @@ var _ = Describe("backup", func() {
 		})
 
 		By("cleaning up artifacts from the remote instances")
-		runOnAllInstances(instanceCollection, func(instName, instIndex string) {
+		runOnInstances(instanceCollection, func(instName, instIndex string) {
 			session := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
 				"ls -l /var/vcap/store/backup",
 			)
@@ -69,7 +69,7 @@ var _ = Describe("backup", func() {
 
 func populateRedisFixtureOnInstances(instanceCollection map[string][]string) {
 	dataFixture := "../fixtures/redis_test_commands"
-	runOnAllInstances(instanceCollection, func(instName, instIndex string) {
+	runOnInstances(instanceCollection, func(instName, instIndex string) {
 		RunBoshCommand(RedisDeploymentSCPCommand(), dataFixture, fmt.Sprintf("%s/%s:/tmp", instName, instIndex))
 		Eventually(
 			RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),

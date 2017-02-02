@@ -37,7 +37,7 @@ var _ = Describe("backup with custom metadata", func() {
 		})
 
 		By("cleaning up artifacts from the remote instances")
-		runOnAllInstances(instanceCollection, func(instName, instIndex string) {
+		runOnInstances(instanceCollection, func(instName, instIndex string) {
 			session := RunCommandOnRemote(RedisWithMetadataDeploymentSSHCommand(instName, instIndex),
 				"ls -l /var/vcap/store/backup",
 			)
@@ -50,7 +50,7 @@ var _ = Describe("backup with custom metadata", func() {
 
 func populateRedisWithMetadata(instanceCollection map[string][]string) {
 	dataFixture := "../fixtures/redis_test_commands"
-	runOnAllInstances(instanceCollection, func(instName, instIndex string) {
+	runOnInstances(instanceCollection, func(instName, instIndex string) {
 		RunBoshCommand(RedisWithMetadataDeploymentSCPCommand(), dataFixture, fmt.Sprintf("%s/%s:/tmp", instName, instIndex))
 		Eventually(
 			RunCommandOnRemote(RedisWithMetadataDeploymentSSHCommand(instName, instIndex),
