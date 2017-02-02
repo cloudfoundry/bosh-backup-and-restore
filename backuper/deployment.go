@@ -6,8 +6,8 @@ import (
 
 //go:generate counterfeiter -o fakes/fake_deployment.go . Deployment
 type Deployment interface {
-	IsBackupable() (bool, error)
-	IsRestorable() (bool, error)
+	IsBackupable() bool
+	IsRestorable() bool
 	PreBackupLock() error
 	Backup() error
 	PostBackupUnlock() error
@@ -28,14 +28,11 @@ func NewBoshDeployment(logger Logger, instancesArray []Instance) Deployment {
 	return &BoshDeployment{Logger: logger, instances: instances(instancesArray)}
 }
 
-func (bd *BoshDeployment) IsBackupable() (bool, error) {
+func (bd *BoshDeployment) IsBackupable() bool {
 	bd.Logger.Info("", "Finding instances with backup scripts...")
-	backupableInstances, err := bd.instances.AllBackupable()
-	if err != nil {
-		return false, err
-	}
+	backupableInstances := bd.instances.AllBackupable()
 	bd.Logger.Info("", "Done.")
-	return !backupableInstances.IsEmpty(), nil
+	return !backupableInstances.IsEmpty()
 }
 
 func (bd *BoshDeployment) PreBackupLock() error {
@@ -43,11 +40,7 @@ func (bd *BoshDeployment) PreBackupLock() error {
 }
 
 func (bd *BoshDeployment) Backup() error {
-	if instances, err := bd.instances.AllBackupable(); err != nil {
-		return err
-	} else {
-		return instances.Backup()
-	}
+	return bd.instances.AllBackupable().Backup()
 }
 
 func (bd *BoshDeployment) PostBackupUnlock() error {
@@ -62,17 +55,14 @@ func (bd *BoshDeployment) Cleanup() error {
 	return bd.instances.Cleanup()
 }
 
-func (bd *BoshDeployment) IsRestorable() (bool, error) {
+func (bd *BoshDeployment) IsRestorable() bool {
 	bd.Logger.Info("", "Finding instances with restore scripts...")
 	restoreableInstances := bd.instances.AllRestoreable()
-	return !restoreableInstances.IsEmpty(), nil
+	return !restoreableInstances.IsEmpty()
 }
 
 func (bd *BoshDeployment) CopyRemoteBackupToLocal(artifact Artifact) error {
-	instances, err := bd.instances.AllBackupable()
-	if err != nil {
-		return err
-	}
+	instances := bd.instances.AllBackupable()
 	for _, instance := range instances {
 		for _, remoteArtifact := range instance.Blobs() {
 			writer, err := artifact.CreateFile(remoteArtifact)

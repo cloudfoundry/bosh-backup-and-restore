@@ -49,7 +49,7 @@ func (is instances) IsEmpty() bool {
 	return len(is) == 0
 }
 
-func (is instances) AllBackupable() (instances, error) {
+func (is instances) AllBackupable() instances {
 	var backupableInstances []Instance
 
 	for _, instance := range is {
@@ -57,7 +57,7 @@ func (is instances) AllBackupable() (instances, error) {
 			backupableInstances = append(backupableInstances, instance)
 		}
 	}
-	return backupableInstances, nil
+	return backupableInstances
 }
 
 func (is instances) AllPreBackupLockable() instances {

@@ -312,22 +312,16 @@ var _ = Describe("Deployment", func() {
 	})
 
 	Context("IsBackupable", func() {
-		var (
-			isBackupableError error
-			isBackupable      bool
-		)
+		var isBackupable      bool
+
 		JustBeforeEach(func() {
-			isBackupable, isBackupableError = deployment.IsBackupable()
+			isBackupable = deployment.IsBackupable()
 		})
 
 		Context("Single instance, backupable", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(true)
 				instances = []backuper.Instance{instance1}
-			})
-
-			It("does not fail", func() {
-				Expect(isBackupableError).NotTo(HaveOccurred())
 			})
 
 			It("checks if the instance is backupable", func() {
@@ -342,10 +336,6 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(false)
 				instances = []backuper.Instance{instance1}
-			})
-
-			It("does not fail", func() {
-				Expect(isBackupableError).NotTo(HaveOccurred())
 			})
 
 			It("checks if the instance is backupable", func() {
@@ -363,9 +353,6 @@ var _ = Describe("Deployment", func() {
 				instance2.IsBackupableReturns(true)
 				instances = []backuper.Instance{instance1, instance2}
 			})
-			It("does not fail", func() {
-				Expect(isBackupableError).NotTo(HaveOccurred())
-			})
 
 			It("returns true if any instance is backupable", func() {
 				Expect(instance1.IsBackupableCallCount()).To(Equal(1))
@@ -378,9 +365,6 @@ var _ = Describe("Deployment", func() {
 				instance1.IsBackupableReturns(false)
 				instance2.IsBackupableReturns(false)
 				instances = []backuper.Instance{instance1, instance2}
-			})
-			It("does not fail", func() {
-				Expect(isBackupableError).NotTo(HaveOccurred())
 			})
 
 			It("returns true if any instance is backupable", func() {
@@ -585,7 +569,7 @@ var _ = Describe("Deployment", func() {
 			isRestorable      bool
 		)
 		JustBeforeEach(func() {
-			isRestorable, isRestorableError = deployment.IsRestorable()
+			isRestorable = deployment.IsRestorable()
 		})
 
 		Context("Single instance, restorable", func() {

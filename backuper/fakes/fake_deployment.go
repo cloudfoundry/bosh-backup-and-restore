@@ -8,19 +8,17 @@ import (
 )
 
 type FakeDeployment struct {
-	IsBackupableStub        func() (bool, error)
+	IsBackupableStub        func() bool
 	isBackupableMutex       sync.RWMutex
 	isBackupableArgsForCall []struct{}
 	isBackupableReturns     struct {
 		result1 bool
-		result2 error
 	}
-	IsRestorableStub        func() (bool, error)
+	IsRestorableStub        func() bool
 	isRestorableMutex       sync.RWMutex
 	isRestorableArgsForCall []struct{}
 	isRestorableReturns     struct {
 		result1 bool
-		result2 error
 	}
 	PreBackupLockStub        func() error
 	preBackupLockMutex       sync.RWMutex
@@ -78,7 +76,7 @@ type FakeDeployment struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeDeployment) IsBackupable() (bool, error) {
+func (fake *FakeDeployment) IsBackupable() bool {
 	fake.isBackupableMutex.Lock()
 	fake.isBackupableArgsForCall = append(fake.isBackupableArgsForCall, struct{}{})
 	fake.recordInvocation("IsBackupable", []interface{}{})
@@ -86,7 +84,7 @@ func (fake *FakeDeployment) IsBackupable() (bool, error) {
 	if fake.IsBackupableStub != nil {
 		return fake.IsBackupableStub()
 	}
-	return fake.isBackupableReturns.result1, fake.isBackupableReturns.result2
+	return fake.isBackupableReturns.result1
 }
 
 func (fake *FakeDeployment) IsBackupableCallCount() int {
@@ -95,15 +93,14 @@ func (fake *FakeDeployment) IsBackupableCallCount() int {
 	return len(fake.isBackupableArgsForCall)
 }
 
-func (fake *FakeDeployment) IsBackupableReturns(result1 bool, result2 error) {
+func (fake *FakeDeployment) IsBackupableReturns(result1 bool) {
 	fake.IsBackupableStub = nil
 	fake.isBackupableReturns = struct {
 		result1 bool
-		result2 error
-	}{result1, result2}
+	}{result1}
 }
 
-func (fake *FakeDeployment) IsRestorable() (bool, error) {
+func (fake *FakeDeployment) IsRestorable() bool {
 	fake.isRestorableMutex.Lock()
 	fake.isRestorableArgsForCall = append(fake.isRestorableArgsForCall, struct{}{})
 	fake.recordInvocation("IsRestorable", []interface{}{})
@@ -111,7 +108,7 @@ func (fake *FakeDeployment) IsRestorable() (bool, error) {
 	if fake.IsRestorableStub != nil {
 		return fake.IsRestorableStub()
 	}
-	return fake.isRestorableReturns.result1, fake.isRestorableReturns.result2
+	return fake.isRestorableReturns.result1
 }
 
 func (fake *FakeDeployment) IsRestorableCallCount() int {
@@ -120,12 +117,11 @@ func (fake *FakeDeployment) IsRestorableCallCount() int {
 	return len(fake.isRestorableArgsForCall)
 }
 
-func (fake *FakeDeployment) IsRestorableReturns(result1 bool, result2 error) {
+func (fake *FakeDeployment) IsRestorableReturns(result1 bool) {
 	fake.IsRestorableStub = nil
 	fake.isRestorableReturns = struct {
 		result1 bool
-		result2 error
-	}{result1, result2}
+	}{result1}
 }
 
 func (fake *FakeDeployment) PreBackupLock() error {

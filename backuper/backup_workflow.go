@@ -104,15 +104,7 @@ func (bw *backupWorkflow) checkDeployment(e *fsm.Event) {
 }
 
 func (bw *backupWorkflow) checkIsBackupable(e *fsm.Event) {
-	backupable, err := bw.deployment.IsBackupable()
-
-	if err != nil {
-		bw.backupErrors = append(bw.backupErrors, err)
-		e.Cancel()
-		return
-	}
-
-	if !backupable {
+	if !bw.deployment.IsBackupable() {
 		bw.backupErrors = append(bw.backupErrors, fmt.Errorf("Deployment '%s' has no backup scripts", bw.deploymentName))
 		e.Cancel()
 	}

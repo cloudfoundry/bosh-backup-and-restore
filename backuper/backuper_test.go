@@ -43,7 +43,7 @@ var _ = Describe("Backuper", func() {
 			artifactManager.CreateReturns(artifact, nil)
 			artifactManager.ExistsReturns(false)
 			deploymentManager.FindReturns(deployment, nil)
-			deployment.IsBackupableReturns(true, nil)
+			deployment.IsBackupableReturns(true)
 			deployment.CleanupReturns(nil)
 			deployment.CopyRemoteBackupToLocalReturns(nil)
 		})
@@ -143,7 +143,7 @@ var _ = Describe("Backuper", func() {
 			var expectedError = fmt.Errorf("he the founder of isis")
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.IsBackupableReturns(true, nil)
+				deployment.IsBackupableReturns(true)
 				artifactManager.CreateReturns(artifact, nil)
 				boshDirector.GetManifestReturns("", expectedError)
 			})
@@ -158,7 +158,7 @@ var _ = Describe("Backuper", func() {
 
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.IsBackupableReturns(true, nil)
+				deployment.IsBackupableReturns(true)
 				artifactManager.CreateReturns(artifact, nil)
 				boshDirector.GetManifestReturns(deploymentManifest, nil)
 				artifact.SaveManifestReturns(expectedError)
@@ -173,30 +173,10 @@ var _ = Describe("Backuper", func() {
 			})
 		})
 
-		Context("fails when checking if deployment is backupable", func() {
-			BeforeEach(func() {
-				deploymentManager.FindReturns(deployment, nil)
-				deployment.IsBackupableReturns(false, expectedError)
-			})
-
-			It("finds deployment with the deployment name", func() {
-				Expect(deploymentManager.FindCallCount()).To(Equal(1))
-				Expect(deploymentManager.FindArgsForCall(0)).To(Equal(deploymentName))
-			})
-
-			It("fails the backup process", func() {
-				Expect(actualBackupError).To(ConsistOf(expectedError))
-			})
-
-			It("ensures that deployment is cleaned up", func() {
-				Expect(deployment.CleanupCallCount()).To(Equal(1))
-			})
-		})
-
 		Context("fails if the deployment is not backupable", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.IsBackupableReturns(false, nil)
+				deployment.IsBackupableReturns(false)
 			})
 
 			It("finds a deployment with the deployment name", func() {
@@ -224,7 +204,7 @@ var _ = Describe("Backuper", func() {
 				artifactManager.CreateReturns(artifact, nil)
 				artifactManager.ExistsReturns(false)
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.IsBackupableReturns(true, nil)
+				deployment.IsBackupableReturns(true)
 				deployment.CleanupReturns(nil)
 
 				deployment.PreBackupLockReturns(lockError)
@@ -250,7 +230,7 @@ var _ = Describe("Backuper", func() {
 				artifactManager.CreateReturns(artifact, nil)
 				artifactManager.ExistsReturns(false)
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.IsBackupableReturns(true, nil)
+				deployment.IsBackupableReturns(true)
 				deployment.CleanupReturns(nil)
 
 				deployment.PostBackupUnlockReturns(unlockError)
@@ -324,7 +304,7 @@ var _ = Describe("Backuper", func() {
 			var drainError = fmt.Errorf("they are bringing crime")
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.IsBackupableReturns(true, nil)
+				deployment.IsBackupableReturns(true)
 				artifactManager.CreateReturns(artifact, nil)
 				deployment.CopyRemoteBackupToLocalReturns(drainError)
 			})
@@ -353,7 +333,7 @@ var _ = Describe("Backuper", func() {
 			var artifactError = fmt.Errorf("they are bringing crime")
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.IsBackupableReturns(true, nil)
+				deployment.IsBackupableReturns(true)
 
 				artifactManager.CreateReturns(nil, artifactError)
 			})
@@ -381,7 +361,7 @@ var _ = Describe("Backuper", func() {
 			var cleanupError = fmt.Errorf("why doesn't he show his birth certificate?")
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.IsBackupableReturns(true, nil)
+				deployment.IsBackupableReturns(true)
 
 				artifactManager.CreateReturns(artifact, nil)
 				deployment.CleanupReturns(cleanupError)
@@ -414,7 +394,7 @@ var _ = Describe("Backuper", func() {
 			var backupError = fmt.Errorf("i have the best words")
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.IsBackupableReturns(true, nil)
+				deployment.IsBackupableReturns(true)
 
 				artifactManager.CreateReturns(artifact, nil)
 				deployment.BackupReturns(backupError)
@@ -472,7 +452,7 @@ var _ = Describe("restore", func() {
 
 			artifactManager.OpenReturns(artifact, nil)
 			deploymentManager.FindReturns(deployment, nil)
-			deployment.IsRestorableReturns(true, nil)
+			deployment.IsRestorableReturns(true)
 			deployment.InstancesReturns(instances)
 			artifact.DeploymentMatchesReturns(true, nil)
 			artifact.ValidReturns(true, nil)
@@ -601,23 +581,9 @@ var _ = Describe("restore", func() {
 
 			Context("if deployment not restorable", func() {
 				BeforeEach(func() {
-					deployment.IsRestorableReturns(false, nil)
+					deployment.IsRestorableReturns(false)
 				})
 
-				It("returns an error", func() {
-					Expect(restoreError).To(HaveOccurred())
-				})
-
-				It("should cleanup", func() {
-					Expect(deployment.CleanupCallCount()).To(Equal(1))
-				})
-				assertCleanupError()
-			})
-
-			Context("if checking the instance's restorable status fails", func() {
-				BeforeEach(func() {
-					deployment.IsRestorableReturns(true, fmt.Errorf("the beauty of me is that I'm very rich"))
-				})
 				It("returns an error", func() {
 					Expect(restoreError).To(HaveOccurred())
 				})
