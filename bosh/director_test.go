@@ -528,7 +528,136 @@ backup_name: consul_backup`)
 			})
 		})
 
-		//TODO: multiple instance groups
+		Context("finds instances for the deployment, having multiple instances in multiple instance groups", func() {
+			BeforeEach(func() {
+				boshDirector.FindDeploymentReturns(boshDeployment, nil)
+				boshDeployment.VMInfosReturns([]director.VMInfo{
+					{
+						JobName: "job1",
+						ID:      "id1",
+					},
+					{
+						JobName: "job1",
+						ID:      "id2",
+					},
+					{
+						JobName: "job2",
+						ID:      "id3",
+					},
+				}, nil)
+				optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
+				boshDeployment.SetUpSSHStub = func(slug director.AllOrInstanceGroupOrInstanceSlug, sshOpts director.SSHOpts) (director.SSHResult, error) {
+					if slug.Name() == "job1" {
+						return director.SSHResult{Hosts: []director.Host{
+							{
+								Username:  "username",
+								Host:      "hostname1",
+								IndexOrID: "id1",
+							},
+							{
+								Username:  "username",
+								Host:      "hostname2",
+								IndexOrID: "id2",
+							},
+						}}, nil
+					} else {
+						return director.SSHResult{Hosts: []director.Host{
+							{
+								Username:  "username",
+								Host:      "hostname3",
+								IndexOrID: "id3",
+							},
+						}}, nil
+					}
+				}
+				sshConnectionFactory.Returns(sshConnection, nil)
+				findScriptsSshStdout = []byte("/var/vcap/jobs/consul_agent/bin/p-backup")
+			})
+			It("collects the instances", func() {
+				instanceJobs := instance.NewJobs(
+					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"},
+					map[string]string{},
+				)
+
+				Expect(actualInstances).To(Equal([]orchestrator.Instance{
+					bosh.NewBoshInstance(
+						"job1",
+						"0",
+						"id1",
+						sshConnection,
+						boshDeployment,
+						boshLogger,
+						instanceJobs,
+					),
+					bosh.NewBoshInstance(
+						"job1",
+						"1",
+						"id2",
+						sshConnection,
+						boshDeployment,
+						boshLogger,
+						instanceJobs,
+					),
+					bosh.NewBoshInstance(
+						"job2",
+						"0",
+						"id3",
+						sshConnection,
+						boshDeployment,
+						boshLogger,
+						instanceJobs,
+					),
+				}))
+			})
+			It("does not fail", func() {
+				Expect(actualError).NotTo(HaveOccurred())
+			})
+
+			It("fetches the deployment by name", func() {
+				Expect(boshDirector.FindDeploymentCallCount()).To(Equal(1))
+				Expect(boshDirector.FindDeploymentArgsForCall(0)).To(Equal(deploymentName))
+			})
+
+			It("fetchs vms for the deployment", func() {
+				Expect(boshDeployment.VMInfosCallCount()).To(Equal(1))
+			})
+
+			It("generates a new ssh private key", func() {
+				Expect(optsGenerator.CallCount()).To(Equal(1))
+			})
+
+			It("sets up ssh for each group found", func() {
+				Expect(boshDeployment.SetUpSSHCallCount()).To(Equal(2))
+
+				slug, opts := boshDeployment.SetUpSSHArgsForCall(0)
+				Expect(slug).To(Equal(director.NewAllOrInstanceGroupOrInstanceSlug("job1", "")))
+				Expect(opts).To(Equal(stubbedSshOpts))
+
+				slug, opts = boshDeployment.SetUpSSHArgsForCall(1)
+				Expect(slug).To(Equal(director.NewAllOrInstanceGroupOrInstanceSlug("job2", "")))
+				Expect(opts).To(Equal(stubbedSshOpts))
+			})
+
+			It("creates a ssh connection to each host", func() {
+				Expect(sshConnectionFactory.CallCount()).To(Equal(3))
+
+				host, username, privateKey := sshConnectionFactory.ArgsForCall(0)
+				Expect(host).To(Equal("hostname1:22"))
+				Expect(username).To(Equal("username"))
+				Expect(privateKey).To(Equal("private_key"))
+
+				host, username, privateKey = sshConnectionFactory.ArgsForCall(1)
+				Expect(host).To(Equal("hostname2:22"))
+				Expect(username).To(Equal("username"))
+				Expect(privateKey).To(Equal("private_key"))
+
+				host, username, privateKey = sshConnectionFactory.ArgsForCall(2)
+				Expect(host).To(Equal("hostname3:22"))
+				Expect(username).To(Equal("username"))
+				Expect(privateKey).To(Equal("private_key"))
+			})
+
+		})
 		Context("failures", func() {
 			var expectedError = fmt.Errorf("er ma gerd")
 
