@@ -186,3 +186,6 @@ func (bw *backupWorkflow) postBackupUnlock(e *fsm.Event) {
 		bw.backupErrors = append(bw.backupErrors, PostBackupUnlockError{err})
 	}
 }
+func beforeEvent(eventName string) string {
+	return "before_" + eventName
+}

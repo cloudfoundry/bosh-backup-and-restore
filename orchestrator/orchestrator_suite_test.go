@@ -9,5 +9,5 @@ import (
 
 func TestBackuper(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Backuper Suite")
+	RunSpecs(t, "Orchestrator Suite")
 }

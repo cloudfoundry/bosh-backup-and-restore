@@ -7,8 +7,8 @@ import (
 
 	"github.com/mgutz/ansi"
 	"github.com/pivotal-cf/pcf-backup-and-restore/artifact"
-	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/pcf-backup-and-restore/ssh"
 	"github.com/urfave/cli"
 
@@ -51,24 +51,24 @@ func main() {
 func backup(c *cli.Context) error {
 	var deployment = c.GlobalString("deployment")
 
-	backuperInstance, err := makeBackuper(c)
+	backuper, err := makeBackuper(c)
 	if err != nil {
 		return err
 	}
 
-	backupErr := backuperInstance.Backup(deployment)
+	backupErr := backuper.Backup(deployment)
 	return processBackupError(backupErr)
 }
 
 func restore(c *cli.Context) error {
 	var deployment = c.GlobalString("deployment")
 
-	backuperInstance, err := makeBackuper(c)
+	restorer, err := makeRestorer(c)
 	if err != nil {
 		return err
 	}
 
-	err = backuperInstance.Restore(deployment)
+	err = restorer.Restore(deployment)
 	return processRestoreError(err)
 }
 
@@ -148,20 +148,50 @@ func processRestoreError(err error) error {
 }
 
 func makeBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
-	var debug = c.GlobalBool("debug")
+	logger := makeLogger(c)
+
+	boshDirector, err := makeBoshDirector(c, logger)
+	if err != nil {
+		return nil, err
+	}
+	boshClient := makeBoshClient(boshDirector, logger)
+	deploymentManager := makeDeploymentManager(boshClient, logger)
+	return orchestrator.NewBackuper(boshClient, artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
+}
+
+func makeDeploymentManager(boshClient orchestrator.BoshDirector, logger boshlog.Logger) orchestrator.DeploymentManager {
+	return orchestrator.NewBoshDeploymentManager(boshClient, logger)
+}
+func makeBoshClient(boshDirector director.Director, logger boshlog.Logger) orchestrator.BoshDirector {
+	boshClient := bosh.New(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger)
+	return boshClient
+}
+
+func makeBoshDirector(c *cli.Context, logger boshlog.Logger) (director.Director, error) {
 	var targetUrl = c.GlobalString("target")
 	var username = c.GlobalString("username")
 	var password = c.GlobalString("password")
 	var caCert = c.GlobalString("ca-cert")
-
-	var logger = makeBoshLogger(debug)
 	boshDirector, err := makeBoshDirectorClient(targetUrl, username, password, caCert, logger)
+	return boshDirector, err
+}
+
+func makeLogger(c *cli.Context) boshlog.Logger {
+	var debug = c.GlobalBool("debug")
+	var logger = makeBoshLogger(debug)
+	return logger
+}
+
+func makeRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
+	logger := makeLogger(c)
+
+	boshDirector, err := makeBoshDirector(c, logger)
 	if err != nil {
 		return nil, err
 	}
-	boshClient := bosh.New(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger)
-	deploymentManager := orchestrator.NewBoshDeploymentManager(boshClient, logger)
-	return orchestrator.New(boshClient, artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
+	boshClient := makeBoshClient(boshDirector, logger)
+	deploymentManager := makeDeploymentManager(boshClient, logger)
+	return orchestrator.NewRestorer(boshClient, artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
 }
 
 func makeBoshLogger(debug bool) boshlog.Logger {

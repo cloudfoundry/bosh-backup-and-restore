@@ -1,13 +1,8 @@
 package orchestrator
 
-import (
-	"fmt"
+import "github.com/hashicorp/go-multierror"
 
-	"github.com/hashicorp/go-multierror"
-	//"github.com/looplab/fsm"
-)
-
-func New(bosh BoshDirector, artifactManager ArtifactManager, logger Logger, deploymentManager DeploymentManager) *Backuper {
+func NewBackuper(bosh BoshDirector, artifactManager ArtifactManager, logger Logger, deploymentManager DeploymentManager) *Backuper {
 	return &Backuper{
 		BoshDirector:      bosh,
 		ArtifactManager:   artifactManager,
@@ -38,62 +33,11 @@ type BoshDirector interface {
 	GetManifest(deploymentName string) (string, error)
 }
 
-func beforeEvent(eventName string) string {
-	return "before_" + eventName
-}
-
 //Backup checks if a deployment has backupable instances and backs them up.
 func (b Backuper) Backup(deploymentName string) Error {
 	bw := newbackupWorkflow(b, deploymentName)
 
 	return bw.Run()
-}
-
-func (b Backuper) Restore(deploymentName string) error {
-	b.Logger.Info("", "Starting restore of %s...\n", deploymentName)
-	artifact, err := b.ArtifactManager.Open(deploymentName, b.Logger)
-	if err != nil {
-		return err
-	}
-
-	if valid, err := artifact.Valid(); err != nil {
-		return err
-	} else if !valid {
-		return fmt.Errorf("Backup artifact is corrupted")
-	}
-
-	deployment, err := b.DeploymentManager.Find(deploymentName)
-	if err != nil {
-		return err
-	}
-
-	if !deployment.IsRestorable() {
-		return cleanupAndReturnErrors(deployment, fmt.Errorf("Deployment '%s' has no restore scripts", deploymentName))
-	}
-
-	if match, err := artifact.DeploymentMatches(deploymentName, deployment.Instances()); err != nil {
-		return cleanupAndReturnErrors(deployment, fmt.Errorf("Unable to check if deployment '%s' matches the structure of the provided backup", deploymentName))
-	} else if match != true {
-		return cleanupAndReturnErrors(deployment, fmt.Errorf("Deployment '%s' does not match the structure of the provided backup", deploymentName))
-	}
-
-	if err = deployment.CopyLocalBackupToRemote(artifact); err != nil {
-		return cleanupAndReturnErrors(deployment, fmt.Errorf("Unable to send backup to remote machine. Got error: %s", err))
-	}
-
-	err = deployment.Restore()
-	if err != nil {
-		return cleanupAndReturnErrors(deployment, err)
-	}
-
-	b.Logger.Info("", "Completed restore of %s\n", deploymentName)
-
-	if err := deployment.Cleanup(); err != nil {
-		return CleanupError{
-			fmt.Errorf("Deployment '%s' failed while cleaning up with error: %v", deploymentName, err),
-		}
-	}
-	return nil
 }
 
 func cleanupAndReturnErrors(d Deployment, err error) error {
