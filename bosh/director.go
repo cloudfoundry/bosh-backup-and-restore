@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry/bosh-utils/uuid"
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 	"gopkg.in/yaml.v2"
 	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
 )
@@ -17,7 +17,7 @@ import (
 func New(boshDirector director.Director,
 	sshOptsGenerator SSHOptsGenerator,
 	connectionFactory SSHConnectionFactory,
-	logger Logger) backuper.BoshDirector {
+	logger Logger) orchestrator.BoshDirector {
 	return client{
 		Director:             boshDirector,
 		SSHOptsGenerator:     sshOptsGenerator,
@@ -49,7 +49,7 @@ type jobMetadata struct {
 	BackupName string `yaml:"backup_name"`
 }
 
-func (c client) FindInstances(deploymentName string) ([]backuper.Instance, error) {
+func (c client) FindInstances(deploymentName string) ([]orchestrator.Instance, error) {
 	deployment, err := c.Director.FindDeployment(deploymentName)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (c client) FindInstances(deploymentName string) ([]backuper.Instance, error
 	}
 	c.Logger.Debug("", "SSH user generated: %s", sshOpts.Username)
 
-	instances := []backuper.Instance{}
+	instances := []orchestrator.Instance{}
 
 	for _, instanceGroupName := range uniqueInstanceGroupNamesFromVMs(vms) {
 		c.Logger.Debug("", "Setting up SSH for job %s", instanceGroupName)

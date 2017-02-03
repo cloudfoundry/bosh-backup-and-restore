@@ -1,4 +1,4 @@
-package backuper_test
+package orchestrator_test
 
 import (
 	"fmt"
@@ -10,22 +10,22 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper/fakes"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator/fakes"
 )
 
 var _ = Describe("Deployment", func() {
 	var (
-		deployment backuper.Deployment
-		logger     backuper.Logger
-		instances  []backuper.Instance
+		deployment orchestrator.Deployment
+		logger     orchestrator.Logger
+		instances  []orchestrator.Instance
 		instance1  *fakes.FakeInstance
 		instance2  *fakes.FakeInstance
 		instance3  *fakes.FakeInstance
 	)
 
 	JustBeforeEach(func() {
-		deployment = backuper.NewBoshDeployment(logger, instances)
+		deployment = orchestrator.NewBoshDeployment(logger, instances)
 	})
 	BeforeEach(func() {
 		logger = new(fakes.FakeLogger)
@@ -45,7 +45,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsPreBackupLockableReturns(true)
 				instance1.PreBackupLockReturns(nil)
-				instances = []backuper.Instance{instance1}
+				instances = []orchestrator.Instance{instance1}
 			})
 
 			It("does not fail", func() {
@@ -75,7 +75,7 @@ var _ = Describe("Deployment", func() {
 				instance2.IsBackupableReturns(true)
 				instance1.IsPreBackupLockableReturns(true)
 				instance2.IsPreBackupLockableReturns(false)
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
 			It("does not fail", func() {
@@ -101,7 +101,7 @@ var _ = Describe("Deployment", func() {
 		Context("Single instance, backupable", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(true)
-				instances = []backuper.Instance{instance1}
+				instances = []orchestrator.Instance{instance1}
 			})
 			It("does not fail", func() {
 				Expect(backupError).NotTo(HaveOccurred())
@@ -115,7 +115,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(true)
 				instance2.IsBackupableReturns(true)
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(backupError).NotTo(HaveOccurred())
@@ -129,7 +129,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(true)
 				instance2.IsBackupableReturns(false)
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(backupError).NotTo(HaveOccurred())
@@ -148,7 +148,7 @@ var _ = Describe("Deployment", func() {
 				instance1.IsBackupableReturns(true)
 				instance2.IsBackupableReturns(true)
 				instance1.BackupReturns(backupError)
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(backupError).To(HaveOccurred())
@@ -176,7 +176,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsPostBackupUnlockableReturns(true)
 				instance1.PostBackupUnlockReturns(nil)
-				instances = []backuper.Instance{instance1}
+				instances = []orchestrator.Instance{instance1}
 			})
 
 			It("does not fail", func() {
@@ -191,7 +191,7 @@ var _ = Describe("Deployment", func() {
 		Context("single instance, without post backup unlock", func() {
 			BeforeEach(func() {
 				instance1.IsPostBackupUnlockableReturns(false)
-				instances = []backuper.Instance{instance1}
+				instances = []orchestrator.Instance{instance1}
 			})
 
 			It("does not fail", func() {
@@ -207,7 +207,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsPostBackupUnlockableReturns(true)
 				instance1.PostBackupUnlockReturns(expectedError)
-				instances = []backuper.Instance{instance1}
+				instances = []orchestrator.Instance{instance1}
 			})
 
 			It("fails", func() {
@@ -225,7 +225,7 @@ var _ = Describe("Deployment", func() {
 				instance1.PostBackupUnlockReturns(nil)
 				instance2.IsPostBackupUnlockableReturns(true)
 				instance2.PostBackupUnlockReturns(nil)
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
 			It("does not fail", func() {
@@ -243,7 +243,7 @@ var _ = Describe("Deployment", func() {
 				instance1.IsPostBackupUnlockableReturns(false)
 				instance2.IsPostBackupUnlockableReturns(true)
 				instance2.PostBackupUnlockReturns(nil)
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
 			It("does not fail", func() {
@@ -265,7 +265,7 @@ var _ = Describe("Deployment", func() {
 				instance1.PostBackupUnlockReturns(expectedError)
 				instance2.IsPostBackupUnlockableReturns(true)
 				instance2.PostBackupUnlockReturns(nil)
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
 			It("fails", func() {
@@ -292,7 +292,7 @@ var _ = Describe("Deployment", func() {
 				secondError = fmt.Errorf("something else went wrong")
 				instance2.IsPostBackupUnlockableReturns(true)
 				instance2.PostBackupUnlockReturns(secondError)
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
 			It("fails", func() {
@@ -321,7 +321,7 @@ var _ = Describe("Deployment", func() {
 		Context("Single instance, backupable", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(true)
-				instances = []backuper.Instance{instance1}
+				instances = []orchestrator.Instance{instance1}
 			})
 
 			It("checks if the instance is backupable", func() {
@@ -335,7 +335,7 @@ var _ = Describe("Deployment", func() {
 		Context("Single instance, not backupable", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(false)
-				instances = []backuper.Instance{instance1}
+				instances = []orchestrator.Instance{instance1}
 			})
 
 			It("checks if the instance is backupable", func() {
@@ -351,7 +351,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(false)
 				instance2.IsBackupableReturns(true)
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
 			It("returns true if any instance is backupable", func() {
@@ -364,7 +364,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(false)
 				instance2.IsBackupableReturns(false)
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
 			It("returns true if any instance is backupable", func() {
@@ -386,7 +386,7 @@ var _ = Describe("Deployment", func() {
 		Context("Single instance, restoreable", func() {
 			BeforeEach(func() {
 				instance1.IsRestorableReturns(true)
-				instances = []backuper.Instance{instance1}
+				instances = []orchestrator.Instance{instance1}
 			})
 			It("does not fail", func() {
 				Expect(restoreError).NotTo(HaveOccurred())
@@ -398,7 +398,7 @@ var _ = Describe("Deployment", func() {
 		Context("Single instance, not restoreable", func() {
 			BeforeEach(func() {
 				instance1.IsRestorableReturns(false)
-				instances = []backuper.Instance{instance1}
+				instances = []orchestrator.Instance{instance1}
 			})
 			It("does not fail", func() {
 				Expect(restoreError).NotTo(HaveOccurred())
@@ -412,7 +412,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsRestorableReturns(true)
 				instance2.IsRestorableReturns(true)
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(restoreError).NotTo(HaveOccurred())
@@ -426,7 +426,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsRestorableReturns(true)
 				instance2.IsRestorableReturns(false)
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(restoreError).NotTo(HaveOccurred())
@@ -446,7 +446,7 @@ var _ = Describe("Deployment", func() {
 				instance1.IsRestorableReturns(true)
 				instance2.IsRestorableReturns(true)
 				instance1.RestoreReturns(restoreError)
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(restoreError).To(MatchError(restoreError))
@@ -469,7 +469,7 @@ var _ = Describe("Deployment", func() {
 		BeforeEach(func() {
 			instance1.IsRestorableReturns(true)
 			instance1.StreamBackupToRemoteReturns(nil)
-			instances = []backuper.Instance{instance1}
+			instances = []orchestrator.Instance{instance1}
 			artifact = new(fakes.FakeArtifact)
 			artifact.ReadFileReturns(reader, nil)
 		})
@@ -480,7 +480,7 @@ var _ = Describe("Deployment", func() {
 		})
 
 		Context("Single instance, restorable", func() {
-			var instanceChecksum = backuper.BackupChecksum{"file1": "abcd", "file2": "efgh"}
+			var instanceChecksum = orchestrator.BackupChecksum{"file1": "abcd", "file2": "efgh"}
 
 			BeforeEach(func() {
 				artifact.FetchChecksumReturns(instanceChecksum, nil)
@@ -541,7 +541,7 @@ var _ = Describe("Deployment", func() {
 
 			Context("shas dont match after transfer", func() {
 				BeforeEach(func() {
-					instance1.BackupChecksumReturns(backuper.BackupChecksum{"shas": "they dont match"}, nil)
+					instance1.BackupChecksumReturns(orchestrator.BackupChecksum{"shas": "they dont match"}, nil)
 				})
 
 				It("fails", func() {
@@ -575,7 +575,7 @@ var _ = Describe("Deployment", func() {
 		Context("Single instance, restorable", func() {
 			BeforeEach(func() {
 				instance1.IsRestorableReturns(true)
-				instances = []backuper.Instance{instance1}
+				instances = []orchestrator.Instance{instance1}
 			})
 
 			It("does not fail", func() {
@@ -593,7 +593,7 @@ var _ = Describe("Deployment", func() {
 		Context("Single instance, not restorable", func() {
 			BeforeEach(func() {
 				instance1.IsRestorableReturns(false)
-				instances = []backuper.Instance{instance1}
+				instances = []orchestrator.Instance{instance1}
 			})
 
 			It("does not fail", func() {
@@ -613,7 +613,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsRestorableReturns(false)
 				instance2.IsRestorableReturns(true)
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(isRestorableError).NotTo(HaveOccurred())
@@ -629,7 +629,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.IsRestorableReturns(false)
 				instance2.IsRestorableReturns(false)
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(isRestorableError).NotTo(HaveOccurred())
@@ -652,7 +652,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("Single instance", func() {
 			BeforeEach(func() {
-				instances = []backuper.Instance{instance1}
+				instances = []orchestrator.Instance{instance1}
 			})
 			It("does not fail", func() {
 				Expect(actualCleanupError).NotTo(HaveOccurred())
@@ -664,7 +664,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("Multiple instances", func() {
 			BeforeEach(func() {
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
 				Expect(actualCleanupError).NotTo(HaveOccurred())
@@ -680,7 +680,7 @@ var _ = Describe("Deployment", func() {
 
 			BeforeEach(func() {
 				instance1.CleanupReturns(cleanupError1)
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
 			It("fails", func() {
@@ -699,7 +699,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instance1.CleanupReturns(cleanupError1)
 				instance2.CleanupReturns(cleanupError2)
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
 			It("fails with both error messages", func() {
@@ -715,7 +715,7 @@ var _ = Describe("Deployment", func() {
 	})
 	Context("Instances", func() {
 		BeforeEach(func() {
-			instances = []backuper.Instance{instance1, instance2, instance3}
+			instances = []orchestrator.Instance{instance1, instance2, instance3}
 		})
 		It("returns instances for the deployment", func() {
 			Expect(deployment.Instances()).To(ConsistOf(instance1, instance2, instance3))
@@ -738,18 +738,18 @@ var _ = Describe("Deployment", func() {
 
 		Context("One instance, backupable", func() {
 			var localArtifactWriteCloser *fakes.FakeWriteCloser
-			var remoteArtifactChecksum = backuper.BackupChecksum{"file1": "abcd", "file2": "efgh"}
+			var remoteArtifactChecksum = orchestrator.BackupChecksum{"file1": "abcd", "file2": "efgh"}
 
 			BeforeEach(func() {
 				localArtifactWriteCloser = new(fakes.FakeWriteCloser)
 				artifact.CreateFileReturns(localArtifactWriteCloser, nil)
 
-				instance1.BlobsReturns([]backuper.BackupBlob{backupBlob})
+				instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob})
 				instance1.IsBackupableReturns(true)
 				artifact.CalculateChecksumReturns(remoteArtifactChecksum, nil)
 				backupBlob.BackupChecksumReturns(remoteArtifactChecksum, nil)
 
-				instances = []backuper.Instance{instance1}
+				instances = []orchestrator.Instance{instance1}
 			})
 
 			It("creates an artifact file with the instance", func() {
@@ -788,7 +788,7 @@ var _ = Describe("Deployment", func() {
 		})
 
 		Context("Many instances, backupable", func() {
-			var instanceChecksum = backuper.BackupChecksum{"file1": "abcd", "file2": "efgh"}
+			var instanceChecksum = orchestrator.BackupChecksum{"file1": "abcd", "file2": "efgh"}
 			var writeCloser1 *fakes.FakeWriteCloser
 			var writeCloser2 *fakes.FakeWriteCloser
 
@@ -801,7 +801,7 @@ var _ = Describe("Deployment", func() {
 				blob1 = new(fakes.FakeBackupBlob)
 				blob2 = new(fakes.FakeBackupBlob)
 
-				artifact.CreateFileStub = func(i backuper.BackupBlobIdentifier) (io.WriteCloser, error) {
+				artifact.CreateFileStub = func(i orchestrator.BackupBlobIdentifier) (io.WriteCloser, error) {
 					if i == blob1 {
 						return writeCloser1, nil
 					} else {
@@ -809,15 +809,15 @@ var _ = Describe("Deployment", func() {
 					}
 				}
 
-				instance1.BlobsReturns([]backuper.BackupBlob{blob1})
-				instance2.BlobsReturns([]backuper.BackupBlob{blob2})
+				instance1.BlobsReturns([]orchestrator.BackupBlob{blob1})
+				instance2.BlobsReturns([]orchestrator.BackupBlob{blob2})
 
 				instance1.IsBackupableReturns(true)
 				instance2.IsBackupableReturns(true)
 
 				artifact.CalculateChecksumReturns(instanceChecksum, nil)
 
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 				blob1.BackupChecksumReturns(instanceChecksum, nil)
 				blob2.BackupChecksumReturns(instanceChecksum, nil)
 			})
@@ -869,7 +869,7 @@ var _ = Describe("Deployment", func() {
 		})
 
 		Context("Many instances, one backupable", func() {
-			var instanceChecksum = backuper.BackupChecksum{"file1": "abcd", "file2": "efgh"}
+			var instanceChecksum = orchestrator.BackupChecksum{"file1": "abcd", "file2": "efgh"}
 			var writeCloser1 *fakes.FakeWriteCloser
 			var remoteArtifact1 *fakes.FakeBackupBlob
 
@@ -880,12 +880,12 @@ var _ = Describe("Deployment", func() {
 				artifact.CreateFileReturns(writeCloser1, nil)
 
 				instance1.IsBackupableReturns(true)
-				instance1.BlobsReturns([]backuper.BackupBlob{remoteArtifact1})
+				instance1.BlobsReturns([]orchestrator.BackupBlob{remoteArtifact1})
 
 				instance2.IsBackupableReturns(false)
 				artifact.CalculateChecksumReturns(instanceChecksum, nil)
 
-				instances = []backuper.Instance{instance1, instance2}
+				instances = []orchestrator.Instance{instance1, instance2}
 				remoteArtifact1.BackupChecksumReturns(instanceChecksum, nil)
 			})
 			It("succeeds", func() {
@@ -929,9 +929,9 @@ var _ = Describe("Deployment", func() {
 				BeforeEach(func() {
 					backupBlob = new(fakes.FakeBackupBlob)
 
-					instances = []backuper.Instance{instance1}
+					instances = []orchestrator.Instance{instance1}
 					instance1.IsBackupableReturns(true)
-					instance1.BlobsReturns([]backuper.BackupBlob{backupBlob})
+					instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob})
 
 					backupBlob.StreamFromRemoteReturns(drainError)
 				})
@@ -944,8 +944,8 @@ var _ = Describe("Deployment", func() {
 			Context("fails if file cannot be created", func() {
 				var fileError = fmt.Errorf("i have a very good brain")
 				BeforeEach(func() {
-					instances = []backuper.Instance{instance1}
-					instance1.BlobsReturns([]backuper.BackupBlob{backupBlob})
+					instances = []orchestrator.Instance{instance1}
+					instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob})
 					instance1.IsBackupableReturns(true)
 					artifact.CreateFileReturns(nil, fileError)
 				})
@@ -961,10 +961,10 @@ var _ = Describe("Deployment", func() {
 
 				BeforeEach(func() {
 					writeCloser1 = new(fakes.FakeWriteCloser)
-					instances = []backuper.Instance{instance1}
+					instances = []orchestrator.Instance{instance1}
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.BlobsReturns([]backuper.BackupBlob{backupBlob})
+					instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob})
 
 					artifact.CreateFileReturns(writeCloser1, nil)
 					artifact.CalculateChecksumReturns(nil, shasumError)
@@ -981,11 +981,11 @@ var _ = Describe("Deployment", func() {
 
 				BeforeEach(func() {
 					writeCloser1 = new(fakes.FakeWriteCloser)
-					instances = []backuper.Instance{instance1}
+					instances = []orchestrator.Instance{instance1}
 
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.BlobsReturns([]backuper.BackupBlob{backupBlob})
+					instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob})
 					backupBlob.BackupChecksumReturns(nil, remoteShasumError)
 
 					artifact.CreateFileReturns(writeCloser1, nil)
@@ -1005,16 +1005,16 @@ var _ = Describe("Deployment", func() {
 
 				BeforeEach(func() {
 					writeCloser1 = new(fakes.FakeWriteCloser)
-					instances = []backuper.Instance{instance1}
+					instances = []orchestrator.Instance{instance1}
 
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.BlobsReturns([]backuper.BackupBlob{backupBlob})
+					instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob})
 
 					artifact.CreateFileReturns(writeCloser1, nil)
 
-					artifact.CalculateChecksumReturns(backuper.BackupChecksum{"file": "this won't match"}, nil)
-					backupBlob.BackupChecksumReturns(backuper.BackupChecksum{"file": "this wont match"}, nil)
+					artifact.CalculateChecksumReturns(orchestrator.BackupChecksum{"file": "this won't match"}, nil)
+					backupBlob.BackupChecksumReturns(orchestrator.BackupChecksum{"file": "this wont match"}, nil)
 				})
 
 				It("fails the backup process", func() {
@@ -1031,15 +1031,15 @@ var _ = Describe("Deployment", func() {
 
 				BeforeEach(func() {
 					writeCloser1 = new(fakes.FakeWriteCloser)
-					instances = []backuper.Instance{instance1}
+					instances = []orchestrator.Instance{instance1}
 
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.BlobsReturns([]backuper.BackupBlob{backupBlob})
+					instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob})
 
 					artifact.CreateFileReturns(writeCloser1, nil)
-					artifact.CalculateChecksumReturns(backuper.BackupChecksum{"file": "this will match", "extra": "this won't match"}, nil)
-					backupBlob.BackupChecksumReturns(backuper.BackupChecksum{"file": "this will match"}, nil)
+					artifact.CalculateChecksumReturns(orchestrator.BackupChecksum{"file": "this will match", "extra": "this won't match"}, nil)
+					backupBlob.BackupChecksumReturns(orchestrator.BackupChecksum{"file": "this will match"}, nil)
 				})
 
 				It("fails the backup process", func() {
@@ -1053,19 +1053,19 @@ var _ = Describe("Deployment", func() {
 
 			Context("fails if unable to delete blobs", func(){
 				var writeCloser1 *fakes.FakeWriteCloser
-				var instanceChecksum = backuper.BackupChecksum{"file1": "abcd", "file2": "efgh"}
+				var instanceChecksum = orchestrator.BackupChecksum{"file1": "abcd", "file2": "efgh"}
 				var expectedError = fmt.Errorf("brr")
 
 				BeforeEach(func() {
 					writeCloser1 = new(fakes.FakeWriteCloser)
-					instances = []backuper.Instance{instance1}
+					instances = []orchestrator.Instance{instance1}
 
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.BlobsReturns([]backuper.BackupBlob{backupBlob})
+					instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob})
 
 					artifact.CreateFileReturns(writeCloser1, nil)
-					artifact.CalculateChecksumReturns(backuper.BackupChecksum{"file": "this will match", "extra": "this won't match"}, nil)
+					artifact.CalculateChecksumReturns(orchestrator.BackupChecksum{"file": "this will match", "extra": "this won't match"}, nil)
 					artifact.CalculateChecksumReturns(instanceChecksum, nil)
 					backupBlob.BackupChecksumReturns(instanceChecksum, nil)
 

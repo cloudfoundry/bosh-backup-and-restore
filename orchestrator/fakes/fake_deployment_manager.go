@@ -4,24 +4,24 @@ package fakes
 import (
 	"sync"
 
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 )
 
 type FakeDeploymentManager struct {
-	FindStub        func(deploymentName string) (backuper.Deployment, error)
+	FindStub        func(deploymentName string) (orchestrator.Deployment, error)
 	findMutex       sync.RWMutex
 	findArgsForCall []struct {
 		deploymentName string
 	}
 	findReturns struct {
-		result1 backuper.Deployment
+		result1 orchestrator.Deployment
 		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeDeploymentManager) Find(deploymentName string) (backuper.Deployment, error) {
+func (fake *FakeDeploymentManager) Find(deploymentName string) (orchestrator.Deployment, error) {
 	fake.findMutex.Lock()
 	fake.findArgsForCall = append(fake.findArgsForCall, struct {
 		deploymentName string
@@ -46,10 +46,10 @@ func (fake *FakeDeploymentManager) FindArgsForCall(i int) string {
 	return fake.findArgsForCall[i].deploymentName
 }
 
-func (fake *FakeDeploymentManager) FindReturns(result1 backuper.Deployment, result2 error) {
+func (fake *FakeDeploymentManager) FindReturns(result1 orchestrator.Deployment, result2 error) {
 	fake.FindStub = nil
 	fake.findReturns = struct {
-		result1 backuper.Deployment
+		result1 orchestrator.Deployment
 		result2 error
 	}{result1, result2}
 }
@@ -74,4 +74,4 @@ func (fake *FakeDeploymentManager) recordInvocation(key string, args []interface
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ backuper.DeploymentManager = new(FakeDeploymentManager)
+var _ orchestrator.DeploymentManager = new(FakeDeploymentManager)

@@ -5,7 +5,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 )
 
 type FakeInstance struct {
@@ -96,18 +96,18 @@ type FakeInstance struct {
 		result1 string
 		result2 error
 	}
-	BackupChecksumStub        func() (backuper.BackupChecksum, error)
+	BackupChecksumStub        func() (orchestrator.BackupChecksum, error)
 	backupChecksumMutex       sync.RWMutex
 	backupChecksumArgsForCall []struct{}
 	backupChecksumReturns     struct {
-		result1 backuper.BackupChecksum
+		result1 orchestrator.BackupChecksum
 		result2 error
 	}
-	BlobsStub        func() []backuper.BackupBlob
+	BlobsStub        func() []orchestrator.BackupBlob
 	blobsMutex       sync.RWMutex
 	blobsArgsForCall []struct{}
 	blobsReturns     struct {
-		result1 []backuper.BackupBlob
+		result1 []orchestrator.BackupBlob
 	}
 	IsNamedStub        func() bool
 	isNamedMutex       sync.RWMutex
@@ -464,7 +464,7 @@ func (fake *FakeInstance) BackupSizeReturns(result1 string, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeInstance) BackupChecksum() (backuper.BackupChecksum, error) {
+func (fake *FakeInstance) BackupChecksum() (orchestrator.BackupChecksum, error) {
 	fake.backupChecksumMutex.Lock()
 	fake.backupChecksumArgsForCall = append(fake.backupChecksumArgsForCall, struct{}{})
 	fake.recordInvocation("BackupChecksum", []interface{}{})
@@ -481,15 +481,15 @@ func (fake *FakeInstance) BackupChecksumCallCount() int {
 	return len(fake.backupChecksumArgsForCall)
 }
 
-func (fake *FakeInstance) BackupChecksumReturns(result1 backuper.BackupChecksum, result2 error) {
+func (fake *FakeInstance) BackupChecksumReturns(result1 orchestrator.BackupChecksum, result2 error) {
 	fake.BackupChecksumStub = nil
 	fake.backupChecksumReturns = struct {
-		result1 backuper.BackupChecksum
+		result1 orchestrator.BackupChecksum
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeInstance) Blobs() []backuper.BackupBlob {
+func (fake *FakeInstance) Blobs() []orchestrator.BackupBlob {
 	fake.blobsMutex.Lock()
 	fake.blobsArgsForCall = append(fake.blobsArgsForCall, struct{}{})
 	fake.recordInvocation("Blobs", []interface{}{})
@@ -506,10 +506,10 @@ func (fake *FakeInstance) BlobsCallCount() int {
 	return len(fake.blobsArgsForCall)
 }
 
-func (fake *FakeInstance) BlobsReturns(result1 []backuper.BackupBlob) {
+func (fake *FakeInstance) BlobsReturns(result1 []orchestrator.BackupBlob) {
 	fake.BlobsStub = nil
 	fake.blobsReturns = struct {
-		result1 []backuper.BackupBlob
+		result1 []orchestrator.BackupBlob
 	}{result1}
 }
 
@@ -589,4 +589,4 @@ func (fake *FakeInstance) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ backuper.Instance = new(FakeInstance)
+var _ orchestrator.Instance = new(FakeInstance)

@@ -8,7 +8,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/hashicorp/go-multierror"
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
 )
 
@@ -38,7 +38,7 @@ func NewBoshInstance(instanceGroupName,
 	deployment director.Deployment,
 	logger Logger,
 	jobs instance.Jobs,
-) backuper.Instance {
+) orchestrator.Instance {
 	return &DeployedInstance{
 		BackupAndRestoreInstanceIndex: instanceIndex,
 		InstanceGroupName:             instanceGroupName,
@@ -190,7 +190,7 @@ func (d *DeployedInstance) StreamBackupToRemote(reader io.Reader) error {
 	return err
 }
 
-func (d *DeployedInstance) BackupChecksum() (backuper.BackupChecksum, error) {
+func (d *DeployedInstance) BackupChecksum() (orchestrator.BackupChecksum, error) {
 	stdout, stderr, exitCode, err := d.logAndRun("cd /var/vcap/store/backup; sudo sh -c 'find . -type f | xargs shasum'", "checksum")
 
 	if err != nil {
@@ -233,8 +233,8 @@ func (d *DeployedInstance) Cleanup() error {
 	return errs
 }
 
-func (d *DeployedInstance) Blobs() []backuper.BackupBlob {
-	blobs := []backuper.BackupBlob{}
+func (d *DeployedInstance) Blobs() []orchestrator.BackupBlob {
+	blobs := []orchestrator.BackupBlob{}
 
 	for _, job := range d.Jobs.WithNamedBlobs() {
 		blobs = append(blobs, instance.NewNamedBlob(d, job, d.SSHConnection, d.Logger))

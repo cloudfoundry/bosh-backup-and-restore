@@ -5,7 +5,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 )
 
 type FakeBackupBlob struct {
@@ -40,11 +40,11 @@ type FakeBackupBlob struct {
 		result1 string
 		result2 error
 	}
-	BackupChecksumStub        func() (backuper.BackupChecksum, error)
+	BackupChecksumStub        func() (orchestrator.BackupChecksum, error)
 	backupChecksumMutex       sync.RWMutex
 	backupChecksumArgsForCall []struct{}
 	backupChecksumReturns     struct {
-		result1 backuper.BackupChecksum
+		result1 orchestrator.BackupChecksum
 		result2 error
 	}
 	StreamFromRemoteStub        func(io.Writer) error
@@ -186,7 +186,7 @@ func (fake *FakeBackupBlob) BackupSizeReturns(result1 string, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeBackupBlob) BackupChecksum() (backuper.BackupChecksum, error) {
+func (fake *FakeBackupBlob) BackupChecksum() (orchestrator.BackupChecksum, error) {
 	fake.backupChecksumMutex.Lock()
 	fake.backupChecksumArgsForCall = append(fake.backupChecksumArgsForCall, struct{}{})
 	fake.recordInvocation("BackupChecksum", []interface{}{})
@@ -203,10 +203,10 @@ func (fake *FakeBackupBlob) BackupChecksumCallCount() int {
 	return len(fake.backupChecksumArgsForCall)
 }
 
-func (fake *FakeBackupBlob) BackupChecksumReturns(result1 backuper.BackupChecksum, result2 error) {
+func (fake *FakeBackupBlob) BackupChecksumReturns(result1 orchestrator.BackupChecksum, result2 error) {
 	fake.BackupChecksumStub = nil
 	fake.backupChecksumReturns = struct {
-		result1 backuper.BackupChecksum
+		result1 orchestrator.BackupChecksum
 		result2 error
 	}{result1, result2}
 }
@@ -301,4 +301,4 @@ func (fake *FakeBackupBlob) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ backuper.BackupBlob = new(FakeBackupBlob)
+var _ orchestrator.BackupBlob = new(FakeBackupBlob)

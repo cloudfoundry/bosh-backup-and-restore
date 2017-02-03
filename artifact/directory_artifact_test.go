@@ -12,8 +12,8 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/pivotal-cf/pcf-backup-and-restore/artifact"
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper/fakes"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator/fakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -29,7 +29,7 @@ var _ = Describe("DirectoryArtifact", func() {
 	})
 
 	Describe("DeploymentMatches", func() {
-		var artifact backuper.Artifact
+		var artifact orchestrator.Artifact
 		var instance1 *fakes.FakeInstance
 		var instance2 *fakes.FakeInstance
 
@@ -60,7 +60,7 @@ instances:
 			})
 
 			It("returns true", func() {
-				match, _ := artifact.DeploymentMatches(artifactName, []backuper.Instance{instance1, instance2})
+				match, _ := artifact.DeploymentMatches(artifactName, []orchestrator.Instance{instance1, instance2})
 				Expect(match).To(BeTrue())
 			})
 		})
@@ -81,7 +81,7 @@ instances:
 `)
 			})
 			It("returns false", func() {
-				match, _ := artifact.DeploymentMatches(artifactName, []backuper.Instance{instance1, instance2})
+				match, _ := artifact.DeploymentMatches(artifactName, []orchestrator.Instance{instance1, instance2})
 				Expect(match).To(BeFalse())
 			})
 		})
@@ -97,20 +97,20 @@ instances:
 			})
 
 			It("returns error", func() {
-				_, err := artifact.DeploymentMatches(artifactName, []backuper.Instance{instance1, instance2})
+				_, err := artifact.DeploymentMatches(artifactName, []orchestrator.Instance{instance1, instance2})
 				Expect(err).To(HaveOccurred())
 			})
 		})
 
 		Context("when an error occurs checking if the file exists", func() {
 			It("returns error", func() {
-				_, err := artifact.DeploymentMatches(artifactName, []backuper.Instance{instance1, instance2})
+				_, err := artifact.DeploymentMatches(artifactName, []orchestrator.Instance{instance1, instance2})
 				Expect(err).To(HaveOccurred())
 			})
 		})
 	})
 	Describe("Verify", func() {
-		var artifact backuper.Artifact
+		var artifact orchestrator.Artifact
 		var verifyResult bool
 		var verifyError error
 		JustBeforeEach(func() {
@@ -231,7 +231,7 @@ instances:
 	})
 
 	Describe("CreateFile", func() {
-		var artifact backuper.Artifact
+		var artifact orchestrator.Artifact
 		var fileCreationError error
 		var writer io.Writer
 		var fakeBackupBlob *fakes.FakeBackupBlob
@@ -292,7 +292,7 @@ instances:
 
 	})
 	Describe("SaveManifest", func() {
-		var artifact backuper.Artifact
+		var artifact orchestrator.Artifact
 		var saveManifestError error
 		BeforeEach(func() {
 			artifactName = "foo-bar"
@@ -310,7 +310,7 @@ instances:
 		})
 	})
 	Describe("ReadFile", func() {
-		var artifact backuper.Artifact
+		var artifact orchestrator.Artifact
 		var fileReadError error
 		var reader io.Reader
 		var fakeBackupBlob *fakes.FakeBackupBlob
@@ -386,7 +386,7 @@ instances:
 	})
 
 	Describe("Checksum", func() {
-		var artifact backuper.Artifact
+		var artifact orchestrator.Artifact
 		var fakeBackupBlob *fakes.FakeBackupBlob
 
 		BeforeEach(func() {
@@ -415,7 +415,7 @@ instances:
 
 				It("returns the checksum for the saved instance data", func() {
 					Expect(artifact.CalculateChecksum(fakeBackupBlob)).To(Equal(
-						backuper.BackupChecksum{
+						orchestrator.BackupChecksum{
 							"readme.txt": fmt.Sprintf("%x", sha1.Sum([]byte("This archive contains some text files."))),
 							"gopher.txt": fmt.Sprintf("%x", sha1.Sum([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo"))),
 							"todo.txt":   fmt.Sprintf("%x", sha1.Sum([]byte("Get animal handling license."))),
@@ -443,7 +443,7 @@ instances:
 
 				It("returns the checksum for the saved instance data", func() {
 					Expect(artifact.CalculateChecksum(fakeBackupBlob)).To(Equal(
-						backuper.BackupChecksum{
+						orchestrator.BackupChecksum{
 							"readme.txt": fmt.Sprintf("%x", sha1.Sum([]byte("This archive contains some text files."))),
 							"gopher.txt": fmt.Sprintf("%x", sha1.Sum([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo"))),
 							"todo.txt":   fmt.Sprintf("%x", sha1.Sum([]byte("Get animal handling license."))),
@@ -495,7 +495,7 @@ instances:
 	})
 
 	Describe("AddChecksum", func() {
-		var artifact backuper.Artifact
+		var artifact orchestrator.Artifact
 		var addChecksumError error
 		var fakeBackupBlob *fakes.FakeBackupBlob
 		var checksum map[string]string
@@ -633,10 +633,10 @@ artifacts:
 	})
 
 	Describe("FetchChecksum", func() {
-		var artifact backuper.Artifact
+		var artifact orchestrator.Artifact
 		var fetchChecksumError error
 		var fakeInstance *fakes.FakeInstance
-		var checksum backuper.BackupChecksum
+		var checksum orchestrator.BackupChecksum
 		BeforeEach(func() {
 			fakeInstance = new(fakes.FakeInstance)
 		})
@@ -665,7 +665,7 @@ artifacts:
 			})
 
 			It("fetches the checksum", func() {
-				Expect(checksum).To(Equal(backuper.BackupChecksum{"filename1": "orignal_checksum"}))
+				Expect(checksum).To(Equal(orchestrator.BackupChecksum{"filename1": "orignal_checksum"}))
 			})
 		})
 
@@ -687,7 +687,7 @@ instances:
 			})
 
 			It("fetches the checksum", func() {
-				Expect(checksum).To(Equal(backuper.BackupChecksum{"filename1": "orignal_checksum"}))
+				Expect(checksum).To(Equal(orchestrator.BackupChecksum{"filename1": "orignal_checksum"}))
 			})
 		})
 		Context("the default backup blob is not found in metadata", func() {

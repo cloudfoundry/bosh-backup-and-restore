@@ -11,12 +11,12 @@ push: test sys-test-local
 pre-commit: test sys-test-local
 
 watch:
-	ginkgo watch -r boshclient backuper integration
+	ginkgo watch -r bosh orchestrator ssh artifact instance
 
 test-ci: setup test
 
 test-unit:
-	ginkgo -r bosh backuper ssh artifact instance
+	ginkgo -r bosh orchestrator ssh artifact instance
 
 test-integration:
 	ginkgo -r integration -nodes 4

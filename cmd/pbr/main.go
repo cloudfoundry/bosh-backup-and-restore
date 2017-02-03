@@ -7,7 +7,7 @@ import (
 
 	"github.com/mgutz/ansi"
 	"github.com/pivotal-cf/pcf-backup-and-restore/artifact"
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
 	"github.com/pivotal-cf/pcf-backup-and-restore/ssh"
 	"github.com/urfave/cli"
@@ -119,7 +119,7 @@ func availableFlags() []cli.Flag {
 	}
 }
 
-func processBackupError(err backuper.Error) error {
+func processBackupError(err orchestrator.Error) error {
 	switch {
 	case err.IsCleanup():
 		return cli.NewExitError(ansi.Color(err.Error(), "yellow"), 2)
@@ -136,9 +136,9 @@ func processBackupError(err backuper.Error) error {
 
 func processRestoreError(err error) error {
 	switch err := err.(type) {
-	case backuper.CleanupError:
+	case orchestrator.CleanupError:
 		return cli.NewExitError(ansi.Color(err.Error(), "yellow"), 2)
-	case backuper.PostBackupUnlockError:
+	case orchestrator.PostBackupUnlockError:
 		return cli.NewExitError(ansi.Color(err.Error(), "red"), 42)
 	case error:
 		return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
@@ -147,7 +147,7 @@ func processRestoreError(err error) error {
 	}
 }
 
-func makeBackuper(c *cli.Context) (*backuper.Backuper, error) {
+func makeBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
 	var debug = c.GlobalBool("debug")
 	var targetUrl = c.GlobalString("target")
 	var username = c.GlobalString("username")
@@ -160,8 +160,8 @@ func makeBackuper(c *cli.Context) (*backuper.Backuper, error) {
 		return nil, err
 	}
 	boshClient := bosh.New(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger)
-	deploymentManager := backuper.NewBoshDeploymentManager(boshClient, logger)
-	return backuper.New(boshClient, artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
+	deploymentManager := orchestrator.NewBoshDeploymentManager(boshClient, logger)
+	return orchestrator.New(boshClient, artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
 }
 
 func makeBoshLogger(debug bool) boshlog.Logger {

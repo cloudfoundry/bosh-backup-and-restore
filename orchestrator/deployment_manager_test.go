@@ -1,13 +1,13 @@
-package backuper_test
+package orchestrator_test
 
 import (
 	"fmt"
 
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper/fakes"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator/fakes"
 )
 
 var _ = Describe("DeploymentManager", func() {
@@ -15,21 +15,21 @@ var _ = Describe("DeploymentManager", func() {
 	var logger *fakes.FakeLogger
 	var deploymentName = "brownie"
 
-	var deploymentManager backuper.DeploymentManager
+	var deploymentManager orchestrator.DeploymentManager
 	BeforeEach(func() {
 		boshDirector = new(fakes.FakeBoshDirector)
 		logger = new(fakes.FakeLogger)
 	})
 	JustBeforeEach(func() {
-		deploymentManager = backuper.NewBoshDeploymentManager(boshDirector, logger)
+		deploymentManager = orchestrator.NewBoshDeploymentManager(boshDirector, logger)
 	})
 
 	Context("Find", func() {
 		var findError error
-		var deployment backuper.Deployment
-		var instances []backuper.Instance
+		var deployment orchestrator.Deployment
+		var instances []orchestrator.Instance
 		BeforeEach(func() {
-			instances = []backuper.Instance{new(fakes.FakeInstance)}
+			instances = []orchestrator.Instance{new(fakes.FakeInstance)}
 			boshDirector.FindInstancesReturns(instances, nil)
 		})
 		JustBeforeEach(func() {
@@ -40,7 +40,7 @@ var _ = Describe("DeploymentManager", func() {
 			Expect(boshDirector.FindInstancesArgsForCall(0)).To(Equal(deploymentName))
 		})
 		It("returns the deployment manager with instances", func() {
-			Expect(deployment).To(Equal(backuper.NewBoshDeployment(logger, instances)))
+			Expect(deployment).To(Equal(orchestrator.NewBoshDeployment(logger, instances)))
 		})
 
 		Context("error finding instances", func() {

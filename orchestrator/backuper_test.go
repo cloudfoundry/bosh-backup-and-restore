@@ -1,18 +1,18 @@
-package backuper_test
+package orchestrator_test
 
 import (
 	"fmt"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper/fakes"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator/fakes"
 )
 
 var _ = Describe("Backuper", func() {
 	var (
 		boshDirector       *fakes.FakeBoshDirector
-		b                  *backuper.Backuper
+		b                  *orchestrator.Backuper
 		deployment         *fakes.FakeDeployment
 		deploymentManager  *fakes.FakeDeploymentManager
 		artifact           *fakes.FakeArtifact
@@ -20,7 +20,7 @@ var _ = Describe("Backuper", func() {
 		logger             *fakes.FakeLogger
 		deploymentName     = "foobarbaz"
 		deploymentManifest = "what a magnificent manifest"
-		actualBackupError  backuper.Error
+		actualBackupError  orchestrator.Error
 	)
 
 	BeforeEach(func() {
@@ -30,7 +30,7 @@ var _ = Describe("Backuper", func() {
 		artifactManager = new(fakes.FakeArtifactManager)
 		artifact = new(fakes.FakeArtifact)
 		logger = new(fakes.FakeLogger)
-		b = backuper.New(boshDirector, artifactManager, logger, deploymentManager)
+		b = orchestrator.New(boshDirector, artifactManager, logger, deploymentManager)
 	})
 
 	JustBeforeEach(func() {
@@ -241,7 +241,7 @@ var _ = Describe("Backuper", func() {
 			})
 
 			It("fails with the correct error type", func() {
-				Expect(actualBackupError).To(ConsistOf(BeAssignableToTypeOf(backuper.PostBackupUnlockError{})))
+				Expect(actualBackupError).To(ConsistOf(BeAssignableToTypeOf(orchestrator.PostBackupUnlockError{})))
 			})
 
 			It("continues with the cleanup", func() {
@@ -260,7 +260,7 @@ var _ = Describe("Backuper", func() {
 
 				It("returns an error of type PostBackupUnlockError and "+
 					"includes the drain error in the returned error", func() {
-					Expect(actualBackupError).To(ConsistOf(drainError, BeAssignableToTypeOf(backuper.PostBackupUnlockError{})))
+					Expect(actualBackupError).To(ConsistOf(drainError, BeAssignableToTypeOf(orchestrator.PostBackupUnlockError{})))
 				})
 
 				Context("cleanup fails as well", func() {
@@ -273,10 +273,10 @@ var _ = Describe("Backuper", func() {
 						"includes the drain error in the returned error and "+
 						"includes the cleanup error in the returned error", func() {
 						Expect(actualBackupError).To(ConsistOf(
-							BeAssignableToTypeOf(backuper.PostBackupUnlockError{}),
+							BeAssignableToTypeOf(orchestrator.PostBackupUnlockError{}),
 							drainError,
 							And(
-								BeAssignableToTypeOf(backuper.CleanupError{}),
+								BeAssignableToTypeOf(orchestrator.CleanupError{}),
 								MatchError(ContainSubstring(cleanupError.Error())),
 							),
 						))
@@ -294,7 +294,7 @@ var _ = Describe("Backuper", func() {
 					"and returns an error of type PostBackupUnlockError", func() {
 					Expect(actualBackupError).To(ConsistOf(
 						MatchError(ContainSubstring(cleanupError.Error())),
-						BeAssignableToTypeOf(backuper.PostBackupUnlockError{}),
+						BeAssignableToTypeOf(orchestrator.PostBackupUnlockError{}),
 					))
 				})
 			})
@@ -384,7 +384,7 @@ var _ = Describe("Backuper", func() {
 
 			})
 			It("returns a cleanup error", func() {
-				Expect(actualBackupError).To(ConsistOf(BeAssignableToTypeOf(backuper.CleanupError{})))
+				Expect(actualBackupError).To(ConsistOf(BeAssignableToTypeOf(orchestrator.CleanupError{})))
 			})
 
 			Context("cleanup fails as well", assertCleanupError)
@@ -434,15 +434,15 @@ var _ = Describe("restore", func() {
 			artifact          *fakes.FakeArtifact
 			boshDirector      *fakes.FakeBoshDirector
 			logger            *fakes.FakeLogger
-			instances         []backuper.Instance
-			b                 *backuper.Backuper
+			instances         []orchestrator.Instance
+			b                 *orchestrator.Backuper
 			deploymentName    string
 			deploymentManager *fakes.FakeDeploymentManager
 			deployment        *fakes.FakeDeployment
 		)
 
 		BeforeEach(func() {
-			instances = []backuper.Instance{new(fakes.FakeInstance)}
+			instances = []orchestrator.Instance{new(fakes.FakeInstance)}
 			boshDirector = new(fakes.FakeBoshDirector)
 			logger = new(fakes.FakeLogger)
 			artifactManager = new(fakes.FakeArtifactManager)
@@ -457,7 +457,7 @@ var _ = Describe("restore", func() {
 			artifact.DeploymentMatchesReturns(true, nil)
 			artifact.ValidReturns(true, nil)
 
-			b = backuper.New(boshDirector, artifactManager, logger, deploymentManager)
+			b = orchestrator.New(boshDirector, artifactManager, logger, deploymentManager)
 
 			deploymentName = "deployment-to-restore"
 		})
@@ -563,7 +563,7 @@ var _ = Describe("restore", func() {
 				})
 
 				It("returns an error of type, cleanup error", func() {
-					Expect(restoreError).To(BeAssignableToTypeOf(backuper.CleanupError{}))
+					Expect(restoreError).To(BeAssignableToTypeOf(orchestrator.CleanupError{}))
 				})
 			})
 			Context("fails if can't check if artifact is valid", func() {

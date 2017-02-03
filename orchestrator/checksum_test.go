@@ -1,7 +1,7 @@
-package backuper_test
+package orchestrator_test
 
 import (
-	. "github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	. "github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

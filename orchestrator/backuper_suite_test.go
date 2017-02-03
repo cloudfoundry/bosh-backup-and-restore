@@ -1,4 +1,4 @@
-package backuper_test
+package orchestrator_test
 
 import (
 	. "github.com/onsi/ginkgo"

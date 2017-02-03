@@ -12,7 +12,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh/fakes"
 	"strings"
@@ -32,7 +32,7 @@ var _ = Describe("Director", func() {
 	var stdoutLogStream *bytes.Buffer
 	var stderrLogStream *bytes.Buffer
 
-	var b backuper.BoshDirector
+	var b orchestrator.BoshDirector
 	JustBeforeEach(func() {
 		b = bosh.New(boshDirector, optsGenerator.Spy, sshConnectionFactory.Spy, boshLogger)
 	})
@@ -62,7 +62,7 @@ var _ = Describe("Director", func() {
 
 			findScriptsExitCode, lsMetadataExitCode, runMetadataExitCode     int
 			stubbedSshOpts                                                   director.SSHOpts = director.SSHOpts{Username: "user"}
-			actualInstances                                                  []backuper.Instance
+			actualInstances                                                  []orchestrator.Instance
 			actualError, findScriptsError, lsMetadataError, runMetadataError error
 		)
 
@@ -126,7 +126,7 @@ var _ = Describe("Director", func() {
 					"/var/vcap/jobs/consul_agent/bin/p-restore",
 				}, map[string]string{})
 
-				Expect(actualInstances).To(Equal([]backuper.Instance{bosh.NewBoshInstance(
+				Expect(actualInstances).To(Equal([]orchestrator.Instance{bosh.NewBoshInstance(
 					"job1",
 					"0",
 					"jobID",
@@ -202,7 +202,7 @@ backup_name: consul_backup`)
 						"/var/vcap/jobs/consul_agent/bin/p-restore",
 					}, metadata)
 
-					Expect(actualInstances).To(Equal([]backuper.Instance{bosh.NewBoshInstance(
+					Expect(actualInstances).To(Equal([]orchestrator.Instance{bosh.NewBoshInstance(
 						"job1",
 						"0",
 						"jobID",
@@ -357,7 +357,7 @@ backup_name: consul_backup`)
 			It("collects the instances, with no scripts", func() {
 				jobs, _ := instance.NewJobs(instance.BackupAndRestoreScripts{}, map[string]string{})
 
-				Expect(actualInstances).To(Equal([]backuper.Instance{bosh.NewBoshInstance("job1",
+				Expect(actualInstances).To(Equal([]orchestrator.Instance{bosh.NewBoshInstance("job1",
 					"0",
 					"index",
 					sshConnection,
@@ -461,7 +461,7 @@ backup_name: consul_backup`)
 					map[string]string{},
 				)
 
-				Expect(actualInstances).To(Equal([]backuper.Instance{
+				Expect(actualInstances).To(Equal([]orchestrator.Instance{
 					bosh.NewBoshInstance(
 						"job1",
 						"0",

@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 )
 
 type FakeLogger struct {
@@ -170,4 +170,4 @@ func (fake *FakeLogger) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ backuper.Logger = new(FakeLogger)
+var _ orchestrator.Logger = new(FakeLogger)

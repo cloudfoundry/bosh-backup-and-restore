@@ -2,11 +2,11 @@ package instance
 
 import (
 	"fmt"
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 	"io"
 )
 
-func NewDefaultBlob(instance backuper.Instance, sshConn SSHConnection, logger Logger) *DefaultBlob {
+func NewDefaultBlob(instance orchestrator.Instance, sshConn SSHConnection, logger Logger) *DefaultBlob {
 	return &DefaultBlob{
 		Instance:      instance,
 		SSHConnection: sshConn,
@@ -15,7 +15,7 @@ func NewDefaultBlob(instance backuper.Instance, sshConn SSHConnection, logger Lo
 }
 
 type DefaultBlob struct {
-	backuper.Instance
+	orchestrator.Instance
 	SSHConnection
 	Logger
 }

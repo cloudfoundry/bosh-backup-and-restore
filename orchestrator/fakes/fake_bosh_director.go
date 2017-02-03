@@ -4,17 +4,17 @@ package fakes
 import (
 	"sync"
 
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 )
 
 type FakeBoshDirector struct {
-	FindInstancesStub        func(deploymentName string) ([]backuper.Instance, error)
+	FindInstancesStub        func(deploymentName string) ([]orchestrator.Instance, error)
 	findInstancesMutex       sync.RWMutex
 	findInstancesArgsForCall []struct {
 		deploymentName string
 	}
 	findInstancesReturns struct {
-		result1 []backuper.Instance
+		result1 []orchestrator.Instance
 		result2 error
 	}
 	GetManifestStub        func(deploymentName string) (string, error)
@@ -30,7 +30,7 @@ type FakeBoshDirector struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeBoshDirector) FindInstances(deploymentName string) ([]backuper.Instance, error) {
+func (fake *FakeBoshDirector) FindInstances(deploymentName string) ([]orchestrator.Instance, error) {
 	fake.findInstancesMutex.Lock()
 	fake.findInstancesArgsForCall = append(fake.findInstancesArgsForCall, struct {
 		deploymentName string
@@ -55,10 +55,10 @@ func (fake *FakeBoshDirector) FindInstancesArgsForCall(i int) string {
 	return fake.findInstancesArgsForCall[i].deploymentName
 }
 
-func (fake *FakeBoshDirector) FindInstancesReturns(result1 []backuper.Instance, result2 error) {
+func (fake *FakeBoshDirector) FindInstancesReturns(result1 []orchestrator.Instance, result2 error) {
 	fake.FindInstancesStub = nil
 	fake.findInstancesReturns = struct {
-		result1 []backuper.Instance
+		result1 []orchestrator.Instance
 		result2 error
 	}{result1, result2}
 }
@@ -118,4 +118,4 @@ func (fake *FakeBoshDirector) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ backuper.BoshDirector = new(FakeBoshDirector)
+var _ orchestrator.BoshDirector = new(FakeBoshDirector)

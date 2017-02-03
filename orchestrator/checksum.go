@@ -1,4 +1,4 @@
-package backuper
+package orchestrator
 
 type BackupChecksum map[string]string
 

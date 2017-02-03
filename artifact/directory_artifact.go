@@ -10,17 +10,17 @@ import (
 	"os"
 	"path"
 
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 )
 
 const TAG = "[artifact]"
 
 type DirectoryArtifact struct {
-	backuper.Logger
+	orchestrator.Logger
 	baseDirName string
 }
 
-func (d *DirectoryArtifact) DeploymentMatches(deployment string, instances []backuper.Instance) (bool, error) {
+func (d *DirectoryArtifact) DeploymentMatches(deployment string, instances []orchestrator.Instance) (bool, error) {
 	_, err := d.metadataExistsAndIsReadable()
 	if err != nil {
 		d.Debug(TAG, "Error checking metadata file: %v", err)
@@ -43,12 +43,12 @@ func (d *DirectoryArtifact) DeploymentMatches(deployment string, instances []bac
 	return true, nil
 }
 
-func (d *DirectoryArtifact) CreateFile(artifactIdentifer backuper.BackupBlobIdentifier) (io.WriteCloser, error) {
+func (d *DirectoryArtifact) CreateFile(artifactIdentifer orchestrator.BackupBlobIdentifier) (io.WriteCloser, error) {
 	d.Debug(TAG, "Trying to create file %s", fileName(artifactIdentifer))
 	return os.Create(path.Join(d.baseDirName, fileName(artifactIdentifer)))
 }
 
-func (d *DirectoryArtifact) ReadFile(artifactIdentifer backuper.BackupBlobIdentifier) (io.ReadCloser, error) {
+func (d *DirectoryArtifact) ReadFile(artifactIdentifer orchestrator.BackupBlobIdentifier) (io.ReadCloser, error) {
 	filename := d.instanceFilename(artifactIdentifer)
 	d.Debug(TAG, "Trying to open %s", filename)
 	file, err := os.Open(filename)
@@ -60,7 +60,7 @@ func (d *DirectoryArtifact) ReadFile(artifactIdentifer backuper.BackupBlobIdenti
 	return file, nil
 }
 
-func (d *DirectoryArtifact) FetchChecksum(artifactIdentifer backuper.BackupBlobIdentifier) (backuper.BackupChecksum, error) {
+func (d *DirectoryArtifact) FetchChecksum(artifactIdentifer orchestrator.BackupBlobIdentifier) (orchestrator.BackupChecksum, error) {
 	metadata, err := readMetadata(d.metadataFilename())
 
 	if err != nil {
@@ -85,14 +85,14 @@ func (d *DirectoryArtifact) FetchChecksum(artifactIdentifer backuper.BackupBlobI
 	d.Warn(TAG, "Checksum for %s not found in artifact", logName(artifactIdentifer))
 	return nil, nil
 }
-func logName(artifactIdentifer backuper.BackupBlobIdentifier) string {
+func logName(artifactIdentifer orchestrator.BackupBlobIdentifier) string {
 	if artifactIdentifer.IsNamed() {
 		return fmt.Sprintf("%s", artifactIdentifer.Name())
 	}
 	return fmt.Sprintf("%s/%s", artifactIdentifer.Name(), artifactIdentifer.Index())
 }
 
-func (d *DirectoryArtifact) CalculateChecksum(inst backuper.BackupBlobIdentifier) (backuper.BackupChecksum, error) {
+func (d *DirectoryArtifact) CalculateChecksum(inst orchestrator.BackupBlobIdentifier) (orchestrator.BackupChecksum, error) {
 	file, err := d.ReadFile(inst)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (d *DirectoryArtifact) CalculateChecksum(inst backuper.BackupBlobIdentifier
 
 	return checksum, nil
 }
-func (d *DirectoryArtifact) AddChecksum(artifactIdentifer backuper.BackupBlobIdentifier, shasum backuper.BackupChecksum) error {
+func (d *DirectoryArtifact) AddChecksum(artifactIdentifer orchestrator.BackupBlobIdentifier, shasum orchestrator.BackupChecksum) error {
 	metadata := metadata{}
 	if exists, _ := d.metadataExistsAndIsReadable(); exists {
 		var err error
@@ -181,7 +181,7 @@ func (d *DirectoryArtifact) Valid() (bool, error) {
 	return true, nil
 }
 
-func (d *DirectoryArtifact) backupInstanceIsPresent(backupInstance instanceMetadata, instances []backuper.Instance) bool {
+func (d *DirectoryArtifact) backupInstanceIsPresent(backupInstance instanceMetadata, instances []orchestrator.Instance) bool {
 	for _, inst := range instances {
 		if inst.Index() == backupInstance.InstanceIndex && inst.Name() == backupInstance.InstanceName {
 			return true
@@ -190,7 +190,7 @@ func (d *DirectoryArtifact) backupInstanceIsPresent(backupInstance instanceMetad
 	return false
 }
 
-func (d *DirectoryArtifact) instanceFilename(artifactIdentifer backuper.BackupBlobIdentifier) string {
+func (d *DirectoryArtifact) instanceFilename(artifactIdentifer orchestrator.BackupBlobIdentifier) string {
 	return path.Join(d.baseDirName, fileName(artifactIdentifer))
 }
 
@@ -209,7 +209,7 @@ func (d *DirectoryArtifact) metadataExistsAndIsReadable() (bool, error) {
 	return true, nil
 }
 
-func fileName(artifactIdentifer backuper.BackupBlobIdentifier) string {
+func fileName(artifactIdentifer orchestrator.BackupBlobIdentifier) string {
 	if artifactIdentifer.IsNamed() {
 		return artifactIdentifer.Name() + ".tgz"
 	}

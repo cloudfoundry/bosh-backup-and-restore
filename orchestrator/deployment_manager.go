@@ -1,4 +1,4 @@
-package backuper
+package orchestrator
 
 //go:generate counterfeiter -o fakes/fake_deployment_manager.go . DeploymentManager
 type DeploymentManager interface {

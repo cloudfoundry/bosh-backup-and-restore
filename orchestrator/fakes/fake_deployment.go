@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 )
 
 type FakeDeployment struct {
@@ -44,18 +44,18 @@ type FakeDeployment struct {
 	restoreReturns     struct {
 		result1 error
 	}
-	CopyRemoteBackupToLocalStub        func(backuper.Artifact) error
+	CopyRemoteBackupToLocalStub        func(orchestrator.Artifact) error
 	copyRemoteBackupToLocalMutex       sync.RWMutex
 	copyRemoteBackupToLocalArgsForCall []struct {
-		arg1 backuper.Artifact
+		arg1 orchestrator.Artifact
 	}
 	copyRemoteBackupToLocalReturns struct {
 		result1 error
 	}
-	CopyLocalBackupToRemoteStub        func(backuper.Artifact) error
+	CopyLocalBackupToRemoteStub        func(orchestrator.Artifact) error
 	copyLocalBackupToRemoteMutex       sync.RWMutex
 	copyLocalBackupToRemoteArgsForCall []struct {
-		arg1 backuper.Artifact
+		arg1 orchestrator.Artifact
 	}
 	copyLocalBackupToRemoteReturns struct {
 		result1 error
@@ -66,11 +66,11 @@ type FakeDeployment struct {
 	cleanupReturns     struct {
 		result1 error
 	}
-	InstancesStub        func() []backuper.Instance
+	InstancesStub        func() []orchestrator.Instance
 	instancesMutex       sync.RWMutex
 	instancesArgsForCall []struct{}
 	instancesReturns     struct {
-		result1 []backuper.Instance
+		result1 []orchestrator.Instance
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -220,10 +220,10 @@ func (fake *FakeDeployment) RestoreReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) CopyRemoteBackupToLocal(arg1 backuper.Artifact) error {
+func (fake *FakeDeployment) CopyRemoteBackupToLocal(arg1 orchestrator.Artifact) error {
 	fake.copyRemoteBackupToLocalMutex.Lock()
 	fake.copyRemoteBackupToLocalArgsForCall = append(fake.copyRemoteBackupToLocalArgsForCall, struct {
-		arg1 backuper.Artifact
+		arg1 orchestrator.Artifact
 	}{arg1})
 	fake.recordInvocation("CopyRemoteBackupToLocal", []interface{}{arg1})
 	fake.copyRemoteBackupToLocalMutex.Unlock()
@@ -239,7 +239,7 @@ func (fake *FakeDeployment) CopyRemoteBackupToLocalCallCount() int {
 	return len(fake.copyRemoteBackupToLocalArgsForCall)
 }
 
-func (fake *FakeDeployment) CopyRemoteBackupToLocalArgsForCall(i int) backuper.Artifact {
+func (fake *FakeDeployment) CopyRemoteBackupToLocalArgsForCall(i int) orchestrator.Artifact {
 	fake.copyRemoteBackupToLocalMutex.RLock()
 	defer fake.copyRemoteBackupToLocalMutex.RUnlock()
 	return fake.copyRemoteBackupToLocalArgsForCall[i].arg1
@@ -252,10 +252,10 @@ func (fake *FakeDeployment) CopyRemoteBackupToLocalReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) CopyLocalBackupToRemote(arg1 backuper.Artifact) error {
+func (fake *FakeDeployment) CopyLocalBackupToRemote(arg1 orchestrator.Artifact) error {
 	fake.copyLocalBackupToRemoteMutex.Lock()
 	fake.copyLocalBackupToRemoteArgsForCall = append(fake.copyLocalBackupToRemoteArgsForCall, struct {
-		arg1 backuper.Artifact
+		arg1 orchestrator.Artifact
 	}{arg1})
 	fake.recordInvocation("CopyLocalBackupToRemote", []interface{}{arg1})
 	fake.copyLocalBackupToRemoteMutex.Unlock()
@@ -271,7 +271,7 @@ func (fake *FakeDeployment) CopyLocalBackupToRemoteCallCount() int {
 	return len(fake.copyLocalBackupToRemoteArgsForCall)
 }
 
-func (fake *FakeDeployment) CopyLocalBackupToRemoteArgsForCall(i int) backuper.Artifact {
+func (fake *FakeDeployment) CopyLocalBackupToRemoteArgsForCall(i int) orchestrator.Artifact {
 	fake.copyLocalBackupToRemoteMutex.RLock()
 	defer fake.copyLocalBackupToRemoteMutex.RUnlock()
 	return fake.copyLocalBackupToRemoteArgsForCall[i].arg1
@@ -308,7 +308,7 @@ func (fake *FakeDeployment) CleanupReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) Instances() []backuper.Instance {
+func (fake *FakeDeployment) Instances() []orchestrator.Instance {
 	fake.instancesMutex.Lock()
 	fake.instancesArgsForCall = append(fake.instancesArgsForCall, struct{}{})
 	fake.recordInvocation("Instances", []interface{}{})
@@ -325,10 +325,10 @@ func (fake *FakeDeployment) InstancesCallCount() int {
 	return len(fake.instancesArgsForCall)
 }
 
-func (fake *FakeDeployment) InstancesReturns(result1 []backuper.Instance) {
+func (fake *FakeDeployment) InstancesReturns(result1 []orchestrator.Instance) {
 	fake.InstancesStub = nil
 	fake.instancesReturns = struct {
-		result1 []backuper.Instance
+		result1 []orchestrator.Instance
 	}{result1}
 }
 
@@ -370,4 +370,4 @@ func (fake *FakeDeployment) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ backuper.Deployment = new(FakeDeployment)
+var _ orchestrator.Deployment = new(FakeDeployment)

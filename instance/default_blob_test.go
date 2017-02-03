@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
-	backuperfakes "github.com/pivotal-cf/pcf-backup-and-restore/backuper/fakes"
+	backuperfakes "github.com/pivotal-cf/pcf-backup-and-restore/orchestrator/fakes"
 	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
 	"github.com/pivotal-cf/pcf-backup-and-restore/instance/fakes"
 )

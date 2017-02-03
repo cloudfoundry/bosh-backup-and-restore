@@ -2,7 +2,7 @@ package instance
 
 import (
 	"fmt"
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 	"io"
 	"strings"
 )
@@ -19,7 +19,7 @@ type Logger interface {
 	Error(tag, msg string, args ...interface{})
 }
 
-func NewNamedBlob(instance backuper.Instance, job Job, sshConn SSHConnection, logger Logger) *NamedBlob {
+func NewNamedBlob(instance orchestrator.Instance, job Job, sshConn SSHConnection, logger Logger) *NamedBlob {
 	return &NamedBlob{
 		Job:           job,
 		Instance:      instance,
@@ -30,7 +30,7 @@ func NewNamedBlob(instance backuper.Instance, job Job, sshConn SSHConnection, lo
 
 type NamedBlob struct {
 	Job Job
-	backuper.Instance
+	orchestrator.Instance
 	SSHConnection
 	Logger
 }
@@ -52,7 +52,7 @@ func (d *NamedBlob) StreamFromRemote(writer io.Writer) error {
 	return err
 }
 
-func (d *NamedBlob) BackupChecksum() (backuper.BackupChecksum, error) {
+func (d *NamedBlob) BackupChecksum() (orchestrator.BackupChecksum, error) {
 	stdout, stderr, exitCode, err := d.logAndRun(fmt.Sprintf("cd %s; sudo sh -c 'find . -type f | xargs shasum'", d.Job.ArtifactDirectory()), "checksum")
 
 	if err != nil {

@@ -12,7 +12,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
-	"github.com/pivotal-cf/pcf-backup-and-restore/backuper"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh/fakes"
 	"strings"
@@ -29,7 +29,7 @@ var _ = Describe("Instance", func() {
 	var jobs instance.Jobs
 	var blobNames map[string]string
 
-	var backuperInstance backuper.Instance
+	var backuperInstance orchestrator.Instance
 	BeforeEach(func() {
 		sshConnection = new(fakes.FakeSSHConnection)
 		boshDeployment = new(boshfakes.FakeDeployment)
@@ -1023,7 +1023,7 @@ var _ = Describe("Instance", func() {
 	})
 
 	Describe("Blobs", func() {
-		var actualBlobs []backuper.BackupBlob
+		var actualBlobs []orchestrator.BackupBlob
 
 		JustBeforeEach(func() {
 			actualBlobs = backuperInstance.Blobs()
@@ -1031,7 +1031,7 @@ var _ = Describe("Instance", func() {
 
 		Context("Has no named blobs", func() {
 			It("returns the default blob", func() {
-				Expect(actualBlobs).To(Equal([]backuper.BackupBlob{instance.NewDefaultBlob(backuperInstance, sshConnection, boshLogger)}))
+				Expect(actualBlobs).To(Equal([]orchestrator.BackupBlob{instance.NewDefaultBlob(backuperInstance, sshConnection, boshLogger)}))
 			})
 		})
 
@@ -1047,7 +1047,7 @@ var _ = Describe("Instance", func() {
 
 			It("returns the named blob and the default blob", func() {
 				Expect(actualBlobs).To(Equal(
-					[]backuper.BackupBlob{
+					[]orchestrator.BackupBlob{
 						instance.NewNamedBlob(backuperInstance, instance.NewJob(backupAndRestoreScripts, "my-blob"), sshConnection, boshLogger),
 						instance.NewDefaultBlob(backuperInstance, sshConnection, boshLogger),
 					},
