@@ -8,7 +8,6 @@ import (
 
 var _ = Describe("Jobs", func() {
 	var jobs instance.Jobs
-	var err error
 	var scripts instance.BackupAndRestoreScripts
 	var artifactNames map[string]string
 
@@ -17,7 +16,7 @@ var _ = Describe("Jobs", func() {
 	})
 
 	JustBeforeEach(func() {
-		jobs, err = instance.NewJobs(scripts, artifactNames)
+		jobs = instance.NewJobs(scripts, artifactNames)
 	})
 
 	Describe("NewJobs", func() {
@@ -95,26 +94,6 @@ var _ = Describe("Jobs", func() {
 			})
 		})
 
-		Context("when there are two jobs, both with backup scripts and the same metadata name", func() {
-			BeforeEach(func() {
-				scripts = instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/p-backup",
-					"/var/vcap/jobs/bar/bin/p-backup",
-				}
-				artifactNames = map[string]string{
-					"foo": "a-bosh-backup",
-					"bar": "a-bosh-backup",
-				}
-			})
-
-			It("fails", func() {
-				Expect(err).To(HaveOccurred())
-			})
-
-			It("returns the expected error messages", func() {
-				Expect(err.Error()).To(ContainSubstring("Multiple jobs have specified blob name 'a-bosh-backup'"))
-			})
-		})
 	})
 
 	Context("contains jobs with backup script", func() {
@@ -282,26 +261,40 @@ var _ = Describe("Jobs", func() {
 		})
 	})
 
-	Describe("WithNamedBlobs", func() {
-		Context("contains no jobs with named blobs", func() {
+	Context("contains no jobs with named blobs", func() {
+		Describe("WithNamedBlobs", func() {
 			It("returns empty", func() {
 				Expect(jobs.WithNamedBlobs()).To(BeEmpty())
 			})
 		})
 
-		Context("contains jobs with named blobs", func() {
-			BeforeEach(func() {
-				artifactNames = map[string]string{
-					"bar": "my-cool-blob",
-				}
-				scripts = instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/bar/bin/p-backup",
-					"/var/vcap/jobs/bar/bin/p-restore",
-					"/var/vcap/jobs/foo/bin/p-backup",
-					"/var/vcap/jobs/baz/bin/p-restore",
-				}
+		Describe("NamedBlobs", func() {
+			It("returns empty", func() {
+				Expect(jobs.NamedBlobs()).To(BeEmpty())
 			})
+		})
+	})
 
+	Context("contains jobs with a named blob", func() {
+		BeforeEach(func() {
+			artifactNames = map[string]string{
+				"bar": "my-cool-blob",
+			}
+			scripts = instance.BackupAndRestoreScripts{
+				"/var/vcap/jobs/bar/bin/p-backup",
+				"/var/vcap/jobs/bar/bin/p-restore",
+				"/var/vcap/jobs/foo/bin/p-backup",
+				"/var/vcap/jobs/baz/bin/p-restore",
+			}
+		})
+
+		Describe("NamedBlobs", func() {
+			It("returns a list of blob names", func() {
+				Expect(jobs.NamedBlobs()).To(ConsistOf("my-cool-blob"))
+			})
+		})
+
+		Describe("WithNamedBlobs", func() {
 			It("returns jobs with named blobs", func() {
 				Expect(jobs.WithNamedBlobs()).To(ConsistOf(instance.NewJob(
 					instance.BackupAndRestoreScripts{
@@ -309,6 +302,25 @@ var _ = Describe("Jobs", func() {
 						"/var/vcap/jobs/bar/bin/p-restore",
 					}, "my-cool-blob"),
 				))
+			})
+		})
+	})
+
+	Context("contains jobs with multiple named blobs", func() {
+		BeforeEach(func() {
+			scripts = instance.BackupAndRestoreScripts{
+				"/var/vcap/jobs/foo/bin/p-backup",
+				"/var/vcap/jobs/bar/bin/p-backup",
+			}
+			artifactNames = map[string]string{
+				"foo": "a-bosh-backup",
+				"bar": "another-backup",
+			}
+		})
+
+		Describe("NamedBlobs", func() {
+			It("returns a list of blob names", func() {
+				Expect(jobs.NamedBlobs()).To(ConsistOf("a-bosh-backup", "another-backup"))
 			})
 		})
 	})

@@ -550,6 +550,69 @@ exit 1`)
 			Eventually(session).Should(gbytes.Say("Done."))
 			Eventually(session).Should(gbytes.Say("Backup created of %s on", deploymentName))
 		})
+
+	})
+
+	Context("both instances specify the same backup name in their metadata", func() {
+		var backupableInstance1, backupableInstance2 *testcluster.Instance
+
+		BeforeEach(func() {
+			deploymentName = "my-two-instance-deployment"
+			backupableInstance1 = testcluster.NewInstance()
+			backupableInstance2 = testcluster.NewInstance()
+			director.VerifyAndMock(AppendBuilders(
+				VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+					{
+						IPs:     []string{"10.0.0.1"},
+						JobName: "redis-dedicated-node",
+					},
+					{
+						IPs:     []string{"10.0.0.2"},
+						JobName: "redis-broker",
+					},
+				}),
+				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
+				SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance2),
+				CleanupSSH(deploymentName, "redis-dedicated-node"),
+				CleanupSSH(deploymentName, "redis-broker"),
+			)...)
+
+			backupableInstance1.CreateFiles(
+				"/var/vcap/jobs/redis/bin/p-backup",
+			)
+
+			backupableInstance2.CreateFiles(
+				"/var/vcap/jobs/redis/bin/p-backup",
+			)
+
+			backupableInstance1.CreateScript("/var/vcap/jobs/redis/bin/p-metadata", `#!/usr/bin/env sh
+echo "---
+backup_name: duplicate_name
+"`)
+			backupableInstance2.CreateScript("/var/vcap/jobs/redis/bin/p-metadata", `#!/usr/bin/env sh
+echo "---
+backup_name: duplicate_name
+"`)
+		})
+
+		AfterEach(func() {
+			backupableInstance1.DieInBackground()
+			backupableInstance2.DieInBackground()
+		})
+
+		It("files with the name are not created", func() {
+			Expect(path.Join(backupWorkspace, deploymentName, "/duplicate_name.tgz")).NotTo(BeARegularFile())
+		})
+
+		It("refuses to perform backup", func() {
+			Expect(session.Err.Contents()).To(ContainSubstring(
+				"Multiple jobs in deployment 'my-two-instance-deployment' specified the same backup name",
+			))
+		})
+
+		It("returns exit code 1", func() {
+			Expect(session.ExitCode()).To(Equal(1))
+		})
 	})
 
 	Context("when deployment does not exist", func() {

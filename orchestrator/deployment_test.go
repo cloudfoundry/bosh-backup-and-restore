@@ -312,7 +312,7 @@ var _ = Describe("Deployment", func() {
 	})
 
 	Context("IsBackupable", func() {
-		var isBackupable      bool
+		var isBackupable bool
 
 		JustBeforeEach(func() {
 			isBackupable = deployment.IsBackupable()
@@ -332,6 +332,7 @@ var _ = Describe("Deployment", func() {
 				Expect(isBackupable).To(BeTrue())
 			})
 		})
+
 		Context("Single instance, not backupable", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(false)
@@ -371,6 +372,72 @@ var _ = Describe("Deployment", func() {
 				Expect(instance1.IsBackupableCallCount()).To(Equal(1))
 				Expect(instance2.IsBackupableCallCount()).To(Equal(1))
 				Expect(isBackupable).To(BeFalse())
+			})
+		})
+	})
+
+	Context("HasValidBackupMetadata", func() {
+		var isValid bool
+
+		JustBeforeEach(func() {
+			isValid = deployment.HasValidBackupMetadata()
+		})
+
+		Context("Single instance, with unique metadata", func() {
+			BeforeEach(func() {
+				instance1.CustomBlobNamesReturns([]string{"custom1", "custom2"})
+				instances = []orchestrator.Instance{instance1}
+			})
+
+			It("returns true", func() {
+				Expect(isValid).To(BeTrue())
+			})
+		})
+
+		Context("Single instance, with non-unique metadata", func() {
+			BeforeEach(func() {
+				instance1.CustomBlobNamesReturns([]string{"the-same", "the-same"})
+				instances = []orchestrator.Instance{instance1}
+			})
+
+			It("returns false", func() {
+				Expect(isValid).To(BeFalse())
+			})
+		})
+
+		Context("multiple instances, with unique metadata", func() {
+			BeforeEach(func() {
+				instance1.CustomBlobNamesReturns([]string{"custom1", "custom2"})
+				instance2.CustomBlobNamesReturns([]string{"custom3", "custom4"})
+				instances = []orchestrator.Instance{instance1, instance2}
+			})
+
+			It("returns true", func() {
+				Expect(isValid).To(BeTrue())
+			})
+		})
+
+		Context("multiple instances, with non-unique metadata", func() {
+			BeforeEach(func() {
+				instance1.CustomBlobNamesReturns([]string{"custom1", "custom2"})
+				instance2.CustomBlobNamesReturns([]string{"custom2", "custom4"})
+				instances = []orchestrator.Instance{instance1, instance2}
+			})
+
+			It("returns false", func() {
+				Expect(isValid).To(BeFalse())
+			})
+		})
+
+		Context("multiple instances, with no metadata", func() {
+			BeforeEach(func() {
+				instance1.CustomBlobNamesReturns([]string{})
+				instance2.CustomBlobNamesReturns([]string{})
+				instances = []orchestrator.Instance{instance1, instance2}
+			})
+
+			It("returns true", func() {
+				Expect(isValid).To(BeTrue())
 			})
 		})
 	})
@@ -1051,7 +1118,7 @@ var _ = Describe("Deployment", func() {
 				})
 			})
 
-			Context("fails if unable to delete blobs", func(){
+			Context("fails if unable to delete blobs", func() {
 				var writeCloser1 *fakes.FakeWriteCloser
 				var instanceChecksum = orchestrator.BackupChecksum{"file1": "abcd", "file2": "efgh"}
 				var expectedError = fmt.Errorf("brr")
@@ -1069,12 +1136,11 @@ var _ = Describe("Deployment", func() {
 					artifact.CalculateChecksumReturns(instanceChecksum, nil)
 					backupBlob.BackupChecksumReturns(instanceChecksum, nil)
 
-
 					backupBlob.DeleteReturns(expectedError)
 				})
 
 				It("fails the backup process", func() {
-					Expect(copyRemoteBackupsToLocalArtifactError ).To(MatchError(expectedError))
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(expectedError))
 				})
 			})
 		})

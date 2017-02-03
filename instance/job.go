@@ -27,6 +27,10 @@ func (j Job) Name() string {
 	return j.name
 }
 
+func (j Job) BlobName() string {
+	return j.blobName
+}
+
 func (j Job) ArtifactDirectory() string {
 	return fmt.Sprintf("/var/vcap/store/backup/%s", j.artifactOrJobName())
 }
@@ -66,7 +70,6 @@ func (j Job) HasPostBackup() bool {
 func (j Job) HasNamedBlob() bool {
 	return len(j.blobName) != 0
 }
-
 
 func (j Job) artifactOrJobName() string {
 	if j.HasNamedBlob() {

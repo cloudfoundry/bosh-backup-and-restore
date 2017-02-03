@@ -1,9 +1,5 @@
 package instance
 
-import (
-	"fmt"
-)
-
 type Jobs []Job
 
 func (jobs Jobs) Backupable() Jobs {
@@ -71,7 +67,17 @@ func (jobs Jobs) WithNamedBlobs() Jobs {
 	return jobsWithNamedBlobs
 }
 
-func NewJobs(scripts BackupAndRestoreScripts, artifactNames map[string]string) (Jobs, error) {
+func (jobs Jobs) NamedBlobs() []string {
+	var blobNames []string
+
+	for _, job := range jobs.WithNamedBlobs() {
+		blobNames = append(blobNames, job.BlobName())
+	}
+
+	return blobNames
+}
+
+func NewJobs(scripts BackupAndRestoreScripts, artifactNames map[string]string) Jobs {
 	groupedByJobName := map[string]BackupAndRestoreScripts{}
 	for _, script := range scripts {
 		jobName, _ := script.JobName()
@@ -80,21 +86,13 @@ func NewJobs(scripts BackupAndRestoreScripts, artifactNames map[string]string) (
 	}
 	var jobs []Job
 
-	var foundNames = map[string]bool{}
-	for _, name := range artifactNames {
-		if foundNames[name] {
-			return nil, fmt.Errorf("Multiple jobs have specified blob name '%s'", name)
-		}
-		foundNames[name] = true
-	}
-
 	for jobName, jobScripts := range groupedByJobName {
 		artifactName := artifactNames[jobName]
 
 		jobs = append(jobs, NewJob(jobScripts, artifactName))
 	}
 
-	return jobs, nil
+	return jobs
 }
 
 func (jobs Jobs) empty() bool {

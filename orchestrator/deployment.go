@@ -1,12 +1,11 @@
 package orchestrator
 
-import (
-	"fmt"
-)
+import "fmt"
 
 //go:generate counterfeiter -o fakes/fake_deployment.go . Deployment
 type Deployment interface {
 	IsBackupable() bool
+	HasValidBackupMetadata() bool
 	IsRestorable() bool
 	PreBackupLock() error
 	Backup() error
@@ -33,6 +32,19 @@ func (bd *BoshDeployment) IsBackupable() bool {
 	backupableInstances := bd.instances.AllBackupable()
 	bd.Logger.Info("", "Done.")
 	return !backupableInstances.IsEmpty()
+}
+
+func (bd *BoshDeployment) HasValidBackupMetadata() bool {
+	names := bd.instances.CustomBlobNames()
+
+	uniqueNames := map[string]bool{}
+	for _, name := range names {
+		if _, found := uniqueNames[name]; found {
+			return false
+		}
+		uniqueNames[name] = true
+	}
+	return true
 }
 
 func (bd *BoshDeployment) PreBackupLock() error {

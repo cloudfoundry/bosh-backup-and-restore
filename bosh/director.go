@@ -7,11 +7,12 @@ import (
 
 	"errors"
 	"fmt"
+
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry/bosh-utils/uuid"
+	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
 	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 	"gopkg.in/yaml.v2"
-	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
 )
 
 func New(boshDirector director.Director,
@@ -104,7 +105,7 @@ func (c client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 				return nil, err
 			}
 
-			jobs, _ := instance.NewJobs(instance.NewBackupAndRestoreScripts(scripts), metadata)
+			jobs := instance.NewJobs(instance.NewBackupAndRestoreScripts(scripts), metadata)
 
 			instances = append(instances,
 				NewBoshInstance(

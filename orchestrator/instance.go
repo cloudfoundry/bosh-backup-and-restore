@@ -25,6 +25,7 @@ type Instance interface {
 	BackupSize() (string, error)
 	BackupChecksum() (BackupChecksum, error)
 	Blobs() []BackupBlob
+	CustomBlobNames() []string
 
 	IsNamed() bool //TODO: Method here to enable continuous integration, delete after the restore flow works with remote artifacts
 }
@@ -58,6 +59,16 @@ func (is instances) AllBackupable() instances {
 		}
 	}
 	return backupableInstances
+}
+
+func (is instances) CustomBlobNames() []string {
+	var blobNames []string
+
+	for _, instance := range is {
+		blobNames = append(blobNames, instance.CustomBlobNames()...)
+	}
+
+	return blobNames
 }
 
 func (is instances) AllPreBackupLockable() instances {

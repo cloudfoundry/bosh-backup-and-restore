@@ -14,6 +14,12 @@ type FakeDeployment struct {
 	isBackupableReturns     struct {
 		result1 bool
 	}
+	HasValidBackupMetadataStub        func() bool
+	hasValidBackupMetadataMutex       sync.RWMutex
+	hasValidBackupMetadataArgsForCall []struct{}
+	hasValidBackupMetadataReturns     struct {
+		result1 bool
+	}
 	IsRestorableStub        func() bool
 	isRestorableMutex       sync.RWMutex
 	isRestorableArgsForCall []struct{}
@@ -96,6 +102,30 @@ func (fake *FakeDeployment) IsBackupableCallCount() int {
 func (fake *FakeDeployment) IsBackupableReturns(result1 bool) {
 	fake.IsBackupableStub = nil
 	fake.isBackupableReturns = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeDeployment) HasValidBackupMetadata() bool {
+	fake.hasValidBackupMetadataMutex.Lock()
+	fake.hasValidBackupMetadataArgsForCall = append(fake.hasValidBackupMetadataArgsForCall, struct{}{})
+	fake.recordInvocation("HasValidBackupMetadata", []interface{}{})
+	fake.hasValidBackupMetadataMutex.Unlock()
+	if fake.HasValidBackupMetadataStub != nil {
+		return fake.HasValidBackupMetadataStub()
+	}
+	return fake.hasValidBackupMetadataReturns.result1
+}
+
+func (fake *FakeDeployment) HasValidBackupMetadataCallCount() int {
+	fake.hasValidBackupMetadataMutex.RLock()
+	defer fake.hasValidBackupMetadataMutex.RUnlock()
+	return len(fake.hasValidBackupMetadataArgsForCall)
+}
+
+func (fake *FakeDeployment) HasValidBackupMetadataReturns(result1 bool) {
+	fake.HasValidBackupMetadataStub = nil
+	fake.hasValidBackupMetadataReturns = struct {
 		result1 bool
 	}{result1}
 }
@@ -337,6 +367,8 @@ func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.isBackupableMutex.RLock()
 	defer fake.isBackupableMutex.RUnlock()
+	fake.hasValidBackupMetadataMutex.RLock()
+	defer fake.hasValidBackupMetadataMutex.RUnlock()
 	fake.isRestorableMutex.RLock()
 	defer fake.isRestorableMutex.RUnlock()
 	fake.preBackupLockMutex.RLock()

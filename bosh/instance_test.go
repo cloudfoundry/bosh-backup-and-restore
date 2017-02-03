@@ -6,17 +6,18 @@ import (
 	"log"
 
 	"errors"
+	"strings"
+
 	"github.com/cloudfoundry/bosh-cli/director"
 	boshfakes "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
-	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh/fakes"
-	"strings"
 	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 )
 
 var _ = Describe("Instance", func() {
@@ -46,7 +47,7 @@ var _ = Describe("Instance", func() {
 	})
 
 	JustBeforeEach(func() {
-		jobs, _ = instance.NewJobs(backupAndRestoreScripts, blobNames)
+		jobs = instance.NewJobs(backupAndRestoreScripts, blobNames)
 		sshConnection.UsernameReturns("sshUsername")
 		backuperInstance = bosh.NewBoshInstance(jobName, jobIndex, jobID, sshConnection, boshDeployment, boshLogger, jobs)
 	})
@@ -177,6 +178,24 @@ var _ = Describe("Instance", func() {
 				Expect(actualRestorable).To(BeFalse())
 			})
 		})
+	})
+
+	Describe("CustomBlobNames", func() {
+		Context("when the instance has custom blob names defined", func() {
+			BeforeEach(func() {
+				blobNames = map[string]string{
+					"dave": "foo",
+				}
+				backupAndRestoreScripts = []instance.Script{
+					"/var/vcap/jobs/dave/bin/foo",
+				}
+			})
+
+			It("returns a list of the instance's custom blob names", func() {
+				Expect(backuperInstance.CustomBlobNames()).To(ConsistOf("foo"))
+			})
+		})
+
 	})
 
 	Describe("PreBackupLock", func() {

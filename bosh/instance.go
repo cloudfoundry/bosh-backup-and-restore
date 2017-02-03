@@ -8,8 +8,8 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/hashicorp/go-multierror"
-	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 )
 
 type DeployedInstance struct {
@@ -54,12 +54,16 @@ func (d *DeployedInstance) IsBackupable() bool {
 	return d.Jobs.AnyAreBackupable()
 }
 
-func (d *DeployedInstance) IsPostBackupUnlockable() bool{
+func (d *DeployedInstance) IsPostBackupUnlockable() bool {
 	return d.Jobs.AnyArePostBackupable()
 }
 
-func (d *DeployedInstance) IsPreBackupLockable() bool{
+func (d *DeployedInstance) IsPreBackupLockable() bool {
 	return d.Jobs.AnyArePreBackupable()
+}
+
+func (d *DeployedInstance) CustomBlobNames() []string {
+	return d.Jobs.NamedBlobs()
 }
 
 func (d *DeployedInstance) PreBackupLock() error {

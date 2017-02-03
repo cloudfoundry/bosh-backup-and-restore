@@ -58,6 +58,25 @@ var _ = Describe("Job", func() {
 		})
 	})
 
+	Describe("BlobName", func() {
+		Context("the job has a custom blob name", func() {
+			BeforeEach(func() {
+				artifactName = "fool"
+			})
+
+			It("returns the job's custom blob name", func() {
+				Expect(job.BlobName()).To(Equal("fool"))
+			})
+		})
+
+		Context("the job does not have a custom blob name", func() {
+			It("returns empty string", func() {
+				Expect(job.BlobName()).To(Equal(""))
+			})
+		})
+
+	})
+
 	Describe("HasBackup", func() {
 		It("returns true", func() {
 			Expect(job.HasBackup()).To(BeTrue())

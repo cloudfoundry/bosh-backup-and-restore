@@ -44,6 +44,7 @@ var _ = Describe("Backuper", func() {
 			artifactManager.ExistsReturns(false)
 			deploymentManager.FindReturns(deployment, nil)
 			deployment.IsBackupableReturns(true)
+			deployment.HasValidBackupMetadataReturns(true)
 			deployment.CleanupReturns(nil)
 			deployment.CopyRemoteBackupToLocalReturns(nil)
 		})
@@ -144,6 +145,7 @@ var _ = Describe("Backuper", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
+				deployment.HasValidBackupMetadataReturns(true)
 				artifactManager.CreateReturns(artifact, nil)
 				boshDirector.GetManifestReturns("", expectedError)
 			})
@@ -159,6 +161,7 @@ var _ = Describe("Backuper", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
+				deployment.HasValidBackupMetadataReturns(true)
 				artifactManager.CreateReturns(artifact, nil)
 				boshDirector.GetManifestReturns(deploymentManifest, nil)
 				artifact.SaveManifestReturns(expectedError)
@@ -183,14 +186,21 @@ var _ = Describe("Backuper", func() {
 				Expect(deploymentManager.FindCallCount()).To(Equal(1))
 				Expect(deploymentManager.FindArgsForCall(0)).To(Equal(deploymentName))
 			})
+
 			It("checks if the deployment is backupable", func() {
 				Expect(deployment.IsBackupableCallCount()).To(Equal(1))
 			})
+
 			It("fails the backup process", func() {
 				Expect(actualBackupError).To(ConsistOf(MatchError("Deployment '" + deploymentName + "' has no backup scripts")))
 			})
+
 			It("ensures that deployment is cleaned up", func() {
 				Expect(deployment.CleanupCallCount()).To(Equal(1))
+			})
+
+			It("does not check the backup metadata validity", func() {
+				Expect(deployment.HasValidBackupMetadataCallCount()).To(BeZero())
 			})
 
 			Context("cleanup fails as well", assertCleanupError)
@@ -205,6 +215,7 @@ var _ = Describe("Backuper", func() {
 				artifactManager.ExistsReturns(false)
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
+				deployment.HasValidBackupMetadataReturns(true)
 				deployment.CleanupReturns(nil)
 
 				deployment.PreBackupLockReturns(lockError)
@@ -231,6 +242,7 @@ var _ = Describe("Backuper", func() {
 				artifactManager.ExistsReturns(false)
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
+				deployment.HasValidBackupMetadataReturns(true)
 				deployment.CleanupReturns(nil)
 
 				deployment.PostBackupUnlockReturns(unlockError)
@@ -305,6 +317,7 @@ var _ = Describe("Backuper", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
+				deployment.HasValidBackupMetadataReturns(true)
 				artifactManager.CreateReturns(artifact, nil)
 				deployment.CopyRemoteBackupToLocalReturns(drainError)
 			})
@@ -334,6 +347,7 @@ var _ = Describe("Backuper", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
+				deployment.HasValidBackupMetadataReturns(true)
 
 				artifactManager.CreateReturns(nil, artifactError)
 			})
@@ -362,6 +376,7 @@ var _ = Describe("Backuper", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
+				deployment.HasValidBackupMetadataReturns(true)
 
 				artifactManager.CreateReturns(artifact, nil)
 				deployment.CleanupReturns(cleanupError)
@@ -395,6 +410,7 @@ var _ = Describe("Backuper", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
+				deployment.HasValidBackupMetadataReturns(true)
 
 				artifactManager.CreateReturns(artifact, nil)
 				deployment.BackupReturns(backupError)
@@ -422,6 +438,20 @@ var _ = Describe("Backuper", func() {
 			})
 
 			Context("cleanup fails as well", assertCleanupError)
+		})
+
+		Context("fails if deployment is invalid", func() {
+			BeforeEach(func() {
+				deploymentManager.FindReturns(deployment, nil)
+				deployment.IsBackupableReturns(true)
+				deployment.HasValidBackupMetadataReturns(false)
+			})
+
+			It("fails the backup process", func() {
+				Expect(actualBackupError).To(ConsistOf(
+					MatchError(fmt.Errorf("Multiple jobs in deployment '%s' specified the same backup name", deploymentName)),
+				))
+			})
 		})
 	})
 })

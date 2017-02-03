@@ -108,6 +108,12 @@ func (bw *backupWorkflow) checkIsBackupable(e *fsm.Event) {
 	if !bw.deployment.IsBackupable() {
 		bw.backupErrors = append(bw.backupErrors, fmt.Errorf("Deployment '%s' has no backup scripts", bw.deploymentName))
 		e.Cancel()
+		return
+	}
+
+	if !bw.deployment.HasValidBackupMetadata() {
+		bw.backupErrors = append(bw.backupErrors, fmt.Errorf("Multiple jobs in deployment '%s' specified the same backup name", bw.deploymentName))
+		e.Cancel()
 	}
 }
 

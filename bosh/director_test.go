@@ -7,16 +7,17 @@ import (
 	"bytes"
 	"io"
 
+	"strings"
+
 	"github.com/cloudfoundry/bosh-cli/director"
 	boshfakes "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
 	"github.com/pivotal-cf/pcf-backup-and-restore/bosh/fakes"
-	"strings"
 	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 )
 
 var _ = Describe("Director", func() {
@@ -121,7 +122,7 @@ var _ = Describe("Director", func() {
 			})
 
 			It("collects the instances", func() {
-				jobs, _ := instance.NewJobs(instance.BackupAndRestoreScripts{
+				jobs := instance.NewJobs(instance.BackupAndRestoreScripts{
 					"/var/vcap/jobs/consul_agent/bin/p-backup",
 					"/var/vcap/jobs/consul_agent/bin/p-restore",
 				}, map[string]string{})
@@ -197,7 +198,7 @@ backup_name: consul_backup`)
 						"consul_agent": "consul_backup",
 					}
 
-					jobs, _ := instance.NewJobs(instance.BackupAndRestoreScripts{
+					jobs := instance.NewJobs(instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/consul_agent/bin/p-backup",
 						"/var/vcap/jobs/consul_agent/bin/p-restore",
 					}, metadata)
@@ -355,7 +356,7 @@ backup_name: consul_backup`)
 			})
 
 			It("collects the instances, with no scripts", func() {
-				jobs, _ := instance.NewJobs(instance.BackupAndRestoreScripts{}, map[string]string{})
+				jobs := instance.NewJobs(instance.BackupAndRestoreScripts{}, map[string]string{})
 
 				Expect(actualInstances).To(Equal([]orchestrator.Instance{bosh.NewBoshInstance("job1",
 					"0",
@@ -451,12 +452,12 @@ backup_name: consul_backup`)
 				findScriptsSshStdout = []byte("/var/vcap/jobs/consul_agent/bin/p-backup")
 			})
 			It("collects the instances", func() {
-				instance0Jobs, _ := instance.NewJobs(
+				instance0Jobs := instance.NewJobs(
 					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"},
 					map[string]string{},
 				)
 
-				instance1Jobs, _ := instance.NewJobs(
+				instance1Jobs := instance.NewJobs(
 					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"},
 					map[string]string{},
 				)
