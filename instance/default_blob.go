@@ -3,6 +3,7 @@ package instance
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 )
@@ -16,13 +17,13 @@ func NewDefaultBlob(instance orchestrator.Instance, sshConn SSHConnection, logge
 }
 
 type DefaultBlob struct {
-	orchestrator.Instance
+	Instance orchestrator.Instance
 	SSHConnection
 	Logger
 }
 
 func (d *DefaultBlob) StreamFromRemote(writer io.Writer) error {
-	d.Logger.Debug("", "Streaming backup from instance %s/%s", d.Name(), d.ID())
+	d.Logger.Debug("", "Streaming backup from instance %s/%s", d.Instance.Name(), d.Instance.ID())
 	stderr, exitCode, err := d.Stream("sudo tar -C /var/vcap/store/backup -zc .", writer)
 
 	d.Logger.Debug("", "Stderr: %s", string(stderr))
@@ -36,6 +37,46 @@ func (d *DefaultBlob) StreamFromRemote(writer io.Writer) error {
 	}
 
 	return err
+}
+
+func (d *DefaultBlob) BackupChecksum() (orchestrator.BackupChecksum, error) {
+	stdout, stderr, exitCode, err := d.logAndRun("cd /var/vcap/store/backup; sudo sh -c 'find . -type f | xargs shasum'", "checksum")
+
+	if err != nil {
+		return nil, err
+	}
+
+	if exitCode != 0 {
+		return nil, fmt.Errorf("Instance checksum returned %d. Error: %s", exitCode, stderr)
+	}
+
+	return convertShasToMap(string(stdout)), nil
+}
+func (d *DefaultBlob) ID() string {
+	return d.Instance.ID()
+}
+
+func (d *DefaultBlob) Index() string {
+	return d.Instance.Index()
+}
+
+func (d *DefaultBlob) IsNamed() bool {
+	return false
+}
+
+func (d *DefaultBlob) Name() string {
+	return d.Instance.Name()
+}
+
+func (d *DefaultBlob) BackupSize() (string, error) {
+	stdout, stderr, exitCode, err := d.logAndRun("sudo du -sh /var/vcap/store/backup/ | cut -f1", "check backup size")
+
+	if exitCode != 0 {
+		return "", fmt.Errorf("Unable to check size of backup: %s", stderr)
+	}
+
+	size := strings.TrimSpace(string(stdout))
+	return size, err
 }
 
 func (d *DefaultBlob) StreamBackupToRemote(reader io.Reader) error {
@@ -67,14 +108,14 @@ func (d *DefaultBlob) StreamBackupToRemote(reader io.Reader) error {
 }
 
 func (d *DefaultBlob) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
-	d.Logger.Debug("", "Running %s on %s/%s", label, d.Name(), d.ID())
+	d.Logger.Debug("", "Running %s on %s/%s", label, d.Instance.Name(), d.Instance.ID())
 
 	stdout, stderr, exitCode, err := d.Run(cmd)
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
 	d.Logger.Debug("", "Stderr: %s", string(stderr))
 
 	if err != nil {
-		d.Logger.Debug("", "Error running %s on instance %s/%s. Exit code %d, error: %s", label, d.Name(), d.ID(), exitCode, err.Error())
+		d.Logger.Debug("", "Error running %s on instance %s/%s. Exit code %d, error: %s", label, d.Instance.Name(), d.Instance.ID(), exitCode, err.Error())
 	}
 
 	return stdout, stderr, exitCode, err

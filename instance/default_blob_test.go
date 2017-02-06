@@ -2,6 +2,7 @@ package instance_test
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"log"
 
@@ -174,6 +175,172 @@ var _ = Describe("DefaultBlob", func() {
 				Expect(err).To(MatchError("These media people. The most dishonest people"))
 			})
 		})
+	})
+
+	Describe("BackupChecksum", func() {
+		var actualChecksum map[string]string
+		var actualChecksumError error
+		JustBeforeEach(func() {
+			actualChecksum, actualChecksumError = defaultBlob.BackupChecksum()
+		})
+		Context("triggers find & shasum as root", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("not relevant"), nil, 0, nil)
+			})
+			It("generates the correct request", func() {
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("cd /var/vcap/store/backup; sudo sh -c 'find . -type f | xargs shasum'"))
+			})
+		})
+		Context("can calculate checksum", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e  file1\n07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e  file2\nn87fc29fb3aacd99f7f7b81df9c43b13e71c56a1e file3/file4"), nil, 0, nil)
+			})
+			It("converts the checksum to a map", func() {
+				Expect(actualChecksumError).NotTo(HaveOccurred())
+				Expect(actualChecksum).To(Equal(map[string]string{
+					"file1":       "07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
+					"file2":       "07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
+					"file3/file4": "n87fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
+				}))
+			})
+		})
+		Context("can calculate checksum, with trailing spaces", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e file1\n"), nil, 0, nil)
+			})
+			It("converts the checksum to a map", func() {
+				Expect(actualChecksumError).NotTo(HaveOccurred())
+				Expect(actualChecksum).To(Equal(map[string]string{
+					"file1": "07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
+				}))
+			})
+		})
+		Context("sha output is empty", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte(""), nil, 0, nil)
+			})
+			It("converts an empty map", func() {
+				Expect(actualChecksumError).NotTo(HaveOccurred())
+				Expect(actualChecksum).To(Equal(map[string]string{}))
+			})
+		})
+		Context("sha for a empty directory", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("da39a3ee5e6b4b0d3255bfef95601890afd80709  -"), nil, 0, nil)
+			})
+			It("reject '-' as a filename", func() {
+				Expect(actualChecksumError).NotTo(HaveOccurred())
+				Expect(actualChecksum).To(Equal(map[string]string{}))
+			})
+		})
+
+		Context("fails to calculate checksum", func() {
+			expectedErr := fmt.Errorf("some error")
+
+			BeforeEach(func() {
+				sshConnection.RunReturns(nil, nil, 0, expectedErr)
+			})
+			It("returns an error", func() {
+				Expect(actualChecksumError).To(MatchError(expectedErr))
+			})
+		})
+		Context("fails to execute the command", func() {
+			BeforeEach(func() {
+				sshConnection.RunReturns(nil, nil, 1, nil)
+			})
+			It("returns an error", func() {
+				Expect(actualChecksumError).To(HaveOccurred())
+			})
+		})
+	})
+	Describe("ID", func() {
+		BeforeEach(func() {
+			fakeInstance.IDReturns("instance-id")
+		})
+		It("returns instances id", func() {
+			Expect(defaultBlob.ID()).To(Equal("instance-id"))
+		})
+	})
+
+	Describe("Name", func() {
+		BeforeEach(func() {
+			fakeInstance.NameReturns("instance-Name")
+		})
+		It("returns instances Name", func() {
+			Expect(defaultBlob.Name()).To(Equal("instance-Name"))
+		})
+	})
+
+	Describe("Index", func() {
+		BeforeEach(func() {
+			fakeInstance.IndexReturns("instance-index")
+		})
+		It("returns instances id", func() {
+			Expect(defaultBlob.Index()).To(Equal("instance-index"))
+		})
+	})
+
+	Describe("IsNamed", func() {
+		It("returns false", func() {
+			Expect(defaultBlob.IsNamed()).To(BeFalse())
+		})
+	})
+
+	Describe("BackupSize", func() {
+		Context("when there is a backup", func() {
+			var size string
+
+			BeforeEach(func() {
+				sshConnection.RunReturns([]byte("4.1G\n"), nil, 0, nil)
+			})
+
+			JustBeforeEach(func() {
+				size, _ = defaultBlob.BackupSize()
+			})
+
+			It("returns the size of the backup according to the root user, as a string", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh /var/vcap/store/backup/ | cut -f1"))
+				Expect(size).To(Equal("4.1G"))
+			})
+		})
+
+		Context("when there is no backup directory", func() {
+			var err error
+
+			BeforeEach(func() {
+				sshConnection.RunReturns(nil, nil, 1, nil) // simulating file not found
+			})
+
+			JustBeforeEach(func() {
+				_, err = defaultBlob.BackupSize()
+			})
+
+			It("returns the size of the backup according to the root user, as a string", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh /var/vcap/store/backup/ | cut -f1"))
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("when an error occurs", func() {
+			var err error
+			var actualError = errors.New("we will load it up with some bad dudes")
+
+			BeforeEach(func() {
+				sshConnection.RunReturns(nil, nil, 0, actualError)
+			})
+
+			JustBeforeEach(func() {
+				_, err = defaultBlob.BackupSize()
+			})
+
+			It("returns the error", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(err).To(MatchError(actualError))
+			})
+		})
+
 	})
 
 	Describe("Delete", func() {

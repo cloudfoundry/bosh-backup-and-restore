@@ -38,7 +38,7 @@ type NamedBlob struct {
 }
 
 func (d *NamedBlob) StreamFromRemote(writer io.Writer) error {
-	d.Logger.Debug("", "Streaming backup from instance %s/%s", d.Name(), d.ID())
+	d.Logger.Debug("", "Streaming backup from instance %s/%s", d.Name(), d.Instance.ID())
 	stderr, exitCode, err := d.Stream(fmt.Sprintf("sudo tar -C %s -zc .", d.Job.ArtifactDirectory()), writer)
 
 	d.Logger.Debug("", "Stderr: %s", string(stderr))
@@ -77,7 +77,7 @@ func (d *NamedBlob) Name() string {
 }
 
 func (d *NamedBlob) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
-	d.Logger.Debug("", "Running %s on %s/%s", label, d.Name(), d.ID())
+	d.Logger.Debug("", "Running %s on %s/%s", label, d.Instance.Name(), d.Instance.ID())
 
 	stdout, stderr, exitCode, err := d.Run(cmd)
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
