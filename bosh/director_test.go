@@ -793,6 +793,221 @@ backup_name: consul_backup`)
 				It("generates ssh opts", func() {
 					Expect(optsGenerator.CallCount()).To(Equal(1))
 				})
+
+				It("cleanup the ssh user from the instance", func() {
+					Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(1))
+				})
+			})
+
+			Context("succeeds creating ssh connections to some vms, fails others", func() {
+				BeforeEach(func() {
+					boshDirector.FindDeploymentReturns(boshDeployment, nil)
+					boshDeployment.VMInfosReturns([]director.VMInfo{
+						{
+							JobName: "job1",
+						},
+						{
+							JobName: "job2",
+						}}, nil)
+					optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
+
+					boshDeployment.SetUpSSHStub = func(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.SSHOpts) (director.SSHResult, error) {
+						if slug.Name() == "job1" {
+							return director.SSHResult{Hosts: []director.Host{
+								{
+									Username:  "username",
+									Host:      "hostname",
+									IndexOrID: "index",
+								},
+							}}, nil
+						} else {
+							return director.SSHResult{}, expectedError
+						}
+					}
+					sshConnectionFactory.Returns(sshConnection, nil)
+
+				})
+
+				It("fails", func() {
+					Expect(actualError).To(MatchError(expectedError))
+				})
+
+				It("cleans up the successful SSH connection", func() {
+					Expect(sshConnection.CleanupCallCount()).To(Equal(1))
+					Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(1))
+				})
+			})
+
+			Context("succeeds creating ssh connections but fails to create instance group slug", func() {
+				BeforeEach(func() {
+					boshDirector.FindDeploymentReturns(boshDeployment, nil)
+					boshDeployment.VMInfosReturns([]director.VMInfo{
+						{
+							JobName: "job1",
+						},
+						{
+							JobName: "job2/a/a/a",
+						}}, nil)
+					optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
+
+					boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
+						{
+							Username:  "username",
+							Host:      "hostname",
+							IndexOrID: "index",
+						},
+					}}, nil)
+
+					sshConnectionFactory.Returns(sshConnection, nil)
+
+				})
+
+				It("fails", func() {
+					Expect(actualError).To(HaveOccurred())
+				})
+
+				It("cleans up the successful SSH connection", func() {
+					Expect(sshConnection.CleanupCallCount()).To(Equal(1))
+					Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(1))
+				})
+			})
+
+			Context("succeeds creating ssh connections but ssh connection factory fails for a later connection", func() {
+				BeforeEach(func() {
+					boshDirector.FindDeploymentReturns(boshDeployment, nil)
+					boshDeployment.VMInfosReturns([]director.VMInfo{
+						{
+							JobName: "job1",
+						},
+						{
+							JobName: "job2",
+						}}, nil)
+					optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
+
+					boshDeployment.SetUpSSHStub = func(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.SSHOpts) (director.SSHResult, error) {
+						return director.SSHResult{Hosts: []director.Host{
+							{
+								Username:  "username",
+								Host:      "hostname_" + slug.Name(),
+								IndexOrID: "index",
+							},
+						}}, nil
+					}
+
+					sshConnectionFactory.Stub = func(host, user, privateKey string) (bosh.SSHConnection, error) {
+						if host == "hostname_job1:22" {
+							return sshConnection, nil
+						}
+						return nil, expectedError
+					}
+				})
+
+				It("fails", func() {
+					Expect(actualError).To(MatchError(expectedError))
+				})
+
+				It("cleans up the successful SSH connection", func() {
+					Expect(sshConnection.CleanupCallCount()).To(Equal(1))
+					Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(2))
+				})
+			})
+
+			Context("succeeds creating ssh connections but fails to run find scripts on a later connection", func() {
+				var badSshConnection *fakes.FakeSSHConnection
+
+				BeforeEach(func() {
+					badSshConnection = new(fakes.FakeSSHConnection)
+					badSshConnection.RunReturns(nil, nil, 0, expectedError)
+
+					boshDirector.FindDeploymentReturns(boshDeployment, nil)
+					boshDeployment.VMInfosReturns([]director.VMInfo{
+						{
+							JobName: "job1",
+						},
+						{
+							JobName: "job2",
+						}}, nil)
+					optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
+
+					boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
+						{
+							Username:  "username",
+							Host:      "hostname",
+							IndexOrID: "index",
+						},
+					}}, nil)
+
+					var connFactoryCallCount int
+					sshConnectionFactory.Stub = func(host, user, privateKey string) (bosh.SSHConnection, error) {
+						if connFactoryCallCount == 0 {
+							connFactoryCallCount++
+							return sshConnection, nil
+						}
+						return badSshConnection, nil
+					}
+				})
+
+				It("fails", func() {
+					Expect(actualError).To(MatchError(expectedError))
+				})
+
+				It("cleans up the successful SSH connection", func() {
+					Expect(sshConnection.CleanupCallCount()).To(Equal(1))
+					Expect(badSshConnection.CleanupCallCount()).To(Equal(1))
+					Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(2))
+				})
+			})
+
+			Context("succeeds creating ssh connections and finding scripts but fails to run metadata on a later connection", func() {
+				var badSshConnection *fakes.FakeSSHConnection
+
+				BeforeEach(func() {
+					badSshConnection = new(fakes.FakeSSHConnection)
+
+					boshDirector.FindDeploymentReturns(boshDeployment, nil)
+					boshDeployment.VMInfosReturns([]director.VMInfo{
+						{
+							JobName: "job1",
+						},
+						{
+							JobName: "job2",
+						}}, nil)
+					optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
+
+					boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
+						{
+							Username:  "username",
+							Host:      "hostname",
+							IndexOrID: "index",
+						},
+					}}, nil)
+
+					var connFactoryCallCount int
+					sshConnectionFactory.Stub = func(host, user, privateKey string) (bosh.SSHConnection, error) {
+						if connFactoryCallCount == 0 {
+							connFactoryCallCount++
+							return sshConnection, nil
+						}
+						return badSshConnection, nil
+					}
+
+					badSshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
+						if strings.HasPrefix(cmd, "find ") {
+							return nil, nil, 0, nil
+						}
+						return nil, nil, 0, expectedError
+					}
+				})
+
+				It("fails", func() {
+					Expect(actualError).To(MatchError(ContainSubstring(expectedError.Error())))
+				})
+
+				It("cleans up the successful SSH connection", func() {
+					Expect(sshConnection.CleanupCallCount()).To(Equal(1))
+					Expect(badSshConnection.CleanupCallCount()).To(Equal(1))
+					Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(2))
+				})
 			})
 
 			Context("we cant get scripts information", func() {

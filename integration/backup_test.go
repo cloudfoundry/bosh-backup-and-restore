@@ -426,6 +426,39 @@ exit 1`)
 			})
 		})
 
+		Context("backup metadata is invalid", func() {
+			AfterEach(func() {
+				instance1.DieInBackground()
+			})
+			BeforeEach(func() {
+				instance1 = testcluster.NewInstance()
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/p-metadata", `#!/usr/bin/env sh
+touch /tmp/p-metadata-output
+echo "not valid yaml
+"`)
+
+				director.VerifyAndMock(AppendBuilders(
+					VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+						{
+							IPs:     []string{"10.0.0.1"},
+							JobName: "redis-dedicated-node",
+						},
+					}),
+					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
+					CleanupSSH(deploymentName, "redis-dedicated-node"),
+				)...)
+			})
+
+			It("runs the p-metadata scripts", func() {
+				Expect(instance1.FileExists("/tmp/p-metadata-output")).To(BeTrue())
+			})
+
+			It("exits with the correct error code", func() {
+				Expect(session).To(gexec.Exit(1))
+			})
+
+		})
+
 		Context("if the artifact exists locally", func() {
 			BeforeEach(func() {
 				deploymentName = "already-backed-up-deployment"
