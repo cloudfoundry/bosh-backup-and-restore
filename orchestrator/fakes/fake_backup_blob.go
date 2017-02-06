@@ -61,6 +61,14 @@ type FakeBackupBlob struct {
 	deleteReturns     struct {
 		result1 error
 	}
+	StreamBackupToRemoteStub        func(io.Reader) error
+	streamBackupToRemoteMutex       sync.RWMutex
+	streamBackupToRemoteArgsForCall []struct {
+		arg1 io.Reader
+	}
+	streamBackupToRemoteReturns struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -267,6 +275,38 @@ func (fake *FakeBackupBlob) DeleteReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeBackupBlob) StreamBackupToRemote(arg1 io.Reader) error {
+	fake.streamBackupToRemoteMutex.Lock()
+	fake.streamBackupToRemoteArgsForCall = append(fake.streamBackupToRemoteArgsForCall, struct {
+		arg1 io.Reader
+	}{arg1})
+	fake.recordInvocation("StreamBackupToRemote", []interface{}{arg1})
+	fake.streamBackupToRemoteMutex.Unlock()
+	if fake.StreamBackupToRemoteStub != nil {
+		return fake.StreamBackupToRemoteStub(arg1)
+	}
+	return fake.streamBackupToRemoteReturns.result1
+}
+
+func (fake *FakeBackupBlob) StreamBackupToRemoteCallCount() int {
+	fake.streamBackupToRemoteMutex.RLock()
+	defer fake.streamBackupToRemoteMutex.RUnlock()
+	return len(fake.streamBackupToRemoteArgsForCall)
+}
+
+func (fake *FakeBackupBlob) StreamBackupToRemoteArgsForCall(i int) io.Reader {
+	fake.streamBackupToRemoteMutex.RLock()
+	defer fake.streamBackupToRemoteMutex.RUnlock()
+	return fake.streamBackupToRemoteArgsForCall[i].arg1
+}
+
+func (fake *FakeBackupBlob) StreamBackupToRemoteReturns(result1 error) {
+	fake.StreamBackupToRemoteStub = nil
+	fake.streamBackupToRemoteReturns = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeBackupBlob) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -286,6 +326,8 @@ func (fake *FakeBackupBlob) Invocations() map[string][][]interface{} {
 	defer fake.streamFromRemoteMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
+	fake.streamBackupToRemoteMutex.RLock()
+	defer fake.streamBackupToRemoteMutex.RUnlock()
 	return fake.invocations
 }
 

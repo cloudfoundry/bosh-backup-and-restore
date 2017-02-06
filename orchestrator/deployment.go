@@ -107,7 +107,7 @@ func (bd *BoshDeployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 				return err
 			}
 			if !localChecksum.Match(remoteChecksum) {
-				return fmt.Errorf("Backup artifact is corrupted, checksum failed for %s/%s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), remoteChecksum, localChecksum)
+				return fmt.Errorf("Backup artifact is corrupted, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), remoteArtifact.Name(), remoteChecksum, localChecksum)
 			}
 
 			artifact.AddChecksum(remoteArtifact, localChecksum)
@@ -127,28 +127,30 @@ func (bd *BoshDeployment) CopyLocalBackupToRemote(artifact Artifact) error {
 	instances := bd.instances.AllRestoreable()
 
 	for _, instance := range instances {
-		reader, err := artifact.ReadFile(instance)
+		for _, blob := range instance.Blobs() {
+			reader, err := artifact.ReadFile(blob)
 
-		if err != nil {
-			return err
-		}
+			if err != nil {
+				return err
+			}
 
-		bd.Logger.Info("", "Copying backup to %s-%s...", instance.Name(), instance.ID())
-		if err := instance.StreamBackupToRemote(reader); err != nil {
-			return err
-		}
+			bd.Logger.Info("", "Copying backup to %s-%s...", blob.Name(), blob.ID())
+			if err := blob.StreamBackupToRemote(reader); err != nil {
+				return err
+			}
 
-		localChecksum, err := artifact.FetchChecksum(instance)
-		if err != nil {
-			return err
-		}
+			localChecksum, err := artifact.FetchChecksum(blob)
+			if err != nil {
+				return err
+			}
 
-		remoteChecksum, err := instance.BackupChecksum()
-		if err != nil {
-			return err
-		}
-		if !localChecksum.Match(remoteChecksum) {
-			return fmt.Errorf("Backup couldn't be transfered, checksum failed for %s/%s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), remoteChecksum, localChecksum)
+			remoteChecksum, err := blob.BackupChecksum()
+			if err != nil {
+				return err
+			}
+			if !localChecksum.Match(remoteChecksum) {
+				return fmt.Errorf("Backup couldn't be transfered, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), blob.Name(), remoteChecksum, localChecksum)
+			}
 		}
 	}
 	return nil

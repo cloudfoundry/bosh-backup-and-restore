@@ -2,8 +2,9 @@ package instance
 
 import (
 	"fmt"
-	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 	"io"
+
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 )
 
 func NewDefaultBlob(instance orchestrator.Instance, sshConn SSHConnection, logger Logger) *DefaultBlob {
@@ -32,6 +33,34 @@ func (d *DefaultBlob) StreamFromRemote(writer io.Writer) error {
 
 	if exitCode != 0 {
 		return fmt.Errorf("Instance backup scripts returned %d. Error: %s", exitCode, stderr)
+	}
+
+	return err
+}
+
+func (d *DefaultBlob) StreamBackupToRemote(reader io.Reader) error {
+	stdout, stderr, exitCode, err := d.logAndRun("sudo mkdir -p /var/vcap/store/backup/", "create backup directory on remote")
+
+	if err != nil {
+		return err
+	}
+
+	if exitCode != 0 {
+		return fmt.Errorf("Creating backup directory on the remote returned %d. Error: %s", exitCode, stderr)
+	}
+
+	d.Logger.Debug("", "Streaming backup to instance %s/%s", d.Instance.Name(), d.Instance.ID())
+	stdout, stderr, exitCode, err = d.StreamStdin("sudo sh -c 'tar -C /var/vcap/store/backup -zx'", reader)
+
+	d.Logger.Debug("", "Stdout: %s", string(stdout))
+	d.Logger.Debug("", "Stderr: %s", string(stderr))
+
+	if err != nil {
+		d.Logger.Debug("", "Error streaming backup to remote instance. Exit code %d, error %s", exitCode, err.Error())
+	}
+
+	if exitCode != 0 {
+		return fmt.Errorf("Streaming backup to remote returned %d. Error: %s", exitCode, stderr)
 	}
 
 	return err
