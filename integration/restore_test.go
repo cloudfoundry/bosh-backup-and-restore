@@ -8,6 +8,10 @@ import (
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
 	"github.com/pivotal-cf/pcf-backup-and-restore/testcluster"
 
+	"archive/tar"
+	"bytes"
+	"compress/gzip"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -196,6 +200,79 @@ instances:
 		})
 	})
 
+	XContext("when deployment has named artifacts", func() {
+		var session *gexec.Session
+		var instance1 *testcluster.Instance
+		var deploymentName string
+
+		BeforeEach(func() {
+			instance1 = testcluster.NewInstance()
+			deploymentName = "my-new-deployment"
+			director.VerifyAndMock(AppendBuilders(VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+				{
+					IPs:     []string{"10.0.0.1"},
+					JobName: "redis-dedicated-node",
+					JobID:   "fake-uuid",
+				}}),
+				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
+				CleanupSSH(deploymentName, "redis-dedicated-node"))...)
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/p-metdata", `#!/usr/bin/env sh
+echo "---
+restore_name: foo
+"`)
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/p-restore", `#!/usr/bin/env sh
+set -u
+cp -r $ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
+
+			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
+instances:
+- instance_name: redis-dedicated-node
+  instance_index: 0
+  checksums: {}
+artifacts:
+- artifact_name: foo
+  checksums:
+    ./redis/redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
+
+			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
+			Expect(err).NotTo(HaveOccurred())
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tgz", backupContents)
+
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tgz", gzipContents(createTarWithContents(map[string]string{})))
+		})
+
+		JustBeforeEach(func() {
+			session = runBinary(
+				restoreWorkspace,
+				[]string{"BOSH_CLIENT_SECRET=admin"},
+				"--ca-cert", sslCertPath,
+				"--username", "admin",
+				"--debug",
+				"--target", director.URL,
+				"--deployment", deploymentName,
+				"restore")
+		})
+
+		AfterEach(func() {
+			Expect(os.RemoveAll(deploymentName)).To(Succeed())
+			instance1.DieInBackground()
+		})
+
+		It("does not fail", func() {
+			Expect(session.ExitCode()).To(Equal(0))
+		})
+
+		It("Cleans up the archive file on the remote", func() {
+			Expect(instance1.FileExists("/var/vcap/store/backup")).To(BeFalse())
+		})
+
+		It("Runs the restore script on the remote", func() {
+			Expect(instance1.FileExists("" +
+				"/redis-backup"))
+		})
+	})
+
 	Context("the cleanup fails", func() {
 		var session *gexec.Session
 		var instance1 *testcluster.Instance
@@ -268,4 +345,36 @@ func createFileWithContents(filePath string, contents []byte) {
 	_, err = file.Write([]byte(contents))
 	Expect(err).NotTo(HaveOccurred())
 	Expect(file.Close()).To(Succeed())
+}
+
+func gzipContents(contents []byte) []byte {
+	bytesBuffer := bytes.NewBuffer([]byte{})
+	gzipStream := gzip.NewWriter(bytesBuffer)
+	gzipStream.Write(contents)
+
+	Expect(gzipStream.Close()).NotTo(HaveOccurred())
+	return bytesBuffer.Bytes()
+}
+func createTarWithContents(files map[string]string) []byte {
+	bytesBuffer := bytes.NewBuffer([]byte{})
+	tarFile := tar.NewWriter(bytesBuffer)
+
+	for filename, contents := range files {
+		hdr := &tar.Header{
+			Name: filename,
+			Mode: 0600,
+			Size: int64(len(contents)),
+		}
+		if err := tarFile.WriteHeader(hdr); err != nil {
+			Expect(err).NotTo(HaveOccurred())
+		}
+		if _, err := tarFile.Write([]byte(contents)); err != nil {
+			Expect(err).NotTo(HaveOccurred())
+		}
+	}
+	if err := tarFile.Close(); err != nil {
+		Expect(err).NotTo(HaveOccurred())
+	}
+	Expect(tarFile.Close()).NotTo(HaveOccurred())
+	return bytesBuffer.Bytes()
 }
