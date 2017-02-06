@@ -537,7 +537,6 @@ var _ = Describe("Deployment", func() {
 		BeforeEach(func() {
 			reader = ioutil.NopCloser(bytes.NewBufferString("this-is-some-backup-data"))
 			instance1.IsRestorableReturns(true)
-			instance1.StreamBackupToRemoteReturns(nil)
 			instances = []orchestrator.Instance{instance1}
 			artifact = new(fakes.FakeArtifact)
 			artifact.ReadFileReturns(reader, nil)

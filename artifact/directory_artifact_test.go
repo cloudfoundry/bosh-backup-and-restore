@@ -546,7 +546,7 @@ artifacts:
 
 		Context("Appends to a checksum file, if already exists, with a default backup blob", func() {
 			BeforeEach(func() {
-				anotherRemoteArtifact := new(fakes.FakeInstance)
+				anotherRemoteArtifact := new(fakes.FakeBackupBlob)
 				anotherRemoteArtifact.IndexReturns("0")
 				anotherRemoteArtifact.NameReturns("broker")
 				Expect(artifact.AddChecksum(anotherRemoteArtifact, map[string]string{"filename1": "orignal_checksum"})).NotTo(HaveOccurred())
@@ -635,22 +635,22 @@ artifacts:
 	Describe("FetchChecksum", func() {
 		var artifact orchestrator.Artifact
 		var fetchChecksumError error
-		var fakeInstance *fakes.FakeInstance
+		var fakeBlob *fakes.FakeBackupBlob
 		var checksum orchestrator.BackupChecksum
 		BeforeEach(func() {
-			fakeInstance = new(fakes.FakeInstance)
+			fakeBlob = new(fakes.FakeBackupBlob)
 		})
 		JustBeforeEach(func() {
 			var artifactOpenError error
 			artifact, artifactOpenError = artifactManager.Open(artifactName, logger)
 			Expect(artifactOpenError).NotTo(HaveOccurred())
 
-			checksum, fetchChecksumError = artifact.FetchChecksum(fakeInstance)
+			checksum, fetchChecksumError = artifact.FetchChecksum(fakeBlob)
 		})
 		Context("the named backup blob is found in metadata", func() {
 			BeforeEach(func() {
-				fakeInstance.IsNamedReturns(true)
-				fakeInstance.NameReturns("foo")
+				fakeBlob.IsNamedReturns(true)
+				fakeBlob.NameReturns("foo")
 
 				createTestMetadata(artifactName, `---
 instances: []
@@ -671,8 +671,8 @@ artifacts:
 
 		Context("the default backup blob is found in metadata", func() {
 			BeforeEach(func() {
-				fakeInstance.NameReturns("foo")
-				fakeInstance.IndexReturns("bar")
+				fakeBlob.NameReturns("foo")
+				fakeBlob.IndexReturns("bar")
 
 				createTestMetadata(artifactName, `---
 instances:
@@ -692,8 +692,8 @@ instances:
 		})
 		Context("the default backup blob is not found in metadata", func() {
 			BeforeEach(func() {
-				fakeInstance.NameReturns("not-foo")
-				fakeInstance.IndexReturns("bar")
+				fakeBlob.NameReturns("not-foo")
+				fakeBlob.IndexReturns("bar")
 
 				createTestMetadata(artifactName, `---
 instances:
@@ -714,8 +714,8 @@ instances:
 
 		Context("the named backup blob is not found in metadata", func() {
 			BeforeEach(func() {
-				fakeInstance.NameReturns("not-foo")
-				fakeInstance.IsNamedReturns(true)
+				fakeBlob.NameReturns("not-foo")
+				fakeBlob.IsNamedReturns(true)
 
 				createTestMetadata(artifactName, `---
 instances:
@@ -736,8 +736,8 @@ instances:
 
 		Context("the instance is not found in metadata", func() {
 			BeforeEach(func() {
-				fakeInstance.NameReturns("not-foo")
-				fakeInstance.IndexReturns("bar")
+				fakeBlob.NameReturns("not-foo")
+				fakeBlob.IndexReturns("bar")
 
 				createTestMetadata(artifactName, `---
 instances:
