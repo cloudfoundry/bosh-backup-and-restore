@@ -31,8 +31,8 @@ func NewNamedBlob(instance orchestrator.Instance, job Job, sshConn SSHConnection
 }
 
 type NamedBlob struct {
-	Job Job
-	orchestrator.Instance
+	Job      Job
+	Instance orchestrator.Instance
 	SSHConnection
 	Logger
 }
@@ -52,6 +52,45 @@ func (d *NamedBlob) StreamFromRemote(writer io.Writer) error {
 	}
 
 	return err
+}
+
+func (d *NamedBlob) StreamBackupToRemote(reader io.Reader) error {
+	stdout, stderr, exitCode, err := d.logAndRun("sudo mkdir -p "+d.Job.ArtifactDirectory(), "create backup directory on remote")
+
+	if err != nil {
+		return err
+	}
+
+	if exitCode != 0 {
+		return fmt.Errorf("Creating backup directory on the remote returned %d. Error: %s", exitCode, stderr)
+	}
+
+	d.Logger.Debug("", "Streaming backup to instance %s/%s", d.Instance.Name(), d.Instance.ID())
+	stdout, stderr, exitCode, err = d.StreamStdin(fmt.Sprintf("sudo sh -c 'tar -C %s -zx'", d.Job.ArtifactDirectory()), reader)
+
+	d.Logger.Debug("", "Stdout: %s", string(stdout))
+	d.Logger.Debug("", "Stderr: %s", string(stderr))
+
+	if err != nil {
+		d.Logger.Debug("", "Error streaming backup to remote instance. Exit code %d, error %s", exitCode, err.Error())
+	}
+
+	if exitCode != 0 {
+		return fmt.Errorf("Streaming backup to remote returned %d. Error: %s", exitCode, stderr)
+	}
+
+	return err
+}
+
+func (d *NamedBlob) BackupSize() (string, error) {
+	stdout, stderr, exitCode, err := d.logAndRun(fmt.Sprintf("sudo du -sh %s | cut -f1", d.Job.ArtifactDirectory()), "check backup size")
+
+	if exitCode != 0 {
+		return "", fmt.Errorf("Unable to check size of backup: %s", stderr)
+	}
+
+	size := strings.TrimSpace(string(stdout))
+	return size, err
 }
 
 func (d *NamedBlob) BackupChecksum() (orchestrator.BackupChecksum, error) {
@@ -74,6 +113,14 @@ func (d *NamedBlob) IsNamed() bool {
 
 func (d *NamedBlob) Name() string {
 	return d.Job.blobName
+}
+
+func (d *NamedBlob) ID() string {
+	return d.Instance.ID()
+}
+
+func (d *NamedBlob) Index() string {
+	return ""
 }
 
 func (d *NamedBlob) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
