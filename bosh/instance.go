@@ -3,7 +3,6 @@ package bosh
 import (
 	"errors"
 	"fmt"
-	"io"
 	"strings"
 
 	"github.com/cloudfoundry/bosh-cli/director"
@@ -157,61 +156,8 @@ func (d *DeployedInstance) Restore() error {
 	return nil
 }
 
-func (d *DeployedInstance) StreamBackupToRemote(reader io.Reader) error {
-	stdout, stderr, exitCode, err := d.logAndRun("sudo mkdir -p /var/vcap/store/backup/", "create backup directory on remote")
-
-	if err != nil {
-		return err
-	}
-
-	if exitCode != 0 {
-		return fmt.Errorf("Creating backup directory on the remote returned %d. Error: %s", exitCode, stderr)
-	}
-
-	d.Logger.Debug("", "Streaming backup to instance %s/%s", d.InstanceGroupName, d.BoshInstanceID)
-	stdout, stderr, exitCode, err = d.StreamStdin("sudo sh -c 'tar -C /var/vcap/store/backup -zx'", reader)
-
-	d.Logger.Debug("", "Stdout: %s", string(stdout))
-	d.Logger.Debug("", "Stderr: %s", string(stderr))
-
-	if err != nil {
-		d.Logger.Debug("", "Error streaming backup to remote instance. Exit code %d, error %s", exitCode, err.Error())
-	}
-
-	if exitCode != 0 {
-		return fmt.Errorf("Streaming backup to remote returned %d. Error: %s", exitCode, stderr)
-	}
-
-	return err
-}
-
-func (d *DeployedInstance) BackupChecksum() (orchestrator.BackupChecksum, error) {
-	stdout, stderr, exitCode, err := d.logAndRun("cd /var/vcap/store/backup; sudo sh -c 'find . -type f | xargs shasum'", "checksum")
-
-	if err != nil {
-		return nil, err
-	}
-
-	if exitCode != 0 {
-		return nil, fmt.Errorf("Instance checksum returned %d. Error: %s", exitCode, stderr)
-	}
-
-	return convertShasToMap(string(stdout)), nil
-}
-
 func (d *DeployedInstance) IsRestorable() bool {
 	return d.Jobs.AnyAreRestorable()
-}
-
-func (d *DeployedInstance) BackupSize() (string, error) {
-	stdout, stderr, exitCode, err := d.logAndRun("sudo du -sh /var/vcap/store/backup/ | cut -f1", "check backup size")
-
-	if exitCode != 0 {
-		return "", fmt.Errorf("Unable to check size of backup: %s", stderr)
-	}
-
-	size := strings.TrimSpace(string(stdout))
-	return size, err
 }
 
 func (d *DeployedInstance) Cleanup() error {
@@ -320,11 +266,6 @@ func (d *DeployedInstance) handleErrs(jobName, label string, err error, exitCode
 func (d *DeployedInstance) removeBackupArtifacts() error {
 	_, _, _, err := d.logAndRun("sudo rm -rf /var/vcap/store/backup", "remove backup artifacts")
 	return err
-}
-
-//TODO: Method here to enable continuous integration, delete after the restore flow works with remote artifacts
-func (d *DeployedInstance) IsNamed() bool {
-	return false
 }
 
 func convertShasToMap(shas string) map[string]string {

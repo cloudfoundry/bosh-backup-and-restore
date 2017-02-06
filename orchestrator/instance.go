@@ -23,12 +23,6 @@ type Instance interface {
 	Cleanup() error
 	Blobs() []BackupBlob
 	CustomBlobNames() []string
-
-	//TODO: Remove from instance
-	IsNamed() bool //TODO: Method here to enable continuous integration, delete after the restore flow works with remote artifacts
-	BackupSize() (string, error)
-	BackupChecksum() (BackupChecksum, error)
-	StreamBackupToRemote(io.Reader) error
 }
 
 type BackupBlobIdentifier interface {

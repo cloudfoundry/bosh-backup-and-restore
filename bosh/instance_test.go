@@ -1,11 +1,9 @@
 package bosh_test
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 
-	"errors"
 	"strings"
 
 	"github.com/cloudfoundry/bosh-cli/director"
@@ -755,78 +753,6 @@ var _ = Describe("Instance", func() {
 		})
 	})
 
-	Describe("StreamBackupToRemote", func() {
-		var err error
-		var reader = bytes.NewBufferString("dave")
-
-		JustBeforeEach(func() {
-			err = backuperInstance.StreamBackupToRemote(reader)
-		})
-
-		Describe("when successful", func() {
-			It("uses the ssh connection to make the backup directory on the remote machine", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				command := sshConnection.RunArgsForCall(0)
-				Expect(command).To(Equal("sudo mkdir -p /var/vcap/store/backup/"))
-			})
-
-			It("uses the ssh connection to stream files from the remote machine", func() {
-				Expect(sshConnection.StreamStdinCallCount()).To(Equal(1))
-				command, sentReader := sshConnection.StreamStdinArgsForCall(0)
-				Expect(command).To(Equal("sudo sh -c 'tar -C /var/vcap/store/backup -zx'"))
-				Expect(reader).To(Equal(sentReader))
-			})
-
-			It("does not fail", func() {
-				Expect(err).NotTo(HaveOccurred())
-			})
-		})
-
-		Describe("when the remote side returns an error", func() {
-			BeforeEach(func() {
-				sshConnection.StreamStdinReturns([]byte("not relevant"), []byte("The beauty of me is that I’m very rich."), 1, nil)
-			})
-
-			It("fails and return the error", func() {
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("The beauty of me is that I’m very rich."))
-			})
-		})
-
-		Describe("when there is an error running the stream", func() {
-			BeforeEach(func() {
-				sshConnection.StreamStdinReturns([]byte("not relevant"), []byte("not relevant"), 0, fmt.Errorf("My Twitter has become so powerful"))
-			})
-
-			It("fails", func() {
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("My Twitter has become so powerful"))
-			})
-		})
-
-		Describe("when creating the directory fails on the remote", func() {
-			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 1, nil)
-			})
-
-			It("fails and returns the error", func() {
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("Creating backup directory on the remote returned 1"))
-			})
-		})
-
-		Describe("when creating the directory fails because of a connection error", func() {
-			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, fmt.Errorf("These media people. The most dishonest people"))
-			})
-
-			It("fails and returns the error", func() {
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError("These media people. The most dishonest people"))
-			})
-		})
-	})
-
 	Describe("Cleanup", func() {
 		var actualError error
 		var expectedError error
@@ -895,83 +821,6 @@ var _ = Describe("Instance", func() {
 		})
 	})
 
-	Describe("BackupChecksum", func() {
-		var actualChecksum map[string]string
-		var actualChecksumError error
-		JustBeforeEach(func() {
-			actualChecksum, actualChecksumError = backuperInstance.BackupChecksum()
-		})
-		Context("triggers find & shasum as root", func() {
-			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("not relevant"), nil, 0, nil)
-			})
-			It("generates the correct request", func() {
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("cd /var/vcap/store/backup; sudo sh -c 'find . -type f | xargs shasum'"))
-			})
-		})
-		Context("can calculate checksum", func() {
-			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e  file1\n07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e  file2\nn87fc29fb3aacd99f7f7b81df9c43b13e71c56a1e file3/file4"), nil, 0, nil)
-			})
-			It("converts the checksum to a map", func() {
-				Expect(actualChecksumError).NotTo(HaveOccurred())
-				Expect(actualChecksum).To(Equal(map[string]string{
-					"file1":       "07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
-					"file2":       "07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
-					"file3/file4": "n87fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
-				}))
-			})
-		})
-		Context("can calculate checksum, with trailing spaces", func() {
-			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e file1\n"), nil, 0, nil)
-			})
-			It("converts the checksum to a map", func() {
-				Expect(actualChecksumError).NotTo(HaveOccurred())
-				Expect(actualChecksum).To(Equal(map[string]string{
-					"file1": "07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
-				}))
-			})
-		})
-		Context("sha output is empty", func() {
-			BeforeEach(func() {
-				sshConnection.RunReturns([]byte(""), nil, 0, nil)
-			})
-			It("converts an empty map", func() {
-				Expect(actualChecksumError).NotTo(HaveOccurred())
-				Expect(actualChecksum).To(Equal(map[string]string{}))
-			})
-		})
-		Context("sha for a empty directory", func() {
-			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("da39a3ee5e6b4b0d3255bfef95601890afd80709  -"), nil, 0, nil)
-			})
-			It("reject '-' as a filename", func() {
-				Expect(actualChecksumError).NotTo(HaveOccurred())
-				Expect(actualChecksum).To(Equal(map[string]string{}))
-			})
-		})
-
-		Context("fails to calculate checksum", func() {
-			expectedErr := fmt.Errorf("some error")
-
-			BeforeEach(func() {
-				sshConnection.RunReturns(nil, nil, 0, expectedErr)
-			})
-			It("returns an error", func() {
-				Expect(actualChecksumError).To(MatchError(expectedErr))
-			})
-		})
-		Context("fails to execute the command", func() {
-			BeforeEach(func() {
-				sshConnection.RunReturns(nil, nil, 1, nil)
-			})
-			It("returns an error", func() {
-				Expect(actualChecksumError).To(HaveOccurred())
-			})
-		})
-	})
-
 	Describe("Name", func() {
 		It("returns the instance name", func() {
 			Expect(backuperInstance.Name()).To(Equal("job-name"))
@@ -982,63 +831,6 @@ var _ = Describe("Instance", func() {
 		It("returns the instance Index", func() {
 			Expect(backuperInstance.Index()).To(Equal("job-index"))
 		})
-	})
-
-	Describe("BackupSize", func() {
-		Context("when there is a backup", func() {
-			var size string
-
-			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("4.1G\n"), nil, 0, nil)
-			})
-
-			JustBeforeEach(func() {
-				size, _ = backuperInstance.BackupSize()
-			})
-
-			It("returns the size of the backup according to the root user, as a string", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh /var/vcap/store/backup/ | cut -f1"))
-				Expect(size).To(Equal("4.1G"))
-			})
-		})
-
-		Context("when there is no backup directory", func() {
-			var err error
-
-			BeforeEach(func() {
-				sshConnection.RunReturns(nil, nil, 1, nil) // simulating file not found
-			})
-
-			JustBeforeEach(func() {
-				_, err = backuperInstance.BackupSize()
-			})
-
-			It("returns the size of the backup according to the root user, as a string", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh /var/vcap/store/backup/ | cut -f1"))
-				Expect(err).To(HaveOccurred())
-			})
-		})
-
-		Context("when an error occurs", func() {
-			var err error
-			var actualError = errors.New("we will load it up with some bad dudes")
-
-			BeforeEach(func() {
-				sshConnection.RunReturns(nil, nil, 0, actualError)
-			})
-
-			JustBeforeEach(func() {
-				_, err = backuperInstance.BackupSize()
-			})
-
-			It("returns the error", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(err).To(MatchError(actualError))
-			})
-		})
-
 	})
 
 	Describe("Blobs", func() {

@@ -2,7 +2,6 @@
 package fakes
 
 import (
-	"io"
 	"sync"
 
 	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
@@ -81,28 +80,6 @@ type FakeInstance struct {
 	cleanupReturns     struct {
 		result1 error
 	}
-	StreamBackupToRemoteStub        func(io.Reader) error
-	streamBackupToRemoteMutex       sync.RWMutex
-	streamBackupToRemoteArgsForCall []struct {
-		arg1 io.Reader
-	}
-	streamBackupToRemoteReturns struct {
-		result1 error
-	}
-	BackupSizeStub        func() (string, error)
-	backupSizeMutex       sync.RWMutex
-	backupSizeArgsForCall []struct{}
-	backupSizeReturns     struct {
-		result1 string
-		result2 error
-	}
-	BackupChecksumStub        func() (orchestrator.BackupChecksum, error)
-	backupChecksumMutex       sync.RWMutex
-	backupChecksumArgsForCall []struct{}
-	backupChecksumReturns     struct {
-		result1 orchestrator.BackupChecksum
-		result2 error
-	}
 	BlobsStub        func() []orchestrator.BackupBlob
 	blobsMutex       sync.RWMutex
 	blobsArgsForCall []struct{}
@@ -114,12 +91,6 @@ type FakeInstance struct {
 	customBlobNamesArgsForCall []struct{}
 	customBlobNamesReturns     struct {
 		result1 []string
-	}
-	IsNamedStub        func() bool
-	isNamedMutex       sync.RWMutex
-	isNamedArgsForCall []struct{}
-	isNamedReturns     struct {
-		result1 bool
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -413,88 +384,6 @@ func (fake *FakeInstance) CleanupReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeInstance) StreamBackupToRemote(arg1 io.Reader) error {
-	fake.streamBackupToRemoteMutex.Lock()
-	fake.streamBackupToRemoteArgsForCall = append(fake.streamBackupToRemoteArgsForCall, struct {
-		arg1 io.Reader
-	}{arg1})
-	fake.recordInvocation("StreamBackupToRemote", []interface{}{arg1})
-	fake.streamBackupToRemoteMutex.Unlock()
-	if fake.StreamBackupToRemoteStub != nil {
-		return fake.StreamBackupToRemoteStub(arg1)
-	}
-	return fake.streamBackupToRemoteReturns.result1
-}
-
-func (fake *FakeInstance) StreamBackupToRemoteCallCount() int {
-	fake.streamBackupToRemoteMutex.RLock()
-	defer fake.streamBackupToRemoteMutex.RUnlock()
-	return len(fake.streamBackupToRemoteArgsForCall)
-}
-
-func (fake *FakeInstance) StreamBackupToRemoteArgsForCall(i int) io.Reader {
-	fake.streamBackupToRemoteMutex.RLock()
-	defer fake.streamBackupToRemoteMutex.RUnlock()
-	return fake.streamBackupToRemoteArgsForCall[i].arg1
-}
-
-func (fake *FakeInstance) StreamBackupToRemoteReturns(result1 error) {
-	fake.StreamBackupToRemoteStub = nil
-	fake.streamBackupToRemoteReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeInstance) BackupSize() (string, error) {
-	fake.backupSizeMutex.Lock()
-	fake.backupSizeArgsForCall = append(fake.backupSizeArgsForCall, struct{}{})
-	fake.recordInvocation("BackupSize", []interface{}{})
-	fake.backupSizeMutex.Unlock()
-	if fake.BackupSizeStub != nil {
-		return fake.BackupSizeStub()
-	}
-	return fake.backupSizeReturns.result1, fake.backupSizeReturns.result2
-}
-
-func (fake *FakeInstance) BackupSizeCallCount() int {
-	fake.backupSizeMutex.RLock()
-	defer fake.backupSizeMutex.RUnlock()
-	return len(fake.backupSizeArgsForCall)
-}
-
-func (fake *FakeInstance) BackupSizeReturns(result1 string, result2 error) {
-	fake.BackupSizeStub = nil
-	fake.backupSizeReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeInstance) BackupChecksum() (orchestrator.BackupChecksum, error) {
-	fake.backupChecksumMutex.Lock()
-	fake.backupChecksumArgsForCall = append(fake.backupChecksumArgsForCall, struct{}{})
-	fake.recordInvocation("BackupChecksum", []interface{}{})
-	fake.backupChecksumMutex.Unlock()
-	if fake.BackupChecksumStub != nil {
-		return fake.BackupChecksumStub()
-	}
-	return fake.backupChecksumReturns.result1, fake.backupChecksumReturns.result2
-}
-
-func (fake *FakeInstance) BackupChecksumCallCount() int {
-	fake.backupChecksumMutex.RLock()
-	defer fake.backupChecksumMutex.RUnlock()
-	return len(fake.backupChecksumArgsForCall)
-}
-
-func (fake *FakeInstance) BackupChecksumReturns(result1 orchestrator.BackupChecksum, result2 error) {
-	fake.BackupChecksumStub = nil
-	fake.backupChecksumReturns = struct {
-		result1 orchestrator.BackupChecksum
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeInstance) Blobs() []orchestrator.BackupBlob {
 	fake.blobsMutex.Lock()
 	fake.blobsArgsForCall = append(fake.blobsArgsForCall, struct{}{})
@@ -543,30 +432,6 @@ func (fake *FakeInstance) CustomBlobNamesReturns(result1 []string) {
 	}{result1}
 }
 
-func (fake *FakeInstance) IsNamed() bool {
-	fake.isNamedMutex.Lock()
-	fake.isNamedArgsForCall = append(fake.isNamedArgsForCall, struct{}{})
-	fake.recordInvocation("IsNamed", []interface{}{})
-	fake.isNamedMutex.Unlock()
-	if fake.IsNamedStub != nil {
-		return fake.IsNamedStub()
-	}
-	return fake.isNamedReturns.result1
-}
-
-func (fake *FakeInstance) IsNamedCallCount() int {
-	fake.isNamedMutex.RLock()
-	defer fake.isNamedMutex.RUnlock()
-	return len(fake.isNamedArgsForCall)
-}
-
-func (fake *FakeInstance) IsNamedReturns(result1 bool) {
-	fake.IsNamedStub = nil
-	fake.isNamedReturns = struct {
-		result1 bool
-	}{result1}
-}
-
 func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -594,18 +459,10 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.restoreMutex.RUnlock()
 	fake.cleanupMutex.RLock()
 	defer fake.cleanupMutex.RUnlock()
-	fake.streamBackupToRemoteMutex.RLock()
-	defer fake.streamBackupToRemoteMutex.RUnlock()
-	fake.backupSizeMutex.RLock()
-	defer fake.backupSizeMutex.RUnlock()
-	fake.backupChecksumMutex.RLock()
-	defer fake.backupChecksumMutex.RUnlock()
 	fake.blobsMutex.RLock()
 	defer fake.blobsMutex.RUnlock()
 	fake.customBlobNamesMutex.RLock()
 	defer fake.customBlobNamesMutex.RUnlock()
-	fake.isNamedMutex.RLock()
-	defer fake.isNamedMutex.RUnlock()
 	return fake.invocations
 }
 
