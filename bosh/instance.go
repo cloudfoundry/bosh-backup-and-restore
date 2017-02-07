@@ -189,6 +189,21 @@ func (d *DeployedInstance) BlobsToBackup() []orchestrator.BackupBlob {
 	return blobs
 }
 
+func (d *DeployedInstance) BlobsToRestore() []orchestrator.RestoreBlob {
+	blobs := []orchestrator.RestoreBlob{}
+
+	for _, job := range d.Jobs.WithNamedRestoreBlobs() {
+		blobs = append(blobs, instance.NewNamedBlob(d, job, d.SSHConnection, d.Logger))
+	}
+
+	blobs = append(blobs, &instance.DefaultBlob{
+		Instance:      d,
+		SSHConnection: d.SSHConnection,
+		Logger:        d.Logger,
+	})
+	return blobs
+}
+
 func (d *DeployedInstance) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
 	d.Logger.Debug("", "Running %s on %s/%s", label, d.InstanceGroupName, d.BoshInstanceID)
 

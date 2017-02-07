@@ -875,7 +875,51 @@ var _ = Describe("Instance", func() {
 				Expect(backupBlobs[0]).To(Equal(instance.NewNamedBlob(
 					backuperInstance, instance.NewJob(backupAndRestoreScripts, instance.Metadata{BackupName: "my-blob"}), sshConnection, boshLogger)))
 			})
+		})
+	})
 
+	Describe("RestoreBlobs", func() {
+		var restoreBlobs []orchestrator.RestoreBlob
+
+		JustBeforeEach(func() {
+			restoreBlobs = backuperInstance.BlobsToRestore()
+		})
+
+		Context("Has no named restore blobs", func() {
+			It("returns the default blob", func() {
+				Expect(restoreBlobs).To(Equal([]orchestrator.RestoreBlob{instance.NewDefaultBlob(backuperInstance, sshConnection, boshLogger)}))
+			})
+		})
+
+		Context("Has a named restore blob", func() {
+			BeforeEach(func() {
+				backupAndRestoreScripts = []instance.Script{
+					"/var/vcap/jobs/job-name/bin/p-restore",
+				}
+				blobMetadata = map[string]instance.Metadata{
+					"job-name": {RestoreName: "my-blob"},
+				}
+			})
+
+			It("returns the named blob and the default blob", func() {
+				Expect(restoreBlobs).To(Equal(
+					[]orchestrator.RestoreBlob{
+						instance.NewNamedBlob(backuperInstance, instance.NewJob(
+							backupAndRestoreScripts, instance.Metadata{RestoreName: "my-blob"},
+						), sshConnection, boshLogger),
+						instance.NewDefaultBlob(backuperInstance, sshConnection, boshLogger),
+					},
+				))
+			})
+
+			It("returns the default blob the last", func() {
+				Expect(restoreBlobs[1]).To(Equal(instance.NewDefaultBlob(backuperInstance, sshConnection, boshLogger)))
+			})
+
+			It("returns the named blob first", func() {
+				Expect(restoreBlobs[0]).To(Equal(instance.NewNamedBlob(
+					backuperInstance, instance.NewJob(backupAndRestoreScripts, instance.Metadata{RestoreName: "my-blob"}), sshConnection, boshLogger)))
+			})
 		})
 	})
 
