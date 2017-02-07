@@ -1,6 +1,6 @@
 package instance
 
-import "github.com/pivotal-golang/yaml"
+import "gopkg.in/yaml.v2"
 
 type Metadata struct {
 	BackupName  string `yaml:"backup_name"`
