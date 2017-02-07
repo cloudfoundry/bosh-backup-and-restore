@@ -273,10 +273,10 @@ var _ = Describe("Jobs", func() {
 		})
 	})
 
-	Context("contains no jobs with named blobs", func() {
-		Describe("WithNamedBlobs", func() {
+	Context("contains no jobs with named backup blobs", func() {
+		Describe("WithNamedBackupBlobs", func() {
 			It("returns empty", func() {
-				Expect(jobs.WithNamedBlobs()).To(BeEmpty())
+				Expect(jobs.WithNamedBackupBlobs()).To(BeEmpty())
 			})
 		})
 
@@ -287,7 +287,7 @@ var _ = Describe("Jobs", func() {
 		})
 	})
 
-	Context("contains jobs with a named blob", func() {
+	Context("contains jobs with a named backup blob", func() {
 		BeforeEach(func() {
 			artifactNames = map[string]instance.Metadata{
 				"bar": {
@@ -302,15 +302,15 @@ var _ = Describe("Jobs", func() {
 			}
 		})
 
-		Describe("NamedBlobs", func() {
+		Describe("NamedBackupBlobs", func() {
 			It("returns a list of blob names", func() {
-				Expect(jobs.NamedBlobs()).To(ConsistOf("my-cool-blob"))
+				Expect(jobs.NamedBackupBlobs()).To(ConsistOf("my-cool-blob"))
 			})
 		})
 
-		Describe("WithNamedBlobs", func() {
-			It("returns jobs with named blobs", func() {
-				Expect(jobs.WithNamedBlobs()).To(ConsistOf(instance.NewJob(
+		Describe("WithNamedBackupBlobs", func() {
+			It("returns jobs with named backup blobs", func() {
+				Expect(jobs.WithNamedBackupBlobs()).To(ConsistOf(instance.NewJob(
 					instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/bar/bin/p-backup",
 						"/var/vcap/jobs/bar/bin/p-restore",
@@ -318,6 +318,47 @@ var _ = Describe("Jobs", func() {
 						BackupName: "my-cool-blob",
 					}),
 				))
+			})
+		})
+	})
+
+	Context("contains jobs with a named restore blob", func() {
+		BeforeEach(func() {
+			artifactNames = map[string]instance.Metadata{
+				"bar": {
+					RestoreName: "my-cool-restore",
+				},
+			}
+			scripts = instance.BackupAndRestoreScripts{
+				"/var/vcap/jobs/bar/bin/p-backup",
+				"/var/vcap/jobs/bar/bin/p-restore",
+				"/var/vcap/jobs/foo/bin/p-backup",
+				"/var/vcap/jobs/baz/bin/p-restore",
+			}
+		})
+
+		Describe("NamedRestoreBlobs", func() {
+			It("returns a list of blob names", func() {
+				Expect(jobs.NamedRestoreBlobs()).To(ConsistOf("my-cool-restore"))
+			})
+		})
+
+		Describe("WithNamedRestoreBlobs", func() {
+			It("returns jobs with named backup blobs", func() {
+				Expect(jobs.WithNamedRestoreBlobs()).To(ConsistOf(instance.NewJob(
+					instance.BackupAndRestoreScripts{
+						"/var/vcap/jobs/bar/bin/p-backup",
+						"/var/vcap/jobs/bar/bin/p-restore",
+					}, instance.Metadata{
+						RestoreName: "my-cool-restore",
+					}),
+				))
+			})
+		})
+
+		Describe("WithNamedBackupBlobs", func() {
+			It("returns empty", func() {
+				Expect(jobs.WithNamedBackupBlobs()).To(BeEmpty())
 			})
 		})
 	})

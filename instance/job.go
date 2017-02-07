@@ -27,8 +27,12 @@ func (j Job) Name() string {
 	return j.name
 }
 
-func (j Job) BlobName() string {
+func (j Job) BackupBlobName() string {
 	return j.metadata.BackupName
+}
+
+func (j Job) RestoreBlobName() string {
+	return j.metadata.RestoreName
 }
 
 func (j Job) ArtifactDirectory() string {
@@ -67,13 +71,17 @@ func (j Job) HasPostBackup() bool {
 	return j.PostBackupScript() != ""
 }
 
-func (j Job) HasNamedBlob() bool {
-	return j.metadata != (Metadata{})
+func (j Job) HasNamedBackupBlob() bool {
+	return j.metadata.BackupName != ""
+}
+
+func (j Job) HasNamedRestoreBlob() bool {
+	return j.metadata.RestoreName != ""
 }
 
 func (j Job) artifactOrJobName() string {
-	if j.HasNamedBlob() {
-		return j.BlobName()
+	if j.HasNamedBackupBlob() {
+		return j.BackupBlobName()
 	}
 
 	return j.name

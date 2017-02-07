@@ -60,7 +60,7 @@ var _ = Describe("Job", func() {
 		})
 	})
 
-	Describe("BlobName", func() {
+	Describe("BackupBlobName", func() {
 		Context("the job has a custom backup blob name", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
@@ -69,16 +69,35 @@ var _ = Describe("Job", func() {
 			})
 
 			It("returns the job's custom backup blob name", func() {
-				Expect(job.BlobName()).To(Equal("fool"))
+				Expect(job.BackupBlobName()).To(Equal("fool"))
 			})
 		})
 
 		Context("the job does not have a custom backup blob name", func() {
 			It("returns empty string", func() {
-				Expect(job.BlobName()).To(Equal(""))
+				Expect(job.BackupBlobName()).To(Equal(""))
+			})
+		})
+	})
+
+	Describe("RestoreBlobName", func() {
+		Context("the job has a custom backup blob name", func() {
+			BeforeEach(func() {
+				metadata = instance.Metadata{
+					RestoreName: "bard",
+				}
+			})
+
+			It("returns the job's custom backup blob name", func() {
+				Expect(job.RestoreBlobName()).To(Equal("bard"))
 			})
 		})
 
+		Context("the job does not have a custom backup blob name", func() {
+			It("returns empty string", func() {
+				Expect(job.RestoreBlobName()).To(Equal(""))
+			})
+		})
 	})
 
 	Describe("HasBackup", func() {
@@ -183,12 +202,12 @@ var _ = Describe("Job", func() {
 		})
 	})
 
-	Describe("HasNamedBlob", func() {
+	Describe("HasNamedBackupBlob", func() {
 		It("returns false", func() {
-			Expect(job.HasNamedBlob()).To(BeFalse())
+			Expect(job.HasNamedBackupBlob()).To(BeFalse())
 		})
 
-		Context("when the job has a named blob", func() {
+		Context("when the job has a named backup blob", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
 					BackupName: "foo",
@@ -196,7 +215,49 @@ var _ = Describe("Job", func() {
 			})
 
 			It("returns true", func() {
-				Expect(job.HasNamedBlob()).To(BeTrue())
+				Expect(job.HasNamedBackupBlob()).To(BeTrue())
+			})
+		})
+
+		Context("when the job has a named restore blob", func() {
+			BeforeEach(func() {
+				metadata = instance.Metadata{
+					RestoreName: "foo",
+				}
+			})
+
+			It("returns false", func() {
+				Expect(job.HasNamedBackupBlob()).To(BeFalse())
+			})
+		})
+	})
+
+	Describe("HasNamedRestoreBlob", func() {
+		It("returns false", func() {
+			Expect(job.HasNamedRestoreBlob()).To(BeFalse())
+		})
+
+		Context("when the job has a named restore blob", func() {
+			BeforeEach(func() {
+				metadata = instance.Metadata{
+					RestoreName: "foo",
+				}
+			})
+
+			It("returns true", func() {
+				Expect(job.HasNamedRestoreBlob()).To(BeTrue())
+			})
+		})
+
+		Context("when the job has a named backup blob", func() {
+			BeforeEach(func() {
+				metadata = instance.Metadata{
+					BackupName: "foo",
+				}
+			})
+
+			It("returns false", func() {
+				Expect(job.HasNamedRestoreBlob()).To(BeFalse())
 			})
 		})
 	})

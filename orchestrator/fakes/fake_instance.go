@@ -80,10 +80,10 @@ type FakeInstance struct {
 	cleanupReturns     struct {
 		result1 error
 	}
-	BlobsStub        func() []orchestrator.BackupBlob
-	blobsMutex       sync.RWMutex
-	blobsArgsForCall []struct{}
-	blobsReturns     struct {
+	BlobsToBackupStub        func() []orchestrator.BackupBlob
+	blobsToBackupMutex       sync.RWMutex
+	blobsToBackupArgsForCall []struct{}
+	blobsToBackupReturns     struct {
 		result1 []orchestrator.BackupBlob
 	}
 	CustomBlobNamesStub        func() []string
@@ -384,26 +384,26 @@ func (fake *FakeInstance) CleanupReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeInstance) Blobs() []orchestrator.BackupBlob {
-	fake.blobsMutex.Lock()
-	fake.blobsArgsForCall = append(fake.blobsArgsForCall, struct{}{})
-	fake.recordInvocation("Blobs", []interface{}{})
-	fake.blobsMutex.Unlock()
-	if fake.BlobsStub != nil {
-		return fake.BlobsStub()
+func (fake *FakeInstance) BlobsToBackup() []orchestrator.BackupBlob {
+	fake.blobsToBackupMutex.Lock()
+	fake.blobsToBackupArgsForCall = append(fake.blobsToBackupArgsForCall, struct{}{})
+	fake.recordInvocation("BlobsToBackup", []interface{}{})
+	fake.blobsToBackupMutex.Unlock()
+	if fake.BlobsToBackupStub != nil {
+		return fake.BlobsToBackupStub()
 	}
-	return fake.blobsReturns.result1
+	return fake.blobsToBackupReturns.result1
 }
 
-func (fake *FakeInstance) BlobsCallCount() int {
-	fake.blobsMutex.RLock()
-	defer fake.blobsMutex.RUnlock()
-	return len(fake.blobsArgsForCall)
+func (fake *FakeInstance) BlobsToBackupCallCount() int {
+	fake.blobsToBackupMutex.RLock()
+	defer fake.blobsToBackupMutex.RUnlock()
+	return len(fake.blobsToBackupArgsForCall)
 }
 
-func (fake *FakeInstance) BlobsReturns(result1 []orchestrator.BackupBlob) {
-	fake.BlobsStub = nil
-	fake.blobsReturns = struct {
+func (fake *FakeInstance) BlobsToBackupReturns(result1 []orchestrator.BackupBlob) {
+	fake.BlobsToBackupStub = nil
+	fake.blobsToBackupReturns = struct {
 		result1 []orchestrator.BackupBlob
 	}{result1}
 }
@@ -459,8 +459,8 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.restoreMutex.RUnlock()
 	fake.cleanupMutex.RLock()
 	defer fake.cleanupMutex.RUnlock()
-	fake.blobsMutex.RLock()
-	defer fake.blobsMutex.RUnlock()
+	fake.blobsToBackupMutex.RLock()
+	defer fake.blobsToBackupMutex.RUnlock()
 	fake.customBlobNamesMutex.RLock()
 	defer fake.customBlobNamesMutex.RUnlock()
 	return fake.invocations

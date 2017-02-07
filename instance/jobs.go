@@ -57,21 +57,52 @@ func (jobs Jobs) AnyArePostBackupable() bool {
 	return !jobs.PostBackupable().empty()
 }
 
-func (jobs Jobs) WithNamedBlobs() Jobs {
+func (jobs Jobs) WithNamedBackupBlobs() Jobs {
 	jobsWithNamedBlobs := Jobs{}
 	for _, job := range jobs {
-		if job.HasNamedBlob() {
+		if job.HasNamedBackupBlob() {
 			jobsWithNamedBlobs = append(jobsWithNamedBlobs, job)
 		}
 	}
 	return jobsWithNamedBlobs
 }
 
+func (jobs Jobs) WithNamedRestoreBlobs() Jobs {
+	jobsWithNamedBlobs := Jobs{}
+	for _, job := range jobs {
+		if job.HasNamedRestoreBlob() {
+			jobsWithNamedBlobs = append(jobsWithNamedBlobs, job)
+		}
+	}
+	return jobsWithNamedBlobs
+}
+
+// TODO: deleteme
 func (jobs Jobs) NamedBlobs() []string {
 	var blobNames []string
 
-	for _, job := range jobs.WithNamedBlobs() {
-		blobNames = append(blobNames, job.BlobName())
+	for _, job := range jobs.WithNamedBackupBlobs() {
+		blobNames = append(blobNames, job.BackupBlobName())
+	}
+
+	return blobNames
+}
+
+func (jobs Jobs) NamedBackupBlobs() []string {
+	var blobNames []string
+
+	for _, job := range jobs.WithNamedBackupBlobs() {
+		blobNames = append(blobNames, job.BackupBlobName())
+	}
+
+	return blobNames
+}
+
+func (jobs Jobs) NamedRestoreBlobs() []string {
+	var blobNames []string
+
+	for _, job := range jobs.WithNamedRestoreBlobs() {
+		blobNames = append(blobNames, job.RestoreBlobName())
 	}
 
 	return blobNames

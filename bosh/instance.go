@@ -174,10 +174,10 @@ func (d *DeployedInstance) Cleanup() error {
 	return errs
 }
 
-func (d *DeployedInstance) Blobs() []orchestrator.BackupBlob {
+func (d *DeployedInstance) BlobsToBackup() []orchestrator.BackupBlob {
 	blobs := []orchestrator.BackupBlob{}
 
-	for _, job := range d.Jobs.WithNamedBlobs() {
+	for _, job := range d.Jobs.WithNamedBackupBlobs() {
 		blobs = append(blobs, instance.NewNamedBlob(d, job, d.SSHConnection, d.Logger))
 	}
 

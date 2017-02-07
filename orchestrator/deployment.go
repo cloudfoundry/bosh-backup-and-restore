@@ -76,7 +76,7 @@ func (bd *BoshDeployment) IsRestorable() bool {
 func (bd *BoshDeployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 	instances := bd.instances.AllBackupable()
 	for _, instance := range instances {
-		for _, remoteArtifact := range instance.Blobs() {
+		for _, remoteArtifact := range instance.BlobsToBackup() {
 			writer, err := artifact.CreateFile(remoteArtifact)
 
 			if err != nil {
@@ -127,7 +127,7 @@ func (bd *BoshDeployment) CopyLocalBackupToRemote(artifact Artifact) error {
 	instances := bd.instances.AllRestoreable()
 
 	for _, instance := range instances {
-		for _, blob := range instance.Blobs() {
+		for _, blob := range instance.BlobsToBackup() {
 			reader, err := artifact.ReadFile(blob)
 
 			if err != nil {

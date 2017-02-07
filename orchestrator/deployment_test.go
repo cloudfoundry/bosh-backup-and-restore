@@ -553,7 +553,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				artifact.FetchChecksumReturns(blobCheckSum, nil)
 				backupBlob.BackupChecksumReturns(blobCheckSum, nil)
-				instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob})
+				instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{backupBlob})
 			})
 
 			It("does not fail", func() {
@@ -638,7 +638,7 @@ var _ = Describe("Deployment", func() {
 
 				artifact.FetchChecksumReturns(blobCheckSum, nil)
 				backupBlob.BackupChecksumReturns(blobCheckSum, nil)
-				instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob})
+				instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{backupBlob})
 			})
 
 			It("does not fail", func() {
@@ -646,7 +646,7 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("does not ask blobs for the non restorable instance", func() {
-				Expect(instance2.BlobsCallCount()).To(BeZero())
+				Expect(instance2.BlobsToBackupCallCount()).To(BeZero())
 			})
 
 			It("checks the remote after transfer", func() {
@@ -729,7 +729,7 @@ var _ = Describe("Deployment", func() {
 				backupBlob.BackupChecksumReturns(blobCheckSum, nil)
 				anotherBackupBlob.BackupChecksumReturns(blobCheckSum, nil)
 
-				instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob, anotherBackupBlob})
+				instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{backupBlob, anotherBackupBlob})
 			})
 
 			It("does not fail", func() {
@@ -990,7 +990,7 @@ var _ = Describe("Deployment", func() {
 				localArtifactWriteCloser = new(fakes.FakeWriteCloser)
 				artifact.CreateFileReturns(localArtifactWriteCloser, nil)
 
-				instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob})
+				instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{backupBlob})
 				instance1.IsBackupableReturns(true)
 				artifact.CalculateChecksumReturns(remoteArtifactChecksum, nil)
 				backupBlob.BackupChecksumReturns(remoteArtifactChecksum, nil)
@@ -1055,8 +1055,8 @@ var _ = Describe("Deployment", func() {
 					}
 				}
 
-				instance1.BlobsReturns([]orchestrator.BackupBlob{blob1})
-				instance2.BlobsReturns([]orchestrator.BackupBlob{blob2})
+				instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{blob1})
+				instance2.BlobsToBackupReturns([]orchestrator.BackupBlob{blob2})
 
 				instance1.IsBackupableReturns(true)
 				instance2.IsBackupableReturns(true)
@@ -1126,7 +1126,7 @@ var _ = Describe("Deployment", func() {
 				artifact.CreateFileReturns(writeCloser1, nil)
 
 				instance1.IsBackupableReturns(true)
-				instance1.BlobsReturns([]orchestrator.BackupBlob{remoteArtifact1})
+				instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{remoteArtifact1})
 
 				instance2.IsBackupableReturns(false)
 				artifact.CalculateChecksumReturns(instanceChecksum, nil)
@@ -1177,7 +1177,7 @@ var _ = Describe("Deployment", func() {
 
 					instances = []orchestrator.Instance{instance1}
 					instance1.IsBackupableReturns(true)
-					instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob})
+					instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{backupBlob})
 
 					backupBlob.StreamFromRemoteReturns(drainError)
 				})
@@ -1191,7 +1191,7 @@ var _ = Describe("Deployment", func() {
 				var fileError = fmt.Errorf("i have a very good brain")
 				BeforeEach(func() {
 					instances = []orchestrator.Instance{instance1}
-					instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob})
+					instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{backupBlob})
 					instance1.IsBackupableReturns(true)
 					artifact.CreateFileReturns(nil, fileError)
 				})
@@ -1210,7 +1210,7 @@ var _ = Describe("Deployment", func() {
 					instances = []orchestrator.Instance{instance1}
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob})
+					instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{backupBlob})
 
 					artifact.CreateFileReturns(writeCloser1, nil)
 					artifact.CalculateChecksumReturns(nil, shasumError)
@@ -1231,7 +1231,7 @@ var _ = Describe("Deployment", func() {
 
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob})
+					instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{backupBlob})
 					backupBlob.BackupChecksumReturns(nil, remoteShasumError)
 
 					artifact.CreateFileReturns(writeCloser1, nil)
@@ -1255,7 +1255,7 @@ var _ = Describe("Deployment", func() {
 
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob})
+					instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{backupBlob})
 
 					artifact.CreateFileReturns(writeCloser1, nil)
 
@@ -1281,7 +1281,7 @@ var _ = Describe("Deployment", func() {
 
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob})
+					instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{backupBlob})
 
 					artifact.CreateFileReturns(writeCloser1, nil)
 					artifact.CalculateChecksumReturns(orchestrator.BackupChecksum{"file": "this will match", "extra": "this won't match"}, nil)
@@ -1308,7 +1308,7 @@ var _ = Describe("Deployment", func() {
 
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.BlobsReturns([]orchestrator.BackupBlob{backupBlob})
+					instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{backupBlob})
 
 					artifact.CreateFileReturns(writeCloser1, nil)
 					artifact.CalculateChecksumReturns(orchestrator.BackupChecksum{"file": "this will match", "extra": "this won't match"}, nil)

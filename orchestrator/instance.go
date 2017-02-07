@@ -21,7 +21,7 @@ type Instance interface {
 	PostBackupUnlock() error
 	Restore() error
 	Cleanup() error
-	Blobs() []BackupBlob
+	BlobsToBackup() []BackupBlob
 	CustomBlobNames() []string
 }
 
