@@ -2,11 +2,11 @@ package instance
 
 import "fmt"
 
-func NewJob(jobScripts BackupAndRestoreScripts, blobName string) Job {
+func NewJob(jobScripts BackupAndRestoreScripts, metadata Metadata) Job {
 	jobName, _ := jobScripts[0].JobName()
 	return Job{
 		name:             jobName,
-		blobName:         blobName,
+		metadata:         metadata,
 		backupScript:     jobScripts.BackupOnly().firstOrBlank(),
 		restoreScript:    jobScripts.RestoreOnly().firstOrBlank(),
 		preBackupScript:  jobScripts.PreBackupLockOnly().firstOrBlank(),
@@ -16,7 +16,7 @@ func NewJob(jobScripts BackupAndRestoreScripts, blobName string) Job {
 
 type Job struct {
 	name             string
-	blobName         string
+	metadata         Metadata
 	backupScript     Script
 	preBackupScript  Script
 	postBackupScript Script
@@ -28,7 +28,7 @@ func (j Job) Name() string {
 }
 
 func (j Job) BlobName() string {
-	return j.blobName
+	return j.metadata.BackupName
 }
 
 func (j Job) ArtifactDirectory() string {
@@ -68,12 +68,12 @@ func (j Job) HasPostBackup() bool {
 }
 
 func (j Job) HasNamedBlob() bool {
-	return len(j.blobName) != 0
+	return j.metadata != (Metadata{})
 }
 
 func (j Job) artifactOrJobName() string {
 	if j.HasNamedBlob() {
-		return j.blobName
+		return j.BlobName()
 	}
 
 	return j.name

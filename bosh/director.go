@@ -12,7 +12,6 @@ import (
 	"github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
 	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
-	"gopkg.in/yaml.v2"
 )
 
 func New(boshDirector director.Director,
@@ -44,10 +43,6 @@ type Logger interface {
 	Debug(tag, msg string, args ...interface{})
 	Info(tag, msg string, args ...interface{})
 	Error(tag, msg string, args ...interface{})
-}
-
-type jobMetadata struct {
-	BackupName string `yaml:"backup_name"`
 }
 
 func (c client) FindInstances(deploymentName string) ([]orchestrator.Instance, error) {
@@ -168,10 +163,10 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func (c client) getMetadata(host director.Host, sshConnection SSHConnection) (map[string]string, error) {
+func (c client) getMetadata(host director.Host, sshConnection SSHConnection) (map[string]instance.Metadata, error) {
 	c.Logger.Debug("", "Attempting to fetch metadata on %s/%s", host.Host, host.IndexOrID)
 
-	metadata := map[string]string{}
+	metadata := map[string]instance.Metadata{}
 
 	stdout, stderr, exitCode, err := sshConnection.Run("ls -1 /var/vcap/jobs/*/bin/p-metadata")
 
@@ -183,7 +178,7 @@ func (c client) getMetadata(host director.Host, sshConnection SSHConnection) (ma
 			stdout,
 			stderr,
 		)
-		return map[string]string{}, errors.New(errorString)
+		return map[string]instance.Metadata{}, errors.New(errorString)
 	}
 
 	if err != nil {
@@ -194,7 +189,7 @@ func (c client) getMetadata(host director.Host, sshConnection SSHConnection) (ma
 			err,
 		)
 		c.Logger.Error("", errorString)
-		return map[string]string{}, errors.New(errorString)
+		return map[string]instance.Metadata{}, errors.New(errorString)
 	}
 
 	files := strings.Split(string(stdout), "\n")
@@ -211,7 +206,7 @@ func (c client) getMetadata(host director.Host, sshConnection SSHConnection) (ma
 				stdout,
 				stderr,
 			)
-			return map[string]string{}, errors.New(errorString)
+			return map[string]instance.Metadata{}, errors.New(errorString)
 		}
 
 		if err != nil {
@@ -222,11 +217,10 @@ func (c client) getMetadata(host director.Host, sshConnection SSHConnection) (ma
 				err,
 			)
 			c.Logger.Error("", errorString)
-			return map[string]string{}, errors.New(errorString)
+			return map[string]instance.Metadata{}, errors.New(errorString)
 		}
 
-		m := jobMetadata{}
-		err = yaml.Unmarshal(metadataContent, &m)
+		jobMetadata, err := instance.NewJobMetadata(metadataContent)
 
 		if err != nil {
 			errorString := fmt.Sprintf(
@@ -236,10 +230,10 @@ func (c client) getMetadata(host director.Host, sshConnection SSHConnection) (ma
 				err.Error(),
 			)
 			c.Logger.Error("", errorString)
-			return map[string]string{}, errors.New(errorString)
+			return map[string]instance.Metadata{}, errors.New(errorString)
 		}
 
-		metadata[jobName] = string(m.BackupName)
+		metadata[jobName] = *jobMetadata
 	}
 
 	return metadata, nil

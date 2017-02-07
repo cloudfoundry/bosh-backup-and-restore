@@ -77,7 +77,7 @@ func (jobs Jobs) NamedBlobs() []string {
 	return blobNames
 }
 
-func NewJobs(scripts BackupAndRestoreScripts, artifactNames map[string]string) Jobs {
+func NewJobs(scripts BackupAndRestoreScripts, metadata map[string]Metadata) Jobs {
 	groupedByJobName := map[string]BackupAndRestoreScripts{}
 	for _, script := range scripts {
 		jobName, _ := script.JobName()
@@ -87,9 +87,7 @@ func NewJobs(scripts BackupAndRestoreScripts, artifactNames map[string]string) J
 	var jobs []Job
 
 	for jobName, jobScripts := range groupedByJobName {
-		artifactName := artifactNames[jobName]
-
-		jobs = append(jobs, NewJob(jobScripts, artifactName))
+		jobs = append(jobs, NewJob(jobScripts, metadata[jobName]))
 	}
 
 	return jobs

@@ -26,7 +26,7 @@ var _ = Describe("Instance", func() {
 	var jobName, jobIndex, jobID, expectedStdout, expectedStderr string
 	var backupAndRestoreScripts []instance.Script
 	var jobs instance.Jobs
-	var blobNames map[string]string
+	var blobMetadata map[string]instance.Metadata
 
 	var backuperInstance orchestrator.Instance
 	BeforeEach(func() {
@@ -41,11 +41,11 @@ var _ = Describe("Instance", func() {
 		stderr = gbytes.NewBuffer()
 		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile), log.New(stderr, "[bosh-package] ", log.Lshortfile))
 		backupAndRestoreScripts = []instance.Script{}
-		blobNames = map[string]string{}
+		blobMetadata = map[string]instance.Metadata{}
 	})
 
 	JustBeforeEach(func() {
-		jobs = instance.NewJobs(backupAndRestoreScripts, blobNames)
+		jobs = instance.NewJobs(backupAndRestoreScripts, blobMetadata)
 		sshConnection.UsernameReturns("sshUsername")
 		backuperInstance = bosh.NewBoshInstance(jobName, jobIndex, jobID, sshConnection, boshDeployment, boshLogger, jobs)
 	})
@@ -181,8 +181,8 @@ var _ = Describe("Instance", func() {
 	Describe("CustomBlobNames", func() {
 		Context("when the instance has custom blob names defined", func() {
 			BeforeEach(func() {
-				blobNames = map[string]string{
-					"dave": "foo",
+				blobMetadata = map[string]instance.Metadata{
+					"dave": {BackupName: "foo"},
 				}
 				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/dave/bin/foo",
@@ -398,8 +398,8 @@ var _ = Describe("Instance", func() {
 
 		Context("when there are multiple backup scripts and one of them is named", func() {
 			BeforeEach(func() {
-				blobNames = map[string]string{
-					"baz": "special-backup",
+				blobMetadata = map[string]instance.Metadata{
+					"baz": {BackupName: "special-backup"},
 				}
 				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/foo/bin/p-backup",
@@ -851,15 +851,17 @@ var _ = Describe("Instance", func() {
 				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/job-name/bin/p-backup",
 				}
-				blobNames = map[string]string{
-					"job-name": "my-blob",
+				blobMetadata = map[string]instance.Metadata{
+					"job-name": {BackupName: "my-blob"},
 				}
 			})
 
 			It("returns the named blob and the default blob", func() {
 				Expect(actualBlobs).To(Equal(
 					[]orchestrator.BackupBlob{
-						instance.NewNamedBlob(backuperInstance, instance.NewJob(backupAndRestoreScripts, "my-blob"), sshConnection, boshLogger),
+						instance.NewNamedBlob(backuperInstance, instance.NewJob(
+							backupAndRestoreScripts, instance.Metadata{BackupName: "my-blob"},
+						), sshConnection, boshLogger),
 						instance.NewDefaultBlob(backuperInstance, sshConnection, boshLogger),
 					},
 				))
@@ -870,7 +872,8 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("returns the named blob first", func() {
-				Expect(actualBlobs[0]).To(Equal(instance.NewNamedBlob(backuperInstance, instance.NewJob(backupAndRestoreScripts, "my-blob"), sshConnection, boshLogger)))
+				Expect(actualBlobs[0]).To(Equal(instance.NewNamedBlob(
+					backuperInstance, instance.NewJob(backupAndRestoreScripts, instance.Metadata{BackupName: "my-blob"}), sshConnection, boshLogger)))
 			})
 
 		})

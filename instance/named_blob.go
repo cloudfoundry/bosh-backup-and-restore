@@ -112,7 +112,7 @@ func (d *NamedBlob) IsNamed() bool {
 }
 
 func (d *NamedBlob) Name() string {
-	return d.Job.blobName
+	return d.Job.BlobName()
 }
 
 func (d *NamedBlob) ID() string {

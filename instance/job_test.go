@@ -10,7 +10,7 @@ import (
 var _ = Describe("Job", func() {
 	var job instance.Job
 	var jobScripts instance.BackupAndRestoreScripts
-	var artifactName string
+	var metadata instance.Metadata
 
 	BeforeEach(func() {
 		jobScripts = instance.BackupAndRestoreScripts{
@@ -19,11 +19,11 @@ var _ = Describe("Job", func() {
 			"/var/vcap/jobs/foo/bin/p-pre-backup-lock",
 			"/var/vcap/jobs/foo/bin/p-post-backup-unlock",
 		}
-		artifactName = ""
+		metadata = instance.Metadata{}
 	})
 
 	JustBeforeEach(func() {
-		job = instance.NewJob(jobScripts, artifactName)
+		job = instance.NewJob(jobScripts, metadata)
 	})
 
 	Describe("ArtifactDirectory", func() {
@@ -35,7 +35,9 @@ var _ = Describe("Job", func() {
 			var jobWithName instance.Job
 
 			JustBeforeEach(func() {
-				jobWithName = instance.NewJob(jobScripts, "a-bosh-backup")
+				jobWithName = instance.NewJob(jobScripts, instance.Metadata{
+					BackupName: "a-bosh-backup",
+				})
 			})
 
 			It("calculates the blob directory based on the blob name", func() {
@@ -59,17 +61,19 @@ var _ = Describe("Job", func() {
 	})
 
 	Describe("BlobName", func() {
-		Context("the job has a custom blob name", func() {
+		Context("the job has a custom backup blob name", func() {
 			BeforeEach(func() {
-				artifactName = "fool"
+				metadata = instance.Metadata{
+					BackupName: "fool",
+				}
 			})
 
-			It("returns the job's custom blob name", func() {
+			It("returns the job's custom backup blob name", func() {
 				Expect(job.BlobName()).To(Equal("fool"))
 			})
 		})
 
-		Context("the job does not have a custom blob name", func() {
+		Context("the job does not have a custom backup blob name", func() {
 			It("returns empty string", func() {
 				Expect(job.BlobName()).To(Equal(""))
 			})
@@ -186,7 +190,9 @@ var _ = Describe("Job", func() {
 
 		Context("when the job has a named blob", func() {
 			BeforeEach(func() {
-				artifactName = "foo"
+				metadata = instance.Metadata{
+					BackupName: "foo",
+				}
 			})
 
 			It("returns true", func() {

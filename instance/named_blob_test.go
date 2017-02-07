@@ -30,7 +30,7 @@ var _ = Describe("NamedBlob", func() {
 		instanceToBackup = new(backuperfakes.FakeInstance)
 		instanceToBackup.NameReturns("redis")
 		instanceToBackup.IDReturns("foo")
-		job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/p-backup"}, "named-blob")
+		job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/p-backup"}, instance.Metadata{BackupName: "named-blob"})
 
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()

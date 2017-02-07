@@ -125,7 +125,7 @@ var _ = Describe("Director", func() {
 				jobs := instance.NewJobs(instance.BackupAndRestoreScripts{
 					"/var/vcap/jobs/consul_agent/bin/p-backup",
 					"/var/vcap/jobs/consul_agent/bin/p-restore",
-				}, map[string]string{})
+				}, map[string]instance.Metadata{})
 
 				Expect(actualInstances).To(Equal([]orchestrator.Instance{bosh.NewBoshInstance(
 					"job1",
@@ -194,8 +194,10 @@ backup_name: consul_backup`)
 				})
 
 				It("collects the instances with the custom blob name", func() {
-					metadata := map[string]string{
-						"consul_agent": "consul_backup",
+					metadata := map[string]instance.Metadata{
+						"consul_agent": {
+							BackupName: "consul_backup",
+						},
 					}
 
 					jobs := instance.NewJobs(instance.BackupAndRestoreScripts{
@@ -356,7 +358,7 @@ backup_name: consul_backup`)
 			})
 
 			It("collects the instances, with no scripts", func() {
-				jobs := instance.NewJobs(instance.BackupAndRestoreScripts{}, map[string]string{})
+				jobs := instance.NewJobs(instance.BackupAndRestoreScripts{}, map[string]instance.Metadata{})
 
 				Expect(actualInstances).To(Equal([]orchestrator.Instance{bosh.NewBoshInstance("job1",
 					"0",
@@ -454,12 +456,12 @@ backup_name: consul_backup`)
 			It("collects the instances", func() {
 				instance0Jobs := instance.NewJobs(
 					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"},
-					map[string]string{},
+					map[string]instance.Metadata{},
 				)
 
 				instance1Jobs := instance.NewJobs(
 					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"},
-					map[string]string{},
+					map[string]instance.Metadata{},
 				)
 
 				Expect(actualInstances).To(Equal([]orchestrator.Instance{
@@ -576,7 +578,7 @@ backup_name: consul_backup`)
 			It("collects the instances", func() {
 				instanceJobs := instance.NewJobs(
 					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"},
-					map[string]string{},
+					map[string]instance.Metadata{},
 				)
 
 				Expect(actualInstances).To(Equal([]orchestrator.Instance{
