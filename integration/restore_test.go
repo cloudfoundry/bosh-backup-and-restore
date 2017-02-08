@@ -285,7 +285,7 @@ instances:
 		})
 	})
 
-	XContext("when deployment has named artifacts", func() {
+	Context("when deployment has named artifacts", func() {
 		var session *gexec.Session
 		var instance1 *testcluster.Instance
 		var deploymentName string
@@ -301,7 +301,7 @@ instances:
 				}}),
 				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 				CleanupSSH(deploymentName, "redis-dedicated-node"))...)
-			instance1.CreateScript("/var/vcap/jobs/redis/bin/p-metdata", `#!/usr/bin/env sh
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/p-metadata", `#!/usr/bin/env sh
 echo "---
 restore_name: foo
 "`)

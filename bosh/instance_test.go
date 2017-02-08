@@ -887,7 +887,7 @@ var _ = Describe("Instance", func() {
 			It("returns the named blob and the default blob", func() {
 				Expect(backupBlobs).To(Equal(
 					[]orchestrator.BackupBlob{
-						instance.NewNamedBlob(backuperInstance, instance.NewJob(
+						instance.NewNamedBackupBlob(backuperInstance, instance.NewJob(
 							backupAndRestoreScripts, instance.Metadata{BackupName: "my-blob"},
 						), sshConnection, boshLogger),
 						instance.NewDefaultBlob(backuperInstance, sshConnection, boshLogger),
@@ -900,7 +900,7 @@ var _ = Describe("Instance", func() {
 			})
 
 			It("returns the named blob first", func() {
-				Expect(backupBlobs[0]).To(Equal(instance.NewNamedBlob(
+				Expect(backupBlobs[0]).To(Equal(instance.NewNamedBackupBlob(
 					backuperInstance, instance.NewJob(backupAndRestoreScripts, instance.Metadata{BackupName: "my-blob"}), sshConnection, boshLogger)))
 			})
 		})
@@ -932,20 +932,20 @@ var _ = Describe("Instance", func() {
 			It("returns the named blob and the default blob", func() {
 				Expect(restoreBlobs).To(Equal(
 					[]orchestrator.BackupBlob{
-						instance.NewNamedBlob(backuperInstance, instance.NewJob(
+						instance.NewDefaultBlob(backuperInstance, sshConnection, boshLogger),
+						instance.NewNamedRestoreBlob(backuperInstance, instance.NewJob(
 							backupAndRestoreScripts, instance.Metadata{RestoreName: "my-blob"},
 						), sshConnection, boshLogger),
-						instance.NewDefaultBlob(backuperInstance, sshConnection, boshLogger),
 					},
 				))
 			})
 
-			It("returns the default blob the last", func() {
-				Expect(restoreBlobs[1]).To(Equal(instance.NewDefaultBlob(backuperInstance, sshConnection, boshLogger)))
+			It("returns the default blob the first", func() {
+				Expect(restoreBlobs[0]).To(Equal(instance.NewDefaultBlob(backuperInstance, sshConnection, boshLogger)))
 			})
 
-			It("returns the named blob first", func() {
-				Expect(restoreBlobs[0]).To(Equal(instance.NewNamedBlob(
+			It("returns the named blob last", func() {
+				Expect(restoreBlobs[1]).To(Equal(instance.NewNamedRestoreBlob(
 					backuperInstance, instance.NewJob(backupAndRestoreScripts, instance.Metadata{RestoreName: "my-blob"}), sshConnection, boshLogger)))
 			})
 		})
