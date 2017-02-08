@@ -285,7 +285,7 @@ instances:
 		})
 	})
 
-	Context("when deployment has named artifacts", func() {
+	Context("when deployment has named artifacts, with a default artifact", func() {
 		var session *gexec.Session
 		var instance1 *testcluster.Instance
 		var deploymentName string
@@ -342,6 +342,91 @@ artifacts:
 		AfterEach(func() {
 			Expect(os.RemoveAll(deploymentName)).To(Succeed())
 			instance1.DieInBackground()
+		})
+
+		It("does not fail", func() {
+			Expect(session.ExitCode()).To(Equal(0))
+		})
+
+		It("Cleans up the archive file on the remote", func() {
+			Expect(instance1.FileExists("/var/vcap/store/backup")).To(BeFalse())
+		})
+
+		It("Runs the restore script on the remote", func() {
+			Expect(instance1.FileExists("" +
+				"/redis-backup"))
+		})
+	})
+	XContext("when deployment has named artifacts, without a default artifact", func() {
+		var session *gexec.Session
+		var instance1 *testcluster.Instance
+		var instance2 *testcluster.Instance
+		var deploymentName string
+
+		BeforeEach(func() {
+			instance1 = testcluster.NewInstance()
+			instance2 = testcluster.NewInstance()
+			deploymentName = "my-new-deployment"
+			director.VerifyAndMock(AppendBuilders(VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+				{
+					IPs:     []string{"10.0.0.1"},
+					JobName: "redis-restore-node",
+					JobID:   "fake-uuid",
+				},
+				{
+					IPs:     []string{"10.0.0.2"},
+					JobName: "redis-backup-node",
+					JobID:   "fake-uuid",
+				}}),
+				SetupSSH(deploymentName, "redis-restore-node", "fake-uuid", 0, instance1),
+				SetupSSH(deploymentName, "redis-backup-node", "fake-uuid", 0, instance2),
+				CleanupSSH(deploymentName, "redis-restore-node"),
+				CleanupSSH(deploymentName, "redis-backup-node"))...)
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/p-metadata", `#!/usr/bin/env sh
+echo "---
+restore_name: foo
+"`)
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/p-restore", `#!/usr/bin/env sh
+set -u
+cp -r $ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
+			instance2.CreateScript("/var/vcap/jobs/redis/bin/p-backup", `#!/usr/bin/env sh
+set -u
+echo "dosent matter"`)
+
+			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
+instances:
+- instance_name: redis-backup-node
+  instance_index: 0
+  checksums: {}
+artifacts:
+- artifact_name: foo
+  checksums:
+    ./redis/redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
+
+			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
+			Expect(err).NotTo(HaveOccurred())
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tgz", backupContents)
+
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-backup-node-0.tgz", gzipContents(createTarWithContents(map[string]string{})))
+		})
+
+		JustBeforeEach(func() {
+			session = runBinary(
+				restoreWorkspace,
+				[]string{"BOSH_CLIENT_SECRET=admin"},
+				"--ca-cert", sslCertPath,
+				"--username", "admin",
+				"--debug",
+				"--target", director.URL,
+				"--deployment", deploymentName,
+				"restore")
+		})
+
+		AfterEach(func() {
+			Expect(os.RemoveAll(deploymentName)).To(Succeed())
+			instance1.DieInBackground()
+			instance2.DieInBackground()
 		})
 
 		It("does not fail", func() {
