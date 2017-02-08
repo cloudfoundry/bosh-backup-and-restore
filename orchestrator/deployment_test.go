@@ -553,7 +553,7 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				artifact.FetchChecksumReturns(blobCheckSum, nil)
 				backupBlob.BackupChecksumReturns(blobCheckSum, nil)
-				instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{backupBlob})
+				instance1.BlobsToRestoreReturns([]orchestrator.BackupBlob{backupBlob})
 			})
 
 			It("does not fail", func() {
@@ -638,7 +638,7 @@ var _ = Describe("Deployment", func() {
 
 				artifact.FetchChecksumReturns(blobCheckSum, nil)
 				backupBlob.BackupChecksumReturns(blobCheckSum, nil)
-				instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{backupBlob})
+				instance1.BlobsToRestoreReturns([]orchestrator.BackupBlob{backupBlob})
 			})
 
 			It("does not fail", func() {
@@ -646,7 +646,7 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("does not ask blobs for the non restorable instance", func() {
-				Expect(instance2.BlobsToBackupCallCount()).To(BeZero())
+				Expect(instance2.BlobsToRestoreCallCount()).To(BeZero())
 			})
 
 			It("checks the remote after transfer", func() {
@@ -729,7 +729,7 @@ var _ = Describe("Deployment", func() {
 				backupBlob.BackupChecksumReturns(blobCheckSum, nil)
 				anotherBackupBlob.BackupChecksumReturns(blobCheckSum, nil)
 
-				instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{backupBlob, anotherBackupBlob})
+				instance1.BlobsToRestoreReturns([]orchestrator.BackupBlob{backupBlob, anotherBackupBlob})
 			})
 
 			It("does not fail", func() {

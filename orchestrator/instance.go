@@ -22,7 +22,7 @@ type Instance interface {
 	Restore() error
 	Cleanup() error
 	BlobsToBackup() []BackupBlob
-	BlobsToRestore() []RestoreBlob
+	BlobsToRestore() []BackupBlob
 	CustomBlobNames() []string
 }
 
@@ -39,10 +39,6 @@ type BackupBlob interface {
 	StreamFromRemote(io.Writer) error
 	Delete() error
 	StreamBackupToRemote(io.Reader) error
-}
-
-type RestoreBlob interface {
-	BackupBlob
 }
 
 type instances []Instance

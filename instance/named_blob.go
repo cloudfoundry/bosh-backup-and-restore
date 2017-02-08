@@ -39,7 +39,7 @@ type NamedBlob struct {
 
 func (d *NamedBlob) StreamFromRemote(writer io.Writer) error {
 	d.Logger.Debug("", "Streaming backup from instance %s/%s", d.Name(), d.Instance.ID())
-	stderr, exitCode, err := d.Stream(fmt.Sprintf("sudo tar -C %s -zc .", d.Job.ArtifactDirectory()), writer)
+	stderr, exitCode, err := d.Stream(fmt.Sprintf("sudo tar -C %s -zc .", d.Job.BackupArtifactDirectory()), writer)
 
 	d.Logger.Debug("", "Stderr: %s", string(stderr))
 
@@ -55,7 +55,7 @@ func (d *NamedBlob) StreamFromRemote(writer io.Writer) error {
 }
 
 func (d *NamedBlob) StreamBackupToRemote(reader io.Reader) error {
-	stdout, stderr, exitCode, err := d.logAndRun("sudo mkdir -p "+d.Job.ArtifactDirectory(), "create backup directory on remote")
+	stdout, stderr, exitCode, err := d.logAndRun("sudo mkdir -p "+d.Job.BackupArtifactDirectory(), "create backup directory on remote")
 
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func (d *NamedBlob) StreamBackupToRemote(reader io.Reader) error {
 	}
 
 	d.Logger.Debug("", "Streaming backup to instance %s/%s", d.Instance.Name(), d.Instance.ID())
-	stdout, stderr, exitCode, err = d.StreamStdin(fmt.Sprintf("sudo sh -c 'tar -C %s -zx'", d.Job.ArtifactDirectory()), reader)
+	stdout, stderr, exitCode, err = d.StreamStdin(fmt.Sprintf("sudo sh -c 'tar -C %s -zx'", d.Job.BackupArtifactDirectory()), reader)
 
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
 	d.Logger.Debug("", "Stderr: %s", string(stderr))
@@ -83,7 +83,7 @@ func (d *NamedBlob) StreamBackupToRemote(reader io.Reader) error {
 }
 
 func (d *NamedBlob) BackupSize() (string, error) {
-	stdout, stderr, exitCode, err := d.logAndRun(fmt.Sprintf("sudo du -sh %s | cut -f1", d.Job.ArtifactDirectory()), "check backup size")
+	stdout, stderr, exitCode, err := d.logAndRun(fmt.Sprintf("sudo du -sh %s | cut -f1", d.Job.BackupArtifactDirectory()), "check backup size")
 
 	if exitCode != 0 {
 		return "", fmt.Errorf("Unable to check size of backup: %s", stderr)
@@ -94,7 +94,7 @@ func (d *NamedBlob) BackupSize() (string, error) {
 }
 
 func (d *NamedBlob) BackupChecksum() (orchestrator.BackupChecksum, error) {
-	stdout, stderr, exitCode, err := d.logAndRun(fmt.Sprintf("cd %s; sudo sh -c 'find . -type f | xargs shasum'", d.Job.ArtifactDirectory()), "checksum")
+	stdout, stderr, exitCode, err := d.logAndRun(fmt.Sprintf("cd %s; sudo sh -c 'find . -type f | xargs shasum'", d.Job.BackupArtifactDirectory()), "checksum")
 
 	if err != nil {
 		return nil, err
@@ -138,10 +138,10 @@ func (d *NamedBlob) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
 }
 
 func (d *NamedBlob) Delete() error {
-	_, _, exitCode, err := d.logAndRun(fmt.Sprintf("sudo rm -rf %s", d.Job.ArtifactDirectory()), "deleting named blobs")
+	_, _, exitCode, err := d.logAndRun(fmt.Sprintf("sudo rm -rf %s", d.Job.BackupArtifactDirectory()), "deleting named blobs")
 
 	if exitCode != 0 {
-		return fmt.Errorf("Error deleting blobs on instance %s/%s. Directory name %s. Exit code %d", d.Instance.Name(), d.Instance.ID(), d.Job.ArtifactDirectory(), exitCode)
+		return fmt.Errorf("Error deleting blobs on instance %s/%s. Directory name %s. Exit code %d", d.Instance.Name(), d.Instance.ID(), d.Job.BackupArtifactDirectory(), exitCode)
 	}
 
 	return err

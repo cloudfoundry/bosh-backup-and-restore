@@ -280,9 +280,9 @@ var _ = Describe("Jobs", func() {
 			})
 		})
 
-		Describe("NamedBlobs", func() {
+		Describe("BackupBlobNames", func() {
 			It("returns empty", func() {
-				Expect(jobs.NamedBlobs()).To(BeEmpty())
+				Expect(jobs.BackupBlobNames()).To(BeEmpty())
 			})
 		})
 	})
@@ -379,9 +379,9 @@ var _ = Describe("Jobs", func() {
 			}
 		})
 
-		Describe("NamedBlobs", func() {
+		Describe("BackupBlobNames", func() {
 			It("returns a list of blob names", func() {
-				Expect(jobs.NamedBlobs()).To(ConsistOf("a-bosh-backup", "another-backup"))
+				Expect(jobs.BackupBlobNames()).To(ConsistOf("a-bosh-backup", "another-backup"))
 			})
 		})
 	})

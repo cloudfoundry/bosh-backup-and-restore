@@ -26,9 +26,9 @@ var _ = Describe("Job", func() {
 		job = instance.NewJob(jobScripts, metadata)
 	})
 
-	Describe("ArtifactDirectory", func() {
+	Describe("BackupArtifactDirectory", func() {
 		It("calculates the blob directory based on the name", func() {
-			Expect(job.ArtifactDirectory()).To(Equal("/var/vcap/store/backup/foo"))
+			Expect(job.BackupArtifactDirectory()).To(Equal("/var/vcap/store/backup/foo"))
 		})
 
 		Context("when an blob name is provided", func() {
@@ -41,7 +41,27 @@ var _ = Describe("Job", func() {
 			})
 
 			It("calculates the blob directory based on the blob name", func() {
-				Expect(jobWithName.ArtifactDirectory()).To(Equal("/var/vcap/store/backup/a-bosh-backup"))
+				Expect(jobWithName.BackupArtifactDirectory()).To(Equal("/var/vcap/store/backup/a-bosh-backup"))
+			})
+		})
+	})
+
+	Describe("RestoreArtifactDirectory", func() {
+		It("calculates the blob directory based on the name", func() {
+			Expect(job.BackupArtifactDirectory()).To(Equal("/var/vcap/store/backup/foo"))
+		})
+
+		Context("when an blob name is provided", func() {
+			var jobWithName instance.Job
+
+			JustBeforeEach(func() {
+				jobWithName = instance.NewJob(jobScripts, instance.Metadata{
+					RestoreName: "a-bosh-backup",
+				})
+			})
+
+			It("calculates the blob directory based on the blob name", func() {
+				Expect(jobWithName.RestoreArtifactDirectory()).To(Equal("/var/vcap/store/backup/a-bosh-backup"))
 			})
 		})
 	})

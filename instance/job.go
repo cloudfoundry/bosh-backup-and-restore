@@ -35,8 +35,12 @@ func (j Job) RestoreBlobName() string {
 	return j.metadata.RestoreName
 }
 
-func (j Job) ArtifactDirectory() string {
-	return fmt.Sprintf("/var/vcap/store/backup/%s", j.artifactOrJobName())
+func (j Job) BackupArtifactDirectory() string {
+	return fmt.Sprintf("/var/vcap/store/backup/%s", j.backupArtifactOrJobName())
+}
+
+func (j Job) RestoreArtifactDirectory() string {
+	return fmt.Sprintf("/var/vcap/store/backup/%s", j.restoreArtifactOrJobName())
 }
 
 func (j Job) BackupScript() Script {
@@ -79,9 +83,17 @@ func (j Job) HasNamedRestoreBlob() bool {
 	return j.metadata.RestoreName != ""
 }
 
-func (j Job) artifactOrJobName() string {
+func (j Job) backupArtifactOrJobName() string {
 	if j.HasNamedBackupBlob() {
 		return j.BackupBlobName()
+	}
+
+	return j.name
+}
+
+func (j Job) restoreArtifactOrJobName() string {
+	if j.HasNamedRestoreBlob() {
+		return j.RestoreBlobName()
 	}
 
 	return j.name

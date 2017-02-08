@@ -77,8 +77,7 @@ func (jobs Jobs) WithNamedRestoreBlobs() Jobs {
 	return jobsWithNamedBlobs
 }
 
-// TODO: deleteme
-func (jobs Jobs) NamedBlobs() []string {
+func (jobs Jobs) BackupBlobNames() []string {
 	var blobNames []string
 
 	for _, job := range jobs.WithNamedBackupBlobs() {

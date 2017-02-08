@@ -682,6 +682,34 @@ var _ = Describe("Instance", func() {
 			})
 		})
 
+		Context("when there are multiple restore scripts and one of them is named", func() {
+			BeforeEach(func() {
+				blobMetadata = map[string]instance.Metadata{
+					"baz": {RestoreName: "special-backup"},
+				}
+				backupAndRestoreScripts = []instance.Script{
+					"/var/vcap/jobs/foo/bin/p-restore",
+					"/var/vcap/jobs/bar/bin/p-restore",
+					"/var/vcap/jobs/baz/bin/p-restore",
+				}
+			})
+			It("succeeds", func() {
+				Expect(actualError).NotTo(HaveOccurred())
+			})
+			It("uses the ssh connection to create each job's backup folder and run each backup script providing the correct ARTIFACT_DIRECTORY", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(3))
+				Expect([]string{
+					sshConnection.RunArgsForCall(0),
+					sshConnection.RunArgsForCall(1),
+					sshConnection.RunArgsForCall(2),
+				}).To(ConsistOf(
+					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/p-restore",
+					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/p-restore",
+					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/special-backup/ /var/vcap/jobs/baz/bin/p-restore",
+				))
+			})
+		})
+
 		Context("when there are several scripts and one of them fails to run restore while another one causes an error", func() {
 			expectedStdout := "some stdout"
 			expectedStderr := "some stderr"
@@ -879,7 +907,7 @@ var _ = Describe("Instance", func() {
 	})
 
 	Describe("RestoreBlobs", func() {
-		var restoreBlobs []orchestrator.RestoreBlob
+		var restoreBlobs []orchestrator.BackupBlob
 
 		JustBeforeEach(func() {
 			restoreBlobs = backuperInstance.BlobsToRestore()
@@ -887,7 +915,7 @@ var _ = Describe("Instance", func() {
 
 		Context("Has no named restore blobs", func() {
 			It("returns the default blob", func() {
-				Expect(restoreBlobs).To(Equal([]orchestrator.RestoreBlob{instance.NewDefaultBlob(backuperInstance, sshConnection, boshLogger)}))
+				Expect(restoreBlobs).To(Equal([]orchestrator.BackupBlob{instance.NewDefaultBlob(backuperInstance, sshConnection, boshLogger)}))
 			})
 		})
 
@@ -903,7 +931,7 @@ var _ = Describe("Instance", func() {
 
 			It("returns the named blob and the default blob", func() {
 				Expect(restoreBlobs).To(Equal(
-					[]orchestrator.RestoreBlob{
+					[]orchestrator.BackupBlob{
 						instance.NewNamedBlob(backuperInstance, instance.NewJob(
 							backupAndRestoreScripts, instance.Metadata{RestoreName: "my-blob"},
 						), sshConnection, boshLogger),

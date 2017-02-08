@@ -127,7 +127,7 @@ func (bd *BoshDeployment) CopyLocalBackupToRemote(artifact Artifact) error {
 	instances := bd.instances.AllRestoreable()
 
 	for _, instance := range instances {
-		for _, blob := range instance.BlobsToBackup() {
+		for _, blob := range instance.BlobsToRestore() {
 			reader, err := artifact.ReadFile(blob)
 
 			if err != nil {

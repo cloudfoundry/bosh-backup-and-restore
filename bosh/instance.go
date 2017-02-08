@@ -3,7 +3,6 @@ package bosh
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/hashicorp/go-multierror"
@@ -53,7 +52,7 @@ func (d *DeployedInstance) IsPreBackupLockable() bool {
 }
 
 func (d *DeployedInstance) CustomBlobNames() []string {
-	return d.Jobs.NamedBlobs()
+	return d.Jobs.BackupBlobNames()
 }
 
 func (d *DeployedInstance) PreBackupLock() error {
@@ -86,8 +85,8 @@ func (d *DeployedInstance) Backup() error {
 		stdout, stderr, exitCode, err := d.logAndRun(
 			fmt.Sprintf(
 				"sudo mkdir -p %s && sudo ARTIFACT_DIRECTORY=%s/ %s",
-				job.ArtifactDirectory(),
-				job.ArtifactDirectory(),
+				job.BackupArtifactDirectory(),
+				job.BackupArtifactDirectory(),
 				job.BackupScript(),
 			),
 			"backup",
@@ -133,11 +132,10 @@ func (d *DeployedInstance) Restore() error {
 	for _, job := range d.Jobs.Restorable() {
 		d.Logger.Debug("", "> %s", job.RestoreScript())
 
-		artifactDirectory := fmt.Sprintf("/var/vcap/store/backup/%s", job.Name())
 		stdout, stderr, exitCode, err := d.logAndRun(
 			fmt.Sprintf(
 				"sudo ARTIFACT_DIRECTORY=%s/ %s",
-				artifactDirectory,
+				job.RestoreArtifactDirectory(),
 				job.RestoreScript(),
 			),
 			"restore",
@@ -189,8 +187,8 @@ func (d *DeployedInstance) BlobsToBackup() []orchestrator.BackupBlob {
 	return blobs
 }
 
-func (d *DeployedInstance) BlobsToRestore() []orchestrator.RestoreBlob {
-	blobs := []orchestrator.RestoreBlob{}
+func (d *DeployedInstance) BlobsToRestore() []orchestrator.BackupBlob {
+	blobs := []orchestrator.BackupBlob{}
 
 	for _, job := range d.Jobs.WithNamedRestoreBlobs() {
 		blobs = append(blobs, instance.NewNamedBlob(d, job, d.SSHConnection, d.Logger))
@@ -281,21 +279,4 @@ func (d *DeployedInstance) handleErrs(jobName, label string, err error, exitCode
 func (d *DeployedInstance) removeBackupArtifacts() error {
 	_, _, _, err := d.logAndRun("sudo rm -rf /var/vcap/store/backup", "remove backup artifacts")
 	return err
-}
-
-func convertShasToMap(shas string) map[string]string {
-	mapOfSha := map[string]string{}
-	shas = strings.TrimSpace(shas)
-	if shas == "" {
-		return mapOfSha
-	}
-	for _, line := range strings.Split(shas, "\n") {
-		parts := strings.SplitN(line, " ", 2)
-		filename := strings.TrimSpace(parts[1])
-		if filename == "-" {
-			continue
-		}
-		mapOfSha[filename] = parts[0]
-	}
-	return mapOfSha
 }
