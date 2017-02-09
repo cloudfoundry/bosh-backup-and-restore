@@ -26,6 +26,23 @@ jobs:
       password: redis
       persistence: 'yes'
       maxclients: 1000
+- name: redis-server-with-restore-metadata
+  instances: 1
+  templates:
+  - name: redis-server-with-restore-metadata
+    release: redis-test
+  vm_type: container
+  persistent_disk_type: five
+  stemcell: trusty
+  azs:
+  - lite
+  networks:
+  - name: services
+  properties:
+    redis:
+      password: redis
+      persistence: 'yes'
+      maxclients: 1000
 update:
   canaries: 2
   canary_watch_time: 30000-180000

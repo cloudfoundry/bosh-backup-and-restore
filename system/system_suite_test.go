@@ -26,36 +26,39 @@ var fixturesPath = "../fixtures/redis-backup/"
 
 var _ = BeforeEach(func() {
 	SetDefaultEventuallyTimeout(2 * time.Minute)
-	 By("Creating the test release")
-	 RunBoshCommand(GenericBoshCommand(), "create-release", "--dir=../fixtures/releases/redis-test-release/", "--force")
-	 By("Uploading the test release")
-	 RunBoshCommand(GenericBoshCommand(), "upload-release", "--dir=../fixtures/releases/redis-test-release/", "--rebase")
+	//By("Creating the test release")
+	//RunBoshCommand(GenericBoshCommand(), "create-release", "--dir=../fixtures/releases/redis-test-release/", "--force")
+	//By("Uploading the test release")
+	//RunBoshCommand(GenericBoshCommand(), "upload-release", "--dir=../fixtures/releases/redis-test-release/", "--rebase")
 	var wg sync.WaitGroup
 
 	wg.Add(4)
 	go func() {
 		defer GinkgoRecover()
+		defer wg.Done()
 		By("deploying the Redis test release")
 		RunBoshCommand(RedisDeploymentBoshCommand(), "deploy", SetName(RedisDeployment()), RedisDeploymentManifest())
-		wg.Done()
 	}()
 
 	go func() {
+		defer GinkgoRecover()
+		defer wg.Done()
 		By("deploying the Redis with metadata")
 		RunBoshCommand(RedisWithMetadataDeploymentBoshCommand(), "deploy", SetName(RedisWithMetadataDeployment()), RedisWithMetadataDeploymentManifest())
-		wg.Done()
 	}()
 
 	go func() {
+		defer GinkgoRecover()
+		defer wg.Done()
 		By("deploying the jump box")
 		RunBoshCommand(JumpBoxBoshCommand(), "deploy", SetName(JumpboxDeployment()), JumpboxDeploymentManifest())
-		wg.Done()
 	}()
 
 	go func() {
+		defer GinkgoRecover()
+		defer wg.Done()
 		By("deploying the other Redis test release")
 		RunBoshCommand(AnotherRedisDeploymentBoshCommand(), "deploy", SetName(AnotherRedisDeployment()), AnotherRedisDeploymentManifest())
-		wg.Done()
 	}()
 	wg.Wait()
 
@@ -76,27 +79,31 @@ var _ = AfterEach(func() {
 
 	wg.Add(4)
 	go func() {
+		defer GinkgoRecover()
+		defer wg.Done()
 		By("tearing down the redis release")
 		RunBoshCommand(RedisDeploymentBoshCommand(), "delete-deployment")
-		wg.Done()
 	}()
 
 	go func() {
+		defer GinkgoRecover()
+		defer wg.Done()
 		By("tearing down the other redis release")
 		RunBoshCommand(RedisWithMetadataDeploymentBoshCommand(), "delete-deployment")
-		wg.Done()
 	}()
 
 	go func() {
+		defer GinkgoRecover()
+		defer wg.Done()
 		By("tearing down the redis with metadata")
 		RunBoshCommand(AnotherRedisDeploymentBoshCommand(), "delete-deployment")
-		wg.Done()
 	}()
 
 	go func() {
+		defer GinkgoRecover()
+		defer wg.Done()
 		By("tearing down the jump box")
 		RunBoshCommand(JumpBoxBoshCommand(), "delete-deployment")
-		wg.Done()
 	}()
 
 	wg.Wait()
