@@ -302,12 +302,6 @@ var _ = Describe("Jobs", func() {
 			}
 		})
 
-		Describe("NamedBackupBlobs", func() {
-			It("returns a list of blob names", func() {
-				Expect(jobs.NamedBackupBlobs()).To(ConsistOf("my-cool-blob"))
-			})
-		})
-
 		Describe("WithNamedBackupBlobs", func() {
 			It("returns jobs with named backup blobs", func() {
 				Expect(jobs.WithNamedBackupBlobs()).To(ConsistOf(instance.NewJob(
@@ -353,12 +347,6 @@ var _ = Describe("Jobs", func() {
 						RestoreName: "my-cool-restore",
 					}),
 				))
-			})
-		})
-
-		Describe("WithNamedBackupBlobs", func() {
-			It("returns empty", func() {
-				Expect(jobs.WithNamedBackupBlobs()).To(BeEmpty())
 			})
 		})
 	})

@@ -87,16 +87,6 @@ func (jobs Jobs) BackupBlobNames() []string {
 	return blobNames
 }
 
-func (jobs Jobs) NamedBackupBlobs() []string {
-	var blobNames []string
-
-	for _, job := range jobs.WithNamedBackupBlobs() {
-		blobNames = append(blobNames, job.BackupBlobName())
-	}
-
-	return blobNames
-}
-
 func (jobs Jobs) NamedRestoreBlobs() []string {
 	var blobNames []string
 
