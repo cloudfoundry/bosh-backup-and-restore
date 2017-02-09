@@ -13,9 +13,10 @@ import (
 	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
 	"github.com/pivotal-cf/pcf-backup-and-restore/instance/fakes"
 	backuperfakes "github.com/pivotal-cf/pcf-backup-and-restore/orchestrator/fakes"
+	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 )
 
-var _ = Describe("NamedBlob", func() {
+var _ = Describe("blob", func() {
 
 	var sshConnection *fakes.FakeSSHConnection
 	var boshLogger boshlog.Logger
@@ -23,13 +24,14 @@ var _ = Describe("NamedBlob", func() {
 	var stdout, stderr *gbytes.Buffer
 	var job instance.Job
 
-	var blob *instance.NamedBlob
+	var blob orchestrator.BackupBlob
 
 	BeforeEach(func() {
 		sshConnection = new(fakes.FakeSSHConnection)
 		instanceToBackup = new(backuperfakes.FakeInstance)
 		instanceToBackup.NameReturns("redis")
 		instanceToBackup.IDReturns("foo")
+		instanceToBackup.IndexReturns("redis-index-1")
 
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
@@ -429,6 +431,43 @@ var _ = Describe("NamedBlob", func() {
 			})
 		})
 		BlobBehaviourForDirectory("/var/vcap/store/backup/named-blob-to-restore")
+	})
+
+	Context("DefaultBlob", func() {
+		BeforeEach(func() {
+			job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/p-restore"}, instance.Metadata{RestoreName: "named-blob-to-restore"})
+		})
+		JustBeforeEach(func() {
+			blob = instance.NewDefaultBlob(instanceToBackup, sshConnection, boshLogger)
+		})
+
+		Describe("Name", func() {
+			It("returns the blob", func() {
+				Expect(blob.Name()).To(Equal("redis"))
+			})
+		})
+
+		Describe("ID", func() {
+			BeforeEach(func() {
+				instanceToBackup.IDReturns("instance-id")
+			})
+			It("returns instances id", func() {
+				Expect(blob.ID()).To(Equal("instance-id"))
+			})
+		})
+
+		Describe("Index", func() {
+			It("returns instances index", func() {
+				Expect(blob.Index()).To(Equal("redis-index-1"))
+			})
+		})
+
+		Describe("IsNamed", func() {
+			It("returns false", func() {
+				Expect(blob.IsNamed()).To(BeFalse())
+			})
+		})
+		BlobBehaviourForDirectory("/var/vcap/store/backup")
 	})
 
 })
