@@ -190,11 +190,13 @@ func (d *DeployedInstance) BlobsToBackup() []orchestrator.BackupBlob {
 func (d *DeployedInstance) BlobsToRestore() []orchestrator.BackupBlob {
 	blobs := []orchestrator.BackupBlob{}
 
-	blobs = append(blobs, &instance.DefaultBlob{
-		Instance:      d,
-		SSHConnection: d.SSHConnection,
-		Logger:        d.Logger,
-	})
+	if d.Jobs.AnyNeedDefaultBlobsForRestore() {
+		blobs = append(blobs, &instance.DefaultBlob{
+			Instance:      d,
+			SSHConnection: d.SSHConnection,
+			Logger:        d.Logger,
+		})
+	}
 
 	for _, job := range d.Jobs.WithNamedRestoreBlobs() {
 		blobs = append(blobs, instance.NewNamedRestoreBlob(d, job, d.SSHConnection, d.Logger))

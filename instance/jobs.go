@@ -57,6 +57,15 @@ func (jobs Jobs) AnyArePostBackupable() bool {
 	return !jobs.PostBackupable().empty()
 }
 
+func (jobs Jobs) AnyNeedDefaultBlobsForRestore() bool {
+	for _, job := range jobs.Restorable() {
+		if !job.HasNamedRestoreBlob() {
+			return true
+		}
+	}
+	return false
+}
+
 func (jobs Jobs) WithNamedBackupBlobs() Jobs {
 	jobsWithNamedBlobs := Jobs{}
 	for _, job := range jobs {

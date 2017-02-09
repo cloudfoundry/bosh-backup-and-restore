@@ -357,7 +357,8 @@ artifacts:
 				"/redis-backup"))
 		})
 	})
-	XContext("when deployment has named artifacts, without a default artifact", func() {
+
+	Context("when deployment has named artifacts, without a default artifact", func() {
 		var session *gexec.Session
 		var instance1 *testcluster.Instance
 		var instance2 *testcluster.Instance

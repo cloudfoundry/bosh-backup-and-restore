@@ -259,6 +259,12 @@ var _ = Describe("Jobs", func() {
 				Expect(jobs.AnyAreRestorable()).To(BeTrue())
 			})
 		})
+
+		Describe("AnyNeedDefaultBlobsForRestore", func() {
+			It("returns true, as all of the jobs need a default blob for restore", func() {
+				Expect(jobs.AnyNeedDefaultBlobsForRestore()).To(BeTrue())
+			})
+		})
 	})
 
 	Context("contains no jobs with backup script", func() {
@@ -349,6 +355,12 @@ var _ = Describe("Jobs", func() {
 				))
 			})
 		})
+
+		Describe("AnyNeedDefaultBlobsForRestore", func() {
+			It("returns true, as job 'baz' needs a default blob for restore", func() {
+				Expect(jobs.AnyNeedDefaultBlobsForRestore()).To(BeTrue())
+			})
+		})
 	})
 
 	Context("contains jobs with multiple named blobs", func() {
@@ -370,6 +382,12 @@ var _ = Describe("Jobs", func() {
 		Describe("BackupBlobNames", func() {
 			It("returns a list of blob names", func() {
 				Expect(jobs.BackupBlobNames()).To(ConsistOf("a-bosh-backup", "another-backup"))
+			})
+		})
+
+		Describe("AnyNeedDefaultBlobsForRestore", func() {
+			It("returns false, as none of the jobs need a default blob for restore", func() {
+				Expect(jobs.AnyNeedDefaultBlobsForRestore()).To(BeFalse())
 			})
 		})
 	})
