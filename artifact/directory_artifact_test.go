@@ -80,6 +80,7 @@ instances:
   checksum: foo
 `)
 			})
+
 			It("returns false", func() {
 				match, _ := artifact.DeploymentMatches(artifactName, []orchestrator.Instance{instance1, instance2})
 				Expect(match).To(BeFalse())
@@ -109,10 +110,12 @@ instances:
 			})
 		})
 	})
-	Describe("Verify", func() {
+
+	Describe("Valid", func() {
 		var artifact orchestrator.Artifact
 		var verifyResult bool
 		var verifyError error
+
 		JustBeforeEach(func() {
 			var err error
 			artifact, err = artifactManager.Open(artifactName, logger)
@@ -123,13 +126,15 @@ instances:
 			Expect(os.Mkdir(artifactName, 0777)).To(Succeed())
 		})
 
-		Context("when the artifact sha's match metafile", func() {
+		Context("when the default artifact sha's match metafile", func() {
 			BeforeEach(func() {
 				contents := gzipContents(createTarWithContents(map[string]string{
 					"file1": "This archive contains some text files.",
 					"file2": "Gopher names:\nGeorge\nGeoffrey\nGonzo",
 				}))
+
 				Expect(ioutil.WriteFile(artifactName+"/redis-0.tgz", contents, 0666)).NotTo(HaveOccurred())
+
 				createTestMetadata(artifactName, fmt.Sprintf(`---
 instances:
 - instance_name: redis
@@ -147,7 +152,51 @@ instances:
 			})
 		})
 
-		Context("when one of the artifact file's contents don't match the sha", func() {
+		Context("when the named artifact sha matches the metadata file", func() {
+			BeforeEach(func() {
+				contents := gzipContents(createTarWithContents(map[string]string{
+					"file1": "This archive contains some text files.",
+				}))
+
+				Expect(ioutil.WriteFile(artifactName+"/foo_redis.tgz", contents, 0666)).NotTo(HaveOccurred())
+
+				createTestMetadata(artifactName, fmt.Sprintf(`---
+artifacts:
+- artifact_name: foo_redis
+  checksums:
+    file1: %x
+`, sha1.Sum([]byte("This archive contains some text files."))))
+			})
+
+			It("returns true", func() {
+				Expect(verifyError).NotTo(HaveOccurred())
+				Expect(verifyResult).To(BeTrue())
+			})
+		})
+
+		Context("when the named artifact sha doesn't match the metadata file", func() {
+			BeforeEach(func() {
+				contents := gzipContents(createTarWithContents(map[string]string{
+					"file1": "This archive contains some text files.",
+				}))
+
+				Expect(ioutil.WriteFile(artifactName+"/foo_redis.tgz", contents, 0666)).NotTo(HaveOccurred())
+
+				createTestMetadata(artifactName, fmt.Sprintf(`---
+artifacts:
+- artifact_name: foo_redis
+  checksums:
+    file1: %x
+`, sha1.Sum([]byte("you fools!"))))
+			})
+
+			It("returns false", func() {
+				Expect(verifyError).NotTo(HaveOccurred())
+				Expect(verifyResult).To(BeFalse())
+			})
+		})
+
+		Context("when one of the default artifact file's contents don't match the sha", func() {
 			BeforeEach(func() {
 				contents := gzipContents(createTarWithContents(map[string]string{
 					"file1": "This archive contains some text files.",
@@ -291,6 +340,7 @@ instances:
 		})
 
 	})
+
 	Describe("SaveManifest", func() {
 		var artifact orchestrator.Artifact
 		var saveManifestError error
@@ -309,6 +359,7 @@ instances:
 			Expect(ioutil.ReadFile(artifactName + "/manifest.yml")).To(Equal([]byte("contents")))
 		})
 	})
+
 	Describe("ReadFile", func() {
 		var artifact orchestrator.Artifact
 		var fileReadError error

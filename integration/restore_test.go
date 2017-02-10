@@ -444,6 +444,53 @@ artifacts:
 		})
 	})
 
+	Context("when the backup with named artifacts on disk is corrupted", func() {
+		var session *gexec.Session
+		var deploymentName string
+
+		BeforeEach(func() {
+			deploymentName = "my-new-deployment"
+
+			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
+instances:
+- instance_name: redis-backup-node
+  instance_index: 0
+  checksums: {}
+artifacts:
+- artifact_name: foo
+  checksums:
+    ./redis/redis-backup: this-is-damn-wrong`))
+			director.VerifyAndMock()
+
+			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
+			Expect(err).NotTo(HaveOccurred())
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tgz", backupContents)
+
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-backup-node-0.tgz", gzipContents(createTarWithContents(map[string]string{})))
+		})
+
+		JustBeforeEach(func() {
+			session = runBinary(
+				restoreWorkspace,
+				[]string{"BOSH_CLIENT_SECRET=admin"},
+				"--ca-cert", sslCertPath,
+				"--username", "admin",
+				"--debug",
+				"--target", director.URL,
+				"--deployment", deploymentName,
+				"restore")
+		})
+
+		It("fails", func() {
+			Expect(session.ExitCode()).To(Equal(1))
+		})
+
+		It("does not connect to the BOSH director", func() {
+			director.VerifyMocks()
+		})
+	})
+
 	Context("the cleanup fails", func() {
 		var session *gexec.Session
 		var instance1 *testcluster.Instance

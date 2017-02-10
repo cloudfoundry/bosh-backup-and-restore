@@ -167,6 +167,14 @@ func (d *DirectoryArtifact) Valid() (bool, error) {
 		return false, err
 	}
 
+	for _, blob := range meta.MetadataForEachArtifact {
+		actualBlobChecksum, _ := d.CalculateChecksum(blob)
+		if !actualBlobChecksum.Match(blob.Checksum) {
+			d.Debug(TAG, "Can't match checksums for %s, in metadata: %v, in actual file: %v", blob.Name(), actualBlobChecksum, blob.Checksum)
+			return false, nil
+		}
+	}
+
 	for _, inst := range meta.MetadataForEachInstance {
 		actualInstanceChecksum, err := d.CalculateChecksum(inst)
 		if err != nil {
