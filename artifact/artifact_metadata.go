@@ -1,22 +1,22 @@
 package artifact
 
-type artifactMetadata struct {
-	ArtifactName string            `yaml:"artifact_name"`
-	Checksum     map[string]string `yaml:"checksums"`
+type blobMetadata struct {
+	BlobName string            `yaml:"blob_name"`
+	Checksum map[string]string `yaml:"checksums"`
 }
 
-func (metadata artifactMetadata) Name() string {
-	return metadata.ArtifactName
+func (metadata blobMetadata) Name() string {
+	return metadata.BlobName
 }
 
-func (metadata artifactMetadata) Index() string {
+func (metadata blobMetadata) Index() string {
 	return ""
 }
 
-func (metadata artifactMetadata) ID() string {
+func (metadata blobMetadata) ID() string {
 	return ""
 }
 
-func (metadata artifactMetadata) IsNamed() bool {
+func (metadata blobMetadata) IsNamed() bool {
 	return true
 }

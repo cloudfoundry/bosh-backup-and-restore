@@ -3,10 +3,9 @@ package artifact
 import "gopkg.in/yaml.v2"
 import "io/ioutil"
 
-
 type metadata struct {
 	MetadataForEachInstance []instanceMetadata `yaml:"instances"`
-	MetadataForEachArtifact []artifactMetadata `yaml:"artifacts,omitempty"`
+	MetadataForEachBlob     []blobMetadata     `yaml:"blobs,omitempty"`
 }
 
 func readMetadata(filename string) (metadata, error) {

@@ -174,8 +174,8 @@ backup_name: foo_redis
 - instance_name: redis-dedicated-node
   instance_index: "0"
   checksums: {}
-artifacts:
-- artifact_name: foo_redis
+blobs:
+- blob_name: foo_redis
   checksums:
     ./backupdump1: %s
     ./backupdump2: %s

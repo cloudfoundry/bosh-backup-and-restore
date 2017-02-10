@@ -161,8 +161,8 @@ instances:
 				Expect(ioutil.WriteFile(artifactName+"/foo_redis.tgz", contents, 0666)).NotTo(HaveOccurred())
 
 				createTestMetadata(artifactName, fmt.Sprintf(`---
-artifacts:
-- artifact_name: foo_redis
+blobs:
+- blob_name: foo_redis
   checksums:
     file1: %x
 `, sha1.Sum([]byte("This archive contains some text files."))))
@@ -183,8 +183,8 @@ artifacts:
 				Expect(ioutil.WriteFile(artifactName+"/foo_redis.tgz", contents, 0666)).NotTo(HaveOccurred())
 
 				createTestMetadata(artifactName, fmt.Sprintf(`---
-artifacts:
-- artifact_name: foo_redis
+blobs:
+- blob_name: foo_redis
   checksums:
     file1: %x
 `, sha1.Sum([]byte("you fools!"))))
@@ -587,8 +587,8 @@ instances:
 
 				expectedMetadata := `---
 instances: []
-artifacts:
-- artifact_name: my-amazing-artifact
+blobs:
+- blob_name: my-amazing-artifact
   checksums:
     filename: foobar`
 				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
@@ -634,11 +634,11 @@ instances:
 
 				expectedMetadata := `---
 instances: []
-artifacts:
-- artifact_name: broker
+blobs:
+- blob_name: broker
   checksums:
     filename1: orignal_checksum
-- artifact_name: redis
+- blob_name: redis
   checksums:
     filename: foobar`
 				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
@@ -663,8 +663,8 @@ instances:
   instance_index: "0"
   checksums:
     filename1: orignal_checksum
-artifacts:
-- artifact_name: redis
+blobs:
+- blob_name: redis
   checksums:
     filename: foobar`
 				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
@@ -705,8 +705,8 @@ artifacts:
 
 				createTestMetadata(artifactName, `---
 instances: []
-artifacts:
-- artifact_name: foo
+blobs:
+- blob_name: foo
   checksums:
     filename1: orignal_checksum`)
 			})

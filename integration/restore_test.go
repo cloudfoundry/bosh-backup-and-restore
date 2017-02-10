@@ -315,8 +315,8 @@ instances:
 - instance_name: redis-dedicated-node
   instance_index: 0
   checksums: {}
-artifacts:
-- artifact_name: foo
+blobs:
+- blob_name: foo
   checksums:
     ./redis/redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
 
@@ -400,8 +400,8 @@ instances:
 - instance_name: redis-backup-node
   instance_index: 0
   checksums: {}
-artifacts:
-- artifact_name: foo
+blobs:
+- blob_name: foo
   checksums:
     ./redis/redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
 
@@ -457,8 +457,8 @@ instances:
 - instance_name: redis-backup-node
   instance_index: 0
   checksums: {}
-artifacts:
-- artifact_name: foo
+blobs:
+- blob_name: foo
   checksums:
     ./redis/redis-backup: this-is-damn-wrong`))
 			director.VerifyAndMock()
