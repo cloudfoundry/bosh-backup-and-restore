@@ -667,7 +667,7 @@ var _ = Describe("Instance", func() {
 
 			It("logs that it is restoring the instance", func() {
 				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
-					"Restoring to %s/%s",
+					"Restoring %s/%s",
 					jobName,
 					jobID,
 				)))

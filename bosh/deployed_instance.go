@@ -125,7 +125,7 @@ func (d *DeployedInstance) PostBackupUnlock() error {
 }
 
 func (d *DeployedInstance) Restore() error {
-	d.Logger.Info("", "Restoring to %s/%s...", d.InstanceGroupName, d.BoshInstanceID)
+	d.Logger.Info("", "Restoring %s/%s...", d.InstanceGroupName, d.BoshInstanceID)
 
 	var restoreErrors error
 
