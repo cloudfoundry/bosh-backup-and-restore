@@ -5,7 +5,6 @@ import (
 
 	"strconv"
 
-	"errors"
 	"fmt"
 
 	"github.com/cloudfoundry/bosh-cli/director"
@@ -17,12 +16,14 @@ import (
 func New(boshDirector director.Director,
 	sshOptsGenerator SSHOptsGenerator,
 	connectionFactory SSHConnectionFactory,
-	logger Logger) orchestrator.BoshDirector {
+	logger Logger,
+	jobFinder instance.JobFinder) orchestrator.BoshDirector {
 	return client{
 		Director:             boshDirector,
 		SSHOptsGenerator:     sshOptsGenerator,
 		SSHConnectionFactory: connectionFactory,
 		Logger:               logger,
+		jobFinder:            jobFinder,
 	}
 }
 
@@ -37,6 +38,7 @@ type client struct {
 	SSHOptsGenerator
 	SSHConnectionFactory
 	Logger
+	jobFinder instance.JobFinder
 }
 
 type Logger interface {
@@ -94,21 +96,14 @@ func (c client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 			}
 			instanceGroupWithSSHConnections[allVmInstances] = append(instanceGroupWithSSHConnections[allVmInstances], sshConnection)
 
-			scripts, err := c.findScripts(host, sshConnection)
+			hostIdentifier := fmt.Sprintf("%s/%s", host.Host, host.IndexOrID)
+
+			jobs, err := c.jobFinder.FindJobs(hostIdentifier, sshConnection)
 
 			if err != nil {
 				cleanupAlreadyMadeConnections(deployment, instanceGroupWithSSHConnections, sshOpts)
 				return nil, err
 			}
-
-			metadata, err := c.getMetadata(host, sshConnection)
-
-			if err != nil {
-				cleanupAlreadyMadeConnections(deployment, instanceGroupWithSSHConnections, sshOpts)
-				return nil, err
-			}
-
-			jobs := instance.NewJobs(instance.NewBackupAndRestoreScripts(scripts), metadata)
 
 			instances = append(instances,
 				NewBoshInstance(
@@ -163,129 +158,6 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func (c client) getMetadata(host director.Host, sshConnection SSHConnection) (map[string]instance.Metadata, error) {
-	c.Logger.Debug("", "Attempting to fetch metadata on %s/%s", host.Host, host.IndexOrID)
-
-	metadata := map[string]instance.Metadata{}
-
-	stdout, stderr, exitCode, err := sshConnection.Run("ls -1 /var/vcap/jobs/*/bin/p-metadata")
-
-	if exitCode != 0 && !strings.Contains(string(stderr), "No such file or directory") {
-		errorString := fmt.Sprintf(
-			"Failed to check for job metadata scripts on %s/%s.\nStdout: %s\nStderr: %s",
-			host.Host,
-			host.IndexOrID,
-			stdout,
-			stderr,
-		)
-		return map[string]instance.Metadata{}, errors.New(errorString)
-	}
-
-	if err != nil {
-		errorString := fmt.Sprintf(
-			"An error occurred while checking for job metadata scripts on %s/%s: %s",
-			host.Host,
-			host.IndexOrID,
-			err,
-		)
-		c.Logger.Error("", errorString)
-		return map[string]instance.Metadata{}, errors.New(errorString)
-	}
-
-	files := strings.Split(string(stdout), "\n")
-
-	for _, file := range files {
-		jobName, _ := instance.Script(file).JobName()
-		metadataContent, stderr, exitCode, err := sshConnection.Run(file)
-
-		if exitCode != 0 && !strings.Contains(string(stderr), "No such file or directory") {
-			errorString := fmt.Sprintf(
-				"Failed to run job metadata scripts on %s/%s.\nStdout: %s\nStderr: %s",
-				host.Host,
-				host.IndexOrID,
-				stdout,
-				stderr,
-			)
-			return map[string]instance.Metadata{}, errors.New(errorString)
-		}
-
-		if err != nil {
-			errorString := fmt.Sprintf(
-				"An error occurred while running job metadata scripts on %s/%s: %s",
-				host.Host,
-				host.IndexOrID,
-				err,
-			)
-			c.Logger.Error("", errorString)
-			return map[string]instance.Metadata{}, errors.New(errorString)
-		}
-
-		jobMetadata, err := instance.NewJobMetadata(metadataContent)
-
-		if err != nil {
-			errorString := fmt.Sprintf(
-				"Reading job metadata for %s/%s failed: %s",
-				host.Host,
-				host.IndexOrID,
-				err.Error(),
-			)
-			c.Logger.Error("", errorString)
-			return map[string]instance.Metadata{}, errors.New(errorString)
-		}
-
-		metadata[jobName] = *jobMetadata
-	}
-
-	return metadata, nil
-}
-
-func (c client) findScripts(host director.Host, sshConnection SSHConnection) ([]string, error) {
-	c.Logger.Debug("", "Attempting to find scripts on %s/%s", host.Host, host.IndexOrID)
-
-	stdout, stderr, exitCode, err := sshConnection.Run("find /var/vcap/jobs/*/bin/* -type f")
-	if err != nil {
-		c.Logger.Error(
-			"",
-			"Failed to run find on %s/%s. Error: %s\nStdout: %s\nStderr%s",
-			host.Host,
-			host.IndexOrID,
-			err,
-			stdout,
-			stderr,
-		)
-		return nil, err
-	}
-
-	if exitCode != 0 {
-		if strings.Contains(string(stderr), "No such file or directory") {
-			c.Logger.Debug(
-				"",
-				"Running find failed on %s/%s.\nStdout: %s\nStderr: %s",
-				host.Host,
-				host.IndexOrID,
-				stdout,
-				stderr,
-			)
-		} else {
-			c.Logger.Error(
-				"",
-				"Running find failed on %s/%s.\nStdout: %s\nStderr: %s",
-				host.Host,
-				host.IndexOrID,
-				stdout,
-				stderr,
-			)
-			return nil, fmt.Errorf(
-				"Running find failed on %s/%s.\nStdout: %s\nStderr: %s",
-				host.Host,
-				host.IndexOrID,
-				stdout,
-				stderr,
-			)
-		}
-	}
-	return strings.Split(string(stdout), "\n"), nil
-}
 func cleanupAlreadyMadeConnections(deployment director.Deployment, instanceGroupWithSSHConnections map[director.AllOrInstanceGroupOrInstanceSlug][]SSHConnection, opts director.SSHOpts) {
 	for slug, sshConnections := range instanceGroupWithSSHConnections {
 		for _, connection := range sshConnections {

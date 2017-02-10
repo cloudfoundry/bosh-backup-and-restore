@@ -1,7 +1,6 @@
 package instance
 
 import (
-	"fmt"
 	"path/filepath"
 	"strings"
 )
@@ -11,6 +10,7 @@ type BackupAndRestoreScripts []Script
 const (
 	backupScriptName           = "p-backup"
 	restoreScriptName          = "p-restore"
+	metadataScriptName         = "p-metadata"
 	preBackupLockScriptName    = "p-pre-backup-lock"
 	postBackupUnlockScriptName = "p-post-backup-unlock"
 
@@ -18,6 +18,7 @@ const (
 	jobDirectoryMatcher           = jobBaseDirectory + "*/bin/"
 	backupScriptMatcher           = jobDirectoryMatcher + backupScriptName
 	restoreScriptMatcher          = jobDirectoryMatcher + restoreScriptName
+	metadataScriptMatcher         = jobDirectoryMatcher + metadataScriptName
 	preBackupLockScriptMatcher    = jobDirectoryMatcher + preBackupLockScriptName
 	postBackupUnlockScriptMatcher = jobDirectoryMatcher + postBackupUnlockScriptName
 )
@@ -34,6 +35,11 @@ func (s Script) isRestore() bool {
 	return match
 }
 
+func (s Script) isMetadata() bool {
+	match, _ := filepath.Match(metadataScriptMatcher, string(s))
+	return match
+}
+
 func (s Script) isPreBackupUnlock() bool {
 	match, _ := filepath.Match(preBackupLockScriptMatcher, string(s))
 	return match
@@ -45,17 +51,17 @@ func (s Script) isPostBackupUnlock() bool {
 }
 
 func (s Script) isPlatformScript() bool {
-	return s.isBackup() || s.isRestore() || s.isPreBackupUnlock() || s.isPostBackupUnlock()
+	return s.isBackup() ||
+		s.isRestore() ||
+		s.isPreBackupUnlock() ||
+		s.isPostBackupUnlock() ||
+		s.isMetadata()
 }
 
-func (s Script) JobName() (string, error) {
-	if !strings.HasPrefix(string(s), jobBaseDirectory) {
-		return "", fmt.Errorf("script %s is not a Job script", string(s))
-	}
-
+func (s Script) JobName() string {
 	strippedPrefix := strings.TrimPrefix(string(s), jobBaseDirectory)
 	splitFirstElement := strings.SplitN(strippedPrefix, "/", 2)
-	return splitFirstElement[0], nil
+	return splitFirstElement[0]
 }
 
 func NewBackupAndRestoreScripts(files []string) BackupAndRestoreScripts {
@@ -83,6 +89,16 @@ func (s BackupAndRestoreScripts) BackupOnly() BackupAndRestoreScripts {
 	scripts := BackupAndRestoreScripts{}
 	for _, script := range s {
 		if script.isBackup() {
+			scripts = append(scripts, script)
+		}
+	}
+	return scripts
+}
+
+func (s BackupAndRestoreScripts) MetadataOnly() BackupAndRestoreScripts {
+	scripts := BackupAndRestoreScripts{}
+	for _, script := range s {
+		if script.isMetadata() {
 			scripts = append(scripts, script)
 		}
 	}

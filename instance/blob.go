@@ -15,6 +15,7 @@ type SSHConnection interface {
 	Run(cmd string) ([]byte, []byte, int, error)
 }
 
+//go:generate counterfeiter -o fakes/fake_logger.go . Logger
 type Logger interface {
 	Debug(tag, msg string, args ...interface{})
 	Info(tag, msg string, args ...interface{})

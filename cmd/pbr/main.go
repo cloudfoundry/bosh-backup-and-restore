@@ -14,6 +14,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
 )
 
 var version string
@@ -163,7 +164,7 @@ func makeDeploymentManager(boshClient orchestrator.BoshDirector, logger boshlog.
 	return orchestrator.NewBoshDeploymentManager(boshClient, logger)
 }
 func makeBoshClient(boshDirector director.Director, logger boshlog.Logger) orchestrator.BoshDirector {
-	boshClient := bosh.New(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger)
+	boshClient := bosh.New(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger, instance.NewJobFinder(logger))
 	return boshClient
 }
 

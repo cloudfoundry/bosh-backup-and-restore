@@ -109,7 +109,7 @@ func (jobs Jobs) NamedRestoreBlobs() []string {
 func NewJobs(scripts BackupAndRestoreScripts, metadata map[string]Metadata) Jobs {
 	groupedByJobName := map[string]BackupAndRestoreScripts{}
 	for _, script := range scripts {
-		jobName, _ := script.JobName()
+		jobName := script.JobName()
 		existingScripts := groupedByJobName[jobName]
 		groupedByJobName[jobName] = append(existingScripts, script)
 	}

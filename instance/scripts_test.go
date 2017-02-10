@@ -122,6 +122,18 @@ var _ = Describe("Backup and Restore Scripts", func() {
 				}))
 			})
 		})
+
+		Context("Metadata", func() {
+			It("returns the matching scripts", func() {
+				var allScripts = []string{"/var/vcap/jobs/cloud_controller_clock/bin/baz",
+					"/var/vcap/jobs/cloud_controller_clock/bin/cloud_controller_clock_ctl",
+					"/var/vcap/jobs/cloud_controller_clock/bin/p-metadata",
+					"/var/vcap/jobs/cloud_controller_clock/bin/pre-start"}
+				Expect(NewBackupAndRestoreScripts(allScripts)).To(Equal(BackupAndRestoreScripts{
+					"/var/vcap/jobs/cloud_controller_clock/bin/p-metadata",
+				}))
+			})
+		})
 	})
 
 	Describe("BackupOnly", func() {
@@ -178,6 +190,35 @@ var _ = Describe("Backup and Restore Scripts", func() {
 				"/var/vcap/jobs/cloud_controller_clock/bin/pre-start"}
 			Expect(s.RestoreOnly()).To(Equal(BackupAndRestoreScripts{"/var/vcap/jobs/cloud_controller_clock/bin/p-restore",
 				"/var/vcap/jobs/cloud_controller/bin/p-restore",
+			}))
+		})
+	})
+
+	Describe("MetadataOnly", func() {
+		It("returns the p-backup scripts when it only has one", func() {
+			s := BackupAndRestoreScripts{"/var/vcap/jobs/cloud_controller_clock/bin/baz",
+				"/var/vcap/jobs/cloud_controller_clock/bin/cloud_controller_clock_ctl",
+				"/var/vcap/jobs/cloud_controller_clock/bin/p-metadata",
+				"/var/vcap/jobs/cloud_controller_clock/bin/foo/bar",
+				"/var/vcap/jobs/cloud_controller_clock/bin/pre-start"}
+			Expect(s.MetadataOnly()).To(Equal(BackupAndRestoreScripts{"/var/vcap/jobs/cloud_controller_clock/bin/p-metadata"}))
+		})
+
+		It("returns empty when it has none", func() {
+			s := BackupAndRestoreScripts{"/var/vcap/jobs/cloud_controller_clock/bin/baz",
+				"/var/vcap/jobs/cloud_controller_clock/bin/cloud_controller_clock_ctl",
+				"/var/vcap/jobs/cloud_controller_clock/bin/foo/bar",
+				"/var/vcap/jobs/cloud_controller_clock/bin/pre-start"}
+			Expect(s.MetadataOnly()).To(Equal(BackupAndRestoreScripts{}))
+		})
+
+		It("returns all p-backup scripts when there are several", func() {
+			s := BackupAndRestoreScripts{"/var/vcap/jobs/cloud_controller_clock/bin/p-metadata",
+				"/var/vcap/jobs/cloud_controller/bin/p-metadata",
+				"/var/vcap/jobs/cloud_controller_clock/bin/foo/bar",
+				"/var/vcap/jobs/cloud_controller_clock/bin/pre-start"}
+			Expect(s.MetadataOnly()).To(Equal(BackupAndRestoreScripts{"/var/vcap/jobs/cloud_controller_clock/bin/p-metadata",
+				"/var/vcap/jobs/cloud_controller/bin/p-metadata",
 			}))
 		})
 	})
@@ -247,11 +288,10 @@ var _ = Describe("Script", func() {
 	var (
 		script Script
 		result string
-		err    error
 	)
 
 	JustBeforeEach(func() {
-		result, err = script.JobName()
+		result = script.JobName()
 	})
 
 	Describe("JobName", func() {
@@ -261,16 +301,6 @@ var _ = Describe("Script", func() {
 
 		It("returns the job name for a given bosh job script", func() {
 			Expect(result).To(Equal("a-job-name"))
-		})
-
-		Context("when provided script is not a job script", func() {
-			BeforeEach(func() {
-				script = Script("/var/vcap/packages/job/some-script")
-			})
-
-			It("returns an error", func() {
-				Expect(err).To(HaveOccurred())
-			})
 		})
 	})
 })

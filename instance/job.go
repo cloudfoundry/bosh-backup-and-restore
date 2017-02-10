@@ -3,7 +3,7 @@ package instance
 import "fmt"
 
 func NewJob(jobScripts BackupAndRestoreScripts, metadata Metadata) Job {
-	jobName, _ := jobScripts[0].JobName()
+	jobName := jobScripts[0].JobName()
 	return Job{
 		name:             jobName,
 		metadata:         metadata,
