@@ -111,7 +111,7 @@ var _ = Describe("blob", func() {
 			var actualChecksumError error
 
 			JustBeforeEach(func() {
-				actualChecksum, actualChecksumError = blob.BackupChecksum()
+				actualChecksum, actualChecksumError = blob.Checksum()
 			})
 
 			Context("triggers find & shasum as root", func() {
@@ -238,7 +238,7 @@ var _ = Describe("blob", func() {
 				})
 
 				JustBeforeEach(func() {
-					size, _ = blob.BackupSize()
+					size, _ = blob.Size()
 				})
 
 				It("returns the size of the backup according to the root user, as a string", func() {
@@ -256,7 +256,7 @@ var _ = Describe("blob", func() {
 				})
 
 				JustBeforeEach(func() {
-					_, err = blob.BackupSize()
+					_, err = blob.Size()
 				})
 
 				It("returns the size of the backup according to the root user, as a string", func() {
@@ -275,7 +275,7 @@ var _ = Describe("blob", func() {
 				})
 
 				JustBeforeEach(func() {
-					_, err = blob.BackupSize()
+					_, err = blob.Size()
 				})
 
 				It("returns the error", func() {
@@ -291,7 +291,7 @@ var _ = Describe("blob", func() {
 			var reader = bytes.NewBufferString("dave")
 
 			JustBeforeEach(func() {
-				err = blob.StreamBackupToRemote(reader)
+				err = blob.StreamToRemote(reader)
 			})
 
 			Describe("when successful", func() {

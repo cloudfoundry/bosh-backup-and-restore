@@ -82,7 +82,7 @@ func (d *Blob) StreamFromRemote(writer io.Writer) error {
 	return err
 }
 
-func (d *Blob) StreamBackupToRemote(reader io.Reader) error {
+func (d *Blob) StreamToRemote(reader io.Reader) error {
 	stdout, stderr, exitCode, err := d.logAndRun("sudo mkdir -p "+d.artifactDirectory, "create backup directory on remote")
 
 	if err != nil {
@@ -110,7 +110,7 @@ func (d *Blob) StreamBackupToRemote(reader io.Reader) error {
 	return err
 }
 
-func (d *Blob) BackupSize() (string, error) {
+func (d *Blob) Size() (string, error) {
 	stdout, stderr, exitCode, err := d.logAndRun(fmt.Sprintf("sudo du -sh %s | cut -f1", d.artifactDirectory), "check backup size")
 
 	if exitCode != 0 {
@@ -121,7 +121,7 @@ func (d *Blob) BackupSize() (string, error) {
 	return size, err
 }
 
-func (d *Blob) BackupChecksum() (orchestrator.BackupChecksum, error) {
+func (d *Blob) Checksum() (orchestrator.BackupChecksum, error) {
 	stdout, stderr, exitCode, err := d.logAndRun(fmt.Sprintf("cd %s; sudo sh -c 'find . -type f | xargs shasum'", d.artifactDirectory), "checksum")
 
 	if err != nil {

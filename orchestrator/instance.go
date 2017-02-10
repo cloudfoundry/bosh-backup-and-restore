@@ -34,11 +34,11 @@ type BackupBlobIdentifier interface {
 //go:generate counterfeiter -o fakes/fake_backup_blob.go . BackupBlob
 type BackupBlob interface {
 	BackupBlobIdentifier
-	BackupSize() (string, error)
-	BackupChecksum() (BackupChecksum, error)
+	Size() (string, error)
+	Checksum() (BackupChecksum, error)
 	StreamFromRemote(io.Writer) error
 	Delete() error
-	StreamBackupToRemote(io.Reader) error
+	StreamToRemote(io.Reader) error
 }
 
 type instances []Instance

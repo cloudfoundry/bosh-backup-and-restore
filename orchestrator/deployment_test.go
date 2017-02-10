@@ -552,7 +552,7 @@ var _ = Describe("Deployment", func() {
 
 			BeforeEach(func() {
 				artifact.FetchChecksumReturns(blobCheckSum, nil)
-				backupBlob.BackupChecksumReturns(blobCheckSum, nil)
+				backupBlob.ChecksumReturns(blobCheckSum, nil)
 				instance1.BlobsToRestoreReturns([]orchestrator.BackupBlob{backupBlob})
 			})
 
@@ -561,7 +561,7 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("checks the remote after transfer", func() {
-				Expect(backupBlob.BackupChecksumCallCount()).To(Equal(1))
+				Expect(backupBlob.ChecksumCallCount()).To(Equal(1))
 			})
 
 			It("checks the local checksum", func() {
@@ -570,14 +570,14 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("streams the backup file to the restorable instance", func() {
-				Expect(backupBlob.StreamBackupToRemoteCallCount()).To(Equal(1))
-				expectedReader := backupBlob.StreamBackupToRemoteArgsForCall(0)
+				Expect(backupBlob.StreamToRemoteCallCount()).To(Equal(1))
+				expectedReader := backupBlob.StreamToRemoteArgsForCall(0)
 				Expect(expectedReader).To(Equal(reader))
 			})
 
 			Context("problem occurs streaming to instance", func() {
 				BeforeEach(func() {
-					backupBlob.StreamBackupToRemoteReturns(fmt.Errorf("Tiny children are not horses"))
+					backupBlob.StreamToRemoteReturns(fmt.Errorf("Tiny children are not horses"))
 				})
 
 				It("fails", func() {
@@ -599,7 +599,7 @@ var _ = Describe("Deployment", func() {
 			Context("problem calculating shasum on remote", func() {
 				var checksumError = fmt.Errorf("grr")
 				BeforeEach(func() {
-					backupBlob.BackupChecksumReturns(nil, checksumError)
+					backupBlob.ChecksumReturns(nil, checksumError)
 				})
 
 				It("fails", func() {
@@ -610,7 +610,7 @@ var _ = Describe("Deployment", func() {
 
 			Context("shas dont match after transfer", func() {
 				BeforeEach(func() {
-					backupBlob.BackupChecksumReturns(orchestrator.BackupChecksum{"shas": "they dont match"}, nil)
+					backupBlob.ChecksumReturns(orchestrator.BackupChecksum{"shas": "they dont match"}, nil)
 				})
 
 				It("fails", func() {
@@ -637,7 +637,7 @@ var _ = Describe("Deployment", func() {
 				instance2.IsRestorableReturns(false)
 
 				artifact.FetchChecksumReturns(blobCheckSum, nil)
-				backupBlob.BackupChecksumReturns(blobCheckSum, nil)
+				backupBlob.ChecksumReturns(blobCheckSum, nil)
 				instance1.BlobsToRestoreReturns([]orchestrator.BackupBlob{backupBlob})
 			})
 
@@ -650,7 +650,7 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("checks the remote after transfer", func() {
-				Expect(backupBlob.BackupChecksumCallCount()).To(Equal(1))
+				Expect(backupBlob.ChecksumCallCount()).To(Equal(1))
 			})
 
 			It("checks the local checksum", func() {
@@ -659,14 +659,14 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("streams the backup file to the restorable instance", func() {
-				Expect(backupBlob.StreamBackupToRemoteCallCount()).To(Equal(1))
-				expectedReader := backupBlob.StreamBackupToRemoteArgsForCall(0)
+				Expect(backupBlob.StreamToRemoteCallCount()).To(Equal(1))
+				expectedReader := backupBlob.StreamToRemoteArgsForCall(0)
 				Expect(expectedReader).To(Equal(reader))
 			})
 
 			Context("problem occurs streaming to instance", func() {
 				BeforeEach(func() {
-					backupBlob.StreamBackupToRemoteReturns(fmt.Errorf("Tiny children are not horses"))
+					backupBlob.StreamToRemoteReturns(fmt.Errorf("Tiny children are not horses"))
 				})
 
 				It("fails", func() {
@@ -688,7 +688,7 @@ var _ = Describe("Deployment", func() {
 			Context("problem calculating shasum on remote", func() {
 				var checksumError = fmt.Errorf("grr")
 				BeforeEach(func() {
-					backupBlob.BackupChecksumReturns(nil, checksumError)
+					backupBlob.ChecksumReturns(nil, checksumError)
 				})
 
 				It("fails", func() {
@@ -699,7 +699,7 @@ var _ = Describe("Deployment", func() {
 
 			Context("shas dont match after transfer", func() {
 				BeforeEach(func() {
-					backupBlob.BackupChecksumReturns(orchestrator.BackupChecksum{"shas": "they dont match"}, nil)
+					backupBlob.ChecksumReturns(orchestrator.BackupChecksum{"shas": "they dont match"}, nil)
 				})
 
 				It("fails", func() {
@@ -726,8 +726,8 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				anotherBackupBlob = new(fakes.FakeBackupBlob)
 				artifact.FetchChecksumReturns(blobCheckSum, nil)
-				backupBlob.BackupChecksumReturns(blobCheckSum, nil)
-				anotherBackupBlob.BackupChecksumReturns(blobCheckSum, nil)
+				backupBlob.ChecksumReturns(blobCheckSum, nil)
+				anotherBackupBlob.ChecksumReturns(blobCheckSum, nil)
 
 				instance1.BlobsToRestoreReturns([]orchestrator.BackupBlob{backupBlob, anotherBackupBlob})
 			})
@@ -737,7 +737,7 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("checks the remote after transfer", func() {
-				Expect(backupBlob.BackupChecksumCallCount()).To(Equal(1))
+				Expect(backupBlob.ChecksumCallCount()).To(Equal(1))
 			})
 
 			It("checks the local checksum", func() {
@@ -747,14 +747,14 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("streams the backup file to the restorable instance", func() {
-				Expect(backupBlob.StreamBackupToRemoteCallCount()).To(Equal(1))
-				expectedReader := backupBlob.StreamBackupToRemoteArgsForCall(0)
+				Expect(backupBlob.StreamToRemoteCallCount()).To(Equal(1))
+				expectedReader := backupBlob.StreamToRemoteArgsForCall(0)
 				Expect(expectedReader).To(Equal(reader))
 			})
 
 			Context("problem occurs streaming to instance", func() {
 				BeforeEach(func() {
-					backupBlob.StreamBackupToRemoteReturns(fmt.Errorf("Tiny children are not horses"))
+					backupBlob.StreamToRemoteReturns(fmt.Errorf("Tiny children are not horses"))
 				})
 
 				It("fails", func() {
@@ -776,7 +776,7 @@ var _ = Describe("Deployment", func() {
 			Context("problem calculating shasum on remote", func() {
 				var checksumError = fmt.Errorf("grr")
 				BeforeEach(func() {
-					backupBlob.BackupChecksumReturns(nil, checksumError)
+					backupBlob.ChecksumReturns(nil, checksumError)
 				})
 
 				It("fails", func() {
@@ -787,7 +787,7 @@ var _ = Describe("Deployment", func() {
 
 			Context("shas dont match after transfer", func() {
 				BeforeEach(func() {
-					backupBlob.BackupChecksumReturns(orchestrator.BackupChecksum{"shas": "they dont match"}, nil)
+					backupBlob.ChecksumReturns(orchestrator.BackupChecksum{"shas": "they dont match"}, nil)
 				})
 
 				It("fails", func() {
@@ -993,7 +993,7 @@ var _ = Describe("Deployment", func() {
 				instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{backupBlob})
 				instance1.IsBackupableReturns(true)
 				artifact.CalculateChecksumReturns(remoteArtifactChecksum, nil)
-				backupBlob.BackupChecksumReturns(remoteArtifactChecksum, nil)
+				backupBlob.ChecksumReturns(remoteArtifactChecksum, nil)
 
 				instances = []orchestrator.Instance{instance1}
 			})
@@ -1022,7 +1022,7 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("calculates checksum for the instance on remote", func() {
-				Expect(backupBlob.BackupChecksumCallCount()).To(Equal(1))
+				Expect(backupBlob.ChecksumCallCount()).To(Equal(1))
 			})
 
 			It("appends the checksum for the instance on the artifact", func() {
@@ -1064,8 +1064,8 @@ var _ = Describe("Deployment", func() {
 				artifact.CalculateChecksumReturns(instanceChecksum, nil)
 
 				instances = []orchestrator.Instance{instance1, instance2}
-				blob1.BackupChecksumReturns(instanceChecksum, nil)
-				blob2.BackupChecksumReturns(instanceChecksum, nil)
+				blob1.ChecksumReturns(instanceChecksum, nil)
+				blob2.ChecksumReturns(instanceChecksum, nil)
 			})
 			It("creates an artifact file with the instance", func() {
 				Expect(artifact.CreateFileCallCount()).To(Equal(2))
@@ -1093,8 +1093,8 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("calculates checksum for the instance on remote", func() {
-				Expect(blob1.BackupChecksumCallCount()).To(Equal(1))
-				Expect(blob2.BackupChecksumCallCount()).To(Equal(1))
+				Expect(blob1.ChecksumCallCount()).To(Equal(1))
+				Expect(blob2.ChecksumCallCount()).To(Equal(1))
 			})
 
 			It("deletes both the blobs", func() {
@@ -1132,7 +1132,7 @@ var _ = Describe("Deployment", func() {
 				artifact.CalculateChecksumReturns(instanceChecksum, nil)
 
 				instances = []orchestrator.Instance{instance1, instance2}
-				remoteArtifact1.BackupChecksumReturns(instanceChecksum, nil)
+				remoteArtifact1.ChecksumReturns(instanceChecksum, nil)
 			})
 			It("succeeds", func() {
 				Expect(copyRemoteBackupsToLocalArtifactError).To(Succeed())
@@ -1157,7 +1157,7 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("calculates checksum for the instance on remote", func() {
-				Expect(remoteArtifact1.BackupChecksumCallCount()).To(Equal(1))
+				Expect(remoteArtifact1.ChecksumCallCount()).To(Equal(1))
 			})
 
 			It("appends the checksum for the instance on the artifact", func() {
@@ -1232,7 +1232,7 @@ var _ = Describe("Deployment", func() {
 					instance1.IsBackupableReturns(true)
 					instance1.BackupReturns(nil)
 					instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{backupBlob})
-					backupBlob.BackupChecksumReturns(nil, remoteShasumError)
+					backupBlob.ChecksumReturns(nil, remoteShasumError)
 
 					artifact.CreateFileReturns(writeCloser1, nil)
 				})
@@ -1260,7 +1260,7 @@ var _ = Describe("Deployment", func() {
 					artifact.CreateFileReturns(writeCloser1, nil)
 
 					artifact.CalculateChecksumReturns(orchestrator.BackupChecksum{"file": "this won't match"}, nil)
-					backupBlob.BackupChecksumReturns(orchestrator.BackupChecksum{"file": "this wont match"}, nil)
+					backupBlob.ChecksumReturns(orchestrator.BackupChecksum{"file": "this wont match"}, nil)
 				})
 
 				It("fails the backup process", func() {
@@ -1285,7 +1285,7 @@ var _ = Describe("Deployment", func() {
 
 					artifact.CreateFileReturns(writeCloser1, nil)
 					artifact.CalculateChecksumReturns(orchestrator.BackupChecksum{"file": "this will match", "extra": "this won't match"}, nil)
-					backupBlob.BackupChecksumReturns(orchestrator.BackupChecksum{"file": "this will match"}, nil)
+					backupBlob.ChecksumReturns(orchestrator.BackupChecksum{"file": "this will match"}, nil)
 				})
 
 				It("fails the backup process", func() {
@@ -1313,7 +1313,7 @@ var _ = Describe("Deployment", func() {
 					artifact.CreateFileReturns(writeCloser1, nil)
 					artifact.CalculateChecksumReturns(orchestrator.BackupChecksum{"file": "this will match", "extra": "this won't match"}, nil)
 					artifact.CalculateChecksumReturns(instanceChecksum, nil)
-					backupBlob.BackupChecksumReturns(instanceChecksum, nil)
+					backupBlob.ChecksumReturns(instanceChecksum, nil)
 
 					backupBlob.DeleteReturns(expectedError)
 				})

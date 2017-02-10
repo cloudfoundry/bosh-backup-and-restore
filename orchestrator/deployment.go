@@ -83,7 +83,7 @@ func (bd *BoshDeployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 				return err
 			}
 
-			size, err := remoteArtifact.BackupSize()
+			size, err := remoteArtifact.Size()
 			if err != nil {
 				return err
 			}
@@ -102,7 +102,7 @@ func (bd *BoshDeployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 				return err
 			}
 
-			remoteChecksum, err := remoteArtifact.BackupChecksum()
+			remoteChecksum, err := remoteArtifact.Checksum()
 			if err != nil {
 				return err
 			}
@@ -135,7 +135,7 @@ func (bd *BoshDeployment) CopyLocalBackupToRemote(artifact Artifact) error {
 			}
 
 			bd.Logger.Info("", "Copying backup to %s-%s...", blob.Name(), blob.ID())
-			if err := blob.StreamBackupToRemote(reader); err != nil {
+			if err := blob.StreamToRemote(reader); err != nil {
 				return err
 			}
 
@@ -144,7 +144,7 @@ func (bd *BoshDeployment) CopyLocalBackupToRemote(artifact Artifact) error {
 				return err
 			}
 
-			remoteChecksum, err := blob.BackupChecksum()
+			remoteChecksum, err := blob.Checksum()
 			if err != nil {
 				return err
 			}
