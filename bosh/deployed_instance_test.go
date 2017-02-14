@@ -869,14 +869,20 @@ var _ = Describe("Instance", func() {
 		})
 
 		Context("Has no named backup blobs", func() {
+			BeforeEach(func() {
+				backupAndRestoreScripts = []instance.Script{
+					"/var/vcap/jobs/foo/bin/p-backup",
+				}
+			})
 			It("returns the default blob", func() {
 				Expect(backupBlobs).To(Equal([]orchestrator.BackupBlob{instance.NewDefaultBlob(backuperInstance, sshConnection, boshLogger)}))
 			})
 		})
 
-		Context("Has a named backup blob", func() {
+		Context("Has a named backup blob and a default blob", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
+					"/var/vcap/jobs/foo/bin/p-backup",
 					"/var/vcap/jobs/job-name/bin/p-backup",
 				}
 				blobMetadata = map[string]instance.Metadata{
@@ -903,6 +909,28 @@ var _ = Describe("Instance", func() {
 				Expect(backupBlobs[0]).To(Equal(instance.NewNamedBackupBlob(
 					backuperInstance, instance.NewJob(backupAndRestoreScripts, instance.Metadata{BackupName: "my-blob"}), sshConnection, boshLogger)))
 			})
+		})
+
+		Context("Has only a named backup blob", func() {
+			BeforeEach(func() {
+				backupAndRestoreScripts = []instance.Script{
+					"/var/vcap/jobs/job-name/bin/p-backup",
+				}
+				blobMetadata = map[string]instance.Metadata{
+					"job-name": {BackupName: "my-blob"},
+				}
+			})
+
+			It("returns the named blob and the default blob", func() {
+				Expect(backupBlobs).To(Equal(
+					[]orchestrator.BackupBlob{
+						instance.NewNamedBackupBlob(backuperInstance, instance.NewJob(
+							backupAndRestoreScripts, instance.Metadata{BackupName: "my-blob"},
+						), sshConnection, boshLogger),
+					},
+				))
+			})
+
 		})
 	})
 

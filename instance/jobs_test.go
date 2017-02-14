@@ -308,6 +308,12 @@ var _ = Describe("Jobs", func() {
 			}
 		})
 
+		Describe("AnyNeedDefaultBlobsForBackup", func() {
+			It("returns true", func() {
+				Expect(jobs.AnyNeedDefaultBlobsForBackup()).To(BeTrue())
+			})
+		})
+
 		Describe("WithNamedBackupBlobs", func() {
 			It("returns jobs with named backup blobs", func() {
 				Expect(jobs.WithNamedBackupBlobs()).To(ConsistOf(instance.NewJob(
@@ -388,6 +394,12 @@ var _ = Describe("Jobs", func() {
 		Describe("AnyNeedDefaultBlobsForRestore", func() {
 			It("returns false, as none of the jobs need a default blob for restore", func() {
 				Expect(jobs.AnyNeedDefaultBlobsForRestore()).To(BeFalse())
+			})
+		})
+
+		Describe("AnyNeedDefaultBlobsForBackup", func() {
+			It("returns false", func() {
+				Expect(jobs.AnyNeedDefaultBlobsForBackup()).To(BeFalse())
 			})
 		})
 	})

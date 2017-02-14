@@ -179,7 +179,10 @@ func (d *DeployedInstance) BlobsToBackup() []orchestrator.BackupBlob {
 		blobs = append(blobs, instance.NewNamedBackupBlob(d, job, d.SSHConnection, d.Logger))
 	}
 
-	blobs = append(blobs, instance.NewDefaultBlob(d, d.SSHConnection, d.Logger))
+	if d.Jobs.AnyNeedDefaultBlobsForBackup() {
+		blobs = append(blobs, instance.NewDefaultBlob(d, d.SSHConnection, d.Logger))
+	}
+
 	return blobs
 }
 

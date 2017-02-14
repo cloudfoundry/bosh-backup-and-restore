@@ -142,6 +142,8 @@ printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
 
 			Context("when the backup artifact name is specified in the metadata", func() {
 				var redisCustomArtifactFile string
+				var redisDefaultArtifactFile string
+
 				BeforeEach(func() {
 					instance1.CreateScript("/var/vcap/jobs/redis/bin/p-metadata", `#!/usr/bin/env sh
 	touch /tmp/p-metadata-output
@@ -149,14 +151,11 @@ echo "---
 backup_name: foo_redis
 "`)
 					redisCustomArtifactFile = path.Join(backupWorkspace, deploymentName, "/foo_redis.tgz")
+					redisDefaultArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")
 				})
 
 				It("runs the p-metatdata scripts", func() {
 					Expect(instance1.FileExists("/tmp/p-metadata-output")).To(BeTrue())
-				})
-
-				It("the redis artifact does not contain the artifact files", func() {
-					Expect(filesInTar(redisNodeArtifactFile)).NotTo(ConsistOf("backupdump1", "backupdump2"))
 				})
 
 				It("the custom named backup blob contains the artifact files", func() {
@@ -165,15 +164,16 @@ backup_name: foo_redis
 					Expect(contentsInTar(redisCustomArtifactFile, "backupdump2")).To(Equal("backupcontent2"))
 				})
 
+				It("no default artifact is created", func() {
+					Expect(redisDefaultArtifactFile).NotTo(BeARegularFile())
+				})
+
 				It("creates a metadata file", func() {
 					Expect(metadataFile).To(BeARegularFile())
 				})
 
 				It("the metadata records the artifact separately", func() {
-					Expect(ioutil.ReadFile(metadataFile)).To(MatchYAML(fmt.Sprintf(`instances:
-- instance_name: redis-dedicated-node
-  instance_index: "0"
-  checksums: {}
+					Expect(ioutil.ReadFile(metadataFile)).To(MatchYAML(fmt.Sprintf(`instances: []
 blobs:
 - blob_name: foo_redis
   checksums:

@@ -66,6 +66,15 @@ func (jobs Jobs) AnyNeedDefaultBlobsForRestore() bool {
 	return false
 }
 
+func (jobs Jobs) AnyNeedDefaultBlobsForBackup() bool {
+	for _, job := range jobs.Backupable() {
+		if !job.HasNamedBackupBlob() {
+			return true
+		}
+	}
+	return false
+}
+
 func (jobs Jobs) WithNamedBackupBlobs() Jobs {
 	jobsWithNamedBlobs := Jobs{}
 	for _, job := range jobs {
