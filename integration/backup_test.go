@@ -125,15 +125,17 @@ printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
 			})
 
 			It("prints the backup progress to the screen", func() {
-				Eventually(session).Should(gbytes.Say("Starting backup of %s...", deploymentName))
-				Eventually(session).Should(gbytes.Say("Finding instances with backup scripts..."))
-				Eventually(session).Should(gbytes.Say("Done."))
-				Eventually(session).Should(gbytes.Say("Backing up redis-dedicated-node/fake-uuid..."))
-				Eventually(session).Should(gbytes.Say("Done."))
-				Eventually(session).Should(gbytes.Say("Copying backup --"))
-				Eventually(session).Should(gbytes.Say("from redis-dedicated-node/fake-uuid..."))
-				Eventually(session).Should(gbytes.Say("Done."))
-				Eventually(session).Should(gbytes.Say("Backup created of %s on", deploymentName))
+				sayInOrder(session, []string{
+					fmt.Sprintf("Starting backup of %s...", deploymentName),
+					"Finding instances with backup scripts...",
+					"Done.",
+					"Backing up redis-dedicated-node/fake-uuid...",
+					"Done.",
+					"Copying backup --",
+					"from redis-dedicated-node/fake-uuid...",
+					"Done.",
+					fmt.Sprintf("Backup created of %s on", deploymentName),
+				})
 			})
 
 			It("cleans up backup artifacts from remote", func() {
@@ -734,14 +736,14 @@ func contentsInTar(tarFile, file string) string {
 	return ""
 }
 
-func shaForFile(filename string) string {
-	contents, err := ioutil.ReadFile(filename)
-	Expect(err).NotTo(HaveOccurred())
-	return shaFor(string(contents))
-}
-
 func shaFor(contents string) string {
 	shasum := sha1.New()
 	shasum.Write([]byte(contents))
 	return fmt.Sprintf("%x", shasum.Sum(nil))
+}
+
+func sayInOrder(session *gexec.Session, strings []string) {
+	for _, string := range strings {
+		Eventually(session).Should(gbytes.Say(string))
+	}
 }
