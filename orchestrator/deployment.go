@@ -48,15 +48,22 @@ func (bd *BoshDeployment) HasValidBackupMetadata() bool {
 }
 
 func (bd *BoshDeployment) PreBackupLock() error {
-	return bd.instances.AllPreBackupLockable().PreBackupLock()
+	bd.Logger.Info("", "Running pre-backup scripts...")
+	err := bd.instances.AllPreBackupLockable().PreBackupLock()
+	bd.Logger.Info("", "Done.")
+	return err
 }
 
 func (bd *BoshDeployment) Backup() error {
+	bd.Logger.Info("", "Running backup scripts...")
 	return bd.instances.AllBackupable().Backup()
 }
 
 func (bd *BoshDeployment) PostBackupUnlock() error {
-	return bd.instances.AllPostBackupUnlockable().PostBackupUnlock()
+	bd.Logger.Info("", "Running post-backup scripts...")
+	err := bd.instances.AllPostBackupUnlockable().PostBackupUnlock()
+	bd.Logger.Info("", "Done.")
+	return err
 }
 
 func (bd *BoshDeployment) Restore() error {

@@ -125,11 +125,16 @@ printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
 			})
 
 			It("prints the backup progress to the screen", func() {
-				sayInOrder(session, []string{
+				assertOutput(session, []string{
 					fmt.Sprintf("Starting backup of %s...", deploymentName),
 					"Finding instances with backup scripts...",
 					"Done.",
+					"Running pre-backup scripts...",
+					"Done.",
+					"Running backup scripts...",
 					"Backing up redis-dedicated-node/fake-uuid...",
+					"Done.",
+					"Running post-backup scripts...",
 					"Done.",
 					"Copying backup --",
 					"from redis-dedicated-node/fake-uuid...",
@@ -742,8 +747,8 @@ func shaFor(contents string) string {
 	return fmt.Sprintf("%x", shasum.Sum(nil))
 }
 
-func sayInOrder(session *gexec.Session, strings []string) {
-	for _, string := range strings {
-		Eventually(session).Should(gbytes.Say(string))
+func assertOutput(session *gexec.Session, strings []string) {
+	for _, str := range strings {
+		Expect(string(session.Out.Contents())).To(ContainSubstring(str))
 	}
 }
