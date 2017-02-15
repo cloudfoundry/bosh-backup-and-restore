@@ -5,22 +5,24 @@ import "fmt"
 func NewJob(jobScripts BackupAndRestoreScripts, metadata Metadata) Job {
 	jobName := jobScripts[0].JobName()
 	return Job{
-		name:             jobName,
-		metadata:         metadata,
-		backupScript:     jobScripts.BackupOnly().firstOrBlank(),
-		restoreScript:    jobScripts.RestoreOnly().firstOrBlank(),
-		preBackupScript:  jobScripts.PreBackupLockOnly().firstOrBlank(),
-		postBackupScript: jobScripts.PostBackupUnlockOnly().firstOrBlank(),
+		name:               jobName,
+		metadata:           metadata,
+		backupScript:       jobScripts.BackupOnly().firstOrBlank(),
+		restoreScript:      jobScripts.RestoreOnly().firstOrBlank(),
+		preBackupScript:    jobScripts.PreBackupLockOnly().firstOrBlank(),
+		postBackupScript:   jobScripts.PostBackupUnlockOnly().firstOrBlank(),
+		allPlatformScripts: jobScripts.AllPlatformScripts(),
 	}
 }
 
 type Job struct {
-	name             string
-	metadata         Metadata
-	backupScript     Script
-	preBackupScript  Script
-	postBackupScript Script
-	restoreScript    Script
+	name               string
+	metadata           Metadata
+	backupScript       Script
+	preBackupScript    Script
+	postBackupScript   Script
+	restoreScript      Script
+	allPlatformScripts []Script
 }
 
 func (j Job) Name() string {
@@ -81,6 +83,10 @@ func (j Job) HasNamedBackupBlob() bool {
 
 func (j Job) HasNamedRestoreBlob() bool {
 	return j.metadata.RestoreName != ""
+}
+
+func (j Job) AllPlatformScripts() []Script {
+	return j.allPlatformScripts
 }
 
 func (j Job) backupArtifactOrJobName() string {

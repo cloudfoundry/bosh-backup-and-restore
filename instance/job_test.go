@@ -281,4 +281,30 @@ var _ = Describe("Job", func() {
 			})
 		})
 	})
+
+	Describe("AllPlatformScripts", func() {
+		It("returns backup and restore scripts", func() {
+			Expect(job.AllPlatformScripts()).To(Equal([]instance.Script{
+				"/var/vcap/jobs/foo/bin/p-restore",
+				"/var/vcap/jobs/foo/bin/p-backup",
+				"/var/vcap/jobs/foo/bin/p-pre-backup-lock",
+				"/var/vcap/jobs/foo/bin/p-post-backup-unlock",
+			}))
+		})
+
+		Context("when there is a metadata script", func() {
+			BeforeEach(func() {
+				jobScripts = instance.BackupAndRestoreScripts{
+					"/var/vcap/jobs/foo/bin/p-metadata",
+					"/var/vcap/jobs/foo/bin/p-backup",
+				}
+			})
+			It("includes the metadata script", func() {
+				Expect(job.AllPlatformScripts()).To(Equal([]instance.Script{
+					"/var/vcap/jobs/foo/bin/p-metadata",
+					"/var/vcap/jobs/foo/bin/p-backup",
+				}))
+			})
+		})
+	})
 })
