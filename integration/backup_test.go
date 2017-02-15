@@ -203,9 +203,11 @@ touch /tmp/pre-backup-lock-output
 				})
 
 				It("logs that it is locking the instance, and lists the scripts", func() {
-					Expect(session.Out.Contents()).Should(ContainSubstring(`Locking redis-dedicated-node/fake-uuid for backup`))
-					Expect(session.Out.Contents()).Should(ContainSubstring("> /var/vcap/jobs/redis/bin/p-pre-backup-lock"))
-					Expect(session.Out.Contents()).Should(ContainSubstring("> /var/vcap/jobs/redis-broker/bin/p-pre-backup-lock"))
+					assertOutput(session, []string{
+						`Locking redis-dedicated-node/fake-uuid for backup`,
+						"> /var/vcap/jobs/redis/bin/p-pre-backup-lock",
+						"> /var/vcap/jobs/redis-broker/bin/p-pre-backup-lock",
+					})
 				})
 			})
 
@@ -276,8 +278,10 @@ echo "Unlocking release"`)
 				})
 
 				It("prints unlock progress to the screen", func() {
-					Eventually(session).Should(gbytes.Say("Running unlock on redis-dedicated-node/fake-uuid"))
-					Eventually(session).Should(gbytes.Say("Done."))
+					assertOutput(session, []string{
+						"Running unlock on redis-dedicated-node/fake-uuid",
+						"Done.",
+					})
 				})
 
 				Context("when the post backup unlock script fails", func() {
@@ -390,9 +394,11 @@ exit 1`)
 			})
 
 			It("prints an error", func() {
-				Expect(string(session.Err.Contents())).To(ContainSubstring("backup script for job redis failed on redis-dedicated-node/fake-uuid."))
-				Expect(string(session.Err.Contents())).To(ContainSubstring("ultra-baz"))
-				Expect(string(session.Err.Contents())).To(ContainSubstring("ultra-foo"))
+				assertErrorOutput(session, []string{
+					"backup script for job redis failed on redis-dedicated-node/fake-uuid.",
+					"ultra-baz",
+					"ultra-foo",
+				})
 			})
 		})
 
@@ -578,17 +584,19 @@ echo "not valid yaml
 		})
 
 		It("prints the backup progress to the screen", func() {
-			Eventually(session).Should(gbytes.Say("Starting backup of %s...", deploymentName))
-			Eventually(session).Should(gbytes.Say("Finding instances with backup scripts..."))
-			Eventually(session).Should(gbytes.Say("Done."))
-			Eventually(session).Should(gbytes.Say("Backing up redis-dedicated-node/fake-uuid..."))
-			Eventually(session).Should(gbytes.Say("Backing up redis-broker/fake-uuid-2..."))
-			Eventually(session).Should(gbytes.Say("Done."))
-			Eventually(session).Should(gbytes.Say("Copying backup --"))
-			Eventually(session).Should(gbytes.Say("from redis-dedicated-node/fake-uuid..."))
-			Eventually(session).Should(gbytes.Say("from redis-broker/fake-uuid-2..."))
-			Eventually(session).Should(gbytes.Say("Done."))
-			Eventually(session).Should(gbytes.Say("Backup created of %s on", deploymentName))
+			assertOutput(session, []string{
+				fmt.Sprintf("Starting backup of %s...", deploymentName),
+				"Finding instances with backup scripts...",
+				"Done.",
+				"Backing up redis-dedicated-node/fake-uuid...",
+				"Backing up redis-broker/fake-uuid-2...",
+				"Done.",
+				"Copying backup --",
+				"from redis-dedicated-node/fake-uuid...",
+				"from redis-broker/fake-uuid-2...",
+				"Done.",
+				fmt.Sprintf("Backup created of %s on", deploymentName),
+			})
 		})
 
 	})
@@ -701,25 +709,6 @@ func filesInTar(path string) []string {
 	return filenames
 }
 
-func dirsInTar(path string) []string {
-	tarReader := getTarReader(path)
-
-	dirs := []string{}
-	for {
-		header, err := tarReader.Next()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			Expect(err).NotTo(HaveOccurred())
-		}
-		info := header.FileInfo()
-		if info.IsDir() {
-			dirs = append(dirs, info.Name())
-		}
-	}
-	return dirs
-}
-
 func contentsInTar(tarFile, file string) string {
 	tarReader := getTarReader(tarFile)
 
@@ -750,5 +739,11 @@ func shaFor(contents string) string {
 func assertOutput(session *gexec.Session, strings []string) {
 	for _, str := range strings {
 		Expect(string(session.Out.Contents())).To(ContainSubstring(str))
+	}
+}
+
+func assertErrorOutput(session *gexec.Session, strings []string) {
+	for _, str := range strings {
+		Expect(string(session.Err.Contents())).To(ContainSubstring(str))
 	}
 }
