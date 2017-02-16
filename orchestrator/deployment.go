@@ -76,7 +76,6 @@ func (bd *BoshDeployment) Cleanup() error {
 }
 
 func (bd *BoshDeployment) IsRestorable() bool {
-	bd.Logger.Info("", "Finding instances with restore scripts...")
 	restoreableInstances := bd.instances.AllRestoreable()
 	return !restoreableInstances.IsEmpty()
 }
