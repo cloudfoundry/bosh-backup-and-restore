@@ -37,8 +37,8 @@ var _ = Describe("JobFinderFromScripts", func() {
 		Context("has no job metadata scripts", func() {
 			Context("Finds jobs based on scripts", func() {
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("/var/vcap/jobs/consul_agent/bin/p-backup\n"+
-						"/var/vcap/jobs/consul_agent/bin/p-restore"), nil, 0, nil)
+					sshConnection.RunReturns([]byte("/var/vcap/jobs/consul_agent/bin/b-backup\n"+
+						"/var/vcap/jobs/consul_agent/bin/b-restore"), nil, 0, nil)
 				})
 
 				It("succeeds", func() {
@@ -51,14 +51,14 @@ var _ = Describe("JobFinderFromScripts", func() {
 
 				It("returns a list of jobs", func() {
 					Expect(jobs).To(Equal(NewJobs(BackupAndRestoreScripts{
-						"/var/vcap/jobs/consul_agent/bin/p-backup",
-						"/var/vcap/jobs/consul_agent/bin/p-restore",
+						"/var/vcap/jobs/consul_agent/bin/b-backup",
+						"/var/vcap/jobs/consul_agent/bin/b-restore",
 					}, map[string]Metadata{})))
 				})
 
 				It("logs the scripts found", func() {
-					Expect(logStream.String()).To(ContainSubstring("identifier/consul_agent/p-backup"))
-					Expect(logStream.String()).To(ContainSubstring("identifier/consul_agent/p-restore"))
+					Expect(logStream.String()).To(ContainSubstring("identifier/consul_agent/b-backup"))
+					Expect(logStream.String()).To(ContainSubstring("identifier/consul_agent/b-restore"))
 				})
 			})
 
@@ -135,11 +135,11 @@ var _ = Describe("JobFinderFromScripts", func() {
 			Context("metadata is valid", func() {
 				BeforeEach(func() {
 					sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
-						if cmd == "/var/vcap/jobs/consul_agent/bin/p-metadata" {
+						if cmd == "/var/vcap/jobs/consul_agent/bin/b-metadata" {
 							return []byte(`---
 backup_name: consul_backup`), nil, 0, nil
 						}
-						return []byte("/var/vcap/jobs/consul_agent/bin/p-metadata"), nil, 0, nil
+						return []byte("/var/vcap/jobs/consul_agent/bin/b-metadata"), nil, 0, nil
 					}
 
 				})
@@ -149,13 +149,13 @@ backup_name: consul_backup`), nil, 0, nil
 
 				It("uses the ssh connection to get the metadata", func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(2))
-					Expect(sshConnection.RunArgsForCall(1)).To(Equal("/var/vcap/jobs/consul_agent/bin/p-metadata"))
+					Expect(sshConnection.RunArgsForCall(1)).To(Equal("/var/vcap/jobs/consul_agent/bin/b-metadata"))
 
 				})
 
 				It("returns a list of jobs with metadata", func() {
 					Expect(jobs).To(Equal(NewJobs(BackupAndRestoreScripts{
-						"/var/vcap/jobs/consul_agent/bin/p-metadata",
+						"/var/vcap/jobs/consul_agent/bin/b-metadata",
 					}, map[string]Metadata{
 						"consul_agent": {BackupName: "consul_backup"},
 					})))
@@ -167,11 +167,11 @@ backup_name: consul_backup`), nil, 0, nil
 
 				BeforeEach(func() {
 					sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
-						if cmd == "/var/vcap/jobs/consul_agent/bin/p-metadata" {
+						if cmd == "/var/vcap/jobs/consul_agent/bin/b-metadata" {
 							return []byte(`---
 backup_name: consul_backup`), nil, 0, expectedError
 						}
-						return []byte("/var/vcap/jobs/consul_agent/bin/p-metadata"), nil, 0, nil
+						return []byte("/var/vcap/jobs/consul_agent/bin/b-metadata"), nil, 0, nil
 					}
 				})
 
@@ -181,18 +181,18 @@ backup_name: consul_backup`), nil, 0, expectedError
 
 				It("uses the ssh connection to get the metadata", func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(2))
-					Expect(sshConnection.RunArgsForCall(1)).To(Equal("/var/vcap/jobs/consul_agent/bin/p-metadata"))
+					Expect(sshConnection.RunArgsForCall(1)).To(Equal("/var/vcap/jobs/consul_agent/bin/b-metadata"))
 				})
 			})
 
 			Context("reading metadata exited with non 0 code", func() {
 				BeforeEach(func() {
 					sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
-						if cmd == "/var/vcap/jobs/consul_agent/bin/p-metadata" {
+						if cmd == "/var/vcap/jobs/consul_agent/bin/b-metadata" {
 							return []byte(`---
 backup_name: consul_backup`), nil, 0, nil
 						}
-						return []byte("/var/vcap/jobs/consul_agent/bin/p-metadata"), nil, 1, nil
+						return []byte("/var/vcap/jobs/consul_agent/bin/b-metadata"), nil, 1, nil
 					}
 				})
 
@@ -208,10 +208,10 @@ backup_name: consul_backup`), nil, 0, nil
 			Context("reading metadata returned invalid yaml", func() {
 				BeforeEach(func() {
 					sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
-						if cmd == "/var/vcap/jobs/consul_agent/bin/p-metadata" {
+						if cmd == "/var/vcap/jobs/consul_agent/bin/b-metadata" {
 							return []byte(`they are being really unfair to me`), nil, 0, nil
 						}
-						return []byte("/var/vcap/jobs/consul_agent/bin/p-metadata"), nil, 0, nil
+						return []byte("/var/vcap/jobs/consul_agent/bin/b-metadata"), nil, 0, nil
 					}
 				})
 
@@ -221,7 +221,7 @@ backup_name: consul_backup`), nil, 0, nil
 
 				It("uses the ssh connection to get the metadata", func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(2))
-					Expect(sshConnection.RunArgsForCall(1)).To(Equal("/var/vcap/jobs/consul_agent/bin/p-metadata"))
+					Expect(sshConnection.RunArgsForCall(1)).To(Equal("/var/vcap/jobs/consul_agent/bin/b-metadata"))
 				})
 			})
 		})

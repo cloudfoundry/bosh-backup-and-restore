@@ -3,11 +3,11 @@ package instance
 type BackupAndRestoreScripts []Script
 
 const (
-	backupScriptName           = "p-backup"
-	restoreScriptName          = "p-restore"
-	metadataScriptName         = "p-metadata"
-	preBackupLockScriptName    = "p-pre-backup-lock"
-	postBackupUnlockScriptName = "p-post-backup-unlock"
+	backupScriptName           = "b-backup"
+	restoreScriptName          = "b-restore"
+	metadataScriptName         = "b-metadata"
+	preBackupLockScriptName    = "b-pre-backup-lock"
+	postBackupUnlockScriptName = "b-post-backup-unlock"
 
 	jobBaseDirectory              = "/var/vcap/jobs/"
 	jobDirectoryMatcher           = jobBaseDirectory + "*/bin/"

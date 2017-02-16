@@ -35,7 +35,7 @@ var _ = Describe("backup", func() {
 			)
 
 			Eventually(session).Should(gexec.Exit(0))
-			Expect(session.Out.Contents()).Should(ContainSubstring("output from p-pre-backup-lock"))
+			Expect(session.Out.Contents()).Should(ContainSubstring("output from b-pre-backup-lock"))
 		})
 
 		By("running the post backup unlock script")
@@ -45,7 +45,7 @@ var _ = Describe("backup", func() {
 			)
 			Eventually(session).Should(gexec.Exit(0))
 
-			Expect(session.Out.Contents()).Should(ContainSubstring("output from p-post-backup-unlock"))
+			Expect(session.Out.Contents()).Should(ContainSubstring("output from b-post-backup-unlock"))
 		})
 
 		By("creating the backup artifacts locally")

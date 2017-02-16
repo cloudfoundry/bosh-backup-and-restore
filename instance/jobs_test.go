@@ -23,14 +23,14 @@ var _ = Describe("Jobs", func() {
 		Context("when there are two jobs each with a backup script", func() {
 			BeforeEach(func() {
 				scripts = instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/p-backup",
-					"/var/vcap/jobs/bar/bin/p-backup",
+					"/var/vcap/jobs/foo/bin/b-backup",
+					"/var/vcap/jobs/bar/bin/b-backup",
 				}
 			})
 			It("groups scripts to create jobs", func() {
 				Expect(jobs).To(ConsistOf(
-					instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/p-backup"}, instance.Metadata{}),
-					instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/bar/bin/p-backup"}, instance.Metadata{}),
+					instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/b-backup"}, instance.Metadata{}),
+					instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/bar/bin/b-backup"}, instance.Metadata{}),
 				))
 			})
 		})
@@ -38,12 +38,12 @@ var _ = Describe("Jobs", func() {
 		Context("when there is one job with a backup script", func() {
 			BeforeEach(func() {
 				scripts = instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/p-backup",
+					"/var/vcap/jobs/foo/bin/b-backup",
 				}
 			})
 			It("groups scripts to create jobs", func() {
 				Expect(jobs).To(ConsistOf(
-					instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/p-backup"}, instance.Metadata{}),
+					instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/b-backup"}, instance.Metadata{}),
 				))
 			})
 		})
@@ -51,7 +51,7 @@ var _ = Describe("Jobs", func() {
 		Context("when there is one job with a backup script and an blob name", func() {
 			BeforeEach(func() {
 				scripts = instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/p-backup",
+					"/var/vcap/jobs/foo/bin/b-backup",
 				}
 				artifactNames = map[string]instance.Metadata{
 					"foo": {
@@ -63,7 +63,7 @@ var _ = Describe("Jobs", func() {
 			It("creates a job with the correct blob name", func() {
 				Expect(jobs).To(ConsistOf(
 					instance.NewJob(
-						instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/p-backup"},
+						instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/b-backup"},
 						instance.Metadata{
 							BackupName: "a-bosh-backup",
 						},
@@ -75,8 +75,8 @@ var _ = Describe("Jobs", func() {
 		Context("when there are two jobs, both with backup scripts and unique metadata names", func() {
 			BeforeEach(func() {
 				scripts = instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/p-backup",
-					"/var/vcap/jobs/bar/bin/p-backup",
+					"/var/vcap/jobs/foo/bin/b-backup",
+					"/var/vcap/jobs/bar/bin/b-backup",
 				}
 				artifactNames = map[string]instance.Metadata{
 					"foo": {
@@ -91,13 +91,13 @@ var _ = Describe("Jobs", func() {
 			It("creates two jobs with the correct blob names", func() {
 				Expect(jobs).To(ConsistOf(
 					instance.NewJob(
-						instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/p-backup"},
+						instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/b-backup"},
 						instance.Metadata{
 							BackupName: "a-bosh-backup",
 						},
 					),
 					instance.NewJob(
-						instance.BackupAndRestoreScripts{"/var/vcap/jobs/bar/bin/p-backup"},
+						instance.BackupAndRestoreScripts{"/var/vcap/jobs/bar/bin/b-backup"},
 						instance.Metadata{
 							BackupName: "another-backup",
 						},
@@ -111,15 +111,15 @@ var _ = Describe("Jobs", func() {
 	Context("contains jobs with backup script", func() {
 		BeforeEach(func() {
 			scripts = instance.BackupAndRestoreScripts{
-				"/var/vcap/jobs/foo/bin/p-backup",
-				"/var/vcap/jobs/bar/bin/p-restore",
+				"/var/vcap/jobs/foo/bin/b-backup",
+				"/var/vcap/jobs/bar/bin/b-restore",
 			}
 		})
 
 		Describe("Backupable", func() {
 			It("returns the backupable job", func() {
 				Expect(jobs.Backupable()).To(ConsistOf(
-					instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/p-backup"}, instance.Metadata{}),
+					instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/b-backup"}, instance.Metadata{}),
 				))
 			})
 		})
@@ -134,7 +134,7 @@ var _ = Describe("Jobs", func() {
 	Context("contains no jobs with backup script", func() {
 		BeforeEach(func() {
 			scripts = instance.BackupAndRestoreScripts{
-				"/var/vcap/jobs/bar/bin/p-restore",
+				"/var/vcap/jobs/bar/bin/b-restore",
 			}
 		})
 
@@ -154,9 +154,9 @@ var _ = Describe("Jobs", func() {
 	Context("contains jobs with pre-backup-lock scripts", func() {
 		BeforeEach(func() {
 			scripts = instance.BackupAndRestoreScripts{
-				"/var/vcap/jobs/foo/bin/p-pre-backup-lock",
-				"/var/vcap/jobs/foo/bin/p-backup",
-				"/var/vcap/jobs/bar/bin/p-restore",
+				"/var/vcap/jobs/foo/bin/b-pre-backup-lock",
+				"/var/vcap/jobs/foo/bin/b-backup",
+				"/var/vcap/jobs/bar/bin/b-restore",
 			}
 		})
 
@@ -164,8 +164,8 @@ var _ = Describe("Jobs", func() {
 			It("returns the lockable job", func() {
 				Expect(jobs.PreBackupable()).To(ConsistOf(instance.NewJob(
 					instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/foo/bin/p-pre-backup-lock",
-						"/var/vcap/jobs/foo/bin/p-backup",
+						"/var/vcap/jobs/foo/bin/b-pre-backup-lock",
+						"/var/vcap/jobs/foo/bin/b-backup",
 					}, instance.Metadata{}),
 				))
 			})
@@ -180,7 +180,7 @@ var _ = Describe("Jobs", func() {
 	Context("contains no jobs with pre-backup-lock scripts", func() {
 		BeforeEach(func() {
 			scripts = instance.BackupAndRestoreScripts{
-				"/var/vcap/jobs/bar/bin/p-restore",
+				"/var/vcap/jobs/bar/bin/b-restore",
 			}
 		})
 		Describe("PreBackupable", func() {
@@ -200,9 +200,9 @@ var _ = Describe("Jobs", func() {
 
 		BeforeEach(func() {
 			scripts = instance.BackupAndRestoreScripts{
-				"/var/vcap/jobs/foo/bin/p-backup",
-				"/var/vcap/jobs/foo/bin/p-post-backup-unlock",
-				"/var/vcap/jobs/bar/bin/p-restore",
+				"/var/vcap/jobs/foo/bin/b-backup",
+				"/var/vcap/jobs/foo/bin/b-post-backup-unlock",
+				"/var/vcap/jobs/bar/bin/b-restore",
 			}
 		})
 
@@ -210,8 +210,8 @@ var _ = Describe("Jobs", func() {
 			It("returns the unlockable job", func() {
 				Expect(jobs.PostBackupable()).To(ConsistOf(instance.NewJob(
 					instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/foo/bin/p-post-backup-unlock",
-						"/var/vcap/jobs/foo/bin/p-backup",
+						"/var/vcap/jobs/foo/bin/b-post-backup-unlock",
+						"/var/vcap/jobs/foo/bin/b-backup",
 					}, instance.Metadata{}),
 				))
 			})
@@ -226,7 +226,7 @@ var _ = Describe("Jobs", func() {
 	Context("contains no jobs with backup script", func() {
 		BeforeEach(func() {
 			scripts = instance.BackupAndRestoreScripts{
-				"/var/vcap/jobs/bar/bin/p-restore",
+				"/var/vcap/jobs/bar/bin/b-restore",
 			}
 		})
 
@@ -240,16 +240,16 @@ var _ = Describe("Jobs", func() {
 	Context("contains jobs with restore scripts", func() {
 		BeforeEach(func() {
 			scripts = instance.BackupAndRestoreScripts{
-				"/var/vcap/jobs/foo/bin/p-backup",
-				"/var/vcap/jobs/foo/bin/p-post-backup-unlock",
-				"/var/vcap/jobs/bar/bin/p-restore",
+				"/var/vcap/jobs/foo/bin/b-backup",
+				"/var/vcap/jobs/foo/bin/b-post-backup-unlock",
+				"/var/vcap/jobs/bar/bin/b-restore",
 			}
 		})
 
 		Describe("Restorable", func() {
 			It("returns the unlockable job", func() {
 				Expect(jobs.Restorable()).To(ConsistOf(instance.NewJob(
-					instance.BackupAndRestoreScripts{"/var/vcap/jobs/bar/bin/p-restore"}, instance.Metadata{}),
+					instance.BackupAndRestoreScripts{"/var/vcap/jobs/bar/bin/b-restore"}, instance.Metadata{}),
 				))
 			})
 		})
@@ -270,7 +270,7 @@ var _ = Describe("Jobs", func() {
 	Context("contains no jobs with backup script", func() {
 		BeforeEach(func() {
 			scripts = instance.BackupAndRestoreScripts{
-				"/var/vcap/jobs/bar/bin/p-backup",
+				"/var/vcap/jobs/bar/bin/b-backup",
 			}
 		})
 
@@ -301,10 +301,10 @@ var _ = Describe("Jobs", func() {
 				},
 			}
 			scripts = instance.BackupAndRestoreScripts{
-				"/var/vcap/jobs/bar/bin/p-backup",
-				"/var/vcap/jobs/bar/bin/p-restore",
-				"/var/vcap/jobs/foo/bin/p-backup",
-				"/var/vcap/jobs/baz/bin/p-restore",
+				"/var/vcap/jobs/bar/bin/b-backup",
+				"/var/vcap/jobs/bar/bin/b-restore",
+				"/var/vcap/jobs/foo/bin/b-backup",
+				"/var/vcap/jobs/baz/bin/b-restore",
 			}
 		})
 
@@ -318,8 +318,8 @@ var _ = Describe("Jobs", func() {
 			It("returns jobs with named backup blobs", func() {
 				Expect(jobs.WithNamedBackupBlobs()).To(ConsistOf(instance.NewJob(
 					instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/bar/bin/p-backup",
-						"/var/vcap/jobs/bar/bin/p-restore",
+						"/var/vcap/jobs/bar/bin/b-backup",
+						"/var/vcap/jobs/bar/bin/b-restore",
 					}, instance.Metadata{
 						BackupName: "my-cool-blob",
 					}),
@@ -336,10 +336,10 @@ var _ = Describe("Jobs", func() {
 				},
 			}
 			scripts = instance.BackupAndRestoreScripts{
-				"/var/vcap/jobs/bar/bin/p-backup",
-				"/var/vcap/jobs/bar/bin/p-restore",
-				"/var/vcap/jobs/foo/bin/p-backup",
-				"/var/vcap/jobs/baz/bin/p-restore",
+				"/var/vcap/jobs/bar/bin/b-backup",
+				"/var/vcap/jobs/bar/bin/b-restore",
+				"/var/vcap/jobs/foo/bin/b-backup",
+				"/var/vcap/jobs/baz/bin/b-restore",
 			}
 		})
 
@@ -353,8 +353,8 @@ var _ = Describe("Jobs", func() {
 			It("returns jobs with named backup blobs", func() {
 				Expect(jobs.WithNamedRestoreBlobs()).To(ConsistOf(instance.NewJob(
 					instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/bar/bin/p-backup",
-						"/var/vcap/jobs/bar/bin/p-restore",
+						"/var/vcap/jobs/bar/bin/b-backup",
+						"/var/vcap/jobs/bar/bin/b-restore",
 					}, instance.Metadata{
 						RestoreName: "my-cool-restore",
 					}),
@@ -372,8 +372,8 @@ var _ = Describe("Jobs", func() {
 	Context("contains jobs with multiple named blobs", func() {
 		BeforeEach(func() {
 			scripts = instance.BackupAndRestoreScripts{
-				"/var/vcap/jobs/foo/bin/p-backup",
-				"/var/vcap/jobs/bar/bin/p-backup",
+				"/var/vcap/jobs/foo/bin/b-backup",
+				"/var/vcap/jobs/bar/bin/b-backup",
 			}
 			artifactNames = map[string]instance.Metadata{
 				"foo": {

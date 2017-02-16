@@ -71,15 +71,15 @@ var _ = Describe("Backuper", func() {
 			Expect(deployment.IsBackupableCallCount()).To(Equal(1))
 		})
 
-		It("runs p-pre-backup-lock scripts on the deployment", func() {
+		It("runs b-pre-backup-lock scripts on the deployment", func() {
 			Expect(deployment.PreBackupLockCallCount()).To(Equal(1))
 		})
 
-		It("runs p-backup scripts on the deployment", func() {
+		It("runs b-backup scripts on the deployment", func() {
 			Expect(deployment.BackupCallCount()).To(Equal(1))
 		})
 
-		It("runs p-post-backup-unlock scripts on the deployment", func() {
+		It("runs b-post-backup-unlock scripts on the deployment", func() {
 			Expect(deployment.PostBackupUnlockCallCount()).To(Equal(1))
 		})
 
