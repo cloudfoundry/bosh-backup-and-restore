@@ -128,12 +128,11 @@ func (d *DeployedInstance) PostBackupUnlock() error {
 }
 
 func (d *DeployedInstance) Restore() error {
-	d.Logger.Info("", "Restoring %s/%s...", d.InstanceGroupName, d.BoshInstanceID)
-
 	var restoreErrors error
 
 	for _, job := range d.Jobs.Restorable() {
 		d.Logger.Debug("", "> %s", job.RestoreScript())
+		d.Logger.Info("", "Restoring %s on %s/%s...", job.Name(), d.InstanceGroupName, d.BoshInstanceID)
 
 		stdout, stderr, exitCode, err := d.logAndRun(
 			fmt.Sprintf(
@@ -147,13 +146,13 @@ func (d *DeployedInstance) Restore() error {
 		if err := d.handleErrs(job.Name(), "restore", err, exitCode, stdout, stderr); err != nil {
 			restoreErrors = multierror.Append(restoreErrors, err)
 		}
+		d.Logger.Info("", "Done.")
 	}
 
 	if restoreErrors != nil {
 		return restoreErrors
 	}
 
-	d.Logger.Info("", "Done.")
 	return nil
 }
 

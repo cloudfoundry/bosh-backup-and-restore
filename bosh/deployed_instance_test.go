@@ -703,16 +703,27 @@ var _ = Describe("Instance", func() {
 				Expect(string(stdout.Contents())).NotTo(ContainSubstring("> \n"))
 			})
 
-			It("logs that it is restoring the instance", func() {
+			It("logs that it is restoring a job on the instance", func() {
 				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
-					"Restoring %s/%s",
+					"Restoring foo on %s/%s",
 					jobName,
 					jobID,
 				)))
-			})
-
-			It("logs Done.", func() {
 				Expect(string(stdout.Contents())).To(ContainSubstring("Done."))
+
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"Restoring bar on %s/%s",
+					jobName,
+					jobID,
+				)))
+				Expect(string(stdout.Contents())).To(ContainSubstring("Done."))
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"Restoring baz on %s/%s",
+					jobName,
+					jobID,
+				)))
+				Expect(string(stdout.Contents())).To(ContainSubstring("Done."))
+
 			})
 
 			It("succeeds", func() {
@@ -813,9 +824,6 @@ var _ = Describe("Instance", func() {
 				)))
 			})
 
-			It("doesn't log Done", func() {
-				Expect(string(stdout.Contents())).NotTo(ContainSubstring("Done."))
-			})
 		})
 	})
 
