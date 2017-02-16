@@ -141,7 +141,7 @@ func (bd *BoshDeployment) CopyLocalBackupToRemote(artifact Artifact) error {
 				return err
 			}
 
-			bd.Logger.Info("", "Copying backup to %s-%s...", blob.Name(), blob.ID())
+			bd.Logger.Info("", "Copying backup to %s/%s...", blob.Name(), blob.ID())
 			if err := blob.StreamToRemote(reader); err != nil {
 				return err
 			}
@@ -158,6 +158,7 @@ func (bd *BoshDeployment) CopyLocalBackupToRemote(artifact Artifact) error {
 			if !localChecksum.Match(remoteChecksum) {
 				return fmt.Errorf("Backup couldn't be transfered, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), blob.Name(), remoteChecksum, localChecksum)
 			}
+			bd.Logger.Info("", "Done.")
 		}
 	}
 	return nil

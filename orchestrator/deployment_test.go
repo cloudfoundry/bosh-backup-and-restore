@@ -17,7 +17,7 @@ import (
 var _ = Describe("Deployment", func() {
 	var (
 		deployment orchestrator.Deployment
-		logger     orchestrator.Logger
+		logger     *fakes.FakeLogger
 		instances  []orchestrator.Instance
 		instance1  *fakes.FakeInstance
 		instance2  *fakes.FakeInstance
@@ -567,6 +567,15 @@ var _ = Describe("Deployment", func() {
 			It("checks the local checksum", func() {
 				Expect(artifact.FetchChecksumCallCount()).To(Equal(1))
 				Expect(artifact.FetchChecksumArgsForCall(0)).To(Equal(backupBlob))
+			})
+
+			It("logs when the copy starts and finishes", func() {
+				Expect(logger.InfoCallCount()).To(Equal(2))
+				_, logLine, _ := logger.InfoArgsForCall(0)
+				Expect(logLine).To(ContainSubstring("Copying backup"))
+
+				_, logLine, _ = logger.InfoArgsForCall(1)
+				Expect(logLine).To(ContainSubstring("Done"))
 			})
 
 			It("streams the backup file to the restorable instance", func() {
