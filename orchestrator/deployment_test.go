@@ -461,6 +461,10 @@ var _ = Describe("Deployment", func() {
 			It("restores the instance", func() {
 				Expect(instance1.RestoreCallCount()).To(Equal(1))
 			})
+			It("logs before restoring", func() {
+				_, message, _ := logger.InfoArgsForCall(0)
+				Expect(message).To(Equal("Running restore scripts..."))
+			})
 		})
 		Context("Single instance, not restoreable", func() {
 			BeforeEach(func() {

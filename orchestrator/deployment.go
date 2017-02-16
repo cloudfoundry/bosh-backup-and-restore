@@ -67,6 +67,7 @@ func (bd *BoshDeployment) PostBackupUnlock() error {
 }
 
 func (bd *BoshDeployment) Restore() error {
+	bd.Logger.Info("", "Running restore scripts...")
 	return bd.instances.AllRestoreable().Restore()
 }
 
