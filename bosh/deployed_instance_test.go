@@ -220,6 +220,16 @@ var _ = Describe("Instance", func() {
 				Expect(string(stdout.Contents())).NotTo(ContainSubstring("> \n"))
 			})
 
+			It("logs the job being locked", func() {
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Locking bar on %s/%s",
+					jobName,
+					jobID,
+				)))
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Done")))
+			})
+
 			It("succeeds", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
@@ -254,12 +264,28 @@ var _ = Describe("Instance", func() {
 				Expect(string(stdout.Contents())).NotTo(ContainSubstring("> \n"))
 			})
 
-			It("logs that it is locking the instance", func() {
+			It("logs that it is locking the job on the instance", func() {
 				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
-					"Locking %s/%s for backup",
+					"INFO - Locking foo on %s/%s",
 					jobName,
 					jobID,
 				)))
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Done")))
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Locking bar on %s/%s",
+					jobName,
+					jobID,
+				)))
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Done")))
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Locking baz on %s/%s",
+					jobName,
+					jobID,
+				)))
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Done")))
 			})
 
 			It("logs Done.", func() {
@@ -335,10 +361,6 @@ var _ = Describe("Instance", func() {
 					expectedError.Error(),
 				)))
 			})
-
-			It("doesn't log Done", func() {
-				Expect(string(stdout.Contents())).NotTo(ContainSubstring("Done."))
-			})
 		})
 
 	})
@@ -379,9 +401,19 @@ var _ = Describe("Instance", func() {
 				Expect(string(stdout.Contents())).NotTo(ContainSubstring("> \n"))
 			})
 
-			It("logs that it is backing up the instance", func() {
+			It("logs that it is backing up the job on the instance", func() {
 				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
-					"Backing up %s/%s",
+					"INFO - Backing up foo on %s/%s",
+					jobName,
+					jobID,
+				)))
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Backing up bar on %s/%s",
+					jobName,
+					jobID,
+				)))
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Backing up baz on %s/%s",
 					jobName,
 					jobID,
 				)))
@@ -499,9 +531,6 @@ var _ = Describe("Instance", func() {
 				)))
 			})
 
-			It("doesn't log Done", func() {
-				Expect(string(stdout.Contents())).NotTo(ContainSubstring("Done."))
-			})
 		})
 	})
 
@@ -541,9 +570,21 @@ var _ = Describe("Instance", func() {
 				Expect(string(stdout.Contents())).NotTo(ContainSubstring("> \n"))
 			})
 
-			It("logs that it is backing up the instance", func() {
+			It("logs that it is backing up the job on the instance", func() {
 				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
-					"Unlocking %s/%s",
+					"INFO - Unlocking foo on %s/%s",
+					jobName,
+					jobID,
+				)))
+
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Unlocking bar on %s/%s",
+					jobName,
+					jobID,
+				)))
+
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Unlocking baz on %s/%s",
 					jobName,
 					jobID,
 				)))
@@ -623,9 +664,6 @@ var _ = Describe("Instance", func() {
 				)))
 			})
 
-			It("doesn't log Done", func() {
-				Expect(string(stdout.Contents())).NotTo(ContainSubstring("Done."))
-			})
 		})
 	})
 

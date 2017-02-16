@@ -134,7 +134,7 @@ printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
 					"Running pre-backup scripts...",
 					"Done.",
 					"Running backup scripts...",
-					"Backing up redis-dedicated-node/fake-uuid...",
+					"Backing up redis on redis-dedicated-node/fake-uuid...",
 					"Done.",
 					"Running post-backup scripts...",
 					"Done.",
@@ -206,7 +206,7 @@ touch /tmp/pre-backup-lock-output
 
 				It("logs that it is locking the instance, and lists the scripts", func() {
 					assertOutput(session, []string{
-						`Locking redis-dedicated-node/fake-uuid for backup`,
+						`Locking redis on redis-dedicated-node/fake-uuid for backup`,
 						"> /var/vcap/jobs/redis/bin/p-pre-backup-lock",
 						"> /var/vcap/jobs/redis-broker/bin/p-pre-backup-lock",
 					})
@@ -590,8 +590,8 @@ echo "not valid yaml
 				fmt.Sprintf("Starting backup of %s...", deploymentName),
 				"Finding instances with backup scripts...",
 				"Done.",
-				"Backing up redis-dedicated-node/fake-uuid...",
-				"Backing up redis-broker/fake-uuid-2...",
+				"Backing up redis on redis-dedicated-node/fake-uuid...",
+				"Backing up redis on redis-broker/fake-uuid-2...",
 				"Done.",
 				"Copying backup --",
 				"from redis-dedicated-node/fake-uuid...",
