@@ -28,6 +28,9 @@ func (j *JobFinderFromScripts) FindJobs(hostIdentifier string, connection SSHCon
 	}
 	metadata := map[string]Metadata{}
 	scripts := NewBackupAndRestoreScripts(findOutput)
+	for _, script := range scripts {
+		j.Logger.Info("", "%s/%s/%s", hostIdentifier, script.JobName(), script.Name())
+	}
 	for _, script := range scripts.MetadataOnly() {
 		jobMetadata, err := j.findMetadata(hostIdentifier, script, connection)
 

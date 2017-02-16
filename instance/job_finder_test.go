@@ -1,17 +1,21 @@
 package instance_test
 
 import (
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/pivotal-cf/pcf-backup-and-restore/instance"
 	"github.com/pivotal-cf/pcf-backup-and-restore/instance/fakes"
 
 	"fmt"
 
+	"bytes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"io"
+	"log"
 )
 
 var _ = Describe("JobFinderFromScripts", func() {
-	var logger *fakes.FakeLogger
+	var logStream *bytes.Buffer
 	var jobFinder *JobFinderFromScripts
 	var sshConnection *fakes.FakeSSHConnection
 	var jobs Jobs
@@ -19,9 +23,12 @@ var _ = Describe("JobFinderFromScripts", func() {
 
 	Describe("FindJobs", func() {
 		BeforeEach(func() {
-			logger = new(fakes.FakeLogger)
+			logStream = bytes.NewBufferString("")
+
+			combinedLog := log.New(io.MultiWriter(GinkgoWriter, logStream), "[instance-test] ", log.Lshortfile)
+
 			sshConnection = new(fakes.FakeSSHConnection)
-			jobFinder = NewJobFinder(logger)
+			jobFinder = NewJobFinder(boshlog.New(boshlog.LevelDebug, combinedLog, combinedLog))
 		})
 		JustBeforeEach(func() {
 			jobs, jobsError = jobFinder.FindJobs("identifier", sshConnection)
@@ -47,6 +54,11 @@ var _ = Describe("JobFinderFromScripts", func() {
 						"/var/vcap/jobs/consul_agent/bin/p-backup",
 						"/var/vcap/jobs/consul_agent/bin/p-restore",
 					}, map[string]Metadata{})))
+				})
+
+				It("logs the scripts found", func() {
+					Expect(logStream.String()).To(ContainSubstring("identifier/consul_agent/p-backup"))
+					Expect(logStream.String()).To(ContainSubstring("identifier/consul_agent/p-restore"))
 				})
 			})
 

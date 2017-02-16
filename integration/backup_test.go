@@ -129,6 +129,8 @@ printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
 					fmt.Sprintf("Starting backup of %s...", deploymentName),
 					"Finding instances with backup scripts...",
 					"Done.",
+					"Scripts found:",
+					"redis-dedicated-node/fake-uuid/redis/p-backup",
 					"Running pre-backup scripts...",
 					"Done.",
 					"Running backup scripts...",
