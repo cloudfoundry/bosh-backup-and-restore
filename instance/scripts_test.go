@@ -282,33 +282,6 @@ var _ = Describe("Backup and Restore Scripts", func() {
 			}))
 		})
 	})
-
-	Describe("AllPlatformScripts", func() {
-		It("returns all backup and restore scripts", func() {
-			s := BackupAndRestoreScripts{"/var/vcap/jobs/cloud_controller_clock/bin/baz",
-				"/var/vcap/jobs/cloud_controller_clock/bin/cloud_controller_clock_ctl",
-				"/var/vcap/jobs/cloud_controller_clock/bin/p-backup",
-				"/var/vcap/jobs/cloud_controller_clock/bin/p-metadata",
-				"/var/vcap/jobs/cloud_controller_clock/bin/p-post-backup-unlock",
-				"/var/vcap/jobs/cloud_controller_clock/bin/foo/bar",
-				"/var/vcap/jobs/cloud_controller_clock/bin/pre-start"}
-			Expect(s.AllPlatformScripts()).To(Equal(
-				BackupAndRestoreScripts{
-					"/var/vcap/jobs/cloud_controller_clock/bin/p-backup",
-					"/var/vcap/jobs/cloud_controller_clock/bin/p-metadata",
-					"/var/vcap/jobs/cloud_controller_clock/bin/p-post-backup-unlock",
-				}),
-			)
-		})
-
-		It("returns empty when it has none", func() {
-			s := BackupAndRestoreScripts{"/var/vcap/jobs/cloud_controller_clock/bin/baz",
-				"/var/vcap/jobs/cloud_controller_clock/bin/cloud_controller_clock_ctl",
-				"/var/vcap/jobs/cloud_controller_clock/bin/foo/bar",
-				"/var/vcap/jobs/cloud_controller_clock/bin/pre-start"}
-			Expect(s.PostBackupUnlockOnly()).To(Equal(BackupAndRestoreScripts{}))
-		})
-	})
 })
 
 var _ = Describe("Script", func() {

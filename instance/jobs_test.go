@@ -210,8 +210,8 @@ var _ = Describe("Jobs", func() {
 			It("returns the unlockable job", func() {
 				Expect(jobs.PostBackupable()).To(ConsistOf(instance.NewJob(
 					instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/foo/bin/p-backup",
 						"/var/vcap/jobs/foo/bin/p-post-backup-unlock",
+						"/var/vcap/jobs/foo/bin/p-backup",
 					}, instance.Metadata{}),
 				))
 			})

@@ -134,13 +134,3 @@ func (s BackupAndRestoreScripts) PostBackupUnlockOnly() BackupAndRestoreScripts 
 	}
 	return scripts
 }
-
-func (s BackupAndRestoreScripts) AllPlatformScripts() BackupAndRestoreScripts {
-	scripts := BackupAndRestoreScripts{}
-	for _, script := range s {
-		if script.isPlatformScript() {
-			scripts = append(scripts, script)
-		}
-	}
-	return scripts
-}
