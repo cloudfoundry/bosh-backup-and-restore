@@ -1,13 +1,43 @@
 package orchestrator
 
-import "github.com/hashicorp/go-multierror"
+import (
+	"errors"
 
-type CleanupError struct {
+	"github.com/hashicorp/go-multierror"
+	"github.com/mgutz/ansi"
+	"github.com/urfave/cli"
+)
+
+type LockError struct {
+	error
+}
+
+type BackupError struct {
 	error
 }
 
 type PostBackupUnlockError struct {
 	error
+}
+
+type CleanupError struct {
+	error
+}
+
+func NewLockError(errorMessage string) LockError {
+	return LockError{errors.New(errorMessage)}
+}
+
+func NewBackupError(errorMessage string) BackupError {
+	return BackupError{errors.New(errorMessage)}
+}
+
+func NewPostBackupUnlockError(errorMessage string) PostBackupUnlockError {
+	return PostBackupUnlockError{errors.New(errorMessage)}
+}
+
+func NewCleanupError(errorMessage string) CleanupError {
+	return CleanupError{errors.New(errorMessage)}
 }
 
 type Error []error
@@ -48,4 +78,45 @@ func (e Error) IsFatal() bool {
 
 func (e Error) IsNil() bool {
 	return len(e) == 0
+}
+
+func ProcessBackupError(errs Error) (int, string) {
+	exitCode := 0
+	var errorMessage error
+
+	for _, err := range errs {
+		switch err.(type) {
+		case LockError:
+			exitCode = exitCode | 4
+		case BackupError:
+			exitCode = exitCode | 8
+		case PostBackupUnlockError:
+			exitCode = exitCode | 16
+		case CleanupError:
+			exitCode = exitCode | 32
+		default:
+			return 1, err.Error()
+		}
+
+		errorMessage = multierror.Append(errorMessage, err)
+	}
+
+	if errorMessage != nil {
+		return exitCode, errorMessage.Error()
+	}
+
+	return exitCode, ""
+}
+
+func ProcessRestoreError(err error) error {
+	switch err := err.(type) {
+	case CleanupError:
+		return cli.NewExitError(ansi.Color(err.Error(), "yellow"), 2)
+	case PostBackupUnlockError:
+		return cli.NewExitError(ansi.Color(err.Error(), "red"), 42)
+	case error:
+		return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
+	default:
+		return err
+	}
 }

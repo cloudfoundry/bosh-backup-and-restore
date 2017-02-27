@@ -119,7 +119,7 @@ func (bw *backupWorkflow) checkIsBackupable(e *fsm.Event) {
 
 func (bw *backupWorkflow) cleanup(e *fsm.Event) {
 	if err := bw.deployment.Cleanup(); err != nil {
-		bw.backupErrors = append(bw.backupErrors, CleanupError{fmt.Errorf("Deployment '%s' failed while cleaning up with error: %v", bw.deploymentName, err)})
+		bw.backupErrors = append(bw.backupErrors, NewCleanupError(fmt.Sprintf("Deployment '%s' failed while cleaning up with error: %v", bw.deploymentName, err)))
 	}
 }
 
@@ -160,12 +160,20 @@ func (bw *backupWorkflow) backup(e *fsm.Event) {
 	err := bw.deployment.Backup()
 
 	if err != nil {
-		bw.backupErrors = append(bw.backupErrors, err)
+		bw.backupErrors = append(bw.backupErrors, NewBackupError(err.Error()))
+	}
+}
+
+func (bw *backupWorkflow) postBackupUnlock(e *fsm.Event) {
+	err := bw.deployment.PostBackupUnlock()
+
+	if err != nil {
+		bw.backupErrors = append(bw.backupErrors, NewPostBackupUnlockError(err.Error()))
 	}
 }
 
 func (bw *backupWorkflow) drain(e *fsm.Event) {
-	if bw.backupErrors.IsFatal() {
+	if bw.backupErrors.IsFatal() { // TODO: how do we remove this?
 		e.Cancel()
 		return
 	}
@@ -179,13 +187,6 @@ func (bw *backupWorkflow) drain(e *fsm.Event) {
 	bw.Logger.Info("", "Backup created of %s on %v\n", bw.deploymentName, time.Now())
 }
 
-func (bw *backupWorkflow) postBackupUnlock(e *fsm.Event) {
-	err := bw.deployment.PostBackupUnlock()
-
-	if err != nil {
-		bw.backupErrors = append(bw.backupErrors, PostBackupUnlockError{err})
-	}
-}
 func beforeEvent(eventName string) string {
 	return "before_" + eventName
 }

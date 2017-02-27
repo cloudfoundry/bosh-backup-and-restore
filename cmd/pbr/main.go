@@ -58,7 +58,10 @@ func backup(c *cli.Context) error {
 	}
 
 	backupErr := backuper.Backup(deployment)
-	return processBackupError(backupErr)
+
+	errorCode, errorMessage := orchestrator.ProcessBackupError(backupErr)
+
+	return cli.NewExitError(errorMessage, errorCode)
 }
 
 func restore(c *cli.Context) error {
@@ -70,7 +73,7 @@ func restore(c *cli.Context) error {
 	}
 
 	err = restorer.Restore(deployment)
-	return processRestoreError(err)
+	return orchestrator.ProcessRestoreError(err)
 }
 
 func validateFlags(c *cli.Context) error {
@@ -117,34 +120,6 @@ func availableFlags() []cli.Flag {
 			EnvVar: "CA_CERT",
 			Usage:  "Custom CA certificate",
 		},
-	}
-}
-
-func processBackupError(err orchestrator.Error) error {
-	switch {
-	case err.IsCleanup():
-		return cli.NewExitError(ansi.Color(err.Error(), "yellow"), 2)
-	case err.IsPostBackup():
-		return cli.NewExitError(ansi.Color(err.Error(), "red"), 42)
-	case err.IsFatal():
-		return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
-	case err.IsNil():
-		return nil
-	default:
-		return err
-	}
-}
-
-func processRestoreError(err error) error {
-	switch err := err.(type) {
-	case orchestrator.CleanupError:
-		return cli.NewExitError(ansi.Color(err.Error(), "yellow"), 2)
-	case orchestrator.PostBackupUnlockError:
-		return cli.NewExitError(ansi.Color(err.Error(), "red"), 42)
-	case error:
-		return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
-	default:
-		return err
 	}
 }
 

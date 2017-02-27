@@ -282,7 +282,7 @@ exit 1`)
 					})
 
 					It("exits with the correct error code", func() {
-						Expect(session).To(gexec.Exit(42))
+						Expect(session).To(gexec.Exit(16))
 					})
 
 					It("prints stdout", func() {
@@ -352,8 +352,8 @@ exit 1`)
 				)
 			})
 
-			It("returns a non-zero exit code", func() {
-				Expect(session.ExitCode()).To(Equal(1))
+			It("returns exit code 8", func() {
+				Expect(session.ExitCode()).To(Equal(8))
 			})
 
 		})
@@ -378,8 +378,8 @@ exit 1`)
 				)
 			})
 
-			It("returns a non-zero exit code", func() {
-				Expect(session.ExitCode()).To(Equal(1))
+			It("returns a exit code 40 (32 + 8)", func() {
+				Expect(session.ExitCode()).To(Equal(40))
 			})
 
 			It("prints an error", func() {
@@ -409,8 +409,8 @@ exit 1`)
 				)
 			})
 
-			It("returns a partial error code", func() {
-				Expect(session.ExitCode()).To(Equal(2))
+			It("returns the correct error code", func() {
+				Expect(session.ExitCode()).To(Equal(32))
 			})
 
 			It("prints an error", func() {
