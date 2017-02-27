@@ -60,7 +60,7 @@ var _ = Describe("Instance", func() {
 		Describe("there are backup scripts in the job directories", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/dave/bin/p-backup",
+					"/var/vcap/jobs/dave/bin/b-backup",
 				}
 			})
 
@@ -92,7 +92,7 @@ var _ = Describe("Instance", func() {
 		Describe("there are pre-backup-lock scripts in the job directories", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/dave/bin/p-pre-backup-lock",
+					"/var/vcap/jobs/dave/bin/b-pre-backup-lock",
 				}
 			})
 
@@ -121,10 +121,10 @@ var _ = Describe("Instance", func() {
 			actualUnlockable = backuperInstance.IsPostBackupUnlockable()
 		})
 
-		Context("there are p-post-backup-unlock scripts in the job directories", func() {
+		Context("there are b-post-backup-unlock scripts in the job directories", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/dave/bin/p-post-backup-unlock",
+					"/var/vcap/jobs/dave/bin/b-post-backup-unlock",
 				}
 			})
 
@@ -133,7 +133,7 @@ var _ = Describe("Instance", func() {
 			})
 		})
 
-		Context("there are no p-post-backup-unlock scripts", func() {
+		Context("there are no b-post-backup-unlock scripts", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/dave/bin/foo",
@@ -156,7 +156,7 @@ var _ = Describe("Instance", func() {
 		Describe("there are restore scripts in the job directories", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/dave/bin/p-restore",
+					"/var/vcap/jobs/dave/bin/b-restore",
 				}
 			})
 
@@ -205,19 +205,29 @@ var _ = Describe("Instance", func() {
 
 		Context("when there is one pre-backup-lock script in the job directories", func() {
 			BeforeEach(func() {
-				backupAndRestoreScripts = []instance.Script{"/var/vcap/jobs/bar/bin/p-pre-backup-lock"}
+				backupAndRestoreScripts = []instance.Script{"/var/vcap/jobs/bar/bin/b-pre-backup-lock"}
 			})
 
 			It("uses the ssh connection to run the pre-backup-lock script", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
-					"sudo /var/vcap/jobs/bar/bin/p-pre-backup-lock",
+					"sudo /var/vcap/jobs/bar/bin/b-pre-backup-lock",
 				))
 			})
 
 			It("logs the paths to the scripts being run", func() {
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/p-pre-backup-lock`))
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/b-pre-backup-lock`))
 				Expect(string(stdout.Contents())).NotTo(ContainSubstring("> \n"))
+			})
+
+			It("logs the job being locked", func() {
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Locking bar on %s/%s",
+					jobName,
+					jobID,
+				)))
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Done")))
 			})
 
 			It("succeeds", func() {
@@ -228,9 +238,9 @@ var _ = Describe("Instance", func() {
 		Context("when there are multiple backup scripts in multiple job directories", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/foo/bin/p-pre-backup-lock",
-					"/var/vcap/jobs/bar/bin/p-pre-backup-lock",
-					"/var/vcap/jobs/baz/bin/p-pre-backup-lock",
+					"/var/vcap/jobs/foo/bin/b-pre-backup-lock",
+					"/var/vcap/jobs/bar/bin/b-pre-backup-lock",
+					"/var/vcap/jobs/baz/bin/b-pre-backup-lock",
 				}
 			})
 
@@ -241,25 +251,41 @@ var _ = Describe("Instance", func() {
 					sshConnection.RunArgsForCall(1),
 					sshConnection.RunArgsForCall(2),
 				}).To(ConsistOf(
-					"sudo /var/vcap/jobs/foo/bin/p-pre-backup-lock",
-					"sudo /var/vcap/jobs/bar/bin/p-pre-backup-lock",
-					"sudo /var/vcap/jobs/baz/bin/p-pre-backup-lock",
+					"sudo /var/vcap/jobs/foo/bin/b-pre-backup-lock",
+					"sudo /var/vcap/jobs/bar/bin/b-pre-backup-lock",
+					"sudo /var/vcap/jobs/baz/bin/b-pre-backup-lock",
 				))
 			})
 
 			It("logs the paths to the scripts being run", func() {
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/foo/bin/p-pre-backup-lock`))
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/p-pre-backup-lock`))
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/baz/bin/p-pre-backup-lock`))
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/foo/bin/b-pre-backup-lock`))
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/b-pre-backup-lock`))
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/baz/bin/b-pre-backup-lock`))
 				Expect(string(stdout.Contents())).NotTo(ContainSubstring("> \n"))
 			})
 
-			It("logs that it is locking the instance", func() {
+			It("logs that it is locking the job on the instance", func() {
 				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
-					"Locking %s/%s for backup",
+					"INFO - Locking foo on %s/%s",
 					jobName,
 					jobID,
 				)))
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Done")))
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Locking bar on %s/%s",
+					jobName,
+					jobID,
+				)))
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Done")))
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Locking baz on %s/%s",
+					jobName,
+					jobID,
+				)))
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Done")))
 			})
 
 			It("logs Done.", func() {
@@ -278,9 +304,9 @@ var _ = Describe("Instance", func() {
 
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/foo/bin/p-pre-backup-lock",
-					"/var/vcap/jobs/bar/bin/p-pre-backup-lock",
-					"/var/vcap/jobs/baz/bin/p-pre-backup-lock",
+					"/var/vcap/jobs/foo/bin/b-pre-backup-lock",
+					"/var/vcap/jobs/bar/bin/b-pre-backup-lock",
+					"/var/vcap/jobs/baz/bin/b-pre-backup-lock",
 				}
 				sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
 					if strings.Contains(cmd, "jobs/bar") {
@@ -335,10 +361,6 @@ var _ = Describe("Instance", func() {
 					expectedError.Error(),
 				)))
 			})
-
-			It("doesn't log Done", func() {
-				Expect(string(stdout.Contents())).NotTo(ContainSubstring("Done."))
-			})
 		})
 
 	})
@@ -353,9 +375,9 @@ var _ = Describe("Instance", func() {
 		Context("when there are multiple backup scripts in multiple job directories", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/foo/bin/p-backup",
-					"/var/vcap/jobs/bar/bin/p-backup",
-					"/var/vcap/jobs/baz/bin/p-backup",
+					"/var/vcap/jobs/foo/bin/b-backup",
+					"/var/vcap/jobs/bar/bin/b-backup",
+					"/var/vcap/jobs/baz/bin/b-backup",
 				}
 			})
 
@@ -366,22 +388,32 @@ var _ = Describe("Instance", func() {
 					sshConnection.RunArgsForCall(1),
 					sshConnection.RunArgsForCall(2),
 				}).To(ConsistOf(
-					"sudo mkdir -p /var/vcap/store/backup/foo && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/p-backup",
-					"sudo mkdir -p /var/vcap/store/backup/bar && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/p-backup",
-					"sudo mkdir -p /var/vcap/store/backup/baz && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ /var/vcap/jobs/baz/bin/p-backup",
+					"sudo mkdir -p /var/vcap/store/backup/foo && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/b-backup",
+					"sudo mkdir -p /var/vcap/store/backup/bar && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/b-backup",
+					"sudo mkdir -p /var/vcap/store/backup/baz && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ /var/vcap/jobs/baz/bin/b-backup",
 				))
 			})
 
 			It("logs the paths to the scripts being run", func() {
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/foo/bin/p-backup`))
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/p-backup`))
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/baz/bin/p-backup`))
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/foo/bin/b-backup`))
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/b-backup`))
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/baz/bin/b-backup`))
 				Expect(string(stdout.Contents())).NotTo(ContainSubstring("> \n"))
 			})
 
-			It("logs that it is backing up the instance", func() {
+			It("logs that it is backing up the job on the instance", func() {
 				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
-					"Backing up %s/%s",
+					"INFO - Backing up foo on %s/%s",
+					jobName,
+					jobID,
+				)))
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Backing up bar on %s/%s",
+					jobName,
+					jobID,
+				)))
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Backing up baz on %s/%s",
 					jobName,
 					jobID,
 				)))
@@ -402,9 +434,9 @@ var _ = Describe("Instance", func() {
 					"baz": {BackupName: "special-backup"},
 				}
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/foo/bin/p-backup",
-					"/var/vcap/jobs/bar/bin/p-backup",
-					"/var/vcap/jobs/baz/bin/p-backup",
+					"/var/vcap/jobs/foo/bin/b-backup",
+					"/var/vcap/jobs/bar/bin/b-backup",
+					"/var/vcap/jobs/baz/bin/b-backup",
 				}
 			})
 
@@ -415,9 +447,9 @@ var _ = Describe("Instance", func() {
 					sshConnection.RunArgsForCall(1),
 					sshConnection.RunArgsForCall(2),
 				}).To(ConsistOf(
-					"sudo mkdir -p /var/vcap/store/backup/foo && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/p-backup",
-					"sudo mkdir -p /var/vcap/store/backup/bar && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/p-backup",
-					"sudo mkdir -p /var/vcap/store/backup/special-backup && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/special-backup/ /var/vcap/jobs/baz/bin/p-backup",
+					"sudo mkdir -p /var/vcap/store/backup/foo && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/b-backup",
+					"sudo mkdir -p /var/vcap/store/backup/bar && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/b-backup",
+					"sudo mkdir -p /var/vcap/store/backup/special-backup && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/special-backup/ /var/vcap/jobs/baz/bin/b-backup",
 				))
 			})
 		})
@@ -425,8 +457,8 @@ var _ = Describe("Instance", func() {
 		Context("when there are multiple jobs with no backup scripts", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/foo/bin/p-restore",
-					"/var/vcap/jobs/bar/bin/p-restore",
+					"/var/vcap/jobs/foo/bin/b-restore",
+					"/var/vcap/jobs/bar/bin/b-restore",
 				}
 			})
 			It("makes calls to the instance over the ssh connection", func() {
@@ -441,9 +473,9 @@ var _ = Describe("Instance", func() {
 
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/foo/bin/p-backup",
-					"/var/vcap/jobs/bar/bin/p-backup",
-					"/var/vcap/jobs/baz/bin/p-backup",
+					"/var/vcap/jobs/foo/bin/b-backup",
+					"/var/vcap/jobs/bar/bin/b-backup",
+					"/var/vcap/jobs/baz/bin/b-backup",
 				}
 				sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
 					if strings.Contains(cmd, "jobs/bar") {
@@ -499,9 +531,6 @@ var _ = Describe("Instance", func() {
 				)))
 			})
 
-			It("doesn't log Done", func() {
-				Expect(string(stdout.Contents())).NotTo(ContainSubstring("Done."))
-			})
 		})
 	})
 
@@ -515,9 +544,9 @@ var _ = Describe("Instance", func() {
 		Context("when there are multiple post-backup-unlock scripts in multiple job directories", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/foo/bin/p-post-backup-unlock",
-					"/var/vcap/jobs/bar/bin/p-post-backup-unlock",
-					"/var/vcap/jobs/baz/bin/p-post-backup-unlock",
+					"/var/vcap/jobs/foo/bin/b-post-backup-unlock",
+					"/var/vcap/jobs/bar/bin/b-post-backup-unlock",
+					"/var/vcap/jobs/baz/bin/b-post-backup-unlock",
 				}
 			})
 
@@ -528,22 +557,34 @@ var _ = Describe("Instance", func() {
 					sshConnection.RunArgsForCall(1),
 					sshConnection.RunArgsForCall(2),
 				}).To(ConsistOf(
-					"sudo /var/vcap/jobs/foo/bin/p-post-backup-unlock",
-					"sudo /var/vcap/jobs/bar/bin/p-post-backup-unlock",
-					"sudo /var/vcap/jobs/baz/bin/p-post-backup-unlock",
+					"sudo /var/vcap/jobs/foo/bin/b-post-backup-unlock",
+					"sudo /var/vcap/jobs/bar/bin/b-post-backup-unlock",
+					"sudo /var/vcap/jobs/baz/bin/b-post-backup-unlock",
 				))
 			})
 
 			It("logs the paths to the scripts being run", func() {
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/foo/bin/p-post-backup-unlock`))
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/p-post-backup-unlock`))
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/baz/bin/p-post-backup-unlock`))
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/foo/bin/b-post-backup-unlock`))
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/b-post-backup-unlock`))
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/baz/bin/b-post-backup-unlock`))
 				Expect(string(stdout.Contents())).NotTo(ContainSubstring("> \n"))
 			})
 
-			It("logs that it is backing up the instance", func() {
+			It("logs that it is backing up the job on the instance", func() {
 				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
-					"Unlocking %s/%s",
+					"INFO - Unlocking foo on %s/%s",
+					jobName,
+					jobID,
+				)))
+
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Unlocking bar on %s/%s",
+					jobName,
+					jobID,
+				)))
+
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Unlocking baz on %s/%s",
 					jobName,
 					jobID,
 				)))
@@ -565,9 +606,9 @@ var _ = Describe("Instance", func() {
 
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/foo/bin/p-post-backup-unlock",
-					"/var/vcap/jobs/bar/bin/p-post-backup-unlock",
-					"/var/vcap/jobs/baz/bin/p-post-backup-unlock",
+					"/var/vcap/jobs/foo/bin/b-post-backup-unlock",
+					"/var/vcap/jobs/bar/bin/b-post-backup-unlock",
+					"/var/vcap/jobs/baz/bin/b-post-backup-unlock",
 				}
 				sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
 					if strings.Contains(cmd, "jobs/bar") {
@@ -623,9 +664,6 @@ var _ = Describe("Instance", func() {
 				)))
 			})
 
-			It("doesn't log Done", func() {
-				Expect(string(stdout.Contents())).NotTo(ContainSubstring("Done."))
-			})
 		})
 	})
 
@@ -639,9 +677,9 @@ var _ = Describe("Instance", func() {
 		Context("when there are multiple restore scripts in multiple job directories", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/foo/bin/p-restore",
-					"/var/vcap/jobs/bar/bin/p-restore",
-					"/var/vcap/jobs/baz/bin/p-restore",
+					"/var/vcap/jobs/foo/bin/b-restore",
+					"/var/vcap/jobs/bar/bin/b-restore",
+					"/var/vcap/jobs/baz/bin/b-restore",
 				}
 			})
 
@@ -652,29 +690,40 @@ var _ = Describe("Instance", func() {
 					sshConnection.RunArgsForCall(1),
 					sshConnection.RunArgsForCall(2),
 				}).To(ConsistOf(
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/p-restore",
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/p-restore",
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ /var/vcap/jobs/baz/bin/p-restore",
+					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/b-restore",
+					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/b-restore",
+					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ /var/vcap/jobs/baz/bin/b-restore",
 				))
 			})
 
 			It("logs the paths to the scripts being run", func() {
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/foo/bin/p-restore`))
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/p-restore`))
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/baz/bin/p-restore`))
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/foo/bin/b-restore`))
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/b-restore`))
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/baz/bin/b-restore`))
 				Expect(string(stdout.Contents())).NotTo(ContainSubstring("> \n"))
 			})
 
-			It("logs that it is restoring the instance", func() {
+			It("logs that it is restoring a job on the instance", func() {
 				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
-					"Restoring %s/%s",
+					"Restoring foo on %s/%s",
 					jobName,
 					jobID,
 				)))
-			})
-
-			It("logs Done.", func() {
 				Expect(string(stdout.Contents())).To(ContainSubstring("Done."))
+
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"Restoring bar on %s/%s",
+					jobName,
+					jobID,
+				)))
+				Expect(string(stdout.Contents())).To(ContainSubstring("Done."))
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"Restoring baz on %s/%s",
+					jobName,
+					jobID,
+				)))
+				Expect(string(stdout.Contents())).To(ContainSubstring("Done."))
+
 			})
 
 			It("succeeds", func() {
@@ -688,9 +737,9 @@ var _ = Describe("Instance", func() {
 					"baz": {RestoreName: "special-backup"},
 				}
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/foo/bin/p-restore",
-					"/var/vcap/jobs/bar/bin/p-restore",
-					"/var/vcap/jobs/baz/bin/p-restore",
+					"/var/vcap/jobs/foo/bin/b-restore",
+					"/var/vcap/jobs/bar/bin/b-restore",
+					"/var/vcap/jobs/baz/bin/b-restore",
 				}
 			})
 			It("succeeds", func() {
@@ -703,9 +752,9 @@ var _ = Describe("Instance", func() {
 					sshConnection.RunArgsForCall(1),
 					sshConnection.RunArgsForCall(2),
 				}).To(ConsistOf(
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/p-restore",
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/p-restore",
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/special-backup/ /var/vcap/jobs/baz/bin/p-restore",
+					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/b-restore",
+					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/b-restore",
+					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/special-backup/ /var/vcap/jobs/baz/bin/b-restore",
 				))
 			})
 		})
@@ -717,9 +766,9 @@ var _ = Describe("Instance", func() {
 
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/foo/bin/p-restore",
-					"/var/vcap/jobs/bar/bin/p-restore",
-					"/var/vcap/jobs/baz/bin/p-restore",
+					"/var/vcap/jobs/foo/bin/b-restore",
+					"/var/vcap/jobs/bar/bin/b-restore",
+					"/var/vcap/jobs/baz/bin/b-restore",
 				}
 				sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
 					if strings.Contains(cmd, "jobs/bar") {
@@ -775,9 +824,6 @@ var _ = Describe("Instance", func() {
 				)))
 			})
 
-			It("doesn't log Done", func() {
-				Expect(string(stdout.Contents())).NotTo(ContainSubstring("Done."))
-			})
 		})
 	})
 
@@ -871,7 +917,7 @@ var _ = Describe("Instance", func() {
 		Context("Has no named backup blobs", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/foo/bin/p-backup",
+					"/var/vcap/jobs/foo/bin/b-backup",
 				}
 			})
 			It("returns the default blob", func() {
@@ -882,8 +928,8 @@ var _ = Describe("Instance", func() {
 		Context("Has a named backup blob and a default blob", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/foo/bin/p-backup",
-					"/var/vcap/jobs/job-name/bin/p-backup",
+					"/var/vcap/jobs/foo/bin/b-backup",
+					"/var/vcap/jobs/job-name/bin/b-backup",
 				}
 				blobMetadata = map[string]instance.Metadata{
 					"job-name": {BackupName: "my-blob"},
@@ -914,7 +960,7 @@ var _ = Describe("Instance", func() {
 		Context("Has only a named backup blob", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/job-name/bin/p-backup",
+					"/var/vcap/jobs/job-name/bin/b-backup",
 				}
 				blobMetadata = map[string]instance.Metadata{
 					"job-name": {BackupName: "my-blob"},
@@ -944,7 +990,7 @@ var _ = Describe("Instance", func() {
 		Context("Has no named restore blobs", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/job-name/bin/p-restore",
+					"/var/vcap/jobs/job-name/bin/b-restore",
 				}
 			})
 			It("returns the default blob", func() {
@@ -955,8 +1001,8 @@ var _ = Describe("Instance", func() {
 		Context("Has a named restore blob", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/job-name-2/bin/p-restore",
-					"/var/vcap/jobs/job-name/bin/p-restore",
+					"/var/vcap/jobs/job-name-2/bin/b-restore",
+					"/var/vcap/jobs/job-name/bin/b-restore",
 				}
 				blobMetadata = map[string]instance.Metadata{
 					"job-name": {RestoreName: "my-blob"},
@@ -987,7 +1033,7 @@ var _ = Describe("Instance", func() {
 		Context("has only named restore blobs", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
-					"/var/vcap/jobs/job-name/bin/p-restore",
+					"/var/vcap/jobs/job-name/bin/b-restore",
 				}
 				blobMetadata = map[string]instance.Metadata{
 					"job-name": {RestoreName: "my-blob"},

@@ -56,31 +56,32 @@ func (d *DeployedInstance) CustomBlobNames() []string {
 }
 
 func (d *DeployedInstance) PreBackupLock() error {
-	d.Logger.Info("", "Locking %s/%s for backup...", d.InstanceGroupName, d.BoshInstanceID)
 
 	var foundErrors error
 
 	for _, job := range d.Jobs.PreBackupable() {
+		d.Logger.Info("", "Locking %s on %s/%s for backup...", job.Name(), d.InstanceGroupName, d.BoshInstanceID)
+
 		if err := d.runAndHandleErrs("pre backup lock", job.Name(), job.PreBackupScript()); err != nil {
 			foundErrors = multierror.Append(foundErrors, err)
 		}
+		d.Logger.Info("", "Done.")
 	}
 
 	if foundErrors != nil {
 		return foundErrors
 	}
 
-	d.Logger.Info("", "Done.")
 	return nil
 }
 
 func (d *DeployedInstance) Backup() error {
-	d.Logger.Info("", "Backing up %s/%s...", d.InstanceGroupName, d.BoshInstanceID)
 
 	var foundErrors error
 
 	for _, job := range d.Jobs.Backupable() {
 		d.Logger.Debug("", "> %s", job.BackupScript())
+		d.Logger.Info("", "Backing up %s on %s/%s...", job.Name(), d.InstanceGroupName, d.BoshInstanceID)
 
 		stdout, stderr, exitCode, err := d.logAndRun(
 			fmt.Sprintf(
@@ -95,42 +96,43 @@ func (d *DeployedInstance) Backup() error {
 		if err := d.handleErrs(job.Name(), "backup", err, exitCode, stdout, stderr); err != nil {
 			foundErrors = multierror.Append(foundErrors, err)
 		}
+
+		d.Logger.Info("", "Done.")
 	}
 
 	if foundErrors != nil {
 		return foundErrors
 	}
 
-	d.Logger.Info("", "Done.")
 	return nil
 }
 
 func (d *DeployedInstance) PostBackupUnlock() error {
-	d.Logger.Info("", "Unlocking %s/%s...", d.InstanceGroupName, d.BoshInstanceID)
 
 	var foundErrors error
 
 	for _, job := range d.Jobs.PostBackupable() {
+		d.Logger.Info("", "Unlocking %s on %s/%s...", job.Name(), d.InstanceGroupName, d.BoshInstanceID)
+
 		if err := d.runAndHandleErrs("unlock", job.Name(), job.PostBackupScript()); err != nil {
 			foundErrors = multierror.Append(foundErrors, err)
 		}
+		d.Logger.Info("", "Done.")
 	}
 
 	if foundErrors != nil {
 		return foundErrors
 	}
 
-	d.Logger.Info("", "Done.")
 	return nil
 }
 
 func (d *DeployedInstance) Restore() error {
-	d.Logger.Info("", "Restoring %s/%s...", d.InstanceGroupName, d.BoshInstanceID)
-
 	var restoreErrors error
 
 	for _, job := range d.Jobs.Restorable() {
 		d.Logger.Debug("", "> %s", job.RestoreScript())
+		d.Logger.Info("", "Restoring %s on %s/%s...", job.Name(), d.InstanceGroupName, d.BoshInstanceID)
 
 		stdout, stderr, exitCode, err := d.logAndRun(
 			fmt.Sprintf(
@@ -144,13 +146,13 @@ func (d *DeployedInstance) Restore() error {
 		if err := d.handleErrs(job.Name(), "restore", err, exitCode, stdout, stderr); err != nil {
 			restoreErrors = multierror.Append(restoreErrors, err)
 		}
+		d.Logger.Info("", "Done.")
 	}
 
 	if restoreErrors != nil {
 		return restoreErrors
 	}
 
-	d.Logger.Info("", "Done.")
 	return nil
 }
 

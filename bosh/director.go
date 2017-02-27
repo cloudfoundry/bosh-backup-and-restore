@@ -64,6 +64,8 @@ func (c client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 	}
 	c.Logger.Debug("", "SSH user generated: %s", sshOpts.Username)
 
+	c.Logger.Info("", "Scripts found:")
+
 	instances := []orchestrator.Instance{}
 	instanceGroupWithSSHConnections := map[director.AllOrInstanceGroupOrInstanceSlug][]SSHConnection{}
 
@@ -96,7 +98,7 @@ func (c client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 			}
 			instanceGroupWithSSHConnections[allVmInstances] = append(instanceGroupWithSSHConnections[allVmInstances], sshConnection)
 
-			hostIdentifier := fmt.Sprintf("%s/%s", host.Host, host.IndexOrID)
+			hostIdentifier := fmt.Sprintf("%s/%s", instanceGroupName, host.IndexOrID)
 
 			jobs, err := c.jobFinder.FindJobs(hostIdentifier, sshConnection)
 

@@ -84,8 +84,8 @@ var _ = Describe("Director", func() {
 				}}, nil)
 				sshConnectionFactory.Returns(sshConnection, nil)
 				expectedJobs = instance.NewJobs(instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/consul_agent/bin/p-backup",
-					"/var/vcap/jobs/consul_agent/bin/p-restore",
+					"/var/vcap/jobs/consul_agent/bin/b-backup",
+					"/var/vcap/jobs/consul_agent/bin/b-restore",
 				}, map[string]instance.Metadata{})
 				fakeJobFinder.FindJobsReturns(expectedJobs, nil)
 			})
@@ -197,12 +197,12 @@ var _ = Describe("Director", func() {
 				sshConnectionFactory.Returns(sshConnection, nil)
 
 				instance0Jobs = instance.NewJobs(
-					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"},
+					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/b-backup"},
 					map[string]instance.Metadata{},
 				)
 
 				instance1Jobs = instance.NewJobs(
-					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"},
+					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/b-backup"},
 					map[string]instance.Metadata{},
 				)
 				fakeJobFinder.FindJobsStub = func(hostIdentifier string, connection instance.SSHConnection) (instance.Jobs, error) {
@@ -323,7 +323,7 @@ var _ = Describe("Director", func() {
 				}
 				sshConnectionFactory.Returns(sshConnection, nil)
 				instanceJobs = instance.NewJobs(
-					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/p-backup"},
+					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/b-backup"},
 					map[string]instance.Metadata{},
 				)
 				fakeJobFinder.FindJobsReturns(instanceJobs, nil)

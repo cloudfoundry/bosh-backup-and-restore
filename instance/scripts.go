@@ -1,18 +1,13 @@
 package instance
 
-import (
-	"path/filepath"
-	"strings"
-)
-
 type BackupAndRestoreScripts []Script
 
 const (
-	backupScriptName           = "p-backup"
-	restoreScriptName          = "p-restore"
-	metadataScriptName         = "p-metadata"
-	preBackupLockScriptName    = "p-pre-backup-lock"
-	postBackupUnlockScriptName = "p-post-backup-unlock"
+	backupScriptName           = "b-backup"
+	restoreScriptName          = "b-restore"
+	metadataScriptName         = "b-metadata"
+	preBackupLockScriptName    = "b-pre-backup-lock"
+	postBackupUnlockScriptName = "b-post-backup-unlock"
 
 	jobBaseDirectory              = "/var/vcap/jobs/"
 	jobDirectoryMatcher           = jobBaseDirectory + "*/bin/"
@@ -22,47 +17,6 @@ const (
 	preBackupLockScriptMatcher    = jobDirectoryMatcher + preBackupLockScriptName
 	postBackupUnlockScriptMatcher = jobDirectoryMatcher + postBackupUnlockScriptName
 )
-
-type Script string
-
-func (s Script) isBackup() bool {
-	match, _ := filepath.Match(backupScriptMatcher, string(s))
-	return match
-}
-
-func (s Script) isRestore() bool {
-	match, _ := filepath.Match(restoreScriptMatcher, string(s))
-	return match
-}
-
-func (s Script) isMetadata() bool {
-	match, _ := filepath.Match(metadataScriptMatcher, string(s))
-	return match
-}
-
-func (s Script) isPreBackupUnlock() bool {
-	match, _ := filepath.Match(preBackupLockScriptMatcher, string(s))
-	return match
-}
-
-func (s Script) isPostBackupUnlock() bool {
-	match, _ := filepath.Match(postBackupUnlockScriptMatcher, string(s))
-	return match
-}
-
-func (s Script) isPlatformScript() bool {
-	return s.isBackup() ||
-		s.isRestore() ||
-		s.isPreBackupUnlock() ||
-		s.isPostBackupUnlock() ||
-		s.isMetadata()
-}
-
-func (s Script) JobName() string {
-	strippedPrefix := strings.TrimPrefix(string(s), jobBaseDirectory)
-	splitFirstElement := strings.SplitN(strippedPrefix, "/", 2)
-	return splitFirstElement[0]
-}
 
 func NewBackupAndRestoreScripts(files []string) BackupAndRestoreScripts {
 	bandrScripts := []Script{}
