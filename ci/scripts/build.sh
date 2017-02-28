@@ -3,9 +3,9 @@
 set -ex
 
 eval "$(ssh-agent)"
-./pcf-backup-and-restore-meta/unlock-ci.sh
-chmod 400 pcf-backup-and-restore-meta/keys/github
-ssh-add pcf-backup-and-restore-meta/keys/github
+./bosh-backup-and-restore-meta/unlock-ci.sh
+chmod 400 bosh-backup-and-restore-meta/keys/github
+ssh-add bosh-backup-and-restore-meta/keys/github
 export GOPATH=$PWD
 export PATH=$PATH:$GOPATH/bin
 export VERSION=$(cat version/number)

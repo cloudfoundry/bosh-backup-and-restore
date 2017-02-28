@@ -2,12 +2,12 @@
 
 set -eu
 
-./pcf-backup-and-restore-meta/unlock-ci.sh
-chmod 400 pcf-backup-and-restore-meta/genesis-bosh/bosh.pem
+./bosh-backup-and-restore-meta/unlock-ci.sh
+chmod 400 bosh-backup-and-restore-meta/genesis-bosh/bosh.pem
 
 bosh -n -t ${BOSH_TARGET} -u ${BOSH_CLIENT} -p ${BOSH_CLIENT_SECRET} \
-  -d pcf-backup-and-restore-meta/deployments/acceptance-jump-box.yml \
-  ssh --gateway_identity_file pcf-backup-and-restore-meta/genesis-bosh/bosh.pem \
+  -d bosh-backup-and-restore-meta/deployments/acceptance-jump-box.yml \
+  ssh --gateway_identity_file bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
   --gateway_user vcap --gateway_host genesis-bosh.backup-and-restore.cf-app.com \
   jump-box 0 \
   "sudo mkdir -p /var/vcap/store/bbr && \
@@ -16,15 +16,15 @@ bosh -n -t ${BOSH_TARGET} -u ${BOSH_CLIENT} -p ${BOSH_CLIENT_SECRET} \
   "
 
 ls release/bbr* | xargs -INAME bosh -n -t ${BOSH_TARGET} -u ${BOSH_CLIENT} -p ${BOSH_CLIENT_SECRET} \
-  -d pcf-backup-and-restore-meta/deployments/acceptance-jump-box.yml \
+  -d bosh-backup-and-restore-meta/deployments/acceptance-jump-box.yml \
   scp jump-box 0 NAME /var/vcap/store/bbr/ \
-  --upload --gateway_identity_file pcf-backup-and-restore-meta/genesis-bosh/bosh.pem \
+  --upload --gateway_identity_file bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
   --gateway_user vcap --gateway_host genesis-bosh.backup-and-restore.cf-app.com
 
 ls release/bbr* | xargs -INAME basename NAME | rev | cut -d "." -f2- | rev | \
   xargs -INAME bosh -n -t ${BOSH_TARGET} -u ${BOSH_CLIENT} -p ${BOSH_CLIENT_SECRET} \
-  -d pcf-backup-and-restore-meta/deployments/acceptance-jump-box.yml \
-  ssh --gateway_identity_file pcf-backup-and-restore-meta/genesis-bosh/bosh.pem \
+  -d bosh-backup-and-restore-meta/deployments/acceptance-jump-box.yml \
+  ssh --gateway_identity_file bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
   --gateway_user vcap --gateway_host genesis-bosh.backup-and-restore.cf-app.com \
   jump-box 0 \
   "sudo chpst -u vcap:vcap mkdir -p /var/vcap/store/bbr/NAME && \
