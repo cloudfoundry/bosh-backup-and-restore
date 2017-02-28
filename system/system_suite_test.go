@@ -25,7 +25,7 @@ var (
 var fixturesPath = "../fixtures/redis-backup/"
 
 var _ = BeforeEach(func() {
-	SetDefaultEventuallyTimeout(2 * time.Minute)
+	SetDefaultEventuallyTimeout(4 * time.Minute)
 	//By("Creating the test release")
 	//RunBoshCommand(GenericBoshCommand(), "create-release", "--dir=../fixtures/releases/redis-test-release/", "--force")
 	//By("Uploading the test release")
