@@ -1,6 +1,8 @@
 package orchestrator_test
 
 import (
+	"fmt"
+
 	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
 
 	"errors"
@@ -8,6 +10,13 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
+
+type ErrorCase struct {
+	name             string
+	errors           []error
+	expectedExitCode int
+	expectedString   string
+}
 
 var _ = Describe("Error", func() {
 	var genericError = errors.New("You are fake news")
@@ -97,6 +106,28 @@ var _ = Describe("Error", func() {
 			})
 		})
 
+		Context("errors", func() {
+			errorCases := []ErrorCase{
+				{"genericError", []error{genericError}, 1, "You are fake news"},
+				{"backupError", []error{backupError}, 1, "BACKUP_ERROR"},
+				{"lockError", []error{lockError}, 4, "LOCK_ERROR"},
+				{"unlockError", []error{postBackupUnlockError}, 8, "POST_BACKUP_ERROR"},
+				{"cleanupError", []error{cleanupError}, 16, "CLEANUP_ERROR"},
+			}
+
+			for _, errorCase := range errorCases {
+				It(fmt.Sprintf("returns exit code %v in case of %v", errorCase.expectedExitCode, errorCase.name), func() {
+					actualExitCode, _ := orchestrator.ProcessBackupError(errorCase.errors)
+					Expect(actualExitCode).To(Equal(errorCase.expectedExitCode))
+				})
+
+				It("includes the correct error message", func() {
+					_, actualMessage := orchestrator.ProcessBackupError(errorCase.errors)
+					Expect(actualMessage).To(ContainSubstring(errorCase.expectedString))
+				})
+			}
+		})
+
 		Context("when there is only a lock error", func() {
 			var exitCode int
 			var errorMessage string
@@ -115,35 +146,20 @@ var _ = Describe("Error", func() {
 			})
 		})
 
-		Context("when there is only a backup error", func() {
-			It("returns exit code 8", func() {
-				exitCode, errorMessage := orchestrator.ProcessBackupError([]error{backupError})
-				Expect(exitCode).To(Equal(8))
+		Context("when there is a backup error and a cleanup error", func() {
+			It("returns exit code 17 (16 | 1)", func() {
+				exitCode, errorMessage := orchestrator.ProcessBackupError([]error{cleanupError, backupError})
+				Expect(exitCode).To(Equal(17))
 				Expect(errorMessage).To(ContainSubstring("BACKUP_ERROR"))
-			})
-		})
-
-		Context("when there is only an unlock error", func() {
-			It("returns exit code 16", func() {
-				exitCode, errorMessage := orchestrator.ProcessBackupError([]error{postBackupUnlockError})
-				Expect(exitCode).To(Equal(16))
-				Expect(errorMessage).To(ContainSubstring("POST_BACKUP_ERROR"))
-			})
-		})
-
-		Context("when there is only a cleanup error", func() {
-			It("returns exit code 32", func() {
-				exitCode, errorMessage := orchestrator.ProcessBackupError([]error{cleanupError})
-				Expect(exitCode).To(Equal(32))
 				Expect(errorMessage).To(ContainSubstring("CLEANUP_ERROR"))
 			})
 		})
 
-		Context("when there is a lock error and a cleanup error", func() {
-			It("returns exit code 36 (32 | 4)", func() {
-				exitCode, errorMessage := orchestrator.ProcessBackupError([]error{lockError, cleanupError})
-				Expect(exitCode).To(Equal(36))
-				Expect(errorMessage).To(ContainSubstring("LOCK_ERROR"))
+		Context("when there is a generic error and a cleanup error", func() {
+			It("returns exit code 17 (16 | 1)", func() {
+				exitCode, errorMessage := orchestrator.ProcessBackupError([]error{cleanupError, genericError})
+				Expect(exitCode).To(Equal(17))
+				Expect(errorMessage).To(ContainSubstring("You are fake news"))
 				Expect(errorMessage).To(ContainSubstring("CLEANUP_ERROR"))
 			})
 		})
@@ -151,17 +167,9 @@ var _ = Describe("Error", func() {
 		Context("when there are two errors of the same type", func() {
 			It("the error bit is only set once", func() {
 				exitCode, errorMessage := orchestrator.ProcessBackupError([]error{cleanupError, cleanupError})
-				Expect(exitCode).To(Equal(32))
+				Expect(exitCode).To(Equal(16))
 				Expect(errorMessage).To(ContainSubstring("2 errors occurred:"))
 				Expect(errorMessage).To(ContainSubstring("CLEANUP_ERROR"))
-			})
-		})
-
-		Context("when there is a generic error", func() {
-			It("returns exit code 1", func() {
-				exitCode, errorMessage := orchestrator.ProcessBackupError([]error{errors.New("FAIL")})
-				Expect(exitCode).To(Equal(1))
-				Expect(errorMessage).To(Equal("FAIL"))
 			})
 		})
 	})

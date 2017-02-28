@@ -87,15 +87,13 @@ func ProcessBackupError(errs Error) (int, string) {
 	for _, err := range errs {
 		switch err.(type) {
 		case LockError:
-			exitCode = exitCode | 4
-		case BackupError:
-			exitCode = exitCode | 8
+			exitCode = exitCode | 1<<2
 		case PostBackupUnlockError:
-			exitCode = exitCode | 16
+			exitCode = exitCode | 1<<3
 		case CleanupError:
-			exitCode = exitCode | 32
+			exitCode = exitCode | 1<<4
 		default:
-			return 1, err.Error()
+			exitCode = exitCode | 1
 		}
 
 		errorMessage = multierror.Append(errorMessage, err)
