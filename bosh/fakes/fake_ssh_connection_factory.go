@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
+	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
 )
 
 type FakeSSHConnectionFactory struct {

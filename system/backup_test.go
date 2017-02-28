@@ -24,7 +24,7 @@ var _ = Describe("backup", func() {
 		By("running the backup command")
 		Eventually(RunCommandOnRemoteAsVcap(
 			JumpBoxSSHCommand(),
-			fmt.Sprintf(`cd %s; BOSH_CLIENT_SECRET=%s ./pbr --ca-cert bosh.crt --username %s --target %s --deployment %s backup`,
+			fmt.Sprintf(`cd %s; BOSH_CLIENT_SECRET=%s ./bbr --ca-cert bosh.crt --username %s --target %s --deployment %s backup`,
 				workspaceDir, MustHaveEnv("BOSH_CLIENT_SECRET"), MustHaveEnv("BOSH_CLIENT"), MustHaveEnv("BOSH_URL"), RedisDeployment()),
 		)).Should(gexec.Exit(0))
 

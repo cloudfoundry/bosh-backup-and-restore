@@ -7,15 +7,15 @@ image_resource:
 
 inputs:
 - name: version
-- name: pcf-backup-and-restore
-  path: src/github.com/pivotal-cf/pcf-backup-and-restore
-- name: pcf-backup-and-restore-meta
+- name: bosh-backup-and-restore
+  path: src/github.com/pivotal-cf/bosh-backup-and-restore
+- name: bosh-backup-and-restore-meta
 
 params:
   TEAM_GPG_KEY:
 
 outputs:
-- name: pbr-build
+- name: bbr-build
 
 run:
-  path: src/github.com/pivotal-cf/pcf-backup-and-restore/ci/scripts/build.sh
+  path: src/github.com/pivotal-cf/bosh-backup-and-restore/ci/scripts/build.sh

@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
+	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 )
 
 type FakeLogger struct {

@@ -26,7 +26,7 @@ var _ = Describe("backup with custom metadata", func() {
 		Eventually(RunCommandOnRemoteAsVcap(
 			JumpBoxSSHCommand(),
 			fmt.Sprintf(
-				`cd %s; BOSH_CLIENT_SECRET=%s ./pbr --ca-cert bosh.crt --username %s --target %s --deployment %s backup`,
+				`cd %s; BOSH_CLIENT_SECRET=%s ./bbr --ca-cert bosh.crt --username %s --target %s --deployment %s backup`,
 				workspaceDir,
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
@@ -53,7 +53,7 @@ var _ = Describe("backup with custom metadata", func() {
 		By("running the restore command")
 		Eventually(RunCommandOnRemoteAsVcap(
 			JumpBoxSSHCommand(),
-			fmt.Sprintf(`cd %s; BOSH_CLIENT_SECRET=%s ./pbr --debug --ca-cert bosh.crt --username %s --target %s --deployment %s restore`,
+			fmt.Sprintf(`cd %s; BOSH_CLIENT_SECRET=%s ./bbr --debug --ca-cert bosh.crt --username %s --target %s --deployment %s restore`,
 				workspaceDir,
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),

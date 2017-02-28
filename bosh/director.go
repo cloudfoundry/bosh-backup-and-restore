@@ -9,8 +9,8 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry/bosh-utils/uuid"
-	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
-	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
+	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
+	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 )
 
 func New(boshDirector director.Director,

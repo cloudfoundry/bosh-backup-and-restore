@@ -12,10 +12,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
-	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
-	"github.com/pivotal-cf/pcf-backup-and-restore/bosh/fakes"
-	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
-	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
+	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
+	"github.com/pivotal-cf/bosh-backup-and-restore/bosh/fakes"
+	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
+	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 )
 
 var _ = Describe("Instance", func() {

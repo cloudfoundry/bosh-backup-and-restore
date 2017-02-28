@@ -44,7 +44,7 @@ var _ = Describe("Restores a deployment", func() {
 		By("running the restore command")
 		Eventually(RunCommandOnRemote(
 			JumpBoxSSHCommand(),
-			fmt.Sprintf(`cd %s; BOSH_CLIENT_SECRET=%s ./pbr --debug --ca-cert bosh.crt --username %s --target %s --deployment %s restore`,
+			fmt.Sprintf(`cd %s; BOSH_CLIENT_SECRET=%s ./bbr --debug --ca-cert bosh.crt --username %s --target %s --deployment %s restore`,
 				workspaceDir, MustHaveEnv("BOSH_CLIENT_SECRET"), MustHaveEnv("BOSH_CLIENT"), MustHaveEnv("BOSH_URL"), RedisDeployment()),
 		)).Should(gexec.Exit(0))
 

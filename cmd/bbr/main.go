@@ -6,15 +6,15 @@ import (
 	"os"
 
 	"github.com/mgutz/ansi"
-	"github.com/pivotal-cf/pcf-backup-and-restore/artifact"
-	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
-	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
-	"github.com/pivotal-cf/pcf-backup-and-restore/ssh"
+	"github.com/pivotal-cf/bosh-backup-and-restore/artifact"
+	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
+	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
+	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 	"github.com/urfave/cli"
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
+	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
 )
 
 var version string

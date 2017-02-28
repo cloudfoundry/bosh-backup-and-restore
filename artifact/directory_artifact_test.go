@@ -11,9 +11,9 @@ import (
 	"os"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	. "github.com/pivotal-cf/pcf-backup-and-restore/artifact"
-	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
-	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator/fakes"
+	. "github.com/pivotal-cf/bosh-backup-and-restore/artifact"
+	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
+	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator/fakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

@@ -6,7 +6,7 @@ import (
 
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
-	"github.com/pivotal-cf/pcf-backup-and-restore/testcluster"
+	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
 )
 
 func VmsForDeployment(deploymentName string, vms []mockbosh.VMsOutput) []mockhttp.MockedResponseBuilder {

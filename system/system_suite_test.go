@@ -62,8 +62,8 @@ var _ = BeforeEach(func() {
 	}()
 	wg.Wait()
 
-	By("building pbr")
-	commandPath, err = gexec.BuildWithEnvironment("github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr", []string{"GOOS=linux", "GOARCH=amd64"})
+	By("building bbr")
+	commandPath, err = gexec.BuildWithEnvironment("github.com/pivotal-cf/bosh-backup-and-restore/cmd/bbr", []string{"GOOS=linux", "GOARCH=amd64"})
 	Expect(err).NotTo(HaveOccurred())
 
 	By("setting up the jump box")

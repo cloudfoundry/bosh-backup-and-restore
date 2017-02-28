@@ -3,7 +3,7 @@ package orchestrator_test
 import (
 	"fmt"
 
-	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
+	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 
 	"errors"
 

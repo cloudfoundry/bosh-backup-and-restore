@@ -6,8 +6,8 @@ image_resource:
   source: {repository: cloudfoundrylondon/backup-and-restore}
 
 inputs:
-- name: pcf-backup-and-restore
-- name: pcf-backup-and-restore-meta
+- name: bosh-backup-and-restore
+- name: bosh-backup-and-restore-meta
 - name: release
 
 params:
@@ -17,4 +17,4 @@ params:
   TEAM_GPG_KEY:
 
 run:
-  path: pcf-backup-and-restore/ci/scripts/transfer-pbr-binary-to-jumpbox.sh
+  path: bosh-backup-and-restore/ci/scripts/transfer-bbr-binary-to-jumpbox.sh

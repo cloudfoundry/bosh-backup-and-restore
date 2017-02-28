@@ -5,7 +5,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/pivotal-cf/pcf-backup-and-restore/instance"
+	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
 )
 
 type FakeSSHConnection struct {

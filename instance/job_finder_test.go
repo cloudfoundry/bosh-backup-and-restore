@@ -2,8 +2,8 @@ package instance_test
 
 import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	. "github.com/pivotal-cf/pcf-backup-and-restore/instance"
-	"github.com/pivotal-cf/pcf-backup-and-restore/instance/fakes"
+	. "github.com/pivotal-cf/bosh-backup-and-restore/instance"
+	"github.com/pivotal-cf/bosh-backup-and-restore/instance/fakes"
 
 	"fmt"
 

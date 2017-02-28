@@ -12,7 +12,7 @@ import (
 
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
-	"github.com/pivotal-cf/pcf-backup-and-restore/testcluster"
+	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
 
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"

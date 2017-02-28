@@ -3,11 +3,11 @@ package orchestrator_test
 import (
 	"fmt"
 
-	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator"
+	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-cf/pcf-backup-and-restore/orchestrator/fakes"
+	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator/fakes"
 )
 
 var _ = Describe("DeploymentManager", func() {

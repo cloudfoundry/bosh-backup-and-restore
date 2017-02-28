@@ -40,6 +40,6 @@ func runBinary(cwd string, env []string, params ...string) *gexec.Session {
 
 var _ = BeforeSuite(func() {
 	var err error
-	commandPath, err = gexec.Build("github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr")
+	commandPath, err = gexec.Build("github.com/pivotal-cf/bosh-backup-and-restore/cmd/bbr")
 	Expect(err).NotTo(HaveOccurred())
 })

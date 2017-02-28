@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
+	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
 	"golang.org/x/crypto/ssh"
 )
 

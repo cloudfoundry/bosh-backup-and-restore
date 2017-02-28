@@ -22,16 +22,16 @@ test-integration:
 	ginkgo -r integration -nodes 4
 
 bin:
-	go build -o pbr github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr
+	go build -o bbr github.com/pivotal-cf/bosh-backup-and-restore/cmd/bbr
 
 bin-linux:
-	GOOS=linux GOARCH=amd64 go build -o pbr github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr
+	GOOS=linux GOARCH=amd64 go build -o bbr github.com/pivotal-cf/bosh-backup-and-restore/cmd/bbr
 
 generate-fakes:
 	go generate ./...
 
 generate:
-	ls -F | grep / | grep -v vendor | xargs -IN go generate github.com/pivotal-cf/pcf-backup-and-restore/N/...
+	ls -F | grep / | grep -v vendor | xargs -IN go generate github.com/pivotal-cf/bosh-backup-and-restore/N/...
 
 setup:
 	glide install --strip-vendor --strip-vcs
@@ -64,8 +64,8 @@ upload-test-releases:
 
 release: setup
 	mkdir releases
-	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/pbr github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr
-	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/pbr-mac github.com/pivotal-cf/pcf-backup-and-restore/cmd/pbr
+	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/bbr github.com/pivotal-cf/bosh-backup-and-restore/cmd/bbr
+	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/bbr-mac github.com/pivotal-cf/bosh-backup-and-restore/cmd/bbr
 
 clean-docker:
 	docker ps -q | xargs -IN -P10 docker kill N

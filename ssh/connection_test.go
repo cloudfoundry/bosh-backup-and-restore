@@ -7,10 +7,10 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/pivotal-cf/pcf-backup-and-restore/bosh"
-	"github.com/pivotal-cf/pcf-backup-and-restore/ssh"
-	"github.com/pivotal-cf/pcf-backup-and-restore/testcluster"
-	"github.com/pivotal-cf/pcf-backup-and-restore/testssh"
+	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
+	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
+	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
+	"github.com/pivotal-cf/bosh-backup-and-restore/testssh"
 	gossh "golang.org/x/crypto/ssh"
 
 	. "github.com/onsi/ginkgo"

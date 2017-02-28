@@ -5,7 +5,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/pivotal-cf/pcf-backup-and-restore/artifact"
+	. "github.com/pivotal-cf/bosh-backup-and-restore/artifact"
 )
 
 var _ = Context("ArtifactManager", func() {
