@@ -41,8 +41,8 @@ setup:
 
 sys-test-local:
 	BOSH_CLIENT_SECRET=`lpass show LiteBoshDirector --password` \
-	BOSH_CERT_PATH=~/workspace/pcf-backup-and-restore-meta/certs/lite-bosh.backup-and-restore.cf-app.com.crt \
-	BOSH_GATEWAY_KEY=~/workspace/pcf-backup-and-restore-meta/genesis-bosh/bosh.pem \
+	BOSH_CERT_PATH=~/workspace/bosh-backup-and-restore-meta/certs/lite-bosh.backup-and-restore.cf-app.com.crt \
+	BOSH_GATEWAY_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
 	TEST_ENV=`echo $(DEV_ENV)` \
 	ginkgo -r -v system
 
@@ -50,8 +50,8 @@ sys-test-local-260:
 	BOSH_URL=https://35.187.10.144 \
 	BOSH_GATEWAY_HOST=35.187.10.144 \
 	BOSH_CLIENT_SECRET=`lpass show Lite260BoshDirector --password` \
-	BOSH_CERT_PATH=~/workspace/pcf-backup-and-restore-meta/garden-bosh-260/certs/rootCA.pem \
-	BOSH_GATEWAY_KEY=~/workspace/pcf-backup-and-restore-meta/genesis-bosh/bosh.pem \
+	BOSH_CERT_PATH=~/workspace/bosh-backup-and-restore-meta/garden-bosh-260/certs/rootCA.pem \
+	BOSH_GATEWAY_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
 	TEST_ENV=`echo $(DEV_ENV)` \
 	ginkgo -r -v system
 
