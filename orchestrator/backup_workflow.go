@@ -151,7 +151,7 @@ func (bw *backupWorkflow) prebackupLock(e *fsm.Event) {
 	err := bw.deployment.PreBackupLock()
 
 	if err != nil {
-		bw.backupErrors = append(bw.backupErrors, err)
+		bw.backupErrors = append(bw.backupErrors, NewLockError(err.Error()))
 		e.Cancel()
 	}
 }

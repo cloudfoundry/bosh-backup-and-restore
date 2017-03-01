@@ -231,6 +231,10 @@ touch /tmp/post-backup-unlock-output
 					Expect(instance1.FileExists("/tmp/pre-backup-lock-output")).To(BeTrue())
 				})
 
+				It("exits with the correct error code", func() {
+					Expect(session.ExitCode()).To(Equal(4))
+				})
+
 				It("logs the error", func() {
 					Expect(session.Err.Contents()).To(ContainSubstring("pre backup lock script for job redis failed on redis-dedicated-node/fake-uuid."))
 				})
