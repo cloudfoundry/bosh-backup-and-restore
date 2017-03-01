@@ -207,7 +207,7 @@ var _ = Describe("Backuper", func() {
 		})
 
 		Context("fails if pre-backup-lock fails", func() {
-			var lockError = fmt.Errorf("it was going to be a smooth transition - NOT")
+			var lockError = orchestrator.NewLockError("it was going to be a smooth transition - NOT")
 
 			BeforeEach(func() {
 				boshDirector.GetManifestReturns(deploymentManifest, nil)
@@ -233,10 +233,10 @@ var _ = Describe("Backuper", func() {
 		})
 
 		Context("fails if post-backup-unlock fails", func() {
-			var unlockError error
+			var unlockError orchestrator.PostBackupUnlockError
 
 			BeforeEach(func() {
-				unlockError = fmt.Errorf("it was going to be a smooth transition - NOT")
+				unlockError = orchestrator.NewPostBackupUnlockError("it was going to be a smooth transition - NOT")
 				boshDirector.GetManifestReturns(deploymentManifest, nil)
 				artifactManager.CreateReturns(artifact, nil)
 				artifactManager.ExistsReturns(false)
@@ -249,11 +249,7 @@ var _ = Describe("Backuper", func() {
 			})
 
 			It("fails the backup process", func() {
-				Expect(actualBackupError).To(MatchError(ContainSubstring(unlockError.Error())))
-			})
-
-			It("fails with the correct error type", func() {
-				Expect(actualBackupError).To(ConsistOf(BeAssignableToTypeOf(orchestrator.PostBackupUnlockError{})))
+				Expect(actualBackupError).To(ConsistOf(unlockError))
 			})
 
 			It("continues with the cleanup", func() {
@@ -272,11 +268,11 @@ var _ = Describe("Backuper", func() {
 
 				It("returns an error of type PostBackupUnlockError and "+
 					"includes the drain error in the returned error", func() {
-					Expect(actualBackupError).To(ConsistOf(drainError, BeAssignableToTypeOf(orchestrator.PostBackupUnlockError{})))
+					Expect(actualBackupError).To(ConsistOf(drainError, unlockError))
 				})
 
 				Context("cleanup fails as well", func() {
-					var cleanupError = fmt.Errorf("he was born in kenya")
+					var cleanupError = orchestrator.NewCleanupError("he was born in kenya")
 					BeforeEach(func() {
 						deployment.CleanupReturns(cleanupError)
 					})
@@ -285,7 +281,7 @@ var _ = Describe("Backuper", func() {
 						"includes the drain error in the returned error and "+
 						"includes the cleanup error in the returned error", func() {
 						Expect(actualBackupError).To(ConsistOf(
-							BeAssignableToTypeOf(orchestrator.PostBackupUnlockError{}),
+							unlockError,
 							drainError,
 							And(
 								BeAssignableToTypeOf(orchestrator.CleanupError{}),
@@ -306,7 +302,7 @@ var _ = Describe("Backuper", func() {
 					"and returns an error of type PostBackupUnlockError", func() {
 					Expect(actualBackupError).To(ConsistOf(
 						MatchError(ContainSubstring(cleanupError.Error())),
-						BeAssignableToTypeOf(orchestrator.PostBackupUnlockError{}),
+						unlockError,
 					))
 				})
 			})
