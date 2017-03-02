@@ -190,7 +190,6 @@ blobs:
 				})
 			})
 
-			// TODO: This was the next one
 			Context("when the b-pre-backup-lock script is present", func() {
 				BeforeEach(func() {
 					instance1.CreateScript("/var/vcap/jobs/redis/bin/b-pre-backup-lock", `#!/usr/bin/env sh
@@ -348,7 +347,7 @@ exit 1`)
 			})
 		})
 
-		Context("instance backup script failed with an error", func() {
+		Context("instance backup script fails", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				director.VerifyAndMock(AppendBuilders(
@@ -373,7 +372,7 @@ exit 1`)
 			})
 		})
 
-		Context("instance backup script failed with an error and cleanup failed as well", func() {
+		Context("both instance backup script and cleanup fail", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				director.VerifyAndMock(AppendBuilders(
@@ -406,7 +405,7 @@ exit 1`)
 			})
 		})
 
-		Context("if a deployment can be backed up but the cleanup fails", func() {
+		Context("backup succeeds but cleanup fails", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				director.VerifyAndMock(AppendBuilders(
@@ -443,7 +442,7 @@ exit 1`)
 			})
 		})
 
-		Context("backup metadata is invalid", func() {
+		Context("when running the b-metadata script does not give valid yml", func() {
 			AfterEach(func() {
 				instance1.DieInBackground()
 			})
@@ -497,7 +496,7 @@ echo "not valid yaml
 		})
 	})
 
-	Context("with deployment, with two instances (one backupable)", func() {
+	Context("When there is a deployment which has two instances, one backupable", func() {
 		var backupableInstance, nonBackupableInstance *testcluster.Instance
 
 		BeforeEach(func() {
@@ -540,7 +539,7 @@ echo "not valid yaml
 		})
 	})
 
-	Context("with deployment, with two instances (both backupable)", func() {
+	Context("When there is a deployment which has two instance, both backupable", func() {
 		var backupableInstance1, backupableInstance2 *testcluster.Instance
 
 		BeforeEach(func() {
@@ -605,7 +604,7 @@ echo "not valid yaml
 
 	})
 
-	Context("both instances specify the same backup name in their metadata", func() {
+	Context("When multiple instances specify the same backup name in their metadata", func() {
 		var backupableInstance1, backupableInstance2 *testcluster.Instance
 
 		BeforeEach(func() {
@@ -667,7 +666,7 @@ backup_name: duplicate_name
 		})
 	})
 
-	Context("when deployment does not exist", func() {
+	Context("When deployment does not exist", func() {
 		BeforeEach(func() {
 			deploymentName = "my-non-existent-deployment"
 			director.VerifyAndMock(mockbosh.VMsForDeployment(deploymentName).NotFound())
