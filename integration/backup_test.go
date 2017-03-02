@@ -26,6 +26,7 @@ var _ = Describe("Backup", func() {
 	var backupWorkspace string
 	var session *gexec.Session
 	var deploymentName string
+	var instance1 *testcluster.Instance
 
 	BeforeEach(func() {
 		deploymentName = "my-little-deployment"
@@ -54,17 +55,11 @@ var _ = Describe("Backup", func() {
 		)
 	})
 
-	Context("with deployment, with one instance present", func() {
-		var instance1 *testcluster.Instance
+	Context("When there is a deployment which has one instance", func() {
+		var metadataFile string
+		var redisNodeArtifactFile string
 
-		Context("when the backup is successful", func() {
-			var metadataFile string
-			var redisNodeArtifactFile string
-
-			AfterEach(func() {
-				instance1.DieInBackground()
-			})
-
+		Context("and there is a plausible backup script", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				director.VerifyAndMock(AppendBuilders(
@@ -78,7 +73,10 @@ var _ = Describe("Backup", func() {
 					DownloadManifest(deploymentName, "this is a totally valid yaml"),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)...)
+			})
 
+			By("creating a dummy backup script")
+			BeforeEach(func() {
 				instance1.CreateScript("/var/vcap/jobs/redis/bin/b-backup", `#!/usr/bin/env sh
 
 set -u
@@ -91,65 +89,68 @@ printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
 				redisNodeArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")
 			})
 
-			It("exits zero", func() {
-				Expect(session.ExitCode()).To(BeZero())
-			})
+			Context("and there are no pre-backup scripts", func() {
 
-			It("downloads the manifest", func() {
-				Expect(path.Join(backupWorkspace, deploymentName, "manifest.yml")).To(BeARegularFile())
-				Expect(ioutil.ReadFile(path.Join(backupWorkspace, deploymentName, "manifest.yml"))).To(MatchYAML("this is a totally valid yaml"))
-			})
+				It("exits zero", func() {
+					Expect(session.ExitCode()).To(BeZero())
+				})
 
-			It("creates a backup directory which contains a backup artifact", func() {
-				Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
-				Expect(redisNodeArtifactFile).To(BeARegularFile())
-			})
+				It("downloads the manifest", func() {
+					Expect(path.Join(backupWorkspace, deploymentName, "manifest.yml")).To(BeARegularFile())
+					Expect(ioutil.ReadFile(path.Join(backupWorkspace, deploymentName, "manifest.yml"))).To(MatchYAML("this is a totally valid yaml"))
+				})
 
-			It("the backup artifact contains the backup files from the instance", func() {
-				Expect(filesInTar(redisNodeArtifactFile)).To(ConsistOf("backupdump1", "backupdump2"))
-				Expect(contentsInTar(redisNodeArtifactFile, "backupdump1")).To(Equal("backupcontent1"))
-				Expect(contentsInTar(redisNodeArtifactFile, "backupdump2")).To(Equal("backupcontent2"))
-			})
+				It("creates a backup directory which contains a backup artifact", func() {
+					Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
+					Expect(redisNodeArtifactFile).To(BeARegularFile())
+				})
 
-			It("creates a metadata file", func() {
-				Expect(metadataFile).To(BeARegularFile())
-			})
+				It("the backup artifact contains the backup files from the instance", func() {
+					Expect(filesInTar(redisNodeArtifactFile)).To(ConsistOf("backupdump1", "backupdump2"))
+					Expect(contentsInTar(redisNodeArtifactFile, "backupdump1")).To(Equal("backupcontent1"))
+					Expect(contentsInTar(redisNodeArtifactFile, "backupdump2")).To(Equal("backupcontent2"))
+				})
 
-			It("the metadata file is correct", func() {
-				Expect(ioutil.ReadFile(metadataFile)).To(MatchYAML(fmt.Sprintf(`instances:
+				It("creates a metadata file", func() {
+					Expect(metadataFile).To(BeARegularFile())
+				})
+
+				It("the metadata file is correct", func() {
+					Expect(ioutil.ReadFile(metadataFile)).To(MatchYAML(fmt.Sprintf(`instances:
 - instance_name: redis-dedicated-node
   instance_index: "0"
   checksums:
     ./redis/backupdump1: %s
     ./redis/backupdump2: %s`, shaFor("backupcontent1"), shaFor("backupcontent2"))))
-			})
+				})
 
-			It("prints the backup progress to the screen", func() {
-				assertOutput(session, []string{
-					fmt.Sprintf("Starting backup of %s...", deploymentName),
-					"Finding instances with backup scripts...",
-					"Done.",
-					"Scripts found:",
-					"redis-dedicated-node/fake-uuid/redis/b-backup",
-					"Running pre-backup scripts...",
-					"Done.",
-					"Running backup scripts...",
-					"Backing up redis on redis-dedicated-node/fake-uuid...",
-					"Done.",
-					"Running post-backup scripts...",
-					"Done.",
-					"Copying backup --",
-					"from redis-dedicated-node/fake-uuid...",
-					"Done.",
-					fmt.Sprintf("Backup created of %s on", deploymentName),
+				It("prints the backup progress to the screen", func() {
+					assertOutput(session, []string{
+						fmt.Sprintf("Starting backup of %s...", deploymentName),
+						"Finding instances with backup scripts...",
+						"Done.",
+						"Scripts found:",
+						"redis-dedicated-node/fake-uuid/redis/b-backup",
+						"Running pre-backup scripts...",
+						"Done.",
+						"Running backup scripts...",
+						"Backing up redis on redis-dedicated-node/fake-uuid...",
+						"Done.",
+						"Running post-backup scripts...",
+						"Done.",
+						"Copying backup --",
+						"from redis-dedicated-node/fake-uuid...",
+						"Done.",
+						fmt.Sprintf("Backup created of %s on", deploymentName),
+					})
+				})
+
+				It("cleans up backup artifacts from remote", func() {
+					Expect(instance1.FileExists("/var/vcap/store/backup")).To(BeFalse())
 				})
 			})
 
-			It("cleans up backup artifacts from remote", func() {
-				Expect(instance1.FileExists("/var/vcap/store/backup")).To(BeFalse())
-			})
-
-			Context("when the backup artifact name is specified in the metadata", func() {
+			Context("when there is a b-metadata script which produces yaml containing the custom backup_name", func() {
 				var redisCustomArtifactFile string
 				var redisDefaultArtifactFile string
 
@@ -163,25 +164,22 @@ backup_name: foo_redis
 					redisDefaultArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")
 				})
 
-				It("runs the b-metatdata scripts", func() {
+				It("runs the b-metadata scripts", func() {
 					Expect(instance1.FileExists("/tmp/b-metadata-output")).To(BeTrue())
 				})
 
-				It("the custom named backup blob contains the artifact files", func() {
+				It("creates a custom backup artifact", func() {
 					Expect(filesInTar(redisCustomArtifactFile)).To(ConsistOf("backupdump1", "backupdump2"))
 					Expect(contentsInTar(redisCustomArtifactFile, "backupdump1")).To(Equal("backupcontent1"))
 					Expect(contentsInTar(redisCustomArtifactFile, "backupdump2")).To(Equal("backupcontent2"))
 				})
 
-				It("no default artifact is created", func() {
+				It("does not create an artifact with the default name", func() {
 					Expect(redisDefaultArtifactFile).NotTo(BeARegularFile())
 				})
 
-				It("creates a metadata file", func() {
+				It("the metadata records the artifact as a blob instead of an instance", func() {
 					Expect(metadataFile).To(BeARegularFile())
-				})
-
-				It("the metadata records the artifact separately", func() {
 					Expect(ioutil.ReadFile(metadataFile)).To(MatchYAML(fmt.Sprintf(`instances: []
 blobs:
 - blob_name: foo_redis
@@ -192,6 +190,7 @@ blobs:
 				})
 			})
 
+			// TODO: This was the next one
 			Context("when the b-pre-backup-lock script is present", func() {
 				BeforeEach(func() {
 					instance1.CreateScript("/var/vcap/jobs/redis/bin/b-pre-backup-lock", `#!/usr/bin/env sh
@@ -372,7 +371,6 @@ exit 1`)
 			It("returns exit code 1", func() {
 				Expect(session.ExitCode()).To(Equal(1))
 			})
-
 		})
 
 		Context("instance backup script failed with an error and cleanup failed as well", func() {
