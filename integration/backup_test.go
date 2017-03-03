@@ -70,16 +70,7 @@ var _ = Describe("Backup", func() {
 		Context("and there is a plausible backup script", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
-				director.VerifyAndMock(AppendBuilders(
-					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
-					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
-					DownloadManifest(deploymentName, "this is a totally valid yaml"),
-					CleanupSSH(deploymentName, "redis-dedicated-node"),
-				)...)
-			})
-
-			By("creating a dummy backup script")
-			BeforeEach(func() {
+				By("creating a dummy backup script")
 				instance1.CreateScript("/var/vcap/jobs/redis/bin/b-backup", `#!/usr/bin/env sh
 
 set -u
@@ -87,6 +78,12 @@ set -u
 printf "backupcontent1" > $ARTIFACT_DIRECTORY/backupdump1
 printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
 `)
+
+				mockDirectorWith(director,
+					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
+					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
+					DownloadManifest(deploymentName, "this is a totally valid yaml"),
+					CleanupSSH(deploymentName, "redis-dedicated-node"))
 
 				metadataFile = path.Join(backupWorkspace, deploymentName, "/metadata")
 				redisNodeArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")
@@ -321,11 +318,12 @@ exit 1`)
 		Context("if a deployment can't be backed up", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
-				director.VerifyAndMock(AppendBuilders(
+				mockDirectorWith(director,
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
+					ManifestIsNotDownloaded(),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
-				)...)
+				)
 
 				instance1.CreateFiles(
 					"/var/vcap/jobs/redis/bin/ctl",
@@ -348,12 +346,12 @@ exit 1`)
 		Context("instance backup script fails", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
-				director.VerifyAndMock(AppendBuilders(
+				mockDirectorWith(director,
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					DownloadManifest(deploymentName, "this is a totally valid yaml"),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
-				)...)
+				)
 
 				instance1.CreateScript(
 					"/var/vcap/jobs/redis/bin/b-backup", "echo 'ultra-bar'; (>&2 echo 'ultra-baz'); exit 1",
@@ -368,12 +366,12 @@ exit 1`)
 		Context("both instance backup script and cleanup fail", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
-				director.VerifyAndMock(AppendBuilders(
+				mockDirectorWith(director,
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					DownloadManifest(deploymentName, "this is a totally valid yaml"),
 					CleanupSSHFails(deploymentName, "redis-dedicated-node", "ultra-foo"),
-				)...)
+				)
 
 				instance1.CreateScript(
 					"/var/vcap/jobs/redis/bin/b-backup", "(>&2 echo 'ultra-baz'); exit 1",
@@ -396,12 +394,12 @@ exit 1`)
 		Context("backup succeeds but cleanup fails", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
-				director.VerifyAndMock(AppendBuilders(
+				mockDirectorWith(director,
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					DownloadManifest(deploymentName, "this is a totally valid yaml"),
 					CleanupSSHFails(deploymentName, "redis-dedicated-node", "Can't do it mate"),
-				)...)
+				)
 
 				instance1.CreateFiles(
 					"/var/vcap/jobs/redis/bin/b-backup",
@@ -436,11 +434,12 @@ touch /tmp/b-metadata-output
 echo "not valid yaml
 "`)
 
-				director.VerifyAndMock(AppendBuilders(
+				mockDirectorWith(director,
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
+					ManifestIsNotDownloaded(),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
-				)...)
+				)
 			})
 
 			It("runs the b-metadata scripts", func() {
@@ -494,14 +493,14 @@ echo "not valid yaml
 			deploymentName = "my-bigger-deployment"
 			backupableInstance = testcluster.NewInstance()
 			nonBackupableInstance = testcluster.NewInstance()
-			director.VerifyAndMock(AppendBuilders(
+			mockDirectorWith(director,
 				VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
-				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance),
-				SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, nonBackupableInstance),
+				append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance),
+					SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, nonBackupableInstance)...),
 				DownloadManifest(deploymentName, "not being asserted"),
-				CleanupSSH(deploymentName, "redis-dedicated-node"),
-				CleanupSSH(deploymentName, "redis-broker"),
-			)...)
+				append(CleanupSSH(deploymentName, "redis-dedicated-node"),
+					CleanupSSH(deploymentName, "redis-broker")...),
+			)
 			backupableInstance.CreateFiles(
 				"/var/vcap/jobs/redis/bin/b-backup",
 			)
@@ -528,14 +527,14 @@ echo "not valid yaml
 			deploymentName = "my-two-instance-deployment"
 			backupableInstance1 = testcluster.NewInstance()
 			backupableInstance2 = testcluster.NewInstance()
-			director.VerifyAndMock(AppendBuilders(
-				VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node","redis-broker")),
-				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
-				SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance2),
+			mockDirectorWith(director,
+				VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
+				append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
+					SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance2)...),
 				DownloadManifest(deploymentName, "not being asserted"),
-				CleanupSSH(deploymentName, "redis-dedicated-node"),
-				CleanupSSH(deploymentName, "redis-broker"),
-			)...)
+				append(CleanupSSH(deploymentName, "redis-dedicated-node"),
+					CleanupSSH(deploymentName, "redis-broker")...),
+			)
 
 			backupableInstance1.CreateFiles(
 				"/var/vcap/jobs/redis/bin/b-backup",
@@ -584,13 +583,14 @@ echo "not valid yaml
 			deploymentName = "my-two-instance-deployment"
 			backupableInstance1 = testcluster.NewInstance()
 			backupableInstance2 = testcluster.NewInstance()
-			director.VerifyAndMock(AppendBuilders(
-				VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node","redis-broker")),
-				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
-				SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance2),
-				CleanupSSH(deploymentName, "redis-dedicated-node"),
-				CleanupSSH(deploymentName, "redis-broker"),
-			)...)
+			mockDirectorWith(director,
+				VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
+				append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
+					SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance2)...),
+				ManifestIsNotDownloaded(),
+				append(CleanupSSH(deploymentName, "redis-dedicated-node"),
+					CleanupSSH(deploymentName, "redis-broker")...),
+			)
 
 			backupableInstance1.CreateFiles(
 				"/var/vcap/jobs/redis/bin/b-backup",
@@ -713,4 +713,13 @@ func assertErrorOutput(session *gexec.Session, strings []string) {
 	for _, str := range strings {
 		Expect(string(session.Err.Contents())).To(ContainSubstring(str))
 	}
+}
+func mockDirectorWith(director *mockhttp.Server, vmsResponse []mockhttp.MockedResponseBuilder, sshResponse []mockhttp.MockedResponseBuilder, downloadManfiestResponse []mockhttp.MockedResponseBuilder, cleanupResponse []mockhttp.MockedResponseBuilder) {
+	director.VerifyAndMock(AppendBuilders(
+		vmsResponse,
+		sshResponse,
+		downloadManfiestResponse,
+		cleanupResponse,
+	)...)
+
 }

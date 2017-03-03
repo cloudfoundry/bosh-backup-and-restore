@@ -9,14 +9,14 @@ import (
 	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
 )
 
-func VmsForDeployment(deploymentName string, vms []mockbosh.VMsOutput) []mockhttp.MockedResponseBuilder {
+func VmsForDeployment(deploymentName string, responseInstances []mockbosh.VMsOutput) []mockhttp.MockedResponseBuilder {
 	randomTaskID := generateTaskId()
 	return []mockhttp.MockedResponseBuilder{
 		mockbosh.VMsForDeployment(deploymentName).RedirectsToTask(randomTaskID),
 		mockbosh.Task(randomTaskID).RespondsWithTaskContainingState(mockbosh.TaskDone),
 		mockbosh.Task(randomTaskID).RespondsWithTaskContainingState(mockbosh.TaskDone),
 		mockbosh.TaskEvent(randomTaskID).RespondsWithVMsOutput([]string{}),
-		mockbosh.TaskOutput(randomTaskID).RespondsWithVMsOutput(vms),
+		mockbosh.TaskOutput(randomTaskID).RespondsWithVMsOutput(responseInstances),
 	}
 }
 func DownloadManifest(deploymentName string, manifest string) []mockhttp.MockedResponseBuilder {
@@ -65,6 +65,10 @@ func CleanupSSHFails(deploymentName, instanceGroup, errorMessage string) []mockh
 	return []mockhttp.MockedResponseBuilder{
 		mockbosh.CleanupSSHSession(deploymentName).ForInstanceGroup(instanceGroup).Fails(errorMessage),
 	}
+}
+
+func ManifestIsNotDownloaded() []mockhttp.MockedResponseBuilder {
+	return []mockhttp.MockedResponseBuilder{}
 }
 
 func generateTaskId() int {
