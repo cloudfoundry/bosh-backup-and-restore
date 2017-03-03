@@ -70,3 +70,6 @@ release: setup
 clean-docker:
 	docker ps -q | xargs -IN -P10 docker kill N
 	docker ps -a -q | xargs -IN -P10 docker rm N
+
+setup-local-docker:
+	eval `docker-machine env`

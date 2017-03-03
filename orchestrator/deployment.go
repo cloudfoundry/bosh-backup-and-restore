@@ -28,9 +28,7 @@ func NewBoshDeployment(logger Logger, instancesArray []Instance) Deployment {
 }
 
 func (bd *BoshDeployment) IsBackupable() bool {
-	bd.Logger.Info("", "Finding instances with backup scripts...")
 	backupableInstances := bd.instances.AllBackupable()
-	bd.Logger.Info("", "Done.")
 	return !backupableInstances.IsEmpty()
 }
 
@@ -83,48 +81,50 @@ func (bd *BoshDeployment) IsRestorable() bool {
 func (bd *BoshDeployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 	instances := bd.instances.AllBackupable()
 	for _, instance := range instances {
-		for _, remoteArtifact := range instance.BlobsToBackup() {
-			writer, err := artifact.CreateFile(remoteArtifact)
+		for _, backupBlob := range instance.BlobsToBackup() {
+			writer, err := artifact.CreateFile(backupBlob)
 
 			if err != nil {
 				return err
 			}
 
-			size, err := remoteArtifact.Size()
+			size, err := backupBlob.Size()
 			if err != nil {
 				return err
 			}
 
 			bd.Logger.Info("", "Copying backup -- %s uncompressed -- from %s/%s...", size, instance.Name(), instance.ID())
-			if err := remoteArtifact.StreamFromRemote(writer); err != nil {
+			if err := backupBlob.StreamFromRemote(writer); err != nil {
 				return err
 			}
 
 			if err := writer.Close(); err != nil {
 				return err
 			}
+			bd.Logger.Info("", "Finished copying backup -- from %s/%s...", instance.Name(), instance.ID())
 
-			localChecksum, err := artifact.CalculateChecksum(remoteArtifact)
+			bd.Logger.Info("", "Starting validity checks")
+			localChecksum, err := artifact.CalculateChecksum(backupBlob)
 			if err != nil {
 				return err
 			}
 
-			remoteChecksum, err := remoteArtifact.Checksum()
+			remoteChecksum, err := backupBlob.Checksum()
 			if err != nil {
 				return err
 			}
+			bd.Logger.Debug("", "Comparing shasums")
 			if !localChecksum.Match(remoteChecksum) {
-				return fmt.Errorf("Backup artifact is corrupted, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), remoteArtifact.Name(), remoteChecksum, localChecksum)
+				return fmt.Errorf("Backup artifact is corrupted, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), backupBlob.Name(), remoteChecksum, localChecksum)
 			}
 
-			artifact.AddChecksum(remoteArtifact, localChecksum)
+			artifact.AddChecksum(backupBlob, localChecksum)
 
-			err = remoteArtifact.Delete()
+			err = backupBlob.Delete()
 			if err != nil {
 				return err
 			}
-
-			bd.Logger.Info("", "Done.")
+			bd.Logger.Info("", "Finished validity checks")
 		}
 	}
 	return nil

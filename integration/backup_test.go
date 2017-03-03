@@ -125,24 +125,25 @@ printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
 				})
 
 				It("prints the backup progress to the screen", func() {
-					assertOutput(session, []string{
-						fmt.Sprintf("Starting backup of %s...", deploymentName),
-						"Finding instances with backup scripts...",
-						"Done.",
-						"Scripts found:",
-						"redis-dedicated-node/fake-uuid/redis/b-backup",
-						"Running pre-backup scripts...",
-						"Done.",
-						"Running backup scripts...",
-						"Backing up redis on redis-dedicated-node/fake-uuid...",
-						"Done.",
-						"Running post-backup scripts...",
-						"Done.",
-						"Copying backup --",
-						"from redis-dedicated-node/fake-uuid...",
-						"Done.",
-						fmt.Sprintf("Backup created of %s on", deploymentName),
-					})
+					Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Starting backup of %s...", deploymentName)))
+					Expect(session.Out).To(gbytes.Say("INFO - Scripts found:"))
+					Expect(session.Out).To(gbytes.Say("INFO - redis-dedicated-node/fake-uuid/redis/b-backup"))
+					Expect(session.Out).To(gbytes.Say("INFO - Running pre-backup scripts..."))
+					Expect(session.Out).To(gbytes.Say("INFO - Done."))
+					Expect(session.Out).To(gbytes.Say("INFO - Running backup scripts..."))
+					Expect(session.Out).To(gbytes.Say("INFO - Backing up redis on redis-dedicated-node/fake-uuid..."))
+					Expect(session.Out).To(gbytes.Say("INFO - Done."))
+					Expect(session.Out).To(gbytes.Say("INFO - Running post-backup scripts..."))
+					Expect(session.Out).To(gbytes.Say("INFO - Done."))
+					Expect(session.Out).To(gbytes.Say("INFO - Copying backup -- [^-]*-- from redis-dedicated-node/fake-uuid..."))
+					Expect(session.Out).To(gbytes.Say("INFO - Finished copying backup -- from redis-dedicated-node/fake-uuid..."))
+					Expect(session.Out).To(gbytes.Say("INFO - Starting validity checks"))
+					Expect(session.Out).To(gbytes.Say("DEBUG - Calculating shasum for local file ./redis/backupdump1"))
+					Expect(session.Out).To(gbytes.Say("DEBUG - Calculating shasum for local file ./redis/backupdump2"))
+					Expect(session.Out).To(gbytes.Say("DEBUG - Calculating shasum for remote files"))
+					Expect(session.Out).To(gbytes.Say("DEBUG - Comparing shasums"))
+					Expect(session.Out).To(gbytes.Say("INFO - Finished validity checks"))
+
 				})
 
 				It("cleans up backup artifacts from remote", func() {
@@ -561,8 +562,6 @@ echo "not valid yaml
 		It("prints the backup progress to the screen", func() {
 			assertOutput(session, []string{
 				fmt.Sprintf("Starting backup of %s...", deploymentName),
-				"Finding instances with backup scripts...",
-				"Done.",
 				"Backing up redis on redis-dedicated-node/fake-uuid...",
 				"Backing up redis on redis-broker/fake-uuid-2...",
 				"Done.",
