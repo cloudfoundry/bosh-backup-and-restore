@@ -59,16 +59,19 @@ var _ = Describe("Backup", func() {
 		var metadataFile string
 		var redisNodeArtifactFile string
 
+		singleInstanceResponse := func(instanceGroupName string) []mockbosh.VMsOutput {
+			return []mockbosh.VMsOutput{
+				{
+					IPs:     []string{"10.0.0.1"},
+					JobName: instanceGroupName,
+				},
+			}
+		}
 		Context("and there is a plausible backup script", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				director.VerifyAndMock(AppendBuilders(
-					VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
-						{
-							IPs:     []string{"10.0.0.1"},
-							JobName: "redis-dedicated-node",
-						},
-					}),
+					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					DownloadManifest(deploymentName, "this is a totally valid yaml"),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
@@ -319,12 +322,7 @@ exit 1`)
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				director.VerifyAndMock(AppendBuilders(
-					VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
-						{
-							IPs:     []string{"10.0.0.1"},
-							JobName: "redis-dedicated-node",
-						},
-					}),
+					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)...)
@@ -351,12 +349,7 @@ exit 1`)
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				director.VerifyAndMock(AppendBuilders(
-					VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
-						{
-							IPs:     []string{"10.0.0.1"},
-							JobName: "redis-dedicated-node",
-						},
-					}),
+					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					DownloadManifest(deploymentName, "this is a totally valid yaml"),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
@@ -376,12 +369,7 @@ exit 1`)
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				director.VerifyAndMock(AppendBuilders(
-					VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
-						{
-							IPs:     []string{"10.0.0.1"},
-							JobName: "redis-dedicated-node",
-						},
-					}),
+					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					DownloadManifest(deploymentName, "this is a totally valid yaml"),
 					CleanupSSHFails(deploymentName, "redis-dedicated-node", "ultra-foo"),
@@ -409,12 +397,7 @@ exit 1`)
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				director.VerifyAndMock(AppendBuilders(
-					VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
-						{
-							IPs:     []string{"10.0.0.1"},
-							JobName: "redis-dedicated-node",
-						},
-					}),
+					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					DownloadManifest(deploymentName, "this is a totally valid yaml"),
 					CleanupSSHFails(deploymentName, "redis-dedicated-node", "Can't do it mate"),
@@ -454,12 +437,7 @@ echo "not valid yaml
 "`)
 
 				director.VerifyAndMock(AppendBuilders(
-					VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
-						{
-							IPs:     []string{"10.0.0.1"},
-							JobName: "redis-dedicated-node",
-						},
-					}),
+					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)...)
@@ -496,6 +474,19 @@ echo "not valid yaml
 		})
 	})
 
+	twoInstancesResponse := func(firstInstanceGroupName, secondInstanceGroupName string) []mockbosh.VMsOutput {
+
+		return []mockbosh.VMsOutput{
+			{
+				IPs:     []string{"10.0.0.1"},
+				JobName: firstInstanceGroupName,
+			},
+			{
+				IPs:     []string{"10.0.0.2"},
+				JobName: secondInstanceGroupName,
+			},
+		}
+	}
 	Context("When there is a deployment which has two instances, one backupable", func() {
 		var backupableInstance, nonBackupableInstance *testcluster.Instance
 
@@ -504,16 +495,7 @@ echo "not valid yaml
 			backupableInstance = testcluster.NewInstance()
 			nonBackupableInstance = testcluster.NewInstance()
 			director.VerifyAndMock(AppendBuilders(
-				VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
-					{
-						IPs:     []string{"10.0.0.1"},
-						JobName: "redis-dedicated-node",
-					},
-					{
-						IPs:     []string{"10.0.0.2"},
-						JobName: "redis-broker",
-					},
-				}),
+				VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
 				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance),
 				SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, nonBackupableInstance),
 				DownloadManifest(deploymentName, "not being asserted"),
@@ -547,16 +529,7 @@ echo "not valid yaml
 			backupableInstance1 = testcluster.NewInstance()
 			backupableInstance2 = testcluster.NewInstance()
 			director.VerifyAndMock(AppendBuilders(
-				VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
-					{
-						IPs:     []string{"10.0.0.1"},
-						JobName: "redis-dedicated-node",
-					},
-					{
-						IPs:     []string{"10.0.0.2"},
-						JobName: "redis-broker",
-					},
-				}),
+				VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node","redis-broker")),
 				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
 				SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance2),
 				DownloadManifest(deploymentName, "not being asserted"),
@@ -612,16 +585,7 @@ echo "not valid yaml
 			backupableInstance1 = testcluster.NewInstance()
 			backupableInstance2 = testcluster.NewInstance()
 			director.VerifyAndMock(AppendBuilders(
-				VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
-					{
-						IPs:     []string{"10.0.0.1"},
-						JobName: "redis-dedicated-node",
-					},
-					{
-						IPs:     []string{"10.0.0.2"},
-						JobName: "redis-broker",
-					},
-				}),
+				VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node","redis-broker")),
 				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
 				SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance2),
 				CleanupSSH(deploymentName, "redis-dedicated-node"),
