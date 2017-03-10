@@ -124,6 +124,7 @@ func (directoryArtifact *DirectoryArtifact) CalculateChecksum(blobIdentifier orc
 			directoryArtifact.Debug(TAG, "Error calculating sha for %s %v", logName(blobIdentifier), err)
 			return nil, err
 		}
+		directoryArtifact.Logger.Debug(TAG, "Calculating shasum for local file %s", tarHeader.Name)
 		checksum[tarHeader.Name] = fmt.Sprintf("%x", fileShasum.Sum(nil))
 	}
 
