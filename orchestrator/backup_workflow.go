@@ -40,7 +40,32 @@ const (
 	EventCleanup                  = "cleanup"
 )
 
-func newbackupWorkflow(backuper Backuper, deploymentName string) *backupWorkflow {
+func newBackupCheckWorkflow(backuper Backuper, deploymentName string) *backupWorkflow {
+	bw := &backupWorkflow{
+		Backuper:       backuper,
+		deployment:     nil,
+		deploymentName: deploymentName,
+		events: fsm.Events{
+			{Name: EventCheckDeployment, Src: []string{StateReady}, Dst: StateDeploymentExists},
+			{Name: EventCheckIsBackupable, Src: []string{StateDeploymentExists}, Dst: StateIsBackupable},
+			{Name: EventCleanup, Src: []string{StateDeploymentExists, StateIsBackupable, StateArtifactCreated, StateUnlocked, StateDrained}, Dst: StateFinished},
+		},
+	}
+
+	bw.FSM = fsm.NewFSM(
+		StateReady,
+		bw.events,
+		fsm.Callbacks{
+			beforeEvent(EventCheckDeployment):   bw.checkDeployment,
+			beforeEvent(EventCheckIsBackupable): bw.checkIsBackupable,
+			EventCleanup:                        bw.cleanup,
+		},
+	)
+
+	return bw
+}
+
+func newBackupWorkflow(backuper Backuper, deploymentName string) *backupWorkflow {
 	bw := &backupWorkflow{
 		Backuper:       backuper,
 		deployment:     nil,

@@ -35,9 +35,16 @@ type BoshDirector interface {
 
 //Backup checks if a deployment has backupable instances and backs them up.
 func (b Backuper) Backup(deploymentName string) Error {
-	bw := newbackupWorkflow(b, deploymentName)
+	bw := newBackupWorkflow(b, deploymentName)
 
 	return bw.Run()
+}
+
+func (b Backuper) CanBeBackedUp(deploymentName string) (bool, Error) {
+	bw := newBackupCheckWorkflow(b, deploymentName)
+
+	err := bw.Run()
+	return err == nil, err
 }
 
 func cleanupAndReturnErrors(d Deployment, err error) error {

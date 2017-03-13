@@ -19,6 +19,13 @@ func VmsForDeployment(deploymentName string, responseInstances []mockbosh.VMsOut
 		mockbosh.TaskOutput(randomTaskID).RespondsWithVMsOutput(responseInstances),
 	}
 }
+
+func VmsForDeploymentFails(deploymentName string) []mockhttp.MockedResponseBuilder {
+	return []mockhttp.MockedResponseBuilder{
+		mockbosh.VMsForDeployment(deploymentName).Fails("director unreachable"),
+	}
+}
+
 func DownloadManifest(deploymentName string, manifest string) []mockhttp.MockedResponseBuilder {
 	return []mockhttp.MockedResponseBuilder{
 		mockbosh.Manifest(deploymentName).RespondsWith([]byte(manifest)),

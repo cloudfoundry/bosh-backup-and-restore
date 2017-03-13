@@ -6,6 +6,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
 )
 
 type helpText struct {
@@ -49,4 +50,14 @@ func filesExistOnVM(files ...string) {
 		err = file.Close()
 		Expect(err).NotTo(HaveOccurred())
 	}
+}
+
+func mockDirectorWith(director *mockhttp.Server, vmsResponse []mockhttp.MockedResponseBuilder, sshResponse []mockhttp.MockedResponseBuilder, downloadManifestResponse []mockhttp.MockedResponseBuilder, cleanupResponse []mockhttp.MockedResponseBuilder) {
+	director.VerifyAndMock(AppendBuilders(
+		vmsResponse,
+		sshResponse,
+		downloadManifestResponse,
+		cleanupResponse,
+	)...)
+
 }

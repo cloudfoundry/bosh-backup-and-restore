@@ -9,7 +9,7 @@ import (
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator/fakes"
 )
 
-var _ = Describe("Backuper", func() {
+var _ = Describe("Backup", func() {
 	var (
 		boshDirector       *fakes.FakeBoshDirector
 		b                  *orchestrator.Backuper
@@ -448,6 +448,89 @@ var _ = Describe("Backuper", func() {
 					MatchError(fmt.Errorf("Multiple jobs in deployment '%s' specified the same backup name", deploymentName)),
 				))
 			})
+		})
+	})
+})
+
+var _ = Describe("CanBeBackedUp", func() {
+	var (
+		boshDirector      *fakes.FakeBoshDirector
+		b                 *orchestrator.Backuper
+		deployment        *fakes.FakeDeployment
+		deploymentManager *fakes.FakeDeploymentManager
+		artifactManager        *fakes.FakeArtifactManager
+		logger                 *fakes.FakeLogger
+		deploymentName         = "foobarbaz"
+		deploymentManifest     = "what a magnificent manifest"
+		isDeploymentBackupable bool
+	)
+
+	BeforeEach(func() {
+		deployment = new(fakes.FakeDeployment)
+		deploymentManager = new(fakes.FakeDeploymentManager)
+		boshDirector = new(fakes.FakeBoshDirector)
+		artifactManager = new(fakes.FakeArtifactManager)
+		logger = new(fakes.FakeLogger)
+		b = orchestrator.NewBackuper(boshDirector, artifactManager, logger, deploymentManager)
+	})
+
+	JustBeforeEach(func() {
+		isDeploymentBackupable, _ = b.CanBeBackedUp(deploymentName)
+	})
+
+	Context("when the deployment can be backed up", func() {
+		BeforeEach(func() {
+			boshDirector.GetManifestReturns(deploymentManifest, nil)
+			artifactManager.ExistsReturns(false)
+			deploymentManager.FindReturns(deployment, nil)
+			deployment.IsBackupableReturns(true)
+			deployment.HasValidBackupMetadataReturns(true)
+			deployment.CleanupReturns(nil)
+		})
+
+		It("returns true", func() {
+			Expect(isDeploymentBackupable).To(BeTrue())
+		})
+
+		It("finds the deployment", func() {
+			Expect(deploymentManager.FindCallCount()).To(Equal(1))
+			Expect(deploymentManager.FindArgsForCall(0)).To(Equal(deploymentName))
+		})
+
+		It("checks if the artifact already exists", func() {
+			Expect(artifactManager.ExistsCallCount()).To(Equal(1))
+		})
+
+		It("checks if the deployment is backupable", func() {
+			Expect(deployment.IsBackupableCallCount()).To(Equal(1))
+		})
+
+		It("shouldn't do a backup", func() {
+			Expect(deployment.BackupCallCount()).To(Equal(0))
+		})
+
+		It("ensures that deployment is cleaned up", func() {
+			Expect(deployment.CleanupCallCount()).To(Equal(1))
+		})
+	})
+
+	Context("when the deployment doesn't exist", func() {
+		BeforeEach(func() {
+			boshDirector.GetManifestReturns(deploymentManifest, nil)
+			artifactManager.ExistsReturns(false)
+			deploymentManager.FindReturns(nil, fmt.Errorf("deployment not found"))
+			deployment.IsBackupableReturns(true)
+			deployment.HasValidBackupMetadataReturns(true)
+			deployment.CleanupReturns(nil)
+		})
+
+		It("returns false", func() {
+			Expect(isDeploymentBackupable).To(BeFalse())
+		})
+
+		It("attempts to find the deployment", func() {
+			Expect(deploymentManager.FindCallCount()).To(Equal(1))
+			Expect(deploymentManager.FindArgsForCall(0)).To(Equal(deploymentName))
 		})
 	})
 })

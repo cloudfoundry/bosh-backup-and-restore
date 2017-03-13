@@ -713,12 +713,3 @@ func assertErrorOutput(session *gexec.Session, strings []string) {
 		Expect(string(session.Err.Contents())).To(ContainSubstring(str))
 	}
 }
-func mockDirectorWith(director *mockhttp.Server, vmsResponse []mockhttp.MockedResponseBuilder, sshResponse []mockhttp.MockedResponseBuilder, downloadManfiestResponse []mockhttp.MockedResponseBuilder, cleanupResponse []mockhttp.MockedResponseBuilder) {
-	director.VerifyAndMock(AppendBuilders(
-		vmsResponse,
-		sshResponse,
-		downloadManfiestResponse,
-		cleanupResponse,
-	)...)
-
-}
