@@ -15,7 +15,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = FDescribe("Pre-backup checks", func() {
+var _ = Describe("Pre-backup checks", func() {
 	var director *mockhttp.Server
 	var backupWorkspace string
 	var session *gexec.Session
