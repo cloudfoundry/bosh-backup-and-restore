@@ -67,7 +67,8 @@ var _ = Describe("Backup", func() {
 				},
 			}
 		}
-		Context("and there is a plausible backup script", func() {
+
+		Context("when there is a plausible backup script", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				By("creating a dummy backup script")
@@ -316,7 +317,7 @@ exit 1`)
 			})
 		})
 
-		Context("if a deployment can't be backed up", func() {
+		Context("when a deployment can't be backed up", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				mockDirectorWith(director,
@@ -344,7 +345,7 @@ exit 1`)
 			})
 		})
 
-		Context("instance backup script fails", func() {
+		Context("when the instance backup script fails", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				mockDirectorWith(director,
@@ -364,7 +365,7 @@ exit 1`)
 			})
 		})
 
-		Context("both instance backup script and cleanup fail", func() {
+		Context("when both the instance backup script and cleanup fail", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				mockDirectorWith(director,
@@ -392,7 +393,7 @@ exit 1`)
 			})
 		})
 
-		Context("backup succeeds but cleanup fails", func() {
+		Context("when backup succeeds but cleanup fails", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				mockDirectorWith(director,
@@ -453,7 +454,7 @@ echo "not valid yaml
 
 		})
 
-		Context("if the artifact exists locally", func() {
+		Context("when the artifact exists locally", func() {
 			BeforeEach(func() {
 				deploymentName = "already-backed-up-deployment"
 				err := os.Mkdir(path.Join(backupWorkspace, deploymentName), 0777)
@@ -474,158 +475,161 @@ echo "not valid yaml
 		})
 	})
 
-	twoInstancesResponse := func(firstInstanceGroupName, secondInstanceGroupName string) []mockbosh.VMsOutput {
+	Context("When there is a deployment which has two instances", func() {
+		twoInstancesResponse := func(firstInstanceGroupName, secondInstanceGroupName string) []mockbosh.VMsOutput {
 
-		return []mockbosh.VMsOutput{
-			{
-				IPs:     []string{"10.0.0.1"},
-				JobName: firstInstanceGroupName,
-			},
-			{
-				IPs:     []string{"10.0.0.2"},
-				JobName: secondInstanceGroupName,
-			},
+			return []mockbosh.VMsOutput{
+				{
+					IPs:     []string{"10.0.0.1"},
+					JobName: firstInstanceGroupName,
+				},
+				{
+					IPs:     []string{"10.0.0.2"},
+					JobName: secondInstanceGroupName,
+				},
+			}
 		}
-	}
-	Context("When there is a deployment which has two instances, one backupable", func() {
-		var backupableInstance, nonBackupableInstance *testcluster.Instance
 
-		BeforeEach(func() {
-			deploymentName = "my-bigger-deployment"
-			backupableInstance = testcluster.NewInstance()
-			nonBackupableInstance = testcluster.NewInstance()
-			mockDirectorWith(director,
-				VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
-				append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance),
-					SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, nonBackupableInstance)...),
-				DownloadManifest(deploymentName, "not being asserted"),
-				append(CleanupSSH(deploymentName, "redis-dedicated-node"),
-					CleanupSSH(deploymentName, "redis-broker")...),
-			)
-			backupableInstance.CreateFiles(
-				"/var/vcap/jobs/redis/bin/b-backup",
-			)
+		Context("one backupable", func() {
+			var backupableInstance, nonBackupableInstance *testcluster.Instance
 
-		})
+			BeforeEach(func() {
+				deploymentName = "my-bigger-deployment"
+				backupableInstance = testcluster.NewInstance()
+				nonBackupableInstance = testcluster.NewInstance()
+				mockDirectorWith(director,
+					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
+					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance),
+						SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, nonBackupableInstance)...),
+					DownloadManifest(deploymentName, "not being asserted"),
+					append(CleanupSSH(deploymentName, "redis-dedicated-node"),
+						CleanupSSH(deploymentName, "redis-broker")...),
+				)
+				backupableInstance.CreateFiles(
+					"/var/vcap/jobs/redis/bin/b-backup",
+				)
 
-		AfterEach(func() {
-			backupableInstance.DieInBackground()
-			nonBackupableInstance.DieInBackground()
-		})
+			})
 
-		It("backs up deployment successfully", func() {
-			Expect(session.ExitCode()).To(BeZero())
-			Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
-			Expect(path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")).To(BeARegularFile())
-			Expect(path.Join(backupWorkspace, deploymentName, "/redis-broker-0.tgz")).ToNot(BeAnExistingFile())
-		})
-	})
+			AfterEach(func() {
+				backupableInstance.DieInBackground()
+				nonBackupableInstance.DieInBackground()
+			})
 
-	Context("When there is a deployment which has two instance, both backupable", func() {
-		var backupableInstance1, backupableInstance2 *testcluster.Instance
-
-		BeforeEach(func() {
-			deploymentName = "my-two-instance-deployment"
-			backupableInstance1 = testcluster.NewInstance()
-			backupableInstance2 = testcluster.NewInstance()
-			mockDirectorWith(director,
-				VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
-				append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
-					SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance2)...),
-				DownloadManifest(deploymentName, "not being asserted"),
-				append(CleanupSSH(deploymentName, "redis-dedicated-node"),
-					CleanupSSH(deploymentName, "redis-broker")...),
-			)
-
-			backupableInstance1.CreateFiles(
-				"/var/vcap/jobs/redis/bin/b-backup",
-			)
-
-			backupableInstance2.CreateFiles(
-				"/var/vcap/jobs/redis/bin/b-backup",
-			)
-
-		})
-
-		AfterEach(func() {
-			backupableInstance1.DieInBackground()
-			backupableInstance2.DieInBackground()
-		})
-
-		It("backs up both instances successfully", func() {
-			Expect(session.ExitCode()).To(BeZero())
-			Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
-			Expect(path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")).To(BeARegularFile())
-			Expect(path.Join(backupWorkspace, deploymentName, "/redis-broker-0.tgz")).To(BeARegularFile())
-		})
-
-		It("prints the backup progress to the screen", func() {
-			assertOutput(session, []string{
-				fmt.Sprintf("Starting backup of %s...", deploymentName),
-				"Backing up redis on redis-dedicated-node/fake-uuid...",
-				"Backing up redis on redis-broker/fake-uuid-2...",
-				"Done.",
-				"Copying backup --",
-				"from redis-dedicated-node/fake-uuid...",
-				"from redis-broker/fake-uuid-2...",
-				"Done.",
-				fmt.Sprintf("Backup created of %s on", deploymentName),
+			It("backs up deployment successfully", func() {
+				Expect(session.ExitCode()).To(BeZero())
+				Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
+				Expect(path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")).To(BeARegularFile())
+				Expect(path.Join(backupWorkspace, deploymentName, "/redis-broker-0.tgz")).ToNot(BeAnExistingFile())
 			})
 		})
 
-	})
+		Context("both backupable", func() {
+			var backupableInstance1, backupableInstance2 *testcluster.Instance
 
-	Context("When multiple instances specify the same backup name in their metadata", func() {
-		var backupableInstance1, backupableInstance2 *testcluster.Instance
+			BeforeEach(func() {
+				deploymentName = "my-two-instance-deployment"
+				backupableInstance1 = testcluster.NewInstance()
+				backupableInstance2 = testcluster.NewInstance()
+				mockDirectorWith(director,
+					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
+					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
+						SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance2)...),
+					DownloadManifest(deploymentName, "not being asserted"),
+					append(CleanupSSH(deploymentName, "redis-dedicated-node"),
+						CleanupSSH(deploymentName, "redis-broker")...),
+				)
 
-		BeforeEach(func() {
-			deploymentName = "my-two-instance-deployment"
-			backupableInstance1 = testcluster.NewInstance()
-			backupableInstance2 = testcluster.NewInstance()
-			mockDirectorWith(director,
-				VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
-				append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
-					SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance2)...),
-				ManifestIsNotDownloaded(),
-				append(CleanupSSH(deploymentName, "redis-dedicated-node"),
-					CleanupSSH(deploymentName, "redis-broker")...),
-			)
+				backupableInstance1.CreateFiles(
+					"/var/vcap/jobs/redis/bin/b-backup",
+				)
 
-			backupableInstance1.CreateFiles(
-				"/var/vcap/jobs/redis/bin/b-backup",
-			)
+				backupableInstance2.CreateFiles(
+					"/var/vcap/jobs/redis/bin/b-backup",
+				)
 
-			backupableInstance2.CreateFiles(
-				"/var/vcap/jobs/redis/bin/b-backup",
-			)
+			})
 
-			backupableInstance1.CreateScript("/var/vcap/jobs/redis/bin/b-metadata", `#!/usr/bin/env sh
+			AfterEach(func() {
+				backupableInstance1.DieInBackground()
+				backupableInstance2.DieInBackground()
+			})
+
+			It("backs up both instances successfully", func() {
+				Expect(session.ExitCode()).To(BeZero())
+				Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
+				Expect(path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")).To(BeARegularFile())
+				Expect(path.Join(backupWorkspace, deploymentName, "/redis-broker-0.tgz")).To(BeARegularFile())
+			})
+
+			It("prints the backup progress to the screen", func() {
+				assertOutput(session, []string{
+					fmt.Sprintf("Starting backup of %s...", deploymentName),
+					"Backing up redis on redis-dedicated-node/fake-uuid...",
+					"Backing up redis on redis-broker/fake-uuid-2...",
+					"Done.",
+					"Copying backup --",
+					"from redis-dedicated-node/fake-uuid...",
+					"from redis-broker/fake-uuid-2...",
+					"Done.",
+					fmt.Sprintf("Backup created of %s on", deploymentName),
+				})
+			})
+
+		})
+
+		Context("both specify the same backup name in their metadata", func() {
+			var backupableInstance1, backupableInstance2 *testcluster.Instance
+
+			BeforeEach(func() {
+				deploymentName = "my-two-instance-deployment"
+				backupableInstance1 = testcluster.NewInstance()
+				backupableInstance2 = testcluster.NewInstance()
+				mockDirectorWith(director,
+					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
+					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
+						SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance2)...),
+					ManifestIsNotDownloaded(),
+					append(CleanupSSH(deploymentName, "redis-dedicated-node"),
+						CleanupSSH(deploymentName, "redis-broker")...),
+				)
+
+				backupableInstance1.CreateFiles(
+					"/var/vcap/jobs/redis/bin/b-backup",
+				)
+
+				backupableInstance2.CreateFiles(
+					"/var/vcap/jobs/redis/bin/b-backup",
+				)
+
+				backupableInstance1.CreateScript("/var/vcap/jobs/redis/bin/b-metadata", `#!/usr/bin/env sh
 echo "---
 backup_name: duplicate_name
 "`)
-			backupableInstance2.CreateScript("/var/vcap/jobs/redis/bin/b-metadata", `#!/usr/bin/env sh
+				backupableInstance2.CreateScript("/var/vcap/jobs/redis/bin/b-metadata", `#!/usr/bin/env sh
 echo "---
 backup_name: duplicate_name
 "`)
-		})
+			})
 
-		AfterEach(func() {
-			backupableInstance1.DieInBackground()
-			backupableInstance2.DieInBackground()
-		})
+			AfterEach(func() {
+				backupableInstance1.DieInBackground()
+				backupableInstance2.DieInBackground()
+			})
 
-		It("files with the name are not created", func() {
-			Expect(path.Join(backupWorkspace, deploymentName, "/duplicate_name.tgz")).NotTo(BeARegularFile())
-		})
+			It("files with the name are not created", func() {
+				Expect(path.Join(backupWorkspace, deploymentName, "/duplicate_name.tgz")).NotTo(BeARegularFile())
+			})
 
-		It("refuses to perform backup", func() {
-			Expect(session.Err.Contents()).To(ContainSubstring(
-				"Multiple jobs in deployment 'my-two-instance-deployment' specified the same backup name",
-			))
-		})
+			It("refuses to perform backup", func() {
+				Expect(session.Err.Contents()).To(ContainSubstring(
+					"Multiple jobs in deployment 'my-two-instance-deployment' specified the same backup name",
+				))
+			})
 
-		It("returns exit code 1", func() {
-			Expect(session.ExitCode()).To(Equal(1))
+			It("returns exit code 1", func() {
+				Expect(session.ExitCode()).To(Equal(1))
+			})
 		})
 	})
 
