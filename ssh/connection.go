@@ -4,11 +4,19 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
 	"golang.org/x/crypto/ssh"
 )
 
-func ConnectionCreator(hostName, userName, privateKey string) (bosh.SSHConnection, error) {
+//go:generate counterfeiter -o fakes/fake_ssh_connection.go . SSHConnection
+type SSHConnection interface {
+	Stream(cmd string, writer io.Writer) ([]byte, int, error)
+	StreamStdin(cmd string, reader io.Reader) ([]byte, []byte, int, error)
+	Run(cmd string) ([]byte, []byte, int, error)
+	Cleanup() error
+	Username() string
+}
+
+func ConnectionCreator(hostName, userName, privateKey string) (SSHConnection, error) {
 	conn := Connection{
 		host: hostName,
 		user: userName,

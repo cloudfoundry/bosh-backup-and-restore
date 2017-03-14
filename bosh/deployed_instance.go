@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
+	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 )
 
 type DeployedInstance struct {
@@ -15,7 +16,7 @@ type DeployedInstance struct {
 	InstanceGroupName             string
 	BackupAndRestoreInstanceIndex string
 	BoshInstanceID                string
-	SSHConnection
+	ssh.SSHConnection
 	Logger
 	instance.Jobs
 }
@@ -23,7 +24,7 @@ type DeployedInstance struct {
 func NewBoshInstance(instanceGroupName,
 	instanceIndex,
 	instanceID string,
-	connection SSHConnection,
+	connection ssh.SSHConnection,
 	deployment director.Deployment,
 	logger Logger,
 	jobs instance.Jobs,

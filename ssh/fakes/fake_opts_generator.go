@@ -6,7 +6,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry/bosh-utils/uuid"
-	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
+	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 )
 
 type FakeSSHOptsGenerator struct {
@@ -78,4 +78,4 @@ func (fake *FakeSSHOptsGenerator) recordInvocation(key string, args []interface{
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ bosh.SSHOptsGenerator = new(FakeSSHOptsGenerator).Spy
+var _ ssh.SSHOptsGenerator = new(FakeSSHOptsGenerator).Spy

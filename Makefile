@@ -1,7 +1,5 @@
 export BOSH_CLIENT=admin
-export BOSH_URL=https://lite-bosh.backup-and-restore.cf-app.com
 export BOSH_GATEWAY_USER=vcap
-export BOSH_GATEWAY_HOST=lite-bosh.backup-and-restore.cf-app.com
 
 test: test-unit test-integration
 
@@ -16,6 +14,13 @@ watch:
 test-ci: setup test
 
 test-unit:
+	BASIC_AUTH_BOSH_URL=https://lite-bosh.backup-and-restore.cf-app.com \
+	BASIC_AUTH_BOSH_CLIENT_SECRET=`lpass show LiteBoshDirector --password` \
+	BASIC_AUTH_BOSH_CERT_PATH=~/workspace/bosh-backup-and-restore-meta/certs/lite-bosh.backup-and-restore.cf-app.com.crt \
+	UAA_BOSH_URL=https://lite-bosh-uaa.backup-and-restore.cf-app.com \
+	UAA_BOSH_CLIENT_SECRET=`lpass show GardenBoshUAADirectorGCP --password` \
+	UAA_BOSH_CERT_PATH=~/workspace/bosh-backup-and-restore-meta/certs/lite-bosh-uaa.backup-and-restore.cf-app.com.crt \
+	BOSH_GATEWAY_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
 	ginkgo -r bosh orchestrator ssh artifact instance
 
 test-integration:
@@ -40,8 +45,19 @@ setup:
 	go get -u github.com/onsi/ginkgo/ginkgo
 
 sys-test-local:
+	BOSH_URL=https://lite-bosh.backup-and-restore.cf-app.com \
+	BOSH_GATEWAY_HOST=lite-bosh.backup-and-restore.cf-app.com \
 	BOSH_CLIENT_SECRET=`lpass show LiteBoshDirector --password` \
 	BOSH_CERT_PATH=~/workspace/bosh-backup-and-restore-meta/certs/lite-bosh.backup-and-restore.cf-app.com.crt \
+	BOSH_GATEWAY_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
+	TEST_ENV=`echo $(DEV_ENV)` \
+	ginkgo -r -v system
+
+sys-test-local-with-uaa:
+	BOSH_URL=https://lite-bosh-uaa.backup-and-restore.cf-app.com \
+	BOSH_GATEWAY_HOST=lite-bosh-uaa.backup-and-restore.cf-app.com \
+	BOSH_CLIENT_SECRET=`lpass show GardenBoshUAADirectorGCP --password` \
+	BOSH_CERT_PATH=~/workspace/bosh-backup-and-restore-meta/certs/lite-bosh-uaa.backup-and-restore.cf-app.com.crt \
 	BOSH_GATEWAY_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
 	TEST_ENV=`echo $(DEV_ENV)` \
 	ginkgo -r -v system

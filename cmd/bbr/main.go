@@ -2,19 +2,15 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
-	"github.com/mgutz/ansi"
 	"github.com/pivotal-cf/bosh-backup-and-restore/artifact"
 	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
-	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 	"github.com/urfave/cli"
 
-	"github.com/cloudfoundry/bosh-cli/director"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
+	"github.com/mgutz/ansi"
 )
 
 var version string
@@ -125,31 +121,35 @@ func availableFlags() []cli.Flag {
 
 func makeBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
 	logger := makeLogger(c)
-
-	boshDirector, err := makeBoshDirector(c, logger)
+	boshClient, err := makeBoshClient(c, logger)
 	if err != nil {
-		return nil, err
+		return nil, cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
 	}
-	boshClient := makeBoshClient(boshDirector, logger)
 	deploymentManager := makeDeploymentManager(boshClient, logger)
 	return orchestrator.NewBackuper(boshClient, artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
 }
 
-func makeDeploymentManager(boshClient orchestrator.BoshDirector, logger boshlog.Logger) orchestrator.DeploymentManager {
-	return orchestrator.NewBoshDeploymentManager(boshClient, logger)
-}
-func makeBoshClient(boshDirector director.Director, logger boshlog.Logger) orchestrator.BoshDirector {
-	boshClient := bosh.New(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger, instance.NewJobFinder(logger))
-	return boshClient
+func makeRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
+	logger := makeLogger(c)
+	boshClient, err := makeBoshClient(c, logger)
+	if err != nil {
+		return nil, cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
+	}
+	deploymentManager := makeDeploymentManager(boshClient, logger)
+	return orchestrator.NewRestorer(boshClient, artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
 }
 
-func makeBoshDirector(c *cli.Context, logger boshlog.Logger) (director.Director, error) {
-	var targetUrl = c.GlobalString("target")
-	var username = c.GlobalString("username")
-	var password = c.GlobalString("password")
-	var caCert = c.GlobalString("ca-cert")
-	boshDirector, err := makeBoshDirectorClient(targetUrl, username, password, caCert, logger)
-	return boshDirector, err
+func makeBoshClient(c *cli.Context, logger boshlog.Logger) (orchestrator.BoshClient, error) {
+	targetUrl := c.GlobalString("target")
+	username := c.GlobalString("username")
+	password := c.GlobalString("password")
+	caCert := c.GlobalString("ca-cert")
+
+	return bosh.BuildClient(targetUrl, username, password, caCert, logger)
+}
+
+func makeDeploymentManager(boshClient orchestrator.BoshClient, logger boshlog.Logger) orchestrator.DeploymentManager {
+	return orchestrator.NewBoshDeploymentManager(boshClient, logger)
 }
 
 func makeLogger(c *cli.Context) boshlog.Logger {
@@ -158,45 +158,9 @@ func makeLogger(c *cli.Context) boshlog.Logger {
 	return logger
 }
 
-func makeRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
-	logger := makeLogger(c)
-
-	boshDirector, err := makeBoshDirector(c, logger)
-	if err != nil {
-		return nil, err
-	}
-	boshClient := makeBoshClient(boshDirector, logger)
-	deploymentManager := makeDeploymentManager(boshClient, logger)
-	return orchestrator.NewRestorer(boshClient, artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
-}
-
 func makeBoshLogger(debug bool) boshlog.Logger {
 	if debug {
 		return boshlog.NewLogger(boshlog.LevelDebug)
 	}
 	return boshlog.NewLogger(boshlog.LevelInfo)
-}
-
-func makeBoshDirectorClient(targetUrl, username, password, caCert string, logger boshlog.Logger) (director.Director, error) {
-	config, err := director.NewConfigFromURL(targetUrl)
-	if err != nil {
-		return nil, cli.NewExitError(ansi.Color(
-			"Target director URL is malformed",
-			"red"), 1)
-	}
-
-	config.Client = username
-	config.ClientSecret = password
-
-	if caCert != "" {
-		cert, err := ioutil.ReadFile(caCert)
-		if err != nil {
-			return nil, cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
-		}
-		config.CACert = string(cert)
-	}
-
-	factory := director.NewFactory(logger)
-
-	return factory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
 }

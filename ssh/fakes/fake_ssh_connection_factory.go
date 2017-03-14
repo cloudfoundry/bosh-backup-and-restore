@@ -4,11 +4,11 @@ package fakes
 import (
 	"sync"
 
-	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
+	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 )
 
 type FakeSSHConnectionFactory struct {
-	Stub        func(host, user, privateKey string) (bosh.SSHConnection, error)
+	Stub        func(host, user, privateKey string) (ssh.SSHConnection, error)
 	mutex       sync.RWMutex
 	argsForCall []struct {
 		host       string
@@ -16,14 +16,14 @@ type FakeSSHConnectionFactory struct {
 		privateKey string
 	}
 	returns struct {
-		result1 bosh.SSHConnection
+		result1 ssh.SSHConnection
 		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeSSHConnectionFactory) Spy(host string, user string, privateKey string) (bosh.SSHConnection, error) {
+func (fake *FakeSSHConnectionFactory) Spy(host string, user string, privateKey string) (ssh.SSHConnection, error) {
 	fake.mutex.Lock()
 	fake.argsForCall = append(fake.argsForCall, struct {
 		host       string
@@ -50,10 +50,10 @@ func (fake *FakeSSHConnectionFactory) ArgsForCall(i int) (string, string, string
 	return fake.argsForCall[i].host, fake.argsForCall[i].user, fake.argsForCall[i].privateKey
 }
 
-func (fake *FakeSSHConnectionFactory) Returns(result1 bosh.SSHConnection, result2 error) {
+func (fake *FakeSSHConnectionFactory) Returns(result1 ssh.SSHConnection, result2 error) {
 	fake.Stub = nil
 	fake.returns = struct {
-		result1 bosh.SSHConnection
+		result1 ssh.SSHConnection
 		result2 error
 	}{result1, result2}
 }
@@ -78,4 +78,4 @@ func (fake *FakeSSHConnectionFactory) recordInvocation(key string, args []interf
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ bosh.SSHConnectionFactory = new(FakeSSHConnectionFactory).Spy
+var _ ssh.SSHConnectionFactory = new(FakeSSHConnectionFactory).Spy

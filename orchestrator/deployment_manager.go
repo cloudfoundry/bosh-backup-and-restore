@@ -5,12 +5,12 @@ type DeploymentManager interface {
 	Find(deploymentName string) (Deployment, error)
 }
 
-func NewBoshDeploymentManager(boshDirector BoshDirector, logger Logger) DeploymentManager {
-	return &BoshDeploymentManager{BoshDirector: boshDirector, Logger: logger}
+func NewBoshDeploymentManager(boshDirector BoshClient, logger Logger) DeploymentManager {
+	return &BoshDeploymentManager{BoshClient: boshDirector, Logger: logger}
 }
 
 type BoshDeploymentManager struct {
-	BoshDirector
+	BoshClient
 	Logger
 }
 

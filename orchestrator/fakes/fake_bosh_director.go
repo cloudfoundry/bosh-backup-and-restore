@@ -7,7 +7,7 @@ import (
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 )
 
-type FakeBoshDirector struct {
+type FakeBoshClient struct {
 	FindInstancesStub        func(deploymentName string) ([]orchestrator.Instance, error)
 	findInstancesMutex       sync.RWMutex
 	findInstancesArgsForCall []struct {
@@ -26,11 +26,18 @@ type FakeBoshDirector struct {
 		result1 string
 		result2 error
 	}
+	GetAuthInfoStub        func() (orchestrator.AuthInfo, error)
+	getAuthInfoMutex       sync.RWMutex
+	getAuthInfoArgsForCall []struct{}
+	getAuthInfoReturns     struct {
+		result1 orchestrator.AuthInfo
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeBoshDirector) FindInstances(deploymentName string) ([]orchestrator.Instance, error) {
+func (fake *FakeBoshClient) FindInstances(deploymentName string) ([]orchestrator.Instance, error) {
 	fake.findInstancesMutex.Lock()
 	fake.findInstancesArgsForCall = append(fake.findInstancesArgsForCall, struct {
 		deploymentName string
@@ -43,19 +50,19 @@ func (fake *FakeBoshDirector) FindInstances(deploymentName string) ([]orchestrat
 	return fake.findInstancesReturns.result1, fake.findInstancesReturns.result2
 }
 
-func (fake *FakeBoshDirector) FindInstancesCallCount() int {
+func (fake *FakeBoshClient) FindInstancesCallCount() int {
 	fake.findInstancesMutex.RLock()
 	defer fake.findInstancesMutex.RUnlock()
 	return len(fake.findInstancesArgsForCall)
 }
 
-func (fake *FakeBoshDirector) FindInstancesArgsForCall(i int) string {
+func (fake *FakeBoshClient) FindInstancesArgsForCall(i int) string {
 	fake.findInstancesMutex.RLock()
 	defer fake.findInstancesMutex.RUnlock()
 	return fake.findInstancesArgsForCall[i].deploymentName
 }
 
-func (fake *FakeBoshDirector) FindInstancesReturns(result1 []orchestrator.Instance, result2 error) {
+func (fake *FakeBoshClient) FindInstancesReturns(result1 []orchestrator.Instance, result2 error) {
 	fake.FindInstancesStub = nil
 	fake.findInstancesReturns = struct {
 		result1 []orchestrator.Instance
@@ -63,7 +70,7 @@ func (fake *FakeBoshDirector) FindInstancesReturns(result1 []orchestrator.Instan
 	}{result1, result2}
 }
 
-func (fake *FakeBoshDirector) GetManifest(deploymentName string) (string, error) {
+func (fake *FakeBoshClient) GetManifest(deploymentName string) (string, error) {
 	fake.getManifestMutex.Lock()
 	fake.getManifestArgsForCall = append(fake.getManifestArgsForCall, struct {
 		deploymentName string
@@ -76,19 +83,19 @@ func (fake *FakeBoshDirector) GetManifest(deploymentName string) (string, error)
 	return fake.getManifestReturns.result1, fake.getManifestReturns.result2
 }
 
-func (fake *FakeBoshDirector) GetManifestCallCount() int {
+func (fake *FakeBoshClient) GetManifestCallCount() int {
 	fake.getManifestMutex.RLock()
 	defer fake.getManifestMutex.RUnlock()
 	return len(fake.getManifestArgsForCall)
 }
 
-func (fake *FakeBoshDirector) GetManifestArgsForCall(i int) string {
+func (fake *FakeBoshClient) GetManifestArgsForCall(i int) string {
 	fake.getManifestMutex.RLock()
 	defer fake.getManifestMutex.RUnlock()
 	return fake.getManifestArgsForCall[i].deploymentName
 }
 
-func (fake *FakeBoshDirector) GetManifestReturns(result1 string, result2 error) {
+func (fake *FakeBoshClient) GetManifestReturns(result1 string, result2 error) {
 	fake.GetManifestStub = nil
 	fake.getManifestReturns = struct {
 		result1 string
@@ -96,17 +103,44 @@ func (fake *FakeBoshDirector) GetManifestReturns(result1 string, result2 error) 
 	}{result1, result2}
 }
 
-func (fake *FakeBoshDirector) Invocations() map[string][][]interface{} {
+func (fake *FakeBoshClient) GetAuthInfo() (orchestrator.AuthInfo, error) {
+	fake.getAuthInfoMutex.Lock()
+	fake.getAuthInfoArgsForCall = append(fake.getAuthInfoArgsForCall, struct{}{})
+	fake.recordInvocation("GetAuthInfo", []interface{}{})
+	fake.getAuthInfoMutex.Unlock()
+	if fake.GetAuthInfoStub != nil {
+		return fake.GetAuthInfoStub()
+	}
+	return fake.getAuthInfoReturns.result1, fake.getAuthInfoReturns.result2
+}
+
+func (fake *FakeBoshClient) GetAuthInfoCallCount() int {
+	fake.getAuthInfoMutex.RLock()
+	defer fake.getAuthInfoMutex.RUnlock()
+	return len(fake.getAuthInfoArgsForCall)
+}
+
+func (fake *FakeBoshClient) GetAuthInfoReturns(result1 orchestrator.AuthInfo, result2 error) {
+	fake.GetAuthInfoStub = nil
+	fake.getAuthInfoReturns = struct {
+		result1 orchestrator.AuthInfo
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeBoshClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.findInstancesMutex.RLock()
 	defer fake.findInstancesMutex.RUnlock()
 	fake.getManifestMutex.RLock()
 	defer fake.getManifestMutex.RUnlock()
+	fake.getAuthInfoMutex.RLock()
+	defer fake.getAuthInfoMutex.RUnlock()
 	return fake.invocations
 }
 
-func (fake *FakeBoshDirector) recordInvocation(key string, args []interface{}) {
+func (fake *FakeBoshClient) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -118,4 +152,4 @@ func (fake *FakeBoshDirector) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ orchestrator.BoshDirector = new(FakeBoshDirector)
+var _ orchestrator.BoshClient = new(FakeBoshClient)

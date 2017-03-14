@@ -5,7 +5,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
+	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 )
 
 type FakeSSHConnection struct {
@@ -241,4 +241,4 @@ func (fake *FakeSSHConnection) recordInvocation(key string, args []interface{}) 
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ bosh.SSHConnection = new(FakeSSHConnection)
+var _ ssh.SSHConnection = new(FakeSSHConnection)

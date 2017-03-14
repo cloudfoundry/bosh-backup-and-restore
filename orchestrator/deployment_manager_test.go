@@ -11,17 +11,17 @@ import (
 )
 
 var _ = Describe("DeploymentManager", func() {
-	var boshDirector *fakes.FakeBoshDirector
+	var boshClient *fakes.FakeBoshClient
 	var logger *fakes.FakeLogger
 	var deploymentName = "brownie"
 
 	var deploymentManager orchestrator.DeploymentManager
 	BeforeEach(func() {
-		boshDirector = new(fakes.FakeBoshDirector)
+		boshClient = new(fakes.FakeBoshClient)
 		logger = new(fakes.FakeLogger)
 	})
 	JustBeforeEach(func() {
-		deploymentManager = orchestrator.NewBoshDeploymentManager(boshDirector, logger)
+		deploymentManager = orchestrator.NewBoshDeploymentManager(boshClient, logger)
 	})
 
 	Context("Find", func() {
@@ -30,14 +30,14 @@ var _ = Describe("DeploymentManager", func() {
 		var instances []orchestrator.Instance
 		BeforeEach(func() {
 			instances = []orchestrator.Instance{new(fakes.FakeInstance)}
-			boshDirector.FindInstancesReturns(instances, nil)
+			boshClient.FindInstancesReturns(instances, nil)
 		})
 		JustBeforeEach(func() {
 			deployment, findError = deploymentManager.Find(deploymentName)
 		})
 		It("asks the bosh director for instances", func() {
-			Expect(boshDirector.FindInstancesCallCount()).To(Equal(1))
-			Expect(boshDirector.FindInstancesArgsForCall(0)).To(Equal(deploymentName))
+			Expect(boshClient.FindInstancesCallCount()).To(Equal(1))
+			Expect(boshClient.FindInstancesArgsForCall(0)).To(Equal(deploymentName))
 		})
 		It("returns the deployment manager with instances", func() {
 			Expect(deployment).To(Equal(orchestrator.NewBoshDeployment(logger, instances)))
@@ -46,7 +46,7 @@ var _ = Describe("DeploymentManager", func() {
 		Context("error finding instances", func() {
 			var expectedFindError = fmt.Errorf("some I assume are good people")
 			BeforeEach(func() {
-				boshDirector.FindInstancesReturns(nil, expectedFindError)
+				boshClient.FindInstancesReturns(nil, expectedFindError)
 			})
 
 			It("returns an error", func() {

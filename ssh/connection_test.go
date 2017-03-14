@@ -7,7 +7,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
 	"github.com/pivotal-cf/bosh-backup-and-restore/testssh"
@@ -18,7 +17,7 @@ import (
 )
 
 var _ = Describe("Connection", func() {
-	var conn bosh.SSHConnection
+	var conn ssh.SSHConnection
 	var connErr error
 	var server *testssh.Server
 	var privateKey string
@@ -227,7 +226,7 @@ var _ = Describe("Connection", func() {
 				var runError error
 				var connErr error
 				var command string
-				var conn bosh.SSHConnection
+				var conn ssh.SSHConnection
 				var instance1 *testcluster.Instance
 
 				JustBeforeEach(func() {

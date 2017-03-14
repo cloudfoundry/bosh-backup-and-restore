@@ -15,10 +15,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
-	"github.com/pivotal-cf/bosh-backup-and-restore/bosh/fakes"
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
 	instancefakes "github.com/pivotal-cf/bosh-backup-and-restore/instance/fakes"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
+	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
+	"github.com/pivotal-cf/bosh-backup-and-restore/ssh/fakes"
 )
 
 var _ = Describe("Director", func() {
@@ -35,9 +36,9 @@ var _ = Describe("Director", func() {
 	var stdoutLogStream *bytes.Buffer
 	var stderrLogStream *bytes.Buffer
 
-	var b orchestrator.BoshDirector
+	var b orchestrator.BoshClient
 	JustBeforeEach(func() {
-		b = bosh.New(boshDirector, optsGenerator.Spy, sshConnectionFactory.Spy, boshLogger, fakeJobFinder)
+		b = bosh.NewClient(boshDirector, optsGenerator.Spy, sshConnectionFactory.Spy, boshLogger, fakeJobFinder)
 	})
 
 	BeforeEach(func() {
@@ -649,7 +650,7 @@ var _ = Describe("Director", func() {
 						}}, nil
 					}
 
-					sshConnectionFactory.Stub = func(host, user, privateKey string) (bosh.SSHConnection, error) {
+					sshConnectionFactory.Stub = func(host, user, privateKey string) (ssh.SSHConnection, error) {
 						if host == "hostname_job1:22" {
 							return sshConnection, nil
 						}
@@ -707,4 +708,64 @@ var _ = Describe("Director", func() {
 			})
 		})
 	})
+
+	Describe("GetInfo", func() {
+		Context("when the director uses Basic Auth", func() {
+			BeforeEach(func() {
+				boshDirector.InfoReturns(infoWithAuth("basic", map[string]interface{}{}), nil)
+			})
+
+			It("gets the director info", func() {
+				info, _ := b.GetAuthInfo()
+
+				Expect(info.Type).To(Equal("basic"))
+				Expect(info.UaaUrl).To(Equal(""))
+			})
+		})
+
+		Context("when the director uses UAA", func() {
+			Context("when the UAA URL is valid", func() {
+				BeforeEach(func() {
+					boshDirector.InfoReturns(infoWithAuth("uaa", map[string]interface{}{"url": "https://the-uaa-url"}), nil)
+				})
+
+				It("gets the director info", func() {
+					info, _ := b.GetAuthInfo()
+
+					Expect(info.Type).To(Equal("uaa"))
+					Expect(info.UaaUrl).To(Equal("https://the-uaa-url"))
+				})
+			})
+
+			Context("when the UAA URL is not valid", func() {
+				BeforeEach(func() {
+					boshDirector.InfoReturns(infoWithAuth("uaa", map[string]interface{}{"url": 123}), nil)
+				})
+
+				It("gets the director info", func() {
+					_, err := b.GetAuthInfo()
+
+					Expect(err).To(HaveOccurred())
+				})
+			})
+		})
+	})
 })
+
+func infoWithAuth(authType string, authOptions map[string]interface{}) director.Info {
+	return director.Info{
+		Name:    "",
+		UUID:    "",
+		Version: "",
+
+		User: "",
+		Auth: director.UserAuthentication{
+			Type:    authType,
+			Options: authOptions,
+		},
+
+		Features: map[string]bool{},
+
+		CPI: "",
+	}
+}

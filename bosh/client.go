@@ -7,18 +7,49 @@ import (
 
 	"fmt"
 
+	"io/ioutil"
+
 	"github.com/cloudfoundry/bosh-cli/director"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
+	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 )
 
-func New(boshDirector director.Director,
-	sshOptsGenerator SSHOptsGenerator,
-	connectionFactory SSHConnectionFactory,
+func BuildClient(targetUrl, username, password, caCert string, logger boshlog.Logger) (orchestrator.BoshClient, error) {
+	config, err := director.NewConfigFromURL(targetUrl)
+	if err != nil {
+		return nil, fmt.Errorf("Target director URL is malformed - %s", err.Error())
+	}
+
+	config.Client = username
+	config.ClientSecret = password
+
+	if caCert != "" {
+		cert, err := ioutil.ReadFile(caCert)
+		if err != nil {
+			return nil, err
+		}
+		config.CACert = string(cert)
+	}
+
+	factory := director.NewFactory(logger)
+
+	boshDirector, err := factory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
+	if err != nil {
+		return nil, err
+	}
+
+	return NewClient(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger, instance.NewJobFinder(logger)), nil
+}
+
+func NewClient(boshDirector director.Director,
+	sshOptsGenerator ssh.SSHOptsGenerator,
+	connectionFactory ssh.SSHConnectionFactory,
 	logger Logger,
-	jobFinder instance.JobFinder) orchestrator.BoshDirector {
-	return client{
+	jobFinder instance.JobFinder) orchestrator.BoshClient {
+	return Client{
 		Director:             boshDirector,
 		SSHOptsGenerator:     sshOptsGenerator,
 		SSHConnectionFactory: connectionFactory,
@@ -27,16 +58,10 @@ func New(boshDirector director.Director,
 	}
 }
 
-//go:generate counterfeiter -o fakes/fake_opts_generator.go . SSHOptsGenerator
-type SSHOptsGenerator func(uuidGen uuid.Generator) (director.SSHOpts, string, error)
-
-//go:generate counterfeiter -o fakes/fake_ssh_connection_factory.go . SSHConnectionFactory
-type SSHConnectionFactory func(host, user, privateKey string) (SSHConnection, error)
-
-type client struct {
+type Client struct {
 	director.Director
-	SSHOptsGenerator
-	SSHConnectionFactory
+	ssh.SSHOptsGenerator
+	ssh.SSHConnectionFactory
 	Logger
 	jobFinder instance.JobFinder
 }
@@ -47,7 +72,7 @@ type Logger interface {
 	Error(tag, msg string, args ...interface{})
 }
 
-func (c client) FindInstances(deploymentName string) ([]orchestrator.Instance, error) {
+func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, error) {
 	deployment, err := c.Director.FindDeployment(deploymentName)
 	if err != nil {
 		return nil, err
@@ -67,7 +92,7 @@ func (c client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 	c.Logger.Info("", "Scripts found:")
 
 	instances := []orchestrator.Instance{}
-	instanceGroupWithSSHConnections := map[director.AllOrInstanceGroupOrInstanceSlug][]SSHConnection{}
+	instanceGroupWithSSHConnections := map[director.AllOrInstanceGroupOrInstanceSlug][]ssh.SSHConnection{}
 
 	for _, instanceGroupName := range uniqueInstanceGroupNamesFromVMs(vms) {
 		c.Logger.Debug("", "Setting up SSH for job %s", instanceGroupName)
@@ -83,10 +108,10 @@ func (c client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 			cleanupAlreadyMadeConnections(deployment, instanceGroupWithSSHConnections, sshOpts)
 			return nil, err
 		}
-		instanceGroupWithSSHConnections[allVmInstances] = []SSHConnection{}
+		instanceGroupWithSSHConnections[allVmInstances] = []ssh.SSHConnection{}
 
 		for index, host := range sshRes.Hosts {
-			var sshConnection SSHConnection
+			var sshConnection ssh.SSHConnection
 			var err error
 
 			c.Logger.Debug("", "Attempting to SSH onto %s, %s", host.Host, host.IndexOrID)
@@ -124,12 +149,28 @@ func (c client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 	return instances, nil
 }
 
-func (c client) GetManifest(deploymentName string) (string, error) {
+func (c Client) GetManifest(deploymentName string) (string, error) {
 	deployment, err := c.Director.FindDeployment(deploymentName)
 	if err != nil {
 		return "", err
 	}
 	return deployment.Manifest()
+}
+
+func (c Client) GetAuthInfo() (orchestrator.AuthInfo, error) {
+	info, _ := c.Director.Info()
+
+	uaaUrl, exists := info.Auth.Options["url"]
+	if !exists {
+		return orchestrator.AuthInfo{Type: info.Auth.Type, UaaUrl: ""}, nil
+	}
+
+	uaaUrlString, ok := uaaUrl.(string)
+	if !ok {
+		return orchestrator.AuthInfo{}, fmt.Errorf("Invalid UAA URL: %s", uaaUrl)
+	}
+
+	return orchestrator.AuthInfo{Type: info.Auth.Type, UaaUrl: uaaUrlString}, nil
 }
 
 func defaultToSSHPort(host string) string {
@@ -160,7 +201,7 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func cleanupAlreadyMadeConnections(deployment director.Deployment, instanceGroupWithSSHConnections map[director.AllOrInstanceGroupOrInstanceSlug][]SSHConnection, opts director.SSHOpts) {
+func cleanupAlreadyMadeConnections(deployment director.Deployment, instanceGroupWithSSHConnections map[director.AllOrInstanceGroupOrInstanceSlug][]ssh.SSHConnection, opts director.SSHOpts) {
 	for slug, sshConnections := range instanceGroupWithSSHConnections {
 		for _, connection := range sshConnections {
 			connection.Cleanup()
