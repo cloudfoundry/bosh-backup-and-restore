@@ -454,7 +454,7 @@ var _ = Describe("Backup", func() {
 
 var _ = Describe("CanBeBackedUp", func() {
 	var (
-		boshDirector      *fakes.FakeBoshDirector
+		boshDirector      *fakes.FakeBoshClient
 		b                 *orchestrator.Backuper
 		deployment        *fakes.FakeDeployment
 		deploymentManager *fakes.FakeDeploymentManager
@@ -468,7 +468,7 @@ var _ = Describe("CanBeBackedUp", func() {
 	BeforeEach(func() {
 		deployment = new(fakes.FakeDeployment)
 		deploymentManager = new(fakes.FakeDeploymentManager)
-		boshDirector = new(fakes.FakeBoshDirector)
+		boshDirector = new(fakes.FakeBoshClient)
 		artifactManager = new(fakes.FakeArtifactManager)
 		logger = new(fakes.FakeLogger)
 		b = orchestrator.NewBackuper(boshDirector, artifactManager, logger, deploymentManager)

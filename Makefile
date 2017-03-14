@@ -3,6 +3,8 @@ export BOSH_GATEWAY_USER=vcap
 
 test: test-unit-ci test-integration
 
+test-local: test-unit test-integration
+
 push: test sys-test-local
 	git push
 
