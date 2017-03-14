@@ -157,22 +157,6 @@ func (c Client) GetManifest(deploymentName string) (string, error) {
 	return deployment.Manifest()
 }
 
-func (c Client) GetAuthInfo() (orchestrator.AuthInfo, error) {
-	info, _ := c.Director.Info()
-
-	uaaUrl, exists := info.Auth.Options["url"]
-	if !exists {
-		return orchestrator.AuthInfo{Type: info.Auth.Type, UaaUrl: ""}, nil
-	}
-
-	uaaUrlString, ok := uaaUrl.(string)
-	if !ok {
-		return orchestrator.AuthInfo{}, fmt.Errorf("Invalid UAA URL: %s", uaaUrl)
-	}
-
-	return orchestrator.AuthInfo{Type: info.Auth.Type, UaaUrl: uaaUrlString}, nil
-}
-
 func defaultToSSHPort(host string) string {
 	parts := strings.Split(host, ":")
 	if len(parts) == 2 {

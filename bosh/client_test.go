@@ -708,48 +708,6 @@ var _ = Describe("Director", func() {
 			})
 		})
 	})
-
-	Describe("GetInfo", func() {
-		Context("when the director uses Basic Auth", func() {
-			BeforeEach(func() {
-				boshDirector.InfoReturns(infoWithAuth("basic", map[string]interface{}{}), nil)
-			})
-
-			It("gets the director info", func() {
-				info, _ := b.GetAuthInfo()
-
-				Expect(info.Type).To(Equal("basic"))
-				Expect(info.UaaUrl).To(Equal(""))
-			})
-		})
-
-		Context("when the director uses UAA", func() {
-			Context("when the UAA URL is valid", func() {
-				BeforeEach(func() {
-					boshDirector.InfoReturns(infoWithAuth("uaa", map[string]interface{}{"url": "https://the-uaa-url"}), nil)
-				})
-
-				It("gets the director info", func() {
-					info, _ := b.GetAuthInfo()
-
-					Expect(info.Type).To(Equal("uaa"))
-					Expect(info.UaaUrl).To(Equal("https://the-uaa-url"))
-				})
-			})
-
-			Context("when the UAA URL is not valid", func() {
-				BeforeEach(func() {
-					boshDirector.InfoReturns(infoWithAuth("uaa", map[string]interface{}{"url": 123}), nil)
-				})
-
-				It("gets the director info", func() {
-					_, err := b.GetAuthInfo()
-
-					Expect(err).To(HaveOccurred())
-				})
-			})
-		})
-	})
 })
 
 func infoWithAuth(authType string, authOptions map[string]interface{}) director.Info {
