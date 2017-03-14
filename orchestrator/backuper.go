@@ -36,7 +36,6 @@ type AuthInfo struct {
 type BoshClient interface {
 	FindInstances(deploymentName string) ([]Instance, error)
 	GetManifest(deploymentName string) (string, error)
-	GetAuthInfo() (AuthInfo, error)
 }
 
 //Backup checks if a deployment has backupable instances and backs them up.

@@ -26,13 +26,6 @@ type FakeBoshClient struct {
 		result1 string
 		result2 error
 	}
-	GetAuthInfoStub        func() (orchestrator.AuthInfo, error)
-	getAuthInfoMutex       sync.RWMutex
-	getAuthInfoArgsForCall []struct{}
-	getAuthInfoReturns     struct {
-		result1 orchestrator.AuthInfo
-		result2 error
-	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -103,31 +96,6 @@ func (fake *FakeBoshClient) GetManifestReturns(result1 string, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeBoshClient) GetAuthInfo() (orchestrator.AuthInfo, error) {
-	fake.getAuthInfoMutex.Lock()
-	fake.getAuthInfoArgsForCall = append(fake.getAuthInfoArgsForCall, struct{}{})
-	fake.recordInvocation("GetAuthInfo", []interface{}{})
-	fake.getAuthInfoMutex.Unlock()
-	if fake.GetAuthInfoStub != nil {
-		return fake.GetAuthInfoStub()
-	}
-	return fake.getAuthInfoReturns.result1, fake.getAuthInfoReturns.result2
-}
-
-func (fake *FakeBoshClient) GetAuthInfoCallCount() int {
-	fake.getAuthInfoMutex.RLock()
-	defer fake.getAuthInfoMutex.RUnlock()
-	return len(fake.getAuthInfoArgsForCall)
-}
-
-func (fake *FakeBoshClient) GetAuthInfoReturns(result1 orchestrator.AuthInfo, result2 error) {
-	fake.GetAuthInfoStub = nil
-	fake.getAuthInfoReturns = struct {
-		result1 orchestrator.AuthInfo
-		result2 error
-	}{result1, result2}
-}
-
 func (fake *FakeBoshClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -135,8 +103,6 @@ func (fake *FakeBoshClient) Invocations() map[string][][]interface{} {
 	defer fake.findInstancesMutex.RUnlock()
 	fake.getManifestMutex.RLock()
 	defer fake.getManifestMutex.RUnlock()
-	fake.getAuthInfoMutex.RLock()
-	defer fake.getAuthInfoMutex.RUnlock()
 	return fake.invocations
 }
 
