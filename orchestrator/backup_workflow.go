@@ -40,7 +40,32 @@ const (
 	EventCleanup                  = "cleanup"
 )
 
-func newbackupWorkflow(backuper Backuper, deploymentName string) *backupWorkflow {
+func newBackupCheckWorkflow(backuper Backuper, deploymentName string) *backupWorkflow {
+	bw := &backupWorkflow{
+		Backuper:       backuper,
+		deployment:     nil,
+		deploymentName: deploymentName,
+		events: fsm.Events{
+			{Name: EventCheckDeployment, Src: []string{StateReady}, Dst: StateDeploymentExists},
+			{Name: EventCheckIsBackupable, Src: []string{StateDeploymentExists}, Dst: StateIsBackupable},
+			{Name: EventCleanup, Src: []string{StateDeploymentExists, StateIsBackupable, StateArtifactCreated, StateUnlocked, StateDrained}, Dst: StateFinished},
+		},
+	}
+
+	bw.FSM = fsm.NewFSM(
+		StateReady,
+		bw.events,
+		fsm.Callbacks{
+			beforeEvent(EventCheckDeployment):   bw.checkDeployment,
+			beforeEvent(EventCheckIsBackupable): bw.checkIsBackupable,
+			EventCleanup:                        bw.cleanup,
+		},
+	)
+
+	return bw
+}
+
+func newBackupWorkflow(backuper Backuper, deploymentName string) *backupWorkflow {
 	bw := &backupWorkflow{
 		Backuper:       backuper,
 		deployment:     nil,
@@ -85,7 +110,7 @@ func (bw *backupWorkflow) Run() Error {
 }
 
 func (bw *backupWorkflow) checkDeployment(e *fsm.Event) {
-	bw.Logger.Info("", "Starting backup of %s...\n", bw.deploymentName)
+	bw.Logger.Info("", "Running pre-checks for backup of %s...\n", bw.deploymentName)
 
 	exists := bw.ArtifactManager.Exists(bw.deploymentName)
 	if exists {
@@ -124,6 +149,7 @@ func (bw *backupWorkflow) cleanup(e *fsm.Event) {
 }
 
 func (bw *backupWorkflow) createEmptyLocalArtifact(e *fsm.Event) {
+	bw.Logger.Info("", "Starting backup of %s...\n", bw.deploymentName)
 	var err error
 	bw.artifact, err = bw.ArtifactManager.Create(bw.deploymentName, bw.Logger)
 	if err != nil {

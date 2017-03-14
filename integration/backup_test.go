@@ -126,9 +126,10 @@ printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
 				})
 
 				It("prints the backup progress to the screen", func() {
-					Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Starting backup of %s...", deploymentName)))
+					Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Running pre-checks for backup of %s...", deploymentName)))
 					Expect(session.Out).To(gbytes.Say("INFO - Scripts found:"))
 					Expect(session.Out).To(gbytes.Say("INFO - redis-dedicated-node/fake-uuid/redis/b-backup"))
+					Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Starting backup of %s...", deploymentName)))
 					Expect(session.Out).To(gbytes.Say("INFO - Running pre-backup scripts..."))
 					Expect(session.Out).To(gbytes.Say("INFO - Done."))
 					Expect(session.Out).To(gbytes.Say("INFO - Running backup scripts..."))
@@ -716,13 +717,4 @@ func assertErrorOutput(session *gexec.Session, strings []string) {
 	for _, str := range strings {
 		Expect(string(session.Err.Contents())).To(ContainSubstring(str))
 	}
-}
-func mockDirectorWith(director *mockhttp.Server, vmsResponse []mockhttp.MockedResponseBuilder, sshResponse []mockhttp.MockedResponseBuilder, downloadManfiestResponse []mockhttp.MockedResponseBuilder, cleanupResponse []mockhttp.MockedResponseBuilder) {
-	director.VerifyAndMock(AppendBuilders(
-		vmsResponse,
-		sshResponse,
-		downloadManfiestResponse,
-		cleanupResponse,
-	)...)
-
 }

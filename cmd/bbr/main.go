@@ -26,6 +26,13 @@ func main() {
 	app.Flags = availableFlags()
 	app.Before = validateFlags
 	app.Commands = []cli.Command{
+
+		{
+			Name:    "pre-backup-check",
+			Aliases: []string{"c"},
+			Usage:   "Check a deployment can be backed up",
+			Action:  preBackupCheck,
+		},
 		{
 			Name:    "backup",
 			Aliases: []string{"b"},
@@ -42,6 +49,25 @@ func main() {
 
 	if err := app.Run(os.Args); err != nil {
 		os.Exit(1)
+	}
+}
+
+func preBackupCheck(c *cli.Context) error {
+	var deployment = c.GlobalString("deployment")
+
+	backuper, err := makeBackuper(c)
+	if err != nil {
+		return err
+	}
+
+	backupable, err := backuper.CanBeBackedUp(deployment)
+
+	if backupable {
+		fmt.Printf("Deployment '%s' can be backed up.\n", deployment)
+		return cli.NewExitError("", 0)
+	} else {
+		fmt.Printf("Deployment '%s' cannot be backed up.\n", deployment)
+		return cli.NewExitError(err, 1)
 	}
 }
 
