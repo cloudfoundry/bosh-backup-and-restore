@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/pivotal-cf/bosh-backup-and-restore/artifact"
-	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
+	"github.com/pivotal-cf/bosh-backup-and-restore/factory"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
 
@@ -171,7 +171,7 @@ func makeBoshClient(c *cli.Context, logger boshlog.Logger) (orchestrator.BoshCli
 	password := c.GlobalString("password")
 	caCert := c.GlobalString("ca-cert")
 
-	return bosh.BuildClient(targetUrl, username, password, caCert, logger)
+	return factory.BuildClient(targetUrl, username, password, caCert, logger)
 }
 
 func makeDeploymentManager(boshClient orchestrator.BoshClient, logger boshlog.Logger) orchestrator.DeploymentManager {

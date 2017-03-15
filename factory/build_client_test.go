@@ -1,4 +1,4 @@
-package bosh_test
+package factory_test
 
 import (
 	"log"
@@ -8,7 +8,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
-	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
+	"github.com/pivotal-cf/bosh-backup-and-restore/factory"
 )
 
 var _ = Describe("BuildClient", func() {
@@ -20,7 +20,7 @@ var _ = Describe("BuildClient", func() {
 		caCertPath := MustHaveEnv("BASIC_AUTH_BOSH_CERT_PATH")
 		basicAuthDirectorUrl := MustHaveEnv("BASIC_AUTH_BOSH_URL")
 
-		client, err := bosh.BuildClient(basicAuthDirectorUrl, username, password, caCertPath, logger)
+		client, err := factory.BuildClient(basicAuthDirectorUrl, username, password, caCertPath, logger)
 		Expect(err).NotTo(HaveOccurred())
 
 		_, err = client.GetManifest("does-not-exist")
@@ -33,7 +33,7 @@ var _ = Describe("BuildClient", func() {
 		caCertPath := MustHaveEnv("UAA_BOSH_CERT_PATH")
 		basicAuthDirectorUrl := MustHaveEnv("UAA_BOSH_URL")
 
-		client, err := bosh.BuildClient(basicAuthDirectorUrl, username, password, caCertPath, logger)
+		client, err := factory.BuildClient(basicAuthDirectorUrl, username, password, caCertPath, logger)
 		Expect(err).NotTo(HaveOccurred())
 
 		_, err = client.GetManifest("does-not-exist")
