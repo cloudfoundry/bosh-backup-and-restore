@@ -4,39 +4,119 @@ import (
 	"log"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
+	"github.com/pivotal-cf-experimental/cf-webmock/mockuaa"
 	"github.com/pivotal-cf/bosh-backup-and-restore/factory"
 )
 
 var _ = Describe("BuildClient", func() {
-	logger := boshlog.New(boshlog.LevelDebug, log.New(gbytes.NewBuffer(), "[bosh-package] ", log.Lshortfile), log.New(gbytes.NewBuffer(), "[bosh-package] ", log.Lshortfile))
+	var logger = boshlog.New(boshlog.LevelDebug, log.New(gbytes.NewBuffer(), "[bosh-package] ", log.Lshortfile), log.New(gbytes.NewBuffer(), "[bosh-package] ", log.Lshortfile))
 
-	It("builds a Client that authenticates with HTTP Basic Auth", func() {
-		username := MustHaveEnv("BOSH_CLIENT")
-		password := MustHaveEnv("BASIC_AUTH_BOSH_CLIENT_SECRET")
-		caCertPath := MustHaveEnv("BASIC_AUTH_BOSH_CERT_PATH")
-		basicAuthDirectorUrl := MustHaveEnv("BASIC_AUTH_BOSH_URL")
+	var director *mockhttp.Server
+	var deploymentName = "my-little-deployment"
+	var sslCertPath = "../fixtures/test.crt"
 
-		client, err := factory.BuildClient(basicAuthDirectorUrl, username, password, caCertPath, logger)
-		Expect(err).NotTo(HaveOccurred())
-
-		_, err = client.GetManifest("does-not-exist")
-		Expect(err.Error()).To(ContainSubstring("Director responded with non-successful status code '404'"))
+	BeforeEach(func() {
+		director = mockbosh.NewTLS()
+	})
+	AfterEach(func() {
+		director.VerifyMocks()
 	})
 
-	It("builds a Client that authenticates with UAA", func() {
-		username := MustHaveEnv("BOSH_CLIENT")
-		password := MustHaveEnv("UAA_BOSH_CLIENT_SECRET")
-		caCertPath := MustHaveEnv("UAA_BOSH_CERT_PATH")
-		basicAuthDirectorUrl := MustHaveEnv("UAA_BOSH_URL")
+	Context("With Basic Auth", func() {
+		It("build the client which makes basic auth against director", func() {
+			username := "foo"
+			password := "bar"
 
-		client, err := factory.BuildClient(basicAuthDirectorUrl, username, password, caCertPath, logger)
-		Expect(err).NotTo(HaveOccurred())
+			director.ExpectedBasicAuth(username, password)
+			director.VerifyAndMock(
+				mockbosh.Info().WithAuthTypeBasic(),
+				mockbosh.Manifest(deploymentName).RespondsWith([]byte("manifest contents")),
+			)
 
-		_, err = client.GetManifest("does-not-exist")
-		Expect(err.Error()).To(ContainSubstring("Director responded with non-successful status code '404'"))
+			client, err := factory.BuildClient(director.URL, username, password, sslCertPath, logger)
+
+			Expect(err).NotTo(HaveOccurred())
+			manifest, err := client.GetManifest(deploymentName)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(manifest).To(Equal("manifest contents"))
+		})
 	})
+
+	Context("With UAA", func() {
+		var uaaServer *mockuaa.ClientCredentialsServer
+
+		It("build the client which makes basic auth against director", func() {
+			username := "foo"
+			password := "bar"
+			uaaToken := "baz"
+
+			uaaServer = mockuaa.NewClientCredentialsServerTLS(username, password, uaaToken)
+
+			director.ExpectedAuthorizationHeader("bearer " + uaaToken)
+			director.VerifyAndMock(
+				mockbosh.Info().WithAuthTypeUAA(uaaServer.URL),
+				mockbosh.Manifest(deploymentName).RespondsWith([]byte("manifest contents")),
+			)
+
+			client, err := factory.BuildClient(director.URL, username, password, sslCertPath, logger)
+
+			Expect(err).NotTo(HaveOccurred())
+			manifest, err := client.GetManifest(deploymentName)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(manifest).To(Equal("manifest contents"))
+		})
+
+		It("fails if uaa url is not valid", func() {
+			username := "no-relevant"
+			password := "no-relevant"
+
+			director.VerifyAndMock(
+				mockbosh.Info().WithAuthTypeUAA(""),
+			)
+			_, err := factory.BuildClient(director.URL, username, password, sslCertPath, logger)
+
+			Expect(err).To(HaveOccurred())
+
+		})
+	})
+
+	It("fails if CA-Cert cant be read", func() {
+		username := "no-relevant"
+		password := "no-relevant"
+		caCertPath := "/invalid/path"
+		basicAuthDirectorUrl := director.URL
+
+		_, err := factory.BuildClient(basicAuthDirectorUrl, username, password, caCertPath, logger)
+		Expect(err).To(HaveOccurred())
+	})
+
+	It("fails if invalid bosh url", func() {
+		username := "no-relevant"
+		password := "no-relevant"
+		caCertPath := ""
+		basicAuthDirectorUrl := ""
+
+		_, err := factory.BuildClient(basicAuthDirectorUrl, username, password, caCertPath, logger)
+		Expect(err).To(HaveOccurred())
+	})
+
+	It("fails if info cant be retrieved", func() {
+		username := "no-relevant"
+		password := "no-relevant"
+
+		director.VerifyAndMock(
+			mockbosh.Info().Fails("fooo!"),
+		)
+
+		_, err := factory.BuildClient(director.URL, username, password, sslCertPath, logger)
+
+		Expect(err).To(HaveOccurred())
+	})
+
 })

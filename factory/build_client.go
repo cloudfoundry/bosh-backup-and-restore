@@ -14,50 +14,39 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-func BuildClient(targetUrl, username, password, caCert string, logger boshlog.Logger) (orchestrator.BoshClient, error) {
+func BuildClient(targetUrl, username, password, caCertFileName string, logger boshlog.Logger) (orchestrator.BoshClient, error) {
 	config, err := director.NewConfigFromURL(targetUrl)
 	if err != nil {
 		return nil, fmt.Errorf("Target director URL is malformed - %s", err.Error())
 	}
 
-	if caCert != "" {
-		cert, err := ioutil.ReadFile(caCert)
+	var cert string
+	if caCertFileName != "" {
+		certBytes, err := ioutil.ReadFile(caCertFileName)
 		if err != nil {
 			return nil, err
 		}
-		config.CACert = string(cert)
+		cert = string(certBytes)
 	}
 
-	factory := director.NewFactory(logger)
-	infoDirector, err := factory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
+	config.CACert = cert
 
-	info, _ := infoDirector.Info()
+	directorFactory := director.NewFactory(logger)
+	infoDirector, err := directorFactory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
+	if err != nil {
+		return nil, err
+	}
+
+	info, err := infoDirector.Info()
+	if err != nil {
+		return nil, err
+	}
 
 	if info.Auth.Type == "uaa" {
-		uaaURL := info.Auth.Options["url"]
-
-		uaaURLStr, ok := uaaURL.(string)
-		if !ok {
-			return nil, fmt.Errorf("Expected URL '%s' to be a string", uaaURL)
-		}
-
-		uaaConfig, err := boshuaa.NewConfigFromURL(uaaURLStr)
+		uaa, err := buildUaa(info, username, password, cert, logger)
 		if err != nil {
 			return nil, err
 		}
-
-		if caCert != "" {
-			cert, err := ioutil.ReadFile(caCert)
-			if err != nil {
-				return nil, err
-			}
-			uaaConfig.CACert = string(cert)
-		}
-
-		uaaConfig.Client = username
-		uaaConfig.ClientSecret = password
-
-		uaa, _ := boshuaa.NewFactory(logger).New(uaaConfig)
 
 		config.TokenFunc = boshuaa.NewClientTokenSession(uaa).TokenFunc
 	} else {
@@ -65,10 +54,29 @@ func BuildClient(targetUrl, username, password, caCert string, logger boshlog.Lo
 		config.ClientSecret = password
 	}
 
-	boshDirector, err := factory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
+	boshDirector, err := directorFactory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
 	if err != nil {
 		return nil, err
 	}
 
 	return bosh.NewClient(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger, instance.NewJobFinder(logger)), nil
+}
+
+func buildUaa(info director.Info, username, password, cert string, logger boshlog.Logger) (boshuaa.UAA, error) {
+	urlAsInterface := info.Auth.Options["url"]
+	url, ok := urlAsInterface.(string)
+	if !ok {
+		return nil, fmt.Errorf("Expected URL '%s' to be a string", urlAsInterface)
+	}
+
+	uaaConfig, err := boshuaa.NewConfigFromURL(url)
+	if err != nil {
+		return nil, err
+	}
+
+	uaaConfig.CACert = cert
+	uaaConfig.Client = username
+	uaaConfig.ClientSecret = password
+
+	return boshuaa.NewFactory(logger).New(uaaConfig)
 }
