@@ -21,4 +21,3 @@ func (m instanceMetadata) ID() string {
 func (m instanceMetadata) IsNamed() bool {
 	return false
 }
-

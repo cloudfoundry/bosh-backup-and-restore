@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 
 	"github.com/cloudfoundry/bosh-cli/director"
+	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
@@ -23,9 +24,6 @@ func BuildClient(targetUrl, username, password, caCert string, logger boshlog.Lo
 		return nil, fmt.Errorf("Target director URL is malformed - %s", err.Error())
 	}
 
-	config.Client = username
-	config.ClientSecret = password
-
 	if caCert != "" {
 		cert, err := ioutil.ReadFile(caCert)
 		if err != nil {
@@ -35,6 +33,41 @@ func BuildClient(targetUrl, username, password, caCert string, logger boshlog.Lo
 	}
 
 	factory := director.NewFactory(logger)
+	infoDirector, err := factory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
+
+	info, _ := infoDirector.Info()
+
+	if info.Auth.Type == "uaa" {
+		uaaURL := info.Auth.Options["url"]
+
+		uaaURLStr, ok := uaaURL.(string)
+		if !ok {
+			return nil, fmt.Errorf("Expected URL '%s' to be a string", uaaURL)
+		}
+
+		uaaConfig, err := boshuaa.NewConfigFromURL(uaaURLStr)
+		if err != nil {
+			return nil, err
+		}
+
+		if caCert != "" {
+			cert, err := ioutil.ReadFile(caCert)
+			if err != nil {
+				return nil, err
+			}
+			uaaConfig.CACert = string(cert)
+		}
+
+		uaaConfig.Client = username
+		uaaConfig.ClientSecret = password
+
+		uaa, _ := boshuaa.NewFactory(logger).New(uaaConfig)
+
+		config.TokenFunc = boshuaa.NewClientTokenSession(uaa).TokenFunc
+	} else {
+		config.Client = username
+		config.ClientSecret = password
+	}
 
 	boshDirector, err := factory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
 	if err != nil {
@@ -48,7 +81,7 @@ func NewClient(boshDirector director.Director,
 	sshOptsGenerator ssh.SSHOptsGenerator,
 	connectionFactory ssh.SSHConnectionFactory,
 	logger Logger,
-	jobFinder instance.JobFinder) orchestrator.BoshClient {
+	jobFinder instance.JobFinder) Client {
 	return Client{
 		Director:             boshDirector,
 		SSHOptsGenerator:     sshOptsGenerator,

@@ -81,6 +81,7 @@ printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
 `)
 
 				mockDirectorWith(director,
+					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					DownloadManifest(deploymentName, "this is a totally valid yaml"),
@@ -322,6 +323,7 @@ exit 1`)
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				mockDirectorWith(director,
+					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					ManifestIsNotDownloaded(),
@@ -350,6 +352,7 @@ exit 1`)
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				mockDirectorWith(director,
+					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					DownloadManifest(deploymentName, "this is a totally valid yaml"),
@@ -370,6 +373,7 @@ exit 1`)
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				mockDirectorWith(director,
+					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					DownloadManifest(deploymentName, "this is a totally valid yaml"),
@@ -398,6 +402,7 @@ exit 1`)
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				mockDirectorWith(director,
+					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					DownloadManifest(deploymentName, "this is a totally valid yaml"),
@@ -438,6 +443,7 @@ echo "not valid yaml
 "`)
 
 				mockDirectorWith(director,
+					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					ManifestIsNotDownloaded(),
@@ -457,6 +463,7 @@ echo "not valid yaml
 
 		Context("when the artifact exists locally", func() {
 			BeforeEach(func() {
+				director.VerifyAndMock(mockbosh.Info().WithAuthTypeBasic())
 				deploymentName = "already-backed-up-deployment"
 				err := os.Mkdir(path.Join(backupWorkspace, deploymentName), 0777)
 				Expect(err).ToNot(HaveOccurred())
@@ -499,6 +506,7 @@ echo "not valid yaml
 				backupableInstance = testcluster.NewInstance()
 				nonBackupableInstance = testcluster.NewInstance()
 				mockDirectorWith(director,
+					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
 					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance),
 						SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, nonBackupableInstance)...),
@@ -533,6 +541,7 @@ echo "not valid yaml
 				backupableInstance1 = testcluster.NewInstance()
 				backupableInstance2 = testcluster.NewInstance()
 				mockDirectorWith(director,
+					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
 					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
 						SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance2)...),
@@ -587,6 +596,7 @@ echo "not valid yaml
 				backupableInstance1 = testcluster.NewInstance()
 				backupableInstance2 = testcluster.NewInstance()
 				mockDirectorWith(director,
+					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
 					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
 						SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance2)...),
@@ -637,7 +647,10 @@ backup_name: duplicate_name
 	Context("When deployment does not exist", func() {
 		BeforeEach(func() {
 			deploymentName = "my-non-existent-deployment"
-			director.VerifyAndMock(mockbosh.VMsForDeployment(deploymentName).NotFound())
+			director.VerifyAndMock(
+				mockbosh.Info().WithAuthTypeBasic(),
+				mockbosh.VMsForDeployment(deploymentName).NotFound(),
+			)
 		})
 
 		It("returns exit code 1", func() {

@@ -27,7 +27,7 @@ var _ = Describe("BuildClient", func() {
 		Expect(err.Error()).To(ContainSubstring("Director responded with non-successful status code '404'"))
 	})
 
-	XIt("builds a Client that authenticates with UAA", func() {
+	It("builds a Client that authenticates with UAA", func() {
 		username := MustHaveEnv("BOSH_CLIENT")
 		password := MustHaveEnv("UAA_BOSH_CLIENT_SECRET")
 		caCertPath := MustHaveEnv("UAA_BOSH_CERT_PATH")

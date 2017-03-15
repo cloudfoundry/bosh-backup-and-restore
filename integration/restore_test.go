@@ -43,7 +43,10 @@ var _ = Describe("Restore", func() {
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
 instances: []`))
 
-			director.VerifyAndMock(mockbosh.VMsForDeployment(deploymentName).NotFound())
+			director.VerifyAndMock(
+				mockbosh.Info().WithAuthTypeBasic(),
+				mockbosh.VMsForDeployment(deploymentName).NotFound(),
+			)
 			session = runBinary(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
@@ -66,6 +69,7 @@ instances: []`))
 		var session *gexec.Session
 
 		BeforeEach(func() {
+			director.VerifyAndMock(mockbosh.Info().WithAuthTypeBasic())
 			session = runBinary(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
@@ -89,6 +93,7 @@ instances: []`))
 		var deploymentName string
 		BeforeEach(func() {
 			deploymentName = "my-new-deployment"
+			director.VerifyAndMock(mockbosh.Info().WithAuthTypeBasic())
 
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
@@ -128,12 +133,14 @@ instances:
 		BeforeEach(func() {
 			instance1 = testcluster.NewInstance()
 			deploymentName = "my-new-deployment"
-			director.VerifyAndMock(AppendBuilders(VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
-				{
-					IPs:     []string{"10.0.0.1"},
-					JobName: "redis-dedicated-node",
-					JobID:   "fake-uuid",
-				}}),
+			director.VerifyAndMock(AppendBuilders(
+				InfoWithBasicAuth(),
+				VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+					{
+						IPs:     []string{"10.0.0.1"},
+						JobName: "redis-dedicated-node",
+						JobID:   "fake-uuid",
+					}}),
 				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 				CleanupSSH(deploymentName, "redis-dedicated-node"))...)
 
@@ -210,17 +217,19 @@ instances:
 			instance1 = testcluster.NewInstance()
 			instance2 = testcluster.NewInstance()
 			deploymentName = "my-new-deployment"
-			director.VerifyAndMock(AppendBuilders(VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
-				{
-					IPs:     []string{"10.0.0.1"},
-					JobName: "redis-dedicated-node",
-					JobID:   "fake-uuid",
-				},
-				{
-					IPs:     []string{"10.0.0.10"},
-					JobName: "redis-server",
-					JobID:   "fake-uuid",
-				}}),
+			director.VerifyAndMock(AppendBuilders(
+				InfoWithBasicAuth(),
+				VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+					{
+						IPs:     []string{"10.0.0.1"},
+						JobName: "redis-dedicated-node",
+						JobID:   "fake-uuid",
+					},
+					{
+						IPs:     []string{"10.0.0.10"},
+						JobName: "redis-server",
+						JobID:   "fake-uuid",
+					}}),
 				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 				SetupSSH(deploymentName, "redis-server", "fake-uuid", 0, instance2),
 				CleanupSSH(deploymentName, "redis-dedicated-node"),
@@ -293,12 +302,14 @@ instances:
 		BeforeEach(func() {
 			instance1 = testcluster.NewInstance()
 			deploymentName = "my-new-deployment"
-			director.VerifyAndMock(AppendBuilders(VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
-				{
-					IPs:     []string{"10.0.0.1"},
-					JobName: "redis-dedicated-node",
-					JobID:   "fake-uuid",
-				}}),
+			director.VerifyAndMock(AppendBuilders(
+				InfoWithBasicAuth(),
+				VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+					{
+						IPs:     []string{"10.0.0.1"},
+						JobName: "redis-dedicated-node",
+						JobID:   "fake-uuid",
+					}}),
 				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 				CleanupSSH(deploymentName, "redis-dedicated-node"))...)
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/b-metadata", `#!/usr/bin/env sh
@@ -368,17 +379,19 @@ blobs:
 			instance1 = testcluster.NewInstance()
 			instance2 = testcluster.NewInstance()
 			deploymentName = "my-new-deployment"
-			director.VerifyAndMock(AppendBuilders(VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
-				{
-					IPs:     []string{"10.0.0.1"},
-					JobName: "redis-restore-node",
-					JobID:   "fake-uuid",
-				},
-				{
-					IPs:     []string{"10.0.0.2"},
-					JobName: "redis-backup-node",
-					JobID:   "fake-uuid",
-				}}),
+			director.VerifyAndMock(AppendBuilders(
+				InfoWithBasicAuth(),
+				VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+					{
+						IPs:     []string{"10.0.0.1"},
+						JobName: "redis-restore-node",
+						JobID:   "fake-uuid",
+					},
+					{
+						IPs:     []string{"10.0.0.2"},
+						JobName: "redis-backup-node",
+						JobID:   "fake-uuid",
+					}}),
 				SetupSSH(deploymentName, "redis-restore-node", "fake-uuid", 0, instance1),
 				SetupSSH(deploymentName, "redis-backup-node", "fake-uuid", 0, instance2),
 				CleanupSSH(deploymentName, "redis-restore-node"),
@@ -451,6 +464,7 @@ blobs:
 		BeforeEach(func() {
 			deploymentName = "my-new-deployment"
 
+			director.VerifyAndMock(mockbosh.Info().WithAuthTypeBasic())
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
 instances:
@@ -461,7 +475,6 @@ blobs:
 - blob_name: foo
   checksums:
     ./redis/redis-backup: this-is-damn-wrong`))
-			director.VerifyAndMock()
 
 			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
 			Expect(err).NotTo(HaveOccurred())
@@ -485,10 +498,6 @@ blobs:
 		It("fails", func() {
 			Expect(session.ExitCode()).To(Equal(1))
 		})
-
-		It("does not connect to the BOSH director", func() {
-			director.VerifyMocks()
-		})
 	})
 
 	Context("the cleanup fails", func() {
@@ -499,11 +508,13 @@ blobs:
 		BeforeEach(func() {
 			instance1 = testcluster.NewInstance()
 			deploymentName = "my-new-deployment"
-			director.VerifyAndMock(AppendBuilders(VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
-				{
-					IPs:     []string{"10.0.0.1"},
-					JobName: "redis-dedicated-node",
-				}}),
+			director.VerifyAndMock(AppendBuilders(
+				InfoWithBasicAuth(),
+				VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+					{
+						IPs:     []string{"10.0.0.1"},
+						JobName: "redis-dedicated-node",
+					}}),
 				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 				CleanupSSHFails(deploymentName, "redis-dedicated-node", "cleanup err"))...)
 

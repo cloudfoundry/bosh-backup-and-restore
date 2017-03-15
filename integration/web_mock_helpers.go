@@ -9,6 +9,11 @@ import (
 	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
 )
 
+func InfoWithBasicAuth() []mockhttp.MockedResponseBuilder {
+	return []mockhttp.MockedResponseBuilder{
+		mockbosh.Info().WithAuthTypeBasic(),
+	}
+}
 func VmsForDeployment(deploymentName string, responseInstances []mockbosh.VMsOutput) []mockhttp.MockedResponseBuilder {
 	randomTaskID := generateTaskId()
 	return []mockhttp.MockedResponseBuilder{

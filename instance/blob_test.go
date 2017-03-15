@@ -12,8 +12,8 @@ import (
 	"github.com/onsi/gomega/gbytes"
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance/fakes"
-	backuperfakes "github.com/pivotal-cf/bosh-backup-and-restore/orchestrator/fakes"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
+	backuperfakes "github.com/pivotal-cf/bosh-backup-and-restore/orchestrator/fakes"
 )
 
 var _ = Describe("blob", func() {

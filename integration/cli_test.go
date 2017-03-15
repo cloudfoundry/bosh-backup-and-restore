@@ -32,7 +32,10 @@ var _ = Describe("CLI Interface", func() {
 	AssertCLIBehaviour := func(cmd string) {
 		Context("params", func() {
 			It("can invoke command with short names", func() {
-				director.VerifyAndMock(mockbosh.VMsForDeployment("my-new-deployment").NotFound())
+				director.VerifyAndMock(
+					mockbosh.Info().WithAuthTypeBasic(),
+					mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
+				)
 
 				runBinary(backupWorkspace,
 					[]string{},
@@ -46,7 +49,10 @@ var _ = Describe("CLI Interface", func() {
 				director.VerifyMocks()
 			})
 			It("can invoke command with long names", func() {
-				director.VerifyAndMock(mockbosh.VMsForDeployment("my-new-deployment").NotFound())
+				director.VerifyAndMock(
+					mockbosh.Info().WithAuthTypeBasic(),
+					mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
+				)
 
 				runBinary(backupWorkspace,
 					[]string{},
@@ -63,7 +69,10 @@ var _ = Describe("CLI Interface", func() {
 
 		Context("password is supported from env", func() {
 			It("can invoke command with long names", func() {
-				director.VerifyAndMock(mockbosh.VMsForDeployment("my-new-deployment").NotFound())
+				director.VerifyAndMock(
+					mockbosh.Info().WithAuthTypeBasic(),
+					mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
+				)
 
 				runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
 
@@ -196,7 +205,10 @@ var _ = Describe("CLI Interface", func() {
 		})
 		Context("with debug flag set", func() {
 			It("outputs verbose HTTP logs", func() {
-				director.VerifyAndMock(mockbosh.VMsForDeployment("my-new-deployment").NotFound())
+				director.VerifyAndMock(
+					mockbosh.Info().WithAuthTypeBasic(),
+					mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
+				)
 
 				session := runBinary(backupWorkspace, []string{}, "--debug", "--ca-cert", sslCertPath, "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
 

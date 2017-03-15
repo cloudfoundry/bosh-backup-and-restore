@@ -52,8 +52,9 @@ func filesExistOnVM(files ...string) {
 	}
 }
 
-func mockDirectorWith(director *mockhttp.Server, vmsResponse []mockhttp.MockedResponseBuilder, sshResponse []mockhttp.MockedResponseBuilder, downloadManifestResponse []mockhttp.MockedResponseBuilder, cleanupResponse []mockhttp.MockedResponseBuilder) {
+func mockDirectorWith(director *mockhttp.Server, info mockhttp.MockedResponseBuilder, vmsResponse []mockhttp.MockedResponseBuilder, sshResponse []mockhttp.MockedResponseBuilder, downloadManifestResponse []mockhttp.MockedResponseBuilder, cleanupResponse []mockhttp.MockedResponseBuilder) {
 	director.VerifyAndMock(AppendBuilders(
+		[]mockhttp.MockedResponseBuilder{info},
 		vmsResponse,
 		sshResponse,
 		downloadManifestResponse,

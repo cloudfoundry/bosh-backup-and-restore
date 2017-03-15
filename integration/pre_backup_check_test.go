@@ -64,6 +64,7 @@ var _ = Describe("Pre-backup checks", func() {
 				By("creating a dummy backup script")
 
 				mockDirectorWith(director,
+					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					ManifestIsNotDownloaded(),
@@ -91,6 +92,7 @@ printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				mockDirectorWith(director,
+					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					ManifestIsNotDownloaded(),
@@ -120,7 +122,10 @@ printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
 	Context("When deployment does not exist", func() {
 		BeforeEach(func() {
 			deploymentName = "my-non-existent-deployment"
-			director.VerifyAndMock(mockbosh.VMsForDeployment(deploymentName).NotFound())
+			director.VerifyAndMock(
+				mockbosh.Info().WithAuthTypeBasic(),
+				mockbosh.VMsForDeployment(deploymentName).NotFound(),
+			)
 		})
 
 		It("returns exit code 1", func() {
@@ -137,7 +142,12 @@ printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
 	Context("When the director is unreachable", func() {
 		BeforeEach(func() {
 			deploymentName = "my-director-is-broken"
-			director.VerifyAndMock(VmsForDeploymentFails(deploymentName)...)
+			director.VerifyAndMock(
+				AppendBuilders(
+					InfoWithBasicAuth(),
+					VmsForDeploymentFails(deploymentName),
+				)...,
+			)
 		})
 
 		It("returns exit code 1", func() {

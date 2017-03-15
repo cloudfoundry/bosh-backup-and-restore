@@ -105,8 +105,6 @@ func RedisWithMetadataDeploymentSSHCommand(instanceName, instanceIndex string) s
 	return getSSHCommand(RedisWithMetadataDeploymentBoshCommand, instanceName, instanceIndex)
 }
 
-
-
 func getSCPCommand(boshCommand func() string) string {
 	return fmt.Sprintf(
 		"%s scp --gw-user=%s --gw-host=%s --gw-private-key=%s",

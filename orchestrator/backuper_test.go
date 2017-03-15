@@ -18,8 +18,8 @@ var _ = Describe("Backup", func() {
 		artifact           *fakes.FakeArtifact
 		artifactManager    *fakes.FakeArtifactManager
 		logger             *fakes.FakeLogger
-		deploymentName          = "foobarbaz"
-		deploymentManifest  = "what a magnificent manifest"
+		deploymentName     = "foobarbaz"
+		deploymentManifest = "what a magnificent manifest"
 		actualBackupError  orchestrator.Error
 	)
 
@@ -454,10 +454,10 @@ var _ = Describe("Backup", func() {
 
 var _ = Describe("CanBeBackedUp", func() {
 	var (
-		boshDirector      *fakes.FakeBoshClient
-		b                 *orchestrator.Backuper
-		deployment        *fakes.FakeDeployment
-		deploymentManager *fakes.FakeDeploymentManager
+		boshDirector           *fakes.FakeBoshClient
+		b                      *orchestrator.Backuper
+		deployment             *fakes.FakeDeployment
+		deploymentManager      *fakes.FakeDeploymentManager
 		artifactManager        *fakes.FakeArtifactManager
 		logger                 *fakes.FakeLogger
 		deploymentName         = "foobarbaz"
