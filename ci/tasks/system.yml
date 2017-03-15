@@ -12,7 +12,7 @@ inputs:
 
 params:
   BOSH_CLIENT_SECRET:
-  BOSH_URL:
+  BOSH_HOST:
   TEAM_GPG_KEY:
 run:
   path: src/github.com/pivotal-cf/bosh-backup-and-restore/ci/scripts/system.sh
