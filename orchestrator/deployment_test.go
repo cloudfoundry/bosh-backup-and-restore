@@ -144,7 +144,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("Multiple instances, some failing to backup", func() {
 			BeforeEach(func() {
-				backupError := fmt.Errorf("My IQ is one of the highest — and you all know it!")
+				backupError := fmt.Errorf("very clever sandwich")
 				instance1.IsBackupableReturns(true)
 				instance2.IsBackupableReturns(true)
 				instance1.BackupReturns(backupError)
@@ -511,7 +511,7 @@ var _ = Describe("Deployment", func() {
 		})
 
 		Context("Multiple instances, some failing to restore", func() {
-			var restoreError = fmt.Errorf("I have a plan, but I dont want to tell ISIS what it is")
+			var restoreError = fmt.Errorf("and some salt and vinegar crisps")
 
 			BeforeEach(func() {
 				instance1.IsRestorableReturns(true)
@@ -590,16 +590,16 @@ var _ = Describe("Deployment", func() {
 
 			Context("problem occurs streaming to instance", func() {
 				BeforeEach(func() {
-					backupBlob.StreamToRemoteReturns(fmt.Errorf("Tiny children are not horses"))
+					backupBlob.StreamToRemoteReturns(fmt.Errorf("streaming had a problem"))
 				})
 
 				It("fails", func() {
 					Expect(copyLocalBackupToRemoteError).To(HaveOccurred())
-					Expect(copyLocalBackupToRemoteError).To(MatchError("Tiny children are not horses"))
+					Expect(copyLocalBackupToRemoteError).To(MatchError("streaming had a problem"))
 				})
 			})
 			Context("problem calculating shasum on local", func() {
-				var checksumError = fmt.Errorf("because i am smart")
+				var checksumError = fmt.Errorf("I am so clever")
 				BeforeEach(func() {
 					artifact.FetchChecksumReturns(nil, checksumError)
 				})
@@ -633,12 +633,12 @@ var _ = Describe("Deployment", func() {
 
 			Context("problem occurs while reading from backup", func() {
 				BeforeEach(func() {
-					artifact.ReadFileReturns(nil, fmt.Errorf("an overrated clown"))
+					artifact.ReadFileReturns(nil, fmt.Errorf("leave me alone"))
 				})
 
 				It("fails", func() {
 					Expect(copyLocalBackupToRemoteError).To(HaveOccurred())
-					Expect(copyLocalBackupToRemoteError).To(MatchError("an overrated clown"))
+					Expect(copyLocalBackupToRemoteError).To(MatchError("leave me alone"))
 				})
 			})
 		})
@@ -679,16 +679,16 @@ var _ = Describe("Deployment", func() {
 
 			Context("problem occurs streaming to instance", func() {
 				BeforeEach(func() {
-					backupBlob.StreamToRemoteReturns(fmt.Errorf("Tiny children are not horses"))
+					backupBlob.StreamToRemoteReturns(fmt.Errorf("I'm still here"))
 				})
 
 				It("fails", func() {
 					Expect(copyLocalBackupToRemoteError).To(HaveOccurred())
-					Expect(copyLocalBackupToRemoteError).To(MatchError("Tiny children are not horses"))
+					Expect(copyLocalBackupToRemoteError).To(MatchError("I'm still here"))
 				})
 			})
 			Context("problem calculating shasum on local", func() {
-				var checksumError = fmt.Errorf("because i am smart")
+				var checksumError = fmt.Errorf("oh well")
 				BeforeEach(func() {
 					artifact.FetchChecksumReturns(nil, checksumError)
 				})
@@ -722,12 +722,12 @@ var _ = Describe("Deployment", func() {
 
 			Context("problem occurs while reading from backup", func() {
 				BeforeEach(func() {
-					artifact.ReadFileReturns(nil, fmt.Errorf("an overrated clown"))
+					artifact.ReadFileReturns(nil, fmt.Errorf("foo bar baz read error"))
 				})
 
 				It("fails", func() {
 					Expect(copyLocalBackupToRemoteError).To(HaveOccurred())
-					Expect(copyLocalBackupToRemoteError).To(MatchError("an overrated clown"))
+					Expect(copyLocalBackupToRemoteError).To(MatchError("foo bar baz read error"))
 				})
 			})
 		})
@@ -767,16 +767,16 @@ var _ = Describe("Deployment", func() {
 
 			Context("problem occurs streaming to instance", func() {
 				BeforeEach(func() {
-					backupBlob.StreamToRemoteReturns(fmt.Errorf("Tiny children are not horses"))
+					backupBlob.StreamToRemoteReturns(fmt.Errorf("this is a problem"))
 				})
 
 				It("fails", func() {
 					Expect(copyLocalBackupToRemoteError).To(HaveOccurred())
-					Expect(copyLocalBackupToRemoteError).To(MatchError("Tiny children are not horses"))
+					Expect(copyLocalBackupToRemoteError).To(MatchError("this is a problem"))
 				})
 			})
 			Context("problem calculating shasum on local", func() {
-				var checksumError = fmt.Errorf("because i am smart")
+				var checksumError = fmt.Errorf("checksum error occurred")
 				BeforeEach(func() {
 					artifact.FetchChecksumReturns(nil, checksumError)
 				})
@@ -810,12 +810,12 @@ var _ = Describe("Deployment", func() {
 
 			Context("problem occurs while reading from backup", func() {
 				BeforeEach(func() {
-					artifact.ReadFileReturns(nil, fmt.Errorf("an overrated clown"))
+					artifact.ReadFileReturns(nil, fmt.Errorf("a huge problem"))
 				})
 
 				It("fails", func() {
 					Expect(copyLocalBackupToRemoteError).To(HaveOccurred())
-					Expect(copyLocalBackupToRemoteError).To(MatchError("an overrated clown"))
+					Expect(copyLocalBackupToRemoteError).To(MatchError("a huge problem"))
 				})
 			})
 		})
@@ -1183,7 +1183,7 @@ var _ = Describe("Deployment", func() {
 
 		Describe("failures", func() {
 			Context("fails if backup cannot be drained", func() {
-				var drainError = fmt.Errorf("they are bringing crime")
+				var drainError = fmt.Errorf("please make it stop")
 
 				BeforeEach(func() {
 					backupBlob = new(fakes.FakeBackupBlob)
@@ -1201,7 +1201,7 @@ var _ = Describe("Deployment", func() {
 			})
 
 			Context("fails if file cannot be created", func() {
-				var fileError = fmt.Errorf("i have a very good brain")
+				var fileError = fmt.Errorf("not a good file")
 				BeforeEach(func() {
 					instances = []orchestrator.Instance{instance1}
 					instance1.BlobsToBackupReturns([]orchestrator.BackupBlob{backupBlob})
@@ -1235,7 +1235,7 @@ var _ = Describe("Deployment", func() {
 			})
 
 			Context("fails if the remote shasum cant be calulated", func() {
-				remoteShasumError := fmt.Errorf("i have created so many jobs")
+				remoteShasumError := fmt.Errorf("this shasum is not happy")
 				var writeCloser1 *fakes.FakeWriteCloser
 
 				BeforeEach(func() {

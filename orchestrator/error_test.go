@@ -19,7 +19,7 @@ type ErrorCase struct {
 }
 
 var _ = Describe("Error", func() {
-	var genericError = errors.New("You are fake news")
+	var genericError = errors.New("Just a little error")
 
 	var lockError = orchestrator.NewLockError("LOCK_ERROR")
 	var backupError = orchestrator.NewBackupError("BACKUP_ERROR")
@@ -108,7 +108,7 @@ var _ = Describe("Error", func() {
 
 		Context("errors", func() {
 			errorCases := []ErrorCase{
-				{"genericError", []error{genericError}, 1, "You are fake news"},
+				{"genericError", []error{genericError}, 1, "borked"},
 				{"backupError", []error{backupError}, 1, "BACKUP_ERROR"},
 				{"lockError", []error{lockError}, 4, "LOCK_ERROR"},
 				{"unlockError", []error{postBackupUnlockError}, 8, "POST_BACKUP_ERROR"},
@@ -159,7 +159,7 @@ var _ = Describe("Error", func() {
 			It("returns exit code 17 (16 | 1)", func() {
 				exitCode, errorMessage := orchestrator.ProcessBackupError([]error{cleanupError, genericError})
 				Expect(exitCode).To(Equal(17))
-				Expect(errorMessage).To(ContainSubstring("You are fake news"))
+				Expect(errorMessage).To(ContainSubstring("Just a little error"))
 				Expect(errorMessage).To(ContainSubstring("CLEANUP_ERROR"))
 			})
 		})

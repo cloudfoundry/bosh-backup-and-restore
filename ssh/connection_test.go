@@ -240,7 +240,7 @@ var _ = Describe("Connection", func() {
 				})
 
 				BeforeEach(func() {
-					reader = bytes.NewBufferString("they will pay for the wall")
+					reader = bytes.NewBufferString("I am from the reader")
 					command = "cat > /tmp/foo; echo 'here is something on stdout'; echo 'here is something on stderr' >&2"
 				})
 
@@ -254,7 +254,7 @@ var _ = Describe("Connection", func() {
 
 				It("reads stdout from the reader", func() {
 					stdout, _, _, _ := conn.Run("cat /tmp/foo")
-					Expect(string(stdout)).To(Equal("they will pay for the wall"))
+					Expect(string(stdout)).To(Equal("I am from the reader"))
 				})
 
 				It("drains stdout", func() {

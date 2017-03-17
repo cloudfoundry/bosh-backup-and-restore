@@ -87,7 +87,7 @@ var _ = Describe("blob", func() {
 				var sshError error
 
 				BeforeEach(func() {
-					sshError = fmt.Errorf("I have the best SSH")
+					sshError = fmt.Errorf("SHH causing problems here")
 					sshConnection.StreamReturns([]byte("not relevant"), 0, sshError)
 				})
 
@@ -268,7 +268,7 @@ var _ = Describe("blob", func() {
 
 			Context("when an error occurs", func() {
 				var err error
-				var actualError = errors.New("we will load it up with some bad dudes")
+				var actualError = errors.New("oh noes, more errors")
 
 				BeforeEach(func() {
 					sshConnection.RunReturns(nil, nil, 0, actualError)
@@ -315,23 +315,23 @@ var _ = Describe("blob", func() {
 
 			Describe("when the remote side returns an error", func() {
 				BeforeEach(func() {
-					sshConnection.StreamStdinReturns([]byte("not relevant"), []byte("The beauty of me is that I’m very rich."), 1, nil)
+					sshConnection.StreamStdinReturns([]byte("not relevant"), []byte("All the pies"), 1, nil)
 				})
 
 				It("fails and return the error", func() {
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("The beauty of me is that I’m very rich."))
+					Expect(err.Error()).To(ContainSubstring("All the pies"))
 				})
 			})
 
 			Describe("when there is an error running the stream", func() {
 				BeforeEach(func() {
-					sshConnection.StreamStdinReturns([]byte("not relevant"), []byte("not relevant"), 0, fmt.Errorf("My Twitter has become so powerful"))
+					sshConnection.StreamStdinReturns([]byte("not relevant"), []byte("not relevant"), 0, fmt.Errorf("Errorerrororororororor"))
 				})
 
 				It("fails", func() {
 					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("My Twitter has become so powerful"))
+					Expect(err.Error()).To(ContainSubstring("Errorerrororororororor"))
 				})
 			})
 
@@ -348,12 +348,12 @@ var _ = Describe("blob", func() {
 
 			Describe("when creating the directory fails because of a connection error", func() {
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, fmt.Errorf("These media people. The most dishonest people"))
+					sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, fmt.Errorf("I refuse to create you this directory."))
 				})
 
 				It("fails and returns the error", func() {
 					Expect(err).To(HaveOccurred())
-					Expect(err).To(MatchError("These media people. The most dishonest people"))
+					Expect(err).To(MatchError("I refuse to create you this directory."))
 				})
 			})
 		})

@@ -92,7 +92,7 @@ var _ = Describe("restorer", func() {
 		Describe("failures", func() {
 
 			var assertCleanupError = func() {
-				var cleanupError = fmt.Errorf("he was born in kenya")
+				var cleanupError = fmt.Errorf("too dirty")
 				BeforeEach(func() {
 					deployment.CleanupReturns(cleanupError)
 				})
@@ -104,16 +104,16 @@ var _ = Describe("restorer", func() {
 
 			Context("fails to find deployment", func() {
 				BeforeEach(func() {
-					deploymentManager.FindReturns(nil, fmt.Errorf("they will pay for the wall"))
+					deploymentManager.FindReturns(nil, fmt.Errorf("no deployment here"))
 				})
 
 				It("returns an error", func() {
-					Expect(restoreError).To(MatchError("they will pay for the wall"))
+					Expect(restoreError).To(MatchError("no deployment here"))
 				})
 			})
 
 			Context("fails if the artifact cant be opened", func() {
-				var artifactOpenError = fmt.Errorf("i have the best brain")
+				var artifactOpenError = fmt.Errorf("I can't open this")
 				BeforeEach(func() {
 					deploymentManager.FindReturns(deployment, nil)
 					artifactManager.OpenReturns(nil, artifactOpenError)
@@ -134,7 +134,7 @@ var _ = Describe("restorer", func() {
 			})
 
 			Context("fails, if the cleanup fails", func() {
-				var cleanupError = fmt.Errorf("we gotta deal with china")
+				var cleanupError = fmt.Errorf("still too dirty")
 				BeforeEach(func() {
 					deploymentManager.FindReturns(deployment, nil)
 					artifactManager.OpenReturns(artifact, nil)
@@ -151,7 +151,7 @@ var _ = Describe("restorer", func() {
 				})
 			})
 			Context("fails if can't check if artifact is valid", func() {
-				var artifactValidError = fmt.Errorf("we will win so much")
+				var artifactValidError = fmt.Errorf("I don't like this artifact")
 
 				BeforeEach(func() {
 					deploymentManager.FindReturns(deployment, nil)
@@ -195,7 +195,7 @@ var _ = Describe("restorer", func() {
 
 			Context("if checking the deployment topology fails", func() {
 				BeforeEach(func() {
-					artifact.DeploymentMatchesReturns(true, fmt.Errorf("my fingers are long and beautiful"))
+					artifact.DeploymentMatchesReturns(true, fmt.Errorf("I am not the same"))
 				})
 
 				It("returns an error", func() {
@@ -224,7 +224,7 @@ var _ = Describe("restorer", func() {
 			})
 
 			Context("if running the restore script fails", func() {
-				var restoreError = fmt.Errorf("there is something in that birth certificate")
+				var restoreError = fmt.Errorf("I will not restore this thing")
 				BeforeEach(func() {
 					deployment.RestoreReturns(restoreError)
 				})

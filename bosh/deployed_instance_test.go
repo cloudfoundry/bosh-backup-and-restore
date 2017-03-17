@@ -469,7 +469,7 @@ var _ = Describe("Instance", func() {
 		Context("when there are several scripts and one of them fails to run backup while another one causes an error", func() {
 			expectedStdout := "some stdout"
 			expectedStderr := "some stderr"
-			expectedError := fmt.Errorf("you are fake news")
+			expectedError := fmt.Errorf("I have a problem with your code")
 
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
@@ -602,7 +602,7 @@ var _ = Describe("Instance", func() {
 		Context("when there are several scripts and one of them fails to run post-backup-unlock while another one causes an error", func() {
 			expectedStdout := "some stdout"
 			expectedStderr := "some stderr"
-			expectedError := fmt.Errorf("you are fake news")
+			expectedError := fmt.Errorf("I still have a problem with your code")
 
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
@@ -762,7 +762,7 @@ var _ = Describe("Instance", func() {
 		Context("when there are several scripts and one of them fails to run restore while another one causes an error", func() {
 			expectedStdout := "some stdout"
 			expectedStderr := "some stderr"
-			expectedError := fmt.Errorf("i saw a million and a half people")
+			expectedError := fmt.Errorf("foo bar baz error")
 
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{

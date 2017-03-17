@@ -209,7 +209,7 @@ backup_name: consul_backup`), nil, 0, nil
 				BeforeEach(func() {
 					sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
 						if cmd == "/var/vcap/jobs/consul_agent/bin/b-metadata" {
-							return []byte(`they are being really unfair to me`), nil, 0, nil
+							return []byte(`this is very disappointing`), nil, 0, nil
 						}
 						return []byte("/var/vcap/jobs/consul_agent/bin/b-metadata"), nil, 0, nil
 					}

@@ -104,9 +104,9 @@ var _ = Describe("Backup", func() {
 	})
 
 	Describe("failures", func() {
-		var expectedError = fmt.Errorf("Jesus!")
+		var expectedError = fmt.Errorf("Profanity")
 		var assertCleanupError = func() {
-			var cleanupError = fmt.Errorf("he was born in kenya")
+			var cleanupError = fmt.Errorf("gosh, it's a bit filthy in here")
 			BeforeEach(func() {
 				deployment.CleanupReturns(cleanupError)
 			})
@@ -141,7 +141,7 @@ var _ = Describe("Backup", func() {
 		})
 
 		Context("fails if manifest can't be downloaded", func() {
-			var expectedError = fmt.Errorf("he the founder of isis")
+			var expectedError = fmt.Errorf("source of the nile")
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
@@ -156,7 +156,7 @@ var _ = Describe("Backup", func() {
 		})
 
 		Context("fails if manifest can't be saved", func() {
-			var expectedError = fmt.Errorf("he the founder of isis")
+			var expectedError = fmt.Errorf("source of the nile")
 
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
@@ -207,7 +207,7 @@ var _ = Describe("Backup", func() {
 		})
 
 		Context("fails if pre-backup-lock fails", func() {
-			var lockError = orchestrator.NewLockError("it was going to be a smooth transition - NOT")
+			var lockError = orchestrator.NewLockError("smoooooooth jazz")
 
 			BeforeEach(func() {
 				boshClient.GetManifestReturns(deploymentManifest, nil)
@@ -236,7 +236,7 @@ var _ = Describe("Backup", func() {
 			var unlockError orchestrator.PostBackupUnlockError
 
 			BeforeEach(func() {
-				unlockError = orchestrator.NewPostBackupUnlockError("it was going to be a smooth transition - NOT")
+				unlockError = orchestrator.NewPostBackupUnlockError("lalalalala")
 				boshClient.GetManifestReturns(deploymentManifest, nil)
 				artifactManager.CreateReturns(artifact, nil)
 				artifactManager.ExistsReturns(false)
@@ -260,7 +260,7 @@ var _ = Describe("Backup", func() {
 			})
 
 			Context("when the drain artifact fails as well", func() {
-				var drainError = fmt.Errorf("i don't do email but i know about hacking")
+				var drainError = fmt.Errorf("just weird")
 
 				BeforeEach(func() {
 					deployment.CopyRemoteBackupToLocalReturns(drainError)
@@ -272,7 +272,7 @@ var _ = Describe("Backup", func() {
 				})
 
 				Context("cleanup fails as well", func() {
-					var cleanupError = orchestrator.NewCleanupError("he was born in kenya")
+					var cleanupError = orchestrator.NewCleanupError("here we go again")
 					BeforeEach(func() {
 						deployment.CleanupReturns(cleanupError)
 					})
@@ -293,7 +293,7 @@ var _ = Describe("Backup", func() {
 			})
 
 			Context("cleanup fails as well", func() {
-				var cleanupError = fmt.Errorf("he was born in kenya")
+				var cleanupError = fmt.Errorf("leave me alone")
 				BeforeEach(func() {
 					deployment.CleanupReturns(cleanupError)
 				})
@@ -309,7 +309,7 @@ var _ = Describe("Backup", func() {
 		})
 
 		Context("fails if backup cannot be drained", func() {
-			var drainError = fmt.Errorf("they are bringing crime")
+			var drainError = fmt.Errorf("I would like a sandwich")
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
@@ -339,7 +339,7 @@ var _ = Describe("Backup", func() {
 		})
 
 		Context("fails if artifact cannot be created", func() {
-			var artifactError = fmt.Errorf("they are bringing crime")
+			var artifactError = fmt.Errorf("I would like a sandwich")
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
@@ -368,7 +368,7 @@ var _ = Describe("Backup", func() {
 		})
 
 		Context("fails if the cleanup cannot be completed", func() {
-			var cleanupError = fmt.Errorf("why doesn't he show his birth certificate?")
+			var cleanupError = fmt.Errorf("a tuna sandwich")
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
@@ -402,7 +402,7 @@ var _ = Describe("Backup", func() {
 		})
 
 		Context("fails if backup is not a success", func() {
-			var backupError = fmt.Errorf("i have the best words")
+			var backupError = fmt.Errorf("syzygy")
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)

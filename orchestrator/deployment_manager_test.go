@@ -44,7 +44,7 @@ var _ = Describe("DeploymentManager", func() {
 		})
 
 		Context("error finding instances", func() {
-			var expectedFindError = fmt.Errorf("some I assume are good people")
+			var expectedFindError = fmt.Errorf("a tuna sandwich")
 			BeforeEach(func() {
 				boshClient.FindInstancesReturns(nil, expectedFindError)
 			})
