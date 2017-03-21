@@ -301,8 +301,8 @@ instances:
 				})
 
 				It("writer writes contents to the file", func() {
-					writer.Write([]byte("they are taking our jobs"))
-					Expect(ioutil.ReadFile(artifactName + "/redis-0.tgz")).To(Equal([]byte("they are taking our jobs")))
+					writer.Write([]byte("lalala a file"))
+					Expect(ioutil.ReadFile(artifactName + "/redis-0.tgz")).To(Equal([]byte("lalala a file")))
 				})
 
 				It("does not fail", func() {
@@ -321,8 +321,8 @@ instances:
 			})
 
 			It("writer writes contents to the file", func() {
-				writer.Write([]byte("they are taking our jobs"))
-				Expect(ioutil.ReadFile(artifactName + "/my-backup-artifact.tgz")).To(Equal([]byte("they are taking our jobs")))
+				writer.Write([]byte("lalala a file"))
+				Expect(ioutil.ReadFile(artifactName + "/my-backup-artifact.tgz")).To(Equal([]byte("lalala a file")))
 			})
 
 			It("does not fail", func() {

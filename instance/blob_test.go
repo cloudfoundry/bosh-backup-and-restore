@@ -206,7 +206,7 @@ var _ = Describe("blob", func() {
 				var expectedErr error
 
 				BeforeEach(func() {
-					expectedErr = fmt.Errorf("you fool")
+					expectedErr = fmt.Errorf("nope")
 					sshConnection.RunReturns([]byte("don't matter"), []byte("don't matter"), 0, expectedErr)
 				})
 

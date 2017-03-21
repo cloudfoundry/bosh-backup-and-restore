@@ -20,6 +20,7 @@ import (
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh/fakes"
+	"errors"
 )
 
 var _ = Describe("Director", func() {
@@ -688,7 +689,7 @@ var _ = Describe("Director", func() {
 		})
 		Context("fails", func() {
 			Context("to find deployment", func() {
-				var findDeploymentError = fmt.Errorf("what do you have to loose?")
+				var findDeploymentError = errors.New("no deployment here")
 				BeforeEach(func() {
 					boshDirector.FindDeploymentReturns(nil, findDeploymentError)
 				})
@@ -697,7 +698,7 @@ var _ = Describe("Director", func() {
 				})
 			})
 			Context("to download manifest", func() {
-				var downloadManifestError = fmt.Errorf("you will be tired of winning")
+				var downloadManifestError = errors.New("I refuse to download this manifest")
 				BeforeEach(func() {
 					boshDirector.FindDeploymentReturns(boshDeployment, nil)
 					boshDeployment.ManifestReturns("", downloadManifestError)

@@ -13,9 +13,10 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
+	"github.com/pivotal-cf/bosh-backup-and-restore/ssh/fakes"
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
-	"github.com/pivotal-cf/bosh-backup-and-restore/ssh/fakes"
+	"errors"
 )
 
 var _ = Describe("Instance", func() {
@@ -300,7 +301,7 @@ var _ = Describe("Instance", func() {
 		Context("when there are several scripts and one of them fails to run pre backup lock while another one causes an error", func() {
 			expectedStdout := "some stdout"
 			expectedStderr := "some stderr"
-			expectedError := fmt.Errorf("you are fake news")
+			expectedError := errors.New("Errororororor")
 
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
@@ -886,7 +887,7 @@ var _ = Describe("Instance", func() {
 
 		Describe("error while running cleaning up the connection", func() {
 			BeforeEach(func() {
-				expectedError = fmt.Errorf("werk niet")
+				expectedError = errors.New("werk niet")
 				boshDeployment.CleanUpSSHReturns(expectedError)
 			})
 			It("fails", func() {
