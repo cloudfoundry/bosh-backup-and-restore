@@ -1,0 +1,16 @@
+instances:
+- instance_name: other-redis
+  instance_index: "0"
+  checksums:
+    ./redis-server/redis-server/appendonly.aof: b8c7e5915a516767cce9c06188f68bb97c0ce59d
+    ./redis-server/redis-server/dump.rdb: 67b7707141691f54c155080f38671e00ea9bc3a2
+- instance_name: redis
+  instance_index: "0"
+  checksums:
+    ./redis-server/redis-server/appendonly.aof: b8c7e5915a516767cce9c06188f68bb97c0ce59d
+    ./redis-server/redis-server/dump.rdb: e54c0d12bcc1139a69df7ebb7154f2d1fef620e8
+- instance_name: redis
+  instance_index: "1"
+  checksums:
+    ./redis-server/redis-server/appendonly.aof: b8c7e5915a516767cce9c06188f68bb97c0ce59d
+    ./redis-server/redis-server/dump.rdb: b2fa5dd5dddd65c0904860ca3d5a58f94413e1cb

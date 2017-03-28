@@ -1,0 +1,92 @@
+hash: 9f0cfc725530ba089c6b9eddff1d4f6a8ea080d5c759e16922b544071e15b26d
+updated: 2017-01-19T13:38:45.825568349Z
+imports:
+- name: github.com/bmatcuk/doublestar
+  version: dd6a6f0a8cdfaaa88b08cf26cf1bc7d69003ee13
+- name: github.com/charlievieth/fs
+  version: 85d13508c8e9fdaf4c9fcd52a4c3241341566346
+- name: github.com/cloudfoundry/bosh-cli
+  version: 11140a1205cc11018f982e968e273e574f16acf1
+  subpackages:
+  - director
+  - director/directorfakes
+- name: github.com/cloudfoundry/bosh-utils
+  version: 18e54c725fb20f623c27e12aaf3e98d6e18dca69
+  subpackages:
+  - errors
+  - httpclient
+  - logger
+  - system
+  - uuid
+- name: github.com/cppforlife/go-semi-semantic
+  version: 576b6af77ae4f3ccef356902fb3b9a9ae22e0b11
+  subpackages:
+  - version
+- name: github.com/hashicorp/errwrap
+  version: 7554cd9344cec97297fa6649b055a8c98c2a1e55
+- name: github.com/hashicorp/go-multierror
+  version: 8484912a3b9987857bac52e0c5fec2b95f419628
+- name: github.com/kr/pty
+  version: ce7fa45920dc37a92de8377972e52bc55ffa8d57
+- name: github.com/looplab/fsm
+  version: ee3b44fdc79755b3bb003c9bf637cf82bc364a69
+- name: github.com/mgutz/ansi
+  version: c286dcecd19ff979eeb73ea444e479b903f2cfcb
+- name: github.com/nu7hatch/gouuid
+  version: 179d4d0c4d8d407a32af483c2354df1d2c91e6c3
+- name: github.com/onsi/ginkgo
+  version: 00054c0bb96fc880d4e0be1b90937fad438c5290
+  subpackages:
+  - config
+  - internal/codelocation
+  - internal/containernode
+  - internal/failer
+  - internal/leafnodes
+  - internal/remote
+  - internal/spec
+  - internal/specrunner
+  - internal/suite
+  - internal/testingtproxy
+  - internal/writer
+  - reporters
+  - reporters/stenographer
+  - reporters/stenographer/support/go-colorable
+  - reporters/stenographer/support/go-isatty
+  - types
+- name: github.com/onsi/gomega
+  version: 2b6ed62707a2f5fdf1ba9cd856cdeec6bfff6b61
+  subpackages:
+  - format
+  - gbytes
+  - gexec
+  - internal/assertion
+  - internal/asyncassertion
+  - internal/oraclematcher
+  - internal/testingtsupport
+  - matchers
+  - matchers/support/goraph/bipartitegraph
+  - matchers/support/goraph/edge
+  - matchers/support/goraph/node
+  - matchers/support/goraph/util
+  - types
+- name: github.com/pivotal-cf-experimental/cf-webmock
+  version: 8149b92dcd9c66202758602ad81637fda199fc7a
+  subpackages:
+  - mockbosh
+  - mockhttp
+- name: github.com/urfave/cli
+  version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
+- name: golang.org/x/crypto
+  version: 9477e0b78b9ac3d0b03822fd95422e2fe07627cd
+  subpackages:
+  - curve25519
+  - ed25519
+  - ed25519/internal/edwards25519
+  - ssh
+- name: golang.org/x/sys
+  version: b699b7032584f0953262cb2788a0ca19bb494703
+  subpackages:
+  - unix
+- name: gopkg.in/yaml.v2
+  version: a5b47d31c556af34a302ce5d659e6fea44d90de0
+testImports: []
