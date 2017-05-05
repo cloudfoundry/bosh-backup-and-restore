@@ -39,6 +39,7 @@ var _ = Describe("CLI Interface", func() {
 
 				runBinary(backupWorkspace,
 					[]string{},
+					"deployment",
 					"--ca-cert", sslCertPath,
 					"-u", "admin",
 					"-p", "admin",
@@ -56,6 +57,7 @@ var _ = Describe("CLI Interface", func() {
 
 				runBinary(backupWorkspace,
 					[]string{},
+					"deployment",
 					"--ca-cert", sslCertPath,
 					"--username", "admin",
 					"--password", "admin",
@@ -74,7 +76,7 @@ var _ = Describe("CLI Interface", func() {
 					mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
 				)
 
-				runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+				runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
 
 				director.VerifyMocks()
 			})
@@ -85,7 +87,7 @@ var _ = Describe("CLI Interface", func() {
 			var session *gexec.Session
 			BeforeEach(func() {
 				badDirectorURL := "https://:25555"
-				session = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "--username", "admin", "--password", "admin", "--target", badDirectorURL, "--deployment", "my-new-deployment", cmd)
+				session = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--username", "admin", "--password", "admin", "--target", badDirectorURL, "--deployment", "my-new-deployment", cmd)
 				output.output = session.Err.Contents()
 			})
 
@@ -102,7 +104,7 @@ var _ = Describe("CLI Interface", func() {
 			var output helpText
 			var session *gexec.Session
 			BeforeEach(func() {
-				session = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "--ca-cert", "/tmp/whatever", "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+				session = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--ca-cert", "/tmp/whatever", "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
 				output.output = session.Err.Contents()
 			})
 
@@ -119,7 +121,7 @@ var _ = Describe("CLI Interface", func() {
 			var output helpText
 			var session *gexec.Session
 			BeforeEach(func() {
-				session = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "--dave", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+				session = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--dave", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
 				output.output = session.Out.Contents()
 			})
 
@@ -148,28 +150,28 @@ var _ = Describe("CLI Interface", func() {
 
 			Context("Missing target", func() {
 				BeforeEach(func() {
-					command = []string{"--username", "admin", "--password", "admin", "--deployment", "my-new-deployment", cmd}
+					command = []string{"deployment", "--username", "admin", "--password", "admin", "--deployment", "my-new-deployment", cmd}
 				})
 				It("Exits with non zero", func() {
 					Expect(session.ExitCode()).NotTo(BeZero())
 				})
 
 				It("displays a failure message", func() {
-					Expect(output.outputString()).To(ContainSubstring("--target flag is required."))
+					Expect(session.Err.Contents()).To(ContainSubstring("--target flag is required."))
 				})
 				ShowsTheHelpText(&output)
 			})
 
 			Context("Missing username", func() {
 				BeforeEach(func() {
-					command = []string{"--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd}
+					command = []string{"deployment", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd}
 				})
 				It("Exits with non zero", func() {
 					Expect(session.ExitCode()).NotTo(BeZero())
 				})
 
 				It("displays a failure message", func() {
-					Expect(output.outputString()).To(ContainSubstring("--username flag is required."))
+					Expect(session.Err.Contents()).To(ContainSubstring("--username flag is required."))
 				})
 				ShowsTheHelpText(&output)
 			})
@@ -177,28 +179,28 @@ var _ = Describe("CLI Interface", func() {
 			Context("Missing password in args", func() {
 				BeforeEach(func() {
 					env = []string{}
-					command = []string{"--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd}
+					command = []string{"deployment", "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd}
 				})
 				It("Exits with non zero", func() {
 					Expect(session.ExitCode()).NotTo(BeZero())
 				})
 
 				It("displays a failure message", func() {
-					Expect(output.outputString()).To(ContainSubstring("--password flag is required."))
+					Expect(session.Err.Contents()).To(ContainSubstring("--password flag is required."))
 				})
 				ShowsTheHelpText(&output)
 			})
 
 			Context("Missing deployment", func() {
 				BeforeEach(func() {
-					command = []string{"--username", "admin", "--password", "admin", "--target", director.URL, cmd}
+					command = []string{"deployment", "--username", "admin", "--password", "admin", "--target", director.URL, cmd}
 				})
 				It("Exits with non zero", func() {
 					Expect(session.ExitCode()).NotTo(BeZero())
 				})
 
 				It("displays a failure message", func() {
-					Expect(output.outputString()).To(ContainSubstring("--deployment flag is required."))
+					Expect(session.Err.Contents()).To(ContainSubstring("--deployment flag is required."))
 				})
 				ShowsTheHelpText(&output)
 			})
@@ -210,7 +212,7 @@ var _ = Describe("CLI Interface", func() {
 					mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
 				)
 
-				session := runBinary(backupWorkspace, []string{}, "--debug", "--ca-cert", sslCertPath, "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+				session := runBinary(backupWorkspace, []string{}, "deployment", "--debug", "--ca-cert", sslCertPath, "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
 
 				Expect(string(session.Out.Contents())).To(ContainSubstring("Sending GET request to endpoint"))
 
@@ -218,7 +220,6 @@ var _ = Describe("CLI Interface", func() {
 			})
 		})
 	}
-
 	Context("backup", func() {
 		AssertCLIBehaviour("backup")
 	})
@@ -237,7 +238,7 @@ instances: []`))
 		var output helpText
 
 		BeforeEach(func() {
-			output.output = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "--help").Out.Contents()
+			output.output = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--help").Out.Contents()
 		})
 
 		ShowsTheHelpText(&output)
@@ -247,7 +248,7 @@ instances: []`))
 		var output helpText
 
 		BeforeEach(func() {
-			output.output = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "").Out.Contents()
+			output.output = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "").Out.Contents()
 		})
 
 		ShowsTheHelpText(&output)

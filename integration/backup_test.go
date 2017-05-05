@@ -46,6 +46,7 @@ var _ = Describe("Backup", func() {
 		session = runBinary(
 			backupWorkspace,
 			[]string{"BOSH_CLIENT_SECRET=admin"},
+			"deployment",
 			"--ca-cert", sslCertPath,
 			"--username", "admin",
 			"--target", director.URL,

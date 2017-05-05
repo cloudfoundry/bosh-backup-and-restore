@@ -20,30 +20,36 @@ func main() {
 
 	app.Version = version
 
-	app.Name = "Pivotal Backup and Restore"
-	app.HelpName = "Pivotal Backup and Restore"
+	app.Name = "bbr"
+	app.HelpName = "BOSH Backup and Restore"
 
-	app.Flags = availableFlags()
-	app.Before = validateFlags
 	app.Commands = []cli.Command{
-
 		{
-			Name:    "pre-backup-check",
+			Name:    "deployment",
 			Aliases: []string{"c"},
-			Usage:   "Check a deployment can be backed up",
-			Action:  preBackupCheck,
-		},
-		{
-			Name:    "backup",
-			Aliases: []string{"b"},
-			Usage:   "Backup a deployment",
-			Action:  backup,
-		},
-		{
-			Name:    "restore",
-			Aliases: []string{"r"},
-			Usage:   "Restore a deployment from backup",
-			Action:  restore,
+			Usage:   "Backup BOSH deployments",
+			Flags:   availableDeploymentFlags(),
+			Before:  validateDeploymentFlags,
+			Subcommands: []cli.Command{
+				{
+					Name:    "pre-backup-check",
+					Aliases: []string{"c"},
+					Usage:   "Check a deployment can be backed up",
+					Action:  preBackupCheck,
+				},
+				{
+					Name:    "backup",
+					Aliases: []string{"b"},
+					Usage:   "Backup a deployment",
+					Action:  backup,
+				},
+				{
+					Name:    "restore",
+					Aliases: []string{"r"},
+					Usage:   "Restore a deployment from backup",
+					Action:  restore,
+				},
+			},
 		},
 	}
 
@@ -53,7 +59,7 @@ func main() {
 }
 
 func preBackupCheck(c *cli.Context) error {
-	var deployment = c.GlobalString("deployment")
+	var deployment = c.Parent().String("deployment")
 
 	backuper, err := makeBackuper(c)
 	if err != nil {
@@ -72,7 +78,7 @@ func preBackupCheck(c *cli.Context) error {
 }
 
 func backup(c *cli.Context) error {
-	var deployment = c.GlobalString("deployment")
+	var deployment = c.Parent().String("deployment")
 
 	backuper, err := makeBackuper(c)
 	if err != nil {
@@ -87,7 +93,7 @@ func backup(c *cli.Context) error {
 }
 
 func restore(c *cli.Context) error {
-	var deployment = c.GlobalString("deployment")
+	var deployment = c.Parent().String("deployment")
 
 	restorer, err := makeRestorer(c)
 	if err != nil {
@@ -98,18 +104,20 @@ func restore(c *cli.Context) error {
 	return orchestrator.ProcessRestoreError(err)
 }
 
-func validateFlags(c *cli.Context) error {
+func validateDeploymentFlags(c *cli.Context) error {
+
 	requiredFlags := []string{"target", "username", "password", "deployment"}
 
 	for _, flag := range requiredFlags {
-		if c.GlobalString(flag) == "" {
+		if c.String(flag) == "" {
+			cli.ShowAppHelp(c)
 			return fmt.Errorf("--%v flag is required.", flag)
 		}
 	}
 	return nil
 }
 
-func availableFlags() []cli.Flag {
+func availableDeploymentFlags() []cli.Flag {
 	return []cli.Flag{
 		cli.StringFlag{
 			Name:  "target, t",
@@ -166,10 +174,10 @@ func makeRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
 }
 
 func makeBoshClient(c *cli.Context, logger boshlog.Logger) (orchestrator.BoshClient, error) {
-	targetUrl := c.GlobalString("target")
-	username := c.GlobalString("username")
-	password := c.GlobalString("password")
-	caCert := c.GlobalString("ca-cert")
+	targetUrl := c.Parent().String("target")
+	username := c.Parent().String("username")
+	password := c.Parent().String("password")
+	caCert := c.Parent().String("ca-cert")
 
 	return factory.BuildClient(targetUrl, username, password, caCert, logger)
 }

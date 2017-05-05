@@ -18,9 +18,6 @@ func (h helpText) outputString() string {
 }
 
 func ShowsTheHelpText(helpText *helpText) {
-	It("displays the name of the tool", func() {
-		Expect(helpText.outputString()).To(ContainSubstring("Pivotal Backup and Restore"))
-	})
 
 	It("displays the usable flags", func() {
 		Expect(helpText.outputString()).To(ContainSubstring("--target"))

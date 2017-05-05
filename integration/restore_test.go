@@ -50,6 +50,7 @@ instances: []`))
 			session = runBinary(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
+				"deployment",
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
 				"--target", director.URL,
@@ -73,6 +74,7 @@ instances: []`))
 			session = runBinary(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
+				"deployment",
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
 				"--target", director.URL,
@@ -110,6 +112,7 @@ instances:
 			session = runBinary(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
+				"deployment",
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
 				"--target", director.URL,
@@ -165,6 +168,7 @@ instances:
 			session = runBinary(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
+				"deployment",
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
 				"--debug",
@@ -264,6 +268,7 @@ instances:
 			session = runBinary(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
+				"deployment",
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
 				"--debug",
@@ -342,6 +347,7 @@ blobs:
 			session = runBinary(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
+				"deployment",
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
 				"--debug",
@@ -429,6 +435,7 @@ blobs:
 			session = runBinary(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
+				"deployment",
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
 				"--debug",
@@ -487,6 +494,7 @@ blobs:
 			session = runBinary(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
+				"deployment",
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
 				"--debug",
@@ -538,6 +546,7 @@ instances:
 			session = runBinary(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
+				"deployment",
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
 				"--target", director.URL,
