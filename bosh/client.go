@@ -103,7 +103,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 			}
 
 			instances = append(instances,
-				NewBoshInstance(
+				NewBoshDeployedInstance(
 					instanceGroupName,
 					strconv.Itoa(index),
 					host.IndexOrID,

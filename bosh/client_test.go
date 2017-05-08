@@ -93,7 +93,7 @@ var _ = Describe("Director", func() {
 			})
 
 			It("collects the instances", func() {
-				Expect(actualInstances).To(Equal([]orchestrator.Instance{bosh.NewBoshInstance(
+				Expect(actualInstances).To(Equal([]orchestrator.Instance{bosh.NewBoshDeployedInstance(
 					"job1",
 					"0",
 					"jobID",
@@ -217,7 +217,7 @@ var _ = Describe("Director", func() {
 			})
 			It("collects the instances", func() {
 				Expect(actualInstances).To(Equal([]orchestrator.Instance{
-					bosh.NewBoshInstance(
+					bosh.NewBoshDeployedInstance(
 						"job1",
 						"0",
 						"id1",
@@ -226,7 +226,7 @@ var _ = Describe("Director", func() {
 						boshLogger,
 						instance0Jobs,
 					),
-					bosh.NewBoshInstance(
+					bosh.NewBoshDeployedInstance(
 						"job1",
 						"1",
 						"id2",
@@ -332,7 +332,7 @@ var _ = Describe("Director", func() {
 			})
 			It("collects the instances", func() {
 				Expect(actualInstances).To(Equal([]orchestrator.Instance{
-					bosh.NewBoshInstance(
+					bosh.NewBoshDeployedInstance(
 						"job1",
 						"0",
 						"id1",
@@ -341,7 +341,7 @@ var _ = Describe("Director", func() {
 						boshLogger,
 						instanceJobs,
 					),
-					bosh.NewBoshInstance(
+					bosh.NewBoshDeployedInstance(
 						"job1",
 						"1",
 						"id2",
@@ -350,7 +350,7 @@ var _ = Describe("Director", func() {
 						boshLogger,
 						instanceJobs,
 					),
-					bosh.NewBoshInstance(
+					bosh.NewBoshDeployedInstance(
 						"job2",
 						"0",
 						"id3",

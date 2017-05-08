@@ -22,7 +22,7 @@ type Logger interface {
 	Error(tag, msg string, args ...interface{})
 }
 
-func NewNamedBackupBlob(instance orchestrator.Instance, job Job, sshConn SSHConnection, logger Logger) *Blob {
+func NewNamedBackupBlob(instance orchestrator.InstanceIdentifer, job Job, sshConn SSHConnection, logger Logger) *Blob {
 	return &Blob{
 		isNamed:           true,
 		artifactDirectory: job.BackupArtifactDirectory(),
@@ -32,7 +32,7 @@ func NewNamedBackupBlob(instance orchestrator.Instance, job Job, sshConn SSHConn
 		Logger:            logger,
 	}
 }
-func NewNamedRestoreBlob(instance orchestrator.Instance, job Job, sshConn SSHConnection, logger Logger) *Blob {
+func NewNamedRestoreBlob(instance orchestrator.InstanceIdentifer, job Job, sshConn SSHConnection, logger Logger) *Blob {
 	return &Blob{
 		isNamed:           true,
 		artifactDirectory: job.RestoreArtifactDirectory(),
@@ -43,7 +43,7 @@ func NewNamedRestoreBlob(instance orchestrator.Instance, job Job, sshConn SSHCon
 	}
 }
 
-func NewDefaultBlob(instance orchestrator.Instance, sshConn SSHConnection, logger Logger) *Blob {
+func NewDefaultBlob(instance orchestrator.InstanceIdentifer, sshConn SSHConnection, logger Logger) *Blob {
 	return &Blob{
 		isNamed:           false,
 		index:             instance.Index(),
@@ -60,7 +60,7 @@ type Blob struct {
 	index             string
 	artifactDirectory string
 	name              string
-	Instance          orchestrator.Instance
+	Instance          orchestrator.InstanceIdentifer
 	SSHConnection
 	Logger
 }
