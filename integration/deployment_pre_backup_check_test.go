@@ -3,7 +3,6 @@ package integration
 import (
 	"io/ioutil"
 	"os"
-	"path"
 
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
@@ -114,9 +113,6 @@ printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
 				Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' has no backup scripts"))
 			})
 
-			It("does not create a backup on disk", func() {
-				Expect(path.Join(backupWorkspace, deploymentName)).NotTo(BeADirectory())
-			})
 		})
 	})
 

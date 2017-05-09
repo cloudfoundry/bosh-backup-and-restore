@@ -21,6 +21,9 @@ var commandPath string
 
 //Default cert for golang ssh
 var sslCertPath = "../../fixtures/test.crt"
+
+var pathToPrivateKeyFile = "../../fixtures/test_rsa"
+var pathToPublicKeyFile = "../fixtures/test_rsa.pub"
 var runTimeout = 5 * time.Second
 
 func runBinary(cwd string, env []string, params ...string) *gexec.Session {

@@ -11,6 +11,9 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/mgutz/ansi"
+	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
+	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
+	"github.com/pivotal-cf/bosh-backup-and-restore/standalone"
 )
 
 var version string
@@ -25,11 +28,10 @@ func main() {
 
 	app.Commands = []cli.Command{
 		{
-			Name:    "deployment",
-			Aliases: []string{"c"},
-			Usage:   "Backup BOSH deployments",
-			Flags:   availableDeploymentFlags(),
-			Before:  validateDeploymentFlags,
+			Name:   "deployment",
+			Usage:  "Backup BOSH deployments",
+			Flags:  availableDeploymentFlags(),
+			Before: validateDeploymentFlags,
 			Subcommands: []cli.Command{
 				{
 					Name:    "pre-backup-check",
@@ -48,6 +50,20 @@ func main() {
 					Aliases: []string{"r"},
 					Usage:   "Restore a deployment from backup",
 					Action:  restore,
+				},
+			},
+		},
+		{
+			Name:   "director",
+			Usage:  "Backup BOSH deployments",
+			Flags:  availableDirectorFlags(),
+			Before: validateDirectorFlags,
+			Subcommands: []cli.Command{
+				{
+					Name:    "pre-backup-check",
+					Aliases: []string{"c"},
+					Usage:   "Check a deployment can be backed up",
+					Action:  directorPreBackupCheck,
 				},
 			},
 		},
@@ -73,6 +89,31 @@ func preBackupCheck(c *cli.Context) error {
 		return cli.NewExitError("", 0)
 	} else {
 		fmt.Printf("Deployment '%s' cannot be backed up.\n", deployment)
+		return cli.NewExitError(err, 1)
+	}
+}
+
+func directorPreBackupCheck(c *cli.Context) error {
+	var deployment = c.Parent().String("name")
+
+	logger := makeLogger(c)
+
+	deploymentManager := standalone.NewDeploymentManager(logger,
+		c.Parent().String("host"),
+		c.Parent().String("username"),
+		c.Parent().String("private-key-path"),
+		instance.NewJobFinder(logger),
+		ssh.ConnectionCreator,
+	)
+	backuper := orchestrator.NewBackuper(artifact.DirectoryArtifactManager{}, logger, deploymentManager)
+
+	backupable, err := backuper.CanBeBackedUp(deployment)
+
+	if backupable {
+		fmt.Printf("Director can be backed up.\n")
+		return cli.NewExitError("", 0)
+	} else {
+		fmt.Printf("Director cannot be backed up.\n")
 		return cli.NewExitError(err, 1)
 	}
 }
@@ -105,8 +146,19 @@ func restore(c *cli.Context) error {
 }
 
 func validateDeploymentFlags(c *cli.Context) error {
-
 	requiredFlags := []string{"target", "username", "password", "deployment"}
+
+	for _, flag := range requiredFlags {
+		if c.String(flag) == "" {
+			cli.ShowAppHelp(c)
+			return fmt.Errorf("--%v flag is required.", flag)
+		}
+	}
+	return nil
+}
+
+func validateDirectorFlags(c *cli.Context) error {
+	requiredFlags := []string{"name", "host", "username", "private-key-path"}
 
 	for _, flag := range requiredFlags {
 		if c.String(flag) == "" {
@@ -149,6 +201,35 @@ func availableDeploymentFlags() []cli.Flag {
 			Value:  "",
 			EnvVar: "CA_CERT",
 			Usage:  "Custom CA certificate",
+		},
+	}
+}
+
+func availableDirectorFlags() []cli.Flag {
+	return []cli.Flag{
+		cli.StringFlag{
+			Name:  "name, n",
+			Value: "",
+			Usage: "Name for backup",
+		},
+		cli.StringFlag{
+			Name:  "host",
+			Value: "",
+			Usage: "BOSH Director hostname",
+		},
+		cli.StringFlag{
+			Name:  "username, u",
+			Value: "",
+			Usage: "BOSH Director SSH username",
+		},
+		cli.StringFlag{
+			Name:  "private-key-path, key",
+			Value: "",
+			Usage: "BOSH Director SSH private key",
+		},
+		cli.BoolFlag{
+			Name:  "debug",
+			Usage: "Enable debug logs",
 		},
 	}
 }

@@ -19,7 +19,6 @@ type Logger interface {
 }
 
 type Backuper struct {
-	//BoshClient
 	ArtifactManager
 	Logger
 
