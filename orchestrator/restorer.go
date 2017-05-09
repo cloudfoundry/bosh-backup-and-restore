@@ -3,16 +3,14 @@ package orchestrator
 import "fmt"
 
 type Restorer struct {
-	BoshClient
 	ArtifactManager
 	Logger
 
 	DeploymentManager
 }
 
-func NewRestorer(bosh BoshClient, artifactManager ArtifactManager, logger Logger, deploymentManager DeploymentManager) *Restorer {
+func NewRestorer(artifactManager ArtifactManager, logger Logger, deploymentManager DeploymentManager) *Restorer {
 	return &Restorer{
-		BoshClient:        bosh,
 		ArtifactManager:   artifactManager,
 		Logger:            logger,
 		DeploymentManager: deploymentManager,

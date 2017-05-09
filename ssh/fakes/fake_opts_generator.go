@@ -20,12 +20,18 @@ type FakeSSHOptsGenerator struct {
 		result2 string
 		result3 error
 	}
+	returnsOnCall map[int]struct {
+		result1 director.SSHOpts
+		result2 string
+		result3 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeSSHOptsGenerator) Spy(uuidGen uuid.Generator) (director.SSHOpts, string, error) {
 	fake.mutex.Lock()
+	ret, specificReturn := fake.returnsOnCall[len(fake.argsForCall)]
 	fake.argsForCall = append(fake.argsForCall, struct {
 		uuidGen uuid.Generator
 	}{uuidGen})
@@ -33,6 +39,9 @@ func (fake *FakeSSHOptsGenerator) Spy(uuidGen uuid.Generator) (director.SSHOpts,
 	fake.mutex.Unlock()
 	if fake.Stub != nil {
 		return fake.Stub(uuidGen)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
 	}
 	return fake.returns.result1, fake.returns.result2, fake.returns.result3
 }
@@ -52,6 +61,22 @@ func (fake *FakeSSHOptsGenerator) ArgsForCall(i int) uuid.Generator {
 func (fake *FakeSSHOptsGenerator) Returns(result1 director.SSHOpts, result2 string, result3 error) {
 	fake.Stub = nil
 	fake.returns = struct {
+		result1 director.SSHOpts
+		result2 string
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeSSHOptsGenerator) ReturnsOnCall(i int, result1 director.SSHOpts, result2 string, result3 error) {
+	fake.Stub = nil
+	if fake.returnsOnCall == nil {
+		fake.returnsOnCall = make(map[int]struct {
+			result1 director.SSHOpts
+			result2 string
+			result3 error
+		})
+	}
+	fake.returnsOnCall[i] = struct {
 		result1 director.SSHOpts
 		result2 string
 		result3 error

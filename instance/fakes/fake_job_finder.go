@@ -18,12 +18,17 @@ type FakeJobFinder struct {
 		result1 instance.Jobs
 		result2 error
 	}
+	findJobsReturnsOnCall map[int]struct {
+		result1 instance.Jobs
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeJobFinder) FindJobs(hostIdentifier string, connection instance.SSHConnection) (instance.Jobs, error) {
 	fake.findJobsMutex.Lock()
+	ret, specificReturn := fake.findJobsReturnsOnCall[len(fake.findJobsArgsForCall)]
 	fake.findJobsArgsForCall = append(fake.findJobsArgsForCall, struct {
 		hostIdentifier string
 		connection     instance.SSHConnection
@@ -32,6 +37,9 @@ func (fake *FakeJobFinder) FindJobs(hostIdentifier string, connection instance.S
 	fake.findJobsMutex.Unlock()
 	if fake.FindJobsStub != nil {
 		return fake.FindJobsStub(hostIdentifier, connection)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.findJobsReturns.result1, fake.findJobsReturns.result2
 }
@@ -51,6 +59,20 @@ func (fake *FakeJobFinder) FindJobsArgsForCall(i int) (string, instance.SSHConne
 func (fake *FakeJobFinder) FindJobsReturns(result1 instance.Jobs, result2 error) {
 	fake.FindJobsStub = nil
 	fake.findJobsReturns = struct {
+		result1 instance.Jobs
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeJobFinder) FindJobsReturnsOnCall(i int, result1 instance.Jobs, result2 error) {
+	fake.FindJobsStub = nil
+	if fake.findJobsReturnsOnCall == nil {
+		fake.findJobsReturnsOnCall = make(map[int]struct {
+			result1 instance.Jobs
+			result2 error
+		})
+	}
+	fake.findJobsReturnsOnCall[i] = struct {
 		result1 instance.Jobs
 		result2 error
 	}{result1, result2}

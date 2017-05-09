@@ -158,19 +158,13 @@ func (bw *backupWorkflow) createEmptyLocalArtifact(e *fsm.Event) {
 		return
 	}
 
-	manifest, err := bw.GetManifest(bw.deploymentName)
+	err = bw.DeploymentManager.SaveManifest(bw.deploymentName, bw.artifact)
 	if err != nil {
 		bw.backupErrors = append(bw.backupErrors, err)
 		e.Cancel()
 		return
 	}
 
-	err = bw.artifact.SaveManifest(manifest)
-	if err != nil {
-		bw.backupErrors = append(bw.backupErrors, err)
-		e.Cancel()
-		return
-	}
 }
 
 func (bw *backupWorkflow) prebackupLock(e *fsm.Event) {

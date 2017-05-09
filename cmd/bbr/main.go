@@ -160,7 +160,7 @@ func makeBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
 		return nil, cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
 	}
 	deploymentManager := makeDeploymentManager(boshClient, logger)
-	return orchestrator.NewBackuper(boshClient, artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
+	return orchestrator.NewBackuper(artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
 }
 
 func makeRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
@@ -170,7 +170,7 @@ func makeRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
 		return nil, cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
 	}
 	deploymentManager := makeDeploymentManager(boshClient, logger)
-	return orchestrator.NewRestorer(boshClient, artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
+	return orchestrator.NewRestorer(artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
 }
 
 func makeBoshClient(c *cli.Context, logger boshlog.Logger) (orchestrator.BoshClient, error) {

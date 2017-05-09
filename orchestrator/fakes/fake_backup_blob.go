@@ -15,10 +15,16 @@ type FakeBackupBlob struct {
 	nameReturns     struct {
 		result1 string
 	}
+	nameReturnsOnCall map[int]struct {
+		result1 string
+	}
 	IndexStub        func() string
 	indexMutex       sync.RWMutex
 	indexArgsForCall []struct{}
 	indexReturns     struct {
+		result1 string
+	}
+	indexReturnsOnCall map[int]struct {
 		result1 string
 	}
 	IDStub        func() string
@@ -27,10 +33,16 @@ type FakeBackupBlob struct {
 	iDReturns     struct {
 		result1 string
 	}
+	iDReturnsOnCall map[int]struct {
+		result1 string
+	}
 	IsNamedStub        func() bool
 	isNamedMutex       sync.RWMutex
 	isNamedArgsForCall []struct{}
 	isNamedReturns     struct {
+		result1 bool
+	}
+	isNamedReturnsOnCall map[int]struct {
 		result1 bool
 	}
 	SizeStub        func() (string, error)
@@ -40,10 +52,18 @@ type FakeBackupBlob struct {
 		result1 string
 		result2 error
 	}
+	sizeReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	ChecksumStub        func() (orchestrator.BackupChecksum, error)
 	checksumMutex       sync.RWMutex
 	checksumArgsForCall []struct{}
 	checksumReturns     struct {
+		result1 orchestrator.BackupChecksum
+		result2 error
+	}
+	checksumReturnsOnCall map[int]struct {
 		result1 orchestrator.BackupChecksum
 		result2 error
 	}
@@ -55,10 +75,16 @@ type FakeBackupBlob struct {
 	streamFromRemoteReturns struct {
 		result1 error
 	}
+	streamFromRemoteReturnsOnCall map[int]struct {
+		result1 error
+	}
 	DeleteStub        func() error
 	deleteMutex       sync.RWMutex
 	deleteArgsForCall []struct{}
 	deleteReturns     struct {
+		result1 error
+	}
+	deleteReturnsOnCall map[int]struct {
 		result1 error
 	}
 	StreamToRemoteStub        func(io.Reader) error
@@ -69,17 +95,24 @@ type FakeBackupBlob struct {
 	streamToRemoteReturns struct {
 		result1 error
 	}
+	streamToRemoteReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeBackupBlob) Name() string {
 	fake.nameMutex.Lock()
+	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
 	fake.nameArgsForCall = append(fake.nameArgsForCall, struct{}{})
 	fake.recordInvocation("Name", []interface{}{})
 	fake.nameMutex.Unlock()
 	if fake.NameStub != nil {
 		return fake.NameStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.nameReturns.result1
 }
@@ -97,13 +130,29 @@ func (fake *FakeBackupBlob) NameReturns(result1 string) {
 	}{result1}
 }
 
+func (fake *FakeBackupBlob) NameReturnsOnCall(i int, result1 string) {
+	fake.NameStub = nil
+	if fake.nameReturnsOnCall == nil {
+		fake.nameReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.nameReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeBackupBlob) Index() string {
 	fake.indexMutex.Lock()
+	ret, specificReturn := fake.indexReturnsOnCall[len(fake.indexArgsForCall)]
 	fake.indexArgsForCall = append(fake.indexArgsForCall, struct{}{})
 	fake.recordInvocation("Index", []interface{}{})
 	fake.indexMutex.Unlock()
 	if fake.IndexStub != nil {
 		return fake.IndexStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.indexReturns.result1
 }
@@ -121,13 +170,29 @@ func (fake *FakeBackupBlob) IndexReturns(result1 string) {
 	}{result1}
 }
 
+func (fake *FakeBackupBlob) IndexReturnsOnCall(i int, result1 string) {
+	fake.IndexStub = nil
+	if fake.indexReturnsOnCall == nil {
+		fake.indexReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.indexReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeBackupBlob) ID() string {
 	fake.iDMutex.Lock()
+	ret, specificReturn := fake.iDReturnsOnCall[len(fake.iDArgsForCall)]
 	fake.iDArgsForCall = append(fake.iDArgsForCall, struct{}{})
 	fake.recordInvocation("ID", []interface{}{})
 	fake.iDMutex.Unlock()
 	if fake.IDStub != nil {
 		return fake.IDStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.iDReturns.result1
 }
@@ -145,13 +210,29 @@ func (fake *FakeBackupBlob) IDReturns(result1 string) {
 	}{result1}
 }
 
+func (fake *FakeBackupBlob) IDReturnsOnCall(i int, result1 string) {
+	fake.IDStub = nil
+	if fake.iDReturnsOnCall == nil {
+		fake.iDReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.iDReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeBackupBlob) IsNamed() bool {
 	fake.isNamedMutex.Lock()
+	ret, specificReturn := fake.isNamedReturnsOnCall[len(fake.isNamedArgsForCall)]
 	fake.isNamedArgsForCall = append(fake.isNamedArgsForCall, struct{}{})
 	fake.recordInvocation("IsNamed", []interface{}{})
 	fake.isNamedMutex.Unlock()
 	if fake.IsNamedStub != nil {
 		return fake.IsNamedStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.isNamedReturns.result1
 }
@@ -169,13 +250,29 @@ func (fake *FakeBackupBlob) IsNamedReturns(result1 bool) {
 	}{result1}
 }
 
+func (fake *FakeBackupBlob) IsNamedReturnsOnCall(i int, result1 bool) {
+	fake.IsNamedStub = nil
+	if fake.isNamedReturnsOnCall == nil {
+		fake.isNamedReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.isNamedReturnsOnCall[i] = struct {
+		result1 bool
+	}{result1}
+}
+
 func (fake *FakeBackupBlob) Size() (string, error) {
 	fake.sizeMutex.Lock()
+	ret, specificReturn := fake.sizeReturnsOnCall[len(fake.sizeArgsForCall)]
 	fake.sizeArgsForCall = append(fake.sizeArgsForCall, struct{}{})
 	fake.recordInvocation("Size", []interface{}{})
 	fake.sizeMutex.Unlock()
 	if fake.SizeStub != nil {
 		return fake.SizeStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.sizeReturns.result1, fake.sizeReturns.result2
 }
@@ -194,13 +291,31 @@ func (fake *FakeBackupBlob) SizeReturns(result1 string, result2 error) {
 	}{result1, result2}
 }
 
+func (fake *FakeBackupBlob) SizeReturnsOnCall(i int, result1 string, result2 error) {
+	fake.SizeStub = nil
+	if fake.sizeReturnsOnCall == nil {
+		fake.sizeReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.sizeReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeBackupBlob) Checksum() (orchestrator.BackupChecksum, error) {
 	fake.checksumMutex.Lock()
+	ret, specificReturn := fake.checksumReturnsOnCall[len(fake.checksumArgsForCall)]
 	fake.checksumArgsForCall = append(fake.checksumArgsForCall, struct{}{})
 	fake.recordInvocation("Checksum", []interface{}{})
 	fake.checksumMutex.Unlock()
 	if fake.ChecksumStub != nil {
 		return fake.ChecksumStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.checksumReturns.result1, fake.checksumReturns.result2
 }
@@ -219,8 +334,23 @@ func (fake *FakeBackupBlob) ChecksumReturns(result1 orchestrator.BackupChecksum,
 	}{result1, result2}
 }
 
+func (fake *FakeBackupBlob) ChecksumReturnsOnCall(i int, result1 orchestrator.BackupChecksum, result2 error) {
+	fake.ChecksumStub = nil
+	if fake.checksumReturnsOnCall == nil {
+		fake.checksumReturnsOnCall = make(map[int]struct {
+			result1 orchestrator.BackupChecksum
+			result2 error
+		})
+	}
+	fake.checksumReturnsOnCall[i] = struct {
+		result1 orchestrator.BackupChecksum
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeBackupBlob) StreamFromRemote(arg1 io.Writer) error {
 	fake.streamFromRemoteMutex.Lock()
+	ret, specificReturn := fake.streamFromRemoteReturnsOnCall[len(fake.streamFromRemoteArgsForCall)]
 	fake.streamFromRemoteArgsForCall = append(fake.streamFromRemoteArgsForCall, struct {
 		arg1 io.Writer
 	}{arg1})
@@ -228,6 +358,9 @@ func (fake *FakeBackupBlob) StreamFromRemote(arg1 io.Writer) error {
 	fake.streamFromRemoteMutex.Unlock()
 	if fake.StreamFromRemoteStub != nil {
 		return fake.StreamFromRemoteStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.streamFromRemoteReturns.result1
 }
@@ -251,13 +384,29 @@ func (fake *FakeBackupBlob) StreamFromRemoteReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeBackupBlob) StreamFromRemoteReturnsOnCall(i int, result1 error) {
+	fake.StreamFromRemoteStub = nil
+	if fake.streamFromRemoteReturnsOnCall == nil {
+		fake.streamFromRemoteReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.streamFromRemoteReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeBackupBlob) Delete() error {
 	fake.deleteMutex.Lock()
+	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
 	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct{}{})
 	fake.recordInvocation("Delete", []interface{}{})
 	fake.deleteMutex.Unlock()
 	if fake.DeleteStub != nil {
 		return fake.DeleteStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.deleteReturns.result1
 }
@@ -275,8 +424,21 @@ func (fake *FakeBackupBlob) DeleteReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeBackupBlob) DeleteReturnsOnCall(i int, result1 error) {
+	fake.DeleteStub = nil
+	if fake.deleteReturnsOnCall == nil {
+		fake.deleteReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.deleteReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeBackupBlob) StreamToRemote(arg1 io.Reader) error {
 	fake.streamToRemoteMutex.Lock()
+	ret, specificReturn := fake.streamToRemoteReturnsOnCall[len(fake.streamToRemoteArgsForCall)]
 	fake.streamToRemoteArgsForCall = append(fake.streamToRemoteArgsForCall, struct {
 		arg1 io.Reader
 	}{arg1})
@@ -284,6 +446,9 @@ func (fake *FakeBackupBlob) StreamToRemote(arg1 io.Reader) error {
 	fake.streamToRemoteMutex.Unlock()
 	if fake.StreamToRemoteStub != nil {
 		return fake.StreamToRemoteStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.streamToRemoteReturns.result1
 }
@@ -303,6 +468,18 @@ func (fake *FakeBackupBlob) StreamToRemoteArgsForCall(i int) io.Reader {
 func (fake *FakeBackupBlob) StreamToRemoteReturns(result1 error) {
 	fake.StreamToRemoteStub = nil
 	fake.streamToRemoteReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeBackupBlob) StreamToRemoteReturnsOnCall(i int, result1 error) {
+	fake.StreamToRemoteStub = nil
+	if fake.streamToRemoteReturnsOnCall == nil {
+		fake.streamToRemoteReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.streamToRemoteReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }

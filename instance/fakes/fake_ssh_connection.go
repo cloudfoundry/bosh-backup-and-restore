@@ -20,6 +20,11 @@ type FakeSSHConnection struct {
 		result2 int
 		result3 error
 	}
+	streamReturnsOnCall map[int]struct {
+		result1 []byte
+		result2 int
+		result3 error
+	}
 	StreamStdinStub        func(cmd string, reader io.Reader) ([]byte, []byte, int, error)
 	streamStdinMutex       sync.RWMutex
 	streamStdinArgsForCall []struct {
@@ -27,6 +32,12 @@ type FakeSSHConnection struct {
 		reader io.Reader
 	}
 	streamStdinReturns struct {
+		result1 []byte
+		result2 []byte
+		result3 int
+		result4 error
+	}
+	streamStdinReturnsOnCall map[int]struct {
 		result1 []byte
 		result2 []byte
 		result3 int
@@ -43,12 +54,19 @@ type FakeSSHConnection struct {
 		result3 int
 		result4 error
 	}
+	runReturnsOnCall map[int]struct {
+		result1 []byte
+		result2 []byte
+		result3 int
+		result4 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeSSHConnection) Stream(cmd string, writer io.Writer) ([]byte, int, error) {
 	fake.streamMutex.Lock()
+	ret, specificReturn := fake.streamReturnsOnCall[len(fake.streamArgsForCall)]
 	fake.streamArgsForCall = append(fake.streamArgsForCall, struct {
 		cmd    string
 		writer io.Writer
@@ -57,6 +75,9 @@ func (fake *FakeSSHConnection) Stream(cmd string, writer io.Writer) ([]byte, int
 	fake.streamMutex.Unlock()
 	if fake.StreamStub != nil {
 		return fake.StreamStub(cmd, writer)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
 	}
 	return fake.streamReturns.result1, fake.streamReturns.result2, fake.streamReturns.result3
 }
@@ -82,8 +103,25 @@ func (fake *FakeSSHConnection) StreamReturns(result1 []byte, result2 int, result
 	}{result1, result2, result3}
 }
 
+func (fake *FakeSSHConnection) StreamReturnsOnCall(i int, result1 []byte, result2 int, result3 error) {
+	fake.StreamStub = nil
+	if fake.streamReturnsOnCall == nil {
+		fake.streamReturnsOnCall = make(map[int]struct {
+			result1 []byte
+			result2 int
+			result3 error
+		})
+	}
+	fake.streamReturnsOnCall[i] = struct {
+		result1 []byte
+		result2 int
+		result3 error
+	}{result1, result2, result3}
+}
+
 func (fake *FakeSSHConnection) StreamStdin(cmd string, reader io.Reader) ([]byte, []byte, int, error) {
 	fake.streamStdinMutex.Lock()
+	ret, specificReturn := fake.streamStdinReturnsOnCall[len(fake.streamStdinArgsForCall)]
 	fake.streamStdinArgsForCall = append(fake.streamStdinArgsForCall, struct {
 		cmd    string
 		reader io.Reader
@@ -92,6 +130,9 @@ func (fake *FakeSSHConnection) StreamStdin(cmd string, reader io.Reader) ([]byte
 	fake.streamStdinMutex.Unlock()
 	if fake.StreamStdinStub != nil {
 		return fake.StreamStdinStub(cmd, reader)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3, ret.result4
 	}
 	return fake.streamStdinReturns.result1, fake.streamStdinReturns.result2, fake.streamStdinReturns.result3, fake.streamStdinReturns.result4
 }
@@ -118,8 +159,27 @@ func (fake *FakeSSHConnection) StreamStdinReturns(result1 []byte, result2 []byte
 	}{result1, result2, result3, result4}
 }
 
+func (fake *FakeSSHConnection) StreamStdinReturnsOnCall(i int, result1 []byte, result2 []byte, result3 int, result4 error) {
+	fake.StreamStdinStub = nil
+	if fake.streamStdinReturnsOnCall == nil {
+		fake.streamStdinReturnsOnCall = make(map[int]struct {
+			result1 []byte
+			result2 []byte
+			result3 int
+			result4 error
+		})
+	}
+	fake.streamStdinReturnsOnCall[i] = struct {
+		result1 []byte
+		result2 []byte
+		result3 int
+		result4 error
+	}{result1, result2, result3, result4}
+}
+
 func (fake *FakeSSHConnection) Run(cmd string) ([]byte, []byte, int, error) {
 	fake.runMutex.Lock()
+	ret, specificReturn := fake.runReturnsOnCall[len(fake.runArgsForCall)]
 	fake.runArgsForCall = append(fake.runArgsForCall, struct {
 		cmd string
 	}{cmd})
@@ -127,6 +187,9 @@ func (fake *FakeSSHConnection) Run(cmd string) ([]byte, []byte, int, error) {
 	fake.runMutex.Unlock()
 	if fake.RunStub != nil {
 		return fake.RunStub(cmd)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3, ret.result4
 	}
 	return fake.runReturns.result1, fake.runReturns.result2, fake.runReturns.result3, fake.runReturns.result4
 }
@@ -146,6 +209,24 @@ func (fake *FakeSSHConnection) RunArgsForCall(i int) string {
 func (fake *FakeSSHConnection) RunReturns(result1 []byte, result2 []byte, result3 int, result4 error) {
 	fake.RunStub = nil
 	fake.runReturns = struct {
+		result1 []byte
+		result2 []byte
+		result3 int
+		result4 error
+	}{result1, result2, result3, result4}
+}
+
+func (fake *FakeSSHConnection) RunReturnsOnCall(i int, result1 []byte, result2 []byte, result3 int, result4 error) {
+	fake.RunStub = nil
+	if fake.runReturnsOnCall == nil {
+		fake.runReturnsOnCall = make(map[int]struct {
+			result1 []byte
+			result2 []byte
+			result3 int
+			result4 error
+		})
+	}
+	fake.runReturnsOnCall[i] = struct {
 		result1 []byte
 		result2 []byte
 		result3 int

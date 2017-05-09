@@ -11,26 +11,23 @@ import (
 
 var _ = Describe("Backup", func() {
 	var (
-		boshClient         *fakes.FakeBoshClient
-		b                  *orchestrator.Backuper
-		deployment         *fakes.FakeDeployment
-		deploymentManager  *fakes.FakeDeploymentManager
-		artifact           *fakes.FakeArtifact
-		artifactManager    *fakes.FakeArtifactManager
-		logger             *fakes.FakeLogger
-		deploymentName     = "foobarbaz"
-		deploymentManifest = "what a magnificent manifest"
-		actualBackupError  orchestrator.Error
+		b                 *orchestrator.Backuper
+		deployment        *fakes.FakeDeployment
+		deploymentManager *fakes.FakeDeploymentManager
+		artifact          *fakes.FakeArtifact
+		artifactManager   *fakes.FakeArtifactManager
+		logger            *fakes.FakeLogger
+		deploymentName    = "foobarbaz"
+		actualBackupError orchestrator.Error
 	)
 
 	BeforeEach(func() {
 		deployment = new(fakes.FakeDeployment)
 		deploymentManager = new(fakes.FakeDeploymentManager)
-		boshClient = new(fakes.FakeBoshClient)
 		artifactManager = new(fakes.FakeArtifactManager)
 		artifact = new(fakes.FakeArtifact)
 		logger = new(fakes.FakeLogger)
-		b = orchestrator.NewBackuper(boshClient, artifactManager, logger, deploymentManager)
+		b = orchestrator.NewBackuper(artifactManager, logger, deploymentManager)
 	})
 
 	JustBeforeEach(func() {
@@ -39,7 +36,6 @@ var _ = Describe("Backup", func() {
 
 	Context("backs up a deployment", func() {
 		BeforeEach(func() {
-			boshClient.GetManifestReturns(deploymentManifest, nil)
 			artifactManager.CreateReturns(artifact, nil)
 			artifactManager.ExistsReturns(false)
 			deploymentManager.FindReturns(deployment, nil)
@@ -59,8 +55,10 @@ var _ = Describe("Backup", func() {
 		})
 
 		It("saves the deployment manifest", func() {
-			Expect(boshClient.GetManifestCallCount()).To(Equal(1))
-			Expect(boshClient.GetManifestArgsForCall(0)).To(Equal(deploymentName))
+			Expect(deploymentManager.SaveManifestCallCount()).To(Equal(1))
+			actualDeploymentName, actualArtifact := deploymentManager.SaveManifestArgsForCall(0)
+			Expect(actualDeploymentName).To(Equal(deploymentName))
+			Expect(actualArtifact).To(Equal(artifact))
 		})
 
 		It("checks if the artifact already exists", func() {
@@ -140,21 +138,6 @@ var _ = Describe("Backup", func() {
 			})
 		})
 
-		Context("fails if manifest can't be downloaded", func() {
-			var expectedError = fmt.Errorf("source of the nile")
-			BeforeEach(func() {
-				deploymentManager.FindReturns(deployment, nil)
-				deployment.IsBackupableReturns(true)
-				deployment.HasValidBackupMetadataReturns(true)
-				artifactManager.CreateReturns(artifact, nil)
-				boshClient.GetManifestReturns("", expectedError)
-			})
-
-			It("fails the backup process", func() {
-				Expect(actualBackupError).To(ConsistOf(expectedError))
-			})
-		})
-
 		Context("fails if manifest can't be saved", func() {
 			var expectedError = fmt.Errorf("source of the nile")
 
@@ -163,8 +146,7 @@ var _ = Describe("Backup", func() {
 				deployment.IsBackupableReturns(true)
 				deployment.HasValidBackupMetadataReturns(true)
 				artifactManager.CreateReturns(artifact, nil)
-				boshClient.GetManifestReturns(deploymentManifest, nil)
-				artifact.SaveManifestReturns(expectedError)
+				deploymentManager.SaveManifestReturns(expectedError)
 			})
 
 			It("fails the backup process", func() {
@@ -210,7 +192,6 @@ var _ = Describe("Backup", func() {
 			var lockError = orchestrator.NewLockError("smoooooooth jazz")
 
 			BeforeEach(func() {
-				boshClient.GetManifestReturns(deploymentManifest, nil)
 				artifactManager.CreateReturns(artifact, nil)
 				artifactManager.ExistsReturns(false)
 				deploymentManager.FindReturns(deployment, nil)
@@ -237,7 +218,6 @@ var _ = Describe("Backup", func() {
 
 			BeforeEach(func() {
 				unlockError = orchestrator.NewPostBackupUnlockError("lalalalala")
-				boshClient.GetManifestReturns(deploymentManifest, nil)
 				artifactManager.CreateReturns(artifact, nil)
 				artifactManager.ExistsReturns(false)
 				deploymentManager.FindReturns(deployment, nil)
@@ -454,24 +434,21 @@ var _ = Describe("Backup", func() {
 
 var _ = Describe("CanBeBackedUp", func() {
 	var (
-		boshDirector           *fakes.FakeBoshClient
 		b                      *orchestrator.Backuper
 		deployment             *fakes.FakeDeployment
 		deploymentManager      *fakes.FakeDeploymentManager
 		artifactManager        *fakes.FakeArtifactManager
 		logger                 *fakes.FakeLogger
 		deploymentName         = "foobarbaz"
-		deploymentManifest     = "what a magnificent manifest"
 		isDeploymentBackupable bool
 	)
 
 	BeforeEach(func() {
 		deployment = new(fakes.FakeDeployment)
 		deploymentManager = new(fakes.FakeDeploymentManager)
-		boshDirector = new(fakes.FakeBoshClient)
 		artifactManager = new(fakes.FakeArtifactManager)
 		logger = new(fakes.FakeLogger)
-		b = orchestrator.NewBackuper(boshDirector, artifactManager, logger, deploymentManager)
+		b = orchestrator.NewBackuper(artifactManager, logger, deploymentManager)
 	})
 
 	JustBeforeEach(func() {
@@ -480,7 +457,6 @@ var _ = Describe("CanBeBackedUp", func() {
 
 	Context("when the deployment can be backed up", func() {
 		BeforeEach(func() {
-			boshDirector.GetManifestReturns(deploymentManifest, nil)
 			artifactManager.ExistsReturns(false)
 			deploymentManager.FindReturns(deployment, nil)
 			deployment.IsBackupableReturns(true)
@@ -516,7 +492,6 @@ var _ = Describe("CanBeBackedUp", func() {
 
 	Context("when the deployment doesn't exist", func() {
 		BeforeEach(func() {
-			boshDirector.GetManifestReturns(deploymentManifest, nil)
 			artifactManager.ExistsReturns(false)
 			deploymentManager.FindReturns(nil, fmt.Errorf("deployment not found"))
 			deployment.IsBackupableReturns(true)

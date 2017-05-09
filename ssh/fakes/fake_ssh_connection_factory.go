@@ -19,12 +19,17 @@ type FakeSSHConnectionFactory struct {
 		result1 ssh.SSHConnection
 		result2 error
 	}
+	returnsOnCall map[int]struct {
+		result1 ssh.SSHConnection
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeSSHConnectionFactory) Spy(host string, user string, privateKey string) (ssh.SSHConnection, error) {
 	fake.mutex.Lock()
+	ret, specificReturn := fake.returnsOnCall[len(fake.argsForCall)]
 	fake.argsForCall = append(fake.argsForCall, struct {
 		host       string
 		user       string
@@ -34,6 +39,9 @@ func (fake *FakeSSHConnectionFactory) Spy(host string, user string, privateKey s
 	fake.mutex.Unlock()
 	if fake.Stub != nil {
 		return fake.Stub(host, user, privateKey)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.returns.result1, fake.returns.result2
 }
@@ -53,6 +61,20 @@ func (fake *FakeSSHConnectionFactory) ArgsForCall(i int) (string, string, string
 func (fake *FakeSSHConnectionFactory) Returns(result1 ssh.SSHConnection, result2 error) {
 	fake.Stub = nil
 	fake.returns = struct {
+		result1 ssh.SSHConnection
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeSSHConnectionFactory) ReturnsOnCall(i int, result1 ssh.SSHConnection, result2 error) {
+	fake.Stub = nil
+	if fake.returnsOnCall == nil {
+		fake.returnsOnCall = make(map[int]struct {
+			result1 ssh.SSHConnection
+			result2 error
+		})
+	}
+	fake.returnsOnCall[i] = struct {
 		result1 ssh.SSHConnection
 		result2 error
 	}{result1, result2}

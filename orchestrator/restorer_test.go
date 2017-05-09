@@ -16,7 +16,6 @@ var _ = Describe("restorer", func() {
 			restoreError      error
 			artifactManager   *fakes.FakeArtifactManager
 			artifact          *fakes.FakeArtifact
-			boshClient        *fakes.FakeBoshClient
 			logger            *fakes.FakeLogger
 			instances         []orchestrator.Instance
 			b                 *orchestrator.Restorer
@@ -27,7 +26,6 @@ var _ = Describe("restorer", func() {
 
 		BeforeEach(func() {
 			instances = []orchestrator.Instance{new(fakes.FakeInstance)}
-			boshClient = new(fakes.FakeBoshClient)
 			logger = new(fakes.FakeLogger)
 			artifactManager = new(fakes.FakeArtifactManager)
 			artifact = new(fakes.FakeArtifact)
@@ -41,7 +39,7 @@ var _ = Describe("restorer", func() {
 			artifact.DeploymentMatchesReturns(true, nil)
 			artifact.ValidReturns(true, nil)
 
-			b = orchestrator.NewRestorer(boshClient, artifactManager, logger, deploymentManager)
+			b = orchestrator.NewRestorer(artifactManager, logger, deploymentManager)
 
 			deploymentName = "deployment-to-restore"
 		})

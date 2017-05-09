@@ -14,10 +14,16 @@ type FakeDeployment struct {
 	isBackupableReturns     struct {
 		result1 bool
 	}
+	isBackupableReturnsOnCall map[int]struct {
+		result1 bool
+	}
 	HasValidBackupMetadataStub        func() bool
 	hasValidBackupMetadataMutex       sync.RWMutex
 	hasValidBackupMetadataArgsForCall []struct{}
 	hasValidBackupMetadataReturns     struct {
+		result1 bool
+	}
+	hasValidBackupMetadataReturnsOnCall map[int]struct {
 		result1 bool
 	}
 	IsRestorableStub        func() bool
@@ -26,10 +32,16 @@ type FakeDeployment struct {
 	isRestorableReturns     struct {
 		result1 bool
 	}
+	isRestorableReturnsOnCall map[int]struct {
+		result1 bool
+	}
 	PreBackupLockStub        func() error
 	preBackupLockMutex       sync.RWMutex
 	preBackupLockArgsForCall []struct{}
 	preBackupLockReturns     struct {
+		result1 error
+	}
+	preBackupLockReturnsOnCall map[int]struct {
 		result1 error
 	}
 	BackupStub        func() error
@@ -38,16 +50,25 @@ type FakeDeployment struct {
 	backupReturns     struct {
 		result1 error
 	}
+	backupReturnsOnCall map[int]struct {
+		result1 error
+	}
 	PostBackupUnlockStub        func() error
 	postBackupUnlockMutex       sync.RWMutex
 	postBackupUnlockArgsForCall []struct{}
 	postBackupUnlockReturns     struct {
 		result1 error
 	}
+	postBackupUnlockReturnsOnCall map[int]struct {
+		result1 error
+	}
 	RestoreStub        func() error
 	restoreMutex       sync.RWMutex
 	restoreArgsForCall []struct{}
 	restoreReturns     struct {
+		result1 error
+	}
+	restoreReturnsOnCall map[int]struct {
 		result1 error
 	}
 	CopyRemoteBackupToLocalStub        func(orchestrator.Artifact) error
@@ -58,6 +79,9 @@ type FakeDeployment struct {
 	copyRemoteBackupToLocalReturns struct {
 		result1 error
 	}
+	copyRemoteBackupToLocalReturnsOnCall map[int]struct {
+		result1 error
+	}
 	CopyLocalBackupToRemoteStub        func(orchestrator.Artifact) error
 	copyLocalBackupToRemoteMutex       sync.RWMutex
 	copyLocalBackupToRemoteArgsForCall []struct {
@@ -66,10 +90,16 @@ type FakeDeployment struct {
 	copyLocalBackupToRemoteReturns struct {
 		result1 error
 	}
+	copyLocalBackupToRemoteReturnsOnCall map[int]struct {
+		result1 error
+	}
 	CleanupStub        func() error
 	cleanupMutex       sync.RWMutex
 	cleanupArgsForCall []struct{}
 	cleanupReturns     struct {
+		result1 error
+	}
+	cleanupReturnsOnCall map[int]struct {
 		result1 error
 	}
 	InstancesStub        func() []orchestrator.Instance
@@ -78,17 +108,24 @@ type FakeDeployment struct {
 	instancesReturns     struct {
 		result1 []orchestrator.Instance
 	}
+	instancesReturnsOnCall map[int]struct {
+		result1 []orchestrator.Instance
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeDeployment) IsBackupable() bool {
 	fake.isBackupableMutex.Lock()
+	ret, specificReturn := fake.isBackupableReturnsOnCall[len(fake.isBackupableArgsForCall)]
 	fake.isBackupableArgsForCall = append(fake.isBackupableArgsForCall, struct{}{})
 	fake.recordInvocation("IsBackupable", []interface{}{})
 	fake.isBackupableMutex.Unlock()
 	if fake.IsBackupableStub != nil {
 		return fake.IsBackupableStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.isBackupableReturns.result1
 }
@@ -106,13 +143,29 @@ func (fake *FakeDeployment) IsBackupableReturns(result1 bool) {
 	}{result1}
 }
 
+func (fake *FakeDeployment) IsBackupableReturnsOnCall(i int, result1 bool) {
+	fake.IsBackupableStub = nil
+	if fake.isBackupableReturnsOnCall == nil {
+		fake.isBackupableReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.isBackupableReturnsOnCall[i] = struct {
+		result1 bool
+	}{result1}
+}
+
 func (fake *FakeDeployment) HasValidBackupMetadata() bool {
 	fake.hasValidBackupMetadataMutex.Lock()
+	ret, specificReturn := fake.hasValidBackupMetadataReturnsOnCall[len(fake.hasValidBackupMetadataArgsForCall)]
 	fake.hasValidBackupMetadataArgsForCall = append(fake.hasValidBackupMetadataArgsForCall, struct{}{})
 	fake.recordInvocation("HasValidBackupMetadata", []interface{}{})
 	fake.hasValidBackupMetadataMutex.Unlock()
 	if fake.HasValidBackupMetadataStub != nil {
 		return fake.HasValidBackupMetadataStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.hasValidBackupMetadataReturns.result1
 }
@@ -130,13 +183,29 @@ func (fake *FakeDeployment) HasValidBackupMetadataReturns(result1 bool) {
 	}{result1}
 }
 
+func (fake *FakeDeployment) HasValidBackupMetadataReturnsOnCall(i int, result1 bool) {
+	fake.HasValidBackupMetadataStub = nil
+	if fake.hasValidBackupMetadataReturnsOnCall == nil {
+		fake.hasValidBackupMetadataReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.hasValidBackupMetadataReturnsOnCall[i] = struct {
+		result1 bool
+	}{result1}
+}
+
 func (fake *FakeDeployment) IsRestorable() bool {
 	fake.isRestorableMutex.Lock()
+	ret, specificReturn := fake.isRestorableReturnsOnCall[len(fake.isRestorableArgsForCall)]
 	fake.isRestorableArgsForCall = append(fake.isRestorableArgsForCall, struct{}{})
 	fake.recordInvocation("IsRestorable", []interface{}{})
 	fake.isRestorableMutex.Unlock()
 	if fake.IsRestorableStub != nil {
 		return fake.IsRestorableStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.isRestorableReturns.result1
 }
@@ -154,13 +223,29 @@ func (fake *FakeDeployment) IsRestorableReturns(result1 bool) {
 	}{result1}
 }
 
+func (fake *FakeDeployment) IsRestorableReturnsOnCall(i int, result1 bool) {
+	fake.IsRestorableStub = nil
+	if fake.isRestorableReturnsOnCall == nil {
+		fake.isRestorableReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.isRestorableReturnsOnCall[i] = struct {
+		result1 bool
+	}{result1}
+}
+
 func (fake *FakeDeployment) PreBackupLock() error {
 	fake.preBackupLockMutex.Lock()
+	ret, specificReturn := fake.preBackupLockReturnsOnCall[len(fake.preBackupLockArgsForCall)]
 	fake.preBackupLockArgsForCall = append(fake.preBackupLockArgsForCall, struct{}{})
 	fake.recordInvocation("PreBackupLock", []interface{}{})
 	fake.preBackupLockMutex.Unlock()
 	if fake.PreBackupLockStub != nil {
 		return fake.PreBackupLockStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.preBackupLockReturns.result1
 }
@@ -178,13 +263,29 @@ func (fake *FakeDeployment) PreBackupLockReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeDeployment) PreBackupLockReturnsOnCall(i int, result1 error) {
+	fake.PreBackupLockStub = nil
+	if fake.preBackupLockReturnsOnCall == nil {
+		fake.preBackupLockReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.preBackupLockReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeDeployment) Backup() error {
 	fake.backupMutex.Lock()
+	ret, specificReturn := fake.backupReturnsOnCall[len(fake.backupArgsForCall)]
 	fake.backupArgsForCall = append(fake.backupArgsForCall, struct{}{})
 	fake.recordInvocation("Backup", []interface{}{})
 	fake.backupMutex.Unlock()
 	if fake.BackupStub != nil {
 		return fake.BackupStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.backupReturns.result1
 }
@@ -202,13 +303,29 @@ func (fake *FakeDeployment) BackupReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeDeployment) BackupReturnsOnCall(i int, result1 error) {
+	fake.BackupStub = nil
+	if fake.backupReturnsOnCall == nil {
+		fake.backupReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.backupReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeDeployment) PostBackupUnlock() error {
 	fake.postBackupUnlockMutex.Lock()
+	ret, specificReturn := fake.postBackupUnlockReturnsOnCall[len(fake.postBackupUnlockArgsForCall)]
 	fake.postBackupUnlockArgsForCall = append(fake.postBackupUnlockArgsForCall, struct{}{})
 	fake.recordInvocation("PostBackupUnlock", []interface{}{})
 	fake.postBackupUnlockMutex.Unlock()
 	if fake.PostBackupUnlockStub != nil {
 		return fake.PostBackupUnlockStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.postBackupUnlockReturns.result1
 }
@@ -226,13 +343,29 @@ func (fake *FakeDeployment) PostBackupUnlockReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeDeployment) PostBackupUnlockReturnsOnCall(i int, result1 error) {
+	fake.PostBackupUnlockStub = nil
+	if fake.postBackupUnlockReturnsOnCall == nil {
+		fake.postBackupUnlockReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.postBackupUnlockReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeDeployment) Restore() error {
 	fake.restoreMutex.Lock()
+	ret, specificReturn := fake.restoreReturnsOnCall[len(fake.restoreArgsForCall)]
 	fake.restoreArgsForCall = append(fake.restoreArgsForCall, struct{}{})
 	fake.recordInvocation("Restore", []interface{}{})
 	fake.restoreMutex.Unlock()
 	if fake.RestoreStub != nil {
 		return fake.RestoreStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.restoreReturns.result1
 }
@@ -250,8 +383,21 @@ func (fake *FakeDeployment) RestoreReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeDeployment) RestoreReturnsOnCall(i int, result1 error) {
+	fake.RestoreStub = nil
+	if fake.restoreReturnsOnCall == nil {
+		fake.restoreReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.restoreReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeDeployment) CopyRemoteBackupToLocal(arg1 orchestrator.Artifact) error {
 	fake.copyRemoteBackupToLocalMutex.Lock()
+	ret, specificReturn := fake.copyRemoteBackupToLocalReturnsOnCall[len(fake.copyRemoteBackupToLocalArgsForCall)]
 	fake.copyRemoteBackupToLocalArgsForCall = append(fake.copyRemoteBackupToLocalArgsForCall, struct {
 		arg1 orchestrator.Artifact
 	}{arg1})
@@ -259,6 +405,9 @@ func (fake *FakeDeployment) CopyRemoteBackupToLocal(arg1 orchestrator.Artifact) 
 	fake.copyRemoteBackupToLocalMutex.Unlock()
 	if fake.CopyRemoteBackupToLocalStub != nil {
 		return fake.CopyRemoteBackupToLocalStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.copyRemoteBackupToLocalReturns.result1
 }
@@ -282,8 +431,21 @@ func (fake *FakeDeployment) CopyRemoteBackupToLocalReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeDeployment) CopyRemoteBackupToLocalReturnsOnCall(i int, result1 error) {
+	fake.CopyRemoteBackupToLocalStub = nil
+	if fake.copyRemoteBackupToLocalReturnsOnCall == nil {
+		fake.copyRemoteBackupToLocalReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.copyRemoteBackupToLocalReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeDeployment) CopyLocalBackupToRemote(arg1 orchestrator.Artifact) error {
 	fake.copyLocalBackupToRemoteMutex.Lock()
+	ret, specificReturn := fake.copyLocalBackupToRemoteReturnsOnCall[len(fake.copyLocalBackupToRemoteArgsForCall)]
 	fake.copyLocalBackupToRemoteArgsForCall = append(fake.copyLocalBackupToRemoteArgsForCall, struct {
 		arg1 orchestrator.Artifact
 	}{arg1})
@@ -291,6 +453,9 @@ func (fake *FakeDeployment) CopyLocalBackupToRemote(arg1 orchestrator.Artifact) 
 	fake.copyLocalBackupToRemoteMutex.Unlock()
 	if fake.CopyLocalBackupToRemoteStub != nil {
 		return fake.CopyLocalBackupToRemoteStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.copyLocalBackupToRemoteReturns.result1
 }
@@ -314,13 +479,29 @@ func (fake *FakeDeployment) CopyLocalBackupToRemoteReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeDeployment) CopyLocalBackupToRemoteReturnsOnCall(i int, result1 error) {
+	fake.CopyLocalBackupToRemoteStub = nil
+	if fake.copyLocalBackupToRemoteReturnsOnCall == nil {
+		fake.copyLocalBackupToRemoteReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.copyLocalBackupToRemoteReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeDeployment) Cleanup() error {
 	fake.cleanupMutex.Lock()
+	ret, specificReturn := fake.cleanupReturnsOnCall[len(fake.cleanupArgsForCall)]
 	fake.cleanupArgsForCall = append(fake.cleanupArgsForCall, struct{}{})
 	fake.recordInvocation("Cleanup", []interface{}{})
 	fake.cleanupMutex.Unlock()
 	if fake.CleanupStub != nil {
 		return fake.CleanupStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.cleanupReturns.result1
 }
@@ -338,13 +519,29 @@ func (fake *FakeDeployment) CleanupReturns(result1 error) {
 	}{result1}
 }
 
+func (fake *FakeDeployment) CleanupReturnsOnCall(i int, result1 error) {
+	fake.CleanupStub = nil
+	if fake.cleanupReturnsOnCall == nil {
+		fake.cleanupReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.cleanupReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeDeployment) Instances() []orchestrator.Instance {
 	fake.instancesMutex.Lock()
+	ret, specificReturn := fake.instancesReturnsOnCall[len(fake.instancesArgsForCall)]
 	fake.instancesArgsForCall = append(fake.instancesArgsForCall, struct{}{})
 	fake.recordInvocation("Instances", []interface{}{})
 	fake.instancesMutex.Unlock()
 	if fake.InstancesStub != nil {
 		return fake.InstancesStub()
+	}
+	if specificReturn {
+		return ret.result1
 	}
 	return fake.instancesReturns.result1
 }
@@ -358,6 +555,18 @@ func (fake *FakeDeployment) InstancesCallCount() int {
 func (fake *FakeDeployment) InstancesReturns(result1 []orchestrator.Instance) {
 	fake.InstancesStub = nil
 	fake.instancesReturns = struct {
+		result1 []orchestrator.Instance
+	}{result1}
+}
+
+func (fake *FakeDeployment) InstancesReturnsOnCall(i int, result1 []orchestrator.Instance) {
+	fake.InstancesStub = nil
+	if fake.instancesReturnsOnCall == nil {
+		fake.instancesReturnsOnCall = make(map[int]struct {
+			result1 []orchestrator.Instance
+		})
+	}
+	fake.instancesReturnsOnCall[i] = struct {
 		result1 []orchestrator.Instance
 	}{result1}
 }

@@ -2,9 +2,8 @@ package orchestrator
 
 import "github.com/hashicorp/go-multierror"
 
-func NewBackuper(bosh BoshClient, artifactManager ArtifactManager, logger Logger, deploymentManager DeploymentManager) *Backuper {
+func NewBackuper(artifactManager ArtifactManager, logger Logger, deploymentManager DeploymentManager) *Backuper {
 	return &Backuper{
-		BoshClient:        bosh,
 		ArtifactManager:   artifactManager,
 		Logger:            logger,
 		DeploymentManager: deploymentManager,
@@ -20,7 +19,7 @@ type Logger interface {
 }
 
 type Backuper struct {
-	BoshClient
+	//BoshClient
 	ArtifactManager
 	Logger
 

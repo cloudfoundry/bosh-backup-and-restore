@@ -17,6 +17,10 @@ type FakeBoshClient struct {
 		result1 []orchestrator.Instance
 		result2 error
 	}
+	findInstancesReturnsOnCall map[int]struct {
+		result1 []orchestrator.Instance
+		result2 error
+	}
 	GetManifestStub        func(deploymentName string) (string, error)
 	getManifestMutex       sync.RWMutex
 	getManifestArgsForCall []struct {
@@ -26,12 +30,17 @@ type FakeBoshClient struct {
 		result1 string
 		result2 error
 	}
+	getManifestReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
 func (fake *FakeBoshClient) FindInstances(deploymentName string) ([]orchestrator.Instance, error) {
 	fake.findInstancesMutex.Lock()
+	ret, specificReturn := fake.findInstancesReturnsOnCall[len(fake.findInstancesArgsForCall)]
 	fake.findInstancesArgsForCall = append(fake.findInstancesArgsForCall, struct {
 		deploymentName string
 	}{deploymentName})
@@ -39,6 +48,9 @@ func (fake *FakeBoshClient) FindInstances(deploymentName string) ([]orchestrator
 	fake.findInstancesMutex.Unlock()
 	if fake.FindInstancesStub != nil {
 		return fake.FindInstancesStub(deploymentName)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.findInstancesReturns.result1, fake.findInstancesReturns.result2
 }
@@ -63,8 +75,23 @@ func (fake *FakeBoshClient) FindInstancesReturns(result1 []orchestrator.Instance
 	}{result1, result2}
 }
 
+func (fake *FakeBoshClient) FindInstancesReturnsOnCall(i int, result1 []orchestrator.Instance, result2 error) {
+	fake.FindInstancesStub = nil
+	if fake.findInstancesReturnsOnCall == nil {
+		fake.findInstancesReturnsOnCall = make(map[int]struct {
+			result1 []orchestrator.Instance
+			result2 error
+		})
+	}
+	fake.findInstancesReturnsOnCall[i] = struct {
+		result1 []orchestrator.Instance
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeBoshClient) GetManifest(deploymentName string) (string, error) {
 	fake.getManifestMutex.Lock()
+	ret, specificReturn := fake.getManifestReturnsOnCall[len(fake.getManifestArgsForCall)]
 	fake.getManifestArgsForCall = append(fake.getManifestArgsForCall, struct {
 		deploymentName string
 	}{deploymentName})
@@ -72,6 +99,9 @@ func (fake *FakeBoshClient) GetManifest(deploymentName string) (string, error) {
 	fake.getManifestMutex.Unlock()
 	if fake.GetManifestStub != nil {
 		return fake.GetManifestStub(deploymentName)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
 	}
 	return fake.getManifestReturns.result1, fake.getManifestReturns.result2
 }
@@ -91,6 +121,20 @@ func (fake *FakeBoshClient) GetManifestArgsForCall(i int) string {
 func (fake *FakeBoshClient) GetManifestReturns(result1 string, result2 error) {
 	fake.GetManifestStub = nil
 	fake.getManifestReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeBoshClient) GetManifestReturnsOnCall(i int, result1 string, result2 error) {
+	fake.GetManifestStub = nil
+	if fake.getManifestReturnsOnCall == nil {
+		fake.getManifestReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.getManifestReturnsOnCall[i] = struct {
 		result1 string
 		result2 error
 	}{result1, result2}
