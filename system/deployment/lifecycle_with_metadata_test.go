@@ -1,4 +1,4 @@
-package system
+package deployment
 
 import (
 	"fmt"
@@ -88,7 +88,7 @@ var _ = Describe("backup with custom metadata", func() {
 })
 
 func populateRedisWithMetadata(instanceCollection map[string][]string) {
-	dataFixture := "../fixtures/redis_test_commands"
+	dataFixture := "../../fixtures/redis_test_commands"
 	runOnInstances(instanceCollection, func(instName, instIndex string) {
 		RunBoshCommand(RedisWithMetadataDeploymentSCPCommand(), dataFixture, fmt.Sprintf("%s/%s:/tmp", instName, instIndex))
 		Eventually(

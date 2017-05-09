@@ -49,7 +49,7 @@ sys-test-local:
 	BOSH_CERT_PATH=~/workspace/bosh-backup-and-restore-meta/certs/lite-bosh.backup-and-restore.cf-app.com.crt \
 	BOSH_GATEWAY_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
 	TEST_ENV=`echo $(DEV_ENV)` \
-	ginkgo -r -v system
+	ginkgo -r -v system/deployment
 
 sys-test-local-with-uaa:
 	BOSH_URL=https://lite-bosh-uaa.backup-and-restore.cf-app.com \
@@ -58,7 +58,7 @@ sys-test-local-with-uaa:
 	BOSH_CERT_PATH=~/workspace/bosh-backup-and-restore-meta/certs/lite-bosh-uaa.backup-and-restore.cf-app.com.crt \
 	BOSH_GATEWAY_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
 	TEST_ENV=`echo $(DEV_ENV)` \
-	ginkgo -r -v system
+	ginkgo -r -v system/deployment
 
 sys-test-local-260:
 	BOSH_URL=https://35.187.10.144 \
@@ -67,11 +67,11 @@ sys-test-local-260:
 	BOSH_CERT_PATH=~/workspace/bosh-backup-and-restore-meta/garden-bosh-260/certs/rootCA.pem \
 	BOSH_GATEWAY_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
 	TEST_ENV=`echo $(DEV_ENV)` \
-	ginkgo -r -v system
+	ginkgo -r -v system/deployment
 
 sys-test-ci: setup
 	TEST_ENV=ci \
-	ginkgo -r -v system
+	ginkgo -r -v system/deployment
 
 upload-test-releases:
 	cd fixtures/releases/redis-test-release && bosh -n create release --force && bosh -t $(BOSH_URL) upload release --rebase

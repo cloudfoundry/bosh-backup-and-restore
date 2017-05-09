@@ -1,4 +1,4 @@
-package system
+package deployment
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 
 var _ = Describe("Restores a deployment", func() {
 	var workspaceDir = "/var/vcap/store/restore_workspace"
-	var backupMetadata = "../fixtures/redis-backup/metadata"
+	var backupMetadata = "../../fixtures/redis-backup/metadata"
 	var instanceCollection = map[string][]string{
 		"redis":       {"0", "1"},
 		"other-redis": {"0"},

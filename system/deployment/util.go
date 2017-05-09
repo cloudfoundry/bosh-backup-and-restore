@@ -1,4 +1,4 @@
-package system
+package deployment
 
 import (
 	"fmt"
@@ -152,19 +152,19 @@ func JumpboxDeployment() string {
 }
 
 func RedisDeploymentManifest() string {
-	return "../fixtures/redis.yml"
+	return "../../fixtures/redis.yml"
 }
 
 func RedisWithMetadataDeploymentManifest() string {
-	return "../fixtures/redis-with-metadata.yml"
+	return "../../fixtures/redis-with-metadata.yml"
 }
 
 func AnotherRedisDeploymentManifest() string {
-	return "../fixtures/another-redis.yml"
+	return "../../fixtures/another-redis.yml"
 }
 
 func JumpboxDeploymentManifest() string {
-	return "../fixtures/jumpbox.yml"
+	return "../../fixtures/jumpbox.yml"
 }
 
 func testEnv() string {
