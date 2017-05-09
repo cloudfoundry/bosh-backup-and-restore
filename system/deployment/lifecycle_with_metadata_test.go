@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+	. "github.com/pivotal-cf/bosh-backup-and-restore/system"
 )
 
 var _ = Describe("backup with custom metadata", func() {

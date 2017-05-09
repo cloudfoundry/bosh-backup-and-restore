@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	. "github.com/pivotal-cf/bosh-backup-and-restore/system"
 
 	"sync"
 	"testing"
