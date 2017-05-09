@@ -13,6 +13,7 @@ export GOPATH=$PWD
 export PATH=$PATH:$GOPATH/bin
 export BOSH_GATEWAY_KEY=`pwd`/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem
 export SSH_KEY=`pwd`/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem
+export BOSH_CERT_PATH=`pwd`/bosh-backup-and-restore-meta/certs/$BOSH_HOST.crt
 
 cd src/github.com/pivotal-cf/bosh-backup-and-restore
 make sys-test-director-ci
