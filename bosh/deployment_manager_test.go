@@ -1,4 +1,4 @@
-package orchestrator_test
+package bosh_test
 
 import (
 	"fmt"
@@ -7,23 +7,25 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator/fakes"
+	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
+	"github.com/pivotal-cf/bosh-backup-and-restore/bosh/fakes"
+	orchestrator_fakes "github.com/pivotal-cf/bosh-backup-and-restore/orchestrator/fakes"
 )
 
 var _ = Describe("DeploymentManager", func() {
 	var boshClient *fakes.FakeBoshClient
 	var logger *fakes.FakeLogger
 	var deploymentName = "brownie"
-	var artifact *fakes.FakeArtifact
+	var artifact *orchestrator_fakes.FakeArtifact
 	var manifest string
 
-	var deploymentManager orchestrator.DeploymentManager
+	var deploymentManager *bosh.BoshDeploymentManager
 	BeforeEach(func() {
 		boshClient = new(fakes.FakeBoshClient)
 		logger = new(fakes.FakeLogger)
 	})
 	JustBeforeEach(func() {
-		deploymentManager = orchestrator.NewBoshDeploymentManager(boshClient, logger)
+		deploymentManager = bosh.NewBoshDeploymentManager(boshClient, logger)
 	})
 
 	Context("Find", func() {
@@ -31,7 +33,7 @@ var _ = Describe("DeploymentManager", func() {
 		var deployment orchestrator.Deployment
 		var instances []orchestrator.Instance
 		BeforeEach(func() {
-			instances = []orchestrator.Instance{new(fakes.FakeInstance)}
+			instances = []orchestrator.Instance{new(orchestrator_fakes.FakeInstance)}
 			boshClient.FindInstancesReturns(instances, nil)
 		})
 		JustBeforeEach(func() {
@@ -65,7 +67,7 @@ var _ = Describe("DeploymentManager", func() {
 
 		Context("successfully saves the manifest", func() {
 			BeforeEach(func() {
-				artifact = new(fakes.FakeArtifact)
+				artifact = new(orchestrator_fakes.FakeArtifact)
 				manifest = "foo"
 				boshClient.GetManifestReturns(manifest, nil)
 			})
@@ -87,7 +89,7 @@ var _ = Describe("DeploymentManager", func() {
 		Context("fails to fetch the manifest", func() {
 			var manifestFetchError = fmt.Errorf("Boring error")
 			BeforeEach(func() {
-				artifact = new(fakes.FakeArtifact)
+				artifact = new(orchestrator_fakes.FakeArtifact)
 				boshClient.GetManifestReturns("", manifestFetchError)
 			})
 
@@ -109,7 +111,7 @@ var _ = Describe("DeploymentManager", func() {
 			var manifestSaveError = fmt.Errorf("Boring")
 
 			BeforeEach(func() {
-				artifact = new(fakes.FakeArtifact)
+				artifact = new(orchestrator_fakes.FakeArtifact)
 				boshClient.GetManifestReturns(manifest, nil)
 				artifact.SaveManifestReturns(manifestSaveError)
 			})

@@ -1,6 +1,8 @@
 package orchestrator
 
-import "github.com/hashicorp/go-multierror"
+import (
+	"github.com/hashicorp/go-multierror"
+)
 
 func NewBackuper(artifactManager ArtifactManager, logger Logger, deploymentManager DeploymentManager) *Backuper {
 	return &Backuper{
@@ -18,6 +20,12 @@ type Logger interface {
 	Error(tag, msg string, args ...interface{})
 }
 
+//go:generate counterfeiter -o fakes/fake_deployment_manager.go . DeploymentManager
+type DeploymentManager interface {
+	Find(deploymentName string) (Deployment, error)
+	SaveManifest(deploymentName string, artifact Artifact) error
+}
+
 type Backuper struct {
 	ArtifactManager
 	Logger
@@ -28,12 +36,6 @@ type Backuper struct {
 type AuthInfo struct {
 	Type   string
 	UaaUrl string
-}
-
-//go:generate counterfeiter -o fakes/fake_bosh_director.go . BoshClient
-type BoshClient interface {
-	FindInstances(deploymentName string) ([]Instance, error)
-	GetManifest(deploymentName string) (string, error)
 }
 
 //Backup checks if a deployment has backupable instances and backs them up.

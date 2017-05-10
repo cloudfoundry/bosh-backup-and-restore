@@ -7,14 +7,13 @@ import (
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
-	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 
 	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-func BuildClient(targetUrl, username, password, caCertFileName string, logger boshlog.Logger) (orchestrator.BoshClient, error) {
+func BuildClient(targetUrl, username, password, caCertFileName string, logger boshlog.Logger) (bosh.BoshClient, error) {
 	config, err := director.NewConfigFromURL(targetUrl)
 	if err != nil {
 		return nil, fmt.Errorf("Target director URL is malformed - %s", err.Error())

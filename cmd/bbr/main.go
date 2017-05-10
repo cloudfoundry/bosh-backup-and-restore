@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/pivotal-cf/bosh-backup-and-restore/artifact"
+	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
 	"github.com/pivotal-cf/bosh-backup-and-restore/factory"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
@@ -254,7 +255,7 @@ func makeRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
 	return orchestrator.NewRestorer(artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
 }
 
-func makeBoshClient(c *cli.Context, logger boshlog.Logger) (orchestrator.BoshClient, error) {
+func makeBoshClient(c *cli.Context, logger boshlog.Logger) (bosh.BoshClient, error) {
 	targetUrl := c.Parent().String("target")
 	username := c.Parent().String("username")
 	password := c.Parent().String("password")
@@ -263,8 +264,8 @@ func makeBoshClient(c *cli.Context, logger boshlog.Logger) (orchestrator.BoshCli
 	return factory.BuildClient(targetUrl, username, password, caCert, logger)
 }
 
-func makeDeploymentManager(boshClient orchestrator.BoshClient, logger boshlog.Logger) orchestrator.DeploymentManager {
-	return orchestrator.NewBoshDeploymentManager(boshClient, logger)
+func makeDeploymentManager(boshClient bosh.BoshClient, logger boshlog.Logger) orchestrator.DeploymentManager {
+	return bosh.NewBoshDeploymentManager(boshClient, logger)
 }
 
 func makeLogger(c *cli.Context) boshlog.Logger {

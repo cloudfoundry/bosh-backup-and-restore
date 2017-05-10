@@ -9,6 +9,8 @@ import (
 
 	"strings"
 
+	"errors"
+
 	"github.com/cloudfoundry/bosh-cli/director"
 	boshfakes "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -20,7 +22,6 @@ import (
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh/fakes"
-	"errors"
 )
 
 var _ = Describe("Director", func() {
@@ -37,7 +38,7 @@ var _ = Describe("Director", func() {
 	var stdoutLogStream *bytes.Buffer
 	var stderrLogStream *bytes.Buffer
 
-	var b orchestrator.BoshClient
+	var b bosh.BoshClient
 	JustBeforeEach(func() {
 		b = bosh.NewClient(boshDirector, optsGenerator.Spy, sshConnectionFactory.Spy, boshLogger, fakeJobFinder)
 	})
