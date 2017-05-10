@@ -4,7 +4,6 @@ package fakes
 import (
 	"sync"
 
-	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 )
 
@@ -162,5 +161,3 @@ func (fake *FakeBoshClient) recordInvocation(key string, args []interface{}) {
 	}
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
-
-var _ bosh.BoshClient = new(FakeBoshClient)

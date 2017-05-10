@@ -1,11 +1,10 @@
-package factory
+package bosh
 
 import (
 	"fmt"
 	"io/ioutil"
 
 	"github.com/cloudfoundry/bosh-cli/director"
-	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 
@@ -13,7 +12,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-func BuildClient(targetUrl, username, password, caCertFileName string, logger boshlog.Logger) (bosh.BoshClient, error) {
+func BuildClient(targetUrl, username, password, caCertFileName string, logger boshlog.Logger) (BoshClient, error) {
 	config, err := director.NewConfigFromURL(targetUrl)
 	if err != nil {
 		return nil, fmt.Errorf("Target director URL is malformed - %s", err.Error())
@@ -58,7 +57,7 @@ func BuildClient(targetUrl, username, password, caCertFileName string, logger bo
 		return nil, err
 	}
 
-	return bosh.NewClient(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger, instance.NewJobFinder(logger)), nil
+	return NewClient(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger, instance.NewJobFinder(logger)), nil
 }
 
 func buildUaa(info director.Info, username, password, cert string, logger boshlog.Logger) (boshuaa.UAA, error) {

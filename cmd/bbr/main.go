@@ -6,7 +6,6 @@ import (
 
 	"github.com/pivotal-cf/bosh-backup-and-restore/artifact"
 	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
-	"github.com/pivotal-cf/bosh-backup-and-restore/factory"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
 
@@ -231,35 +230,45 @@ func availableDirectorFlags() []cli.Flag {
 
 func makeBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
 	logger := makeLogger(c)
-	boshClient, err := makeBoshClient(c, logger)
+	deploymentManager, err := newDeploymentManager(
+		c.Parent().String("target"),
+		c.Parent().String("username"),
+		c.Parent().String("password"),
+		c.Parent().String("ca-cert"),
+		logger,
+	)
+
 	if err != nil {
 		return nil, cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
 	}
-	deploymentManager := makeDeploymentManager(boshClient, logger)
+
 	return orchestrator.NewBackuper(artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
 }
 
 func makeRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
 	logger := makeLogger(c)
-	boshClient, err := makeBoshClient(c, logger)
+	deploymentManager, err := newDeploymentManager(
+		c.Parent().String("target"),
+		c.Parent().String("username"),
+		c.Parent().String("password"),
+		c.Parent().String("ca-cert"),
+		logger,
+	)
+
 	if err != nil {
 		return nil, cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
 	}
-	deploymentManager := makeDeploymentManager(boshClient, logger)
+
 	return orchestrator.NewRestorer(artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
 }
 
-func makeBoshClient(c *cli.Context, logger boshlog.Logger) (bosh.BoshClient, error) {
-	targetUrl := c.Parent().String("target")
-	username := c.Parent().String("username")
-	password := c.Parent().String("password")
-	caCert := c.Parent().String("ca-cert")
+func newDeploymentManager(targetUrl, username, password, caCert string, logger boshlog.Logger) (orchestrator.DeploymentManager, error) {
+	boshClient, err := bosh.BuildClient(targetUrl, username, password, caCert, logger)
+	if err != nil {
+		return nil, cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
+	}
 
-	return factory.BuildClient(targetUrl, username, password, caCert, logger)
-}
-
-func makeDeploymentManager(boshClient bosh.BoshClient, logger boshlog.Logger) orchestrator.DeploymentManager {
-	return bosh.NewBoshDeploymentManager(boshClient, logger)
+	return bosh.NewBoshDeploymentManager(boshClient, logger), nil
 }
 
 func makeLogger(c *cli.Context) boshlog.Logger {

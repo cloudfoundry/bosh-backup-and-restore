@@ -1,4 +1,4 @@
-package factory_test
+package bosh
 
 import (
 	"log"
@@ -11,7 +11,6 @@ import (
 	"github.com/onsi/gomega/gbytes"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockuaa"
-	"github.com/pivotal-cf/bosh-backup-and-restore/factory"
 )
 
 var _ = Describe("BuildClient", func() {
@@ -39,7 +38,7 @@ var _ = Describe("BuildClient", func() {
 				mockbosh.Manifest(deploymentName).RespondsWith([]byte("manifest contents")),
 			)
 
-			client, err := factory.BuildClient(director.URL, username, password, sslCertPath, logger)
+			client, err := BuildClient(director.URL, username, password, sslCertPath, logger)
 
 			Expect(err).NotTo(HaveOccurred())
 			manifest, err := client.GetManifest(deploymentName)
@@ -64,7 +63,7 @@ var _ = Describe("BuildClient", func() {
 				mockbosh.Manifest(deploymentName).RespondsWith([]byte("manifest contents")),
 			)
 
-			client, err := factory.BuildClient(director.URL, username, password, sslCertPath, logger)
+			client, err := BuildClient(director.URL, username, password, sslCertPath, logger)
 
 			Expect(err).NotTo(HaveOccurred())
 			manifest, err := client.GetManifest(deploymentName)
@@ -79,7 +78,7 @@ var _ = Describe("BuildClient", func() {
 			director.VerifyAndMock(
 				mockbosh.Info().WithAuthTypeUAA(""),
 			)
-			_, err := factory.BuildClient(director.URL, username, password, sslCertPath, logger)
+			_, err := BuildClient(director.URL, username, password, sslCertPath, logger)
 
 			Expect(err).To(HaveOccurred())
 
@@ -92,7 +91,7 @@ var _ = Describe("BuildClient", func() {
 		caCertPath := "/invalid/path"
 		basicAuthDirectorUrl := director.URL
 
-		_, err := factory.BuildClient(basicAuthDirectorUrl, username, password, caCertPath, logger)
+		_, err := BuildClient(basicAuthDirectorUrl, username, password, caCertPath, logger)
 		Expect(err).To(HaveOccurred())
 	})
 
@@ -102,7 +101,7 @@ var _ = Describe("BuildClient", func() {
 		caCertPath := ""
 		basicAuthDirectorUrl := ""
 
-		_, err := factory.BuildClient(basicAuthDirectorUrl, username, password, caCertPath, logger)
+		_, err := BuildClient(basicAuthDirectorUrl, username, password, caCertPath, logger)
 		Expect(err).To(HaveOccurred())
 	})
 
@@ -114,7 +113,7 @@ var _ = Describe("BuildClient", func() {
 			mockbosh.Info().Fails("fooo!"),
 		)
 
-		_, err := factory.BuildClient(director.URL, username, password, sslCertPath, logger)
+		_, err := BuildClient(director.URL, username, password, sslCertPath, logger)
 
 		Expect(err).To(HaveOccurred())
 	})
