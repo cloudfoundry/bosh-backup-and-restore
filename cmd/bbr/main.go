@@ -239,7 +239,7 @@ func makeBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
 	)
 
 	if err != nil {
-		return nil, cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
+		return nil, redCliError(err)
 	}
 
 	return orchestrator.NewBackuper(artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
@@ -256,7 +256,7 @@ func makeRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
 	)
 
 	if err != nil {
-		return nil, cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
+		return nil, redCliError(err)
 	}
 
 	return orchestrator.NewRestorer(artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
@@ -265,7 +265,7 @@ func makeRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
 func newDeploymentManager(targetUrl, username, password, caCert string, logger boshlog.Logger) (orchestrator.DeploymentManager, error) {
 	boshClient, err := bosh.BuildClient(targetUrl, username, password, caCert, logger)
 	if err != nil {
-		return nil, cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
+		return nil, redCliError(err)
 	}
 
 	return bosh.NewBoshDeploymentManager(boshClient, logger), nil
@@ -273,8 +273,11 @@ func newDeploymentManager(targetUrl, username, password, caCert string, logger b
 
 func makeLogger(c *cli.Context) boshlog.Logger {
 	var debug = c.GlobalBool("debug")
-	var logger = makeBoshLogger(debug)
-	return logger
+	return makeBoshLogger(debug)
+}
+
+func redCliError(err error) *cli.ExitError {
+	return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
 }
 
 func makeBoshLogger(debug bool) boshlog.Logger {
