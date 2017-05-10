@@ -68,6 +68,14 @@ func main() {
 				},
 			},
 		},
+		{
+			Name:  "version",
+			Usage: "",
+			Action: func(c *cli.Context) error {
+				cli.ShowVersion(c)
+				return nil
+			},
+		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
