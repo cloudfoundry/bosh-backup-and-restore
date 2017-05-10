@@ -23,8 +23,9 @@ func main() {
 
 	app.Version = version
 
-	app.Name = "bbr"
-	app.HelpName = "BOSH Backup and Restore"
+	app.Name = "BOSH Backup and Restore"
+	app.HelpName = "bbr"
+	app.Usage = ""
 
 	app.Commands = []cli.Command{
 		{
@@ -55,7 +56,7 @@ func main() {
 		},
 		{
 			Name:   "director",
-			Usage:  "Backup BOSH deployments",
+			Usage:  "Backup BOSH director",
 			Flags:  availableDirectorFlags(),
 			Before: validateDirectorFlags,
 			Subcommands: []cli.Command{
