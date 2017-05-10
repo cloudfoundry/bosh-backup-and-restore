@@ -72,7 +72,7 @@ var _ = Describe("DeploymentManager", func() {
 			})
 
 			It("returns a deployment", func() {
-				Expect(actualDeployment).To(Equal(orchestrator.NewBoshDeployment(logger, []orchestrator.Instance{
+				Expect(actualDeployment).To(Equal(orchestrator.NewDeployment(logger, []orchestrator.Instance{
 					instance.NewDeployedInstance("0", "director", "0", fakeSSHConnection, logger, fakeJobs),
 				})))
 			})

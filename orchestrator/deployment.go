@@ -17,22 +17,22 @@ type Deployment interface {
 	Instances() []Instance
 }
 
-type BoshDeployment struct {
+type deployment struct {
 	Logger
 
 	instances instances
 }
 
-func NewBoshDeployment(logger Logger, instancesArray []Instance) Deployment {
-	return &BoshDeployment{Logger: logger, instances: instances(instancesArray)}
+func NewDeployment(logger Logger, instancesArray []Instance) Deployment {
+	return &deployment{Logger: logger, instances: instances(instancesArray)}
 }
 
-func (bd *BoshDeployment) IsBackupable() bool {
+func (bd *deployment) IsBackupable() bool {
 	backupableInstances := bd.instances.AllBackupable()
 	return !backupableInstances.IsEmpty()
 }
 
-func (bd *BoshDeployment) HasValidBackupMetadata() bool {
+func (bd *deployment) HasValidBackupMetadata() bool {
 	names := bd.instances.CustomBlobNames()
 
 	uniqueNames := map[string]bool{}
@@ -45,40 +45,40 @@ func (bd *BoshDeployment) HasValidBackupMetadata() bool {
 	return true
 }
 
-func (bd *BoshDeployment) PreBackupLock() error {
+func (bd *deployment) PreBackupLock() error {
 	bd.Logger.Info("", "Running pre-backup scripts...")
 	err := bd.instances.AllPreBackupLockable().PreBackupLock()
 	bd.Logger.Info("", "Done.")
 	return err
 }
 
-func (bd *BoshDeployment) Backup() error {
+func (bd *deployment) Backup() error {
 	bd.Logger.Info("", "Running backup scripts...")
 	return bd.instances.AllBackupable().Backup()
 }
 
-func (bd *BoshDeployment) PostBackupUnlock() error {
+func (bd *deployment) PostBackupUnlock() error {
 	bd.Logger.Info("", "Running post-backup scripts...")
 	err := bd.instances.AllPostBackupUnlockable().PostBackupUnlock()
 	bd.Logger.Info("", "Done.")
 	return err
 }
 
-func (bd *BoshDeployment) Restore() error {
+func (bd *deployment) Restore() error {
 	bd.Logger.Info("", "Running restore scripts...")
 	return bd.instances.AllRestoreable().Restore()
 }
 
-func (bd *BoshDeployment) Cleanup() error {
+func (bd *deployment) Cleanup() error {
 	return bd.instances.Cleanup()
 }
 
-func (bd *BoshDeployment) IsRestorable() bool {
+func (bd *deployment) IsRestorable() bool {
 	restoreableInstances := bd.instances.AllRestoreable()
 	return !restoreableInstances.IsEmpty()
 }
 
-func (bd *BoshDeployment) CopyRemoteBackupToLocal(artifact Artifact) error {
+func (bd *deployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 	instances := bd.instances.AllBackupable()
 	for _, instance := range instances {
 		for _, backupBlob := range instance.BlobsToBackup() {
@@ -130,7 +130,7 @@ func (bd *BoshDeployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 	return nil
 }
 
-func (bd *BoshDeployment) CopyLocalBackupToRemote(artifact Artifact) error {
+func (bd *deployment) CopyLocalBackupToRemote(artifact Artifact) error {
 	instances := bd.instances.AllRestoreable()
 
 	for _, instance := range instances {
@@ -164,6 +164,6 @@ func (bd *BoshDeployment) CopyLocalBackupToRemote(artifact Artifact) error {
 	return nil
 }
 
-func (bd *BoshDeployment) Instances() []Instance {
+func (bd *deployment) Instances() []Instance {
 	return bd.instances
 }

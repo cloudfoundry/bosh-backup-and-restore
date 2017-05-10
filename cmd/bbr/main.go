@@ -62,7 +62,7 @@ func main() {
 				{
 					Name:    "pre-backup-check",
 					Aliases: []string{"c"},
-					Usage:   "Check a deployment can be backed up",
+					Usage:   "Check a BOSH Director can be backed up",
 					Action:  directorPreBackupCheck,
 				},
 			},

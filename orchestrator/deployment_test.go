@@ -25,7 +25,7 @@ var _ = Describe("Deployment", func() {
 	)
 
 	JustBeforeEach(func() {
-		deployment = orchestrator.NewBoshDeployment(logger, instances)
+		deployment = orchestrator.NewDeployment(logger, instances)
 	})
 	BeforeEach(func() {
 		logger = new(fakes.FakeLogger)

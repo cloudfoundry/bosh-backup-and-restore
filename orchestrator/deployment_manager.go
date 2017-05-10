@@ -17,7 +17,7 @@ type BoshDeploymentManager struct {
 
 func (b *BoshDeploymentManager) Find(deploymentName string) (Deployment, error) {
 	instances, err := b.FindInstances(deploymentName)
-	return NewBoshDeployment(b.Logger, instances), err
+	return NewDeployment(b.Logger, instances), err
 }
 func (b *BoshDeploymentManager) SaveManifest(deploymentName string, artifact Artifact) error {
 	manifest, err := b.GetManifest(deploymentName)
