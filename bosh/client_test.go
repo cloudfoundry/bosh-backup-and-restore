@@ -711,21 +711,3 @@ var _ = Describe("Director", func() {
 		})
 	})
 })
-
-func infoWithAuth(authType string, authOptions map[string]interface{}) director.Info {
-	return director.Info{
-		Name:    "",
-		UUID:    "",
-		Version: "",
-
-		User: "",
-		Auth: director.UserAuthentication{
-			Type:    authType,
-			Options: authOptions,
-		},
-
-		Features: map[string]bool{},
-
-		CPI: "",
-	}
-}
