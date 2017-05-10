@@ -14,8 +14,7 @@ func (h helpText) outputString() string {
 	return string(h.output)
 }
 
-func ShowsTheHelpText(helpText *helpText) {
-
+func ShowsTheBackupHelpText(helpText *helpText) {
 	It("displays the usable flags", func() {
 		Expect(helpText.outputString()).To(ContainSubstring("--target"))
 		Expect(helpText.outputString()).To(ContainSubstring("Target BOSH Director URL"))
