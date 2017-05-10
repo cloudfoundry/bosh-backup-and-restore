@@ -16,10 +16,10 @@ watch:
 test-ci: setup test
 
 test-unit:
-	ginkgo -r bosh orchestrator ssh artifact instance factory standalone
+	ginkgo -r bosh orchestrator ssh artifact instance standalone
 
 test-unit-local:
-	ginkgo -r bosh orchestrator ssh artifact instance factory standalone
+	ginkgo -r bosh orchestrator ssh artifact instance standalone
 
 test-integration:
 	ginkgo -r integration -nodes 4
