@@ -1,9 +1,6 @@
 package integration
 
 import (
-	"os"
-	"path/filepath"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
@@ -32,21 +29,6 @@ func ShowsTheHelpText(helpText *helpText) {
 		Expect(helpText.outputString()).To(ContainSubstring("--deployment"))
 		Expect(helpText.outputString()).To(ContainSubstring("Name of BOSH deployment"))
 	})
-}
-
-func filesExistOnVM(files ...string) {
-	for _, fileName := range files {
-		Expect(os.MkdirAll(filepath.Dir(fileName), 0777)).To(Succeed())
-
-		file, err := os.Create(fileName)
-		Expect(err).NotTo(HaveOccurred())
-
-		err = os.Chmod(fileName, 0777)
-		Expect(err).NotTo(HaveOccurred())
-
-		err = file.Close()
-		Expect(err).NotTo(HaveOccurred())
-	}
 }
 
 func mockDirectorWith(director *mockhttp.Server, info mockhttp.MockedResponseBuilder, vmsResponse []mockhttp.MockedResponseBuilder, sshResponse []mockhttp.MockedResponseBuilder, downloadManifestResponse []mockhttp.MockedResponseBuilder, cleanupResponse []mockhttp.MockedResponseBuilder) {
