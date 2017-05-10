@@ -147,20 +147,14 @@ func restore(c *cli.Context) error {
 }
 
 func validateDeploymentFlags(c *cli.Context) error {
-	requiredFlags := []string{"target", "username", "password", "deployment"}
-
-	for _, flag := range requiredFlags {
-		if c.String(flag) == "" {
-			cli.ShowAppHelp(c)
-			return fmt.Errorf("--%v flag is required.", flag)
-		}
-	}
-	return nil
+	return validateFlags([]string{"target", "username", "password", "deployment"}, c)
 }
 
 func validateDirectorFlags(c *cli.Context) error {
-	requiredFlags := []string{"name", "host", "username", "private-key-path"}
+	return validateFlags([]string{"name", "host", "username", "private-key-path"}, c)
+}
 
+func validateFlags(requiredFlags []string, c *cli.Context) error {
 	for _, flag := range requiredFlags {
 		if c.String(flag) == "" {
 			cli.ShowAppHelp(c)
