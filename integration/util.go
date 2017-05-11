@@ -13,7 +13,7 @@ func (h helpText) outputString() string {
 	return string(h.output)
 }
 
-func ShowsTheBackupHelpText(helpText *helpText) {
+func ShowsTheDeploymentHelpText(helpText *helpText) {
 	Expect(helpText.outputString()).To(ContainSubstring("--target"))
 	Expect(helpText.outputString()).To(ContainSubstring("Target BOSH Director URL"))
 
@@ -27,14 +27,14 @@ func ShowsTheBackupHelpText(helpText *helpText) {
 	Expect(helpText.outputString()).To(ContainSubstring("Name of BOSH deployment"))
 }
 
-func ShowsTheHelpText(helpText *helpText) {
+func ShowsTheMainHelpText(helpText *helpText) {
 	Expect(helpText.outputString()).To(ContainSubstring(`SUBCOMMANDS:
    backup
    restore
    pre-backup-check`))
 
 	Expect(helpText.outputString()).To(ContainSubstring(`USAGE:
-	bbr command [arguments...] [subcommand]`))
+   bbr command [arguments...] [subcommand]`))
 }
 
 func mockDirectorWith(director *mockhttp.Server, info mockhttp.MockedResponseBuilder, vmsResponse []mockhttp.MockedResponseBuilder, sshResponse []mockhttp.MockedResponseBuilder, downloadManifestResponse []mockhttp.MockedResponseBuilder, cleanupResponse []mockhttp.MockedResponseBuilder) {

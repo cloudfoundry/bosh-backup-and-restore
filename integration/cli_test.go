@@ -29,247 +29,266 @@ var _ = Describe("CLI Interface", func() {
 		Expect(err).NotTo(HaveOccurred())
 	})
 
-	AssertCLIBehaviour := func(cmd string) {
-		Context("params", func() {
-			It("can invoke command with short names", func() {
-				director.VerifyAndMock(
-					mockbosh.Info().WithAuthTypeBasic(),
-					mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
-				)
+	Context("bbr deployment", func() {
+		AssertDeploymentCLIBehaviour := func(cmd string) {
+			Context("params", func() {
+				It("can invoke command with short names", func() {
+					director.VerifyAndMock(
+						mockbosh.Info().WithAuthTypeBasic(),
+						mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
+					)
 
-				runBinary(backupWorkspace,
-					[]string{},
-					"deployment",
-					"--ca-cert", sslCertPath,
-					"-u", "admin",
-					"-p", "admin",
-					"-t", director.URL,
-					"-d", "my-new-deployment",
-					cmd)
+					runBinary(backupWorkspace,
+						[]string{},
+						"deployment",
+						"--ca-cert", sslCertPath,
+						"-u", "admin",
+						"-p", "admin",
+						"-t", director.URL,
+						"-d", "my-new-deployment",
+						cmd)
 
-				director.VerifyMocks()
+					director.VerifyMocks()
+				})
+
+				It("can invoke command with long names", func() {
+					director.VerifyAndMock(
+						mockbosh.Info().WithAuthTypeBasic(),
+						mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
+					)
+
+					runBinary(backupWorkspace,
+						[]string{},
+						"deployment",
+						"--ca-cert", sslCertPath,
+						"--username", "admin",
+						"--password", "admin",
+						"--target", director.URL,
+						"--deployment", "my-new-deployment",
+						cmd)
+
+					director.VerifyMocks()
+				})
 			})
-			It("can invoke command with long names", func() {
-				director.VerifyAndMock(
-					mockbosh.Info().WithAuthTypeBasic(),
-					mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
-				)
 
-				runBinary(backupWorkspace,
-					[]string{},
-					"deployment",
-					"--ca-cert", sslCertPath,
-					"--username", "admin",
-					"--password", "admin",
-					"--target", director.URL,
-					"--deployment", "my-new-deployment",
-					cmd)
+			Context("password is supported from env", func() {
+				It("can invoke command with long names", func() {
+					director.VerifyAndMock(
+						mockbosh.Info().WithAuthTypeBasic(),
+						mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
+					)
 
-				director.VerifyMocks()
+					runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+
+					director.VerifyMocks()
+				})
 			})
+
+			Context("Hostname is malformed", func() {
+				var output helpText
+				var session *gexec.Session
+				BeforeEach(func() {
+					badDirectorURL := "https://:25555"
+					session = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--username", "admin", "--password", "admin", "--target", badDirectorURL, "--deployment", "my-new-deployment", cmd)
+					output.output = session.Err.Contents()
+				})
+
+				It("Exits with non zero", func() {
+					Expect(session.ExitCode()).NotTo(BeZero())
+				})
+
+				It("displays a failure message", func() {
+					Expect(output.outputString()).To(ContainSubstring("Target director URL is malformed"))
+				})
+			})
+
+			Context("Custom CA cert cannot be read", func() {
+				var output helpText
+				var session *gexec.Session
+				BeforeEach(func() {
+					session = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--ca-cert", "/tmp/whatever", "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+					output.output = session.Err.Contents()
+				})
+
+				It("Exits with non zero", func() {
+					Expect(session.ExitCode()).NotTo(BeZero())
+				})
+
+				It("displays a failure message", func() {
+					Expect(output.outputString()).To(ContainSubstring("open /tmp/whatever: no such file or directory"))
+				})
+			})
+
+			Context("Wrong global args", func() {
+				var output helpText
+				var session *gexec.Session
+				BeforeEach(func() {
+					session = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--dave", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+					output.output = session.Out.Contents()
+				})
+
+				It("Exits with non zero", func() {
+					Expect(session.ExitCode()).NotTo(BeZero())
+				})
+
+				It("displays a failure message", func() {
+					Expect(output.outputString()).To(ContainSubstring("Incorrect Usage"))
+				})
+
+				It("displays the usable flags", func() {
+					ShowsTheDeploymentHelpText(&output)
+				})
+			})
+
+			Context("when any required flags are missing", func() {
+				var output helpText
+				var session *gexec.Session
+				var command []string
+				var env []string
+				BeforeEach(func() {
+					env = []string{"BOSH_CLIENT_SECRET=admin"}
+				})
+				JustBeforeEach(func() {
+					session = runBinary(backupWorkspace, env, command...)
+					output.output = session.Out.Contents()
+				})
+
+				Context("Missing target", func() {
+					BeforeEach(func() {
+						command = []string{"deployment", "--username", "admin", "--password", "admin", "--deployment", "my-new-deployment", cmd}
+					})
+					It("Exits with non zero", func() {
+						Expect(session.ExitCode()).NotTo(BeZero())
+					})
+
+					It("displays a failure message", func() {
+						Expect(session.Err.Contents()).To(ContainSubstring("--target flag is required."))
+					})
+
+					It("displays the usable flags", func() {
+						ShowsTheDeploymentHelpText(&output)
+					})
+				})
+
+				Context("Missing username", func() {
+					BeforeEach(func() {
+						command = []string{"deployment", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd}
+					})
+					It("Exits with non zero", func() {
+						Expect(session.ExitCode()).NotTo(BeZero())
+					})
+
+					It("displays a failure message", func() {
+						Expect(session.Err.Contents()).To(ContainSubstring("--username flag is required."))
+					})
+
+					It("displays the usable flags", func() {
+						ShowsTheDeploymentHelpText(&output)
+					})
+				})
+
+				Context("Missing password in args", func() {
+					BeforeEach(func() {
+						env = []string{}
+						command = []string{"deployment", "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd}
+					})
+					It("Exits with non zero", func() {
+						Expect(session.ExitCode()).NotTo(BeZero())
+					})
+
+					It("displays a failure message", func() {
+						Expect(session.Err.Contents()).To(ContainSubstring("--password flag is required."))
+					})
+
+					It("displays the usable flags", func() {
+						ShowsTheDeploymentHelpText(&output)
+					})
+				})
+
+				Context("Missing deployment", func() {
+					BeforeEach(func() {
+						command = []string{"deployment", "--username", "admin", "--password", "admin", "--target", director.URL, cmd}
+					})
+					It("Exits with non zero", func() {
+						Expect(session.ExitCode()).NotTo(BeZero())
+					})
+
+					It("displays a failure message", func() {
+						Expect(session.Err.Contents()).To(ContainSubstring("--deployment flag is required."))
+					})
+
+					It("displays the usable flags", func() {
+						ShowsTheDeploymentHelpText(&output)
+					})
+				})
+			})
+
+			Context("with debug flag set", func() {
+				It("outputs verbose HTTP logs", func() {
+					director.VerifyAndMock(
+						mockbosh.Info().WithAuthTypeBasic(),
+						mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
+					)
+
+					session := runBinary(backupWorkspace, []string{}, "deployment", "--debug", "--ca-cert", sslCertPath, "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+
+					Expect(string(session.Out.Contents())).To(ContainSubstring("Sending GET request to endpoint"))
+
+					director.VerifyMocks()
+				})
+			})
+		}
+
+		Context("backup", func() {
+			AssertDeploymentCLIBehaviour("backup")
 		})
 
-		Context("password is supported from env", func() {
-			It("can invoke command with long names", func() {
-				director.VerifyAndMock(
-					mockbosh.Info().WithAuthTypeBasic(),
-					mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
-				)
-
-				runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
-
-				director.VerifyMocks()
-			})
-		})
-
-		Context("Hostname is malformed", func() {
-			var output helpText
-			var session *gexec.Session
+		Context("restore", func() {
 			BeforeEach(func() {
-				badDirectorURL := "https://:25555"
-				session = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--username", "admin", "--password", "admin", "--target", badDirectorURL, "--deployment", "my-new-deployment", cmd)
-				output.output = session.Err.Contents()
+				Expect(os.MkdirAll(backupWorkspace+"/"+"my-new-deployment", 0777)).To(Succeed())
+				createFileWithContents(backupWorkspace+"/"+"my-new-deployment"+"/"+"metadata", []byte(`---
+instances: []`))
 			})
 
-			It("Exits with non zero", func() {
-				Expect(session.ExitCode()).NotTo(BeZero())
-			})
-
-			It("displays a failure message", func() {
-				Expect(output.outputString()).To(ContainSubstring("Target director URL is malformed"))
-			})
+			AssertDeploymentCLIBehaviour("restore")
 		})
 
-		Context("Custom CA cert cannot be read", func() {
+		Context("--help", func() {
 			var output helpText
-			var session *gexec.Session
+
 			BeforeEach(func() {
-				session = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--ca-cert", "/tmp/whatever", "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
-				output.output = session.Err.Contents()
-			})
-
-			It("Exits with non zero", func() {
-				Expect(session.ExitCode()).NotTo(BeZero())
-			})
-
-			It("displays a failure message", func() {
-				Expect(output.outputString()).To(ContainSubstring("open /tmp/whatever: no such file or directory"))
-			})
-		})
-
-		Context("Wrong global args", func() {
-			var output helpText
-			var session *gexec.Session
-			BeforeEach(func() {
-				session = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--dave", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
-				output.output = session.Out.Contents()
-			})
-
-			It("Exits with non zero", func() {
-				Expect(session.ExitCode()).NotTo(BeZero())
-			})
-
-			It("displays a failure message", func() {
-				Expect(output.outputString()).To(ContainSubstring("Incorrect Usage"))
+				output.output = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--help").Out.Contents()
 			})
 
 			It("displays the usable flags", func() {
-				ShowsTheBackupHelpText(&output)
+				ShowsTheDeploymentHelpText(&output)
 			})
 		})
 
-		Context("when any required flags are missing", func() {
+		Context("no arguments", func() {
 			var output helpText
-			var session *gexec.Session
-			var command []string
-			var env []string
+
 			BeforeEach(func() {
-				env = []string{"BOSH_CLIENT_SECRET=admin"}
-			})
-			JustBeforeEach(func() {
-				session = runBinary(backupWorkspace, env, command...)
-				output.output = session.Out.Contents()
+				output.output = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment").Out.Contents()
 			})
 
-			Context("Missing target", func() {
-				BeforeEach(func() {
-					command = []string{"deployment", "--username", "admin", "--password", "admin", "--deployment", "my-new-deployment", cmd}
-				})
-				It("Exits with non zero", func() {
-					Expect(session.ExitCode()).NotTo(BeZero())
-				})
-
-				It("displays a failure message", func() {
-					Expect(session.Err.Contents()).To(ContainSubstring("--target flag is required."))
-				})
-
-				It("displays the usable flags", func() {
-					ShowsTheBackupHelpText(&output)
-				})
-			})
-
-			Context("Missing username", func() {
-				BeforeEach(func() {
-					command = []string{"deployment", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd}
-				})
-				It("Exits with non zero", func() {
-					Expect(session.ExitCode()).NotTo(BeZero())
-				})
-
-				It("displays a failure message", func() {
-					Expect(session.Err.Contents()).To(ContainSubstring("--username flag is required."))
-				})
-
-				It("displays the usable flags", func() {
-					ShowsTheBackupHelpText(&output)
-				})
-			})
-
-			Context("Missing password in args", func() {
-				BeforeEach(func() {
-					env = []string{}
-					command = []string{"deployment", "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd}
-				})
-				It("Exits with non zero", func() {
-					Expect(session.ExitCode()).NotTo(BeZero())
-				})
-
-				It("displays a failure message", func() {
-					Expect(session.Err.Contents()).To(ContainSubstring("--password flag is required."))
-				})
-
-				It("displays the usable flags", func() {
-					ShowsTheBackupHelpText(&output)
-				})
-			})
-
-			Context("Missing deployment", func() {
-				BeforeEach(func() {
-					command = []string{"deployment", "--username", "admin", "--password", "admin", "--target", director.URL, cmd}
-				})
-				It("Exits with non zero", func() {
-					Expect(session.ExitCode()).NotTo(BeZero())
-				})
-
-				It("displays a failure message", func() {
-					Expect(session.Err.Contents()).To(ContainSubstring("--deployment flag is required."))
-				})
-
-				It("displays the usable flags", func() {
-					ShowsTheBackupHelpText(&output)
-				})
+			It("displays the usable flags", func() {
+				ShowsTheDeploymentHelpText(&output)
 			})
 		})
-		Context("with debug flag set", func() {
-			It("outputs verbose HTTP logs", func() {
-				director.VerifyAndMock(
-					mockbosh.Info().WithAuthTypeBasic(),
-					mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
-				)
 
-				session := runBinary(backupWorkspace, []string{}, "deployment", "--debug", "--ca-cert", sslCertPath, "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
-
-				Expect(string(session.Out.Contents())).To(ContainSubstring("Sending GET request to endpoint"))
-
-				director.VerifyMocks()
-			})
-		})
-	}
-	Context("backup", func() {
-		AssertCLIBehaviour("backup")
 	})
 
-	Context("restore", func() {
-		BeforeEach(func() {
-			Expect(os.MkdirAll(backupWorkspace+"/"+"my-new-deployment", 0777)).To(Succeed())
-			createFileWithContents(backupWorkspace+"/"+"my-new-deployment"+"/"+"metadata", []byte(`---
-instances: []`))
-
-		})
-		AssertCLIBehaviour("restore")
-	})
-
-	Context("Help", func() {
+	Context("bbr with no arguments", func() {
 		var output helpText
 
 		BeforeEach(func() {
-			output.output = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--help").Out.Contents()
+			output.output = runBinary(backupWorkspace, []string{""}).Out.Contents()
 		})
 
 		It("displays the usable flags", func() {
-			ShowsTheBackupHelpText(&output)
+			ShowsTheMainHelpText(&output)
 		})
 	})
 
-	Context("deployment - no arguments", func() {
-		var output helpText
-
-		BeforeEach(func() {
-			output.output = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "").Out.Contents()
-		})
-
-		It("displays the usable flags", func() {
-			ShowsTheBackupHelpText(&output)
-		})
-	})
 })
