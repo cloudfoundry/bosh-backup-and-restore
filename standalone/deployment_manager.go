@@ -46,13 +46,13 @@ func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment
 		return nil, err
 	}
 
-	jobs, err := dm.jobFinder.FindJobs("director", connection)
+	jobs, err := dm.jobFinder.FindJobs("bosh", connection)
 	if err != nil {
 		return nil, err
 	}
 
 	return orchestrator.NewDeployment(dm.Logger, []orchestrator.Instance{
-		instance.NewDeployedInstance("0", "director", "0", connection, dm.Logger, jobs),
+		instance.NewDeployedInstance("0", "bosh", "0", connection, dm.Logger, jobs),
 	}), nil
 }
 func (DeploymentManager) SaveManifest(deploymentName string, artifact orchestrator.Artifact) error {

@@ -94,6 +94,12 @@ COPYRIGHT:
 					Usage:   "Check a BOSH Director can be backed up",
 					Action:  directorPreBackupCheck,
 				},
+				{
+					Name:    "backup",
+					Aliases: []string{"b"},
+					Usage:   "Backup a BOSH Director",
+					Action:  directorBackup,
+				},
 			},
 		},
 		{
@@ -143,16 +149,7 @@ func preBackupCheck(c *cli.Context) error {
 func directorPreBackupCheck(c *cli.Context) error {
 	var deployment = c.Parent().String("name")
 
-	logger := makeLogger(c)
-
-	deploymentManager := standalone.NewDeploymentManager(logger,
-		c.Parent().String("host"),
-		c.Parent().String("username"),
-		c.Parent().String("private-key-path"),
-		instance.NewJobFinder(logger),
-		ssh.ConnectionCreator,
-	)
-	backuper := orchestrator.NewBackuper(artifact.DirectoryArtifactManager{}, logger, deploymentManager)
+	backuper := makeDirectorBackuper(c)
 
 	backupable, err := backuper.CanBeBackedUp(deployment)
 
@@ -164,6 +161,18 @@ func directorPreBackupCheck(c *cli.Context) error {
 		return cli.NewExitError(err, 1)
 	}
 }
+func makeDirectorBackuper(c *cli.Context) *orchestrator.Backuper {
+	logger := makeLogger(c)
+	deploymentManager := standalone.NewDeploymentManager(logger,
+		c.Parent().String("host"),
+		c.Parent().String("username"),
+		c.Parent().String("private-key-path"),
+		instance.NewJobFinder(logger),
+		ssh.ConnectionCreator,
+	)
+	backuper := orchestrator.NewBackuper(artifact.DirectoryArtifactManager{}, logger, deploymentManager)
+	return backuper
+}
 
 func backup(c *cli.Context) error {
 	var deployment = c.Parent().String("deployment")
@@ -172,6 +181,18 @@ func backup(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
+
+	backupErr := backuper.Backup(deployment)
+
+	errorCode, errorMessage := orchestrator.ProcessBackupError(backupErr)
+
+	return cli.NewExitError(errorMessage, errorCode)
+}
+
+func directorBackup(c *cli.Context) error {
+	var deployment = c.Parent().String("name")
+
+	backuper := makeDirectorBackuper(c)
 
 	backupErr := backuper.Backup(deployment)
 
