@@ -19,7 +19,7 @@ import (
 
 var _ = Describe("DeploymentManager", func() {
 	var deploymentManager DeploymentManager
-	var deploymentName = "director"
+	var deploymentName = "bosh"
 	var artifact *fakes.FakeArtifact
 	var logger *fakes.FakeLogger
 	var hostName = "hostname"
@@ -73,7 +73,7 @@ var _ = Describe("DeploymentManager", func() {
 
 			It("returns a deployment", func() {
 				Expect(actualDeployment).To(Equal(orchestrator.NewDeployment(logger, []orchestrator.Instance{
-					instance.NewDeployedInstance("0", "director", "0", fakeSSHConnection, logger, fakeJobs),
+					instance.NewDeployedInstance("0", "bosh", "0", fakeSSHConnection, logger, fakeJobs),
 				})))
 			})
 		})
