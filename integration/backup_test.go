@@ -77,8 +77,8 @@ var _ = Describe("Backup", func() {
 
 set -u
 
-printf "backupcontent1" > $ARTIFACT_DIRECTORY/backupdump1
-printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
+printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
+printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 `)
 
 				mockDirectorWith(director,
@@ -261,14 +261,14 @@ touch /tmp/post-backup-unlock-output
 
 set -u
 
-dd if=/dev/urandom of=$ARTIFACT_DIRECTORY/backupdump1 bs=1KB count=1024
-dd if=/dev/urandom of=$ARTIFACT_DIRECTORY/backupdump2 bs=1KB count=1024
+dd if=/dev/urandom of=$BBR_ARTIFACT_DIRECTORY/backupdump1 bs=1KB count=1024
+dd if=/dev/urandom of=$BBR_ARTIFACT_DIRECTORY/backupdump2 bs=1KB count=1024
 
-mkdir $ARTIFACT_DIRECTORY/backupdump3
-dd if=/dev/urandom of=$ARTIFACT_DIRECTORY/backupdump3/dump bs=1KB count=1024
+mkdir $BBR_ARTIFACT_DIRECTORY/backupdump3
+dd if=/dev/urandom of=$BBR_ARTIFACT_DIRECTORY/backupdump3/dump bs=1KB count=1024
 
-chown vcap:vcap $ARTIFACT_DIRECTORY/backupdump3
-chmod 0700 $ARTIFACT_DIRECTORY/backupdump3`)
+chown vcap:vcap $BBR_ARTIFACT_DIRECTORY/backupdump3
+chmod 0700 $BBR_ARTIFACT_DIRECTORY/backupdump3`)
 				})
 
 				It("exits zero", func() {

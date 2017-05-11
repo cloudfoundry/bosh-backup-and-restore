@@ -149,7 +149,7 @@ instances:
 
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/b-restore", `#!/usr/bin/env sh
 set -u
-cp -r $ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
+cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
 
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
@@ -241,10 +241,10 @@ instances:
 
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/b-restore", `#!/usr/bin/env sh
 set -u
-cp -r $ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
+cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
 			instance2.CreateScript("/var/vcap/jobs/redis/bin/b-restore", `#!/usr/bin/env sh
 set -u
-cp -r $ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
+cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
 
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
@@ -323,7 +323,7 @@ restore_name: foo
 "`)
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/b-restore", `#!/usr/bin/env sh
 set -u
-cp -r $ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
+cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
 
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
@@ -408,7 +408,7 @@ restore_name: foo
 "`)
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/b-restore", `#!/usr/bin/env sh
 set -u
-cp -r $ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
+cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
 			instance2.CreateScript("/var/vcap/jobs/redis/bin/b-backup", `#!/usr/bin/env sh
 set -u
 echo "dosent matter"`)
@@ -527,7 +527,7 @@ blobs:
 				CleanupSSHFails(deploymentName, "redis-dedicated-node", "cleanup err"))...)
 
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/b-restore", `#!/usr/bin/env sh
-cp -r $ARTIFACT_DIRECTORY* /var/vcap/store/`)
+cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/`)
 
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---

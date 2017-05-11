@@ -73,8 +73,8 @@ var _ = Describe("Pre-backup checks", func() {
 
 				instance1.CreateScript("/var/vcap/jobs/redis/bin/b-backup", `#!/usr/bin/env sh
 set -u
-printf "backupcontent1" > $ARTIFACT_DIRECTORY/backupdump1
-printf "backupcontent2" > $ARTIFACT_DIRECTORY/backupdump2
+printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
+printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 `)
 
 			})

@@ -377,16 +377,16 @@ var _ = Describe("DeployedInstance", func() {
 				}
 			})
 
-			It("uses the ssh connection to create each job's backup folder and run each backup script providing the correct ARTIFACT_DIRECTORY", func() {
+			It("uses the ssh connection to create each job's backup folder and run each backup script providing the correct ARTIFACT_DIRECTORY and BBR_ARTIFACT_DIRECTORY", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(3))
 				Expect([]string{
 					sshConnection.RunArgsForCall(0),
 					sshConnection.RunArgsForCall(1),
 					sshConnection.RunArgsForCall(2),
 				}).To(ConsistOf(
-					"sudo mkdir -p /var/vcap/store/backup/foo && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/b-backup",
-					"sudo mkdir -p /var/vcap/store/backup/bar && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/b-backup",
-					"sudo mkdir -p /var/vcap/store/backup/baz && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ /var/vcap/jobs/baz/bin/b-backup",
+					"sudo mkdir -p /var/vcap/store/backup/foo && sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/b-backup",
+					"sudo mkdir -p /var/vcap/store/backup/bar && sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/b-backup",
+					"sudo mkdir -p /var/vcap/store/backup/baz && sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ /var/vcap/jobs/baz/bin/b-backup",
 				))
 			})
 
@@ -436,16 +436,16 @@ var _ = Describe("DeployedInstance", func() {
 				}
 			})
 
-			It("uses the ssh connection to create each job's backup folder and run each backup script providing the correct ARTIFACT_DIRECTORY", func() {
+			It("uses the ssh connection to create each job's backup folder and run each backup script providing the correct BBR_ARTIFACT_DIRECTORY and ARTIFACT_DIRECTORY", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(3))
 				Expect([]string{
 					sshConnection.RunArgsForCall(0),
 					sshConnection.RunArgsForCall(1),
 					sshConnection.RunArgsForCall(2),
 				}).To(ConsistOf(
-					"sudo mkdir -p /var/vcap/store/backup/foo && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/b-backup",
-					"sudo mkdir -p /var/vcap/store/backup/bar && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/b-backup",
-					"sudo mkdir -p /var/vcap/store/backup/special-backup && sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/special-backup/ /var/vcap/jobs/baz/bin/b-backup",
+					"sudo mkdir -p /var/vcap/store/backup/foo && sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/b-backup",
+					"sudo mkdir -p /var/vcap/store/backup/bar && sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/b-backup",
+					"sudo mkdir -p /var/vcap/store/backup/special-backup && sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/special-backup/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/special-backup/ /var/vcap/jobs/baz/bin/b-backup",
 				))
 			})
 		})
@@ -686,9 +686,9 @@ var _ = Describe("DeployedInstance", func() {
 					sshConnection.RunArgsForCall(1),
 					sshConnection.RunArgsForCall(2),
 				}).To(ConsistOf(
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/b-restore",
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/b-restore",
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ /var/vcap/jobs/baz/bin/b-restore",
+					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/b-restore",
+					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/b-restore",
+					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ /var/vcap/jobs/baz/bin/b-restore",
 				))
 			})
 
@@ -741,16 +741,16 @@ var _ = Describe("DeployedInstance", func() {
 			It("succeeds", func() {
 				Expect(actualError).NotTo(HaveOccurred())
 			})
-			It("uses the ssh connection to create each job's backup folder and run each backup script providing the correct ARTIFACT_DIRECTORY", func() {
+			It("uses the ssh connection to create each job's backup folder and run each backup script providing the correct BBR_ARTIFACT_DIRECTORY and ARTIFACT_DIRECTORY", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(3))
 				Expect([]string{
 					sshConnection.RunArgsForCall(0),
 					sshConnection.RunArgsForCall(1),
 					sshConnection.RunArgsForCall(2),
 				}).To(ConsistOf(
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/b-restore",
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/b-restore",
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/backup/special-backup/ /var/vcap/jobs/baz/bin/b-restore",
+					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/b-restore",
+					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/b-restore",
+					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/special-backup/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/special-backup/ /var/vcap/jobs/baz/bin/b-restore",
 				))
 			})
 		})

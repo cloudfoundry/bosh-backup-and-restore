@@ -1,11 +1,12 @@
 package instance
 
 import (
-	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
+	"errors"
+	"fmt"
+
 	"github.com/hashicorp/go-multierror"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
-	"fmt"
-	"errors"
+	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 )
 
 type DeployedInstance struct {
@@ -28,7 +29,6 @@ func NewDeployedInstance(instanceIndex string, instanceGroupName string, instanc
 	}
 	return deployedInstance
 }
-
 
 func (d *DeployedInstance) IsBackupable() bool {
 	return d.Jobs.AnyAreBackupable()
@@ -76,9 +76,9 @@ func (d *DeployedInstance) Backup() error {
 
 		stdout, stderr, exitCode, err := d.RunOnInstance(
 			fmt.Sprintf(
-				"sudo mkdir -p %s && sudo ARTIFACT_DIRECTORY=%s/ %s",
+				"sudo mkdir -p %s && sudo %s %s",
 				job.BackupArtifactDirectory(),
-				job.BackupArtifactDirectory(),
+				artifactDirectoryVariables(job.BackupArtifactDirectory()),
 				job.BackupScript(),
 			),
 			"backup",
@@ -96,6 +96,9 @@ func (d *DeployedInstance) Backup() error {
 	}
 
 	return nil
+}
+func artifactDirectoryVariables(artifactDirectory string) string {
+	return fmt.Sprintf("BBR_ARTIFACT_DIRECTORY=%s/ ARTIFACT_DIRECTORY=%[1]s/", artifactDirectory)
 }
 
 func (d *DeployedInstance) PostBackupUnlock() error {
@@ -127,8 +130,8 @@ func (d *DeployedInstance) Restore() error {
 
 		stdout, stderr, exitCode, err := d.RunOnInstance(
 			fmt.Sprintf(
-				"sudo ARTIFACT_DIRECTORY=%s/ %s",
-				job.RestoreArtifactDirectory(),
+				"sudo %s %s",
+				artifactDirectoryVariables(job.RestoreArtifactDirectory()),
 				job.RestoreScript(),
 			),
 			"restore",
@@ -150,7 +153,6 @@ func (d *DeployedInstance) Restore() error {
 func (d *DeployedInstance) IsRestorable() bool {
 	return d.Jobs.AnyAreRestorable()
 }
-
 
 func (d *DeployedInstance) BlobsToBackup() []orchestrator.BackupBlob {
 	blobs := []orchestrator.BackupBlob{}
@@ -253,4 +255,3 @@ func (d *DeployedInstance) handleErrs(jobName, label string, err error, exitCode
 
 	return foundErrors
 }
-
