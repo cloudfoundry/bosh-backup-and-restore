@@ -30,7 +30,7 @@ func runBinary(cwd string, env []string, params ...string) *gexec.Session {
 	command := exec.Command(commandPath, params...)
 	command.Env = env
 	command.Dir = cwd
-	fmt.Fprintf(GinkgoWriter, "Running command:: %v in %s\n", params, cwd)
+	fmt.Fprintf(GinkgoWriter, "Running command: %v %v in %s with env %v\n", commandPath, params, cwd, env)
 	fmt.Fprintf(GinkgoWriter, "Command output start\n")
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ToNot(HaveOccurred())
@@ -45,4 +45,8 @@ var _ = BeforeSuite(func() {
 	var err error
 	commandPath, err = gexec.Build("github.com/pivotal-cf/bosh-backup-and-restore/cmd/bbr")
 	Expect(err).NotTo(HaveOccurred())
+})
+
+var _ = AfterSuite(func() {
+	gexec.CleanupBuildArtifacts()
 })

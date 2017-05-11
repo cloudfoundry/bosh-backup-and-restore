@@ -19,13 +19,41 @@ import (
 var version string
 
 func main() {
+	cli.AppHelpTemplate = `NAME:
+   {{.Name}}{{if .Usage}} - {{.Usage}}{{end}}
+
+USAGE:
+   bbr command [arguments...] [subcommand]{{if .Version}}{{if not .HideVersion}}
+
+VERSION:
+   {{.Version}}{{end}}{{end}}{{if .Description}}
+
+DESCRIPTION:
+   {{.Description}}{{end}}{{if len .Authors}}
+
+AUTHOR{{with $length := len .Authors}}{{if ne 1 $length}}S{{end}}{{end}}:
+   {{range $index, $author := .Authors}}{{if $index}}
+   {{end}}{{$author}}{{end}}{{end}}{{if .VisibleCommands}}
+
+COMMANDS:{{range .VisibleCategories}}{{if .Name}}
+   {{.Name}}:{{end}}{{range .VisibleCommands}}
+   {{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}{{end}}{{end}}
+
+SUBCOMMANDS:
+   backup
+   restore
+   pre-backup-check{{if .Copyright}}
+
+COPYRIGHT:
+   {{.Copyright}}{{end}}
+`
+
 	app := cli.NewApp()
 
 	app.Version = version
-
-	app.Name = "BOSH Backup and Restore"
-	app.HelpName = "bbr"
-	app.Usage = ""
+	app.Name = "bbr"
+	app.Usage = "BOSH Backup and Restore"
+	app.HideHelp = true
 
 	app.Commands = []cli.Command{
 		{
@@ -69,8 +97,18 @@ func main() {
 			},
 		},
 		{
-			Name:  "version",
-			Usage: "",
+			Name:    "help",
+			Aliases: []string{"h"},
+			Usage:   "Shows a list of commands or help for one command",
+			Action: func(c *cli.Context) error {
+				cli.ShowAppHelp(c)
+				return nil
+			},
+		},
+		{
+			Name:    "version",
+			Aliases: []string{"v"},
+			Usage:   "Shows the version",
 			Action: func(c *cli.Context) error {
 				cli.ShowVersion(c)
 				return nil
@@ -165,8 +203,8 @@ func validateDirectorFlags(c *cli.Context) error {
 func validateFlags(requiredFlags []string, c *cli.Context) error {
 	for _, flag := range requiredFlags {
 		if c.String(flag) == "" {
-			cli.ShowAppHelp(c)
-			return fmt.Errorf("--%v flag is required.", flag)
+			cli.ShowCommandHelp(c, c.Parent().Command.Name)
+			return redCliError(fmt.Errorf("--%v flag is required.", flag))
 		}
 	}
 	return nil

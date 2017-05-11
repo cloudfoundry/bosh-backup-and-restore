@@ -132,7 +132,10 @@ var _ = Describe("CLI Interface", func() {
 			It("displays a failure message", func() {
 				Expect(output.outputString()).To(ContainSubstring("Incorrect Usage"))
 			})
-			ShowsTheBackupHelpText(&output)
+
+			It("displays the usable flags", func() {
+				ShowsTheBackupHelpText(&output)
+			})
 		})
 
 		Context("when any required flags are missing", func() {
@@ -159,7 +162,10 @@ var _ = Describe("CLI Interface", func() {
 				It("displays a failure message", func() {
 					Expect(session.Err.Contents()).To(ContainSubstring("--target flag is required."))
 				})
-				ShowsTheBackupHelpText(&output)
+
+				It("displays the usable flags", func() {
+					ShowsTheBackupHelpText(&output)
+				})
 			})
 
 			Context("Missing username", func() {
@@ -173,7 +179,10 @@ var _ = Describe("CLI Interface", func() {
 				It("displays a failure message", func() {
 					Expect(session.Err.Contents()).To(ContainSubstring("--username flag is required."))
 				})
-				ShowsTheBackupHelpText(&output)
+
+				It("displays the usable flags", func() {
+					ShowsTheBackupHelpText(&output)
+				})
 			})
 
 			Context("Missing password in args", func() {
@@ -188,7 +197,10 @@ var _ = Describe("CLI Interface", func() {
 				It("displays a failure message", func() {
 					Expect(session.Err.Contents()).To(ContainSubstring("--password flag is required."))
 				})
-				ShowsTheBackupHelpText(&output)
+
+				It("displays the usable flags", func() {
+					ShowsTheBackupHelpText(&output)
+				})
 			})
 
 			Context("Missing deployment", func() {
@@ -202,7 +214,10 @@ var _ = Describe("CLI Interface", func() {
 				It("displays a failure message", func() {
 					Expect(session.Err.Contents()).To(ContainSubstring("--deployment flag is required."))
 				})
-				ShowsTheBackupHelpText(&output)
+
+				It("displays the usable flags", func() {
+					ShowsTheBackupHelpText(&output)
+				})
 			})
 		})
 		Context("with debug flag set", func() {
@@ -241,7 +256,9 @@ instances: []`))
 			output.output = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--help").Out.Contents()
 		})
 
-		ShowsTheBackupHelpText(&output)
+		It("displays the usable flags", func() {
+			ShowsTheBackupHelpText(&output)
+		})
 	})
 
 	Context("deployment - no arguments", func() {
@@ -251,6 +268,8 @@ instances: []`))
 			output.output = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "").Out.Contents()
 		})
 
-		ShowsTheBackupHelpText(&output)
+		It("displays the usable flags", func() {
+			ShowsTheBackupHelpText(&output)
+		})
 	})
 })
