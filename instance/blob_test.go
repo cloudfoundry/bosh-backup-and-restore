@@ -361,7 +361,7 @@ var _ = Describe("blob", func() {
 
 	Context("NamedBackupBlob", func() {
 		BeforeEach(func() {
-			job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/b-backup"}, instance.Metadata{BackupName: "named-blob"})
+			job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/backup"}, instance.Metadata{BackupName: "named-blob"})
 		})
 		JustBeforeEach(func() {
 			blob = instance.NewNamedBackupBlob(instanceToBackup, job, sshConnection, boshLogger)
@@ -398,7 +398,7 @@ var _ = Describe("blob", func() {
 
 	Context("NamedRestoreBlob", func() {
 		BeforeEach(func() {
-			job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/b-restore"}, instance.Metadata{RestoreName: "named-blob-to-restore"})
+			job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/restore"}, instance.Metadata{RestoreName: "named-blob-to-restore"})
 		})
 		JustBeforeEach(func() {
 			blob = instance.NewNamedRestoreBlob(instanceToBackup, job, sshConnection, boshLogger)
@@ -435,7 +435,7 @@ var _ = Describe("blob", func() {
 
 	Context("DefaultBlob", func() {
 		BeforeEach(func() {
-			job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/b-restore"}, instance.Metadata{RestoreName: "named-blob-to-restore"})
+			job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/restore"}, instance.Metadata{RestoreName: "named-blob-to-restore"})
 		})
 		JustBeforeEach(func() {
 			blob = instance.NewDefaultBlob(instanceToBackup, sshConnection, boshLogger)

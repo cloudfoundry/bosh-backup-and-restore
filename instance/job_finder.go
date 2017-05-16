@@ -75,7 +75,7 @@ func (j *JobFinderFromScripts) findMetadata(hostIdentifier string, script Script
 func (j *JobFinderFromScripts) findScripts(hostIdentifier string, sshConnection SSHConnection) ([]string, error) {
 	j.Logger.Debug("", "Attempting to find scripts on %s", hostIdentifier)
 
-	stdout, stderr, exitCode, err := sshConnection.Run("find /var/vcap/jobs/*/bin/* -type f")
+	stdout, stderr, exitCode, err := sshConnection.Run("find /var/vcap/jobs/*/bin/bbr/* -type f")
 	if err != nil {
 		j.Logger.Error(
 			"",

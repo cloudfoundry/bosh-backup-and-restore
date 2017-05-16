@@ -73,7 +73,7 @@ var _ = Describe("Backup", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				By("creating a dummy backup script")
-				instance1.CreateScript("/var/vcap/jobs/redis/bin/b-backup", `#!/usr/bin/env sh
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
 
 set -u
 
@@ -130,7 +130,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				It("prints the backup progress to the screen", func() {
 					Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Running pre-checks for backup of %s...", deploymentName)))
 					Expect(session.Out).To(gbytes.Say("INFO - Scripts found:"))
-					Expect(session.Out).To(gbytes.Say("INFO - redis-dedicated-node/fake-uuid/redis/b-backup"))
+					Expect(session.Out).To(gbytes.Say("INFO - redis-dedicated-node/fake-uuid/redis/backup"))
 					Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Starting backup of %s...", deploymentName)))
 					Expect(session.Out).To(gbytes.Say("INFO - Running pre-backup scripts..."))
 					Expect(session.Out).To(gbytes.Say("INFO - Done."))
@@ -155,13 +155,13 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				})
 			})
 
-			Context("when there is a b-metadata script which produces yaml containing the custom backup_name", func() {
+			Context("when there is a metadata script which produces yaml containing the custom backup_name", func() {
 				var redisCustomArtifactFile string
 				var redisDefaultArtifactFile string
 
 				BeforeEach(func() {
-					instance1.CreateScript("/var/vcap/jobs/redis/bin/b-metadata", `#!/usr/bin/env sh
-	touch /tmp/b-metadata-output
+					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
+	touch /tmp/metadata-output
 echo "---
 backup_name: foo_redis
 "`)
@@ -169,8 +169,8 @@ backup_name: foo_redis
 					redisDefaultArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")
 				})
 
-				It("runs the b-metadata scripts", func() {
-					Expect(instance1.FileExists("/tmp/b-metadata-output")).To(BeTrue())
+				It("runs the metadata scripts", func() {
+					Expect(instance1.FileExists("/tmp/metadata-output")).To(BeTrue())
 				})
 
 				It("creates a custom backup artifact", func() {
@@ -195,42 +195,42 @@ blobs:
 				})
 			})
 
-			Context("when the b-pre-backup-lock script is present", func() {
+			Context("when the pre-backup-lock script is present", func() {
 				BeforeEach(func() {
-					instance1.CreateScript("/var/vcap/jobs/redis/bin/b-pre-backup-lock", `#!/usr/bin/env sh
+					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
 touch /tmp/pre-backup-lock-output
 `)
-					instance1.CreateScript("/var/vcap/jobs/redis-broker/bin/b-pre-backup-lock", ``)
+					instance1.CreateScript("/var/vcap/jobs/redis-broker/bin/bbr/pre-backup-lock", ``)
 				})
 
-				It("runs the b-pre-backup-lock scripts", func() {
+				It("runs the pre-backup-lock scripts", func() {
 					Expect(instance1.FileExists("/tmp/pre-backup-lock-output")).To(BeTrue())
 				})
 
 				It("logs that it is locking the instance, and lists the scripts", func() {
 					assertOutput(session, []string{
 						`Locking redis on redis-dedicated-node/fake-uuid for backup`,
-						"> /var/vcap/jobs/redis/bin/b-pre-backup-lock",
-						"> /var/vcap/jobs/redis-broker/bin/b-pre-backup-lock",
+						"> /var/vcap/jobs/redis/bin/bbr/pre-backup-lock",
+						"> /var/vcap/jobs/redis-broker/bin/bbr/pre-backup-lock",
 					})
 				})
 			})
 
-			Context("when the b-pre-backup-lock script fails", func() {
+			Context("when the pre-backup-lock script fails", func() {
 				BeforeEach(func() {
-					instance1.CreateScript("/var/vcap/jobs/redis/bin/b-pre-backup-lock", `#!/usr/bin/env sh
+					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
 echo 'ultra-bar'
 (>&2 echo 'ultra-baz')
 touch /tmp/pre-backup-lock-output
 exit 1
 `)
-					instance1.CreateScript("/var/vcap/jobs/redis-broker/bin/b-pre-backup-lock", ``)
-					instance1.CreateScript("/var/vcap/jobs/redis/bin/b-post-backup-unlock", `#!/usr/bin/env sh
+					instance1.CreateScript("/var/vcap/jobs/redis-broker/bin/bbr/pre-backup-lock", ``)
+					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
 touch /tmp/post-backup-unlock-output
 `)
 				})
 
-				It("runs the b-pre-backup-lock scripts", func() {
+				It("runs the pre-backup-lock scripts", func() {
 					Expect(instance1.FileExists("/tmp/pre-backup-lock-output")).To(BeTrue())
 				})
 
@@ -250,14 +250,14 @@ touch /tmp/post-backup-unlock-output
 					Expect(session.Err.Contents()).To(ContainSubstring("Stderr: ultra-baz"))
 				})
 
-				It("also runs the b-post-backup-unlock scripts", func() {
+				It("also runs the post-backup-unlock scripts", func() {
 					Expect(instance1.FileExists("/tmp/post-backup-unlock-output")).To(BeTrue())
 				})
 			})
 
 			Context("when backup file has owner only permissions of different user", func() {
 				BeforeEach(func() {
-					instance1.CreateScript("/var/vcap/jobs/redis/bin/b-backup", `#!/usr/bin/env sh
+					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
 
 set -u
 
@@ -282,7 +282,7 @@ chmod 0700 $BBR_ARTIFACT_DIRECTORY/backupdump3`)
 
 			Context("when backup deployment has a post-backup-unlock script", func() {
 				BeforeEach(func() {
-					instance1.CreateScript("/var/vcap/jobs/redis/bin/b-post-backup-unlock", `#!/usr/bin/env sh
+					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
 echo "Unlocking release"`)
 				})
 
@@ -295,7 +295,7 @@ echo "Unlocking release"`)
 
 				Context("when the post backup unlock script fails", func() {
 					BeforeEach(func() {
-						instance1.CreateScript("/var/vcap/jobs/redis/bin/b-post-backup-unlock", `#!/usr/bin/env sh
+						instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
 echo 'ultra-bar'
 (>&2 echo 'ultra-baz')
 exit 1`)
@@ -361,7 +361,7 @@ exit 1`)
 				)
 
 				instance1.CreateScript(
-					"/var/vcap/jobs/redis/bin/b-backup", "echo 'ultra-bar'; (>&2 echo 'ultra-baz'); exit 1",
+					"/var/vcap/jobs/redis/bin/bbr/backup", "echo 'ultra-bar'; (>&2 echo 'ultra-baz'); exit 1",
 				)
 			})
 
@@ -382,7 +382,7 @@ exit 1`)
 				)
 
 				instance1.CreateScript(
-					"/var/vcap/jobs/redis/bin/b-backup", "(>&2 echo 'ultra-baz'); exit 1",
+					"/var/vcap/jobs/redis/bin/bbr/backup", "(>&2 echo 'ultra-baz'); exit 1",
 				)
 			})
 
@@ -411,7 +411,7 @@ exit 1`)
 				)
 
 				instance1.CreateFiles(
-					"/var/vcap/jobs/redis/bin/b-backup",
+					"/var/vcap/jobs/redis/bin/bbr/backup",
 				)
 			})
 
@@ -432,14 +432,14 @@ exit 1`)
 			})
 		})
 
-		Context("when running the b-metadata script does not give valid yml", func() {
+		Context("when running the metadata script does not give valid yml", func() {
 			AfterEach(func() {
 				instance1.DieInBackground()
 			})
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
-				instance1.CreateScript("/var/vcap/jobs/redis/bin/b-metadata", `#!/usr/bin/env sh
-touch /tmp/b-metadata-output
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
+touch /tmp/metadata-output
 echo "not valid yaml
 "`)
 
@@ -452,8 +452,8 @@ echo "not valid yaml
 				)
 			})
 
-			It("runs the b-metadata scripts", func() {
-				Expect(instance1.FileExists("/tmp/b-metadata-output")).To(BeTrue())
+			It("runs the metadata scripts", func() {
+				Expect(instance1.FileExists("/tmp/metadata-output")).To(BeTrue())
 			})
 
 			It("exits with the correct error code", func() {
@@ -516,7 +516,7 @@ echo "not valid yaml
 						CleanupSSH(deploymentName, "redis-broker")...),
 				)
 				backupableInstance.CreateFiles(
-					"/var/vcap/jobs/redis/bin/b-backup",
+					"/var/vcap/jobs/redis/bin/bbr/backup",
 				)
 
 			})
@@ -552,11 +552,11 @@ echo "not valid yaml
 				)
 
 				backupableInstance1.CreateFiles(
-					"/var/vcap/jobs/redis/bin/b-backup",
+					"/var/vcap/jobs/redis/bin/bbr/backup",
 				)
 
 				backupableInstance2.CreateFiles(
-					"/var/vcap/jobs/redis/bin/b-backup",
+					"/var/vcap/jobs/redis/bin/bbr/backup",
 				)
 
 			})
@@ -607,18 +607,18 @@ echo "not valid yaml
 				)
 
 				backupableInstance1.CreateFiles(
-					"/var/vcap/jobs/redis/bin/b-backup",
+					"/var/vcap/jobs/redis/bin/bbr/backup",
 				)
 
 				backupableInstance2.CreateFiles(
-					"/var/vcap/jobs/redis/bin/b-backup",
+					"/var/vcap/jobs/redis/bin/bbr/backup",
 				)
 
-				backupableInstance1.CreateScript("/var/vcap/jobs/redis/bin/b-metadata", `#!/usr/bin/env sh
+				backupableInstance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
 echo "---
 backup_name: duplicate_name
 "`)
-				backupableInstance2.CreateScript("/var/vcap/jobs/redis/bin/b-metadata", `#!/usr/bin/env sh
+				backupableInstance2.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
 echo "---
 backup_name: duplicate_name
 "`)

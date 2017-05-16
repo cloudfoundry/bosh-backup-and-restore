@@ -14,10 +14,10 @@ var _ = Describe("Job", func() {
 
 	BeforeEach(func() {
 		jobScripts = instance.BackupAndRestoreScripts{
-			"/var/vcap/jobs/foo/bin/b-restore",
-			"/var/vcap/jobs/foo/bin/b-backup",
-			"/var/vcap/jobs/foo/bin/b-pre-backup-lock",
-			"/var/vcap/jobs/foo/bin/b-post-backup-unlock",
+			"/var/vcap/jobs/foo/bin/bbr/restore",
+			"/var/vcap/jobs/foo/bin/bbr/backup",
+			"/var/vcap/jobs/foo/bin/bbr/pre-backup-lock",
+			"/var/vcap/jobs/foo/bin/bbr/post-backup-unlock",
 		}
 		metadata = instance.Metadata{}
 	})
@@ -68,11 +68,11 @@ var _ = Describe("Job", func() {
 
 	Describe("BackupScript", func() {
 		It("returns the backup script", func() {
-			Expect(job.BackupScript()).To(Equal(instance.Script("/var/vcap/jobs/foo/bin/b-backup")))
+			Expect(job.BackupScript()).To(Equal(instance.Script("/var/vcap/jobs/foo/bin/bbr/backup")))
 		})
 		Context("no backup scripts exist", func() {
 			BeforeEach(func() {
-				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/b-restore"}
+				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/restore"}
 			})
 			It("returns nil", func() {
 				Expect(job.BackupScript()).To(BeEmpty())
@@ -127,7 +127,7 @@ var _ = Describe("Job", func() {
 
 		Context("no backup scripts exist", func() {
 			BeforeEach(func() {
-				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/b-restore"}
+				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/restore"}
 			})
 			It("returns false", func() {
 				Expect(job.HasBackup()).To(BeFalse())
@@ -137,11 +137,11 @@ var _ = Describe("Job", func() {
 
 	Describe("PreBackupScript", func() {
 		It("returns the pre-backup script", func() {
-			Expect(job.PreBackupScript()).To(Equal(instance.Script("/var/vcap/jobs/foo/bin/b-pre-backup-lock")))
+			Expect(job.PreBackupScript()).To(Equal(instance.Script("/var/vcap/jobs/foo/bin/bbr/pre-backup-lock")))
 		})
 		Context("no pre-backup scripts exist", func() {
 			BeforeEach(func() {
-				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/b-restore"}
+				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/restore"}
 			})
 			It("returns nil", func() {
 				Expect(job.PreBackupScript()).To(BeEmpty())
@@ -156,7 +156,7 @@ var _ = Describe("Job", func() {
 
 		Context("no pre-backup scripts exist", func() {
 			BeforeEach(func() {
-				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/b-restore"}
+				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/restore"}
 			})
 			It("returns false", func() {
 				Expect(job.HasPreBackup()).To(BeFalse())
@@ -166,11 +166,11 @@ var _ = Describe("Job", func() {
 
 	Describe("PostBackupScript", func() {
 		It("returns the post-backup script", func() {
-			Expect(job.PostBackupScript()).To(Equal(instance.Script("/var/vcap/jobs/foo/bin/b-post-backup-unlock")))
+			Expect(job.PostBackupScript()).To(Equal(instance.Script("/var/vcap/jobs/foo/bin/bbr/post-backup-unlock")))
 		})
 		Context("no post-backup scripts exist", func() {
 			BeforeEach(func() {
-				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/b-restore"}
+				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/restore"}
 			})
 			It("returns nil", func() {
 				Expect(job.PostBackupScript()).To(BeEmpty())
@@ -185,7 +185,7 @@ var _ = Describe("Job", func() {
 
 		Context("no post-backup scripts exist", func() {
 			BeforeEach(func() {
-				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/b-restore"}
+				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/restore"}
 			})
 			It("returns false", func() {
 				Expect(job.HasPostBackup()).To(BeFalse())
@@ -195,11 +195,11 @@ var _ = Describe("Job", func() {
 
 	Describe("RestoreScript", func() {
 		It("returns the post-backup script", func() {
-			Expect(job.RestoreScript()).To(Equal(instance.Script("/var/vcap/jobs/foo/bin/b-restore")))
+			Expect(job.RestoreScript()).To(Equal(instance.Script("/var/vcap/jobs/foo/bin/bbr/restore")))
 		})
 		Context("no post-backup scripts exist", func() {
 			BeforeEach(func() {
-				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/b-backup"}
+				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/backup"}
 			})
 			It("returns nil", func() {
 				Expect(job.RestoreScript()).To(BeEmpty())
@@ -214,7 +214,7 @@ var _ = Describe("Job", func() {
 
 		Context("no post-backup scripts exist", func() {
 			BeforeEach(func() {
-				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/b-backup"}
+				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/backup"}
 			})
 			It("returns false", func() {
 				Expect(job.HasRestore()).To(BeFalse())

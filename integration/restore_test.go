@@ -147,7 +147,7 @@ instances:
 				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 				CleanupSSH(deploymentName, "redis-dedicated-node"))...)
 
-			instance1.CreateScript("/var/vcap/jobs/redis/bin/b-restore", `#!/usr/bin/env sh
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
 set -u
 cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
 
@@ -197,7 +197,7 @@ instances:
 
 		Context("when restore fails", func() {
 			BeforeEach(func() {
-				instance1.CreateScript("/var/vcap/jobs/redis/bin/b-restore", `#!/usr/bin/env sh
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
 	>&2 echo "dear lord"; exit 1`)
 			})
 
@@ -239,10 +239,10 @@ instances:
 				CleanupSSH(deploymentName, "redis-dedicated-node"),
 				CleanupSSH(deploymentName, "redis-server"))...)
 
-			instance1.CreateScript("/var/vcap/jobs/redis/bin/b-restore", `#!/usr/bin/env sh
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
 set -u
 cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
-			instance2.CreateScript("/var/vcap/jobs/redis/bin/b-restore", `#!/usr/bin/env sh
+			instance2.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
 set -u
 cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
 
@@ -317,11 +317,11 @@ instances:
 					}}),
 				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 				CleanupSSH(deploymentName, "redis-dedicated-node"))...)
-			instance1.CreateScript("/var/vcap/jobs/redis/bin/b-metadata", `#!/usr/bin/env sh
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
 echo "---
 restore_name: foo
 "`)
-			instance1.CreateScript("/var/vcap/jobs/redis/bin/b-restore", `#!/usr/bin/env sh
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
 set -u
 cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
 
@@ -402,14 +402,14 @@ blobs:
 				SetupSSH(deploymentName, "redis-backup-node", "fake-uuid", 0, instance2),
 				CleanupSSH(deploymentName, "redis-restore-node"),
 				CleanupSSH(deploymentName, "redis-backup-node"))...)
-			instance1.CreateScript("/var/vcap/jobs/redis/bin/b-metadata", `#!/usr/bin/env sh
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
 echo "---
 restore_name: foo
 "`)
-			instance1.CreateScript("/var/vcap/jobs/redis/bin/b-restore", `#!/usr/bin/env sh
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
 set -u
 cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
-			instance2.CreateScript("/var/vcap/jobs/redis/bin/b-backup", `#!/usr/bin/env sh
+			instance2.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
 set -u
 echo "dosent matter"`)
 
@@ -526,7 +526,7 @@ blobs:
 				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 				CleanupSSHFails(deploymentName, "redis-dedicated-node", "cleanup err"))...)
 
-			instance1.CreateScript("/var/vcap/jobs/redis/bin/b-restore", `#!/usr/bin/env sh
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
 cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/`)
 
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())

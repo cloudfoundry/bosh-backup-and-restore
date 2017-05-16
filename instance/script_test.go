@@ -19,7 +19,7 @@ var _ = Describe("Script", func() {
 
 	Describe("JobName", func() {
 		BeforeEach(func() {
-			script = Script("/var/vcap/jobs/a-job-name/b-backup")
+			script = Script("/var/vcap/jobs/a-job-name/backup")
 		})
 
 		It("returns the job name for a given bosh job script", func() {
@@ -29,9 +29,9 @@ var _ = Describe("Script", func() {
 
 	Describe("Name", func() {
 		It("returns the job name for a given bosh job script", func() {
-			Expect(Script("/var/vcap/jobs/a-job-name/bin/b-backup").Name()).To(Equal("b-backup"))
-			Expect(Script("/var/vcap/jobs/a-job-name/bin/b-restore").Name()).To(Equal("b-restore"))
-			Expect(Script("/var/vcap/jobs/a-job-name/bin/b-metadata").Name()).To(Equal("b-metadata"))
+			Expect(Script("/var/vcap/jobs/a-job-name/bin/bbr/backup").Name()).To(Equal("backup"))
+			Expect(Script("/var/vcap/jobs/a-job-name/bin/bbr/restore").Name()).To(Equal("restore"))
+			Expect(Script("/var/vcap/jobs/a-job-name/bin/bbr/metadata").Name()).To(Equal("metadata"))
 		})
 	})
 })

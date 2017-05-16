@@ -71,7 +71,7 @@ var _ = Describe("Pre-backup checks", func() {
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)
 
-				instance1.CreateScript("/var/vcap/jobs/redis/bin/b-backup", `#!/usr/bin/env sh
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
 set -u
 printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
 printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2

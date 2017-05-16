@@ -42,7 +42,7 @@ func (s Script) isPlatformScript() bool {
 
 func (s Script) splitPath() []string {
 	strippedPrefix := strings.TrimPrefix(string(s), jobBaseDirectory)
-	splitFirstElement := strings.SplitN(strippedPrefix, "/", 3)
+	splitFirstElement := strings.SplitN(strippedPrefix, "/", 4)
 	return splitFirstElement
 }
 
