@@ -12,6 +12,7 @@ import (
 )
 
 var workspaceDir string
+var fixturesPath = "../../fixtures/director-backup/"
 
 func TestDirector(t *testing.T) {
 	RegisterFailHandler(Fail)

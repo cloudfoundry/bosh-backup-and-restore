@@ -1,0 +1,5 @@
+instances:
+- instance_name: bosh
+  instance_index: "0"
+  checksums:
+    ./test-backup-and-restore/backup: d9495cd41f4ea16c7df3db3b23bd29db96583da3

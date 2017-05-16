@@ -100,6 +100,12 @@ COPYRIGHT:
 					Usage:   "Backup a BOSH Director",
 					Action:  directorBackup,
 				},
+				{
+					Name:    "restore",
+					Aliases: []string{"r"},
+					Usage:   "Restore a deployment from backup",
+					Action:  directorRestore,
+				},
 			},
 		},
 		{
@@ -161,18 +167,6 @@ func directorPreBackupCheck(c *cli.Context) error {
 		return cli.NewExitError(err, 1)
 	}
 }
-func makeDirectorBackuper(c *cli.Context) *orchestrator.Backuper {
-	logger := makeLogger(c)
-	deploymentManager := standalone.NewDeploymentManager(logger,
-		c.Parent().String("host"),
-		c.Parent().String("username"),
-		c.Parent().String("private-key-path"),
-		instance.NewJobFinder(logger),
-		ssh.ConnectionCreator,
-	)
-	backuper := orchestrator.NewBackuper(artifact.DirectoryArtifactManager{}, logger, deploymentManager)
-	return backuper
-}
 
 func backup(c *cli.Context) error {
 	var deployment = c.Parent().String("deployment")
@@ -210,6 +204,15 @@ func restore(c *cli.Context) error {
 	}
 
 	err = restorer.Restore(deployment)
+	return orchestrator.ProcessRestoreError(err)
+}
+
+func directorRestore(c *cli.Context) error {
+	var deployment = c.Parent().String("name")
+
+	restorer:= makeDirectorRestorer(c)
+
+	err := restorer.Restore(deployment)
 	return orchestrator.ProcessRestoreError(err)
 }
 
@@ -313,6 +316,19 @@ func makeBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
 	return orchestrator.NewBackuper(artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
 }
 
+func makeDirectorBackuper(c *cli.Context) *orchestrator.Backuper {
+	logger := makeLogger(c)
+	deploymentManager := standalone.NewDeploymentManager(logger,
+		c.Parent().String("host"),
+		c.Parent().String("username"),
+		c.Parent().String("private-key-path"),
+		instance.NewJobFinder(logger),
+		ssh.ConnectionCreator,
+	)
+	backuper := orchestrator.NewBackuper(artifact.DirectoryArtifactManager{}, logger, deploymentManager)
+	return backuper
+}
+
 func makeRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
 	logger := makeLogger(c)
 	deploymentManager, err := newDeploymentManager(
@@ -328,6 +344,18 @@ func makeRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
 	}
 
 	return orchestrator.NewRestorer(artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
+}
+
+func makeDirectorRestorer(c *cli.Context) *orchestrator.Restorer {
+	logger := makeLogger(c)
+	deploymentManager := standalone.NewDeploymentManager(logger,
+		c.Parent().String("host"),
+		c.Parent().String("username"),
+		c.Parent().String("private-key-path"),
+		instance.NewJobFinder(logger),
+		ssh.ConnectionCreator,
+	)
+	return orchestrator.NewRestorer(artifact.DirectoryArtifactManager{}, logger, deploymentManager)
 }
 
 func newDeploymentManager(targetUrl, username, password, caCert string, logger boshlog.Logger) (orchestrator.DeploymentManager, error) {

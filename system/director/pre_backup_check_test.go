@@ -23,6 +23,5 @@ var _ = Describe("PreBackupCheck", func() {
 		)
 		Eventually(preBackupCheckCommand).Should(gexec.Exit(0))
 		Expect(preBackupCheckCommand.Out.Contents()).To(ContainSubstring("Director can be backed up"))
-
 	})
 })

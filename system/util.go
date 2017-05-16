@@ -29,10 +29,10 @@ func RunBoshCommand(cmd string, args ...string) {
 	Eventually(session).Should(gexec.Exit(0))
 }
 
-func RunCommandOnRemote(cmd string, remoteComand string) *gexec.Session {
+func RunCommandOnRemote(cmd string, remoteCommand string) *gexec.Session {
 	cmdParts := strings.Split(cmd, " ")
 	commandPath := cmdParts[0]
-	combinedArgs := append(cmdParts[1:], remoteComand)
+	combinedArgs := append(cmdParts[1:], remoteCommand)
 	command := exec.Command(commandPath, combinedArgs...)
 
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
