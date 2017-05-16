@@ -13,15 +13,31 @@ import (
 )
 
 var _ = Describe("Restores a deployment", func() {
+	var restorePath = "/var/vcap/store/test-backup-and-restore"
+	var restoredArtifactPath = restorePath + "/backup"
+	var skipSSHFingerprintCheckOpts = "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+
 	AfterEach(func() {
-		By("removing the backup artifact")
+		By("cleaning up the jump box")
 		RunCommandOnRemoteAsVcap(
 			JumpBoxSSHCommand(),
 			fmt.Sprintf(
-				`sudo rm -rf %s/my-director && sudo rm -f /var/vcap/store/test-backup-and-restore/backup`,
+				`sudo rm -rf %s/my-director`,
 				workspaceDir,
 			),
 		)
+
+		By("cleaning up the director")
+		directorIp, _, _ := net.SplitHostPort(MustHaveEnv("HOST_TO_BACKUP"))
+		Eventually(RunCommandOnRemote(
+			JumpBoxSSHCommand(),
+			fmt.Sprintf(`cd %s; ssh %s vcap@%s -i key.pem 'sudo rm -rf %s'`,
+				workspaceDir,
+				skipSSHFingerprintCheckOpts,
+				directorIp,
+				restorePath,
+			),
+		)).Should(gexec.Exit(0))
 	})
 
 	It("restores", func() {
@@ -45,9 +61,11 @@ var _ = Describe("Restores a deployment", func() {
 		directorIp, _, _ := net.SplitHostPort(MustHaveEnv("HOST_TO_BACKUP"))
 		Eventually(RunCommandOnRemote(
 			JumpBoxSSHCommand(),
-			fmt.Sprintf(`cd %s; ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null vcap@%s -i key.pem 'stat /var/vcap/store/test-backup-and-restore/backup'`,
+			fmt.Sprintf(`cd %s; ssh %s vcap@%s -i key.pem 'stat %s'`,
 				workspaceDir,
+				skipSSHFingerprintCheckOpts,
 				directorIp,
+				restoredArtifactPath,
 			),
 		)).Should(gexec.Exit(0))
 	})
