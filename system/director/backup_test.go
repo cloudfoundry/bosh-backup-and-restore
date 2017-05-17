@@ -13,12 +13,12 @@ import (
 var _ = Describe("Backup", func() {
 	AfterEach(func() {
 		By("removing the backup artifact")
-		RunCommandOnRemoteAsVcap(
+		Eventually(RunCommandOnRemoteAsVcap(
 			JumpBoxSSHCommand(),
 			fmt.Sprintf(
 				`sudo rm -rf %s/my-director`,
 				workspaceDir,
-			))
+			))).Should(gexec.Exit(0))
 	})
 
 	It("backs up the director", func() {

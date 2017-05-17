@@ -19,13 +19,13 @@ var _ = Describe("Restores a deployment", func() {
 
 	AfterEach(func() {
 		By("cleaning up the jump box")
-		RunCommandOnRemoteAsVcap(
+		Eventually(RunCommandOnRemoteAsVcap(
 			JumpBoxSSHCommand(),
 			fmt.Sprintf(
 				`sudo rm -rf %s/my-director`,
 				workspaceDir,
 			),
-		)
+		)).Should(gexec.Exit(0))
 
 		By("cleaning up the director")
 		directorIp, _, _ := net.SplitHostPort(MustHaveEnv("HOST_TO_BACKUP"))

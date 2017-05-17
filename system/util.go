@@ -37,6 +37,7 @@ func RunCommandOnRemote(cmd string, remoteCommand string) *gexec.Session {
 
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 
+	Eventually(session).Should(gexec.Exit())
 	Expect(err).ToNot(HaveOccurred())
 	return session
 }
