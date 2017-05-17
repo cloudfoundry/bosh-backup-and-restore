@@ -95,6 +95,7 @@ release: setup
 	mkdir releases
 	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/bbr github.com/pivotal-cf/bosh-backup-and-restore/cmd/bbr
 	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/bbr-mac github.com/pivotal-cf/bosh-backup-and-restore/cmd/bbr
+	cd releases && shasum -a 256 * > checksum.sha256
 
 clean-docker:
 	docker ps -q | xargs -IN -P10 docker kill N
