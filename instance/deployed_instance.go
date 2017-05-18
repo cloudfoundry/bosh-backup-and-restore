@@ -42,12 +42,12 @@ func (d *DeployedInstance) IsPreBackupLockable() bool {
 	return d.Jobs.AnyArePreBackupable()
 }
 
-func (d *DeployedInstance) CustomBlobNames() []string {
-	return d.Jobs.BackupBlobNames()
+func (d *DeployedInstance) CustomBackupBlobNames() []string {
+	return d.Jobs.CustomBackupBlobNames()
 }
 
-func (d *DeployedInstance) RestoreBlobNames() []string {
-	return d.Jobs.NamedRestoreBlobs()
+func (d *DeployedInstance) CustomRestoreBlobNames() []string {
+	return d.Jobs.CustomRestoreBlobNames()
 }
 
 func (d *DeployedInstance) PreBackupLock() error {

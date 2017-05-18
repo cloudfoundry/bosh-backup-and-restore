@@ -136,7 +136,7 @@ func (bw *backupWorkflow) checkIsBackupable(e *fsm.Event) {
 		return
 	}
 
-	if !bw.deployment.HasValidBackupMetadata() {
+	if !bw.deployment.HasUniqueCustomBackupNames() {
 		bw.backupErrors = append(bw.backupErrors, fmt.Errorf("Multiple jobs in deployment '%s' specified the same backup name", bw.deploymentName))
 		e.Cancel()
 	}

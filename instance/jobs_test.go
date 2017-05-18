@@ -286,9 +286,9 @@ var _ = Describe("Jobs", func() {
 			})
 		})
 
-		Describe("BackupBlobNames", func() {
+		Describe("CustomBackupBlobNames", func() {
 			It("returns empty", func() {
-				Expect(jobs.BackupBlobNames()).To(BeEmpty())
+				Expect(jobs.CustomBackupBlobNames()).To(BeEmpty())
 			})
 		})
 	})
@@ -343,9 +343,9 @@ var _ = Describe("Jobs", func() {
 			}
 		})
 
-		Describe("NamedRestoreBlobs", func() {
+		Describe("CustomRestoreBlobNames", func() {
 			It("returns a list of blob names", func() {
-				Expect(jobs.NamedRestoreBlobs()).To(ConsistOf("my-cool-restore"))
+				Expect(jobs.CustomRestoreBlobNames()).To(ConsistOf("my-cool-restore"))
 			})
 		})
 
@@ -385,9 +385,9 @@ var _ = Describe("Jobs", func() {
 			}
 		})
 
-		Describe("BackupBlobNames", func() {
+		Describe("CustomBackupBlobNames", func() {
 			It("returns a list of blob names", func() {
-				Expect(jobs.BackupBlobNames()).To(ConsistOf("a-bosh-backup", "another-backup"))
+				Expect(jobs.CustomBackupBlobNames()).To(ConsistOf("a-bosh-backup", "another-backup"))
 			})
 		})
 

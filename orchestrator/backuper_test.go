@@ -40,7 +40,7 @@ var _ = Describe("Backup", func() {
 			artifactManager.ExistsReturns(false)
 			deploymentManager.FindReturns(deployment, nil)
 			deployment.IsBackupableReturns(true)
-			deployment.HasValidBackupMetadataReturns(true)
+			deployment.HasUniqueCustomBackupNamesReturns(true)
 			deployment.CleanupReturns(nil)
 			deployment.CopyRemoteBackupToLocalReturns(nil)
 		})
@@ -144,7 +144,7 @@ var _ = Describe("Backup", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
-				deployment.HasValidBackupMetadataReturns(true)
+				deployment.HasUniqueCustomBackupNamesReturns(true)
 				artifactManager.CreateReturns(artifact, nil)
 				deploymentManager.SaveManifestReturns(expectedError)
 			})
@@ -182,7 +182,7 @@ var _ = Describe("Backup", func() {
 			})
 
 			It("does not check the backup metadata validity", func() {
-				Expect(deployment.HasValidBackupMetadataCallCount()).To(BeZero())
+				Expect(deployment.HasUniqueCustomBackupNamesCallCount()).To(BeZero())
 			})
 
 			Context("cleanup fails as well", assertCleanupError)
@@ -196,7 +196,7 @@ var _ = Describe("Backup", func() {
 				artifactManager.ExistsReturns(false)
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
-				deployment.HasValidBackupMetadataReturns(true)
+				deployment.HasUniqueCustomBackupNamesReturns(true)
 				deployment.CleanupReturns(nil)
 
 				deployment.PreBackupLockReturns(lockError)
@@ -222,7 +222,7 @@ var _ = Describe("Backup", func() {
 				artifactManager.ExistsReturns(false)
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
-				deployment.HasValidBackupMetadataReturns(true)
+				deployment.HasUniqueCustomBackupNamesReturns(true)
 				deployment.CleanupReturns(nil)
 
 				deployment.PostBackupUnlockReturns(unlockError)
@@ -293,7 +293,7 @@ var _ = Describe("Backup", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
-				deployment.HasValidBackupMetadataReturns(true)
+				deployment.HasUniqueCustomBackupNamesReturns(true)
 				artifactManager.CreateReturns(artifact, nil)
 				deployment.CopyRemoteBackupToLocalReturns(drainError)
 			})
@@ -323,7 +323,7 @@ var _ = Describe("Backup", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
-				deployment.HasValidBackupMetadataReturns(true)
+				deployment.HasUniqueCustomBackupNamesReturns(true)
 
 				artifactManager.CreateReturns(nil, artifactError)
 			})
@@ -352,7 +352,7 @@ var _ = Describe("Backup", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
-				deployment.HasValidBackupMetadataReturns(true)
+				deployment.HasUniqueCustomBackupNamesReturns(true)
 
 				artifactManager.CreateReturns(artifact, nil)
 				deployment.CleanupReturns(cleanupError)
@@ -386,7 +386,7 @@ var _ = Describe("Backup", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
-				deployment.HasValidBackupMetadataReturns(true)
+				deployment.HasUniqueCustomBackupNamesReturns(true)
 
 				artifactManager.CreateReturns(artifact, nil)
 				deployment.BackupReturns(backupError)
@@ -420,7 +420,7 @@ var _ = Describe("Backup", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
-				deployment.HasValidBackupMetadataReturns(false)
+				deployment.HasUniqueCustomBackupNamesReturns(false)
 			})
 
 			It("fails the backup process", func() {
@@ -435,7 +435,7 @@ var _ = Describe("Backup", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
-				deployment.HasValidBackupMetadataReturns(true)
+				deployment.HasUniqueCustomBackupNamesReturns(true)
 				deployment.CustomArtifactNamesMatchReturns(expectedError)
 			})
 
@@ -477,7 +477,7 @@ var _ = Describe("CanBeBackedUp", func() {
 			artifactManager.ExistsReturns(false)
 			deploymentManager.FindReturns(deployment, nil)
 			deployment.IsBackupableReturns(true)
-			deployment.HasValidBackupMetadataReturns(true)
+			deployment.HasUniqueCustomBackupNamesReturns(true)
 			deployment.CleanupReturns(nil)
 		})
 
@@ -512,7 +512,7 @@ var _ = Describe("CanBeBackedUp", func() {
 			artifactManager.ExistsReturns(false)
 			deploymentManager.FindReturns(nil, fmt.Errorf("deployment not found"))
 			deployment.IsBackupableReturns(true)
-			deployment.HasValidBackupMetadataReturns(true)
+			deployment.HasUniqueCustomBackupNamesReturns(true)
 			deployment.CleanupReturns(nil)
 		})
 
@@ -531,7 +531,7 @@ var _ = Describe("CanBeBackedUp", func() {
 		BeforeEach(func() {
 			deploymentManager.FindReturns(deployment, nil)
 			deployment.IsBackupableReturns(true)
-			deployment.HasValidBackupMetadataReturns(true)
+			deployment.HasUniqueCustomBackupNamesReturns(true)
 			deployment.CustomArtifactNamesMatchReturns(expectedError)
 		})
 
@@ -546,7 +546,7 @@ var _ = Describe("CanBeBackedUp", func() {
 		BeforeEach(func() {
 			deploymentManager.FindReturns(deployment, nil)
 			deployment.IsBackupableReturns(true)
-			deployment.HasValidBackupMetadataReturns(false)
+			deployment.HasUniqueCustomBackupNamesReturns(false)
 		})
 
 		It("fails the backup process", func() {

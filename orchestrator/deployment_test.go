@@ -388,8 +388,8 @@ var _ = Describe("Deployment", func() {
 
 		Context("when the custom names match", func() {
 			BeforeEach(func() {
-				instance1.CustomBlobNamesReturns([]string{"custom1"})
-				instance2.RestoreBlobNamesReturns([]string{"custom1"})
+				instance1.CustomBackupBlobNamesReturns([]string{"custom1"})
+				instance2.CustomRestoreBlobNamesReturns([]string{"custom1"})
 			})
 
 			It("is nil", func() {
@@ -399,10 +399,10 @@ var _ = Describe("Deployment", func() {
 
 		Context("when the multiple custom names match", func() {
 			BeforeEach(func() {
-				instance1.CustomBlobNamesReturns([]string{"custom1"})
-				instance1.RestoreBlobNamesReturns([]string{"custom2"})
-				instance2.CustomBlobNamesReturns([]string{"custom2"})
-				instance2.RestoreBlobNamesReturns([]string{"custom1"})
+				instance1.CustomBackupBlobNamesReturns([]string{"custom1"})
+				instance1.CustomRestoreBlobNamesReturns([]string{"custom2"})
+				instance2.CustomBackupBlobNamesReturns([]string{"custom2"})
+				instance2.CustomRestoreBlobNamesReturns([]string{"custom1"})
 			})
 
 			It("is nil", func() {
@@ -411,9 +411,9 @@ var _ = Describe("Deployment", func() {
 		})
 		Context("when the custom dont match", func() {
 			BeforeEach(func() {
-				instance1.CustomBlobNamesReturns([]string{"custom1"})
+				instance1.CustomBackupBlobNamesReturns([]string{"custom1"})
 				instance2.NameReturns("job2Name")
-				instance2.RestoreBlobNamesReturns([]string{"custom2"})
+				instance2.CustomRestoreBlobNamesReturns([]string{"custom2"})
 			})
 
 			It("to return an error", func() {
@@ -422,16 +422,16 @@ var _ = Describe("Deployment", func() {
 		})
 	})
 
-	Context("HasValidBackupMetadata", func() {
+	Context("HasUniqueCustomBackupNames", func() {
 		var isValid bool
 
 		JustBeforeEach(func() {
-			isValid = deployment.HasValidBackupMetadata()
+			isValid = deployment.HasUniqueCustomBackupNames()
 		})
 
 		Context("Single instance, with unique metadata", func() {
 			BeforeEach(func() {
-				instance1.CustomBlobNamesReturns([]string{"custom1", "custom2"})
+				instance1.CustomBackupBlobNamesReturns([]string{"custom1", "custom2"})
 				instances = []orchestrator.Instance{instance1}
 			})
 
@@ -442,7 +442,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("Single instance, with non-unique metadata", func() {
 			BeforeEach(func() {
-				instance1.CustomBlobNamesReturns([]string{"the-same", "the-same"})
+				instance1.CustomBackupBlobNamesReturns([]string{"the-same", "the-same"})
 				instances = []orchestrator.Instance{instance1}
 			})
 
@@ -453,8 +453,8 @@ var _ = Describe("Deployment", func() {
 
 		Context("multiple instances, with unique metadata", func() {
 			BeforeEach(func() {
-				instance1.CustomBlobNamesReturns([]string{"custom1", "custom2"})
-				instance2.CustomBlobNamesReturns([]string{"custom3", "custom4"})
+				instance1.CustomBackupBlobNamesReturns([]string{"custom1", "custom2"})
+				instance2.CustomBackupBlobNamesReturns([]string{"custom3", "custom4"})
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
@@ -465,8 +465,8 @@ var _ = Describe("Deployment", func() {
 
 		Context("multiple instances, with non-unique metadata", func() {
 			BeforeEach(func() {
-				instance1.CustomBlobNamesReturns([]string{"custom1", "custom2"})
-				instance2.CustomBlobNamesReturns([]string{"custom2", "custom4"})
+				instance1.CustomBackupBlobNamesReturns([]string{"custom1", "custom2"})
+				instance2.CustomBackupBlobNamesReturns([]string{"custom2", "custom4"})
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
@@ -477,8 +477,8 @@ var _ = Describe("Deployment", func() {
 
 		Context("multiple instances, with no metadata", func() {
 			BeforeEach(func() {
-				instance1.CustomBlobNamesReturns([]string{})
-				instance2.CustomBlobNamesReturns([]string{})
+				instance1.CustomBackupBlobNamesReturns([]string{})
+				instance2.CustomBackupBlobNamesReturns([]string{})
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
 

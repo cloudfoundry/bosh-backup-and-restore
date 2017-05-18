@@ -8,7 +8,7 @@ import (
 //go:generate counterfeiter -o fakes/fake_deployment.go . Deployment
 type Deployment interface {
 	IsBackupable() bool
-	HasValidBackupMetadata() bool
+	HasUniqueCustomBackupNames() bool
 	IsRestorable() bool
 	PreBackupLock() error
 	Backup() error
@@ -36,7 +36,7 @@ func (bd *deployment) IsBackupable() bool {
 	return !backupableInstances.IsEmpty()
 }
 
-func (bd *deployment) HasValidBackupMetadata() bool {
+func (bd *deployment) HasUniqueCustomBackupNames() bool {
 	names := bd.instances.CustomBlobNames()
 
 	uniqueNames := map[string]bool{}
@@ -85,7 +85,7 @@ func (bd *deployment) IsRestorable() bool {
 func (bd *deployment) CustomArtifactNamesMatch() error {
 	for _, instance := range bd.Instances() {
 		jobName := instance.Name()
-		for _, restoreName := range instance.RestoreBlobNames() {
+		for _, restoreName := range instance.CustomRestoreBlobNames() {
 			var found bool
 			for _, backupName := range bd.instances.CustomBlobNames() {
 				if restoreName == backupName {

@@ -174,7 +174,7 @@ var _ = Describe("DeployedInstance", func() {
 		})
 	})
 
-	Describe("CustomBlobNames", func() {
+	Describe("CustomBackupBlobNames", func() {
 		Context("when the instance has custom blob names defined", func() {
 			BeforeEach(func() {
 				blobMetadata = map[string]instance.Metadata{
@@ -186,13 +186,13 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("returns a list of the instance's custom blob names", func() {
-				Expect(backuperInstance.CustomBlobNames()).To(ConsistOf("foo"))
+				Expect(backuperInstance.CustomBackupBlobNames()).To(ConsistOf("foo"))
 			})
 		})
 
 	})
 
-	Describe("RestoreBlobNames", func() {
+	Describe("CustomRestoreBlobNames", func() {
 		Context("when the instance has custom restore blob names defined", func() {
 			BeforeEach(func() {
 				blobMetadata = map[string]instance.Metadata{
@@ -204,7 +204,7 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("returns a list of the instance's custom restore blob names", func() {
-				Expect(backuperInstance.RestoreBlobNames()).To(ConsistOf("foo"))
+				Expect(backuperInstance.CustomRestoreBlobNames()).To(ConsistOf("foo"))
 			})
 		})
 

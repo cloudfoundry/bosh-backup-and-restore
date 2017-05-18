@@ -95,7 +95,7 @@ func (jobs Jobs) WithNamedRestoreBlobs() Jobs {
 	return jobsWithNamedBlobs
 }
 
-func (jobs Jobs) BackupBlobNames() []string {
+func (jobs Jobs) CustomBackupBlobNames() []string {
 	var blobNames []string
 
 	for _, job := range jobs.WithNamedBackupBlobs() {
@@ -105,7 +105,7 @@ func (jobs Jobs) BackupBlobNames() []string {
 	return blobNames
 }
 
-func (jobs Jobs) NamedRestoreBlobs() []string {
+func (jobs Jobs) CustomRestoreBlobNames() []string {
 	var blobNames []string
 
 	for _, job := range jobs.WithNamedRestoreBlobs() {

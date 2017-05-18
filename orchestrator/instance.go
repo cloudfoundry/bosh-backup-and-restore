@@ -23,8 +23,8 @@ type Instance interface {
 	Cleanup() error
 	BlobsToBackup() []BackupBlob
 	BlobsToRestore() []BackupBlob
-	CustomBlobNames() []string
-	RestoreBlobNames() []string
+	CustomBackupBlobNames() []string
+	CustomRestoreBlobNames() []string
 }
 
 type BackupBlobIdentifier interface {
@@ -63,7 +63,7 @@ func (is instances) CustomBlobNames() []string {
 	var blobNames []string
 
 	for _, instance := range is {
-		blobNames = append(blobNames, instance.CustomBlobNames()...)
+		blobNames = append(blobNames, instance.CustomBackupBlobNames()...)
 	}
 
 	return blobNames
@@ -73,7 +73,7 @@ func (is instances) RestoreBlobNames() []string {
 	var blobNames []string
 
 	for _, instance := range is {
-		blobNames = append(blobNames, instance.RestoreBlobNames()...)
+		blobNames = append(blobNames, instance.CustomRestoreBlobNames()...)
 	}
 
 	return blobNames

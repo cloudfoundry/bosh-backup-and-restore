@@ -17,13 +17,13 @@ type FakeDeployment struct {
 	isBackupableReturnsOnCall map[int]struct {
 		result1 bool
 	}
-	HasValidBackupMetadataStub        func() bool
-	hasValidBackupMetadataMutex       sync.RWMutex
-	hasValidBackupMetadataArgsForCall []struct{}
-	hasValidBackupMetadataReturns     struct {
+	HasUniqueCustomBackupNamesStub        func() bool
+	hasUniqueCustomBackupNamesMutex       sync.RWMutex
+	hasUniqueCustomBackupNamesArgsForCall []struct{}
+	hasUniqueCustomBackupNamesReturns     struct {
 		result1 bool
 	}
-	hasValidBackupMetadataReturnsOnCall map[int]struct {
+	hasUniqueCustomBackupNamesReturnsOnCall map[int]struct {
 		result1 bool
 	}
 	IsRestorableStub        func() bool
@@ -164,42 +164,42 @@ func (fake *FakeDeployment) IsBackupableReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) HasValidBackupMetadata() bool {
-	fake.hasValidBackupMetadataMutex.Lock()
-	ret, specificReturn := fake.hasValidBackupMetadataReturnsOnCall[len(fake.hasValidBackupMetadataArgsForCall)]
-	fake.hasValidBackupMetadataArgsForCall = append(fake.hasValidBackupMetadataArgsForCall, struct{}{})
-	fake.recordInvocation("HasValidBackupMetadata", []interface{}{})
-	fake.hasValidBackupMetadataMutex.Unlock()
-	if fake.HasValidBackupMetadataStub != nil {
-		return fake.HasValidBackupMetadataStub()
+func (fake *FakeDeployment) HasUniqueCustomBackupNames() bool {
+	fake.hasUniqueCustomBackupNamesMutex.Lock()
+	ret, specificReturn := fake.hasUniqueCustomBackupNamesReturnsOnCall[len(fake.hasUniqueCustomBackupNamesArgsForCall)]
+	fake.hasUniqueCustomBackupNamesArgsForCall = append(fake.hasUniqueCustomBackupNamesArgsForCall, struct{}{})
+	fake.recordInvocation("HasUniqueCustomBackupNames", []interface{}{})
+	fake.hasUniqueCustomBackupNamesMutex.Unlock()
+	if fake.HasUniqueCustomBackupNamesStub != nil {
+		return fake.HasUniqueCustomBackupNamesStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.hasValidBackupMetadataReturns.result1
+	return fake.hasUniqueCustomBackupNamesReturns.result1
 }
 
-func (fake *FakeDeployment) HasValidBackupMetadataCallCount() int {
-	fake.hasValidBackupMetadataMutex.RLock()
-	defer fake.hasValidBackupMetadataMutex.RUnlock()
-	return len(fake.hasValidBackupMetadataArgsForCall)
+func (fake *FakeDeployment) HasUniqueCustomBackupNamesCallCount() int {
+	fake.hasUniqueCustomBackupNamesMutex.RLock()
+	defer fake.hasUniqueCustomBackupNamesMutex.RUnlock()
+	return len(fake.hasUniqueCustomBackupNamesArgsForCall)
 }
 
-func (fake *FakeDeployment) HasValidBackupMetadataReturns(result1 bool) {
-	fake.HasValidBackupMetadataStub = nil
-	fake.hasValidBackupMetadataReturns = struct {
+func (fake *FakeDeployment) HasUniqueCustomBackupNamesReturns(result1 bool) {
+	fake.HasUniqueCustomBackupNamesStub = nil
+	fake.hasUniqueCustomBackupNamesReturns = struct {
 		result1 bool
 	}{result1}
 }
 
-func (fake *FakeDeployment) HasValidBackupMetadataReturnsOnCall(i int, result1 bool) {
-	fake.HasValidBackupMetadataStub = nil
-	if fake.hasValidBackupMetadataReturnsOnCall == nil {
-		fake.hasValidBackupMetadataReturnsOnCall = make(map[int]struct {
+func (fake *FakeDeployment) HasUniqueCustomBackupNamesReturnsOnCall(i int, result1 bool) {
+	fake.HasUniqueCustomBackupNamesStub = nil
+	if fake.hasUniqueCustomBackupNamesReturnsOnCall == nil {
+		fake.hasUniqueCustomBackupNamesReturnsOnCall = make(map[int]struct {
 			result1 bool
 		})
 	}
-	fake.hasValidBackupMetadataReturnsOnCall[i] = struct {
+	fake.hasUniqueCustomBackupNamesReturnsOnCall[i] = struct {
 		result1 bool
 	}{result1}
 }
@@ -625,8 +625,8 @@ func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.isBackupableMutex.RLock()
 	defer fake.isBackupableMutex.RUnlock()
-	fake.hasValidBackupMetadataMutex.RLock()
-	defer fake.hasValidBackupMetadataMutex.RUnlock()
+	fake.hasUniqueCustomBackupNamesMutex.RLock()
+	defer fake.hasUniqueCustomBackupNamesMutex.RUnlock()
 	fake.isRestorableMutex.RLock()
 	defer fake.isRestorableMutex.RUnlock()
 	fake.preBackupLockMutex.RLock()
