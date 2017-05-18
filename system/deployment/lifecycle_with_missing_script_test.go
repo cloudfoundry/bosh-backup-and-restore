@@ -11,7 +11,7 @@ import (
 )
 
 var _ = Describe("backup with a missing script", func() {
-	FIt("fails with a meaningful message", func() {
+	It("fails with a meaningful message", func() {
 		By("running the backup command")
 		session := RunCommandOnRemoteAsVcap(
 			JumpBoxSSHCommand(),
