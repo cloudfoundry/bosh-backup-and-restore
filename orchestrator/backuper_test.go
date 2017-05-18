@@ -429,18 +429,35 @@ var _ = Describe("Backup", func() {
 				))
 			})
 		})
+
+		Context("fails if deployments custom artifact names don't match", func() {
+			var expectedError = fmt.Errorf("artifact names invalid")
+			BeforeEach(func() {
+				deploymentManager.FindReturns(deployment, nil)
+				deployment.IsBackupableReturns(true)
+				deployment.HasValidBackupMetadataReturns(true)
+				deployment.CustomArtifactNamesMatchReturns(expectedError)
+			})
+
+			It("fails the backup process", func() {
+				Expect(actualBackupError).To(ConsistOf(
+					MatchError(expectedError),
+				))
+			})
+		})
 	})
 })
 
 var _ = Describe("CanBeBackedUp", func() {
 	var (
-		b                      *orchestrator.Backuper
-		deployment             *fakes.FakeDeployment
-		deploymentManager      *fakes.FakeDeploymentManager
-		artifactManager        *fakes.FakeArtifactManager
-		logger                 *fakes.FakeLogger
-		deploymentName         = "foobarbaz"
-		isDeploymentBackupable bool
+		b                        *orchestrator.Backuper
+		deployment               *fakes.FakeDeployment
+		deploymentManager        *fakes.FakeDeploymentManager
+		artifactManager          *fakes.FakeArtifactManager
+		logger                   *fakes.FakeLogger
+		deploymentName           = "foobarbaz"
+		isDeploymentBackupable   bool
+		actualCanBeBackedUpError error
 	)
 
 	BeforeEach(func() {
@@ -452,7 +469,7 @@ var _ = Describe("CanBeBackedUp", func() {
 	})
 
 	JustBeforeEach(func() {
-		isDeploymentBackupable, _ = b.CanBeBackedUp(deploymentName)
+		isDeploymentBackupable, actualCanBeBackedUpError = b.CanBeBackedUp(deploymentName)
 	})
 
 	Context("when the deployment can be backed up", func() {
@@ -508,4 +525,35 @@ var _ = Describe("CanBeBackedUp", func() {
 			Expect(deploymentManager.FindArgsForCall(0)).To(Equal(deploymentName))
 		})
 	})
+
+	Context("fails if deployments custom artifact names don't match", func() {
+		var expectedError = fmt.Errorf("artifact names invalid")
+		BeforeEach(func() {
+			deploymentManager.FindReturns(deployment, nil)
+			deployment.IsBackupableReturns(true)
+			deployment.HasValidBackupMetadataReturns(true)
+			deployment.CustomArtifactNamesMatchReturns(expectedError)
+		})
+
+		It("fails the backup process", func() {
+			Expect(actualCanBeBackedUpError).To(ConsistOf(
+				MatchError(expectedError),
+			))
+		})
+	})
+
+	Context("fails if deployment is invalid", func() {
+		BeforeEach(func() {
+			deploymentManager.FindReturns(deployment, nil)
+			deployment.IsBackupableReturns(true)
+			deployment.HasValidBackupMetadataReturns(false)
+		})
+
+		It("fails the backup process", func() {
+			Expect(actualCanBeBackedUpError).To(ConsistOf(
+				MatchError(fmt.Errorf("Multiple jobs in deployment '%s' specified the same backup name", deploymentName)),
+			))
+		})
+	})
+
 })

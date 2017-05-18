@@ -140,6 +140,11 @@ func (bw *backupWorkflow) checkIsBackupable(e *fsm.Event) {
 		bw.backupErrors = append(bw.backupErrors, fmt.Errorf("Multiple jobs in deployment '%s' specified the same backup name", bw.deploymentName))
 		e.Cancel()
 	}
+
+	if err := bw.deployment.CustomArtifactNamesMatch(); err != nil {
+		bw.backupErrors = append(bw.backupErrors, err)
+		e.Cancel()
+	}
 }
 
 func (bw *backupWorkflow) cleanup(e *fsm.Event) {

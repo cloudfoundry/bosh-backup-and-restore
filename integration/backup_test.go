@@ -643,6 +643,57 @@ backup_name: duplicate_name
 				Expect(session.ExitCode()).To(Equal(1))
 			})
 		})
+
+		Context("one instance consumes restore custom name, which no instance provides", func() {
+			var restoreInstance, backupableInstance *testcluster.Instance
+
+			BeforeEach(func() {
+				deploymentName = "my-two-instance-deployment"
+				restoreInstance = testcluster.NewInstance()
+				backupableInstance = testcluster.NewInstance()
+				mockDirectorWith(director,
+					mockbosh.Info().WithAuthTypeBasic(),
+					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
+					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, restoreInstance),
+						SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance)...),
+					ManifestIsNotDownloaded(),
+					append(CleanupSSH(deploymentName, "redis-dedicated-node"),
+						CleanupSSH(deploymentName, "redis-broker")...),
+				)
+
+				restoreInstance.CreateFiles(
+					"/var/vcap/jobs/redis/bin/bbr/restore",
+				)
+
+				backupableInstance.CreateFiles(
+					"/var/vcap/jobs/redis/bin/bbr/backup",
+				)
+
+				restoreInstance.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
+echo "---
+restore_name: name_1
+"`)
+				backupableInstance.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
+echo "---
+backup_name: name_2
+"`)
+			})
+
+			AfterEach(func() {
+				restoreInstance.DieInBackground()
+				backupableInstance.DieInBackground()
+			})
+
+			It("refuses to perform backup", func() {
+				Expect(string(session.Err.Contents())).To(ContainSubstring(
+					"The redis-dedicated-node restore script expects a backup script which produces name_1 artifact which is not present in the deployment",
+				))
+			})
+
+			It("returns exit code 1", func() {
+				Expect(session.ExitCode()).To(Equal(1))
+			})
+		})
 	})
 
 	Context("When deployment does not exist", func() {

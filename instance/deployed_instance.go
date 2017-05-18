@@ -46,6 +46,10 @@ func (d *DeployedInstance) CustomBlobNames() []string {
 	return d.Jobs.BackupBlobNames()
 }
 
+func (d *DeployedInstance) RestoreBlobNames() []string {
+	return d.Jobs.NamedRestoreBlobs()
+}
+
 func (d *DeployedInstance) PreBackupLock() error {
 
 	var foundErrors error

@@ -192,6 +192,24 @@ var _ = Describe("DeployedInstance", func() {
 
 	})
 
+	Describe("RestoreBlobNames", func() {
+		Context("when the instance has custom restore blob names defined", func() {
+			BeforeEach(func() {
+				blobMetadata = map[string]instance.Metadata{
+					"dave": {RestoreName: "foo"},
+				}
+				backupAndRestoreScripts = []instance.Script{
+					"/var/vcap/jobs/dave/bin/foo",
+				}
+			})
+
+			It("returns a list of the instance's custom restore blob names", func() {
+				Expect(backuperInstance.RestoreBlobNames()).To(ConsistOf("foo"))
+			})
+		})
+
+	})
+
 	Describe("PreBackupLock", func() {
 		var err error
 

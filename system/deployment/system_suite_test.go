@@ -29,7 +29,7 @@ var _ = BeforeEach(func() {
 	SetDefaultEventuallyTimeout(4 * time.Minute)
 	var wg sync.WaitGroup
 
-	wg.Add(4)
+	wg.Add(5)
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
@@ -42,6 +42,13 @@ var _ = BeforeEach(func() {
 		defer wg.Done()
 		By("deploying the Redis with metadata")
 		RunBoshCommand(RedisWithMetadataDeploymentBoshCommand(), "deploy", SetName(RedisWithMetadataDeployment()), RedisWithMetadataDeploymentManifest())
+	}()
+
+	go func() {
+		defer GinkgoRecover()
+		defer wg.Done()
+		By("deploying the Redis with missing backup script")
+		RunBoshCommand(RedisWithMissingScriptBoshCommand(), "deploy", SetName(RedisWithMissingScriptDeployment()), RedisWithMissingScriptDeploymentManifest())
 	}()
 
 	go func() {
@@ -74,7 +81,8 @@ var _ = BeforeEach(func() {
 var _ = AfterEach(func() {
 	var wg sync.WaitGroup
 
-	wg.Add(4)
+	wg.Add(5)
+
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
@@ -87,6 +95,13 @@ var _ = AfterEach(func() {
 		defer wg.Done()
 		By("tearing down the other redis release")
 		RunBoshCommand(RedisWithMetadataDeploymentBoshCommand(), "delete-deployment")
+	}()
+
+	go func() {
+		defer GinkgoRecover()
+		defer wg.Done()
+		By("tearing down the other redis release")
+		RunBoshCommand(RedisWithMissingScriptBoshCommand(), "delete-deployment")
 	}()
 
 	go func() {

@@ -376,6 +376,52 @@ var _ = Describe("Deployment", func() {
 		})
 	})
 
+	Context("CustomArtifactNamesMatch", func() {
+		var artifactMatchError error
+
+		JustBeforeEach(func() {
+			artifactMatchError = deployment.CustomArtifactNamesMatch()
+		})
+		BeforeEach(func() {
+			instances = []orchestrator.Instance{instance1, instance2}
+		})
+
+		Context("when the custom names match", func() {
+			BeforeEach(func() {
+				instance1.CustomBlobNamesReturns([]string{"custom1"})
+				instance2.RestoreBlobNamesReturns([]string{"custom1"})
+			})
+
+			It("is nil", func() {
+				Expect(artifactMatchError).NotTo(HaveOccurred())
+			})
+		})
+
+		Context("when the multiple custom names match", func() {
+			BeforeEach(func() {
+				instance1.CustomBlobNamesReturns([]string{"custom1"})
+				instance1.RestoreBlobNamesReturns([]string{"custom2"})
+				instance2.CustomBlobNamesReturns([]string{"custom2"})
+				instance2.RestoreBlobNamesReturns([]string{"custom1"})
+			})
+
+			It("is nil", func() {
+				Expect(artifactMatchError).NotTo(HaveOccurred())
+			})
+		})
+		Context("when the custom dont match", func() {
+			BeforeEach(func() {
+				instance1.CustomBlobNamesReturns([]string{"custom1"})
+				instance2.NameReturns("job2Name")
+				instance2.RestoreBlobNamesReturns([]string{"custom2"})
+			})
+
+			It("to return an error", func() {
+				Expect(artifactMatchError).To(MatchError("The job2Name restore script expects a backup script which produces custom2 artifact which is not present in the deployment."))
+			})
+		})
+	})
+
 	Context("HasValidBackupMetadata", func() {
 		var isValid bool
 

@@ -1,6 +1,9 @@
 package orchestrator
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 //go:generate counterfeiter -o fakes/fake_deployment.go . Deployment
 type Deployment interface {
@@ -15,6 +18,7 @@ type Deployment interface {
 	CopyLocalBackupToRemote(Artifact) error
 	Cleanup() error
 	Instances() []Instance
+	CustomArtifactNamesMatch() error
 }
 
 type deployment struct {
@@ -76,6 +80,30 @@ func (bd *deployment) Cleanup() error {
 func (bd *deployment) IsRestorable() bool {
 	restoreableInstances := bd.instances.AllRestoreable()
 	return !restoreableInstances.IsEmpty()
+}
+
+func (bd *deployment) CustomArtifactNamesMatch() error {
+	for _, instance := range bd.Instances() {
+		jobName := instance.Name()
+		for _, restoreName := range instance.RestoreBlobNames() {
+			var found bool
+			for _, backupName := range bd.instances.CustomBlobNames() {
+				if restoreName == backupName {
+					found = true
+				}
+			}
+			if !found {
+				return errors.New(
+					fmt.Sprintf(
+						"The %s restore script expects a backup script which produces %s artifact which is not present in the deployment.",
+						jobName,
+						restoreName,
+					),
+				)
+			}
+		}
+	}
+	return nil
 }
 
 func (bd *deployment) CopyRemoteBackupToLocal(artifact Artifact) error {

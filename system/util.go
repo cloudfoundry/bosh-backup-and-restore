@@ -82,6 +82,10 @@ func RedisWithMetadataDeploymentBoshCommand() string {
 	return getBoshCommand(RedisWithMetadataDeployment)
 }
 
+func RedisWithMissingScriptBoshCommand() string {
+	return getBoshCommand(RedisWithMissingScriptDeployment)
+}
+
 func JumpBoxSCPCommand() string {
 	return getSCPCommand(JumpBoxBoshCommand)
 }
@@ -144,6 +148,10 @@ func RedisWithMetadataDeployment() string {
 	return "redis-with-metadata-" + testEnv()
 }
 
+func RedisWithMissingScriptDeployment() string {
+	return "redis-with-missing-script-" + testEnv()
+}
+
 func AnotherRedisDeployment() string {
 	return "another-redis-" + testEnv()
 }
@@ -158,6 +166,10 @@ func RedisDeploymentManifest() string {
 
 func RedisWithMetadataDeploymentManifest() string {
 	return "../../fixtures/redis-with-metadata.yml"
+}
+
+func RedisWithMissingScriptDeploymentManifest() string {
+	return "../../fixtures/redis-with-missing-script.yml"
 }
 
 func AnotherRedisDeploymentManifest() string {

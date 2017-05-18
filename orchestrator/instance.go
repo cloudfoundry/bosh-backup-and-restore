@@ -24,6 +24,7 @@ type Instance interface {
 	BlobsToBackup() []BackupBlob
 	BlobsToRestore() []BackupBlob
 	CustomBlobNames() []string
+	RestoreBlobNames() []string
 }
 
 type BackupBlobIdentifier interface {
@@ -63,6 +64,16 @@ func (is instances) CustomBlobNames() []string {
 
 	for _, instance := range is {
 		blobNames = append(blobNames, instance.CustomBlobNames()...)
+	}
+
+	return blobNames
+}
+
+func (is instances) RestoreBlobNames() []string {
+	var blobNames []string
+
+	for _, instance := range is {
+		blobNames = append(blobNames, instance.RestoreBlobNames()...)
 	}
 
 	return blobNames
