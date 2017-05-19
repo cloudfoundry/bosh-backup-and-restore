@@ -38,7 +38,7 @@ var _ = Describe("backup with custom metadata", func() {
 
 		By("creating the named backup artifacts locally")
 		AssertJumpboxFilesExist([]string{
-			fmt.Sprintf("%s/%s/custom-redis-backup.tgz", workspaceDir, RedisWithMetadataDeployment()),
+			fmt.Sprintf("%s/%s/custom-redis-backup.tar", workspaceDir, RedisWithMetadataDeployment()),
 		})
 
 		By("cleaning up artifacts from the remote instances")

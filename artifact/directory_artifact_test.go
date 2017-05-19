@@ -3,7 +3,6 @@ package artifact_test
 import (
 	"archive/tar"
 	"bytes"
-	"compress/gzip"
 	"crypto/sha1"
 	"fmt"
 	"io"
@@ -128,12 +127,12 @@ instances:
 
 		Context("when the default artifact sha's match metafile", func() {
 			BeforeEach(func() {
-				contents := gzipContents(createTarWithContents(map[string]string{
+				contents := createTarWithContents(map[string]string{
 					"file1": "This archive contains some text files.",
 					"file2": "Gopher names:\nGeorge\nGeoffrey\nGonzo",
-				}))
+				})
 
-				Expect(ioutil.WriteFile(artifactName+"/redis-0.tgz", contents, 0666)).NotTo(HaveOccurred())
+				Expect(ioutil.WriteFile(artifactName+"/redis-0.tar", contents, 0666)).NotTo(HaveOccurred())
 
 				createTestMetadata(artifactName, fmt.Sprintf(`---
 instances:
@@ -154,11 +153,11 @@ instances:
 
 		Context("when the named artifact sha matches the metadata file", func() {
 			BeforeEach(func() {
-				contents := gzipContents(createTarWithContents(map[string]string{
+				contents := createTarWithContents(map[string]string{
 					"file1": "This archive contains some text files.",
-				}))
+				})
 
-				Expect(ioutil.WriteFile(artifactName+"/foo_redis.tgz", contents, 0666)).NotTo(HaveOccurred())
+				Expect(ioutil.WriteFile(artifactName+"/foo_redis.tar", contents, 0666)).NotTo(HaveOccurred())
 
 				createTestMetadata(artifactName, fmt.Sprintf(`---
 blobs:
@@ -176,11 +175,11 @@ blobs:
 
 		Context("when the named artifact sha doesn't match the metadata file", func() {
 			BeforeEach(func() {
-				contents := gzipContents(createTarWithContents(map[string]string{
+				contents := createTarWithContents(map[string]string{
 					"file1": "This archive contains some text files.",
-				}))
+				})
 
-				Expect(ioutil.WriteFile(artifactName+"/foo_redis.tgz", contents, 0666)).NotTo(HaveOccurred())
+				Expect(ioutil.WriteFile(artifactName+"/foo_redis.tar", contents, 0666)).NotTo(HaveOccurred())
 
 				createTestMetadata(artifactName, fmt.Sprintf(`---
 blobs:
@@ -198,11 +197,11 @@ blobs:
 
 		Context("when one of the default artifact file's contents don't match the sha", func() {
 			BeforeEach(func() {
-				contents := gzipContents(createTarWithContents(map[string]string{
+				contents := createTarWithContents(map[string]string{
 					"file1": "This archive contains some text files.",
 					"file2": "Gopher names:\nGeorge\nGeoffrey\nGonzo",
-				}))
-				Expect(ioutil.WriteFile(artifactName+"/redis-0.tgz", contents, 0666)).NotTo(HaveOccurred())
+				})
+				Expect(ioutil.WriteFile(artifactName+"/redis-0.tar", contents, 0666)).NotTo(HaveOccurred())
 				createTestMetadata(artifactName, fmt.Sprintf(`---
 instances:
 - instance_name: redis
@@ -222,10 +221,10 @@ instances:
 
 		Context("when one of there is an extra file in the backed metadata", func() {
 			BeforeEach(func() {
-				contents := gzipContents(createTarWithContents(map[string]string{
+				contents := createTarWithContents(map[string]string{
 					"file1": "This archive contains some text files.",
-				}))
-				Expect(ioutil.WriteFile(artifactName+"/redis-0.tgz", contents, 0666)).NotTo(HaveOccurred())
+				})
+				Expect(ioutil.WriteFile(artifactName+"/redis-0.tar", contents, 0666)).NotTo(HaveOccurred())
 				createTestMetadata(artifactName, fmt.Sprintf(`---
 instances:
 - instance_name: redis
@@ -264,10 +263,10 @@ instances:
 
 		Context("metadata file dosen't exist", func() {
 			BeforeEach(func() {
-				contents := gzipContents(createTarWithContents(map[string]string{
+				contents := createTarWithContents(map[string]string{
 					"file1": "This archive contains some text files.",
-				}))
-				Expect(ioutil.WriteFile(artifactName+"/redis-1.tgz", contents, 0666)).NotTo(HaveOccurred())
+				})
+				Expect(ioutil.WriteFile(artifactName+"/redis-1.tar", contents, 0666)).NotTo(HaveOccurred())
 			})
 
 			It("returns false", func() {
@@ -297,12 +296,12 @@ instances:
 		Context("with a default backup blob", func() {
 			Context("Can create a file", func() {
 				It("creates a file in the artifact directory", func() {
-					Expect(artifactName + "/redis-0.tgz").To(BeARegularFile())
+					Expect(artifactName + "/redis-0.tar").To(BeARegularFile())
 				})
 
 				It("writer writes contents to the file", func() {
 					writer.Write([]byte("lalala a file"))
-					Expect(ioutil.ReadFile(artifactName + "/redis-0.tgz")).To(Equal([]byte("lalala a file")))
+					Expect(ioutil.ReadFile(artifactName + "/redis-0.tar")).To(Equal([]byte("lalala a file")))
 				})
 
 				It("does not fail", func() {
@@ -317,12 +316,12 @@ instances:
 			})
 
 			It("creates the named file in the artifact directory", func() {
-				Expect(artifactName + "/my-backup-artifact.tgz").To(BeARegularFile())
+				Expect(artifactName + "/my-backup-artifact.tar").To(BeARegularFile())
 			})
 
 			It("writer writes contents to the file", func() {
 				writer.Write([]byte("lalala a file"))
-				Expect(ioutil.ReadFile(artifactName + "/my-backup-artifact.tgz")).To(Equal([]byte("lalala a file")))
+				Expect(ioutil.ReadFile(artifactName + "/my-backup-artifact.tar")).To(Equal([]byte("lalala a file")))
 			})
 
 			It("does not fail", func() {
@@ -377,9 +376,9 @@ instances:
 			BeforeEach(func() {
 				err := os.MkdirAll(artifactName, 0700)
 				Expect(err).NotTo(HaveOccurred())
-				_, err = os.Create(artifactName + "/redis-0.tgz")
+				_, err = os.Create(artifactName + "/redis-0.tar")
 				Expect(err).NotTo(HaveOccurred())
-				err = ioutil.WriteFile(artifactName+"/redis-0.tgz", []byte("backup-content"), 0700)
+				err = ioutil.WriteFile(artifactName+"/redis-0.tar", []byte("backup-content"), 0700)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -406,9 +405,9 @@ instances:
 
 				err := os.MkdirAll(artifactName, 0700)
 				Expect(err).NotTo(HaveOccurred())
-				_, err = os.Create(artifactName + "/foo-bar.tgz")
+				_, err = os.Create(artifactName + "/foo-bar.tar")
 				Expect(err).NotTo(HaveOccurred())
-				err = ioutil.WriteFile(artifactName+"/foo-bar.tgz", []byte("backup-content"), 0700)
+				err = ioutil.WriteFile(artifactName+"/foo-bar.tar", []byte("backup-content"), 0700)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -454,11 +453,11 @@ instances:
 					writer, fileCreationError := artifact.CreateFile(fakeBackupBlob)
 					Expect(fileCreationError).NotTo(HaveOccurred())
 
-					contents := gzipContents(createTarWithContents(map[string]string{
+					contents := createTarWithContents(map[string]string{
 						"readme.txt": "This archive contains some text files.",
 						"gopher.txt": "Gopher names:\nGeorge\nGeoffrey\nGonzo",
 						"todo.txt":   "Get animal handling license.",
-					}))
+					})
 
 					writer.Write(contents)
 					Expect(writer.Close()).NotTo(HaveOccurred())
@@ -482,11 +481,11 @@ instances:
 					writer, fileCreationError := artifact.CreateFile(fakeBackupBlob)
 					Expect(fileCreationError).NotTo(HaveOccurred())
 
-					contents := gzipContents(createTarWithContents(map[string]string{
+					contents := createTarWithContents(map[string]string{
 						"readme.txt": "This archive contains some text files.",
 						"gopher.txt": "Gopher names:\nGeorge\nGeoffrey\nGonzo",
 						"todo.txt":   "Get animal handling license.",
-					}))
+					})
 
 					writer.Write(contents)
 					Expect(writer.Close()).NotTo(HaveOccurred())
@@ -508,7 +507,7 @@ instances:
 				writer, fileCreationError := artifact.CreateFile(fakeBackupBlob)
 				Expect(fileCreationError).NotTo(HaveOccurred())
 
-				contents := gzipContents([]byte("this ain't a tarball"))
+				contents := []byte("this ain't a tarball")
 
 				writer.Write(contents)
 				Expect(writer.Close()).NotTo(HaveOccurred())
@@ -519,24 +518,7 @@ instances:
 				Expect(err).To(HaveOccurred())
 			})
 		})
-		Context("invalid gz file", func() {
-			JustBeforeEach(func() {
-				writer, fileCreationError := artifact.CreateFile(fakeBackupBlob)
-				Expect(fileCreationError).NotTo(HaveOccurred())
 
-				contents := createTarWithContents(map[string]string{
-					"readme.txt": "This archive contains some text files.",
-				})
-
-				writer.Write(contents)
-				Expect(writer.Close()).NotTo(HaveOccurred())
-			})
-
-			It("fails to read", func() {
-				_, err := artifact.CalculateChecksum(fakeBackupBlob)
-				Expect(err).To(HaveOccurred())
-			})
-		})
 		Context("file doesn't exist", func() {
 			It("fails", func() {
 				_, err := artifact.CalculateChecksum(fakeBackupBlob)
@@ -831,17 +813,6 @@ func createTestMetadata(deploymentName, metadata string) {
 	Expect(file.Close()).To(Succeed())
 }
 
-func deleteTestMetadata(deploymentName string) {
-	Expect(os.RemoveAll(deploymentName)).To(Succeed())
-}
-func gzipContents(contents []byte) []byte {
-	bytesBuffer := bytes.NewBuffer([]byte{})
-	gzipStream := gzip.NewWriter(bytesBuffer)
-	gzipStream.Write(contents)
-
-	Expect(gzipStream.Close()).NotTo(HaveOccurred())
-	return bytesBuffer.Bytes()
-}
 func createTarWithContents(files map[string]string) []byte {
 	bytesBuffer := bytes.NewBuffer([]byte{})
 	tarFile := tar.NewWriter(bytesBuffer)

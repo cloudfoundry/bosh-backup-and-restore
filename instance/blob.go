@@ -67,7 +67,7 @@ type Blob struct {
 
 func (d *Blob) StreamFromRemote(writer io.Writer) error {
 	d.Logger.Debug("", "Streaming backup from instance %s/%s", d.Name(), d.Instance.ID())
-	stderr, exitCode, err := d.Stream(fmt.Sprintf("sudo tar -C %s -zc .", d.artifactDirectory), writer)
+	stderr, exitCode, err := d.Stream(fmt.Sprintf("sudo tar -C %s -c .", d.artifactDirectory), writer)
 
 	d.Logger.Debug("", "Stderr: %s", string(stderr))
 
@@ -94,7 +94,7 @@ func (d *Blob) StreamToRemote(reader io.Reader) error {
 	}
 
 	d.Logger.Debug("", "Streaming backup to instance %s/%s", d.Instance.Name(), d.Instance.ID())
-	stdout, stderr, exitCode, err = d.StreamStdin(fmt.Sprintf("sudo sh -c 'tar -C %s -zx'", d.artifactDirectory), reader)
+	stdout, stderr, exitCode, err = d.StreamStdin(fmt.Sprintf("sudo sh -c 'tar -C %s -x'", d.artifactDirectory), reader)
 
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
 	d.Logger.Debug("", "Stderr: %s", string(stderr))

@@ -2,7 +2,6 @@ package integration
 
 import (
 	"archive/tar"
-	"compress/gzip"
 	"crypto/sha1"
 	"fmt"
 	"io"
@@ -89,7 +88,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					CleanupSSH(deploymentName, "redis-dedicated-node"))
 
 				metadataFile = path.Join(backupWorkspace, deploymentName, "/metadata")
-				redisNodeArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")
+				redisNodeArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tar")
 			})
 
 			Context("and there are no pre-backup scripts", func() {
@@ -165,8 +164,8 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 echo "---
 backup_name: foo_redis
 "`)
-					redisCustomArtifactFile = path.Join(backupWorkspace, deploymentName, "/foo_redis.tgz")
-					redisDefaultArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")
+					redisCustomArtifactFile = path.Join(backupWorkspace, deploymentName, "/foo_redis.tar")
+					redisDefaultArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tar")
 				})
 
 				It("runs the metadata scripts", func() {
@@ -529,8 +528,8 @@ echo "not valid yaml
 			It("backs up deployment successfully", func() {
 				Expect(session.ExitCode()).To(BeZero())
 				Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
-				Expect(path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")).To(BeARegularFile())
-				Expect(path.Join(backupWorkspace, deploymentName, "/redis-broker-0.tgz")).ToNot(BeAnExistingFile())
+				Expect(path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tar")).To(BeARegularFile())
+				Expect(path.Join(backupWorkspace, deploymentName, "/redis-broker-0.tar")).ToNot(BeAnExistingFile())
 			})
 		})
 
@@ -569,8 +568,8 @@ echo "not valid yaml
 			It("backs up both instances successfully", func() {
 				Expect(session.ExitCode()).To(BeZero())
 				Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
-				Expect(path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tgz")).To(BeARegularFile())
-				Expect(path.Join(backupWorkspace, deploymentName, "/redis-broker-0.tgz")).To(BeARegularFile())
+				Expect(path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tar")).To(BeARegularFile())
+				Expect(path.Join(backupWorkspace, deploymentName, "/redis-broker-0.tar")).To(BeARegularFile())
 			})
 
 			It("prints the backup progress to the screen", func() {
@@ -630,7 +629,7 @@ backup_name: duplicate_name
 			})
 
 			It("files with the name are not created", func() {
-				Expect(path.Join(backupWorkspace, deploymentName, "/duplicate_name.tgz")).NotTo(BeARegularFile())
+				Expect(path.Join(backupWorkspace, deploymentName, "/duplicate_name.tar")).NotTo(BeARegularFile())
 			})
 
 			It("refuses to perform backup", func() {
@@ -719,10 +718,7 @@ backup_name: name_2
 func getTarReader(path string) *tar.Reader {
 	reader, err := os.Open(path)
 	Expect(err).NotTo(HaveOccurred())
-	defer reader.Close()
-	archive, err := gzip.NewReader(reader)
-	Expect(err).NotTo(HaveOccurred())
-	tarReader := tar.NewReader(archive)
+	tarReader := tar.NewReader(reader)
 	return tarReader
 }
 

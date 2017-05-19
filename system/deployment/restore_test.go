@@ -30,7 +30,7 @@ var _ = Describe("Restores a deployment", func() {
 		RunBoshCommand(JumpBoxSCPCommand(), commandPath, "jumpbox/0:"+workspaceDir)
 		RunBoshCommand(JumpBoxSCPCommand(), backupMetadata, "jumpbox/0:"+workspaceDir+"/"+RedisDeployment()+"/metadata")
 		runOnInstances(instanceCollection, func(in, ii string) {
-			fileName := fmt.Sprintf("%s-%s.tgz", in, ii)
+			fileName := fmt.Sprintf("%s-%s.tar", in, ii)
 			RunBoshCommand(
 				JumpBoxSCPCommand(),
 				fixturesPath+fileName,

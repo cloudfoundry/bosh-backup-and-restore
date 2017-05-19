@@ -56,7 +56,7 @@ var _ = Describe("blob", func() {
 					Expect(sshConnection.StreamCallCount()).To(Equal(1))
 
 					cmd, returnedWriter := sshConnection.StreamArgsForCall(0)
-					Expect(cmd).To(Equal("sudo tar -C " + blobDirectory + " -zc ."))
+					Expect(cmd).To(Equal("sudo tar -C " + blobDirectory + " -c ."))
 					Expect(returnedWriter).To(Equal(writer))
 				})
 
@@ -74,7 +74,7 @@ var _ = Describe("blob", func() {
 					Expect(sshConnection.StreamCallCount()).To(Equal(1))
 
 					cmd, returnedWriter := sshConnection.StreamArgsForCall(0)
-					Expect(cmd).To(Equal("sudo tar -C " + blobDirectory + " -zc ."))
+					Expect(cmd).To(Equal("sudo tar -C " + blobDirectory + " -c ."))
 					Expect(returnedWriter).To(Equal(writer))
 				})
 
@@ -95,7 +95,7 @@ var _ = Describe("blob", func() {
 					Expect(sshConnection.StreamCallCount()).To(Equal(1))
 
 					cmd, returnedWriter := sshConnection.StreamArgsForCall(0)
-					Expect(cmd).To(Equal("sudo tar -C " + blobDirectory + " -zc ."))
+					Expect(cmd).To(Equal("sudo tar -C " + blobDirectory + " -c ."))
 					Expect(returnedWriter).To(Equal(writer))
 				})
 
@@ -304,7 +304,7 @@ var _ = Describe("blob", func() {
 				It("uses the ssh connection to stream files from the remote machine", func() {
 					Expect(sshConnection.StreamStdinCallCount()).To(Equal(1))
 					command, sentReader := sshConnection.StreamStdinArgsForCall(0)
-					Expect(command).To(Equal("sudo sh -c 'tar -C " + blobDirectory + " -zx'"))
+					Expect(command).To(Equal("sudo sh -c 'tar -C " + blobDirectory + " -x'"))
 					Expect(reader).To(Equal(sentReader))
 				})
 

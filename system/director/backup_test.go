@@ -33,7 +33,7 @@ var _ = Describe("Backup", func() {
 		Eventually(backupCommand).Should(gexec.Exit(0))
 
 		AssertJumpboxFilesExist([]string{
-			fmt.Sprintf("%s/%s/bosh-0.tgz", workspaceDir, "my-director"),
+			fmt.Sprintf("%s/%s/bosh-0.tar", workspaceDir, "my-director"),
 		})
 	})
 })

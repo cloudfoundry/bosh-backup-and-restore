@@ -2,7 +2,6 @@ package artifact
 
 import (
 	"archive/tar"
-	"compress/gzip"
 	"crypto/sha1"
 	"fmt"
 	"io"
@@ -99,12 +98,7 @@ func (directoryArtifact *DirectoryArtifact) CalculateChecksum(blobIdentifier orc
 	}
 	defer file.Close()
 
-	gzipedReader, err := gzip.NewReader(file)
-	if err != nil {
-		directoryArtifact.Debug(TAG, "Cant open gzip for %s %v", logName(blobIdentifier), err)
-		return nil, err
-	}
-	tarReader := tar.NewReader(gzipedReader)
+	tarReader := tar.NewReader(file)
 	checksum := map[string]string{}
 	for {
 		tarHeader, err := tarReader.Next()
@@ -220,8 +214,8 @@ func (directoryArtifact *DirectoryArtifact) metadataExistsAndIsReadable() (bool,
 
 func fileName(blobIdentifier orchestrator.BackupBlobIdentifier) string {
 	if blobIdentifier.IsNamed() {
-		return blobIdentifier.Name() + ".tgz"
+		return blobIdentifier.Name() + ".tar"
 	}
 
-	return blobIdentifier.Name() + "-" + blobIdentifier.Index() + ".tgz"
+	return blobIdentifier.Name() + "-" + blobIdentifier.Index() + ".tar"
 }

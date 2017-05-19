@@ -10,7 +10,6 @@ import (
 
 	"archive/tar"
 	"bytes"
-	"compress/gzip"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -106,13 +105,14 @@ instances:
     redis-backup: this-is-not-a-checksum-this-is-only-a-tribute
 `))
 
-			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
+			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tgz", backupContents)
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tar", backupContents)
 			session = runBinary(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
 				"deployment",
+				"--debug",
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
 				"--target", director.URL,
@@ -159,9 +159,9 @@ instances:
   checksums:
     ./redis/redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
 
-			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
+			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tgz", backupContents)
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tar", backupContents)
 		})
 
 		JustBeforeEach(func() {
@@ -258,10 +258,10 @@ instances:
   checksums:
     ./redis/redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
 
-			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
+			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tgz", backupContents)
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-server-0.tgz", backupContents)
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tar", backupContents)
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-server-0.tar", backupContents)
 		})
 
 		JustBeforeEach(func() {
@@ -336,11 +336,11 @@ blobs:
   checksums:
     ./redis/redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
 
-			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
+			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tgz", backupContents)
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tar", backupContents)
 
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tgz", gzipContents(createTarWithContents(map[string]string{})))
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tar", createTarWithContents(map[string]string{}))
 		})
 
 		JustBeforeEach(func() {
@@ -424,11 +424,11 @@ blobs:
   checksums:
     ./redis/redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
 
-			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
+			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tgz", backupContents)
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tar", backupContents)
 
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-backup-node-0.tgz", gzipContents(createTarWithContents(map[string]string{})))
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-backup-node-0.tar", createTarWithContents(map[string]string{}))
 		})
 
 		JustBeforeEach(func() {
@@ -483,11 +483,11 @@ blobs:
   checksums:
     ./redis/redis-backup: this-is-damn-wrong`))
 
-			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
+			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tgz", backupContents)
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tar", backupContents)
 
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-backup-node-0.tgz", gzipContents(createTarWithContents(map[string]string{})))
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-backup-node-0.tar", createTarWithContents(map[string]string{}))
 		})
 
 		JustBeforeEach(func() {
@@ -537,9 +537,9 @@ instances:
   checksums:
     ./redis/redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
 
-			backupContents, err := ioutil.ReadFile("../fixtures/backup.tgz")
+			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tgz", backupContents)
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tar", backupContents)
 		})
 
 		JustBeforeEach(func() {
@@ -585,14 +585,6 @@ func createFileWithContents(filePath string, contents []byte) {
 	Expect(file.Close()).To(Succeed())
 }
 
-func gzipContents(contents []byte) []byte {
-	bytesBuffer := bytes.NewBuffer([]byte{})
-	gzipStream := gzip.NewWriter(bytesBuffer)
-	gzipStream.Write(contents)
-
-	Expect(gzipStream.Close()).NotTo(HaveOccurred())
-	return bytesBuffer.Bytes()
-}
 func createTarWithContents(files map[string]string) []byte {
 	bytesBuffer := bytes.NewBuffer([]byte{})
 	tarFile := tar.NewWriter(bytesBuffer)
