@@ -122,7 +122,7 @@ var _ = Describe("Backup", func() {
 			It("fails the backup process", func() {
 				Expect(actualBackupError).To(
 					ConsistOf(
-						MatchError(fmt.Errorf("artifact %s already exists", deploymentName)),
+						MatchError(fmt.Sprintf("artifact %s already exists", deploymentName)),
 					),
 				)
 			})
@@ -425,7 +425,7 @@ var _ = Describe("Backup", func() {
 
 			It("fails the backup process", func() {
 				Expect(actualBackupError).To(ConsistOf(
-					MatchError(fmt.Errorf("Multiple jobs in deployment '%s' specified the same backup name", deploymentName)),
+					MatchError(fmt.Sprintf("Multiple jobs in deployment '%s' specified the same backup name", deploymentName)),
 				))
 			})
 		})
@@ -551,7 +551,7 @@ var _ = Describe("CanBeBackedUp", func() {
 
 		It("fails the backup process", func() {
 			Expect(actualCanBeBackedUpError).To(ConsistOf(
-				MatchError(fmt.Errorf("Multiple jobs in deployment '%s' specified the same backup name", deploymentName)),
+				MatchError(ContainSubstring(fmt.Sprintf("Multiple jobs in deployment '%s' specified the same backup name", deploymentName))),
 			))
 		})
 	})

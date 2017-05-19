@@ -10,6 +10,7 @@ import (
 	"path"
 
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
+	"github.com/pkg/errors"
 )
 
 const TAG = "[artifact]"
@@ -19,16 +20,19 @@ type DirectoryArtifact struct {
 	baseDirName string
 }
 
+func (directoryArtifact *DirectoryArtifact) logAndReturn(err error, message string, args ...interface{}) error {
+	message = fmt.Sprintf(message, args...)
+	directoryArtifact.Debug(TAG, "%s: %v", message, err)
+	return errors.Wrap(err, message)
+}
 func (directoryArtifact *DirectoryArtifact) DeploymentMatches(deployment string, instances []orchestrator.Instance) (bool, error) {
 	_, err := directoryArtifact.metadataExistsAndIsReadable()
 	if err != nil {
-		directoryArtifact.Debug(TAG, "Error checking metadata file: %v", err)
-		return false, err
+		return false, directoryArtifact.logAndReturn(err, "Error checking metadata file")
 	}
 	meta, err := readMetadata(directoryArtifact.metadataFilename())
 	if err != nil {
-		directoryArtifact.Debug(TAG, "Error reading metadata file: %v", err)
-		return false, err
+		return false, directoryArtifact.logAndReturn(err, "Error reading metadata file")
 	}
 
 	for _, inst := range meta.MetadataForEachInstance {
@@ -44,7 +48,14 @@ func (directoryArtifact *DirectoryArtifact) DeploymentMatches(deployment string,
 
 func (directoryArtifact *DirectoryArtifact) CreateFile(blobIdentifier orchestrator.BackupBlobIdentifier) (io.WriteCloser, error) {
 	directoryArtifact.Debug(TAG, "Trying to create file %s", fileName(blobIdentifier))
-	return os.Create(path.Join(directoryArtifact.baseDirName, fileName(blobIdentifier)))
+
+	file, err := os.Create(path.Join(directoryArtifact.baseDirName, fileName(blobIdentifier)))
+	if err != nil {
+		return nil, directoryArtifact.logAndReturn(err, "Error creating file %s", fileName(blobIdentifier))
+
+	}
+
+	return file, err
 }
 
 func (directoryArtifact *DirectoryArtifact) ReadFile(blobIdentifier orchestrator.BackupBlobIdentifier) (io.ReadCloser, error) {
@@ -53,7 +64,7 @@ func (directoryArtifact *DirectoryArtifact) ReadFile(blobIdentifier orchestrator
 	file, err := os.Open(filename)
 	if err != nil {
 		directoryArtifact.Debug(TAG, "Error reading artifact file %s", filename)
-		return nil, err
+		return nil, directoryArtifact.logAndReturn(err, "Error reading artifact file %s", filename)
 	}
 
 	return file, nil
@@ -63,8 +74,7 @@ func (directoryArtifact *DirectoryArtifact) FetchChecksum(blobIdentifier orchest
 	metadata, err := readMetadata(directoryArtifact.metadataFilename())
 
 	if err != nil {
-		directoryArtifact.Debug(TAG, "Error reading metadata from %s %v", directoryArtifact.metadataFilename(), err)
-		return nil, err
+		return nil, directoryArtifact.logAndReturn(err, "Error reading metadata from %s", directoryArtifact.metadataFilename())
 	}
 
 	if blobIdentifier.IsNamed() {
@@ -94,7 +104,7 @@ func logName(artifactIdentifer orchestrator.BackupBlobIdentifier) string {
 func (directoryArtifact *DirectoryArtifact) CalculateChecksum(blobIdentifier orchestrator.BackupBlobIdentifier) (orchestrator.BackupChecksum, error) {
 	file, err := directoryArtifact.ReadFile(blobIdentifier)
 	if err != nil {
-		return nil, err
+		return nil, directoryArtifact.logAndReturn(err, "Error opening artifact file %v", blobIdentifier)
 	}
 	defer file.Close()
 
@@ -106,8 +116,7 @@ func (directoryArtifact *DirectoryArtifact) CalculateChecksum(blobIdentifier orc
 			break
 		}
 		if err != nil {
-			directoryArtifact.Debug(TAG, "Error reading tar for %s %v", logName(blobIdentifier), err)
-			return nil, err
+			return nil, directoryArtifact.logAndReturn(err, "Error reading tar for %s", logName(blobIdentifier))
 		}
 		if tarHeader.FileInfo().IsDir() || tarHeader.FileInfo().Name() == "./" {
 			continue
@@ -115,8 +124,7 @@ func (directoryArtifact *DirectoryArtifact) CalculateChecksum(blobIdentifier orc
 
 		fileShasum := sha1.New()
 		if _, err := io.Copy(fileShasum, tarReader); err != nil {
-			directoryArtifact.Debug(TAG, "Error calculating sha for %s %v", logName(blobIdentifier), err)
-			return nil, err
+			return nil, directoryArtifact.logAndReturn(err, "Error calculating sha for %s", logName(blobIdentifier))
 		}
 		directoryArtifact.Logger.Debug(TAG, "Calculating shasum for local file %s", tarHeader.Name)
 		checksum[tarHeader.Name] = fmt.Sprintf("%x", fileShasum.Sum(nil))
@@ -130,8 +138,7 @@ func (directoryArtifact *DirectoryArtifact) AddChecksum(blobIdentifier orchestra
 		var err error
 		metadata, err = readMetadata(directoryArtifact.metadataFilename())
 		if err != nil {
-			directoryArtifact.Debug(TAG, "Error reading metadata from %s %v", directoryArtifact.metadataFilename(), err)
-			return err
+			return directoryArtifact.logAndReturn(err, "Error reading metadata from %s", directoryArtifact.metadataFilename())
 		}
 	}
 
@@ -158,26 +165,23 @@ func (directoryArtifact *DirectoryArtifact) SaveManifest(manifest string) error 
 func (directoryArtifact *DirectoryArtifact) Valid() (bool, error) {
 	meta, err := readMetadata(directoryArtifact.metadataFilename())
 	if err != nil {
-		directoryArtifact.Debug(TAG, "Error reading metadata from %s %v", directoryArtifact.metadataFilename(), err)
-		return false, err
+		return false, directoryArtifact.logAndReturn(err, "Error reading metadata from %s", directoryArtifact.metadataFilename())
 	}
 
 	for _, blob := range meta.MetadataForEachBlob {
 		actualBlobChecksum, _ := directoryArtifact.CalculateChecksum(blob)
 		if !actualBlobChecksum.Match(blob.Checksum) {
-			directoryArtifact.Debug(TAG, "Can't match checksums for %s, in metadata: %v, in actual file: %v", blob.Name(), actualBlobChecksum, blob.Checksum)
-			return false, nil
+			return false, directoryArtifact.logAndReturn(err, "Can't match checksums for %s, in metadata: %v, in actual file: %v", blob.Name(), actualBlobChecksum, blob.Checksum)
 		}
 	}
 
 	for _, inst := range meta.MetadataForEachInstance {
 		actualInstanceChecksum, err := directoryArtifact.CalculateChecksum(inst)
 		if err != nil {
-			return false, err
+			return false, directoryArtifact.logAndReturn(err, "Error calculating checksum for artifact")
 		}
 		if !actualInstanceChecksum.Match(inst.Checksum) {
-			directoryArtifact.Debug(TAG, "Can't match checksums for %s, in metadata: %v, in actual file: %v", logName(inst), actualInstanceChecksum, inst.Checksum)
-			return false, nil
+			return false, directoryArtifact.logAndReturn(err, "Can't match checksums for %s, in metadata: %v, in actual file: %v", logName(inst), actualInstanceChecksum, inst.Checksum)
 		}
 
 	}
@@ -207,7 +211,7 @@ func (directoryArtifact *DirectoryArtifact) manifestFilename() string {
 func (directoryArtifact *DirectoryArtifact) metadataExistsAndIsReadable() (bool, error) {
 	_, err := os.Stat(directoryArtifact.metadataFilename())
 	if err != nil {
-		return false, err
+		return false, directoryArtifact.logAndReturn(err, "Error checking metadata exists and is readable")
 	}
 	return true, nil
 }

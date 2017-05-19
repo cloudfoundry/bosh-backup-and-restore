@@ -74,6 +74,9 @@ imports:
   subpackages:
   - mockbosh
   - mockhttp
+  - mockuaa
+- name: github.com/pkg/errors
+  version: 645ef00459ed84a119197bfb8d8205042c6df63d
 - name: github.com/urfave/cli
   version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 - name: golang.org/x/crypto

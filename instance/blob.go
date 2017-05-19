@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
+	"github.com/pkg/errors"
 )
 
 //go:generate counterfeiter -o fakes/fake_ssh_connection.go . SSHConnection
@@ -76,7 +77,7 @@ func (d *Blob) StreamFromRemote(writer io.Writer) error {
 	}
 
 	if exitCode != 0 {
-		return fmt.Errorf("Instance backup scripts returned %d. Error: %s", exitCode, stderr)
+		return errors.Errorf("Instance backup scripts returned %d. Error: %s", exitCode, stderr)
 	}
 
 	return err
@@ -90,7 +91,7 @@ func (d *Blob) StreamToRemote(reader io.Reader) error {
 	}
 
 	if exitCode != 0 {
-		return fmt.Errorf("Creating backup directory on the remote returned %d. Error: %s", exitCode, stderr)
+		return errors.Errorf("Creating backup directory on the remote returned %d. Error: %s", exitCode, stderr)
 	}
 
 	d.Logger.Debug("", "Streaming backup to instance %s/%s", d.Instance.Name(), d.Instance.ID())
@@ -104,7 +105,7 @@ func (d *Blob) StreamToRemote(reader io.Reader) error {
 	}
 
 	if exitCode != 0 {
-		return fmt.Errorf("Streaming backup to remote returned %d. Error: %s", exitCode, stderr)
+		return errors.Errorf("Streaming backup to remote returned %d. Error: %s", exitCode, stderr)
 	}
 
 	return err
@@ -114,7 +115,7 @@ func (d *Blob) Size() (string, error) {
 	stdout, stderr, exitCode, err := d.logAndRun(fmt.Sprintf("sudo du -sh %s | cut -f1", d.artifactDirectory), "check backup size")
 
 	if exitCode != 0 {
-		return "", fmt.Errorf("Unable to check size of backup: %s", stderr)
+		return "", errors.Errorf("Unable to check size of backup: %s", stderr)
 	}
 
 	size := strings.TrimSpace(string(stdout))
@@ -131,7 +132,7 @@ func (d *Blob) Checksum() (orchestrator.BackupChecksum, error) {
 	}
 
 	if exitCode != 0 {
-		return nil, fmt.Errorf("Instance checksum returned %d. Error: %s", exitCode, stderr)
+		return nil, errors.Errorf("Instance checksum returned %d. Error: %s", exitCode, stderr)
 	}
 
 	return convertShasToMap(string(stdout)), nil
@@ -171,7 +172,7 @@ func (d *Blob) Delete() error {
 	_, _, exitCode, err := d.logAndRun(fmt.Sprintf("sudo rm -rf %s", d.artifactDirectory), "deleting named blobs")
 
 	if exitCode != 0 {
-		return fmt.Errorf("Error deleting blobs on instance %s/%s. Directory name %s. Exit code %d", d.Instance.Name(), d.Instance.ID(), d.artifactDirectory, exitCode)
+		return errors.Errorf("Error deleting blobs on instance %s/%s. Directory name %s. Exit code %d", d.Instance.Name(), d.Instance.ID(), d.artifactDirectory, exitCode)
 	}
 
 	return err

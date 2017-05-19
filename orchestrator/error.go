@@ -3,7 +3,10 @@ package orchestrator
 import (
 	"errors"
 
-	"github.com/hashicorp/go-multierror"
+	"bytes"
+
+	"fmt"
+
 	"github.com/mgutz/ansi"
 	"github.com/urfave/cli"
 )
@@ -43,7 +46,20 @@ func NewCleanupError(errorMessage string) CleanupError {
 type Error []error
 
 func (e Error) Error() string {
-	return multierror.ListFormatFunc(e)
+	if e.IsNil() {
+		return ""
+	}
+	var buffer *bytes.Buffer = bytes.NewBufferString("")
+
+	errorPostfix := ""
+	if len(e) > 1 {
+		errorPostfix = "s"
+	}
+	fmt.Fprintf(buffer, "%d error%s occurred:\n", len(e), errorPostfix)
+	for _, err := range e {
+		fmt.Fprintf(buffer, "%+v\n", err)
+	}
+	return buffer.String()
 }
 
 func (e Error) IsCleanup() bool {
@@ -82,7 +98,6 @@ func (e Error) IsNil() bool {
 
 func ProcessBackupError(errs Error) (int, string) {
 	exitCode := 0
-	var errorMessage error
 
 	for _, err := range errs {
 		switch err.(type) {
@@ -96,14 +111,9 @@ func ProcessBackupError(errs Error) (int, string) {
 			exitCode = exitCode | 1
 		}
 
-		errorMessage = multierror.Append(errorMessage, err)
 	}
 
-	if errorMessage != nil {
-		return exitCode, errorMessage.Error()
-	}
-
-	return exitCode, ""
+	return exitCode, errs.Error()
 }
 
 func ProcessRestoreError(err error) error {

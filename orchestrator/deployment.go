@@ -1,8 +1,9 @@
 package orchestrator
 
 import (
-	"errors"
 	"fmt"
+
+	"github.com/pkg/errors"
 )
 
 //go:generate counterfeiter -o fakes/fake_deployment.go . Deployment
@@ -143,7 +144,7 @@ func (bd *deployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 			}
 			bd.Logger.Debug("", "Comparing shasums")
 			if !localChecksum.Match(remoteChecksum) {
-				return fmt.Errorf("Backup artifact is corrupted, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), backupBlob.Name(), remoteChecksum, localChecksum)
+				return errors.Errorf("Backup artifact is corrupted, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), backupBlob.Name(), remoteChecksum, localChecksum)
 			}
 
 			artifact.AddChecksum(backupBlob, localChecksum)
@@ -184,7 +185,7 @@ func (bd *deployment) CopyLocalBackupToRemote(artifact Artifact) error {
 				return err
 			}
 			if !localChecksum.Match(remoteChecksum) {
-				return fmt.Errorf("Backup couldn't be transfered, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), blob.Name(), remoteChecksum, localChecksum)
+				return errors.Errorf("Backup couldn't be transfered, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), blob.Name(), remoteChecksum, localChecksum)
 			}
 			bd.Logger.Info("", "Done.")
 		}

@@ -7,6 +7,7 @@ import (
 	"github.com/pivotal-cf/bosh-backup-and-restore/artifact"
 	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
+	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -210,7 +211,7 @@ func restore(c *cli.Context) error {
 func directorRestore(c *cli.Context) error {
 	var deployment = c.Parent().String("name")
 
-	restorer:= makeDirectorRestorer(c)
+	restorer := makeDirectorRestorer(c)
 
 	err := restorer.Restore(deployment)
 	return orchestrator.ProcessRestoreError(err)
@@ -228,7 +229,7 @@ func validateFlags(requiredFlags []string, c *cli.Context) error {
 	for _, flag := range requiredFlags {
 		if c.String(flag) == "" {
 			cli.ShowCommandHelp(c, c.Parent().Command.Name)
-			return redCliError(fmt.Errorf("--%v flag is required.", flag))
+			return redCliError(errors.Errorf("--%v flag is required.", flag))
 		}
 	}
 	return nil

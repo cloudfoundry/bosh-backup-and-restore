@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/looplab/fsm"
+	"github.com/pkg/errors"
 )
 
 type backupWorkflow struct {
@@ -114,7 +115,7 @@ func (bw *backupWorkflow) checkDeployment(e *fsm.Event) {
 
 	exists := bw.ArtifactManager.Exists(bw.deploymentName)
 	if exists {
-		bw.backupErrors = append(bw.backupErrors, fmt.Errorf("artifact %s already exists", bw.deploymentName))
+		bw.backupErrors = append(bw.backupErrors, errors.Errorf("artifact %s already exists", bw.deploymentName))
 		e.Cancel()
 		return
 	}
@@ -131,13 +132,13 @@ func (bw *backupWorkflow) checkDeployment(e *fsm.Event) {
 
 func (bw *backupWorkflow) checkIsBackupable(e *fsm.Event) {
 	if !bw.deployment.IsBackupable() {
-		bw.backupErrors = append(bw.backupErrors, fmt.Errorf("Deployment '%s' has no backup scripts", bw.deploymentName))
+		bw.backupErrors = append(bw.backupErrors, errors.Errorf("Deployment '%s' has no backup scripts", bw.deploymentName))
 		e.Cancel()
 		return
 	}
 
 	if !bw.deployment.HasUniqueCustomBackupNames() {
-		bw.backupErrors = append(bw.backupErrors, fmt.Errorf("Multiple jobs in deployment '%s' specified the same backup name", bw.deploymentName))
+		bw.backupErrors = append(bw.backupErrors, errors.Errorf("Multiple jobs in deployment '%s' specified the same backup name", bw.deploymentName))
 		e.Cancel()
 	}
 

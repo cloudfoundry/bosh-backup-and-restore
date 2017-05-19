@@ -1,12 +1,12 @@
 package bosh
 
 import (
-	"fmt"
 	"io/ioutil"
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
+	"github.com/pkg/errors"
 
 	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -15,7 +15,7 @@ import (
 func BuildClient(targetUrl, username, password, caCertFileName string, logger boshlog.Logger) (BoshClient, error) {
 	config, err := director.NewConfigFromURL(targetUrl)
 	if err != nil {
-		return nil, fmt.Errorf("Target director URL is malformed - %s", err.Error())
+		return nil, errors.Errorf("Target director URL is malformed - %s", err.Error())
 	}
 
 	var cert string
@@ -64,7 +64,7 @@ func buildUaa(info director.Info, username, password, cert string, logger boshlo
 	urlAsInterface := info.Auth.Options["url"]
 	url, ok := urlAsInterface.(string)
 	if !ok {
-		return nil, fmt.Errorf("Expected URL '%s' to be a string", urlAsInterface)
+		return nil, errors.Errorf("Expected URL '%s' to be a string", urlAsInterface)
 	}
 
 	uaaConfig, err := boshuaa.NewConfigFromURL(url)

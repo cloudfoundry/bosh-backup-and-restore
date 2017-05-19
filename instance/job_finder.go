@@ -1,9 +1,10 @@
 package instance
 
 import (
-	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 //go:generate counterfeiter -o fakes/fake_job_finder.go . JobFinder
@@ -105,7 +106,7 @@ func (j *JobFinderFromScripts) findScripts(hostIdentifier string, sshConnection 
 				stdout,
 				stderr,
 			)
-			return nil, fmt.Errorf(
+			return nil, errors.Errorf(
 				"Running find failed on %s.\nStdout: %s\nStderr: %s",
 				hostIdentifier,
 				stdout,

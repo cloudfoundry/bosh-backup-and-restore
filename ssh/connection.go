@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 
+	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -24,7 +25,7 @@ func ConnectionCreator(hostName, userName, privateKey string) (SSHConnection, er
 
 	parsedPrivateKey, err := ssh.ParsePrivateKey([]byte(privateKey))
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "ssh.ParsePrivateKey")
 	}
 
 	sshConfig := &ssh.ClientConfig{
@@ -36,7 +37,7 @@ func ConnectionCreator(hostName, userName, privateKey string) (SSHConnection, er
 
 	connection, err := ssh.Dial("tcp", hostName, sshConfig)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "ssh.Dial")
 	}
 
 	conn.connection = connection
@@ -54,13 +55,13 @@ type Connection struct {
 func (c Connection) Run(cmd string) ([]byte, []byte, int, error) {
 	outBuffer := bytes.NewBuffer([]byte{})
 	errBuffer, exitCode, err := c.Stream(cmd, outBuffer)
-	return outBuffer.Bytes(), errBuffer, exitCode, err
+	return outBuffer.Bytes(), errBuffer, exitCode, errors.Wrap(err, "Stream")
 }
 
 func (c Connection) Stream(cmd string, writer io.Writer) ([]byte, int, error) {
 	session, err := c.connection.NewSession()
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, errors.Wrap(err, "connection.NewSession")
 	}
 
 	errBuffer := bytes.NewBuffer([]byte{})
@@ -74,7 +75,7 @@ func (c Connection) Stream(cmd string, writer io.Writer) ([]byte, int, error) {
 		if yes {
 			exitCode = exitErr.ExitStatus()
 		} else {
-			return nil, -1, err
+			return nil, -1, errors.Wrap(err, "session.Run")
 		}
 
 	}
@@ -99,7 +100,7 @@ func (c Connection) StreamStdin(cmd string, reader io.Reader) (stdout, stderr []
 		if yes {
 			exitCode = exitErr.ExitStatus()
 		} else {
-			return nil, nil, -1, err
+			return nil, nil, -1, errors.Wrap(err, "expected ssh exiterror")
 		}
 	}
 
