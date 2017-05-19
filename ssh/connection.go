@@ -25,7 +25,7 @@ func ConnectionCreator(hostName, userName, privateKey string) (SSHConnection, er
 
 	parsedPrivateKey, err := ssh.ParsePrivateKey([]byte(privateKey))
 	if err != nil {
-		return nil, errors.Wrap(err, "ssh.ParsePrivateKey")
+		return nil, errors.Wrap(err, "ssh.ConnectionCreator.ParsePrivateKey failed")
 	}
 
 	sshConfig := &ssh.ClientConfig{
@@ -37,7 +37,7 @@ func ConnectionCreator(hostName, userName, privateKey string) (SSHConnection, er
 
 	connection, err := ssh.Dial("tcp", hostName, sshConfig)
 	if err != nil {
-		return nil, errors.Wrap(err, "ssh.Dial")
+		return nil, errors.Wrap(err, "ssh.ConnectionCreator.Dial failed")
 	}
 
 	conn.connection = connection
@@ -55,13 +55,13 @@ type Connection struct {
 func (c Connection) Run(cmd string) ([]byte, []byte, int, error) {
 	outBuffer := bytes.NewBuffer([]byte{})
 	errBuffer, exitCode, err := c.Stream(cmd, outBuffer)
-	return outBuffer.Bytes(), errBuffer, exitCode, errors.Wrap(err, "Stream")
+	return outBuffer.Bytes(), errBuffer, exitCode, errors.Wrap(err, "ssh.Run.Stream failed")
 }
 
 func (c Connection) Stream(cmd string, writer io.Writer) ([]byte, int, error) {
 	session, err := c.connection.NewSession()
 	if err != nil {
-		return nil, 0, errors.Wrap(err, "connection.NewSession")
+		return nil, 0, errors.Wrap(err, "ssh.Stream.NewSession failed")
 	}
 
 	errBuffer := bytes.NewBuffer([]byte{})
@@ -75,7 +75,7 @@ func (c Connection) Stream(cmd string, writer io.Writer) ([]byte, int, error) {
 		if yes {
 			exitCode = exitErr.ExitStatus()
 		} else {
-			return nil, -1, errors.Wrap(err, "session.Run")
+			return nil, -1, errors.Wrap(err, "ssh.Stream.Run failed")
 		}
 
 	}
@@ -100,7 +100,7 @@ func (c Connection) StreamStdin(cmd string, reader io.Reader) (stdout, stderr []
 		if yes {
 			exitCode = exitErr.ExitStatus()
 		} else {
-			return nil, nil, -1, errors.Wrap(err, "expected ssh exiterror")
+			return nil, nil, -1, errors.Wrap(err, "ssh.StreamStdin.Run failed with non-ExitError failure")
 		}
 	}
 
