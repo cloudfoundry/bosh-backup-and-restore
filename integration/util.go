@@ -37,12 +37,11 @@ func ShowsTheMainHelpText(helpText *helpText) {
    bbr command [arguments...] [subcommand]`))
 }
 
-func mockDirectorWith(director *mockhttp.Server, info mockhttp.MockedResponseBuilder, vmsResponse []mockhttp.MockedResponseBuilder, sshResponse []mockhttp.MockedResponseBuilder, downloadManifestResponse []mockhttp.MockedResponseBuilder, cleanupResponse []mockhttp.MockedResponseBuilder) {
+func mockDirectorWith(director *mockhttp.Server, info mockhttp.MockedResponseBuilder, vmsResponse []mockhttp.MockedResponseBuilder, sshResponse []mockhttp.MockedResponseBuilder, cleanupResponse []mockhttp.MockedResponseBuilder) {
 	director.VerifyAndMock(AppendBuilders(
 		[]mockhttp.MockedResponseBuilder{info},
 		vmsResponse,
 		sshResponse,
-		downloadManifestResponse,
 		cleanupResponse,
 	)...)
 

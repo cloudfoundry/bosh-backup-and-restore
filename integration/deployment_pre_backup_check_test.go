@@ -67,7 +67,6 @@ var _ = Describe("Pre-backup checks", func() {
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
-					ManifestIsNotDownloaded(),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)
 
@@ -95,7 +94,6 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
-					ManifestIsNotDownloaded(),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)
 

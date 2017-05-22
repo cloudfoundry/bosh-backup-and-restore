@@ -25,10 +25,12 @@ var _ = Describe("Backup", func() {
 	var backupWorkspace string
 	var session *gexec.Session
 	var deploymentName string
+	var downloadManifest bool
 	var instance1 *testcluster.Instance
 
 	BeforeEach(func() {
 		deploymentName = "my-little-deployment"
+		downloadManifest = false
 		director = mockbosh.NewTLS()
 		director.ExpectedBasicAuth("admin", "admin")
 		var err error
@@ -42,16 +44,23 @@ var _ = Describe("Backup", func() {
 	})
 
 	JustBeforeEach(func() {
-		session = runBinary(
-			backupWorkspace,
-			[]string{"BOSH_CLIENT_SECRET=admin"},
+		params := []string{
 			"deployment",
 			"--ca-cert", sslCertPath,
 			"--username", "admin",
 			"--target", director.URL,
 			"--deployment", deploymentName,
 			"--debug",
-			"backup",
+			"backup"}
+
+		if downloadManifest {
+			params = append(params, "--with-manifest")
+		}
+
+		session = runBinary(
+			backupWorkspace,
+			[]string{"BOSH_CLIENT_SECRET=admin"},
+			params...,
 		)
 	})
 
@@ -80,183 +89,180 @@ printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
 printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 `)
 
-				mockDirectorWith(director,
-					mockbosh.Info().WithAuthTypeBasic(),
-					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
-					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
-					DownloadManifest(deploymentName, "this is a totally valid yaml"),
-					CleanupSSH(deploymentName, "redis-dedicated-node"))
-
 				metadataFile = path.Join(backupWorkspace, deploymentName, "/metadata")
 				redisNodeArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tar")
 			})
 
-			Context("and there are no pre-backup scripts", func() {
-
-				It("exits zero", func() {
-					Expect(session.ExitCode()).To(BeZero())
+			Context("and manifest is not being downloaded", func() {
+				BeforeEach(func() {
+					mockDirectorWith(director,
+						mockbosh.Info().WithAuthTypeBasic(),
+						VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
+						SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
+						CleanupSSH(deploymentName, "redis-dedicated-node"))
 				})
 
-				It("downloads the manifest", func() {
-					Expect(path.Join(backupWorkspace, deploymentName, "manifest.yml")).To(BeARegularFile())
-					Expect(ioutil.ReadFile(path.Join(backupWorkspace, deploymentName, "manifest.yml"))).To(MatchYAML("this is a totally valid yaml"))
-				})
+				Context("and there are no pre-backup scripts", func() {
 
-				It("creates a backup directory which contains a backup artifact", func() {
-					Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
-					Expect(redisNodeArtifactFile).To(BeARegularFile())
-				})
+					It("exits zero", func() {
+						Expect(session.ExitCode()).To(BeZero())
+					})
 
-				It("the backup artifact contains the backup files from the instance", func() {
-					Expect(filesInTar(redisNodeArtifactFile)).To(ConsistOf("backupdump1", "backupdump2"))
-					Expect(contentsInTar(redisNodeArtifactFile, "backupdump1")).To(Equal("backupcontent1"))
-					Expect(contentsInTar(redisNodeArtifactFile, "backupdump2")).To(Equal("backupcontent2"))
-				})
+					It("creates a backup directory which contains a backup artifact", func() {
+						Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
+						Expect(redisNodeArtifactFile).To(BeARegularFile())
+					})
 
-				It("creates a metadata file", func() {
-					Expect(metadataFile).To(BeARegularFile())
-				})
+					It("the backup artifact contains the backup files from the instance", func() {
+						Expect(filesInTar(redisNodeArtifactFile)).To(ConsistOf("backupdump1", "backupdump2"))
+						Expect(contentsInTar(redisNodeArtifactFile, "backupdump1")).To(Equal("backupcontent1"))
+						Expect(contentsInTar(redisNodeArtifactFile, "backupdump2")).To(Equal("backupcontent2"))
+					})
 
-				It("the metadata file is correct", func() {
-					Expect(ioutil.ReadFile(metadataFile)).To(MatchYAML(fmt.Sprintf(`instances:
+					It("creates a metadata file", func() {
+						Expect(metadataFile).To(BeARegularFile())
+					})
+
+					It("the metadata file is correct", func() {
+						Expect(ioutil.ReadFile(metadataFile)).To(MatchYAML(fmt.Sprintf(`instances:
 - instance_name: redis-dedicated-node
   instance_index: "0"
   checksums:
     ./redis/backupdump1: %s
     ./redis/backupdump2: %s`, shaFor("backupcontent1"), shaFor("backupcontent2"))))
+					})
+
+					It("prints the backup progress to the screen", func() {
+						Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Running pre-checks for backup of %s...", deploymentName)))
+						Expect(session.Out).To(gbytes.Say("INFO - Scripts found:"))
+						Expect(session.Out).To(gbytes.Say("INFO - redis-dedicated-node/fake-uuid/redis/backup"))
+						Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Starting backup of %s...", deploymentName)))
+						Expect(session.Out).To(gbytes.Say("INFO - Running pre-backup scripts..."))
+						Expect(session.Out).To(gbytes.Say("INFO - Done."))
+						Expect(session.Out).To(gbytes.Say("INFO - Running backup scripts..."))
+						Expect(session.Out).To(gbytes.Say("INFO - Backing up redis on redis-dedicated-node/fake-uuid..."))
+						Expect(session.Out).To(gbytes.Say("INFO - Done."))
+						Expect(session.Out).To(gbytes.Say("INFO - Running post-backup scripts..."))
+						Expect(session.Out).To(gbytes.Say("INFO - Done."))
+						Expect(session.Out).To(gbytes.Say("INFO - Copying backup -- [^-]*-- from redis-dedicated-node/fake-uuid..."))
+						Expect(session.Out).To(gbytes.Say("INFO - Finished copying backup -- from redis-dedicated-node/fake-uuid..."))
+						Expect(session.Out).To(gbytes.Say("INFO - Starting validity checks"))
+						Expect(session.Out).To(gbytes.Say(`DEBUG - Calculating shasum for local file ./redis/backupdump[12]`))
+						Expect(session.Out).To(gbytes.Say(`DEBUG - Calculating shasum for local file ./redis/backupdump[12]`))
+						Expect(session.Out).To(gbytes.Say("DEBUG - Calculating shasum for remote files"))
+						Expect(session.Out).To(gbytes.Say("DEBUG - Comparing shasums"))
+						Expect(session.Out).To(gbytes.Say("INFO - Finished validity checks"))
+					})
+
+					It("cleans up backup artifacts from remote", func() {
+						Expect(instance1.FileExists("/var/vcap/store/backup")).To(BeFalse())
+					})
+
 				})
 
-				It("prints the backup progress to the screen", func() {
-					Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Running pre-checks for backup of %s...", deploymentName)))
-					Expect(session.Out).To(gbytes.Say("INFO - Scripts found:"))
-					Expect(session.Out).To(gbytes.Say("INFO - redis-dedicated-node/fake-uuid/redis/backup"))
-					Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Starting backup of %s...", deploymentName)))
-					Expect(session.Out).To(gbytes.Say("INFO - Running pre-backup scripts..."))
-					Expect(session.Out).To(gbytes.Say("INFO - Done."))
-					Expect(session.Out).To(gbytes.Say("INFO - Running backup scripts..."))
-					Expect(session.Out).To(gbytes.Say("INFO - Backing up redis on redis-dedicated-node/fake-uuid..."))
-					Expect(session.Out).To(gbytes.Say("INFO - Done."))
-					Expect(session.Out).To(gbytes.Say("INFO - Running post-backup scripts..."))
-					Expect(session.Out).To(gbytes.Say("INFO - Done."))
-					Expect(session.Out).To(gbytes.Say("INFO - Copying backup -- [^-]*-- from redis-dedicated-node/fake-uuid..."))
-					Expect(session.Out).To(gbytes.Say("INFO - Finished copying backup -- from redis-dedicated-node/fake-uuid..."))
-					Expect(session.Out).To(gbytes.Say("INFO - Starting validity checks"))
-					Expect(session.Out).To(gbytes.Say(`DEBUG - Calculating shasum for local file ./redis/backupdump[12]`))
-					Expect(session.Out).To(gbytes.Say(`DEBUG - Calculating shasum for local file ./redis/backupdump[12]`))
-					Expect(session.Out).To(gbytes.Say("DEBUG - Calculating shasum for remote files"))
-					Expect(session.Out).To(gbytes.Say("DEBUG - Comparing shasums"))
-					Expect(session.Out).To(gbytes.Say("INFO - Finished validity checks"))
+				Context("when there is a metadata script which produces yaml containing the custom backup_name", func() {
+					var redisCustomArtifactFile string
+					var redisDefaultArtifactFile string
 
-				})
-
-				It("cleans up backup artifacts from remote", func() {
-					Expect(instance1.FileExists("/var/vcap/store/backup")).To(BeFalse())
-				})
-			})
-
-			Context("when there is a metadata script which produces yaml containing the custom backup_name", func() {
-				var redisCustomArtifactFile string
-				var redisDefaultArtifactFile string
-
-				BeforeEach(func() {
-					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
+					BeforeEach(func() {
+						instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
 	touch /tmp/metadata-output
 echo "---
 backup_name: foo_redis
 "`)
-					redisCustomArtifactFile = path.Join(backupWorkspace, deploymentName, "/foo_redis.tar")
-					redisDefaultArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tar")
-				})
+						redisCustomArtifactFile = path.Join(backupWorkspace, deploymentName, "/foo_redis.tar")
+						redisDefaultArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tar")
+					})
 
-				It("runs the metadata scripts", func() {
-					Expect(instance1.FileExists("/tmp/metadata-output")).To(BeTrue())
-				})
+					It("runs the metadata scripts", func() {
+						Expect(instance1.FileExists("/tmp/metadata-output")).To(BeTrue())
+					})
 
-				It("creates a custom backup artifact", func() {
-					Expect(filesInTar(redisCustomArtifactFile)).To(ConsistOf("backupdump1", "backupdump2"))
-					Expect(contentsInTar(redisCustomArtifactFile, "backupdump1")).To(Equal("backupcontent1"))
-					Expect(contentsInTar(redisCustomArtifactFile, "backupdump2")).To(Equal("backupcontent2"))
-				})
+					It("creates a custom backup artifact", func() {
+						Expect(filesInTar(redisCustomArtifactFile)).To(ConsistOf("backupdump1", "backupdump2"))
+						Expect(contentsInTar(redisCustomArtifactFile, "backupdump1")).To(Equal("backupcontent1"))
+						Expect(contentsInTar(redisCustomArtifactFile, "backupdump2")).To(Equal("backupcontent2"))
+					})
 
-				It("does not create an artifact with the default name", func() {
-					Expect(redisDefaultArtifactFile).NotTo(BeARegularFile())
-				})
+					It("does not create an artifact with the default name", func() {
+						Expect(redisDefaultArtifactFile).NotTo(BeARegularFile())
+					})
 
-				It("the metadata records the artifact as a blob instead of an instance", func() {
-					Expect(metadataFile).To(BeARegularFile())
-					Expect(ioutil.ReadFile(metadataFile)).To(MatchYAML(fmt.Sprintf(`instances: []
+					It("the metadata records the artifact as a blob instead of an instance", func() {
+						Expect(metadataFile).To(BeARegularFile())
+						Expect(ioutil.ReadFile(metadataFile)).To(MatchYAML(fmt.Sprintf(`instances: []
 blobs:
 - blob_name: foo_redis
   checksums:
     ./backupdump1: %s
     ./backupdump2: %s
 `, shaFor("backupcontent1"), shaFor("backupcontent2"))))
-				})
-			})
-
-			Context("when the pre-backup-lock script is present", func() {
-				BeforeEach(func() {
-					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
-touch /tmp/pre-backup-lock-output
-`)
-					instance1.CreateScript("/var/vcap/jobs/redis-broker/bin/bbr/pre-backup-lock", ``)
-				})
-
-				It("runs the pre-backup-lock scripts", func() {
-					Expect(instance1.FileExists("/tmp/pre-backup-lock-output")).To(BeTrue())
-				})
-
-				It("logs that it is locking the instance, and lists the scripts", func() {
-					assertOutput(session, []string{
-						`Locking redis on redis-dedicated-node/fake-uuid for backup`,
-						"> /var/vcap/jobs/redis/bin/bbr/pre-backup-lock",
-						"> /var/vcap/jobs/redis-broker/bin/bbr/pre-backup-lock",
 					})
 				})
-			})
 
-			Context("when the pre-backup-lock script fails", func() {
-				BeforeEach(func() {
-					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
+				Context("when the pre-backup-lock script is present", func() {
+					BeforeEach(func() {
+						instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
+touch /tmp/pre-backup-lock-output
+`)
+						instance1.CreateScript("/var/vcap/jobs/redis-broker/bin/bbr/pre-backup-lock", ``)
+					})
+
+					It("runs the pre-backup-lock scripts", func() {
+						Expect(instance1.FileExists("/tmp/pre-backup-lock-output")).To(BeTrue())
+					})
+
+					It("logs that it is locking the instance, and lists the scripts", func() {
+						assertOutput(session, []string{
+							`Locking redis on redis-dedicated-node/fake-uuid for backup`,
+							"> /var/vcap/jobs/redis/bin/bbr/pre-backup-lock",
+							"> /var/vcap/jobs/redis-broker/bin/bbr/pre-backup-lock",
+						})
+					})
+				})
+
+				Context("when the pre-backup-lock script fails", func() {
+					BeforeEach(func() {
+						instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
 echo 'ultra-bar'
 (>&2 echo 'ultra-baz')
 touch /tmp/pre-backup-lock-output
 exit 1
 `)
-					instance1.CreateScript("/var/vcap/jobs/redis-broker/bin/bbr/pre-backup-lock", ``)
-					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
+						instance1.CreateScript("/var/vcap/jobs/redis-broker/bin/bbr/pre-backup-lock", ``)
+						instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
 touch /tmp/post-backup-unlock-output
 `)
+					})
+
+					It("runs the pre-backup-lock scripts", func() {
+						Expect(instance1.FileExists("/tmp/pre-backup-lock-output")).To(BeTrue())
+					})
+
+					It("exits with the correct error code", func() {
+						Expect(session.ExitCode()).To(Equal(4))
+					})
+
+					It("logs the error", func() {
+						Expect(session.Err.Contents()).To(ContainSubstring("pre backup lock script for job redis failed on redis-dedicated-node/fake-uuid."))
+					})
+
+					It("logs stdout", func() {
+						Expect(session.Err.Contents()).To(ContainSubstring("Stdout: ultra-bar"))
+					})
+
+					It("logs stderr", func() {
+						Expect(session.Err.Contents()).To(ContainSubstring("Stderr: ultra-baz"))
+					})
+
+					It("also runs the post-backup-unlock scripts", func() {
+						Expect(instance1.FileExists("/tmp/post-backup-unlock-output")).To(BeTrue())
+					})
 				})
 
-				It("runs the pre-backup-lock scripts", func() {
-					Expect(instance1.FileExists("/tmp/pre-backup-lock-output")).To(BeTrue())
-				})
-
-				It("exits with the correct error code", func() {
-					Expect(session.ExitCode()).To(Equal(4))
-				})
-
-				It("logs the error", func() {
-					Expect(session.Err.Contents()).To(ContainSubstring("pre backup lock script for job redis failed on redis-dedicated-node/fake-uuid."))
-				})
-
-				It("logs stdout", func() {
-					Expect(session.Err.Contents()).To(ContainSubstring("Stdout: ultra-bar"))
-				})
-
-				It("logs stderr", func() {
-					Expect(session.Err.Contents()).To(ContainSubstring("Stderr: ultra-baz"))
-				})
-
-				It("also runs the post-backup-unlock scripts", func() {
-					Expect(instance1.FileExists("/tmp/post-backup-unlock-output")).To(BeTrue())
-				})
-			})
-
-			Context("when backup file has owner only permissions of different user", func() {
-				BeforeEach(func() {
-					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
+				Context("when backup file has owner only permissions of different user", func() {
+					BeforeEach(func() {
+						instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
 
 set -u
 
@@ -268,53 +274,73 @@ dd if=/dev/urandom of=$BBR_ARTIFACT_DIRECTORY/backupdump3/dump bs=1KB count=1024
 
 chown vcap:vcap $BBR_ARTIFACT_DIRECTORY/backupdump3
 chmod 0700 $BBR_ARTIFACT_DIRECTORY/backupdump3`)
-				})
+					})
 
-				It("exits zero", func() {
-					Expect(session.ExitCode()).To(BeZero())
-				})
+					It("exits zero", func() {
+						Expect(session.ExitCode()).To(BeZero())
+					})
 
-				It("prints the artifact size with the files from the other users", func() {
-					Eventually(session).Should(gbytes.Say("Copying backup -- 3.0M uncompressed -- from redis-dedicated-node/fake-uuid..."))
-				})
-			})
-
-			Context("when backup deployment has a post-backup-unlock script", func() {
-				BeforeEach(func() {
-					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
-echo "Unlocking release"`)
-				})
-
-				It("prints unlock progress to the screen", func() {
-					assertOutput(session, []string{
-						"Running unlock on redis-dedicated-node/fake-uuid",
-						"Done.",
+					It("prints the artifact size with the files from the other users", func() {
+						Eventually(session).Should(gbytes.Say("Copying backup -- 3.0M uncompressed -- from redis-dedicated-node/fake-uuid..."))
 					})
 				})
 
-				Context("when the post backup unlock script fails", func() {
+				Context("when backup deployment has a post-backup-unlock script", func() {
 					BeforeEach(func() {
 						instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
+echo "Unlocking release"`)
+					})
+
+					It("prints unlock progress to the screen", func() {
+						assertOutput(session, []string{
+							"Running unlock on redis-dedicated-node/fake-uuid",
+							"Done.",
+						})
+					})
+
+					Context("when the post backup unlock script fails", func() {
+						BeforeEach(func() {
+							instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
 echo 'ultra-bar'
 (>&2 echo 'ultra-baz')
 exit 1`)
-					})
+						})
 
-					It("exits with the correct error code", func() {
-						Expect(session).To(gexec.Exit(8))
-					})
+						It("exits with the correct error code", func() {
+							Expect(session).To(gexec.Exit(8))
+						})
 
-					It("prints stdout", func() {
-						Expect(session.Err.Contents()).To(ContainSubstring("Stdout: ultra-bar"))
-					})
+						It("prints stdout", func() {
+							Expect(session.Err.Contents()).To(ContainSubstring("Stdout: ultra-bar"))
+						})
 
-					It("prints stderr", func() {
-						Expect(session.Err.Contents()).To(ContainSubstring("Stderr: ultra-baz"))
-					})
+						It("prints stderr", func() {
+							Expect(session.Err.Contents()).To(ContainSubstring("Stderr: ultra-baz"))
+						})
 
-					It("prints an error", func() {
-						Expect(session.Err.Contents()).To(ContainSubstring("unlock script for job redis failed on redis-dedicated-node/fake-uuid."))
+						It("prints an error", func() {
+							Expect(session.Err.Contents()).To(ContainSubstring("unlock script for job redis failed on redis-dedicated-node/fake-uuid."))
+						})
 					})
+				})
+			})
+
+			Context("and manifest is being downloaded", func() {
+				BeforeEach(func() {
+					downloadManifest = true
+
+					director.VerifyAndMock(AppendBuilders(
+						[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
+						VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
+						SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
+						DownloadManifest(deploymentName, "this is a totally valid yaml"),
+						CleanupSSH(deploymentName, "redis-dedicated-node"),
+					)...)
+				})
+
+				It("downloads the manifest", func() {
+					Expect(path.Join(backupWorkspace, deploymentName, "manifest.yml")).To(BeARegularFile())
+					Expect(ioutil.ReadFile(path.Join(backupWorkspace, deploymentName, "manifest.yml"))).To(MatchYAML("this is a totally valid yaml"))
 				})
 			})
 		})
@@ -326,7 +352,6 @@ exit 1`)
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
-					ManifestIsNotDownloaded(),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)
 
@@ -355,7 +380,6 @@ exit 1`)
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
-					DownloadManifest(deploymentName, "this is a totally valid yaml"),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)
 
@@ -376,7 +400,6 @@ exit 1`)
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
-					DownloadManifest(deploymentName, "this is a totally valid yaml"),
 					CleanupSSHFails(deploymentName, "redis-dedicated-node", "ultra-foo"),
 				)
 
@@ -405,7 +428,6 @@ exit 1`)
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
-					DownloadManifest(deploymentName, "this is a totally valid yaml"),
 					CleanupSSHFails(deploymentName, "redis-dedicated-node", "Can't do it mate"),
 				)
 
@@ -446,7 +468,6 @@ echo "not valid yaml
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
-					ManifestIsNotDownloaded(),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)
 			})
@@ -510,7 +531,6 @@ echo "not valid yaml
 					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
 					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance),
 						SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, nonBackupableInstance)...),
-					DownloadManifest(deploymentName, "not being asserted"),
 					append(CleanupSSH(deploymentName, "redis-dedicated-node"),
 						CleanupSSH(deploymentName, "redis-broker")...),
 				)
@@ -545,7 +565,6 @@ echo "not valid yaml
 					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
 					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
 						SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance2)...),
-					DownloadManifest(deploymentName, "not being asserted"),
 					append(CleanupSSH(deploymentName, "redis-dedicated-node"),
 						CleanupSSH(deploymentName, "redis-broker")...),
 				)
@@ -600,7 +619,6 @@ echo "not valid yaml
 					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
 					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
 						SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance2)...),
-					ManifestIsNotDownloaded(),
 					append(CleanupSSH(deploymentName, "redis-dedicated-node"),
 						CleanupSSH(deploymentName, "redis-broker")...),
 				)
@@ -655,7 +673,6 @@ backup_name: duplicate_name
 					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
 					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, restoreInstance),
 						SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance)...),
-					ManifestIsNotDownloaded(),
 					append(CleanupSSH(deploymentName, "redis-dedicated-node"),
 						CleanupSSH(deploymentName, "redis-broker")...),
 				)

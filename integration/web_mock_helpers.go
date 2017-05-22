@@ -79,10 +79,6 @@ func CleanupSSHFails(deploymentName, instanceGroup, errorMessage string) []mockh
 	}
 }
 
-func ManifestIsNotDownloaded() []mockhttp.MockedResponseBuilder {
-	return []mockhttp.MockedResponseBuilder{}
-}
-
 func generateTaskId() int {
 	return rand.Int()
 }

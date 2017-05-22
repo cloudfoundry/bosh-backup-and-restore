@@ -74,6 +74,10 @@ COPYRIGHT:
 					Aliases: []string{"b"},
 					Usage:   "Backup a deployment",
 					Action:  backup,
+					Flags: []cli.Flag{cli.BoolFlag{
+						Name:  "with-manifest",
+						Usage: "Download the deployment manifest",
+					}},
 				},
 				{
 					Name:    "restore",
@@ -308,6 +312,7 @@ func makeBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
 		c.Parent().String("password"),
 		c.Parent().String("ca-cert"),
 		logger,
+		c.Bool("with-manifest"),
 	)
 
 	if err != nil {
@@ -338,6 +343,7 @@ func makeRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
 		c.Parent().String("password"),
 		c.Parent().String("ca-cert"),
 		logger,
+		false,
 	)
 
 	if err != nil {
@@ -359,13 +365,13 @@ func makeDirectorRestorer(c *cli.Context) *orchestrator.Restorer {
 	return orchestrator.NewRestorer(artifact.DirectoryArtifactManager{}, logger, deploymentManager)
 }
 
-func newDeploymentManager(targetUrl, username, password, caCert string, logger boshlog.Logger) (orchestrator.DeploymentManager, error) {
+func newDeploymentManager(targetUrl, username, password, caCert string, logger boshlog.Logger, downloadManifest bool) (orchestrator.DeploymentManager, error) {
 	boshClient, err := bosh.BuildClient(targetUrl, username, password, caCert, logger)
 	if err != nil {
 		return nil, redCliError(err)
 	}
 
-	return bosh.NewBoshDeploymentManager(boshClient, logger), nil
+	return bosh.NewBoshDeploymentManager(boshClient, logger, downloadManifest), nil
 }
 
 func makeLogger(c *cli.Context) boshlog.Logger {
