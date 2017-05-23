@@ -43,6 +43,13 @@ func NewCleanupError(errorMessage string) CleanupError {
 	return CleanupError{errors.New(errorMessage)}
 }
 
+func ConvertErrors(errs []error) error {
+	if len(errs) == 0 {
+		return nil
+	}
+	return Error(errs)
+}
+
 type Error []error
 
 func (e Error) Error() string {
@@ -51,15 +58,19 @@ func (e Error) Error() string {
 	}
 	var buffer *bytes.Buffer = bytes.NewBufferString("")
 
+	fmt.Fprintf(buffer, "%d error%s occurred:\n", len(e), e.getPostFix())
+	for index, err := range e {
+		fmt.Fprintf(buffer, "error %d:\n", index+1)
+		fmt.Fprintf(buffer, "%+v\n", err)
+	}
+	return buffer.String()
+}
+func (e Error) getPostFix() string {
 	errorPostfix := ""
 	if len(e) > 1 {
 		errorPostfix = "s"
 	}
-	fmt.Fprintf(buffer, "%d error%s occurred:\n", len(e), errorPostfix)
-	for _, err := range e {
-		fmt.Fprintf(buffer, "%+v\n", err)
-	}
-	return buffer.String()
+	return errorPostfix
 }
 
 func (e Error) IsCleanup() bool {

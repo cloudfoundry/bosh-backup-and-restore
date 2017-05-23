@@ -1,9 +1,5 @@
 package orchestrator
 
-import (
-	"github.com/hashicorp/go-multierror"
-)
-
 func NewBackuper(artifactManager ArtifactManager, logger Logger, deploymentManager DeploymentManager) *Backuper {
 	return &Backuper{
 		ArtifactManager:   artifactManager,
@@ -55,7 +51,7 @@ func (b Backuper) CanBeBackedUp(deploymentName string) (bool, Error) {
 func cleanupAndReturnErrors(d Deployment, err error) error {
 	cleanupErr := d.Cleanup()
 	if cleanupErr != nil {
-		return multierror.Append(err, cleanupErr)
+		return Error{cleanupErr, err}
 	}
 	return err
 }

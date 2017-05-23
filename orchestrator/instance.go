@@ -1,7 +1,6 @@
 package orchestrator
 
 import "io"
-import "github.com/hashicorp/go-multierror"
 
 type InstanceIdentifer interface {
 	Name() string
@@ -115,24 +114,24 @@ func (is instances) AllRestoreable() instances {
 }
 
 func (is instances) Cleanup() error {
-	var cleanupErrors error = nil
+	var cleanupErrors []error
 	for _, instance := range is {
 		if err := instance.Cleanup(); err != nil {
-			cleanupErrors = multierror.Append(cleanupErrors, err)
+			cleanupErrors = append(cleanupErrors, err)
 		}
 	}
-	return cleanupErrors
+	return ConvertErrors(cleanupErrors)
 }
 
 func (is instances) PreBackupLock() error {
-	var lockErrors error = nil
+	var lockErrors []error
 	for _, instance := range is {
 		if err := instance.PreBackupLock(); err != nil {
-			lockErrors = multierror.Append(lockErrors, err)
+			lockErrors = append(lockErrors, err)
 		}
 	}
 
-	return lockErrors
+	return ConvertErrors(lockErrors)
 }
 
 func (is instances) Backup() error {
@@ -146,13 +145,13 @@ func (is instances) Backup() error {
 }
 
 func (is instances) PostBackupUnlock() error {
-	var unlockErrors error = nil
+	var unlockErrors []error
 	for _, instance := range is {
 		if err := instance.PostBackupUnlock(); err != nil {
-			unlockErrors = multierror.Append(unlockErrors, err)
+			unlockErrors = append(unlockErrors, err)
 		}
 	}
-	return unlockErrors
+	return ConvertErrors(unlockErrors)
 }
 
 func (is instances) Restore() error {

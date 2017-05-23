@@ -2,7 +2,6 @@ package bosh
 
 import (
 	"github.com/cloudfoundry/bosh-cli/director"
-	"github.com/hashicorp/go-multierror"
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
@@ -28,17 +27,18 @@ func NewBoshDeployedInstance(instanceGroupName,
 }
 
 func (d *BoshDeployedInstance) Cleanup() error {
-	var errs error
+	var errs []error
 	d.Logger.Debug("", "Cleaning up SSH connection on instance %s %s", d.Name(), d.ID())
 	removeArtifactError := d.removeBackupArtifacts()
 	if removeArtifactError != nil {
-		errs = multierror.Append(errs, removeArtifactError)
+		errs = append(errs, removeArtifactError)
 	}
 	cleanupSSHError := d.Deployment.CleanUpSSH(director.NewAllOrInstanceGroupOrInstanceSlug(d.Name(), d.ID()), director.SSHOpts{Username: d.SSHConnection.Username()})
 	if cleanupSSHError != nil {
-		errs = multierror.Append(errs, cleanupSSHError)
+		errs = append(errs, cleanupSSHError)
 	}
-	return errs
+
+	return orchestrator.ConvertErrors(errs)
 }
 func (d *BoshDeployedInstance) removeBackupArtifacts() error {
 	_, _, _, err := d.RunOnInstance("sudo rm -rf /var/vcap/store/backup", "remove backup artifacts")

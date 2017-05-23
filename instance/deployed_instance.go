@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/hashicorp/go-multierror"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 )
@@ -52,27 +51,23 @@ func (d *DeployedInstance) CustomRestoreBlobNames() []string {
 
 func (d *DeployedInstance) PreBackupLock() error {
 
-	var foundErrors error
+	var foundErrors []error
 
 	for _, job := range d.Jobs.PreBackupable() {
 		d.Logger.Info("", "Locking %s on %s/%s for backup...", job.Name(), d.instanceGroupName, d.instanceID)
 
 		if err := d.runAndHandleErrs("pre backup lock", job.Name(), job.PreBackupScript()); err != nil {
-			foundErrors = multierror.Append(foundErrors, err)
+			foundErrors = append(foundErrors, err)
 		}
 		d.Logger.Info("", "Done.")
 	}
 
-	if foundErrors != nil {
-		return foundErrors
-	}
-
-	return nil
+	return orchestrator.ConvertErrors(foundErrors)
 }
 
 func (d *DeployedInstance) Backup() error {
 
-	var foundErrors error
+	var foundErrors []error
 
 	for _, job := range d.Jobs.Backupable() {
 		d.Logger.Debug("", "> %s", job.BackupScript())
@@ -89,17 +84,13 @@ func (d *DeployedInstance) Backup() error {
 		)
 
 		if err := d.handleErrs(job.Name(), "backup", err, exitCode, stdout, stderr); err != nil {
-			foundErrors = multierror.Append(foundErrors, err)
+			foundErrors = append(foundErrors, err)
 		}
 
 		d.Logger.Info("", "Done.")
 	}
 
-	if foundErrors != nil {
-		return foundErrors
-	}
-
-	return nil
+	return orchestrator.ConvertErrors(foundErrors)
 }
 func artifactDirectoryVariables(artifactDirectory string) string {
 	return fmt.Sprintf("BBR_ARTIFACT_DIRECTORY=%s/ ARTIFACT_DIRECTORY=%[1]s/", artifactDirectory)
@@ -107,26 +98,22 @@ func artifactDirectoryVariables(artifactDirectory string) string {
 
 func (d *DeployedInstance) PostBackupUnlock() error {
 
-	var foundErrors error
+	var foundErrors []error
 
 	for _, job := range d.Jobs.PostBackupable() {
 		d.Logger.Info("", "Unlocking %s on %s/%s...", job.Name(), d.instanceGroupName, d.instanceID)
 
 		if err := d.runAndHandleErrs("unlock", job.Name(), job.PostBackupScript()); err != nil {
-			foundErrors = multierror.Append(foundErrors, err)
+			foundErrors = append(foundErrors, err)
 		}
 		d.Logger.Info("", "Done.")
 	}
 
-	if foundErrors != nil {
-		return foundErrors
-	}
-
-	return nil
+	return orchestrator.ConvertErrors(foundErrors)
 }
 
 func (d *DeployedInstance) Restore() error {
-	var restoreErrors error
+	var restoreErrors []error
 
 	for _, job := range d.Jobs.Restorable() {
 		d.Logger.Debug("", "> %s", job.RestoreScript())
@@ -142,16 +129,12 @@ func (d *DeployedInstance) Restore() error {
 		)
 
 		if err := d.handleErrs(job.Name(), "restore", err, exitCode, stdout, stderr); err != nil {
-			restoreErrors = multierror.Append(restoreErrors, err)
+			restoreErrors = append(restoreErrors, err)
 		}
 		d.Logger.Info("", "Done.")
 	}
 
-	if restoreErrors != nil {
-		return restoreErrors
-	}
-
-	return nil
+	return orchestrator.ConvertErrors(restoreErrors)
 }
 
 func (d *DeployedInstance) IsRestorable() bool {
@@ -227,7 +210,7 @@ func (d *DeployedInstance) runAndHandleErrs(label, jobName string, script Script
 }
 
 func (d *DeployedInstance) handleErrs(jobName, label string, err error, exitCode int, stdout, stderr []byte) error {
-	var foundErrors error
+	var foundErrors []error
 
 	if err != nil {
 		d.Logger.Error("", fmt.Sprintf(
@@ -238,7 +221,7 @@ func (d *DeployedInstance) handleErrs(jobName, label string, err error, exitCode
 			d.instanceID,
 			err.Error(),
 		))
-		foundErrors = multierror.Append(foundErrors, err)
+		foundErrors = append(foundErrors, err)
 	}
 
 	if exitCode != 0 {
@@ -252,10 +235,10 @@ func (d *DeployedInstance) handleErrs(jobName, label string, err error, exitCode
 			stderr,
 		)
 
-		foundErrors = multierror.Append(foundErrors, errors.New(errorString))
+		foundErrors = append(foundErrors, errors.New(errorString))
 
 		d.Logger.Error("", errorString)
 	}
 
-	return foundErrors
+	return orchestrator.ConvertErrors(foundErrors)
 }
