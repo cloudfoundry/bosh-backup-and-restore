@@ -230,6 +230,10 @@ func validateDirectorFlags(c *cli.Context) error {
 }
 
 func validateFlags(requiredFlags []string, c *cli.Context) error {
+	if containsHelpFlag(c) {
+		return nil
+	}
+
 	for _, flag := range requiredFlags {
 		if c.String(flag) == "" {
 			cli.ShowCommandHelp(c, c.Parent().Command.Name)
@@ -237,6 +241,15 @@ func validateFlags(requiredFlags []string, c *cli.Context) error {
 		}
 	}
 	return nil
+}
+
+func containsHelpFlag(c *cli.Context) bool {
+	for _, arg := range c.Args() {
+		if arg == "--help" || arg == "-h" {
+			return true
+		}
+	}
+	return false
 }
 
 func availableDeploymentFlags() []cli.Flag {
