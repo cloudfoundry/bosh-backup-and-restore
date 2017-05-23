@@ -7,7 +7,6 @@ import (
 	"github.com/pivotal-cf/bosh-backup-and-restore/artifact"
 	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
-	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -15,6 +14,7 @@ import (
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 	"github.com/pivotal-cf/bosh-backup-and-restore/standalone"
+	"github.com/pkg/errors"
 )
 
 var version string
