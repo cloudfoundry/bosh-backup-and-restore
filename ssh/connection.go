@@ -59,52 +59,46 @@ func (c Connection) Run(cmd string) ([]byte, []byte, int, error) {
 }
 
 func (c Connection) Stream(cmd string, writer io.Writer) ([]byte, int, error) {
-	session, err := c.connection.NewSession()
-	if err != nil {
-		return nil, 0, errors.Wrap(err, "ssh.Stream.NewSession failed")
-	}
-
 	errBuffer := bytes.NewBuffer([]byte{})
-	exitCode := 0
 
-	session.Stdout = writer
-	session.Stderr = errBuffer
-	err = session.Run(cmd)
-	if err != nil {
-		exitErr, yes := err.(*ssh.ExitError)
-		if yes {
-			exitCode = exitErr.ExitStatus()
-		} else {
-			return nil, -1, errors.Wrap(err, "ssh.Stream.Run failed")
-		}
+	exitCode, err := c.runInSession(cmd, writer, errBuffer, nil)
 
-	}
-
-	return errBuffer.Bytes(), exitCode, nil
+	return errBuffer.Bytes(), exitCode, err
 }
 
-func (c Connection) StreamStdin(cmd string, reader io.Reader) (stdout, stderr []byte, exitCode int, err error) {
-	session, err := c.connection.NewSession()
-
+func (c Connection) StreamStdin(cmd string, stdinReader io.Reader) (stdout, stderr []byte, exitCode int, err error) {
 	outBuffer := bytes.NewBuffer([]byte{})
 	errBuffer := bytes.NewBuffer([]byte{})
 
-	session.Stdin = reader
-	session.Stdout = outBuffer
-	session.Stderr = errBuffer
+	exitCode, err = c.runInSession(cmd, outBuffer, errBuffer, stdinReader)
+
+	return outBuffer.Bytes(), errBuffer.Bytes(), exitCode, err
+}
+
+func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.Reader) (int, error) {
+	session, err := c.connection.NewSession()
+	if err != nil {
+		return 0, errors.Wrap(err, "ssh.Stream.NewSession failed")
+	}
+
+	session.Stdin = stdin
+	session.Stdout = stdout
+	session.Stderr = stderr
+
+	var exitCode int
 
 	err = session.Run(cmd)
-
-	if err != nil {
+	if err == nil {
+		exitCode = 0
+	} else {
 		exitErr, yes := err.(*ssh.ExitError)
 		if yes {
 			exitCode = exitErr.ExitStatus()
 		} else {
-			return nil, nil, -1, errors.Wrap(err, "ssh.StreamStdin.Run failed with non-ExitError failure")
+			return -1, errors.Wrap(err, "ssh.Stream.Run failed")
 		}
 	}
-
-	return outBuffer.Bytes(), errBuffer.Bytes(), exitCode, nil
+	return exitCode, nil
 }
 
 func (c Connection) Username() string {
