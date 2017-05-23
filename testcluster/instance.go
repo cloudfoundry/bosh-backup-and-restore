@@ -7,12 +7,13 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gexec"
 	"net"
 	"net/url"
 	"os"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 )
 
 type Instance struct {
@@ -66,6 +67,12 @@ func (i *Instance) CreateDir(path string) {
 func (i *Instance) RunInBackground(command string) {
 	dockerRunAndWaitForSuccess("exec", "-d", i.dockerID, command)
 }
+
+func (i *Instance) Run(command ...string) string {
+	args := append([]string{"exec", i.dockerID}, command...)
+	return dockerRunAndWaitForSuccess(args...)
+}
+
 func (i *Instance) CreateScript(file, contents string) {
 	dockerRunAndWaitForSuccess("exec", i.dockerID, "mkdir", "-p", filepath.Dir(file))
 	dockerRunAndWaitForSuccess("exec", i.dockerID, "sh", "-c", fmt.Sprintf(`echo '%s' > %s`, contents, file))

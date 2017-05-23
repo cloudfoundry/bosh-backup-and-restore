@@ -34,29 +34,6 @@ var _ = Describe("Connection", func() {
 	})
 
 	Describe("Connection Creation", func() {
-		It("Creates an SSH connection succsfully", func() {
-			Expect(connErr).NotTo(HaveOccurred())
-		})
-
-		Describe("fails to connect to the server", func() {
-			BeforeEach(func() {
-				hostname = "laksdjf"
-			})
-			It("fails", func() {
-				Expect(connErr).To(HaveOccurred())
-			})
-		})
-
-		Describe("authorization fails", func() {
-			BeforeEach(func() {
-				user = "foo"
-			})
-			It("fails", func() {
-				Expect(connErr).To(HaveOccurred())
-			})
-
-		})
-
 		Describe("Invalid ssh key", func() {
 			BeforeEach(func() {
 				privateKey = "laksdjf"
@@ -73,8 +50,8 @@ var _ = Describe("Connection", func() {
 		})
 	})
 
-	Describe("StreamStdin", func() {
-		Context("succeeds", func() {
+	Context("successful connections", func() {
+		Describe("StreamStdin", func() {
 			var reader *bytes.Buffer
 			var stdErr []byte
 			var stdOut []byte
@@ -116,50 +93,48 @@ var _ = Describe("Connection", func() {
 				Expect(exitCode).To(BeZero())
 			})
 		})
-	})
 
-	Describe("Stream", func() {
-		var writer *bytes.Buffer
-		var stdErr []byte
-		var exitCode int
-		var runError error
-		JustBeforeEach(func() {
-			Expect(connErr).NotTo(HaveOccurred())
-			stdErr, exitCode, runError = conn.Stream("/tmp/foo", writer)
-		})
-		BeforeEach(func() {
-			writer = bytes.NewBufferString("")
-			instance1.CreateScript("/tmp/foo", `#!/usr/bin/env sh
+		Describe("Stream", func() {
+			var writer *bytes.Buffer
+			var stdErr []byte
+			var exitCode int
+			var runError error
+			JustBeforeEach(func() {
+				Expect(connErr).NotTo(HaveOccurred())
+				stdErr, exitCode, runError = conn.Stream("/tmp/foo", writer)
+			})
+			BeforeEach(func() {
+				writer = bytes.NewBufferString("")
+				instance1.CreateScript("/tmp/foo", `#!/usr/bin/env sh
 				echo "stdout"
 				echo "stderr" >&2
 				exit 1
 				`)
+			})
+			It("does not fail", func() {
+				Expect(runError).NotTo(HaveOccurred())
+			})
+			It("writes stdout to the writer", func() {
+				Expect(writer.String()).To(ContainSubstring("stdout"))
+			})
+			It("drains stderr", func() {
+				Expect(string(stdErr)).To(ContainSubstring("stderr"))
+			})
+			It("captures exit code", func() {
+				Expect(exitCode).To(Equal(1))
+			})
 		})
-		It("does not fail", func() {
-			Expect(runError).NotTo(HaveOccurred())
-		})
-		It("writes stdout to the writer", func() {
-			Expect(writer.String()).To(ContainSubstring("stdout"))
-		})
-		It("drains stderr", func() {
-			Expect(string(stdErr)).To(ContainSubstring("stderr"))
-		})
-		It("captures exit code", func() {
-			Expect(exitCode).To(Equal(1))
-		})
-	})
 
-	Describe("Run", func() {
-		var stdOut []byte
-		var stdErr []byte
-		var exitCode int
-		var runError error
-		var command string
-		JustBeforeEach(func() {
-			Expect(connErr).NotTo(HaveOccurred())
-			stdOut, stdErr, exitCode, runError = conn.Run(command)
-		})
-		Context("succeds", func() {
+		Describe("Run", func() {
+			var stdOut []byte
+			var stdErr []byte
+			var exitCode int
+			var runError error
+			var command string
+			JustBeforeEach(func() {
+				Expect(connErr).NotTo(HaveOccurred())
+				stdOut, stdErr, exitCode, runError = conn.Run(command)
+			})
 			BeforeEach(func() {
 				command = "/tmp/foo"
 				instance1.CreateScript(command, `#!/usr/bin/env sh
@@ -179,54 +154,111 @@ var _ = Describe("Connection", func() {
 			It("captures exit code", func() {
 				Expect(exitCode).To(BeZero())
 			})
-		})
-
-		Context("running multiple commands", func() {
-
-			It("does not fail", func() {
-				_, _, _, runError1 := conn.Run("ls")
-				_, _, _, runError2 := conn.Run("ls")
-				_, _, _, runError3 := conn.Run("ls")
-
-				Expect(runError1).NotTo(HaveOccurred())
-				Expect(runError2).NotTo(HaveOccurred())
-				Expect(runError3).NotTo(HaveOccurred())
+			It("closes the connection after executing the command", func() {
+				Eventually(instance1.Run("ps", "auxwww")).ShouldNot(ContainSubstring(user))
 			})
-		})
+			Context("running multiple commands", func() {
 
-		Context("exit code not 0", func() {
-			BeforeEach(func() {
-				command = "/tmp/foo"
-				instance1.CreateScript(command, `#!/usr/bin/env sh
-				echo "stdout"
-				echo "stderr" >&2
+				It("does not fail", func() {
+					_, _, _, runError1 := conn.Run("ls")
+					_, _, _, runError2 := conn.Run("ls")
+					_, _, _, runError3 := conn.Run("ls")
+
+					Expect(runError1).NotTo(HaveOccurred())
+					Expect(runError2).NotTo(HaveOccurred())
+					Expect(runError3).NotTo(HaveOccurred())
+				})
+			})
+
+			Context("exit code not 0", func() {
+				BeforeEach(func() {
+					command = "/tmp/foo"
+					instance1.CreateScript(command, `#!/usr/bin/env sh
 				exit 12`)
 
+				})
+				It("does not fail", func() {
+					Expect(runError).NotTo(HaveOccurred())
+				})
+				It("captures exit code", func() {
+					Expect(exitCode).To(Equal(12))
+				})
 			})
-			It("does not fail", func() {
-				Expect(runError).NotTo(HaveOccurred())
-			})
-			It("drains stdout", func() {
-				Expect(string(stdOut)).To(ContainSubstring("stdout"))
-			})
-			It("drains stderr", func() {
-				Expect(string(stdErr)).To(ContainSubstring("stderr"))
-			})
-			It("captures exit code", func() {
-				Expect(exitCode).To(Equal(12))
-			})
-		})
 
-		Context("command not found", func() {
-			BeforeEach(func() {
-				command = "/tmp/non-existent"
-			})
-			It("captures exit code", func() {
-				Expect(exitCode).To(Equal(127))
+			Context("command not found", func() {
+				BeforeEach(func() {
+					command = "/tmp/non-existent"
+				})
+				It("captures exit code", func() {
+					Expect(exitCode).To(Equal(127))
+				})
 			})
 		})
 	})
 
+	Context("connection failures", func() {
+		Describe("unreachable host", func() {
+			var err error
+			BeforeEach(func() {
+				hostname = "laksdjf"
+			})
+			Context("Run", func() {
+				JustBeforeEach(func() {
+					_, _, _, err = conn.Run("ls")
+				})
+				It("fails", func() {
+					Expect(err).To(HaveOccurred())
+				})
+			})
+			Context("Stream", func() {
+				JustBeforeEach(func() {
+					_, _, err = conn.Stream("ls", bytes.NewBufferString("dont matter"))
+				})
+				It("fails", func() {
+					Expect(err).To(HaveOccurred())
+				})
+			})
+			Context("StreamStdin", func() {
+				JustBeforeEach(func() {
+					_, _, _, err = conn.StreamStdin("ls", bytes.NewBufferString("dont matter"))
+				})
+				It("fails", func() {
+					Expect(err).To(HaveOccurred())
+				})
+			})
+		})
+
+		Describe("authorization failure", func() {
+			var err error
+			BeforeEach(func() {
+				user = "foo"
+			})
+			Context("Run", func() {
+				JustBeforeEach(func() {
+					_, _, _, err = conn.Run("ls")
+				})
+				It("fails", func() {
+					Expect(err).To(HaveOccurred())
+				})
+			})
+			Context("Stream", func() {
+				JustBeforeEach(func() {
+					_, _, err = conn.Stream("ls", bytes.NewBufferString("dont matter"))
+				})
+				It("fails", func() {
+					Expect(err).To(HaveOccurred())
+				})
+			})
+			Context("StreamStdin", func() {
+				JustBeforeEach(func() {
+					_, _, _, err = conn.StreamStdin("ls", bytes.NewBufferString("dont matter"))
+				})
+				It("fails", func() {
+					Expect(err).To(HaveOccurred())
+				})
+			})
+		})
+	})
 })
 
 func publicKeyForDocker(privateKey string) string {

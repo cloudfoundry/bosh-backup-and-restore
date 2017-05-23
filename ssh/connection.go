@@ -18,38 +18,27 @@ type SSHConnection interface {
 }
 
 func ConnectionCreator(hostName, userName, privateKey string) (SSHConnection, error) {
-	conn := Connection{
-		host: hostName,
-		user: userName,
-	}
-
 	parsedPrivateKey, err := ssh.ParsePrivateKey([]byte(privateKey))
 	if err != nil {
 		return nil, errors.Wrap(err, "ssh.ConnectionCreator.ParsePrivateKey failed")
 	}
 
-	sshConfig := &ssh.ClientConfig{
-		User: userName,
-		Auth: []ssh.AuthMethod{
-			ssh.PublicKeys(parsedPrivateKey),
+	conn := Connection{
+		host: hostName,
+		sshConfig: &ssh.ClientConfig{
+			User: userName,
+			Auth: []ssh.AuthMethod{
+				ssh.PublicKeys(parsedPrivateKey),
+			},
 		},
 	}
-
-	connection, err := ssh.Dial("tcp", hostName, sshConfig)
-	if err != nil {
-		return nil, errors.Wrap(err, "ssh.ConnectionCreator.Dial failed")
-	}
-
-	conn.connection = connection
 
 	return conn, nil
 }
 
 type Connection struct {
-	host       string
-	user       string
-	connection *ssh.Client
-	session    *ssh.Session
+	host      string
+	sshConfig *ssh.ClientConfig
 }
 
 func (c Connection) Run(cmd string) ([]byte, []byte, int, error) {
@@ -76,9 +65,15 @@ func (c Connection) StreamStdin(cmd string, stdinReader io.Reader) (stdout, stde
 }
 
 func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.Reader) (int, error) {
-	session, err := c.connection.NewSession()
+	connection, err := ssh.Dial("tcp", c.host, c.sshConfig)
 	if err != nil {
-		return 0, errors.Wrap(err, "ssh.Stream.NewSession failed")
+		return -1, errors.Wrap(err, "ssh.Dial failed")
+	}
+	defer connection.Close()
+
+	session, err := connection.NewSession()
+	if err != nil {
+		return -1, errors.Wrap(err, "ssh.NewSession failed")
 	}
 
 	session.Stdin = stdin
@@ -95,14 +90,14 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 		if yes {
 			exitCode = exitErr.ExitStatus()
 		} else {
-			return -1, errors.Wrap(err, "ssh.Stream.Run failed")
+			return -1, errors.Wrap(err, "ssh.Session.Run failed")
 		}
 	}
 	return exitCode, nil
 }
 
 func (c Connection) Username() string {
-	return c.user
+	return c.sshConfig.User
 }
 
 func (c Connection) Cleanup() error {
