@@ -13,7 +13,6 @@ type SSHConnection interface {
 	Stream(cmd string, writer io.Writer) ([]byte, int, error)
 	StreamStdin(cmd string, reader io.Reader) ([]byte, []byte, int, error)
 	Run(cmd string) ([]byte, []byte, int, error)
-	Cleanup() error
 	Username() string
 }
 
@@ -98,8 +97,4 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 
 func (c Connection) Username() string {
 	return c.sshConfig.User
-}
-
-func (c Connection) Cleanup() error {
-	return nil
 }

@@ -70,23 +70,23 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 	c.Logger.Info("", "Scripts found:")
 
 	instances := []orchestrator.Instance{}
-	instanceGroupWithSSHConnections := map[director.AllOrInstanceGroupOrInstanceSlug][]ssh.SSHConnection{}
+	slugs := []director.AllOrInstanceGroupOrInstanceSlug{}
 
 	for _, instanceGroupName := range uniqueInstanceGroupNamesFromVMs(vms) {
 		c.Logger.Debug("", "Setting up SSH for job %s", instanceGroupName)
 
 		allVmInstances, err := director.NewAllOrInstanceGroupOrInstanceSlugFromString(instanceGroupName)
 		if err != nil {
-			cleanupAlreadyMadeConnections(deployment, instanceGroupWithSSHConnections, sshOpts)
+			cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
 			return nil, err
 		}
 
 		sshRes, err := deployment.SetUpSSH(allVmInstances, sshOpts)
 		if err != nil {
-			cleanupAlreadyMadeConnections(deployment, instanceGroupWithSSHConnections, sshOpts)
+			cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
 			return nil, err
 		}
-		instanceGroupWithSSHConnections[allVmInstances] = []ssh.SSHConnection{}
+		slugs = append(slugs, allVmInstances)
 
 		for index, host := range sshRes.Hosts {
 			var sshConnection ssh.SSHConnection
@@ -96,17 +96,16 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 			sshConnection, err = c.SSHConnectionFactory(defaultToSSHPort(host.Host), host.Username, privateKey)
 
 			if err != nil {
-				cleanupAlreadyMadeConnections(deployment, instanceGroupWithSSHConnections, sshOpts)
+				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
 				return nil, err
 			}
-			instanceGroupWithSSHConnections[allVmInstances] = append(instanceGroupWithSSHConnections[allVmInstances], sshConnection)
 
 			hostIdentifier := fmt.Sprintf("%s/%s", instanceGroupName, host.IndexOrID)
 
 			jobs, err := c.jobFinder.FindJobs(hostIdentifier, sshConnection)
 
 			if err != nil {
-				cleanupAlreadyMadeConnections(deployment, instanceGroupWithSSHConnections, sshOpts)
+				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
 				return nil, err
 			}
 
@@ -163,11 +162,8 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func cleanupAlreadyMadeConnections(deployment director.Deployment, instanceGroupWithSSHConnections map[director.AllOrInstanceGroupOrInstanceSlug][]ssh.SSHConnection, opts director.SSHOpts) {
-	for slug, sshConnections := range instanceGroupWithSSHConnections {
-		for _, connection := range sshConnections {
-			connection.Cleanup()
-		}
+func cleanupAlreadyMadeConnections(deployment director.Deployment, slugs []director.AllOrInstanceGroupOrInstanceSlug, opts director.SSHOpts) {
+	for _, slug := range slugs {
 		deployment.CleanUpSSH(slug, director.SSHOpts{Username: opts.Username})
 	}
 }

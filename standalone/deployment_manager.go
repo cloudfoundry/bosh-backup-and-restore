@@ -52,9 +52,23 @@ func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment
 	}
 
 	return orchestrator.NewDeployment(dm.Logger, []orchestrator.Instance{
-		instance.NewDeployedInstance("0", "bosh", "0", connection, dm.Logger, jobs),
+		NewDeployedInstance("bosh", connection, dm.Logger, jobs),
 	}), nil
 }
 func (DeploymentManager) SaveManifest(deploymentName string, artifact orchestrator.Artifact) error {
 	return nil
+}
+
+type DeployedInstance struct {
+	*instance.DeployedInstance
+}
+
+func (DeployedInstance) Cleanup() error {
+	return nil
+}
+
+func NewDeployedInstance(instanceGroupName string, connection ssh.SSHConnection, logger instance.Logger, jobs instance.Jobs) DeployedInstance {
+	return DeployedInstance{
+		DeployedInstance: instance.NewDeployedInstance("0", instanceGroupName, "0", connection, logger, jobs),
+	}
 }

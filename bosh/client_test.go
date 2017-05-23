@@ -591,7 +591,6 @@ var _ = Describe("Director", func() {
 				})
 
 				It("cleans up the successful SSH connection", func() {
-					Expect(sshConnection.CleanupCallCount()).To(Equal(1))
 					Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(1))
 				})
 			})
@@ -625,7 +624,6 @@ var _ = Describe("Director", func() {
 				})
 
 				It("cleans up the successful SSH connection", func() {
-					Expect(sshConnection.CleanupCallCount()).To(Equal(1))
 					Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(1))
 				})
 			})
@@ -665,7 +663,6 @@ var _ = Describe("Director", func() {
 				})
 
 				It("cleans up the successful SSH connection", func() {
-					Expect(sshConnection.CleanupCallCount()).To(Equal(1))
 					Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(2))
 				})
 			})

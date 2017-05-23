@@ -60,15 +60,6 @@ type FakeSSHConnection struct {
 		result3 int
 		result4 error
 	}
-	CleanupStub        func() error
-	cleanupMutex       sync.RWMutex
-	cleanupArgsForCall []struct{}
-	cleanupReturns     struct {
-		result1 error
-	}
-	cleanupReturnsOnCall map[int]struct {
-		result1 error
-	}
 	UsernameStub        func() string
 	usernameMutex       sync.RWMutex
 	usernameArgsForCall []struct{}
@@ -252,46 +243,6 @@ func (fake *FakeSSHConnection) RunReturnsOnCall(i int, result1 []byte, result2 [
 	}{result1, result2, result3, result4}
 }
 
-func (fake *FakeSSHConnection) Cleanup() error {
-	fake.cleanupMutex.Lock()
-	ret, specificReturn := fake.cleanupReturnsOnCall[len(fake.cleanupArgsForCall)]
-	fake.cleanupArgsForCall = append(fake.cleanupArgsForCall, struct{}{})
-	fake.recordInvocation("Cleanup", []interface{}{})
-	fake.cleanupMutex.Unlock()
-	if fake.CleanupStub != nil {
-		return fake.CleanupStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.cleanupReturns.result1
-}
-
-func (fake *FakeSSHConnection) CleanupCallCount() int {
-	fake.cleanupMutex.RLock()
-	defer fake.cleanupMutex.RUnlock()
-	return len(fake.cleanupArgsForCall)
-}
-
-func (fake *FakeSSHConnection) CleanupReturns(result1 error) {
-	fake.CleanupStub = nil
-	fake.cleanupReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeSSHConnection) CleanupReturnsOnCall(i int, result1 error) {
-	fake.CleanupStub = nil
-	if fake.cleanupReturnsOnCall == nil {
-		fake.cleanupReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.cleanupReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeSSHConnection) Username() string {
 	fake.usernameMutex.Lock()
 	ret, specificReturn := fake.usernameReturnsOnCall[len(fake.usernameArgsForCall)]
@@ -341,8 +292,6 @@ func (fake *FakeSSHConnection) Invocations() map[string][][]interface{} {
 	defer fake.streamStdinMutex.RUnlock()
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
-	fake.cleanupMutex.RLock()
-	defer fake.cleanupMutex.RUnlock()
 	fake.usernameMutex.RLock()
 	defer fake.usernameMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
