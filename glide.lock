@@ -1,35 +1,48 @@
-hash: 9f0cfc725530ba089c6b9eddff1d4f6a8ea080d5c759e16922b544071e15b26d
-updated: 2017-01-19T13:38:45.825568349Z
+hash: dbf8360bd65a986a38e55b1f69be5189ebc64ed6d403eb4c7001d2cf654d4eb8
+updated: 2017-05-23T15:03:11.946326752+01:00
 imports:
 - name: github.com/bmatcuk/doublestar
   version: dd6a6f0a8cdfaaa88b08cf26cf1bc7d69003ee13
 - name: github.com/charlievieth/fs
   version: 85d13508c8e9fdaf4c9fcd52a4c3241341566346
+- name: github.com/cheggaaa/pb
+  version: ae0201277d45c0006874ce00e4feea56121be5f1
 - name: github.com/cloudfoundry/bosh-cli
-  version: 11140a1205cc11018f982e968e273e574f16acf1
+  version: b57c34127f35c52b6518808fe0f91d85dd6c0039
   subpackages:
   - director
   - director/directorfakes
+  - uaa
+  - ui
+  - ui/fmt
+  - ui/table
 - name: github.com/cloudfoundry/bosh-utils
-  version: 18e54c725fb20f623c27e12aaf3e98d6e18dca69
+  version: 833257efc00aee289992e3c49551121850208c36
   subpackages:
   - errors
+  - http
   - httpclient
   - logger
+  - retrystrategy
   - system
   - uuid
 - name: github.com/cppforlife/go-semi-semantic
   version: 576b6af77ae4f3ccef356902fb3b9a9ae22e0b11
   subpackages:
   - version
-- name: github.com/hashicorp/errwrap
-  version: 7554cd9344cec97297fa6649b055a8c98c2a1e55
-- name: github.com/hashicorp/go-multierror
-  version: 8484912a3b9987857bac52e0c5fec2b95f419628
-- name: github.com/kr/pty
-  version: ce7fa45920dc37a92de8377972e52bc55ffa8d57
+- name: github.com/dustin/go-humanize
+  version: 259d2a102b871d17f30e3cd9881a642961a1e486
+- name: github.com/fatih/color
+  version: 9131ab34cf20d2f6d83fdc67168a5430d1c7dc23
 - name: github.com/looplab/fsm
   version: ee3b44fdc79755b3bb003c9bf637cf82bc364a69
+- name: github.com/mattn/go-colorable
+  version: 5411d3eea5978e6cdc258b30de592b60df6aba96
+  repo: https://github.com/mattn/go-colorable
+- name: github.com/mattn/go-isatty
+  version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
+- name: github.com/mattn/go-runewidth
+  version: 14207d285c6c197daabb5c9793d63e7af9ab2d50
 - name: github.com/mgutz/ansi
   version: c286dcecd19ff979eeb73ea444e479b903f2cfcb
 - name: github.com/nu7hatch/gouuid
@@ -75,10 +88,17 @@ imports:
   - mockbosh
   - mockhttp
   - mockuaa
+- name: github.com/pivotal-golang/clock
+  version: 2269160ae1757f96bbb8c6475e6fa36c805e73e0
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
 - name: github.com/urfave/cli
   version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
+- name: github.com/vito/go-interact
+  version: c5733929fb71999ab2f1cfd57fdab195965994de
+  subpackages:
+  - interact
+  - interact/terminal
 - name: golang.org/x/crypto
   version: 9477e0b78b9ac3d0b03822fd95422e2fe07627cd
   subpackages:
@@ -86,6 +106,11 @@ imports:
   - ed25519
   - ed25519/internal/edwards25519
   - ssh
+  - ssh/terminal
+- name: golang.org/x/net
+  version: 5961165da77ad3a2abf3a77ea904c13a76b0b073
+  subpackages:
+  - proxy
 - name: golang.org/x/sys
   version: b699b7032584f0953262cb2788a0ca19bb494703
   subpackages:
