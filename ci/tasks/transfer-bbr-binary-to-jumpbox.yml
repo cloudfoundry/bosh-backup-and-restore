@@ -8,7 +8,7 @@ image_resource:
 inputs:
 - name: bosh-backup-and-restore
 - name: bosh-backup-and-restore-meta
-- name: release
+- name: rc
 
 params:
   BOSH_CLIENT_SECRET:
