@@ -44,7 +44,7 @@ var _ = Describe("backup with custom metadata", func() {
 		By("cleaning up artifacts from the remote instances")
 		runOnInstances(instanceCollectionForBackup, func(instName, instIndex string) {
 			session := RunCommandOnRemote(RedisWithMetadataDeploymentSSHCommand(instName, instIndex),
-				"ls -l /var/vcap/store/backup",
+				"ls -l /var/vcap/store/bbr-backup",
 			)
 			Eventually(session).Should(gexec.Exit())
 			Expect(session.ExitCode()).To(Equal(1))
@@ -65,7 +65,7 @@ var _ = Describe("backup with custom metadata", func() {
 		By("cleaning up artifacts from the remote restored instances")
 		runOnInstances(instanceCollectionForRestore, func(instName, instIndex string) {
 			session := RunCommandOnRemote(RedisWithMetadataDeploymentSSHCommand(instName, instIndex),
-				"ls -l /var/vcap/store/backup",
+				"ls -l /var/vcap/store/bbr-backup",
 			)
 			Eventually(session).Should(gexec.Exit())
 			Expect(session.ExitCode()).To(Equal(1))

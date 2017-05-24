@@ -53,7 +53,7 @@ var _ = Describe("Restores a deployment", func() {
 		By("cleaning up artifacts from the remote instances")
 		runOnInstances(instanceCollection, func(instName, instIndex string) {
 			session := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
-				"ls -l /var/vcap/store/backup",
+				"ls -l /var/vcap/store/bbr-backup",
 			)
 			Eventually(session).Should(gexec.Exit())
 			Expect(session.ExitCode()).To(Equal(1))

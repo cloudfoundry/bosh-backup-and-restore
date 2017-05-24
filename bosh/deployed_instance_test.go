@@ -61,7 +61,7 @@ var _ = Describe("BoshDeployedInstance", func() {
 			It("deletes the backup folder", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				cmd := sshConnection.RunArgsForCall(0)
-				Expect(cmd).To(Equal("sudo rm -rf /var/vcap/store/backup"))
+				Expect(cmd).To(Equal("sudo rm -rf /var/vcap/store/bbr-backup"))
 			})
 			It("deletes session from deployment", func() {
 				Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(1))
@@ -89,7 +89,7 @@ var _ = Describe("BoshDeployedInstance", func() {
 			var expectedErrorWhileDeleting error
 			var expectedErrorWhileCleaningUp error
 			BeforeEach(func() {
-				expectedErrorWhileDeleting = fmt.Errorf("error while cleaning up var/vcap/store/backup")
+				expectedErrorWhileDeleting = fmt.Errorf("error while cleaning up var/vcap/store/bbr-backup")
 				expectedErrorWhileCleaningUp = fmt.Errorf("error while cleaning the ssh tunnel")
 				sshConnection.RunReturns(nil, nil, 1, expectedErrorWhileDeleting)
 				boshDeployment.CleanUpSSHReturns(expectedErrorWhileCleaningUp)

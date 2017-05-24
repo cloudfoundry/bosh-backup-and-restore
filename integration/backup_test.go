@@ -155,7 +155,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 
 					It("cleans up backup artifacts from remote", func() {
-						Expect(instance1.FileExists("/var/vcap/store/backup")).To(BeFalse())
+						Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
 					})
 
 				})

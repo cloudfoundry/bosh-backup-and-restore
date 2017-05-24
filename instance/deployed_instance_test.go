@@ -402,9 +402,9 @@ var _ = Describe("DeployedInstance", func() {
 					sshConnection.RunArgsForCall(1),
 					sshConnection.RunArgsForCall(2),
 				}).To(ConsistOf(
-					"sudo mkdir -p /var/vcap/store/backup/foo && sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/bbr/backup",
-					"sudo mkdir -p /var/vcap/store/backup/bar && sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/bbr/backup",
-					"sudo mkdir -p /var/vcap/store/backup/baz && sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ /var/vcap/jobs/baz/bin/bbr/backup",
+					"sudo mkdir -p /var/vcap/store/bbr-backup/foo && sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ /var/vcap/jobs/foo/bin/bbr/backup",
+					"sudo mkdir -p /var/vcap/store/bbr-backup/bar && sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/bar/ ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/bar/ /var/vcap/jobs/bar/bin/bbr/backup",
+					"sudo mkdir -p /var/vcap/store/bbr-backup/baz && sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/baz/ ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/baz/ /var/vcap/jobs/baz/bin/bbr/backup",
 				))
 			})
 
@@ -461,9 +461,9 @@ var _ = Describe("DeployedInstance", func() {
 					sshConnection.RunArgsForCall(1),
 					sshConnection.RunArgsForCall(2),
 				}).To(ConsistOf(
-					"sudo mkdir -p /var/vcap/store/backup/foo && sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/bbr/backup",
-					"sudo mkdir -p /var/vcap/store/backup/bar && sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/bbr/backup",
-					"sudo mkdir -p /var/vcap/store/backup/special-backup && sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/special-backup/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/special-backup/ /var/vcap/jobs/baz/bin/bbr/backup",
+					"sudo mkdir -p /var/vcap/store/bbr-backup/foo && sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ /var/vcap/jobs/foo/bin/bbr/backup",
+					"sudo mkdir -p /var/vcap/store/bbr-backup/bar && sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/bar/ ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/bar/ /var/vcap/jobs/bar/bin/bbr/backup",
+					"sudo mkdir -p /var/vcap/store/bbr-backup/special-backup && sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/special-backup/ ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/special-backup/ /var/vcap/jobs/baz/bin/bbr/backup",
 				))
 			})
 		})
@@ -704,9 +704,9 @@ var _ = Describe("DeployedInstance", func() {
 					sshConnection.RunArgsForCall(1),
 					sshConnection.RunArgsForCall(2),
 				}).To(ConsistOf(
-					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/bbr/restore",
-					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/bbr/restore",
-					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/baz/ /var/vcap/jobs/baz/bin/bbr/restore",
+					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ /var/vcap/jobs/foo/bin/bbr/restore",
+					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/bar/ ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/bar/ /var/vcap/jobs/bar/bin/bbr/restore",
+					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/baz/ ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/baz/ /var/vcap/jobs/baz/bin/bbr/restore",
 				))
 			})
 
@@ -766,9 +766,9 @@ var _ = Describe("DeployedInstance", func() {
 					sshConnection.RunArgsForCall(1),
 					sshConnection.RunArgsForCall(2),
 				}).To(ConsistOf(
-					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/foo/ /var/vcap/jobs/foo/bin/bbr/restore",
-					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/bar/ /var/vcap/jobs/bar/bin/bbr/restore",
-					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/backup/special-backup/ ARTIFACT_DIRECTORY=/var/vcap/store/backup/special-backup/ /var/vcap/jobs/baz/bin/bbr/restore",
+					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ /var/vcap/jobs/foo/bin/bbr/restore",
+					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/bar/ ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/bar/ /var/vcap/jobs/bar/bin/bbr/restore",
+					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/special-backup/ ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/special-backup/ /var/vcap/jobs/baz/bin/bbr/restore",
 				))
 			})
 		})

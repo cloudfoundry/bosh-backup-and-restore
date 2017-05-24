@@ -187,7 +187,7 @@ instances:
 		})
 
 		It("Cleans up the archive file on the remote", func() {
-			Expect(instance1.FileExists("/var/vcap/store/backup/redis-backup")).To(BeFalse())
+			Expect(instance1.FileExists("/var/vcap/store/bbr-backup/redis-backup")).To(BeFalse())
 		})
 
 		It("Runs the restore script on the remote", func() {
@@ -287,8 +287,8 @@ instances:
 		})
 
 		It("Cleans up the archive file on the remote", func() {
-			Expect(instance1.FileExists("/var/vcap/store/backup/redis-backup")).To(BeFalse())
-			Expect(instance2.FileExists("/var/vcap/store/backup/redis-backup")).To(BeFalse())
+			Expect(instance1.FileExists("/var/vcap/store/bbr-backup/redis-backup")).To(BeFalse())
+			Expect(instance2.FileExists("/var/vcap/store/bbr-backup/redis-backup")).To(BeFalse())
 		})
 
 		It("Runs the restore script on the remote", func() {
@@ -366,7 +366,7 @@ blobs:
 		})
 
 		It("Cleans up the archive file on the remote", func() {
-			Expect(instance1.FileExists("/var/vcap/store/backup")).To(BeFalse())
+			Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
 		})
 
 		It("Runs the restore script on the remote", func() {
@@ -455,7 +455,7 @@ blobs:
 		})
 
 		It("Cleans up the archive file on the remote", func() {
-			Expect(instance1.FileExists("/var/vcap/store/backup")).To(BeFalse())
+			Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
 		})
 
 		It("Runs the restore script on the remote", func() {
@@ -564,7 +564,7 @@ instances:
 		})
 
 		It("Cleans up the archive file on the remote", func() {
-			Expect(instance1.FileExists("/var/vcap/store/backup/redis-backup")).To(BeFalse())
+			Expect(instance1.FileExists("/var/vcap/store/bbr-backup/redis-backup")).To(BeFalse())
 		})
 
 		It("Runs the restore script on the remote", func() {

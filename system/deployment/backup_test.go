@@ -10,7 +10,7 @@ import (
 	. "github.com/pivotal-cf/bosh-backup-and-restore/system"
 )
 
-var workspaceDir = "/var/vcap/store/backup_workspace"
+var workspaceDir = "/var/vcap/store/bbr-backup_workspace"
 
 var _ = Describe("backup", func() {
 	var instanceCollection = map[string][]string{
@@ -59,7 +59,7 @@ var _ = Describe("backup", func() {
 		By("cleaning up artifacts from the remote instances")
 		runOnInstances(instanceCollection, func(instName, instIndex string) {
 			session := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
-				"ls -l /var/vcap/store/backup",
+				"ls -l /var/vcap/store/bbr-backup",
 			)
 			Eventually(session).Should(gexec.Exit())
 			Expect(session.ExitCode()).To(Equal(1))

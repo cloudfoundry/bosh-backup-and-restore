@@ -36,11 +36,11 @@ func (j Job) RestoreBlobName() string {
 }
 
 func (j Job) BackupArtifactDirectory() string {
-	return fmt.Sprintf("/var/vcap/store/backup/%s", j.backupArtifactOrJobName())
+	return fmt.Sprintf("%s/%s", ArtifactDirectory, j.backupArtifactOrJobName())
 }
 
 func (j Job) RestoreArtifactDirectory() string {
-	return fmt.Sprintf("/var/vcap/store/backup/%s", j.restoreArtifactOrJobName())
+	return fmt.Sprintf("%s/%s", ArtifactDirectory, j.restoreArtifactOrJobName())
 }
 
 func (j Job) BackupScript() Script {

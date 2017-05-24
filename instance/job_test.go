@@ -28,7 +28,7 @@ var _ = Describe("Job", func() {
 
 	Describe("BackupArtifactDirectory", func() {
 		It("calculates the blob directory based on the name", func() {
-			Expect(job.BackupArtifactDirectory()).To(Equal("/var/vcap/store/backup/foo"))
+			Expect(job.BackupArtifactDirectory()).To(Equal("/var/vcap/store/bbr-backup/foo"))
 		})
 
 		Context("when an blob name is provided", func() {
@@ -41,14 +41,14 @@ var _ = Describe("Job", func() {
 			})
 
 			It("calculates the blob directory based on the blob name", func() {
-				Expect(jobWithName.BackupArtifactDirectory()).To(Equal("/var/vcap/store/backup/a-bosh-backup"))
+				Expect(jobWithName.BackupArtifactDirectory()).To(Equal("/var/vcap/store/bbr-backup/a-bosh-backup"))
 			})
 		})
 	})
 
 	Describe("RestoreArtifactDirectory", func() {
 		It("calculates the blob directory based on the name", func() {
-			Expect(job.BackupArtifactDirectory()).To(Equal("/var/vcap/store/backup/foo"))
+			Expect(job.BackupArtifactDirectory()).To(Equal("/var/vcap/store/bbr-backup/foo"))
 		})
 
 		Context("when an blob name is provided", func() {
@@ -61,7 +61,7 @@ var _ = Describe("Job", func() {
 			})
 
 			It("calculates the blob directory based on the blob name", func() {
-				Expect(jobWithName.RestoreArtifactDirectory()).To(Equal("/var/vcap/store/backup/a-bosh-backup"))
+				Expect(jobWithName.RestoreArtifactDirectory()).To(Equal("/var/vcap/store/bbr-backup/a-bosh-backup"))
 			})
 		})
 	})
