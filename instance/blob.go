@@ -73,14 +73,15 @@ func (d *Blob) StreamFromRemote(writer io.Writer) error {
 	d.Logger.Debug("", "Stderr: %s", string(stderr))
 
 	if err != nil {
-		d.Logger.Debug("", "Error running instance backup scripts. Exit code %d, error %s", exitCode, err.Error())
+		d.Logger.Debug("", "Error streaming backup from remote instance. Exit code %d, error %s", exitCode, err.Error())
+		return errors.Wrap(err, fmt.Sprintf("Error streaming backup from remote instance. Exit code %d, error %s, stderr %s", exitCode, err, stderr))
 	}
 
 	if exitCode != 0 {
-		return errors.Errorf("Instance backup scripts returned %d. Error: %s", exitCode, stderr)
+		return errors.Errorf("Streaming backup from remote instance returned %d. Error: %s", exitCode, stderr)
 	}
 
-	return err
+	return nil
 }
 
 func (d *Blob) StreamToRemote(reader io.Reader) error {
@@ -102,13 +103,14 @@ func (d *Blob) StreamToRemote(reader io.Reader) error {
 
 	if err != nil {
 		d.Logger.Debug("", "Error streaming backup to remote instance. Exit code %d, error %s", exitCode, err.Error())
+		return errors.Wrap(err, fmt.Sprintf("Error running instance backup scripts. Exit code %d, error %s, stderr %s", exitCode, err, stderr))
 	}
 
 	if exitCode != 0 {
-		return errors.Errorf("Streaming backup to remote returned %d. Error: %s", exitCode, stderr)
+		return errors.Errorf("Streaming backup to remote instance returned %d. Error: %s", exitCode, stderr)
 	}
 
-	return err
+	return nil
 }
 
 func (d *Blob) Size() (string, error) {

@@ -88,7 +88,7 @@ var _ = Describe("blob", func() {
 
 				BeforeEach(func() {
 					sshError = fmt.Errorf("SHH causing problems here")
-					sshConnection.StreamReturns([]byte("not relevant"), 0, sshError)
+					sshConnection.StreamReturns([]byte("not relevant"), -1, sshError)
 				})
 
 				It("uses the ssh connection to tar the backup and stream it to the local machine", func() {
@@ -101,7 +101,7 @@ var _ = Describe("blob", func() {
 
 				It("fails", func() {
 					Expect(err).To(HaveOccurred())
-					Expect(err).To(MatchError(sshError))
+					Expect(err).To(MatchError(ContainSubstring(sshError.Error())))
 				})
 			})
 		})
@@ -326,7 +326,7 @@ var _ = Describe("blob", func() {
 
 			Describe("when there is an error running the stream", func() {
 				BeforeEach(func() {
-					sshConnection.StreamStdinReturns([]byte("not relevant"), []byte("not relevant"), 0, fmt.Errorf("Errorerrororororororor"))
+					sshConnection.StreamStdinReturns([]byte("not relevant"), []byte("not relevant"), -1, fmt.Errorf("Errorerrororororororor"))
 				})
 
 				It("fails", func() {
