@@ -3,7 +3,10 @@ package ssh_test
 import (
 	"bytes"
 	"encoding/base64"
+	"io"
+	"log"
 
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
 	gossh "golang.org/x/crypto/ssh"
@@ -20,6 +23,7 @@ var _ = Describe("Connection", func() {
 	var privateKey string
 
 	var instance1 *testcluster.Instance
+	var logger ssh.Logger
 
 	BeforeEach(func() {
 		instance1 = testcluster.NewInstance()
@@ -27,10 +31,14 @@ var _ = Describe("Connection", func() {
 		privateKey = defaultPrivateKey
 		hostname = instance1.Address()
 		user = "test-user"
+
+		combinecOutLog := log.New(io.MultiWriter(GinkgoWriter, bytes.NewBufferString("")), "[bosh-package] ", log.Lshortfile)
+		combinedErrLog := log.New(io.MultiWriter(GinkgoWriter, bytes.NewBufferString("")), "[bosh-package] ", log.Lshortfile)
+		logger = boshlog.New(boshlog.LevelDebug, combinecOutLog, combinedErrLog)
 	})
 
 	JustBeforeEach(func() {
-		conn, connErr = ssh.ConnectionCreator(hostname, user, privateKey)
+		conn, connErr = ssh.ConnectionCreator(hostname, user, privateKey, logger)
 	})
 
 	Describe("Connection Creation", func() {

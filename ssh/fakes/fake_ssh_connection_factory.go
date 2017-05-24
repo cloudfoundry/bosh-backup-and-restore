@@ -8,12 +8,13 @@ import (
 )
 
 type FakeSSHConnectionFactory struct {
-	Stub        func(host, user, privateKey string) (ssh.SSHConnection, error)
+	Stub        func(host, user, privateKey string, logger ssh.Logger) (ssh.SSHConnection, error)
 	mutex       sync.RWMutex
 	argsForCall []struct {
 		host       string
 		user       string
 		privateKey string
+		logger     ssh.Logger
 	}
 	returns struct {
 		result1 ssh.SSHConnection
@@ -27,18 +28,19 @@ type FakeSSHConnectionFactory struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeSSHConnectionFactory) Spy(host string, user string, privateKey string) (ssh.SSHConnection, error) {
+func (fake *FakeSSHConnectionFactory) Spy(host string, user string, privateKey string, logger ssh.Logger) (ssh.SSHConnection, error) {
 	fake.mutex.Lock()
 	ret, specificReturn := fake.returnsOnCall[len(fake.argsForCall)]
 	fake.argsForCall = append(fake.argsForCall, struct {
 		host       string
 		user       string
 		privateKey string
-	}{host, user, privateKey})
-	fake.recordInvocation("SSHConnectionFactory", []interface{}{host, user, privateKey})
+		logger     ssh.Logger
+	}{host, user, privateKey, logger})
+	fake.recordInvocation("SSHConnectionFactory", []interface{}{host, user, privateKey, logger})
 	fake.mutex.Unlock()
 	if fake.Stub != nil {
-		return fake.Stub(host, user, privateKey)
+		return fake.Stub(host, user, privateKey, logger)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -52,10 +54,10 @@ func (fake *FakeSSHConnectionFactory) CallCount() int {
 	return len(fake.argsForCall)
 }
 
-func (fake *FakeSSHConnectionFactory) ArgsForCall(i int) (string, string, string) {
+func (fake *FakeSSHConnectionFactory) ArgsForCall(i int) (string, string, string, ssh.Logger) {
 	fake.mutex.RLock()
 	defer fake.mutex.RUnlock()
-	return fake.argsForCall[i].host, fake.argsForCall[i].user, fake.argsForCall[i].privateKey
+	return fake.argsForCall[i].host, fake.argsForCall[i].user, fake.argsForCall[i].privateKey, fake.argsForCall[i].logger
 }
 
 func (fake *FakeSSHConnectionFactory) Returns(result1 ssh.SSHConnection, result2 error) {

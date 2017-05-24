@@ -93,7 +93,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 			var err error
 
 			c.Logger.Debug("", "Attempting to SSH onto %s, %s", host.Host, host.IndexOrID)
-			sshConnection, err = c.SSHConnectionFactory(defaultToSSHPort(host.Host), host.Username, privateKey)
+			sshConnection, err = c.SSHConnectionFactory(defaultToSSHPort(host.Host), host.Username, privateKey, c.Logger)
 
 			if err != nil {
 				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)

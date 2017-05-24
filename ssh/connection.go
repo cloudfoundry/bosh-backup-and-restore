@@ -16,7 +16,11 @@ type SSHConnection interface {
 	Username() string
 }
 
-func ConnectionCreator(hostName, userName, privateKey string) (SSHConnection, error) {
+type Logger interface {
+	Warn(tag, msg string, args ...interface{})
+}
+
+func ConnectionCreator(hostName, userName, privateKey string, logger Logger) (SSHConnection, error) {
 	parsedPrivateKey, err := ssh.ParsePrivateKey([]byte(privateKey))
 	if err != nil {
 		return nil, errors.Wrap(err, "ssh.ConnectionCreator.ParsePrivateKey failed")
@@ -30,6 +34,7 @@ func ConnectionCreator(hostName, userName, privateKey string) (SSHConnection, er
 				ssh.PublicKeys(parsedPrivateKey),
 			},
 		},
+		logger: logger,
 	}
 
 	return conn, nil
@@ -38,6 +43,7 @@ func ConnectionCreator(hostName, userName, privateKey string) (SSHConnection, er
 type Connection struct {
 	host      string
 	sshConfig *ssh.ClientConfig
+	logger    Logger
 }
 
 func (c Connection) Run(cmd string) ([]byte, []byte, int, error) {
@@ -85,10 +91,13 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 	if err == nil {
 		exitCode = 0
 	} else {
-		exitErr, yes := err.(*ssh.ExitError)
-		if yes {
-			exitCode = exitErr.ExitStatus()
-		} else {
+		switch err := err.(type) {
+		case *ssh.ExitError:
+			exitCode = err.ExitStatus()
+		case *ssh.ExitMissingError:
+			exitCode = 0
+			c.logger.Warn("ssh", "remote server did not send an exit status: %+v", err)
+		default:
 			return -1, errors.Wrap(err, "ssh.Session.Run failed")
 		}
 	}

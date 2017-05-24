@@ -136,10 +136,11 @@ var _ = Describe("Director", func() {
 
 			It("creates a ssh connection to each host", func() {
 				Expect(sshConnectionFactory.CallCount()).To(Equal(1))
-				host, username, privateKey := sshConnectionFactory.ArgsForCall(0)
+				host, username, privateKey, logger := sshConnectionFactory.ArgsForCall(0)
 				Expect(host).To(Equal("hostname:22"), "overrides the port to be 22 if not provided")
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
+				Expect(logger).To(Equal(boshLogger))
 			})
 
 		})
@@ -163,10 +164,11 @@ var _ = Describe("Director", func() {
 
 			It("uses the specified port", func() {
 				Expect(sshConnectionFactory.CallCount()).To(Equal(1))
-				host, username, privateKey := sshConnectionFactory.ArgsForCall(0)
+				host, username, privateKey, logger := sshConnectionFactory.ArgsForCall(0)
 				Expect(host).To(Equal("hostname:3457"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
+				Expect(logger).To(Equal(boshLogger))
 			})
 		})
 
@@ -266,15 +268,17 @@ var _ = Describe("Director", func() {
 			It("creates a ssh connection to each host", func() {
 				Expect(sshConnectionFactory.CallCount()).To(Equal(2))
 
-				host, username, privateKey := sshConnectionFactory.ArgsForCall(0)
+				host, username, privateKey, logger := sshConnectionFactory.ArgsForCall(0)
 				Expect(host).To(Equal("hostname1:22"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
+				Expect(logger).To(Equal(boshLogger))
 
-				host, username, privateKey = sshConnectionFactory.ArgsForCall(1)
+				host, username, privateKey, logger = sshConnectionFactory.ArgsForCall(1)
 				Expect(host).To(Equal("hostname2:22"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
+				Expect(logger).To(Equal(boshLogger))
 			})
 			It("finds the jobs with the job finder", func() {
 				Expect(fakeJobFinder.FindJobsCallCount()).To(Equal(2))
@@ -394,20 +398,23 @@ var _ = Describe("Director", func() {
 			It("creates a ssh connection to each host", func() {
 				Expect(sshConnectionFactory.CallCount()).To(Equal(3))
 
-				host, username, privateKey := sshConnectionFactory.ArgsForCall(0)
+				host, username, privateKey, logger := sshConnectionFactory.ArgsForCall(0)
 				Expect(host).To(Equal("hostname1:22"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
+				Expect(logger).To(Equal(boshLogger))
 
-				host, username, privateKey = sshConnectionFactory.ArgsForCall(1)
+				host, username, privateKey, logger = sshConnectionFactory.ArgsForCall(1)
 				Expect(host).To(Equal("hostname2:22"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
+				Expect(logger).To(Equal(boshLogger))
 
-				host, username, privateKey = sshConnectionFactory.ArgsForCall(2)
+				host, username, privateKey, logger = sshConnectionFactory.ArgsForCall(2)
 				Expect(host).To(Equal("hostname3:22"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
+				Expect(logger).To(Equal(boshLogger))
 			})
 
 			It("finds the jobs with the job finder", func() {
@@ -650,7 +657,7 @@ var _ = Describe("Director", func() {
 						}}, nil
 					}
 
-					sshConnectionFactory.Stub = func(host, user, privateKey string) (ssh.SSHConnection, error) {
+					sshConnectionFactory.Stub = func(host, user, privateKey string, logger ssh.Logger) (ssh.SSHConnection, error) {
 						if host == "hostname_job1:22" {
 							return sshConnection, nil
 						}

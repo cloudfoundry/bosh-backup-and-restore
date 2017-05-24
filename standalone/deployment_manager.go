@@ -41,7 +41,7 @@ func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment
 		return nil, err
 	}
 
-	connection, err := dm.connectionFactory(dm.hostName, dm.username, string(keyContents))
+	connection, err := dm.connectionFactory(dm.hostName, dm.username, string(keyContents), dm.Logger)
 	if err != nil {
 		return nil, err
 	}
