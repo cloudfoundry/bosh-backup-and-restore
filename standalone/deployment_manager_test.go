@@ -1,6 +1,7 @@
 package standalone_test
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -140,6 +141,60 @@ var _ = Describe("DeploymentManager", func() {
 		It("does nothing", func() {
 			err := deploymentManager.SaveManifest(deploymentName, artifact)
 			Expect(err).NotTo(HaveOccurred())
+		})
+	})
+
+})
+
+var _ = Describe("DeployedInstance", func() {
+	var logger *fakes.FakeLogger
+	var fakeSSHConnection *sshfakes.FakeSSHConnection
+	var inst DeployedInstance
+
+	BeforeEach(func() {
+		logger = new(fakes.FakeLogger)
+		fakeSSHConnection = new(sshfakes.FakeSSHConnection)
+
+		inst = NewDeployedInstance("group", fakeSSHConnection, logger, []instance.Job{})
+	})
+
+	Describe("Cleanup", func() {
+		var err error
+		JustBeforeEach(func() {
+			err = inst.Cleanup()
+		})
+
+		It("does not fail", func() {
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("removes the artifact directory", func() {
+			Expect(fakeSSHConnection.RunCallCount()).To(Equal(1))
+			Expect(fakeSSHConnection.RunArgsForCall(0)).To(Equal(
+				"if stat /var/vcap/store/bbr-backup; then sudo rm -rf /var/vcap/store/bbr-backup; fi",
+			))
+		})
+
+		Context("when cleanup fails", func() {
+			BeforeEach(func() {
+				fakeSSHConnection.RunReturns(nil, nil, 5, nil)
+			})
+
+			It("returns an error", func() {
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError("Unable to clean up backup artifact"))
+			})
+		})
+
+		Context("when ssh connection fails", func() {
+			BeforeEach(func() {
+				fakeSSHConnection.RunReturns(nil, nil, 0, errors.New("fool!"))
+			})
+
+			It("returns the error", func() {
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError(ContainSubstring("fool!")))
+			})
 		})
 	})
 })
