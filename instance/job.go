@@ -1,6 +1,10 @@
 package instance
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
+)
 
 func NewJob(jobScripts BackupAndRestoreScripts, metadata Metadata) Job {
 	jobName := jobScripts[0].JobName()
@@ -36,11 +40,11 @@ func (j Job) RestoreBlobName() string {
 }
 
 func (j Job) BackupArtifactDirectory() string {
-	return fmt.Sprintf("%s/%s", ArtifactDirectory, j.backupArtifactOrJobName())
+	return fmt.Sprintf("%s/%s", orchestrator.ArtifactDirectory, j.backupArtifactOrJobName())
 }
 
 func (j Job) RestoreArtifactDirectory() string {
-	return fmt.Sprintf("%s/%s", ArtifactDirectory, j.restoreArtifactOrJobName())
+	return fmt.Sprintf("%s/%s", orchestrator.ArtifactDirectory, j.restoreArtifactOrJobName())
 }
 
 func (j Job) BackupScript() Script {

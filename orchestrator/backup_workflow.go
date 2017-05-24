@@ -22,7 +22,7 @@ type backupWorkflow struct {
 const (
 	StateReady            = "ready"
 	StateDeploymentExists = "deployment-exists"
-	StateIsBackupable     = "is-backupable"
+	StateHasBackupScript  = "is-backupable"
 	StateArtifactCreated  = "artifact-created"
 	StateLocked           = "locked"
 	StateBackedup         = "backed-up"
@@ -32,7 +32,7 @@ const (
 )
 const (
 	EventCheckDeployment          = "check-deployment-exists"
-	EventCheckIsBackupable        = "check-is-backupable"
+	EventCheckHasBackupScript     = "check-is-backupable"
 	EventCreateEmptyLocalArtifact = "create-artifact"
 	EventPrebackupLock            = "pre-backup-lock"
 	EventBackup                   = "backup"
@@ -48,8 +48,8 @@ func newBackupCheckWorkflow(backuper Backuper, deploymentName string) *backupWor
 		deploymentName: deploymentName,
 		events: fsm.Events{
 			{Name: EventCheckDeployment, Src: []string{StateReady}, Dst: StateDeploymentExists},
-			{Name: EventCheckIsBackupable, Src: []string{StateDeploymentExists}, Dst: StateIsBackupable},
-			{Name: EventCleanup, Src: []string{StateDeploymentExists, StateIsBackupable, StateArtifactCreated, StateUnlocked, StateDrained}, Dst: StateFinished},
+			{Name: EventCheckHasBackupScript, Src: []string{StateDeploymentExists}, Dst: StateHasBackupScript},
+			{Name: EventCleanup, Src: []string{StateDeploymentExists, StateHasBackupScript, StateArtifactCreated, StateUnlocked, StateDrained}, Dst: StateFinished},
 		},
 	}
 
@@ -57,9 +57,9 @@ func newBackupCheckWorkflow(backuper Backuper, deploymentName string) *backupWor
 		StateReady,
 		bw.events,
 		fsm.Callbacks{
-			beforeEvent(EventCheckDeployment):   bw.checkDeployment,
-			beforeEvent(EventCheckIsBackupable): bw.checkIsBackupable,
-			EventCleanup:                        bw.cleanup,
+			beforeEvent(EventCheckDeployment):      bw.checkDeployment,
+			beforeEvent(EventCheckHasBackupScript): bw.checkHasBackupScript,
+			EventCleanup:                           bw.cleanup,
 		},
 	)
 
@@ -73,13 +73,13 @@ func newBackupWorkflow(backuper Backuper, deploymentName string) *backupWorkflow
 		deploymentName: deploymentName,
 		events: fsm.Events{
 			{Name: EventCheckDeployment, Src: []string{StateReady}, Dst: StateDeploymentExists},
-			{Name: EventCheckIsBackupable, Src: []string{StateDeploymentExists}, Dst: StateIsBackupable},
-			{Name: EventCreateEmptyLocalArtifact, Src: []string{StateIsBackupable}, Dst: StateArtifactCreated},
+			{Name: EventCheckHasBackupScript, Src: []string{StateDeploymentExists}, Dst: StateHasBackupScript},
+			{Name: EventCreateEmptyLocalArtifact, Src: []string{StateHasBackupScript}, Dst: StateArtifactCreated},
 			{Name: EventPrebackupLock, Src: []string{StateArtifactCreated}, Dst: StateLocked},
 			{Name: EventBackup, Src: []string{StateLocked}, Dst: StateBackedup},
 			{Name: EventPostBackupUnlock, Src: []string{StateBackedup, StateArtifactCreated}, Dst: StateUnlocked},
 			{Name: EventDrain, Src: []string{StateUnlocked}, Dst: StateDrained},
-			{Name: EventCleanup, Src: []string{StateDeploymentExists, StateIsBackupable, StateArtifactCreated, StateUnlocked, StateDrained}, Dst: StateFinished},
+			{Name: EventCleanup, Src: []string{StateDeploymentExists, StateHasBackupScript, StateArtifactCreated, StateUnlocked, StateDrained}, Dst: StateFinished},
 		},
 	}
 
@@ -88,7 +88,7 @@ func newBackupWorkflow(backuper Backuper, deploymentName string) *backupWorkflow
 		bw.events,
 		fsm.Callbacks{
 			beforeEvent(EventCheckDeployment):          bw.checkDeployment,
-			beforeEvent(EventCheckIsBackupable):        bw.checkIsBackupable,
+			beforeEvent(EventCheckHasBackupScript):     bw.checkHasBackupScript,
 			beforeEvent(EventCreateEmptyLocalArtifact): bw.createEmptyLocalArtifact,
 			beforeEvent(EventPrebackupLock):            bw.prebackupLock,
 			beforeEvent(EventBackup):                   bw.backup,
@@ -130,9 +130,15 @@ func (bw *backupWorkflow) checkDeployment(e *fsm.Event) {
 	bw.deployment = deployment
 }
 
-func (bw *backupWorkflow) checkIsBackupable(e *fsm.Event) {
-	if !bw.deployment.IsBackupable() {
+func (bw *backupWorkflow) checkHasBackupScript(e *fsm.Event) {
+	if !bw.deployment.HasBackupScript() {
 		bw.backupErrors = append(bw.backupErrors, errors.Errorf("Deployment '%s' has no backup scripts", bw.deploymentName))
+		e.Cancel()
+		return
+	}
+
+	if bw.deployment.ArtifactDirExists() {
+		bw.backupErrors = append(bw.backupErrors, errors.Errorf("Deployment '%s' - %s already exists", bw.deploymentName, ArtifactDirectory))
 		e.Cancel()
 		return
 	}

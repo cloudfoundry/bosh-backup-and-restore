@@ -43,6 +43,6 @@ func (d *BoshDeployedInstance) Cleanup() error {
 	return orchestrator.ConvertErrors(errs)
 }
 func (d *BoshDeployedInstance) removeBackupArtifacts() error {
-	_, _, _, err := d.RunOnInstance(fmt.Sprintf("sudo rm -rf %s", instance.ArtifactDirectory), "remove backup artifacts")
+	_, _, _, err := d.RunOnInstance(fmt.Sprintf("sudo rm -rf %s", orchestrator.ArtifactDirectory), "remove backup artifacts")
 	return err
 }

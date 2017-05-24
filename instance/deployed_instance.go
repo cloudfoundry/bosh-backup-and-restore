@@ -29,7 +29,19 @@ func NewDeployedInstance(instanceIndex string, instanceGroupName string, instanc
 	return deployedInstance
 }
 
-func (d *DeployedInstance) IsBackupable() bool {
+func (d *DeployedInstance) ArtifactDirExists() bool {
+	_, _, exitCode, _ := d.RunOnInstance(
+		fmt.Sprintf(
+			"stat %s",
+			orchestrator.ArtifactDirectory,
+		),
+		"artifact directory check",
+	)
+
+	return exitCode == 0
+}
+
+func (d *DeployedInstance) HasBackupScript() bool {
 	return d.Jobs.AnyAreBackupable()
 }
 

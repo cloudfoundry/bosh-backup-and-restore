@@ -11,7 +11,8 @@ type InstanceIdentifer interface {
 //go:generate counterfeiter -o fakes/fake_instance.go . Instance
 type Instance interface {
 	InstanceIdentifer
-	IsBackupable() bool
+	HasBackupScript() bool
+	ArtifactDirExists() bool
 	IsPostBackupUnlockable() bool
 	IsPreBackupLockable() bool
 	IsRestorable() bool
@@ -51,7 +52,7 @@ func (is instances) AllBackupable() instances {
 	var backupableInstances []Instance
 
 	for _, instance := range is {
-		if instance.IsBackupable() {
+		if instance.HasBackupScript() {
 			backupableInstances = append(backupableInstances, instance)
 		}
 	}

@@ -9,8 +9,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const ArtifactDirectory = "/var/vcap/store/bbr-backup"
-
 //go:generate counterfeiter -o fakes/fake_ssh_connection.go . SSHConnection
 type SSHConnection interface {
 	Stream(cmd string, writer io.Writer) ([]byte, int, error)
@@ -50,7 +48,7 @@ func NewDefaultBlob(instance orchestrator.InstanceIdentifer, sshConn SSHConnecti
 	return &Blob{
 		isNamed:           false,
 		index:             instance.Index(),
-		artifactDirectory: ArtifactDirectory,
+		artifactDirectory: orchestrator.ArtifactDirectory,
 		name:              instance.Name(),
 		Instance:          instance,
 		SSHConnection:     sshConn,

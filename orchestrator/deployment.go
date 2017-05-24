@@ -6,10 +6,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+const ArtifactDirectory = "/var/vcap/store/bbr-backup"
+
 //go:generate counterfeiter -o fakes/fake_deployment.go . Deployment
 type Deployment interface {
-	IsBackupable() bool
+	HasBackupScript() bool
 	HasUniqueCustomBackupNames() bool
+	ArtifactDirExists() bool
 	IsRestorable() bool
 	PreBackupLock() error
 	Backup() error
@@ -32,7 +35,7 @@ func NewDeployment(logger Logger, instancesArray []Instance) Deployment {
 	return &deployment{Logger: logger, instances: instances(instancesArray)}
 }
 
-func (bd *deployment) IsBackupable() bool {
+func (bd *deployment) HasBackupScript() bool {
 	backupableInstances := bd.instances.AllBackupable()
 	return !backupableInstances.IsEmpty()
 }
@@ -48,6 +51,16 @@ func (bd *deployment) HasUniqueCustomBackupNames() bool {
 		uniqueNames[name] = true
 	}
 	return true
+}
+
+func (bd *deployment) ArtifactDirExists() bool {
+	result := false
+	for _, instance := range bd.instances {
+		if instance.ArtifactDirExists() {
+			result = true
+		}
+	}
+	return result
 }
 
 func (bd *deployment) PreBackupLock() error {

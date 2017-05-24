@@ -46,11 +46,11 @@ var _ = Describe("DeployedInstance", func() {
 		backuperInstance = instance.NewDeployedInstance(jobIndex, jobName, jobID, sshConnection, boshLogger, jobs)
 	})
 
-	Describe("IsBackupable", func() {
+	Describe("HasBackupScript", func() {
 		var actualBackupable bool
 
 		JustBeforeEach(func() {
-			actualBackupable = backuperInstance.IsBackupable()
+			actualBackupable = backuperInstance.HasBackupScript()
 		})
 
 		Describe("there are backup scripts in the job directories", func() {
@@ -138,6 +138,46 @@ var _ = Describe("DeployedInstance", func() {
 
 			It("returns false", func() {
 				Expect(actualUnlockable).To(BeFalse())
+			})
+		})
+	})
+
+	Describe("ArtifactDirExists", func() {
+		var dirExists bool
+		var sshExitCode int
+
+		BeforeEach(func() {
+			sshExitCode = 1
+		})
+
+		JustBeforeEach(func() {
+			sshConnection.RunReturns([]byte{}, []byte{}, sshExitCode, nil)
+			dirExists = backuperInstance.ArtifactDirExists()
+		})
+
+		Context("when artifact directory does not exist", func() {
+			It("calls the ssh connection", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("stat /var/vcap/store/bbr-backup"))
+			})
+
+			It("returns false", func() {
+				Expect(dirExists).To(BeFalse())
+			})
+		})
+
+		Context("when artifact directory exists", func() {
+			BeforeEach(func() {
+				sshExitCode = 0
+			})
+
+			It("calls the ssh connection", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("stat /var/vcap/store/bbr-backup"))
+			})
+
+			It("returns true", func() {
+				Expect(dirExists).To(BeTrue())
 			})
 		})
 	})

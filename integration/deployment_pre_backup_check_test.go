@@ -85,6 +85,22 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 			It("outputs a log message saying the deployment can be backed up", func() {
 				Expect(string(session.Out.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' can be backed up."))
 			})
+
+			Context("but the backup artifact directory already exists", func() {
+				BeforeEach(func() {
+					instance1.CreateDir("/var/vcap/store/bbr-backup")
+				})
+
+				It("returns exit code 1", func() {
+					Expect(session.ExitCode()).To(Equal(1))
+				})
+
+				It("prints an error", func() {
+					Expect(string(session.Out.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' cannot be backed up."))
+					Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' - /var/vcap/store/bbr-backup already exists"))
+				})
+			})
+
 		})
 
 		Context("if there are no backup scripts", func() {
