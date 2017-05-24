@@ -66,12 +66,12 @@ func (d *DeployedInstance) PreBackupLock() error {
 	var foundErrors []error
 
 	for _, job := range d.Jobs.PreBackupable() {
-		d.Logger.Info("", "Locking %s on %s/%s for backup...", job.Name(), d.instanceGroupName, d.instanceID)
+		d.Logger.Info("bbr", "Locking %s on %s/%s for backup...", job.Name(), d.instanceGroupName, d.instanceID)
 
 		if err := d.runAndHandleErrs("pre backup lock", job.Name(), job.PreBackupScript()); err != nil {
 			foundErrors = append(foundErrors, err)
 		}
-		d.Logger.Info("", "Done.")
+		d.Logger.Info("bbr", "Done.")
 	}
 
 	return orchestrator.ConvertErrors(foundErrors)
@@ -82,8 +82,8 @@ func (d *DeployedInstance) Backup() error {
 	var foundErrors []error
 
 	for _, job := range d.Jobs.Backupable() {
-		d.Logger.Debug("", "> %s", job.BackupScript())
-		d.Logger.Info("", "Backing up %s on %s/%s...", job.Name(), d.instanceGroupName, d.instanceID)
+		d.Logger.Debug("bbr", "> %s", job.BackupScript())
+		d.Logger.Info("bbr", "Backing up %s on %s/%s...", job.Name(), d.instanceGroupName, d.instanceID)
 
 		stdout, stderr, exitCode, err := d.RunOnInstance(
 			fmt.Sprintf(
@@ -99,7 +99,7 @@ func (d *DeployedInstance) Backup() error {
 			foundErrors = append(foundErrors, err)
 		}
 
-		d.Logger.Info("", "Done.")
+		d.Logger.Info("bbr", "Done.")
 	}
 
 	return orchestrator.ConvertErrors(foundErrors)
@@ -113,12 +113,12 @@ func (d *DeployedInstance) PostBackupUnlock() error {
 	var foundErrors []error
 
 	for _, job := range d.Jobs.PostBackupable() {
-		d.Logger.Info("", "Unlocking %s on %s/%s...", job.Name(), d.instanceGroupName, d.instanceID)
+		d.Logger.Info("bbr", "Unlocking %s on %s/%s...", job.Name(), d.instanceGroupName, d.instanceID)
 
 		if err := d.runAndHandleErrs("unlock", job.Name(), job.PostBackupScript()); err != nil {
 			foundErrors = append(foundErrors, err)
 		}
-		d.Logger.Info("", "Done.")
+		d.Logger.Info("bbr", "Done.")
 	}
 
 	return orchestrator.ConvertErrors(foundErrors)
@@ -128,8 +128,8 @@ func (d *DeployedInstance) Restore() error {
 	var restoreErrors []error
 
 	for _, job := range d.Jobs.Restorable() {
-		d.Logger.Debug("", "> %s", job.RestoreScript())
-		d.Logger.Info("", "Restoring %s on %s/%s...", job.Name(), d.instanceGroupName, d.instanceID)
+		d.Logger.Debug("bbr", "> %s", job.RestoreScript())
+		d.Logger.Info("bbr", "Restoring %s on %s/%s...", job.Name(), d.instanceGroupName, d.instanceID)
 
 		stdout, stderr, exitCode, err := d.RunOnInstance(
 			fmt.Sprintf(
@@ -143,7 +143,7 @@ func (d *DeployedInstance) Restore() error {
 		if err := d.handleErrs(job.Name(), "restore", err, exitCode, stdout, stderr); err != nil {
 			restoreErrors = append(restoreErrors, err)
 		}
-		d.Logger.Info("", "Done.")
+		d.Logger.Info("bbr", "Done.")
 	}
 
 	return orchestrator.ConvertErrors(restoreErrors)
@@ -182,14 +182,14 @@ func (d *DeployedInstance) BlobsToRestore() []orchestrator.BackupBlob {
 }
 
 func (d *DeployedInstance) RunOnInstance(cmd, label string) ([]byte, []byte, int, error) {
-	d.Logger.Debug("", "Running %s on %s/%s", label, d.instanceGroupName, d.instanceID)
+	d.Logger.Debug("bbr", "Running %s on %s/%s", label, d.instanceGroupName, d.instanceID)
 
 	stdout, stderr, exitCode, err := d.Run(cmd)
-	d.Logger.Debug("", "Stdout: %s", string(stdout))
-	d.Logger.Debug("", "Stderr: %s", string(stderr))
+	d.Logger.Debug("bbr", "Stdout: %s", string(stdout))
+	d.Logger.Debug("bbr", "Stderr: %s", string(stderr))
 
 	if err != nil {
-		d.Logger.Debug("", "Error running %s on instance %s/%s. Exit code %d, error: %s", label, d.instanceGroupName, d.instanceID, exitCode, err.Error())
+		d.Logger.Debug("bbr", "Error running %s on instance %s/%s. Exit code %d, error: %s", label, d.instanceGroupName, d.instanceID, exitCode, err.Error())
 	}
 
 	return stdout, stderr, exitCode, err
@@ -208,7 +208,7 @@ func (d *DeployedInstance) ID() string {
 }
 
 func (d *DeployedInstance) runAndHandleErrs(label, jobName string, script Script) error {
-	d.Logger.Debug("", "> %s", script)
+	d.Logger.Debug("bbr", "> %s", script)
 
 	stdout, stderr, exitCode, err := d.RunOnInstance(
 		fmt.Sprintf(
@@ -225,7 +225,7 @@ func (d *DeployedInstance) handleErrs(jobName, label string, err error, exitCode
 	var foundErrors []error
 
 	if err != nil {
-		d.Logger.Error("", fmt.Sprintf(
+		d.Logger.Error("bbr", fmt.Sprintf(
 			"Error attempting to run %s script for job %s on %s/%s. Error: %s",
 			label,
 			jobName,
@@ -249,7 +249,7 @@ func (d *DeployedInstance) handleErrs(jobName, label string, err error, exitCode
 
 		foundErrors = append(foundErrors, errors.New(errorString))
 
-		d.Logger.Error("", errorString)
+		d.Logger.Error("bbr", errorString)
 	}
 
 	return orchestrator.ConvertErrors(foundErrors)

@@ -18,7 +18,7 @@ func NewRestorer(artifactManager ArtifactManager, logger Logger, deploymentManag
 }
 
 func (b Restorer) Restore(deploymentName string) error {
-	b.Logger.Info("", "Starting restore of %s...\n", deploymentName)
+	b.Logger.Info("bbr", "Starting restore of %s...\n", deploymentName)
 	artifact, err := b.ArtifactManager.Open(deploymentName, b.Logger)
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func (b Restorer) Restore(deploymentName string) error {
 		return cleanupAndReturnErrors(deployment, err)
 	}
 
-	b.Logger.Info("", "Completed restore of %s\n", deploymentName)
+	b.Logger.Info("bbr", "Completed restore of %s\n", deploymentName)
 
 	if err := deployment.Cleanup(); err != nil {
 		return CleanupError{

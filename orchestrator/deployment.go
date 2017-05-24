@@ -64,26 +64,26 @@ func (bd *deployment) ArtifactDirExists() bool {
 }
 
 func (bd *deployment) PreBackupLock() error {
-	bd.Logger.Info("", "Running pre-backup scripts...")
+	bd.Logger.Info("bbr", "Running pre-backup scripts...")
 	err := bd.instances.AllPreBackupLockable().PreBackupLock()
-	bd.Logger.Info("", "Done.")
+	bd.Logger.Info("bbr", "Done.")
 	return err
 }
 
 func (bd *deployment) Backup() error {
-	bd.Logger.Info("", "Running backup scripts...")
+	bd.Logger.Info("bbr", "Running backup scripts...")
 	return bd.instances.AllBackupable().Backup()
 }
 
 func (bd *deployment) PostBackupUnlock() error {
-	bd.Logger.Info("", "Running post-backup scripts...")
+	bd.Logger.Info("bbr", "Running post-backup scripts...")
 	err := bd.instances.AllPostBackupUnlockable().PostBackupUnlock()
-	bd.Logger.Info("", "Done.")
+	bd.Logger.Info("bbr", "Done.")
 	return err
 }
 
 func (bd *deployment) Restore() error {
-	bd.Logger.Info("", "Running restore scripts...")
+	bd.Logger.Info("bbr", "Running restore scripts...")
 	return bd.instances.AllRestoreable().Restore()
 }
 
@@ -135,7 +135,7 @@ func (bd *deployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 				return err
 			}
 
-			bd.Logger.Info("", "Copying backup -- %s uncompressed -- from %s/%s...", size, instance.Name(), instance.ID())
+			bd.Logger.Info("bbr", "Copying backup -- %s uncompressed -- from %s/%s...", size, instance.Name(), instance.ID())
 			if err := backupBlob.StreamFromRemote(writer); err != nil {
 				return err
 			}
@@ -143,9 +143,9 @@ func (bd *deployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 			if err := writer.Close(); err != nil {
 				return err
 			}
-			bd.Logger.Info("", "Finished copying backup -- from %s/%s...", instance.Name(), instance.ID())
+			bd.Logger.Info("bbr", "Finished copying backup -- from %s/%s...", instance.Name(), instance.ID())
 
-			bd.Logger.Info("", "Starting validity checks")
+			bd.Logger.Info("bbr", "Starting validity checks")
 			localChecksum, err := artifact.CalculateChecksum(backupBlob)
 			if err != nil {
 				return err
@@ -155,7 +155,7 @@ func (bd *deployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 			if err != nil {
 				return err
 			}
-			bd.Logger.Debug("", "Comparing shasums")
+			bd.Logger.Debug("bbr", "Comparing shasums")
 			if !localChecksum.Match(remoteChecksum) {
 				return errors.Errorf("Backup artifact is corrupted, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), backupBlob.Name(), remoteChecksum, localChecksum)
 			}
@@ -166,7 +166,7 @@ func (bd *deployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 			if err != nil {
 				return err
 			}
-			bd.Logger.Info("", "Finished validity checks")
+			bd.Logger.Info("bbr", "Finished validity checks")
 		}
 	}
 	return nil
@@ -183,7 +183,7 @@ func (bd *deployment) CopyLocalBackupToRemote(artifact Artifact) error {
 				return err
 			}
 
-			bd.Logger.Info("", "Copying backup to %s/%s...", blob.Name(), blob.ID())
+			bd.Logger.Info("bbr", "Copying backup to %s/%s...", blob.Name(), blob.ID())
 			if err := blob.StreamToRemote(reader); err != nil {
 				return err
 			}
@@ -200,7 +200,7 @@ func (bd *deployment) CopyLocalBackupToRemote(artifact Artifact) error {
 			if !localChecksum.Match(remoteChecksum) {
 				return errors.Errorf("Backup couldn't be transfered, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), blob.Name(), remoteChecksum, localChecksum)
 			}
-			bd.Logger.Info("", "Done.")
+			bd.Logger.Info("bbr", "Done.")
 		}
 	}
 	return nil

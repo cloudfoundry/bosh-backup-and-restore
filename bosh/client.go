@@ -56,7 +56,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 		return nil, err
 	}
 
-	c.Logger.Debug("", "Finding VMs...")
+	c.Logger.Debug("bbr", "Finding VMs...")
 	vms, err := deployment.VMInfos()
 	if err != nil {
 		return nil, err
@@ -65,15 +65,15 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 	if err != nil {
 		return nil, err
 	}
-	c.Logger.Debug("", "SSH user generated: %s", sshOpts.Username)
+	c.Logger.Debug("bbr", "SSH user generated: %s", sshOpts.Username)
 
-	c.Logger.Info("", "Scripts found:")
+	c.Logger.Info("bbr", "Scripts found:")
 
 	instances := []orchestrator.Instance{}
 	slugs := []director.AllOrInstanceGroupOrInstanceSlug{}
 
 	for _, instanceGroupName := range uniqueInstanceGroupNamesFromVMs(vms) {
-		c.Logger.Debug("", "Setting up SSH for job %s", instanceGroupName)
+		c.Logger.Debug("bbr", "Setting up SSH for job %s", instanceGroupName)
 
 		allVmInstances, err := director.NewAllOrInstanceGroupOrInstanceSlugFromString(instanceGroupName)
 		if err != nil {
@@ -92,7 +92,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 			var sshConnection ssh.SSHConnection
 			var err error
 
-			c.Logger.Debug("", "Attempting to SSH onto %s, %s", host.Host, host.IndexOrID)
+			c.Logger.Debug("bbr", "Attempting to SSH onto %s, %s", host.Host, host.IndexOrID)
 			sshConnection, err = c.SSHConnectionFactory(defaultToSSHPort(host.Host), host.Username, privateKey, c.Logger)
 
 			if err != nil {

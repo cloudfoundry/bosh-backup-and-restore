@@ -30,7 +30,7 @@ func NewBoshDeployedInstance(instanceGroupName,
 
 func (d *BoshDeployedInstance) Cleanup() error {
 	var errs []error
-	d.Logger.Debug("", "Cleaning up SSH connection on instance %s %s", d.Name(), d.ID())
+	d.Logger.Debug("bbr", "Cleaning up SSH connection on instance %s %s", d.Name(), d.ID())
 	removeArtifactError := d.removeBackupArtifacts()
 	if removeArtifactError != nil {
 		errs = append(errs, removeArtifactError)

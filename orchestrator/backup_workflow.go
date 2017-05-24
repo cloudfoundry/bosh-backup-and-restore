@@ -111,7 +111,7 @@ func (bw *backupWorkflow) Run() Error {
 }
 
 func (bw *backupWorkflow) checkDeployment(e *fsm.Event) {
-	bw.Logger.Info("", "Running pre-checks for backup of %s...\n", bw.deploymentName)
+	bw.Logger.Info("bbr", "Running pre-checks for backup of %s...\n", bw.deploymentName)
 
 	exists := bw.ArtifactManager.Exists(bw.deploymentName)
 	if exists {
@@ -161,7 +161,7 @@ func (bw *backupWorkflow) cleanup(e *fsm.Event) {
 }
 
 func (bw *backupWorkflow) createEmptyLocalArtifact(e *fsm.Event) {
-	bw.Logger.Info("", "Starting backup of %s...\n", bw.deploymentName)
+	bw.Logger.Info("bbr", "Starting backup of %s...\n", bw.deploymentName)
 	var err error
 	bw.artifact, err = bw.ArtifactManager.Create(bw.deploymentName, bw.Logger)
 	if err != nil {
@@ -216,7 +216,7 @@ func (bw *backupWorkflow) drain(e *fsm.Event) {
 		return
 	}
 
-	bw.Logger.Info("", "Backup created of %s on %v\n", bw.deploymentName, time.Now())
+	bw.Logger.Info("bbr", "Backup created of %s on %v\n", bw.deploymentName, time.Now())
 }
 
 func beforeEvent(eventName string) string {

@@ -30,7 +30,7 @@ func (j *JobFinderFromScripts) FindJobs(hostIdentifier string, connection SSHCon
 	metadata := map[string]Metadata{}
 	scripts := NewBackupAndRestoreScripts(findOutput)
 	for _, script := range scripts {
-		j.Logger.Info("", "%s/%s/%s", hostIdentifier, script.JobName(), script.Name())
+		j.Logger.Info("bbr", "%s/%s/%s", hostIdentifier, script.JobName(), script.Name())
 	}
 	for _, script := range scripts.MetadataOnly() {
 		jobMetadata, err := j.findMetadata(hostIdentifier, script, connection)
@@ -54,7 +54,7 @@ func (j *JobFinderFromScripts) findMetadata(hostIdentifier string, script Script
 			hostIdentifier,
 			err,
 		)
-		j.Logger.Error("", errorString)
+		j.Logger.Error("bbr", errorString)
 		return nil, errors.New(errorString)
 	}
 
@@ -66,7 +66,7 @@ func (j *JobFinderFromScripts) findMetadata(hostIdentifier string, script Script
 			hostIdentifier,
 			err.Error(),
 		)
-		j.Logger.Error("", errorString)
+		j.Logger.Error("bbr", errorString)
 		return nil, errors.New(errorString)
 	}
 
@@ -74,7 +74,7 @@ func (j *JobFinderFromScripts) findMetadata(hostIdentifier string, script Script
 }
 
 func (j *JobFinderFromScripts) findScripts(hostIdentifier string, sshConnection SSHConnection) ([]string, error) {
-	j.Logger.Debug("", "Attempting to find scripts on %s", hostIdentifier)
+	j.Logger.Debug("bbr", "Attempting to find scripts on %s", hostIdentifier)
 
 	stdout, stderr, exitCode, err := sshConnection.Run("find /var/vcap/jobs/*/bin/bbr/* -type f")
 	if err != nil {
