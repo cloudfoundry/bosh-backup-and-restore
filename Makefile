@@ -3,8 +3,6 @@ export BOSH_GATEWAY_USER=vcap
 
 test: test-unit test-integration
 
-test-local: test-unit-local test-integration
-
 push: test sys-test-local
 	git push
 
@@ -16,9 +14,6 @@ watch:
 test-ci: setup test
 
 test-unit:
-	ginkgo -r bosh orchestrator ssh artifact instance standalone
-
-test-unit-local:
 	ginkgo -r bosh orchestrator ssh artifact instance standalone
 
 test-integration:
