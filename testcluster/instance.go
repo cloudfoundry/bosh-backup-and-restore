@@ -22,7 +22,7 @@ type Instance struct {
 	dockerID string
 }
 
-const timeout = 5 * time.Second
+const timeout = 10 * time.Second
 
 func NewInstance() *Instance {
 	contents := dockerRunAndWaitForSuccess("run", "--publish", "22", "--detach", "cloudfoundrylondon/backup-and-restore-node-with-ssh")
