@@ -208,14 +208,15 @@ var _ = Describe("restorer", func() {
 
 			Context("if a backup artifact already exists on any of the instances", func() {
 				BeforeEach(func() {
-					deployment.ArtifactDirExistsReturns(true, []string{"foo"})
+					deployment.ArtifactDirExistsReturns(true, []string{"foo/bar", "baz/bam"})
 				})
 
-				It("returns an error", func() {
-					Expect(restoreError).To(MatchError(ContainSubstring("Deployment 'deployment-to-restore' cannot be restored - /var/vcap/store/bbr-backup already exists")))
+				It("returns an error with the name of the instance with the extant backup artifact", func() {
+					Expect(restoreError).To(MatchError(ContainSubstring("Directory '/var/vcap/store/bbr-backup' already exists on instance foo/bar")))
+					Expect(restoreError).To(MatchError(ContainSubstring("Directory '/var/vcap/store/bbr-backup' already exists on instance baz/bam")))
 				})
 
-				It("should cleanup", func() {
+				It("cleans up", func() {
 					Expect(deployment.CleanupCallCount()).To(Equal(1))
 				})
 				assertCleanupError()

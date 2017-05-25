@@ -1,6 +1,12 @@
 package orchestrator
 
-import "github.com/pkg/errors"
+import (
+	"fmt"
+
+	"strings"
+
+	"github.com/pkg/errors"
+)
 
 type Restorer struct {
 	ArtifactManager
@@ -45,8 +51,16 @@ func (b Restorer) Restore(deploymentName string) error {
 		return cleanupAndReturnErrors(deployment, errors.Errorf("Deployment '%s' does not match the structure of the provided backup", deploymentName))
 	}
 
-	if artifactDirExists, _ := deployment.ArtifactDirExists(); artifactDirExists {
-		return cleanupAndReturnErrors(deployment, errors.Errorf("Deployment '%s' cannot be restored - /var/vcap/store/bbr-backup already exists", deploymentName))
+	if artifactDirExists, instanceNames := deployment.ArtifactDirExists(); artifactDirExists {
+		errs := []string{}
+
+		for _, instSlug := range instanceNames {
+			errs = append(errs, fmt.Sprintf(
+				"Directory '%s' already exists on instance %s", ArtifactDirectory, instSlug,
+			))
+		}
+
+		return cleanupAndReturnErrors(deployment, errors.Errorf(strings.Join(errs, "\n")))
 	}
 
 	if err = deployment.CopyLocalBackupToRemote(artifact); err != nil {
