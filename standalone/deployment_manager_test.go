@@ -171,7 +171,7 @@ var _ = Describe("DeployedInstance", func() {
 		It("removes the artifact directory", func() {
 			Expect(fakeSSHConnection.RunCallCount()).To(Equal(1))
 			Expect(fakeSSHConnection.RunArgsForCall(0)).To(Equal(
-				"if stat /var/vcap/store/bbr-backup; then sudo rm -rf /var/vcap/store/bbr-backup; fi",
+				"sudo rm -rf /var/vcap/store/bbr-backup",
 			))
 		})
 

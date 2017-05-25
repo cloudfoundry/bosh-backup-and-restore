@@ -68,7 +68,7 @@ type DeployedInstance struct {
 func (d DeployedInstance) Cleanup() error {
 	d.Logger.Info("", "Cleaning up...")
 
-	stdout, stderr, exitCode, err := d.SSHConnection.Run(fmt.Sprintf("if stat %s; then sudo rm -rf %s; fi", orchestrator.ArtifactDirectory, orchestrator.ArtifactDirectory))
+	stdout, stderr, exitCode, err := d.SSHConnection.Run(fmt.Sprintf("sudo rm -rf %s", orchestrator.ArtifactDirectory))
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
 	d.Logger.Debug("", "Stderr: %s", string(stderr))
 
