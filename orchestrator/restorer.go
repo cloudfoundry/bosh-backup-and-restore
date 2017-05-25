@@ -1,10 +1,6 @@
 package orchestrator
 
 import (
-	"fmt"
-
-	"strings"
-
 	"github.com/pkg/errors"
 )
 
@@ -51,16 +47,9 @@ func (b Restorer) Restore(deploymentName string) error {
 		return cleanupAndReturnErrors(deployment, errors.Errorf("Deployment '%s' does not match the structure of the provided backup", deploymentName))
 	}
 
-	if artifactDirExists, instanceNames := deployment.ArtifactDirExists(); artifactDirExists {
-		errs := []string{}
-
-		for _, instSlug := range instanceNames {
-			errs = append(errs, fmt.Sprintf(
-				"Directory '%s' already exists on instance %s", ArtifactDirectory, instSlug,
-			))
-		}
-
-		return cleanupAndReturnErrors(deployment, errors.Errorf(strings.Join(errs, "\n")))
+	err = deployment.CheckArtifactDir()
+	if err != nil {
+		return cleanupAndReturnErrors(deployment, err)
 	}
 
 	if err = deployment.CopyLocalBackupToRemote(artifact); err != nil {

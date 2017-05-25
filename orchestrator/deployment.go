@@ -3,6 +3,8 @@ package orchestrator
 import (
 	"fmt"
 
+	"strings"
+
 	"github.com/pkg/errors"
 )
 
@@ -12,7 +14,7 @@ const ArtifactDirectory = "/var/vcap/store/bbr-backup"
 type Deployment interface {
 	HasBackupScript() bool
 	HasUniqueCustomBackupNames() bool
-	ArtifactDirExists() (bool, []string)
+	CheckArtifactDir() error
 	IsRestorable() bool
 	PreBackupLock() error
 	Backup() error
@@ -53,15 +55,20 @@ func (bd *deployment) HasUniqueCustomBackupNames() bool {
 	return true
 }
 
-func (bd *deployment) ArtifactDirExists() (bool, []string) {
-	instances := []string{}
+func (bd *deployment) CheckArtifactDir() error {
+	errs := []string{}
 
-	for _, instance := range bd.instances {
-		if instance.ArtifactDirExists() {
-			instances = append(instances, fmt.Sprintf("%s/%s", instance.Name(), instance.ID()))
+	for _, inst := range bd.instances {
+		if inst.ArtifactDirExists() {
+			errs = append(errs, fmt.Sprintf("Directory %s already exists on instance %s/%s", ArtifactDirectory, inst.Name(), inst.ID()))
 		}
 	}
-	return len(instances) > 0, instances
+
+	if len(errs) > 0 {
+		return errors.New(strings.Join(errs, "\n"))
+	}
+
+	return nil
 }
 
 func (bd *deployment) PreBackupLock() error {

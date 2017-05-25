@@ -614,7 +614,7 @@ echo "not valid yaml
 				})
 
 				It("logs which instance has the extant artifact directory", func() {
-					Expect(session.Err).To(gbytes.Say("Directory '/var/vcap/store/bbr-backup' already exists on instance redis-broker/fake-uuid-2"))
+					Expect(session.Err).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance redis-broker/fake-uuid-2"))
 				})
 			})
 		})

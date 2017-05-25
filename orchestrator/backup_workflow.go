@@ -137,15 +137,10 @@ func (bw *backupWorkflow) checkHasBackupScript(e *fsm.Event) {
 		return
 	}
 
-	artifactDirExists, instanceNames := bw.deployment.ArtifactDirExists()
-	if artifactDirExists {
-		for _, instSlug := range instanceNames {
-			bw.backupErrors = append(
-				bw.backupErrors, errors.Errorf("Directory '%s' already exists on instance %s", ArtifactDirectory, instSlug),
-			)
-		}
+	err := bw.deployment.CheckArtifactDir()
+	if err != nil {
+		bw.backupErrors = append(bw.backupErrors, err)
 		e.Cancel()
-
 		return
 	}
 

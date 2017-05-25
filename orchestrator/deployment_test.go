@@ -376,41 +376,47 @@ var _ = Describe("Deployment", func() {
 		})
 	})
 
-	Context("ArtifactDirExists", func() {
-		var dirExists bool
-		var instNames []string
+	Context("CheckArtifactDir", func() {
+		var artifactDirError error
 
 		BeforeEach(func() {
 			instance1.NameReturns("foo")
-			instance1.IDReturns("bar")
+			instance1.IDReturns("0")
+
+			instance2.NameReturns("bar")
+			instance2.IDReturns("0")
 
 			instance1.ArtifactDirExistsReturns(false)
-			instances = []orchestrator.Instance{instance1}
+			instance2.ArtifactDirExistsReturns(false)
+			instances = []orchestrator.Instance{instance1, instance2}
 		})
 
 		JustBeforeEach(func() {
-			dirExists, instNames = deployment.ArtifactDirExists()
+			artifactDirError = deployment.CheckArtifactDir()
 		})
 
 		Context("when artifact directory does not exist", func() {
-			It("returns false", func() {
-				Expect(dirExists).To(BeFalse())
+			It("does not fail", func() {
+				Expect(artifactDirError).NotTo(HaveOccurred())
 			})
 		})
 
 		Context("when artifact directory exists", func() {
 			BeforeEach(func() {
 				instance1.ArtifactDirExistsReturns(true)
+				instance2.ArtifactDirExistsReturns(true)
 			})
 
-			It("returns true", func() {
-				Expect(dirExists).To(BeTrue())
+			It("fails", func() {
+				Expect(artifactDirError).To(HaveOccurred())
 			})
 
-			It("returns the names of the instances on which the directory exists", func() {
-				Expect(instNames).To(ConsistOf("foo/bar"))
+			It("the error includes the names of the instances on which the directory exists", func() {
+				Expect(artifactDirError.Error()).To(ContainSubstring("Directory /var/vcap/store/bbr-backup already exists on instance foo/0"))
+				Expect(artifactDirError.Error()).To(ContainSubstring("Directory /var/vcap/store/bbr-backup already exists on instance bar/0"))
 			})
 		})
+
 	})
 
 	Context("CustomArtifactNamesMatch", func() {

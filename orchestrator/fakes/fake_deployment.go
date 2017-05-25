@@ -26,16 +26,14 @@ type FakeDeployment struct {
 	hasUniqueCustomBackupNamesReturnsOnCall map[int]struct {
 		result1 bool
 	}
-	ArtifactDirExistsStub        func() (bool, []string)
-	artifactDirExistsMutex       sync.RWMutex
-	artifactDirExistsArgsForCall []struct{}
-	artifactDirExistsReturns     struct {
-		result1 bool
-		result2 []string
+	CheckArtifactDirStub        func() error
+	checkArtifactDirMutex       sync.RWMutex
+	checkArtifactDirArgsForCall []struct{}
+	checkArtifactDirReturns     struct {
+		result1 error
 	}
-	artifactDirExistsReturnsOnCall map[int]struct {
-		result1 bool
-		result2 []string
+	checkArtifactDirReturnsOnCall map[int]struct {
+		result1 error
 	}
 	IsRestorableStub        func() bool
 	isRestorableMutex       sync.RWMutex
@@ -215,47 +213,44 @@ func (fake *FakeDeployment) HasUniqueCustomBackupNamesReturnsOnCall(i int, resul
 	}{result1}
 }
 
-func (fake *FakeDeployment) ArtifactDirExists() (bool, []string) {
-	fake.artifactDirExistsMutex.Lock()
-	ret, specificReturn := fake.artifactDirExistsReturnsOnCall[len(fake.artifactDirExistsArgsForCall)]
-	fake.artifactDirExistsArgsForCall = append(fake.artifactDirExistsArgsForCall, struct{}{})
-	fake.recordInvocation("ArtifactDirExists", []interface{}{})
-	fake.artifactDirExistsMutex.Unlock()
-	if fake.ArtifactDirExistsStub != nil {
-		return fake.ArtifactDirExistsStub()
+func (fake *FakeDeployment) CheckArtifactDir() error {
+	fake.checkArtifactDirMutex.Lock()
+	ret, specificReturn := fake.checkArtifactDirReturnsOnCall[len(fake.checkArtifactDirArgsForCall)]
+	fake.checkArtifactDirArgsForCall = append(fake.checkArtifactDirArgsForCall, struct{}{})
+	fake.recordInvocation("CheckArtifactDir", []interface{}{})
+	fake.checkArtifactDirMutex.Unlock()
+	if fake.CheckArtifactDirStub != nil {
+		return fake.CheckArtifactDirStub()
 	}
 	if specificReturn {
-		return ret.result1, ret.result2
+		return ret.result1
 	}
-	return fake.artifactDirExistsReturns.result1, fake.artifactDirExistsReturns.result2
+	return fake.checkArtifactDirReturns.result1
 }
 
-func (fake *FakeDeployment) ArtifactDirExistsCallCount() int {
-	fake.artifactDirExistsMutex.RLock()
-	defer fake.artifactDirExistsMutex.RUnlock()
-	return len(fake.artifactDirExistsArgsForCall)
+func (fake *FakeDeployment) CheckArtifactDirCallCount() int {
+	fake.checkArtifactDirMutex.RLock()
+	defer fake.checkArtifactDirMutex.RUnlock()
+	return len(fake.checkArtifactDirArgsForCall)
 }
 
-func (fake *FakeDeployment) ArtifactDirExistsReturns(result1 bool, result2 []string) {
-	fake.ArtifactDirExistsStub = nil
-	fake.artifactDirExistsReturns = struct {
-		result1 bool
-		result2 []string
-	}{result1, result2}
+func (fake *FakeDeployment) CheckArtifactDirReturns(result1 error) {
+	fake.CheckArtifactDirStub = nil
+	fake.checkArtifactDirReturns = struct {
+		result1 error
+	}{result1}
 }
 
-func (fake *FakeDeployment) ArtifactDirExistsReturnsOnCall(i int, result1 bool, result2 []string) {
-	fake.ArtifactDirExistsStub = nil
-	if fake.artifactDirExistsReturnsOnCall == nil {
-		fake.artifactDirExistsReturnsOnCall = make(map[int]struct {
-			result1 bool
-			result2 []string
+func (fake *FakeDeployment) CheckArtifactDirReturnsOnCall(i int, result1 error) {
+	fake.CheckArtifactDirStub = nil
+	if fake.checkArtifactDirReturnsOnCall == nil {
+		fake.checkArtifactDirReturnsOnCall = make(map[int]struct {
+			result1 error
 		})
 	}
-	fake.artifactDirExistsReturnsOnCall[i] = struct {
-		result1 bool
-		result2 []string
-	}{result1, result2}
+	fake.checkArtifactDirReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeDeployment) IsRestorable() bool {
@@ -681,8 +676,8 @@ func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	defer fake.hasBackupScriptMutex.RUnlock()
 	fake.hasUniqueCustomBackupNamesMutex.RLock()
 	defer fake.hasUniqueCustomBackupNamesMutex.RUnlock()
-	fake.artifactDirExistsMutex.RLock()
-	defer fake.artifactDirExistsMutex.RUnlock()
+	fake.checkArtifactDirMutex.RLock()
+	defer fake.checkArtifactDirMutex.RUnlock()
 	fake.isRestorableMutex.RLock()
 	defer fake.isRestorableMutex.RUnlock()
 	fake.preBackupLockMutex.RLock()

@@ -221,7 +221,7 @@ instances:
 
 			It("returns the correct error", func() {
 				Expect(session.Err.Contents()).To(ContainSubstring(
-					"Directory '/var/vcap/store/bbr-backup' already exists on instance redis-dedicated-node/fake-uuid",
+					"Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid",
 				))
 			})
 

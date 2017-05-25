@@ -80,7 +80,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 				It("outputs a log message saying the director instance cannot be backed up", func() {
 					Expect(string(session.Out.Contents())).To(ContainSubstring("Director cannot be backed up."))
-					Expect(string(session.Err.Contents())).To(ContainSubstring("Directory '/var/vcap/store/bbr-backup' already exists on instance bosh/0"))
+					Expect(string(session.Err.Contents())).To(ContainSubstring("Directory /var/vcap/store/bbr-backup already exists on instance bosh/0"))
 				})
 
 				It("does not delete the existing artifact directory", func() {
