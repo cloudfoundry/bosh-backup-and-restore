@@ -206,6 +206,21 @@ var _ = Describe("restorer", func() {
 				assertCleanupError()
 			})
 
+			Context("if a backup artifact already exists on any of the instances", func() {
+				BeforeEach(func() {
+					deployment.ArtifactDirExistsReturns(true)
+				})
+
+				It("returns an error", func() {
+					Expect(restoreError).To(MatchError(ContainSubstring("Deployment 'deployment-to-restore' cannot be restored - /var/vcap/store/bbr-backup already exists")))
+				})
+
+				It("should cleanup", func() {
+					Expect(deployment.CleanupCallCount()).To(Equal(1))
+				})
+				assertCleanupError()
+			})
+
 			Context("if streaming the backup to the remote fails", func() {
 				BeforeEach(func() {
 					deployment.CopyLocalBackupToRemoteReturns(fmt.Errorf("Broken pipe"))

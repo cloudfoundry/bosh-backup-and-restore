@@ -74,7 +74,7 @@ var _ = Describe("DeploymentManager", func() {
 
 			It("returns a deployment", func() {
 				Expect(actualDeployment).To(Equal(orchestrator.NewDeployment(logger, []orchestrator.Instance{
-					NewDeployedInstance("bosh", fakeSSHConnection, logger, fakeJobs),
+					NewDeployedInstance("bosh", fakeSSHConnection, logger, fakeJobs, false),
 				})))
 			})
 		})
@@ -150,18 +150,23 @@ var _ = Describe("DeployedInstance", func() {
 	var logger *fakes.FakeLogger
 	var fakeSSHConnection *sshfakes.FakeSSHConnection
 	var inst DeployedInstance
+	var artifactDirCreated bool
 
 	BeforeEach(func() {
 		logger = new(fakes.FakeLogger)
 		fakeSSHConnection = new(sshfakes.FakeSSHConnection)
-
-		inst = NewDeployedInstance("group", fakeSSHConnection, logger, []instance.Job{})
 	})
 
 	Describe("Cleanup", func() {
 		var err error
+
 		JustBeforeEach(func() {
+			inst = NewDeployedInstance("group", fakeSSHConnection, logger, []instance.Job{}, artifactDirCreated)
 			err = inst.Cleanup()
+		})
+
+		BeforeEach(func() {
+			artifactDirCreated = true
 		})
 
 		It("does not fail", func() {
@@ -173,6 +178,16 @@ var _ = Describe("DeployedInstance", func() {
 			Expect(fakeSSHConnection.RunArgsForCall(0)).To(Equal(
 				"sudo rm -rf /var/vcap/store/bbr-backup",
 			))
+		})
+
+		Context("when the artifact directory was not created by BBR", func() {
+			BeforeEach(func() {
+				artifactDirCreated = false
+			})
+
+			It("does not remove the artifact directory", func() {
+				Expect(fakeSSHConnection.RunCallCount()).To(Equal(0))
+			})
 		})
 
 		Context("when cleanup fails", func() {

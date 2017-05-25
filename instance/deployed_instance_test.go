@@ -43,7 +43,7 @@ var _ = Describe("DeployedInstance", func() {
 	JustBeforeEach(func() {
 		jobs = instance.NewJobs(backupAndRestoreScripts, blobMetadata)
 		sshConnection.UsernameReturns("sshUsername")
-		backuperInstance = instance.NewDeployedInstance(jobIndex, jobName, jobID, sshConnection, boshLogger, jobs)
+		backuperInstance = instance.NewDeployedInstance(jobIndex, jobName, jobID, false, sshConnection, boshLogger, jobs)
 	})
 
 	Describe("HasBackupScript", func() {
@@ -475,6 +475,10 @@ var _ = Describe("DeployedInstance", func() {
 
 			It("logs Done.", func() {
 				Expect(string(stdout.Contents())).To(ContainSubstring("Done."))
+			})
+
+			It("marks the instance as having had its artifact directory created", func() {
+				Expect(backuperInstance.ArtifactDirCreated()).To(BeTrue())
 			})
 
 			It("succeeds", func() {

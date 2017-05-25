@@ -12,16 +12,18 @@ type DeployedInstance struct {
 	backupAndRestoreInstanceIndex string
 	instanceID                    string
 	instanceGroupName             string
+	artifactDirCreated            bool
 	ssh.SSHConnection
 	Logger
 	Jobs
 }
 
-func NewDeployedInstance(instanceIndex string, instanceGroupName string, instanceID string, connection ssh.SSHConnection, logger Logger, jobs Jobs) *DeployedInstance {
+func NewDeployedInstance(instanceIndex string, instanceGroupName string, instanceID string, artifactDirCreated bool, connection ssh.SSHConnection, logger Logger, jobs Jobs) *DeployedInstance {
 	deployedInstance := &DeployedInstance{
 		backupAndRestoreInstanceIndex: instanceIndex,
 		instanceGroupName:             instanceGroupName,
 		instanceID:                    instanceID,
+		artifactDirCreated:            artifactDirCreated,
 		SSHConnection:                 connection,
 		Logger:                        logger,
 		Jobs:                          jobs,
@@ -43,6 +45,14 @@ func (d *DeployedInstance) ArtifactDirExists() bool {
 
 func (d *DeployedInstance) HasBackupScript() bool {
 	return d.Jobs.AnyAreBackupable()
+}
+
+func (d *DeployedInstance) ArtifactDirCreated() bool {
+	return d.artifactDirCreated
+}
+
+func (d *DeployedInstance) MarkArtifactDirCreated() {
+	d.artifactDirCreated = true
 }
 
 func (d *DeployedInstance) IsPostBackupUnlockable() bool {
@@ -94,6 +104,8 @@ func (d *DeployedInstance) Backup() error {
 			),
 			"backup",
 		)
+
+		d.artifactDirCreated = true
 
 		if err := d.handleErrs(job.Name(), "backup", err, exitCode, stdout, stderr); err != nil {
 			foundErrors = append(foundErrors, err)

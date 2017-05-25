@@ -643,6 +643,10 @@ var _ = Describe("Deployment", func() {
 				Expect(backupBlob.ChecksumCallCount()).To(Equal(1))
 			})
 
+			It("marks the artifact directory as created after transfer", func() {
+				Expect(instance1.MarkArtifactDirCreatedCallCount()).To(Equal(1))
+			})
+
 			It("checks the local checksum", func() {
 				Expect(artifact.FetchChecksumCallCount()).To(Equal(1))
 				Expect(artifact.FetchChecksumArgsForCall(0)).To(Equal(backupBlob))

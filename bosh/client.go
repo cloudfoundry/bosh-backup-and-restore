@@ -116,6 +116,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 					host.IndexOrID,
 					sshConnection,
 					deployment,
+					false,
 					c.Logger,
 					jobs,
 				),

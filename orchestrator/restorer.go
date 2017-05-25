@@ -45,6 +45,10 @@ func (b Restorer) Restore(deploymentName string) error {
 		return cleanupAndReturnErrors(deployment, errors.Errorf("Deployment '%s' does not match the structure of the provided backup", deploymentName))
 	}
 
+	if deployment.ArtifactDirExists() {
+		return cleanupAndReturnErrors(deployment, errors.Errorf("Deployment '%s' cannot be restored - /var/vcap/store/bbr-backup already exists", deploymentName))
+	}
+
 	if err = deployment.CopyLocalBackupToRemote(artifact); err != nil {
 		return cleanupAndReturnErrors(deployment, errors.Errorf("Unable to send backup to remote machine. Got error: %s", err))
 	}

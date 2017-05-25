@@ -186,6 +186,8 @@ func (bd *deployment) CopyLocalBackupToRemote(artifact Artifact) error {
 			bd.Logger.Info("bbr", "Copying backup to %s/%s...", blob.Name(), blob.ID())
 			if err := blob.StreamToRemote(reader); err != nil {
 				return err
+			} else {
+				instance.MarkArtifactDirCreated()
 			}
 
 			localChecksum, err := artifact.FetchChecksum(blob)

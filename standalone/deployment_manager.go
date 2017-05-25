@@ -54,7 +54,7 @@ func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment
 	}
 
 	return orchestrator.NewDeployment(dm.Logger, []orchestrator.Instance{
-		NewDeployedInstance("bosh", connection, dm.Logger, jobs),
+		NewDeployedInstance("bosh", connection, dm.Logger, jobs, false),
 	}), nil
 }
 func (DeploymentManager) SaveManifest(deploymentName string, artifact orchestrator.Artifact) error {
@@ -67,6 +67,11 @@ type DeployedInstance struct {
 
 func (d DeployedInstance) Cleanup() error {
 	d.Logger.Info("", "Cleaning up...")
+
+	if !d.ArtifactDirCreated() {
+		d.Logger.Debug("", "Artifact directory was never created - skipping cleanup")
+		return nil
+	}
 
 	stdout, stderr, exitCode, err := d.SSHConnection.Run(fmt.Sprintf("sudo rm -rf %s", orchestrator.ArtifactDirectory))
 	d.Logger.Debug("", "Stdout: %s", string(stdout))
@@ -84,8 +89,8 @@ func (d DeployedInstance) Cleanup() error {
 	return nil
 }
 
-func NewDeployedInstance(instanceGroupName string, connection ssh.SSHConnection, logger instance.Logger, jobs instance.Jobs) DeployedInstance {
+func NewDeployedInstance(instanceGroupName string, connection ssh.SSHConnection, logger instance.Logger, jobs instance.Jobs, artifactDirCreated bool) DeployedInstance {
 	return DeployedInstance{
-		DeployedInstance: instance.NewDeployedInstance("0", instanceGroupName, "0", connection, logger, jobs),
+		DeployedInstance: instance.NewDeployedInstance("0", instanceGroupName, "0", artifactDirCreated, connection, logger, jobs),
 	}
 }

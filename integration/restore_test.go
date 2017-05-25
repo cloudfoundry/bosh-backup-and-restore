@@ -209,6 +209,24 @@ instances:
 				Expect(session.Err.Contents()).To(ContainSubstring("dear lord"))
 			})
 		})
+
+		Context("when the backup artifact already exists", func() {
+			BeforeEach(func() {
+				instance1.CreateDir("/var/vcap/store/bbr-backup")
+			})
+
+			It("fails", func() {
+				Expect(session.ExitCode()).To(Equal(1))
+			})
+
+			It("returns the correct error", func() {
+				Expect(session.Err.Contents()).To(ContainSubstring("/var/vcap/store/bbr-backup already exists"))
+			})
+
+			It("does not delete the artifact", func() {
+				Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeTrue())
+			})
+		})
 	})
 
 	Context("when deployment has a multiple instances", func() {

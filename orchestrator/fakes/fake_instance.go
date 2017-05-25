@@ -53,6 +53,18 @@ type FakeInstance struct {
 	artifactDirExistsReturnsOnCall map[int]struct {
 		result1 bool
 	}
+	ArtifactDirCreatedStub        func() bool
+	artifactDirCreatedMutex       sync.RWMutex
+	artifactDirCreatedArgsForCall []struct{}
+	artifactDirCreatedReturns     struct {
+		result1 bool
+	}
+	artifactDirCreatedReturnsOnCall map[int]struct {
+		result1 bool
+	}
+	MarkArtifactDirCreatedStub        func()
+	markArtifactDirCreatedMutex       sync.RWMutex
+	markArtifactDirCreatedArgsForCall []struct{}
 	IsPostBackupUnlockableStub        func() bool
 	isPostBackupUnlockableMutex       sync.RWMutex
 	isPostBackupUnlockableArgsForCall []struct{}
@@ -363,6 +375,62 @@ func (fake *FakeInstance) ArtifactDirExistsReturnsOnCall(i int, result1 bool) {
 	fake.artifactDirExistsReturnsOnCall[i] = struct {
 		result1 bool
 	}{result1}
+}
+
+func (fake *FakeInstance) ArtifactDirCreated() bool {
+	fake.artifactDirCreatedMutex.Lock()
+	ret, specificReturn := fake.artifactDirCreatedReturnsOnCall[len(fake.artifactDirCreatedArgsForCall)]
+	fake.artifactDirCreatedArgsForCall = append(fake.artifactDirCreatedArgsForCall, struct{}{})
+	fake.recordInvocation("ArtifactDirCreated", []interface{}{})
+	fake.artifactDirCreatedMutex.Unlock()
+	if fake.ArtifactDirCreatedStub != nil {
+		return fake.ArtifactDirCreatedStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.artifactDirCreatedReturns.result1
+}
+
+func (fake *FakeInstance) ArtifactDirCreatedCallCount() int {
+	fake.artifactDirCreatedMutex.RLock()
+	defer fake.artifactDirCreatedMutex.RUnlock()
+	return len(fake.artifactDirCreatedArgsForCall)
+}
+
+func (fake *FakeInstance) ArtifactDirCreatedReturns(result1 bool) {
+	fake.ArtifactDirCreatedStub = nil
+	fake.artifactDirCreatedReturns = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeInstance) ArtifactDirCreatedReturnsOnCall(i int, result1 bool) {
+	fake.ArtifactDirCreatedStub = nil
+	if fake.artifactDirCreatedReturnsOnCall == nil {
+		fake.artifactDirCreatedReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.artifactDirCreatedReturnsOnCall[i] = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeInstance) MarkArtifactDirCreated() {
+	fake.markArtifactDirCreatedMutex.Lock()
+	fake.markArtifactDirCreatedArgsForCall = append(fake.markArtifactDirCreatedArgsForCall, struct{}{})
+	fake.recordInvocation("MarkArtifactDirCreated", []interface{}{})
+	fake.markArtifactDirCreatedMutex.Unlock()
+	if fake.MarkArtifactDirCreatedStub != nil {
+		fake.MarkArtifactDirCreatedStub()
+	}
+}
+
+func (fake *FakeInstance) MarkArtifactDirCreatedCallCount() int {
+	fake.markArtifactDirCreatedMutex.RLock()
+	defer fake.markArtifactDirCreatedMutex.RUnlock()
+	return len(fake.markArtifactDirCreatedArgsForCall)
 }
 
 func (fake *FakeInstance) IsPostBackupUnlockable() bool {
@@ -858,6 +926,10 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.hasBackupScriptMutex.RUnlock()
 	fake.artifactDirExistsMutex.RLock()
 	defer fake.artifactDirExistsMutex.RUnlock()
+	fake.artifactDirCreatedMutex.RLock()
+	defer fake.artifactDirCreatedMutex.RUnlock()
+	fake.markArtifactDirCreatedMutex.RLock()
+	defer fake.markArtifactDirCreatedMutex.RUnlock()
 	fake.isPostBackupUnlockableMutex.RLock()
 	defer fake.isPostBackupUnlockableMutex.RUnlock()
 	fake.isPreBackupLockableMutex.RLock()

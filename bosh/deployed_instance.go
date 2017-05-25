@@ -19,22 +19,27 @@ func NewBoshDeployedInstance(instanceGroupName,
 	instanceID string,
 	connection ssh.SSHConnection,
 	deployment director.Deployment,
+	artifactDirectoryCreated bool,
 	logger Logger,
 	jobs instance.Jobs,
 ) orchestrator.Instance {
 	return &BoshDeployedInstance{
 		Deployment:       deployment,
-		DeployedInstance: instance.NewDeployedInstance(instanceIndex, instanceGroupName, instanceID, connection, logger, jobs),
+		DeployedInstance: instance.NewDeployedInstance(instanceIndex, instanceGroupName, instanceID, artifactDirectoryCreated, connection, logger, jobs),
 	}
 }
 
 func (d *BoshDeployedInstance) Cleanup() error {
 	var errs []error
-	d.Logger.Debug("bbr", "Cleaning up SSH connection on instance %s %s", d.Name(), d.ID())
-	removeArtifactError := d.removeBackupArtifacts()
-	if removeArtifactError != nil {
-		errs = append(errs, removeArtifactError)
+
+	if d.ArtifactDirCreated() {
+		removeArtifactError := d.removeBackupArtifacts()
+		if removeArtifactError != nil {
+			errs = append(errs, removeArtifactError)
+		}
 	}
+
+	d.Logger.Debug("bbr", "Cleaning up SSH connection on instance %s %s", d.Name(), d.ID())
 	cleanupSSHError := d.Deployment.CleanUpSSH(director.NewAllOrInstanceGroupOrInstanceSlug(d.Name(), d.ID()), director.SSHOpts{Username: d.SSHConnection.Username()})
 	if cleanupSSHError != nil {
 		errs = append(errs, cleanupSSHError)

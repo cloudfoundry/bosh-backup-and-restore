@@ -13,6 +13,8 @@ type Instance interface {
 	InstanceIdentifer
 	HasBackupScript() bool
 	ArtifactDirExists() bool
+	ArtifactDirCreated() bool
+	MarkArtifactDirCreated()
 	IsPostBackupUnlockable() bool
 	IsPreBackupLockable() bool
 	IsRestorable() bool
