@@ -342,7 +342,7 @@ func makeDirectorBackuper(c *cli.Context) *orchestrator.Backuper {
 		c.Parent().String("username"),
 		c.Parent().String("private-key-path"),
 		instance.NewJobFinder(logger),
-		ssh.ConnectionCreator,
+		ssh.NewConnection,
 	)
 	backuper := orchestrator.NewBackuper(artifact.DirectoryArtifactManager{}, logger, deploymentManager)
 	return backuper
@@ -373,7 +373,7 @@ func makeDirectorRestorer(c *cli.Context) *orchestrator.Restorer {
 		c.Parent().String("username"),
 		c.Parent().String("private-key-path"),
 		instance.NewJobFinder(logger),
-		ssh.ConnectionCreator,
+		ssh.NewConnection,
 	)
 	return orchestrator.NewRestorer(artifact.DirectoryArtifactManager{}, logger, deploymentManager)
 }

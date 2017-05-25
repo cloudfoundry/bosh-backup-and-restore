@@ -57,7 +57,7 @@ func BuildClient(targetUrl, username, password, caCertFileName string, logger bo
 		return nil, err
 	}
 
-	return NewClient(boshDirector, director.NewSSHOpts, ssh.ConnectionCreator, logger, instance.NewJobFinder(logger)), nil
+	return NewClient(boshDirector, director.NewSSHOpts, ssh.NewConnection, logger, instance.NewJobFinder(logger)), nil
 }
 
 func buildUaa(info director.Info, username, password, cert string, logger boshlog.Logger) (boshuaa.UAA, error) {

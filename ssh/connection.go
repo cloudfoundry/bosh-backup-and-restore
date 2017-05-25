@@ -20,10 +20,10 @@ type Logger interface {
 	Warn(tag, msg string, args ...interface{})
 }
 
-func ConnectionCreator(hostName, userName, privateKey string, logger Logger) (SSHConnection, error) {
+func NewConnection(hostName, userName, privateKey string, logger Logger) (SSHConnection, error) {
 	parsedPrivateKey, err := ssh.ParsePrivateKey([]byte(privateKey))
 	if err != nil {
-		return nil, errors.Wrap(err, "ssh.ConnectionCreator.ParsePrivateKey failed")
+		return nil, errors.Wrap(err, "ssh.NewConnection.ParsePrivateKey failed")
 	}
 
 	conn := Connection{

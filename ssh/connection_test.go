@@ -38,7 +38,7 @@ var _ = Describe("Connection", func() {
 	})
 
 	JustBeforeEach(func() {
-		conn, connErr = ssh.ConnectionCreator(hostname, user, privateKey, logger)
+		conn, connErr = ssh.NewConnection(hostname, user, privateKey, logger)
 	})
 
 	Describe("Connection Creation", func() {
