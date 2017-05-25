@@ -94,9 +94,6 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 		switch err := err.(type) {
 		case *ssh.ExitError:
 			exitCode = err.ExitStatus()
-		case *ssh.ExitMissingError:
-			exitCode = 0
-			c.logger.Warn("ssh", "remote server did not send an exit status: %+v", err)
 		default:
 			return -1, errors.Wrap(err, "ssh.Session.Run failed")
 		}
