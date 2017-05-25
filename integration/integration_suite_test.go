@@ -10,6 +10,8 @@ import (
 	"github.com/onsi/gomega/gexec"
 
 	"testing"
+
+	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
 )
 
 func TestIntegration(t *testing.T) {
@@ -49,4 +51,5 @@ var _ = BeforeSuite(func() {
 
 var _ = AfterSuite(func() {
 	gexec.CleanupBuildArtifacts()
+	testcluster.WaitForContainersToDie()
 })

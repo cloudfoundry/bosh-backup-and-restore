@@ -19,7 +19,6 @@ var _ = Describe("Pre-backup checks", func() {
 	var backupWorkspace string
 	var session *gexec.Session
 	var deploymentName string
-	var instance1 *testcluster.Instance
 
 	BeforeEach(func() {
 		deploymentName = "my-little-deployment"
@@ -49,6 +48,8 @@ var _ = Describe("Pre-backup checks", func() {
 	})
 
 	Context("When there is a deployment which has one instance", func() {
+		var instance1 *testcluster.Instance
+
 		singleInstanceResponse := func(instanceGroupName string) []mockbosh.VMsOutput {
 			return []mockbosh.VMsOutput{
 				{
@@ -58,9 +59,16 @@ var _ = Describe("Pre-backup checks", func() {
 			}
 		}
 
+		BeforeEach(func() {
+			instance1 = testcluster.NewInstance()
+		})
+
+		AfterEach(func() {
+			instance1.DieInBackground()
+		})
+
 		Context("and there is a backup script", func() {
 			BeforeEach(func() {
-				instance1 = testcluster.NewInstance()
 				By("creating a dummy backup script")
 
 				mockDirectorWith(director,
@@ -105,7 +113,6 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 		Context("if there are no backup scripts", func() {
 			BeforeEach(func() {
-				instance1 = testcluster.NewInstance()
 				mockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
@@ -126,7 +133,6 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				Expect(string(session.Out.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' cannot be backed up."))
 				Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' has no backup scripts"))
 			})
-
 		})
 	})
 

@@ -39,6 +39,7 @@ var _ = Describe("Backup", func() {
 	})
 
 	AfterEach(func() {
+		instance1.DieInBackground()
 		Expect(os.RemoveAll(backupWorkspace)).To(Succeed())
 		director.VerifyMocks()
 	})
@@ -453,9 +454,6 @@ exit 1`)
 		})
 
 		Context("when running the metadata script does not give valid yml", func() {
-			AfterEach(func() {
-				instance1.DieInBackground()
-			})
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
@@ -478,7 +476,6 @@ echo "not valid yaml
 			It("exits with the correct error code", func() {
 				Expect(session).To(gexec.Exit(1))
 			})
-
 		})
 
 		Context("when the artifact exists locally", func() {
@@ -536,7 +533,6 @@ echo "not valid yaml
 				backupableInstance.CreateFiles(
 					"/var/vcap/jobs/redis/bin/bbr/backup",
 				)
-
 			})
 
 			AfterEach(func() {
@@ -744,7 +740,6 @@ backup_name: name_2
 		It("prints an error", func() {
 			Expect(string(session.Err.Contents())).To(ContainSubstring("Director responded with non-successful status code"))
 		})
-
 	})
 })
 

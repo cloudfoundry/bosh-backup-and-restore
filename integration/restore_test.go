@@ -178,8 +178,8 @@ instances:
 		})
 
 		AfterEach(func() {
-			Expect(os.RemoveAll(deploymentName)).To(Succeed())
 			instance1.DieInBackground()
+			Expect(os.RemoveAll(deploymentName)).To(Succeed())
 		})
 
 		It("does not fail", func() {
@@ -298,8 +298,9 @@ instances:
 		})
 
 		AfterEach(func() {
-			Expect(os.RemoveAll(deploymentName)).To(Succeed())
 			instance1.DieInBackground()
+			instance2.DieInBackground()
+			Expect(os.RemoveAll(deploymentName)).To(Succeed())
 		})
 
 		It("does not fail", func() {
@@ -465,9 +466,9 @@ blobs:
 		})
 
 		AfterEach(func() {
-			Expect(os.RemoveAll(deploymentName)).To(Succeed())
 			instance1.DieInBackground()
 			instance2.DieInBackground()
+			Expect(os.RemoveAll(deploymentName)).To(Succeed())
 		})
 
 		It("does not fail", func() {
@@ -575,8 +576,8 @@ instances:
 		})
 
 		AfterEach(func() {
-			Expect(os.RemoveAll(deploymentName)).To(Succeed())
 			instance1.DieInBackground()
+			Expect(os.RemoveAll(deploymentName)).To(Succeed())
 		})
 
 		It("fails", func() {

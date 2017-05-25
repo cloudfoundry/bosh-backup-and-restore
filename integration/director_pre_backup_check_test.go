@@ -15,7 +15,6 @@ import (
 var _ = Describe("Pre-backup checks", func() {
 	var backupWorkspace string
 	var session *gexec.Session
-	var directorInstance *testcluster.Instance
 	var directorIP string
 
 	BeforeEach(func() {
@@ -42,8 +41,9 @@ var _ = Describe("Pre-backup checks", func() {
 	})
 
 	Context("When there is a director instance", func() {
-
 		Context("and there is a backup script", func() {
+			var directorInstance *testcluster.Instance
+
 			BeforeEach(func() {
 				directorInstance = testcluster.NewInstance()
 				directorInstance.CreateUser("foobar", readFile(pathToPublicKeyFile))
@@ -55,6 +55,10 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 `)
 				directorIP = directorInstance.Address()
 
+			})
+
+			AfterEach(func() {
+				directorInstance.DieInBackground()
 			})
 
 			It("exits zero", func() {
@@ -86,6 +90,8 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 		})
 
 		Context("if there are no backup scripts", func() {
+			var directorInstance *testcluster.Instance
+
 			BeforeEach(func() {
 				directorInstance = testcluster.NewInstance()
 				directorInstance.CreateUser("foobar", readFile(pathToPublicKeyFile))
@@ -96,6 +102,10 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				directorIP = directorInstance.Address()
 			})
 
+			AfterEach(func() {
+				directorInstance.DieInBackground()
+			})
+
 			It("returns exit code 1", func() {
 				Expect(session.ExitCode()).To(Equal(1))
 			})
@@ -104,7 +114,6 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				Expect(string(session.Out.Contents())).To(ContainSubstring("Director cannot be backed up."))
 				Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment 'my-director' has no backup scripts"))
 			})
-
 		})
 	})
 
