@@ -208,7 +208,7 @@ var _ = Describe("restorer", func() {
 
 			Context("if a backup artifact already exists on any of the instances", func() {
 				BeforeEach(func() {
-					deployment.ArtifactDirExistsReturns(true)
+					deployment.ArtifactDirExistsReturns(true, []string{"foo"})
 				})
 
 				It("returns an error", func() {

@@ -26,14 +26,16 @@ type FakeDeployment struct {
 	hasUniqueCustomBackupNamesReturnsOnCall map[int]struct {
 		result1 bool
 	}
-	ArtifactDirExistsStub        func() bool
+	ArtifactDirExistsStub        func() (bool, []string)
 	artifactDirExistsMutex       sync.RWMutex
 	artifactDirExistsArgsForCall []struct{}
 	artifactDirExistsReturns     struct {
 		result1 bool
+		result2 []string
 	}
 	artifactDirExistsReturnsOnCall map[int]struct {
 		result1 bool
+		result2 []string
 	}
 	IsRestorableStub        func() bool
 	isRestorableMutex       sync.RWMutex
@@ -213,7 +215,7 @@ func (fake *FakeDeployment) HasUniqueCustomBackupNamesReturnsOnCall(i int, resul
 	}{result1}
 }
 
-func (fake *FakeDeployment) ArtifactDirExists() bool {
+func (fake *FakeDeployment) ArtifactDirExists() (bool, []string) {
 	fake.artifactDirExistsMutex.Lock()
 	ret, specificReturn := fake.artifactDirExistsReturnsOnCall[len(fake.artifactDirExistsArgsForCall)]
 	fake.artifactDirExistsArgsForCall = append(fake.artifactDirExistsArgsForCall, struct{}{})
@@ -223,9 +225,9 @@ func (fake *FakeDeployment) ArtifactDirExists() bool {
 		return fake.ArtifactDirExistsStub()
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
-	return fake.artifactDirExistsReturns.result1
+	return fake.artifactDirExistsReturns.result1, fake.artifactDirExistsReturns.result2
 }
 
 func (fake *FakeDeployment) ArtifactDirExistsCallCount() int {
@@ -234,23 +236,26 @@ func (fake *FakeDeployment) ArtifactDirExistsCallCount() int {
 	return len(fake.artifactDirExistsArgsForCall)
 }
 
-func (fake *FakeDeployment) ArtifactDirExistsReturns(result1 bool) {
+func (fake *FakeDeployment) ArtifactDirExistsReturns(result1 bool, result2 []string) {
 	fake.ArtifactDirExistsStub = nil
 	fake.artifactDirExistsReturns = struct {
 		result1 bool
-	}{result1}
+		result2 []string
+	}{result1, result2}
 }
 
-func (fake *FakeDeployment) ArtifactDirExistsReturnsOnCall(i int, result1 bool) {
+func (fake *FakeDeployment) ArtifactDirExistsReturnsOnCall(i int, result1 bool, result2 []string) {
 	fake.ArtifactDirExistsStub = nil
 	if fake.artifactDirExistsReturnsOnCall == nil {
 		fake.artifactDirExistsReturnsOnCall = make(map[int]struct {
 			result1 bool
+			result2 []string
 		})
 	}
 	fake.artifactDirExistsReturnsOnCall[i] = struct {
 		result1 bool
-	}{result1}
+		result2 []string
+	}{result1, result2}
 }
 
 func (fake *FakeDeployment) IsRestorable() bool {

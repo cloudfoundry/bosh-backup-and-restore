@@ -12,7 +12,7 @@ const ArtifactDirectory = "/var/vcap/store/bbr-backup"
 type Deployment interface {
 	HasBackupScript() bool
 	HasUniqueCustomBackupNames() bool
-	ArtifactDirExists() bool
+	ArtifactDirExists() (bool, []string)
 	IsRestorable() bool
 	PreBackupLock() error
 	Backup() error
@@ -53,14 +53,15 @@ func (bd *deployment) HasUniqueCustomBackupNames() bool {
 	return true
 }
 
-func (bd *deployment) ArtifactDirExists() bool {
-	result := false
+func (bd *deployment) ArtifactDirExists() (bool, []string) {
+	instances := []string{}
+
 	for _, instance := range bd.instances {
 		if instance.ArtifactDirExists() {
-			result = true
+			instances = append(instances, fmt.Sprintf("%s/%s", instance.Name(), instance.ID()))
 		}
 	}
-	return result
+	return len(instances) > 0, instances
 }
 
 func (bd *deployment) PreBackupLock() error {

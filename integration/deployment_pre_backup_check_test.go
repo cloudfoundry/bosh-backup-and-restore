@@ -97,7 +97,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 				It("prints an error", func() {
 					Expect(string(session.Out.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' cannot be backed up."))
-					Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' - /var/vcap/store/bbr-backup already exists"))
+					Expect(string(session.Err.Contents())).To(ContainSubstring("Directory '/var/vcap/store/bbr-backup' already exists on instance redis-dedicated-node/fake-uuid"))
 				})
 			})
 

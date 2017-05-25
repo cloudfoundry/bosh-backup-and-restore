@@ -45,7 +45,7 @@ func (b Restorer) Restore(deploymentName string) error {
 		return cleanupAndReturnErrors(deployment, errors.Errorf("Deployment '%s' does not match the structure of the provided backup", deploymentName))
 	}
 
-	if deployment.ArtifactDirExists() {
+	if artifactDirExists, _ := deployment.ArtifactDirExists(); artifactDirExists {
 		return cleanupAndReturnErrors(deployment, errors.Errorf("Deployment '%s' cannot be restored - /var/vcap/store/bbr-backup already exists", deploymentName))
 	}
 

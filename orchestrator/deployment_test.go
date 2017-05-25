@@ -378,14 +378,18 @@ var _ = Describe("Deployment", func() {
 
 	Context("ArtifactDirExists", func() {
 		var dirExists bool
+		var instNames []string
 
 		BeforeEach(func() {
+			instance1.NameReturns("foo")
+			instance1.IDReturns("bar")
+
 			instance1.ArtifactDirExistsReturns(false)
 			instances = []orchestrator.Instance{instance1}
 		})
 
 		JustBeforeEach(func() {
-			dirExists = deployment.ArtifactDirExists()
+			dirExists, instNames = deployment.ArtifactDirExists()
 		})
 
 		Context("when artifact directory does not exist", func() {
@@ -401,6 +405,10 @@ var _ = Describe("Deployment", func() {
 
 			It("returns true", func() {
 				Expect(dirExists).To(BeTrue())
+			})
+
+			It("returns the names of the instances on which the directory exists", func() {
+				Expect(instNames).To(ConsistOf("foo/bar"))
 			})
 		})
 	})

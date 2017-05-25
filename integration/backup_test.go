@@ -157,20 +157,6 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					It("cleans up backup artifacts from remote", func() {
 						Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
 					})
-
-					Context("and the backup artifact directory already exists", func() {
-						BeforeEach(func() {
-							instance1.CreateDir("/var/vcap/store/bbr-backup")
-						})
-
-						It("fails", func() {
-							Expect(session.ExitCode()).NotTo(BeZero())
-						})
-
-						It("does not delete the existing backup artifact directory", func() {
-							Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeTrue())
-						})
-					})
 				})
 
 				Context("when there is a metadata script which produces yaml containing the custom backup_name", func() {
@@ -618,6 +604,23 @@ echo "not valid yaml
 				})
 			})
 
+			Context("and the backup artifact directory already exists on one of them", func() {
+				BeforeEach(func() {
+					backupableInstance2.CreateDir("/var/vcap/store/bbr-backup")
+				})
+
+				It("fails", func() {
+					Expect(session.ExitCode()).NotTo(BeZero())
+				})
+
+				It("does not delete the existing backup artifact directory", func() {
+					Expect(backupableInstance2.FileExists("/var/vcap/store/bbr-backup")).To(BeTrue())
+				})
+
+				It("logs which instance has the extant artifact directory", func() {
+					Expect(session.Err).To(gbytes.Say("Directory '/var/vcap/store/bbr-backup' already exists on instance redis-broker/fake-uuid-2"))
+				})
+			})
 		})
 
 		Context("both specify the same backup name in their metadata", func() {
