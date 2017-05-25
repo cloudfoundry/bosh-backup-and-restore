@@ -54,27 +54,29 @@ type Connection struct {
 	serverAliveInterval time.Duration
 }
 
-func (c Connection) Run(cmd string) ([]byte, []byte, int, error) {
-	outBuffer := bytes.NewBuffer([]byte{})
-	errBuffer, exitCode, err := c.Stream(cmd, outBuffer)
-	return outBuffer.Bytes(), errBuffer, exitCode, errors.Wrap(err, "ssh.Run.Stream failed")
+func (c Connection) Run(cmd string) (stdout, stderr []byte, exitCode int, err error) {
+	stdoutBuffer := bytes.NewBuffer([]byte{})
+
+	stderr, exitCode, err = c.Stream(cmd, stdoutBuffer)
+
+	return stdoutBuffer.Bytes(), stderr, exitCode, errors.Wrap(err, "ssh.Run failed")
 }
 
-func (c Connection) Stream(cmd string, writer io.Writer) ([]byte, int, error) {
+func (c Connection) Stream(cmd string, stdoutWriter io.Writer) (stderr []byte, exitCode int, err error) {
 	errBuffer := bytes.NewBuffer([]byte{})
 
-	exitCode, err := c.runInSession(cmd, writer, errBuffer, nil)
+	exitCode, err = c.runInSession(cmd, stdoutWriter, errBuffer, nil)
 
-	return errBuffer.Bytes(), exitCode, err
+	return errBuffer.Bytes(), exitCode, errors.Wrap(err, "ssh.Stream failed")
 }
 
 func (c Connection) StreamStdin(cmd string, stdinReader io.Reader) (stdout, stderr []byte, exitCode int, err error) {
-	outBuffer := bytes.NewBuffer([]byte{})
-	errBuffer := bytes.NewBuffer([]byte{})
+	stdoutBuffer := bytes.NewBuffer([]byte{})
+	stderrBuffer := bytes.NewBuffer([]byte{})
 
-	exitCode, err = c.runInSession(cmd, outBuffer, errBuffer, stdinReader)
+	exitCode, err = c.runInSession(cmd, stdoutBuffer, stderrBuffer, stdinReader)
 
-	return outBuffer.Bytes(), errBuffer.Bytes(), exitCode, err
+	return stdoutBuffer.Bytes(), stderrBuffer.Bytes(), exitCode, errors.Wrap(err, "ssh.StreamStdin failed")
 }
 
 func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.Reader) (int, error) {
