@@ -14,10 +14,11 @@ watch:
 test-ci: setup test
 
 test-unit:
-	ginkgo -r bosh orchestrator ssh artifact instance standalone
+	ginkgo -p -r bosh orchestrator ssh instance standalone
+	ginkgo -r artifact # the artifact package tests can't be run in parallel at the moment :(
 
 test-integration:
-	ginkgo -r integration -nodes 4
+	ginkgo -p -r integration
 
 bin:
 	go build -o bbr github.com/pivotal-cf/bosh-backup-and-restore/cmd/bbr
