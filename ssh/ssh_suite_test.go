@@ -10,6 +10,8 @@ import (
 	. "github.com/onsi/gomega"
 
 	"testing"
+
+	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
 )
 
 func TestSsh(t *testing.T) {
@@ -31,4 +33,8 @@ var _ = BeforeSuite(func() {
 	)
 
 	defaultPrivateKey = string(defaultPrivateKeyBytes)
+})
+
+var _ = AfterSuite(func() {
+	testcluster.WaitForContainersToDie()
 })

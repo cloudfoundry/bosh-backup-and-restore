@@ -28,15 +28,19 @@ var _ = Describe("Connection", func() {
 	var logger ssh.Logger
 
 	BeforeEach(func() {
-		instance1 = testcluster.NewInstance()
+		instance1 = testcluster.NewInstanceWithKeepAlive(2)
 		instance1.CreateUser("test-user", publicKeyForDocker(defaultPrivateKey))
 		privateKey = defaultPrivateKey
 		hostname = instance1.Address()
 		user = "test-user"
 
-		combinecOutLog := log.New(io.MultiWriter(GinkgoWriter, bytes.NewBufferString("")), "[bosh-package] ", log.Lshortfile)
+		combinedOutLog := log.New(io.MultiWriter(GinkgoWriter, bytes.NewBufferString("")), "[bosh-package] ", log.Lshortfile)
 		combinedErrLog := log.New(io.MultiWriter(GinkgoWriter, bytes.NewBufferString("")), "[bosh-package] ", log.Lshortfile)
-		logger = boshlog.New(boshlog.LevelDebug, combinecOutLog, combinedErrLog)
+		logger = boshlog.New(boshlog.LevelDebug, combinedOutLog, combinedErrLog)
+	})
+
+	AfterEach(func() {
+		instance1.DieInBackground()
 	})
 
 	JustBeforeEach(func() {
@@ -77,10 +81,6 @@ var _ = Describe("Connection", func() {
 			BeforeEach(func() {
 				reader = bytes.NewBufferString("I am from the reader")
 				command = "cat > /tmp/foo; echo 'here is something on stdout'; echo 'here is something on stderr' >&2"
-			})
-
-			AfterEach(func() {
-				instance1.DieInBackground()
 			})
 
 			It("does not fail", func() {
@@ -278,22 +278,14 @@ var _ = Describe("Connection", func() {
 		var stdErr []byte
 		var exitCode int
 		var runError error
+
 		BeforeEach(func() {
-			instance1 = testcluster.NewInstanceWithKeepAlive(2)
-			instance1.CreateUser("test-user", publicKeyForDocker(defaultPrivateKey))
-			privateKey = defaultPrivateKey
-			hostname = instance1.Address()
-			user = "test-user"
-
-			combinecOutLog := log.New(io.MultiWriter(GinkgoWriter, bytes.NewBufferString("")), "[bosh-package] ", log.Lshortfile)
-			combinedErrLog := log.New(io.MultiWriter(GinkgoWriter, bytes.NewBufferString("")), "[bosh-package] ", log.Lshortfile)
-			logger = boshlog.New(boshlog.LevelDebug, combinecOutLog, combinedErrLog)
-
 			instance1.CreateScript("/tmp/produce", `#!/usr/bin/env sh
 				echo "start"
 				sleep 4
 				echo "end"`)
 		})
+
 		JustBeforeEach(func() {
 			conn, connErr = ssh.NewConnectionWithServerAliveInterval(hostname, user, privateKey, 1, logger)
 			Expect(connErr).NotTo(HaveOccurred())

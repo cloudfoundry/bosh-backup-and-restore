@@ -11,6 +11,8 @@ import (
 	"net/url"
 	"os"
 
+	"sync"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -20,7 +22,7 @@ type Instance struct {
 	dockerID string
 }
 
-var testclusterTimeout = 5 * time.Second
+const timeout = 5 * time.Second
 
 func NewInstance() *Instance {
 	contents := dockerRunAndWaitForSuccess("run", "--publish", "22", "--detach", "cloudfoundrylondon/backup-and-restore-node-with-ssh")
@@ -103,17 +105,22 @@ func (i *Instance) GetFileContents(path string) string {
 	return dockerRunAndWaitForSuccess("exec", i.dockerID, "cat", path)
 }
 
+var waitGroup sync.WaitGroup
+
 func (i *Instance) DieInBackground() {
-	go func() {
-		defer GinkgoRecover()
-		i.die()
-	}()
+	if i != nil {
+		waitGroup.Add(1)
+		go func() {
+			defer GinkgoRecover()
+			defer waitGroup.Done()
+			Eventually(dockerRun("kill", i.dockerID), timeout).Should(gexec.Exit())
+			Eventually(dockerRun("rm", i.dockerID), timeout).Should(gexec.Exit())
+		}()
+	}
 }
 
-func (i *Instance) die() {
-	if i != nil {
-		dockerRunAndWaitForSuccess("kill", i.dockerID)
-	}
+func WaitForContainersToDie() {
+	waitGroup.Wait()
 }
 
 func dockerRun(args ...string) *gexec.Session {
@@ -127,7 +134,7 @@ func dockerRun(args ...string) *gexec.Session {
 func dockerRunAndWaitForSuccess(args ...string) string {
 	startTime := time.Now()
 	session := dockerRun(args...)
-	Eventually(session, testclusterTimeout).Should(gexec.Exit(0))
+	Eventually(session, timeout).Should(gexec.Exit(0))
 	fmt.Fprintf(GinkgoWriter, "Completed docker run in %v, cmd: %v\n", time.Now().Sub(startTime), args)
 	return string(session.Out.Contents())
 }
