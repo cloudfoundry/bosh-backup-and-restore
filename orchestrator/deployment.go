@@ -59,7 +59,10 @@ func (bd *deployment) CheckArtifactDir() error {
 	errs := []string{}
 
 	for _, inst := range bd.instances {
-		if inst.ArtifactDirExists() {
+		exists, err := inst.ArtifactDirExists()
+		if err != nil {
+			errs = append(errs, fmt.Sprintf("Error checking %s on instance %s/%s", ArtifactDirectory, inst.Name(), inst.ID()))
+		} else if exists {
 			errs = append(errs, fmt.Sprintf("Directory %s already exists on instance %s/%s", ArtifactDirectory, inst.Name(), inst.ID()))
 		}
 	}

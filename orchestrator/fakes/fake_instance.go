@@ -44,14 +44,16 @@ type FakeInstance struct {
 	hasBackupScriptReturnsOnCall map[int]struct {
 		result1 bool
 	}
-	ArtifactDirExistsStub        func() bool
+	ArtifactDirExistsStub        func() (bool, error)
 	artifactDirExistsMutex       sync.RWMutex
 	artifactDirExistsArgsForCall []struct{}
 	artifactDirExistsReturns     struct {
 		result1 bool
+		result2 error
 	}
 	artifactDirExistsReturnsOnCall map[int]struct {
 		result1 bool
+		result2 error
 	}
 	ArtifactDirCreatedStub        func() bool
 	artifactDirCreatedMutex       sync.RWMutex
@@ -337,7 +339,7 @@ func (fake *FakeInstance) HasBackupScriptReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeInstance) ArtifactDirExists() bool {
+func (fake *FakeInstance) ArtifactDirExists() (bool, error) {
 	fake.artifactDirExistsMutex.Lock()
 	ret, specificReturn := fake.artifactDirExistsReturnsOnCall[len(fake.artifactDirExistsArgsForCall)]
 	fake.artifactDirExistsArgsForCall = append(fake.artifactDirExistsArgsForCall, struct{}{})
@@ -347,9 +349,9 @@ func (fake *FakeInstance) ArtifactDirExists() bool {
 		return fake.ArtifactDirExistsStub()
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
-	return fake.artifactDirExistsReturns.result1
+	return fake.artifactDirExistsReturns.result1, fake.artifactDirExistsReturns.result2
 }
 
 func (fake *FakeInstance) ArtifactDirExistsCallCount() int {
@@ -358,23 +360,26 @@ func (fake *FakeInstance) ArtifactDirExistsCallCount() int {
 	return len(fake.artifactDirExistsArgsForCall)
 }
 
-func (fake *FakeInstance) ArtifactDirExistsReturns(result1 bool) {
+func (fake *FakeInstance) ArtifactDirExistsReturns(result1 bool, result2 error) {
 	fake.ArtifactDirExistsStub = nil
 	fake.artifactDirExistsReturns = struct {
 		result1 bool
-	}{result1}
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeInstance) ArtifactDirExistsReturnsOnCall(i int, result1 bool) {
+func (fake *FakeInstance) ArtifactDirExistsReturnsOnCall(i int, result1 bool, result2 error) {
 	fake.ArtifactDirExistsStub = nil
 	if fake.artifactDirExistsReturnsOnCall == nil {
 		fake.artifactDirExistsReturnsOnCall = make(map[int]struct {
 			result1 bool
+			result2 error
 		})
 	}
 	fake.artifactDirExistsReturnsOnCall[i] = struct {
 		result1 bool
-	}{result1}
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeInstance) ArtifactDirCreated() bool {

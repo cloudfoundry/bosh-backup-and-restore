@@ -386,8 +386,8 @@ var _ = Describe("Deployment", func() {
 			instance2.NameReturns("bar")
 			instance2.IDReturns("0")
 
-			instance1.ArtifactDirExistsReturns(false)
-			instance2.ArtifactDirExistsReturns(false)
+			instance1.ArtifactDirExistsReturns(false, nil)
+			instance2.ArtifactDirExistsReturns(false, nil)
 			instances = []orchestrator.Instance{instance1, instance2}
 		})
 
@@ -403,8 +403,8 @@ var _ = Describe("Deployment", func() {
 
 		Context("when artifact directory exists", func() {
 			BeforeEach(func() {
-				instance1.ArtifactDirExistsReturns(true)
-				instance2.ArtifactDirExistsReturns(true)
+				instance1.ArtifactDirExistsReturns(true, nil)
+				instance2.ArtifactDirExistsReturns(true, nil)
 			})
 
 			It("fails", func() {
@@ -414,6 +414,21 @@ var _ = Describe("Deployment", func() {
 			It("the error includes the names of the instances on which the directory exists", func() {
 				Expect(artifactDirError.Error()).To(ContainSubstring("Directory /var/vcap/store/bbr-backup already exists on instance foo/0"))
 				Expect(artifactDirError.Error()).To(ContainSubstring("Directory /var/vcap/store/bbr-backup already exists on instance bar/0"))
+			})
+		})
+
+		Context("when call to check artifact directory fails", func() {
+			BeforeEach(func() {
+				instances = []orchestrator.Instance{instance1}
+				instance1.ArtifactDirExistsReturns(false, fmt.Errorf("oh dear"))
+			})
+
+			It("fails", func() {
+				Expect(artifactDirError).To(HaveOccurred())
+			})
+
+			It("the error includes the names of the instances on which the error occurred", func() {
+				Expect(artifactDirError.Error()).To(ContainSubstring("Error checking /var/vcap/store/bbr-backup on instance foo/0"))
 			})
 		})
 

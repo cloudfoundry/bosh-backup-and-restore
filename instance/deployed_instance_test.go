@@ -143,16 +143,19 @@ var _ = Describe("DeployedInstance", func() {
 	})
 
 	Describe("ArtifactDirExists", func() {
-		var dirExists bool
 		var sshExitCode int
+		var sshError error
+
+		var dirExists bool
+		var dirError error
+
+		JustBeforeEach(func() {
+			sshConnection.RunReturns([]byte{}, []byte{}, sshExitCode, sshError)
+			dirExists, dirError = backuperInstance.ArtifactDirExists()
+		})
 
 		BeforeEach(func() {
 			sshExitCode = 1
-		})
-
-		JustBeforeEach(func() {
-			sshConnection.RunReturns([]byte{}, []byte{}, sshExitCode, nil)
-			dirExists = backuperInstance.ArtifactDirExists()
 		})
 
 		Context("when artifact directory does not exist", func() {
@@ -178,6 +181,16 @@ var _ = Describe("DeployedInstance", func() {
 
 			It("returns true", func() {
 				Expect(dirExists).To(BeTrue())
+			})
+		})
+
+		Context("when ssh connection error occurs", func() {
+			BeforeEach(func() {
+				sshError = fmt.Errorf("argh!")
+			})
+
+			It("returns the error", func() {
+				Expect(dirError).To(MatchError("argh!"))
 			})
 		})
 	})

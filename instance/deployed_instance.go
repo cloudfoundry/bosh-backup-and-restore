@@ -31,8 +31,8 @@ func NewDeployedInstance(instanceIndex string, instanceGroupName string, instanc
 	return deployedInstance
 }
 
-func (d *DeployedInstance) ArtifactDirExists() bool {
-	_, _, exitCode, _ := d.RunOnInstance(
+func (d *DeployedInstance) ArtifactDirExists() (bool, error) {
+	_, _, exitCode, err := d.RunOnInstance(
 		fmt.Sprintf(
 			"stat %s",
 			orchestrator.ArtifactDirectory,
@@ -40,7 +40,7 @@ func (d *DeployedInstance) ArtifactDirExists() bool {
 		"artifact directory check",
 	)
 
-	return exitCode == 0
+	return exitCode == 0, err
 }
 
 func (d *DeployedInstance) HasBackupScript() bool {
