@@ -11,6 +11,8 @@ import (
 	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
 	gossh "golang.org/x/crypto/ssh"
 
+	"runtime"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -107,29 +109,32 @@ var _ = Describe("Connection", func() {
 			var stdErr []byte
 			var exitCode int
 			var runError error
+			var command string
 			JustBeforeEach(func() {
 				Expect(connErr).NotTo(HaveOccurred())
-				stdErr, exitCode, runError = conn.Stream("/tmp/foo", writer)
+				stdErr, exitCode, runError = conn.Stream(command, writer)
 			})
-			BeforeEach(func() {
-				writer = bytes.NewBufferString("")
-				instance1.CreateScript("/tmp/foo", `#!/usr/bin/env sh
+			Context("success", func() {
+				BeforeEach(func() {
+					command = "/tmp/foo"
+					writer = bytes.NewBufferString("")
+					instance1.CreateScript("/tmp/foo", `#!/usr/bin/env sh
 				echo "stdout"
 				echo "stderr" >&2
-				exit 1
-				`)
-			})
-			It("does not fail", func() {
-				Expect(runError).NotTo(HaveOccurred())
-			})
-			It("writes stdout to the writer", func() {
-				Expect(writer.String()).To(ContainSubstring("stdout"))
-			})
-			It("drains stderr", func() {
-				Expect(string(stdErr)).To(ContainSubstring("stderr"))
-			})
-			It("captures exit code", func() {
-				Expect(exitCode).To(Equal(1))
+				exit 1`)
+				})
+				It("does not fail", func() {
+					Expect(runError).NotTo(HaveOccurred())
+				})
+				It("writes stdout to the writer", func() {
+					Expect(writer.String()).To(ContainSubstring("stdout"))
+				})
+				It("drains stderr", func() {
+					Expect(string(stdErr)).To(ContainSubstring("stderr"))
+				})
+				It("captures exit code", func() {
+					Expect(exitCode).To(Equal(1))
+				})
 			})
 		})
 
@@ -265,6 +270,44 @@ var _ = Describe("Connection", func() {
 					Expect(err).To(HaveOccurred())
 				})
 			})
+		})
+	})
+
+	Context("keeps session alive", func() {
+		var stdOut []byte
+		var stdErr []byte
+		var exitCode int
+		var runError error
+		BeforeEach(func() {
+			instance1 = testcluster.NewInstanceWithKeepAlive(2)
+			instance1.CreateUser("test-user", publicKeyForDocker(defaultPrivateKey))
+			privateKey = defaultPrivateKey
+			hostname = instance1.Address()
+			user = "test-user"
+
+			combinecOutLog := log.New(io.MultiWriter(GinkgoWriter, bytes.NewBufferString("")), "[bosh-package] ", log.Lshortfile)
+			combinedErrLog := log.New(io.MultiWriter(GinkgoWriter, bytes.NewBufferString("")), "[bosh-package] ", log.Lshortfile)
+			logger = boshlog.New(boshlog.LevelDebug, combinecOutLog, combinedErrLog)
+
+			instance1.CreateScript("/tmp/produce", `#!/usr/bin/env sh
+				echo "start"
+				sleep 4
+				echo "end"`)
+		})
+		JustBeforeEach(func() {
+			conn, connErr = ssh.NewConnectionWithServerAliveInterval(hostname, user, privateKey, 1, logger)
+			Expect(connErr).NotTo(HaveOccurred())
+
+			numGoRoutinesBeforeRun := runtime.NumGoroutine()
+			stdOut, stdErr, exitCode, runError = conn.Run("/tmp/produce")
+			Eventually(func() int {
+				return runtime.NumGoroutine()
+			}, 10).Should(Equal(numGoRoutinesBeforeRun))
+		})
+
+		It("should keep the connection alive", func() {
+			Expect(stdOut).To(ContainSubstring("start"))
+			Expect(stdOut).To(ContainSubstring("end"))
 		})
 	})
 })

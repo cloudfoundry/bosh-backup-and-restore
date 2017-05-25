@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"io"
 
+	"time"
+
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
 )
@@ -21,6 +23,10 @@ type Logger interface {
 }
 
 func NewConnection(hostName, userName, privateKey string, logger Logger) (SSHConnection, error) {
+	return NewConnectionWithServerAliveInterval(hostName, userName, privateKey, 60, logger)
+}
+
+func NewConnectionWithServerAliveInterval(hostName, userName, privateKey string, serverAliveInterval time.Duration, logger Logger) (SSHConnection, error) {
 	parsedPrivateKey, err := ssh.ParsePrivateKey([]byte(privateKey))
 	if err != nil {
 		return nil, errors.Wrap(err, "ssh.NewConnection.ParsePrivateKey failed")
@@ -34,16 +40,18 @@ func NewConnection(hostName, userName, privateKey string, logger Logger) (SSHCon
 				ssh.PublicKeys(parsedPrivateKey),
 			},
 		},
-		logger: logger,
+		logger:              logger,
+		serverAliveInterval: serverAliveInterval,
 	}
 
 	return conn, nil
 }
 
 type Connection struct {
-	host      string
-	sshConfig *ssh.ClientConfig
-	logger    Logger
+	host                string
+	sshConfig           *ssh.ClientConfig
+	logger              Logger
+	serverAliveInterval time.Duration
 }
 
 func (c Connection) Run(cmd string) ([]byte, []byte, int, error) {
@@ -81,6 +89,9 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 		return -1, errors.Wrap(err, "ssh.NewSession failed")
 	}
 
+	stopKeepAliveLoop := c.startKeepAliveLoop(session)
+	defer close(stopKeepAliveLoop)
+
 	session.Stdin = stdin
 	session.Stdout = stdout
 	session.Stderr = stderr
@@ -99,6 +110,25 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 		}
 	}
 	return exitCode, nil
+}
+
+func (c Connection) startKeepAliveLoop(session *ssh.Session) chan struct{} {
+	terminate := make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-terminate:
+				return
+			default:
+				_, err := session.SendRequest("keepalive@bbr", true, nil)
+				if err != nil {
+					c.logger.Warn("ssh", "keepalive failed: %+v", err)
+				}
+				time.Sleep(time.Second * c.serverAliveInterval)
+			}
+		}
+	}()
+	return terminate
 }
 
 func (c Connection) Username() string {
