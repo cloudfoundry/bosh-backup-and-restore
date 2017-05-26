@@ -26,7 +26,7 @@ var _ = Describe("Backup", func() {
 		backupCommand := RunCommandOnRemoteAsVcap(
 			JumpBoxSSHCommand(),
 			fmt.Sprintf(
-				`cd %s; ./bbr director --username vcap --private-key-path ./key.pem --host %s --name my-director backup`,
+				`cd %s; ./bbr director --username vcap --private-key-path ./key.pem --host %s --artifactname my-director backup`,
 				workspaceDir,
 				MustHaveEnv("HOST_TO_BACKUP")),
 		)

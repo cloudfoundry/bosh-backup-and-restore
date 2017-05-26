@@ -32,7 +32,7 @@ var _ = Describe("Pre-backup checks", func() {
 			backupWorkspace,
 			[]string{"BOSH_CLIENT_SECRET=admin"},
 			"director",
-			"--name", "my-director",
+			"--artifactname", "my-director",
 			"--host", directorIP,
 			"--username", "foobar",
 			"--private-key-path", pathToPrivateKeyFile,

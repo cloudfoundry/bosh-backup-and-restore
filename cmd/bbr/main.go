@@ -158,7 +158,7 @@ func preBackupCheck(c *cli.Context) error {
 }
 
 func directorPreBackupCheck(c *cli.Context) error {
-	var deployment = c.Parent().String("name")
+	var deployment = c.Parent().String("artifactname")
 
 	backuper := makeDirectorBackuper(c)
 
@@ -189,7 +189,7 @@ func backup(c *cli.Context) error {
 }
 
 func directorBackup(c *cli.Context) error {
-	var deployment = c.Parent().String("name")
+	var deployment = c.Parent().String("artifactname")
 
 	backuper := makeDirectorBackuper(c)
 
@@ -213,7 +213,7 @@ func restore(c *cli.Context) error {
 }
 
 func directorRestore(c *cli.Context) error {
-	var deployment = c.Parent().String("name")
+	var deployment = c.Parent().String("artifactname")
 
 	restorer := makeDirectorRestorer(c)
 
@@ -226,7 +226,7 @@ func validateDeploymentFlags(c *cli.Context) error {
 }
 
 func validateDirectorFlags(c *cli.Context) error {
-	return validateFlags([]string{"name", "host", "username", "private-key-path"}, c)
+	return validateFlags([]string{"artifactname", "host", "username", "private-key-path"}, c)
 }
 
 func validateFlags(requiredFlags []string, c *cli.Context) error {
@@ -291,7 +291,7 @@ func availableDeploymentFlags() []cli.Flag {
 func availableDirectorFlags() []cli.Flag {
 	return []cli.Flag{
 		cli.StringFlag{
-			Name:  "name, n",
+			Name:  "artifactname, n",
 			Value: "",
 			Usage: "Name for backup",
 		},

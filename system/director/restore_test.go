@@ -51,7 +51,7 @@ var _ = Describe("Restores a deployment", func() {
 		By("running the restore command")
 		restoreCommand := RunCommandOnRemote(
 			JumpBoxSSHCommand(),
-			fmt.Sprintf(`cd %s; ./bbr director --username vcap --private-key-path ./key.pem --host %s --name my-director restore`,
+			fmt.Sprintf(`cd %s; ./bbr director --username vcap --private-key-path ./key.pem --host %s --artifactname my-director restore`,
 				workspaceDir,
 				MustHaveEnv("HOST_TO_BACKUP"),
 			))
