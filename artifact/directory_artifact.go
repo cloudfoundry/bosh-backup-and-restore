@@ -2,12 +2,13 @@ package artifact
 
 import (
 	"archive/tar"
-	"crypto/sha1"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path"
+
+	sha256 "crypto/sha256"
 
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 	"github.com/pkg/errors"
@@ -122,7 +123,7 @@ func (directoryArtifact *DirectoryArtifact) CalculateChecksum(blobIdentifier orc
 			continue
 		}
 
-		fileShasum := sha1.New()
+		fileShasum := sha256.New()
 		if _, err := io.Copy(fileShasum, tarReader); err != nil {
 			return nil, directoryArtifact.logAndReturn(err, "Error calculating sha for %s", logName(blobIdentifier))
 		}

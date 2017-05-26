@@ -3,7 +3,7 @@ package artifact_test
 import (
 	"archive/tar"
 	"bytes"
-	"crypto/sha1"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -141,8 +141,8 @@ instances:
   checksums:
     file1: %x
     file2: %x
-`, sha1.Sum([]byte("This archive contains some text files.")),
-					sha1.Sum([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo"))))
+`, sha256.Sum256([]byte("This archive contains some text files.")),
+					sha256.Sum256([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo"))))
 			})
 
 			It("returns true", func() {
@@ -164,7 +164,7 @@ blobs:
 - blob_name: foo_redis
   checksums:
     file1: %x
-`, sha1.Sum([]byte("This archive contains some text files."))))
+`, sha256.Sum256([]byte("This archive contains some text files."))))
 			})
 
 			It("returns true", func() {
@@ -186,7 +186,7 @@ blobs:
 - blob_name: foo_redis
   checksums:
     file1: %x
-`, sha1.Sum([]byte("you fools!"))))
+`, sha256.Sum256([]byte("you fools!"))))
 			})
 
 			It("returns false", func() {
@@ -209,8 +209,8 @@ instances:
   checksums:
     file1: %x
     file2: %x
-`, sha1.Sum([]byte("This archive contains some text files.")),
-					sha1.Sum([]byte("Gopher names:\nNo Goper names"))))
+`, sha256.Sum256([]byte("This archive contains some text files.")),
+					sha256.Sum256([]byte("Gopher names:\nNo Goper names"))))
 			})
 
 			It("returns false", func() {
@@ -232,8 +232,8 @@ instances:
   checksums:
     file1: %x
     file2: %x
-`, sha1.Sum([]byte("This archive contains some text files.")),
-					sha1.Sum([]byte("Gopher names:\nNot present"))))
+`, sha256.Sum256([]byte("This archive contains some text files.")),
+					sha256.Sum256([]byte("Gopher names:\nNot present"))))
 			})
 
 			It("returns false", func() {
@@ -250,7 +250,7 @@ instances:
 	instance_index: 0
 	checksums:
 		file1: %x
-`, sha1.Sum([]byte("This archive contains some text files."))))
+`, sha256.Sum256([]byte("This archive contains some text files."))))
 			})
 
 			It("returns false", func() {
@@ -466,9 +466,9 @@ instances:
 				It("returns the checksum for the saved instance data", func() {
 					Expect(artifact.CalculateChecksum(fakeBackupBlob)).To(Equal(
 						orchestrator.BackupChecksum{
-							"readme.txt": fmt.Sprintf("%x", sha1.Sum([]byte("This archive contains some text files."))),
-							"gopher.txt": fmt.Sprintf("%x", sha1.Sum([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo"))),
-							"todo.txt":   fmt.Sprintf("%x", sha1.Sum([]byte("Get animal handling license."))),
+							"readme.txt": fmt.Sprintf("%x", sha256.Sum256([]byte("This archive contains some text files."))),
+							"gopher.txt": fmt.Sprintf("%x", sha256.Sum256([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo"))),
+							"todo.txt":   fmt.Sprintf("%x", sha256.Sum256([]byte("Get animal handling license."))),
 						}))
 				})
 			})
@@ -494,9 +494,9 @@ instances:
 				It("returns the checksum for the saved instance data", func() {
 					Expect(artifact.CalculateChecksum(fakeBackupBlob)).To(Equal(
 						orchestrator.BackupChecksum{
-							"readme.txt": fmt.Sprintf("%x", sha1.Sum([]byte("This archive contains some text files."))),
-							"gopher.txt": fmt.Sprintf("%x", sha1.Sum([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo"))),
-							"todo.txt":   fmt.Sprintf("%x", sha1.Sum([]byte("Get animal handling license."))),
+							"readme.txt": fmt.Sprintf("%x", sha256.Sum256([]byte("This archive contains some text files."))),
+							"gopher.txt": fmt.Sprintf("%x", sha256.Sum256([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo"))),
+							"todo.txt":   fmt.Sprintf("%x", sha256.Sum256([]byte("Get animal handling license."))),
 						}))
 				})
 			})

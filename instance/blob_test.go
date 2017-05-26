@@ -120,7 +120,7 @@ var _ = Describe("blob", func() {
 				})
 
 				It("generates the correct request", func() {
-					Expect(sshConnection.RunArgsForCall(0)).To(Equal("cd " + blobDirectory + "; sudo sh -c 'find . -type f | xargs shasum'"))
+					Expect(sshConnection.RunArgsForCall(0)).To(Equal("cd " + blobDirectory + "; sudo sh -c 'find . -type f | xargs shasum -a 256'"))
 				})
 			})
 			Context("can calculate checksum", func() {

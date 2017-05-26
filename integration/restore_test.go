@@ -157,7 +157,7 @@ instances:
 - instance_name: redis-dedicated-node
   instance_index: 0
   checksums:
-    ./redis/redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
+    ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
 			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
@@ -272,11 +272,11 @@ instances:
 - instance_name: redis-dedicated-node
   instance_index: 0
   checksums:
-    ./redis/redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8
+    ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0
 - instance_name: redis-server
   instance_index: 0
   checksums:
-    ./redis/redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
+    ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
 			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
@@ -355,7 +355,7 @@ instances:
 blobs:
 - blob_name: foo
   checksums:
-    ./redis/redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
+    ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
 			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
@@ -443,7 +443,7 @@ instances:
 blobs:
 - blob_name: foo
   checksums:
-    ./redis/redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
+    ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
 			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
@@ -556,7 +556,7 @@ instances:
 - instance_name: redis-dedicated-node
   instance_index: 0
   checksums:
-    ./redis/redis-backup: e1b615ac53a1ef01cf2d4021941f9d56db451fd8`))
+    ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
 			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())

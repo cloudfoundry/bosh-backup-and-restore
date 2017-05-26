@@ -127,7 +127,7 @@ func (b *Blob) Size() (string, error) {
 func (b *Blob) Checksum() (orchestrator.BackupChecksum, error) {
 	b.Logger.Debug("bbr", "Calculating shasum for remote files on %s/%s", b.Instance.Name(), b.Instance.ID())
 
-	stdout, stderr, exitCode, err := b.logAndRun(fmt.Sprintf("cd %s; sudo sh -c 'find . -type f | xargs shasum'", b.artifactDirectory), "checksum")
+	stdout, stderr, exitCode, err := b.logAndRun(fmt.Sprintf("cd %s; sudo sh -c 'find . -type f | xargs shasum -a 256'", b.artifactDirectory), "checksum")
 
 	if err != nil {
 		return nil, err

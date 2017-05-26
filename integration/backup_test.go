@@ -2,7 +2,7 @@ package integration
 
 import (
 	"archive/tar"
-	"crypto/sha1"
+	"crypto/sha256"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -791,7 +791,7 @@ func contentsInTar(tarFile, file string) string {
 }
 
 func shaFor(contents string) string {
-	shasum := sha1.New()
+	shasum := sha256.New()
 	shasum.Write([]byte(contents))
 	return fmt.Sprintf("%x", shasum.Sum(nil))
 }
