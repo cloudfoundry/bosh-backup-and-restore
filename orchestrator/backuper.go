@@ -1,11 +1,5 @@
 package orchestrator
 
-import (
-	"log"
-	"os"
-	"runtime/pprof"
-)
-
 func NewBackuper(artifactManager ArtifactManager, logger Logger, deploymentManager DeploymentManager) *Backuper {
 	return &Backuper{
 		ArtifactManager:   artifactManager,
@@ -42,13 +36,6 @@ type AuthInfo struct {
 
 //Backup checks if a deployment has backupable instances and backs them up.
 func (b Backuper) Backup(deploymentName string) Error {
-	f, err := os.Create("profile.prof")
-	if err != nil {
-		log.Fatal(err)
-	}
-	pprof.StartCPUProfile(f)
-	defer pprof.StopCPUProfile()
-
 	bw := newBackupWorkflow(b, deploymentName)
 
 	return bw.Run()
