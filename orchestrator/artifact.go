@@ -14,13 +14,13 @@ type ArtifactManager interface {
 
 //go:generate counterfeiter -o fakes/fake_artifact.go . Artifact
 type Artifact interface {
-	CreateFile(BackupBlobIdentifier) (io.WriteCloser, error)
-	ReadFile(BackupBlobIdentifier) (io.ReadCloser, error)
-	AddChecksum(BackupBlobIdentifier, BackupChecksum) error
+	CreateFile(InstanceIdentifer) (io.WriteCloser, error)
+	ReadFile(InstanceIdentifer) (io.ReadCloser, error)
+	AddChecksum(InstanceIdentifer, BackupChecksum) error
 	CreateMetadataFileWithStartTime(time.Time) error
 	AddFinishTime(time.Time) error
-	FetchChecksum(BackupBlobIdentifier) (BackupChecksum, error)
-	CalculateChecksum(BackupBlobIdentifier) (BackupChecksum, error)
+	FetchChecksum(InstanceIdentifer) (BackupChecksum, error)
+	CalculateChecksum(InstanceIdentifer) (BackupChecksum, error)
 	DeploymentMatches(string, []Instance) (bool, error)
 	SaveManifest(manifest string) error
 	Valid() (bool, error)

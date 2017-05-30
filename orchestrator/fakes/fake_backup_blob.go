@@ -36,15 +36,6 @@ type FakeBackupBlob struct {
 	iDReturnsOnCall map[int]struct {
 		result1 string
 	}
-	IsNamedStub        func() bool
-	isNamedMutex       sync.RWMutex
-	isNamedArgsForCall []struct{}
-	isNamedReturns     struct {
-		result1 bool
-	}
-	isNamedReturnsOnCall map[int]struct {
-		result1 bool
-	}
 	SizeStub        func() (string, error)
 	sizeMutex       sync.RWMutex
 	sizeArgsForCall []struct{}
@@ -219,46 +210,6 @@ func (fake *FakeBackupBlob) IDReturnsOnCall(i int, result1 string) {
 	}
 	fake.iDReturnsOnCall[i] = struct {
 		result1 string
-	}{result1}
-}
-
-func (fake *FakeBackupBlob) IsNamed() bool {
-	fake.isNamedMutex.Lock()
-	ret, specificReturn := fake.isNamedReturnsOnCall[len(fake.isNamedArgsForCall)]
-	fake.isNamedArgsForCall = append(fake.isNamedArgsForCall, struct{}{})
-	fake.recordInvocation("IsNamed", []interface{}{})
-	fake.isNamedMutex.Unlock()
-	if fake.IsNamedStub != nil {
-		return fake.IsNamedStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.isNamedReturns.result1
-}
-
-func (fake *FakeBackupBlob) IsNamedCallCount() int {
-	fake.isNamedMutex.RLock()
-	defer fake.isNamedMutex.RUnlock()
-	return len(fake.isNamedArgsForCall)
-}
-
-func (fake *FakeBackupBlob) IsNamedReturns(result1 bool) {
-	fake.IsNamedStub = nil
-	fake.isNamedReturns = struct {
-		result1 bool
-	}{result1}
-}
-
-func (fake *FakeBackupBlob) IsNamedReturnsOnCall(i int, result1 bool) {
-	fake.IsNamedStub = nil
-	if fake.isNamedReturnsOnCall == nil {
-		fake.isNamedReturnsOnCall = make(map[int]struct {
-			result1 bool
-		})
-	}
-	fake.isNamedReturnsOnCall[i] = struct {
-		result1 bool
 	}{result1}
 }
 
@@ -493,8 +444,6 @@ func (fake *FakeBackupBlob) Invocations() map[string][][]interface{} {
 	defer fake.indexMutex.RUnlock()
 	fake.iDMutex.RLock()
 	defer fake.iDMutex.RUnlock()
-	fake.isNamedMutex.RLock()
-	defer fake.isNamedMutex.RUnlock()
 	fake.sizeMutex.RLock()
 	defer fake.sizeMutex.RUnlock()
 	fake.checksumMutex.RLock()

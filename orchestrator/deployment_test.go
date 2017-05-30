@@ -1168,7 +1168,7 @@ var _ = Describe("Deployment", func() {
 				blob1 = new(fakes.FakeBackupBlob)
 				blob2 = new(fakes.FakeBackupBlob)
 
-				artifact.CreateFileStub = func(i orchestrator.BackupBlobIdentifier) (io.WriteCloser, error) {
+				artifact.CreateFileStub = func(i orchestrator.InstanceIdentifer) (io.WriteCloser, error) {
 					if i == blob1 {
 						return writeCloser1, nil
 					} else {

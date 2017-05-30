@@ -17,7 +17,3 @@ func (m instanceMetadata) Index() string {
 func (m instanceMetadata) ID() string {
 	return m.Index()
 }
-
-func (m instanceMetadata) IsNamed() bool {
-	return false
-}

@@ -50,7 +50,7 @@ func (directoryArtifact *DirectoryArtifact) DeploymentMatches(deployment string,
 	return true, nil
 }
 
-func (directoryArtifact *DirectoryArtifact) CreateFile(blobIdentifier orchestrator.BackupBlobIdentifier) (io.WriteCloser, error) {
+func (directoryArtifact *DirectoryArtifact) CreateFile(blobIdentifier orchestrator.InstanceIdentifer) (io.WriteCloser, error) {
 	directoryArtifact.Debug(tag, "Trying to create file %s", fileName(blobIdentifier))
 
 	file, err := os.Create(path.Join(directoryArtifact.baseDirName, fileName(blobIdentifier)))
@@ -62,7 +62,7 @@ func (directoryArtifact *DirectoryArtifact) CreateFile(blobIdentifier orchestrat
 	return file, err
 }
 
-func (directoryArtifact *DirectoryArtifact) ReadFile(blobIdentifier orchestrator.BackupBlobIdentifier) (io.ReadCloser, error) {
+func (directoryArtifact *DirectoryArtifact) ReadFile(blobIdentifier orchestrator.InstanceIdentifer) (io.ReadCloser, error) {
 	filename := directoryArtifact.instanceFilename(blobIdentifier)
 	directoryArtifact.Debug(tag, "Trying to open %s", filename)
 	file, err := os.Open(filename)
@@ -74,14 +74,14 @@ func (directoryArtifact *DirectoryArtifact) ReadFile(blobIdentifier orchestrator
 	return file, nil
 }
 
-func (directoryArtifact *DirectoryArtifact) FetchChecksum(blobIdentifier orchestrator.BackupBlobIdentifier) (orchestrator.BackupChecksum, error) {
+func (directoryArtifact *DirectoryArtifact) FetchChecksum(blobIdentifier orchestrator.InstanceIdentifer) (orchestrator.BackupChecksum, error) {
 	metadata, err := readMetadata(directoryArtifact.metadataFilename())
 
 	if err != nil {
 		return nil, directoryArtifact.logAndReturn(err, "Error reading metadata from %s", directoryArtifact.metadataFilename())
 	}
 
-	if blobIdentifier.IsNamed() {
+	if blobIdentifier.Index() == "" {
 		for _, instanceInMetadata := range metadata.MetadataForEachBlob {
 			if instanceInMetadata.Name() == blobIdentifier.Name() {
 				return instanceInMetadata.Checksum, nil
@@ -99,14 +99,14 @@ func (directoryArtifact *DirectoryArtifact) FetchChecksum(blobIdentifier orchest
 	return nil, nil
 }
 
-func logName(artifactIdentifer orchestrator.BackupBlobIdentifier) string {
+func logName(artifactIdentifer orchestrator.InstanceIdentifer) string {
 	if artifactIdentifer.Index() == "" {
 		return fmt.Sprintf("%s", artifactIdentifer.Name())
 	}
 	return fmt.Sprintf("%s/%s", artifactIdentifer.Name(), artifactIdentifer.Index())
 }
 
-func (directoryArtifact *DirectoryArtifact) CalculateChecksum(blobIdentifier orchestrator.BackupBlobIdentifier) (orchestrator.BackupChecksum, error) {
+func (directoryArtifact *DirectoryArtifact) CalculateChecksum(blobIdentifier orchestrator.InstanceIdentifer) (orchestrator.BackupChecksum, error) {
 	file, err := directoryArtifact.ReadFile(blobIdentifier)
 	if err != nil {
 		return nil, directoryArtifact.logAndReturn(err, "Error opening artifact file %v", blobIdentifier)
@@ -138,7 +138,7 @@ func (directoryArtifact *DirectoryArtifact) CalculateChecksum(blobIdentifier orc
 	return checksum, nil
 }
 
-func (directoryArtifact *DirectoryArtifact) AddChecksum(blobIdentifier orchestrator.BackupBlobIdentifier, shasum orchestrator.BackupChecksum) error {
+func (directoryArtifact *DirectoryArtifact) AddChecksum(blobIdentifier orchestrator.InstanceIdentifer, shasum orchestrator.BackupChecksum) error {
 	if exists, err := directoryArtifact.metadataExistsAndIsReadable(); !exists {
 		return directoryArtifact.logAndReturn(err, "unable to load metadata")
 	}
@@ -148,7 +148,7 @@ func (directoryArtifact *DirectoryArtifact) AddChecksum(blobIdentifier orchestra
 		return directoryArtifact.logAndReturn(err, "Error reading metadata from %s", directoryArtifact.metadataFilename())
 	}
 
-	if blobIdentifier.IsNamed() {
+	if blobIdentifier.Index() == "" {
 		metadata.MetadataForEachBlob = append(metadata.MetadataForEachBlob, blobMetadata{
 			BlobName: blobIdentifier.Name(),
 			Checksum: shasum,
@@ -235,7 +235,7 @@ func (directoryArtifact *DirectoryArtifact) backupInstanceIsPresent(backupInstan
 	return false
 }
 
-func (directoryArtifact *DirectoryArtifact) instanceFilename(blobIdentifier orchestrator.BackupBlobIdentifier) string {
+func (directoryArtifact *DirectoryArtifact) instanceFilename(blobIdentifier orchestrator.InstanceIdentifer) string {
 	return path.Join(directoryArtifact.baseDirName, fileName(blobIdentifier))
 }
 
@@ -255,7 +255,7 @@ func (directoryArtifact *DirectoryArtifact) metadataExistsAndIsReadable() (bool,
 	return true, nil
 }
 
-func fileName(blobIdentifier orchestrator.BackupBlobIdentifier) string {
+func fileName(blobIdentifier orchestrator.InstanceIdentifer) string {
 	if blobIdentifier.Index() == "" {
 		return blobIdentifier.Name() + ".tar"
 	}
