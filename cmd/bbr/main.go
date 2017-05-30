@@ -298,7 +298,7 @@ func availableDirectorFlags() []cli.Flag {
 		cli.StringFlag{
 			Name:  "host",
 			Value: "",
-			Usage: "BOSH Director hostname",
+			Usage: "BOSH Director hostname, with an optional port. Port defaults to 22",
 		},
 		cli.StringFlag{
 			Name:  "username, u",
