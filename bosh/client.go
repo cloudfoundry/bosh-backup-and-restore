@@ -1,8 +1,6 @@
 package bosh
 
 import (
-	"strings"
-
 	"strconv"
 
 	"fmt"
@@ -93,7 +91,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 			var err error
 
 			c.Logger.Debug("bbr", "Attempting to SSH onto %s, %s", host.Host, host.IndexOrID)
-			sshConnection, err = c.SSHConnectionFactory(defaultToSSHPort(host.Host), host.Username, privateKey, c.Logger)
+			sshConnection, err = c.SSHConnectionFactory(host.Host, host.Username, privateKey, c.Logger)
 
 			if err != nil {
 				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
@@ -133,15 +131,6 @@ func (c Client) GetManifest(deploymentName string) (string, error) {
 		return "", err
 	}
 	return deployment.Manifest()
-}
-
-func defaultToSSHPort(host string) string {
-	parts := strings.Split(host, ":")
-	if len(parts) == 2 {
-		return host
-	} else {
-		return host + ":22"
-	}
 }
 
 func uniqueInstanceGroupNamesFromVMs(vms []director.VMInfo) []string {

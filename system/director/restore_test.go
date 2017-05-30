@@ -6,8 +6,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"net"
-
 	"github.com/onsi/gomega/gexec"
 	. "github.com/pivotal-cf/bosh-backup-and-restore/system"
 )
@@ -28,13 +26,12 @@ var _ = Describe("Restores a deployment", func() {
 		)).Should(gexec.Exit(0))
 
 		By("cleaning up the director")
-		directorIp, _, _ := net.SplitHostPort(MustHaveEnv("HOST_TO_BACKUP"))
 		Eventually(RunCommandOnRemote(
 			JumpBoxSSHCommand(),
 			fmt.Sprintf(`cd %s; ssh %s vcap@%s -i key.pem 'sudo rm -rf %s'`,
 				workspaceDir,
 				skipSSHFingerprintCheckOpts,
-				directorIp,
+				MustHaveEnv("HOST_TO_BACKUP"),
 				restorePath,
 			),
 		)).Should(gexec.Exit(0))
@@ -58,13 +55,12 @@ var _ = Describe("Restores a deployment", func() {
 		Eventually(restoreCommand).Should(gexec.Exit(0))
 
 		By("ensuring data is restored")
-		directorIp, _, _ := net.SplitHostPort(MustHaveEnv("HOST_TO_BACKUP"))
 		Eventually(RunCommandOnRemote(
 			JumpBoxSSHCommand(),
 			fmt.Sprintf(`cd %s; ssh %s vcap@%s -i key.pem 'stat %s'`,
 				workspaceDir,
 				skipSSHFingerprintCheckOpts,
-				directorIp,
+				MustHaveEnv("HOST_TO_BACKUP"),
 				restoredArtifactPath,
 			),
 		)).Should(gexec.Exit(0))

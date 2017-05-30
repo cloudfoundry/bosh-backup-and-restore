@@ -54,7 +54,7 @@ sys-test-local-director:
 	BOSH_CERT_PATH=~/workspace/bosh-backup-and-restore-meta/certs/genesis-bosh.backup-and-restore.cf-app.com.crt \
 	BOSH_GATEWAY_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
 	SSH_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
-	HOST_TO_BACKUP=10.0.0.8:22 \
+	HOST_TO_BACKUP=10.0.0.8 \
 	TEST_ENV=ci \
 	ginkgo -r -v system/director
 

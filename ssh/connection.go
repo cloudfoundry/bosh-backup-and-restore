@@ -6,6 +6,8 @@ import (
 
 	"time"
 
+	"strings"
+
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
 )
@@ -33,7 +35,7 @@ func NewConnectionWithServerAliveInterval(hostName, userName, privateKey string,
 	}
 
 	conn := Connection{
-		host: hostName,
+		host: defaultToSSHPort(hostName),
 		sshConfig: &ssh.ClientConfig{
 			User: userName,
 			Auth: []ssh.AuthMethod{
@@ -135,4 +137,13 @@ func (c Connection) startKeepAliveLoop(session *ssh.Session) chan struct{} {
 
 func (c Connection) Username() string {
 	return c.sshConfig.User
+}
+
+func defaultToSSHPort(host string) string {
+	parts := strings.Split(host, ":")
+	if len(parts) == 2 {
+		return host
+	} else {
+		return host + ":22"
+	}
 }
