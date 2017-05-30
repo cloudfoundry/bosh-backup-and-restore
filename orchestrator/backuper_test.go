@@ -3,6 +3,8 @@ package orchestrator_test
 import (
 	"fmt"
 
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
@@ -11,14 +13,15 @@ import (
 
 var _ = Describe("Backup", func() {
 	var (
-		b                 *orchestrator.Backuper
-		deployment        *fakes.FakeDeployment
-		deploymentManager *fakes.FakeDeploymentManager
-		artifact          *fakes.FakeArtifact
-		artifactManager   *fakes.FakeArtifactManager
-		logger            *fakes.FakeLogger
-		deploymentName    = "foobarbaz"
-		actualBackupError orchestrator.Error
+		b                     *orchestrator.Backuper
+		deployment            *fakes.FakeDeployment
+		deploymentManager     *fakes.FakeDeploymentManager
+		artifact              *fakes.FakeArtifact
+		artifactManager       *fakes.FakeArtifactManager
+		logger                *fakes.FakeLogger
+		deploymentName        = "foobarbaz"
+		actualBackupError     orchestrator.Error
+		startTime, finishTime time.Time
 	)
 
 	BeforeEach(func() {
@@ -27,7 +30,18 @@ var _ = Describe("Backup", func() {
 		artifactManager = new(fakes.FakeArtifactManager)
 		artifact = new(fakes.FakeArtifact)
 		logger = new(fakes.FakeLogger)
-		b = orchestrator.NewBackuper(artifactManager, logger, deploymentManager)
+
+		startTime = time.Now()
+		finishTime = startTime.Add(time.Hour)
+
+		nows := []time.Time{startTime, finishTime}
+		nowFunc := func() time.Time {
+			var now time.Time
+			now, nows = nows[0], nows[1:]
+			return now
+		}
+
+		b = orchestrator.NewBackuper(artifactManager, logger, deploymentManager, nowFunc)
 	})
 
 	JustBeforeEach(func() {
@@ -98,6 +112,11 @@ var _ = Describe("Backup", func() {
 		It("drains the backup to the artifact", func() {
 			Expect(deployment.CopyRemoteBackupToLocalCallCount()).To(Equal(1))
 			Expect(deployment.CopyRemoteBackupToLocalArgsForCall(0)).To(Equal(artifact))
+		})
+
+		It("saves start and finish timestamps in the metadata file", func() {
+			Expect(artifact.CreateMetadataFileWithStartTimeArgsForCall(0)).To(Equal(startTime))
+			Expect(artifact.AddFinishTimeArgsForCall(0)).To(Equal(finishTime))
 		})
 	})
 
@@ -413,6 +432,11 @@ var _ = Describe("Backup", func() {
 				Expect(deployment.CleanupCallCount()).To(Equal(1))
 			})
 
+			It("saves the start timestamp in the metadata file but not the finish timestamp", func() {
+				Expect(artifact.CreateMetadataFileWithStartTimeArgsForCall(0)).To(Equal(startTime))
+				Expect(artifact.AddFinishTimeCallCount()).To(BeZero())
+			})
+
 			Context("cleanup fails as well", assertCleanupError)
 		})
 
@@ -465,7 +489,7 @@ var _ = Describe("CanBeBackedUp", func() {
 		deploymentManager = new(fakes.FakeDeploymentManager)
 		artifactManager = new(fakes.FakeArtifactManager)
 		logger = new(fakes.FakeLogger)
-		b = orchestrator.NewBackuper(artifactManager, logger, deploymentManager)
+		b = orchestrator.NewBackuper(artifactManager, logger, deploymentManager, time.Now)
 	})
 
 	JustBeforeEach(func() {

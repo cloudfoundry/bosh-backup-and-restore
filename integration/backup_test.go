@@ -16,8 +16,11 @@ import (
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"gopkg.in/yaml.v2"
 )
 
 var _ = Describe("Backup", func() {
@@ -109,9 +112,10 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						Expect(session.ExitCode()).To(BeZero())
 					})
 
-					It("creates a backup directory which contains a backup artifact", func() {
+					It("creates a backup directory which contains a backup artifact and a metadata file", func() {
 						Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
 						Expect(redisNodeArtifactFile).To(BeARegularFile())
+						Expect(metadataFile).To(BeARegularFile())
 					})
 
 					It("the backup artifact contains the backup files from the instance", func() {
@@ -120,17 +124,24 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						Expect(contentsInTar(redisNodeArtifactFile, "backupdump2")).To(Equal("backupcontent2"))
 					})
 
-					It("creates a metadata file", func() {
-						Expect(metadataFile).To(BeARegularFile())
-					})
-
 					It("the metadata file is correct", func() {
-						Expect(ioutil.ReadFile(metadataFile)).To(MatchYAML(fmt.Sprintf(`instances:
-- instance_name: redis-dedicated-node
-  instance_index: "0"
-  checksums:
-    ./redis/backupdump1: %s
-    ./redis/backupdump2: %s`, shaFor("backupcontent1"), shaFor("backupcontent2"))))
+						metadataContents := metadata{}
+						contents, _ := ioutil.ReadFile(metadataFile)
+						yaml.Unmarshal(contents, &metadataContents)
+
+						currentTimezone, _ := time.Now().Zone()
+						Expect(metadataContents.BackupActivityMetadata.StartTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
+						Expect(metadataContents.BackupActivityMetadata.FinishTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
+
+						Expect(metadataContents.InstancesMetadata).To(HaveLen(1))
+						Expect(metadataContents.InstancesMetadata[0].InstanceName).To(Equal("redis-dedicated-node"))
+						Expect(metadataContents.InstancesMetadata[0].InstanceIndex).To(Equal("0"))
+
+						Expect(metadataContents.InstancesMetadata[0].Checksums).To(HaveLen(2))
+						Expect(metadataContents.InstancesMetadata[0].Checksums["./redis/backupdump1"]).To(Equal(shaFor("backupcontent1")))
+						Expect(metadataContents.InstancesMetadata[0].Checksums["./redis/backupdump2"]).To(Equal(shaFor("backupcontent2")))
+
+						Expect(metadataContents.BlobsMetadata).To(BeEmpty())
 					})
 
 					It("prints the backup progress to the screen", func() {
@@ -190,13 +201,20 @@ backup_name: foo_redis
 
 					It("the metadata records the artifact as a blob instead of an instance", func() {
 						Expect(metadataFile).To(BeARegularFile())
-						Expect(ioutil.ReadFile(metadataFile)).To(MatchYAML(fmt.Sprintf(`instances: []
-blobs:
-- blob_name: foo_redis
-  checksums:
-    ./backupdump1: %s
-    ./backupdump2: %s
-`, shaFor("backupcontent1"), shaFor("backupcontent2"))))
+
+						metadataContents := metadata{}
+						contents, _ := ioutil.ReadFile(metadataFile)
+						yaml.Unmarshal(contents, &metadataContents)
+
+						currentTimezone, _ := time.Now().Zone()
+						Expect(metadataContents.BackupActivityMetadata.StartTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
+						Expect(metadataContents.BackupActivityMetadata.FinishTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
+
+						Expect(metadataContents.BlobsMetadata).To(HaveLen(1))
+						Expect(metadataContents.BlobsMetadata[0].BlobName).To(Equal("foo_redis"))
+						Expect(metadataContents.BlobsMetadata[0].Checksums).To(HaveLen(2))
+						Expect(metadataContents.BlobsMetadata[0].Checksums["./backupdump1"]).To(Equal(shaFor("backupcontent1")))
+						Expect(metadataContents.BlobsMetadata[0].Checksums["./backupdump2"]).To(Equal(shaFor("backupcontent2")))
 					})
 				})
 
@@ -340,7 +358,7 @@ exit 1`)
 
 				It("downloads the manifest", func() {
 					Expect(path.Join(backupWorkspace, deploymentName, "manifest.yml")).To(BeARegularFile())
-					Expect(ioutil.ReadFile(path.Join(backupWorkspace, deploymentName, "manifest.yml"))).To(MatchYAML("this is a totally valid yaml"))
+					Expect(ioutil.ReadFile(path.Join(backupWorkspace, deploymentName, "manifest.yml"))).To(Equal([]byte("this is a totally valid yaml")))
 				})
 			})
 		})
@@ -806,4 +824,26 @@ func assertErrorOutput(session *gexec.Session, strings []string) {
 	for _, str := range strings {
 		Expect(string(session.Err.Contents())).To(ContainSubstring(str))
 	}
+}
+
+type instanceMetadata struct {
+	InstanceName  string            `yaml:"instance_name"`
+	InstanceIndex string            `yaml:"instance_index"`
+	Checksums     map[string]string `yaml:"checksums"`
+}
+
+type blobMetadata struct {
+	BlobName  string            `yaml:"blob_name"`
+	Checksums map[string]string `yaml:"checksums"`
+}
+
+type backupActivityMetadata struct {
+	StartTime  string `yaml:"start_time"`
+	FinishTime string `yaml:"finish_time"`
+}
+
+type metadata struct {
+	InstancesMetadata      []instanceMetadata     `yaml:"instances"`
+	BlobsMetadata          []blobMetadata         `yaml:"blobs,omitempty"`
+	BackupActivityMetadata backupActivityMetadata `yaml:"backup_activity"`
 }

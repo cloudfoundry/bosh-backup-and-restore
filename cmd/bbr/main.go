@@ -9,6 +9,8 @@ import (
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
 
+	"time"
+
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/mgutz/ansi"
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
@@ -332,7 +334,7 @@ func makeBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
 		return nil, redCliError(err)
 	}
 
-	return orchestrator.NewBackuper(artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
+	return orchestrator.NewBackuper(artifact.DirectoryArtifactManager{}, logger, deploymentManager, time.Now), nil
 }
 
 func makeDirectorBackuper(c *cli.Context) *orchestrator.Backuper {
@@ -344,7 +346,7 @@ func makeDirectorBackuper(c *cli.Context) *orchestrator.Backuper {
 		instance.NewJobFinder(logger),
 		ssh.NewConnection,
 	)
-	backuper := orchestrator.NewBackuper(artifact.DirectoryArtifactManager{}, logger, deploymentManager)
+	backuper := orchestrator.NewBackuper(artifact.DirectoryArtifactManager{}, logger, deploymentManager, time.Now)
 	return backuper
 }
 

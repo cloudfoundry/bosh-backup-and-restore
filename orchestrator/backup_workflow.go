@@ -90,17 +90,18 @@ func newBackupWorkflow(backuper Backuper, deploymentName string) *backupWorkflow
 			beforeEvent(EventCheckDeployment):          bw.checkDeployment,
 			beforeEvent(EventCheckHasBackupScript):     bw.checkHasBackupScript,
 			beforeEvent(EventCreateEmptyLocalArtifact): bw.createEmptyLocalArtifact,
+			onEnterState(StateArtifactCreated):         bw.recordStartTime,
 			beforeEvent(EventPrebackupLock):            bw.prebackupLock,
 			beforeEvent(EventBackup):                   bw.backup,
 			beforeEvent(EventPostBackupUnlock):         bw.postBackupUnlock,
 			beforeEvent(EventDrain):                    bw.drain,
 			EventCleanup:                               bw.cleanup,
+			onEnterState(StateFinished):                bw.recordSuccessfulFinishTime,
 		},
 	)
 
 	return bw
 }
-
 func (bw *backupWorkflow) Run() Error {
 	for _, e := range bw.events {
 		if bw.Can(e.Name) {
@@ -177,7 +178,10 @@ func (bw *backupWorkflow) createEmptyLocalArtifact(e *fsm.Event) {
 		e.Cancel()
 		return
 	}
+}
 
+func (bw *backupWorkflow) recordStartTime(e *fsm.Event) {
+	bw.artifact.CreateMetadataFileWithStartTime(bw.Backuper.NowFunc())
 }
 
 func (bw *backupWorkflow) prebackupLock(e *fsm.Event) {
@@ -220,6 +224,16 @@ func (bw *backupWorkflow) drain(e *fsm.Event) {
 	bw.Logger.Info("bbr", "Backup created of %s on %v\n", bw.deploymentName, time.Now())
 }
 
+func (bw *backupWorkflow) recordSuccessfulFinishTime(e *fsm.Event) {
+	if bw.artifact != nil && !bw.backupErrors.IsFatal() {
+		bw.artifact.AddFinishTime(bw.Backuper.NowFunc())
+	}
+}
+
 func beforeEvent(eventName string) string {
 	return "before_" + eventName
+}
+
+func onEnterState(stateName string) string {
+	return "enter_" + stateName
 }

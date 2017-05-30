@@ -9,12 +9,14 @@ import (
 	"path"
 
 	sha256 "crypto/sha256"
+	"time"
 
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 	"github.com/pkg/errors"
 )
 
-const TAG = "[artifact]"
+const tag = "[artifact]"
+const timestampFormat = "2006/01/02 15:04:05 MST"
 
 type DirectoryArtifact struct {
 	orchestrator.Logger
@@ -23,9 +25,10 @@ type DirectoryArtifact struct {
 
 func (directoryArtifact *DirectoryArtifact) logAndReturn(err error, message string, args ...interface{}) error {
 	message = fmt.Sprintf(message, args...)
-	directoryArtifact.Debug(TAG, "%s: %v", message, err)
+	directoryArtifact.Debug(tag, "%s: %v", message, err)
 	return errors.Wrap(err, message)
 }
+
 func (directoryArtifact *DirectoryArtifact) DeploymentMatches(deployment string, instances []orchestrator.Instance) (bool, error) {
 	_, err := directoryArtifact.metadataExistsAndIsReadable()
 	if err != nil {
@@ -39,7 +42,7 @@ func (directoryArtifact *DirectoryArtifact) DeploymentMatches(deployment string,
 	for _, inst := range meta.MetadataForEachInstance {
 		present := directoryArtifact.backupInstanceIsPresent(inst, instances)
 		if present != true {
-			directoryArtifact.Debug(TAG, "Instance %v/%v not found in %v", inst.Name(), inst.Index(), instances)
+			directoryArtifact.Debug(tag, "Instance %v/%v not found in %v", inst.Name(), inst.Index(), instances)
 			return false, nil
 		}
 	}
@@ -48,7 +51,7 @@ func (directoryArtifact *DirectoryArtifact) DeploymentMatches(deployment string,
 }
 
 func (directoryArtifact *DirectoryArtifact) CreateFile(blobIdentifier orchestrator.BackupBlobIdentifier) (io.WriteCloser, error) {
-	directoryArtifact.Debug(TAG, "Trying to create file %s", fileName(blobIdentifier))
+	directoryArtifact.Debug(tag, "Trying to create file %s", fileName(blobIdentifier))
 
 	file, err := os.Create(path.Join(directoryArtifact.baseDirName, fileName(blobIdentifier)))
 	if err != nil {
@@ -61,10 +64,10 @@ func (directoryArtifact *DirectoryArtifact) CreateFile(blobIdentifier orchestrat
 
 func (directoryArtifact *DirectoryArtifact) ReadFile(blobIdentifier orchestrator.BackupBlobIdentifier) (io.ReadCloser, error) {
 	filename := directoryArtifact.instanceFilename(blobIdentifier)
-	directoryArtifact.Debug(TAG, "Trying to open %s", filename)
+	directoryArtifact.Debug(tag, "Trying to open %s", filename)
 	file, err := os.Open(filename)
 	if err != nil {
-		directoryArtifact.Debug(TAG, "Error reading artifact file %s", filename)
+		directoryArtifact.Debug(tag, "Error reading artifact file %s", filename)
 		return nil, directoryArtifact.logAndReturn(err, "Error reading artifact file %s", filename)
 	}
 
@@ -92,9 +95,10 @@ func (directoryArtifact *DirectoryArtifact) FetchChecksum(blobIdentifier orchest
 		}
 	}
 
-	directoryArtifact.Warn(TAG, "Checksum for %s not found in artifact", logName(blobIdentifier))
+	directoryArtifact.Warn(tag, "Checksum for %s not found in artifact", logName(blobIdentifier))
 	return nil, nil
 }
+
 func logName(artifactIdentifer orchestrator.BackupBlobIdentifier) string {
 	if artifactIdentifer.IsNamed() {
 		return fmt.Sprintf("%s", artifactIdentifer.Name())
@@ -127,20 +131,21 @@ func (directoryArtifact *DirectoryArtifact) CalculateChecksum(blobIdentifier orc
 		if _, err := io.Copy(fileShasum, tarReader); err != nil {
 			return nil, directoryArtifact.logAndReturn(err, "Error calculating sha for %s", logName(blobIdentifier))
 		}
-		directoryArtifact.Logger.Debug(TAG, "Calculating shasum for local file %s", tarHeader.Name)
+		directoryArtifact.Logger.Debug(tag, "Calculating shasum for local file %s", tarHeader.Name)
 		checksum[tarHeader.Name] = fmt.Sprintf("%x", fileShasum.Sum(nil))
 	}
 
 	return checksum, nil
 }
+
 func (directoryArtifact *DirectoryArtifact) AddChecksum(blobIdentifier orchestrator.BackupBlobIdentifier, shasum orchestrator.BackupChecksum) error {
-	metadata := metadata{}
-	if exists, _ := directoryArtifact.metadataExistsAndIsReadable(); exists {
-		var err error
-		metadata, err = readMetadata(directoryArtifact.metadataFilename())
-		if err != nil {
-			return directoryArtifact.logAndReturn(err, "Error reading metadata from %s", directoryArtifact.metadataFilename())
-		}
+	if exists, err := directoryArtifact.metadataExistsAndIsReadable(); !exists {
+		return directoryArtifact.logAndReturn(err, "unable to load metadata")
+	}
+
+	metadata, err := readMetadata(directoryArtifact.metadataFilename())
+	if err != nil {
+		return directoryArtifact.logAndReturn(err, "Error reading metadata from %s", directoryArtifact.metadataFilename())
 	}
 
 	if blobIdentifier.IsNamed() {
@@ -157,6 +162,38 @@ func (directoryArtifact *DirectoryArtifact) AddChecksum(blobIdentifier orchestra
 	}
 
 	return metadata.save(directoryArtifact.metadataFilename())
+}
+
+func (directoryArtifact *DirectoryArtifact) CreateMetadataFileWithStartTime(startTime time.Time) error {
+	exists, _ := directoryArtifact.metadataExistsAndIsReadable()
+	if exists {
+		message := "metadata file already exists"
+		directoryArtifact.Debug(tag, "%s: %v", message, nil)
+		return errors.New(message)
+	}
+
+	metadata := metadata{
+		MetadataForBackupActivity: backupActivityMetadata{
+			StartTime: startTime.Format(timestampFormat),
+		},
+	}
+	metadata.save(directoryArtifact.metadataFilename())
+
+	return nil
+}
+
+func (directoryArtifact *DirectoryArtifact) AddFinishTime(finishTime time.Time) error {
+	metadata, err := readMetadata(directoryArtifact.metadataFilename())
+	if err != nil {
+		message := "unable to load metadata"
+		directoryArtifact.Debug(tag, "%s: %v", message, nil)
+		return directoryArtifact.logAndReturn(err, message)
+	}
+
+	metadata.MetadataForBackupActivity.FinishTime = finishTime.Format(timestampFormat)
+	metadata.save(directoryArtifact.metadataFilename())
+
+	return nil
 }
 
 func (directoryArtifact *DirectoryArtifact) SaveManifest(manifest string) error {
@@ -209,6 +246,7 @@ func (directoryArtifact *DirectoryArtifact) metadataFilename() string {
 func (directoryArtifact *DirectoryArtifact) manifestFilename() string {
 	return path.Join(directoryArtifact.baseDirName, "manifest.yml")
 }
+
 func (directoryArtifact *DirectoryArtifact) metadataExistsAndIsReadable() (bool, error) {
 	_, err := os.Stat(directoryArtifact.metadataFilename())
 	if err != nil {

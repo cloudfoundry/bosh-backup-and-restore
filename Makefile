@@ -18,7 +18,7 @@ test-unit:
 	ginkgo -r artifact # the artifact package tests can't be run in parallel at the moment :(
 
 test-integration:
-	ginkgo -r integration
+	ginkgo -p -r integration
 
 bin:
 	go build -o bbr github.com/pivotal-cf/bosh-backup-and-restore/cmd/bbr

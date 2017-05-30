@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"time"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/pivotal-cf/bosh-backup-and-restore/artifact"
@@ -532,9 +533,13 @@ instances:
 		var addChecksumError error
 		var fakeBackupBlob *fakes.FakeBackupBlob
 		var checksum map[string]string
+		var startTime time.Time
 
 		BeforeEach(func() {
 			artifact, _ = artifactManager.Create(artifactName, logger)
+			startTime = time.Date(2015, 10, 21, 1, 2, 3, 0, time.UTC)
+			Expect(artifact.CreateMetadataFileWithStartTime(startTime)).To(Succeed())
+
 			fakeBackupBlob = new(fakes.FakeBackupBlob)
 			fakeBackupBlob.IndexReturns("0")
 			fakeBackupBlob.NameReturns("redis")
@@ -542,39 +547,6 @@ instances:
 		})
 		JustBeforeEach(func() {
 			addChecksumError = artifact.AddChecksum(fakeBackupBlob, checksum)
-		})
-
-		Context("Succesfully creates a checksum file, if none exists, with a default backup blob", func() {
-			It("makes a file", func() {
-				Expect(artifactName + "/metadata").To(BeARegularFile())
-
-				expectedMetadata := `---
-instances:
-- instance_name: redis
-  instance_index: "0"
-  checksums:
-    filename: foobar`
-				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
-			})
-		})
-
-		Context("Succesfully creates a checksum file, if none exists, with a named backup blob", func() {
-			BeforeEach(func() {
-				fakeBackupBlob.IsNamedReturns(true)
-				fakeBackupBlob.NameReturns("my-amazing-artifact")
-			})
-
-			It("makes a file", func() {
-				Expect(artifactName + "/metadata").To(BeARegularFile())
-
-				expectedMetadata := `---
-instances: []
-blobs:
-- blob_name: my-amazing-artifact
-  checksums:
-    filename: foobar`
-				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
-			})
 		})
 
 		Context("Appends to a checksum file, if already exists, with a default backup blob", func() {
@@ -589,6 +561,8 @@ blobs:
 				Expect(artifactName + "/metadata").To(BeARegularFile())
 
 				expectedMetadata := `---
+backup_activity:
+  start_time: 2015/10/21 01:02:03 UTC
 instances:
 - instance_name: broker
   instance_index: "0"
@@ -615,7 +589,8 @@ instances:
 				Expect(artifactName + "/metadata").To(BeARegularFile())
 
 				expectedMetadata := `---
-instances: []
+backup_activity:
+  start_time: 2015/10/21 01:02:03 UTC
 blobs:
 - blob_name: broker
   checksums:
@@ -640,6 +615,8 @@ blobs:
 				Expect(artifactName + "/metadata").To(BeARegularFile())
 
 				expectedMetadata := `---
+backup_activity:
+  start_time: 2015/10/21 01:02:03 UTC
 instances:
 - instance_name: broker
   instance_index: "0"
@@ -653,9 +630,9 @@ blobs:
 			})
 		})
 
-		Context("Appends fails, if existing file isn't valid", func() {
+		Context("fails, if existing file isn't valid", func() {
 			BeforeEach(func() {
-				ioutil.WriteFile(artifactName+"/metadata", []byte("not valid yaml"), 0666)
+				createTestMetadata(artifactName, "not valid yaml")
 			})
 
 			It("fails", func() {
@@ -663,6 +640,15 @@ blobs:
 			})
 		})
 
+		Context("fails, if file doesn't exist", func() {
+			BeforeEach(func() {
+				Expect(os.Remove(artifactName + "/" + "metadata")).To(Succeed())
+			})
+
+			It("fails", func() {
+				Expect(addChecksumError).To(HaveOccurred())
+			})
+		})
 	})
 
 	Describe("FetchChecksum", func() {
@@ -799,6 +785,68 @@ instances:
 			})
 		})
 
+	})
+
+	Describe("CreateMetadataFileWithStartTime", func() {
+		var artifact orchestrator.Artifact
+
+		BeforeEach(func() {
+			var err error
+			artifact, err = artifactManager.Create(artifactName, logger)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		Context("when no metadata file exists", func() {
+			It("creates the file containing the timestamp in the correct format", func() {
+				theTime := time.Date(2015, 10, 21, 1, 2, 3, 0, time.UTC)
+				Expect(artifact.CreateMetadataFileWithStartTime(theTime)).To(Succeed())
+
+				expectedMetadata := `---
+backup_activity:
+  start_time: 2015/10/21 01:02:03 UTC`
+
+				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+			})
+		})
+
+		Context("when the metadata file already exists", func() {
+			It("returns an error", func() {
+				createTestMetadata(artifactName, "")
+				Expect(artifact.CreateMetadataFileWithStartTime(time.Now())).To(MatchError("metadata file already exists"))
+			})
+		})
+	})
+
+	Describe("AddFinishTime", func() {
+		var artifact orchestrator.Artifact
+
+		BeforeEach(func() {
+			var err error
+			artifact, err = artifactManager.Create(artifactName, logger)
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		Context("when no metadata file exists", func() {
+			It("returns an error", func() {
+				Expect(artifact.AddFinishTime(time.Now())).To(MatchError(ContainSubstring("unable to load metadata")))
+			})
+		})
+
+		Context("when the metadata file already exists", func() {
+			It("adds the timestamp in the correct format", func() {
+				startTime := time.Date(2015, 10, 21, 1, 2, 3, 0, time.UTC)
+				finishTime := time.Date(2016, 10, 21, 4, 5, 6, 0, time.UTC)
+				Expect(artifact.CreateMetadataFileWithStartTime(startTime)).To(Succeed())
+				Expect(artifact.AddFinishTime(finishTime)).To(Succeed())
+
+				expectedMetadata := `---
+backup_activity:
+  start_time: 2015/10/21 01:02:03 UTC
+  finish_time: 2016/10/21 04:05:06 UTC`
+
+				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+			})
+		})
 	})
 })
 

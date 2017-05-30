@@ -1,10 +1,13 @@
 package orchestrator
 
-func NewBackuper(artifactManager ArtifactManager, logger Logger, deploymentManager DeploymentManager) *Backuper {
+import "time"
+
+func NewBackuper(artifactManager ArtifactManager, logger Logger, deploymentManager DeploymentManager, nowFunc func() time.Time) *Backuper {
 	return &Backuper{
 		ArtifactManager:   artifactManager,
 		Logger:            logger,
 		DeploymentManager: deploymentManager,
+		NowFunc:           nowFunc,
 	}
 }
 
@@ -27,6 +30,7 @@ type Backuper struct {
 	Logger
 
 	DeploymentManager
+	NowFunc func() time.Time
 }
 
 type AuthInfo struct {

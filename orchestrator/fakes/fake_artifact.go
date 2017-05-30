@@ -4,6 +4,7 @@ package fakes
 import (
 	"io"
 	"sync"
+	"time"
 
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 )
@@ -45,6 +46,28 @@ type FakeArtifact struct {
 		result1 error
 	}
 	addChecksumReturnsOnCall map[int]struct {
+		result1 error
+	}
+	CreateMetadataFileWithStartTimeStub        func(time.Time) error
+	createMetadataFileWithStartTimeMutex       sync.RWMutex
+	createMetadataFileWithStartTimeArgsForCall []struct {
+		arg1 time.Time
+	}
+	createMetadataFileWithStartTimeReturns struct {
+		result1 error
+	}
+	createMetadataFileWithStartTimeReturnsOnCall map[int]struct {
+		result1 error
+	}
+	AddFinishTimeStub        func(time.Time) error
+	addFinishTimeMutex       sync.RWMutex
+	addFinishTimeArgsForCall []struct {
+		arg1 time.Time
+	}
+	addFinishTimeReturns struct {
+		result1 error
+	}
+	addFinishTimeReturnsOnCall map[int]struct {
 		result1 error
 	}
 	FetchChecksumStub        func(orchestrator.BackupBlobIdentifier) (orchestrator.BackupChecksum, error)
@@ -260,6 +283,102 @@ func (fake *FakeArtifact) AddChecksumReturnsOnCall(i int, result1 error) {
 		})
 	}
 	fake.addChecksumReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeArtifact) CreateMetadataFileWithStartTime(arg1 time.Time) error {
+	fake.createMetadataFileWithStartTimeMutex.Lock()
+	ret, specificReturn := fake.createMetadataFileWithStartTimeReturnsOnCall[len(fake.createMetadataFileWithStartTimeArgsForCall)]
+	fake.createMetadataFileWithStartTimeArgsForCall = append(fake.createMetadataFileWithStartTimeArgsForCall, struct {
+		arg1 time.Time
+	}{arg1})
+	fake.recordInvocation("CreateMetadataFileWithStartTime", []interface{}{arg1})
+	fake.createMetadataFileWithStartTimeMutex.Unlock()
+	if fake.CreateMetadataFileWithStartTimeStub != nil {
+		return fake.CreateMetadataFileWithStartTimeStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.createMetadataFileWithStartTimeReturns.result1
+}
+
+func (fake *FakeArtifact) CreateMetadataFileWithStartTimeCallCount() int {
+	fake.createMetadataFileWithStartTimeMutex.RLock()
+	defer fake.createMetadataFileWithStartTimeMutex.RUnlock()
+	return len(fake.createMetadataFileWithStartTimeArgsForCall)
+}
+
+func (fake *FakeArtifact) CreateMetadataFileWithStartTimeArgsForCall(i int) time.Time {
+	fake.createMetadataFileWithStartTimeMutex.RLock()
+	defer fake.createMetadataFileWithStartTimeMutex.RUnlock()
+	return fake.createMetadataFileWithStartTimeArgsForCall[i].arg1
+}
+
+func (fake *FakeArtifact) CreateMetadataFileWithStartTimeReturns(result1 error) {
+	fake.CreateMetadataFileWithStartTimeStub = nil
+	fake.createMetadataFileWithStartTimeReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeArtifact) CreateMetadataFileWithStartTimeReturnsOnCall(i int, result1 error) {
+	fake.CreateMetadataFileWithStartTimeStub = nil
+	if fake.createMetadataFileWithStartTimeReturnsOnCall == nil {
+		fake.createMetadataFileWithStartTimeReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.createMetadataFileWithStartTimeReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeArtifact) AddFinishTime(arg1 time.Time) error {
+	fake.addFinishTimeMutex.Lock()
+	ret, specificReturn := fake.addFinishTimeReturnsOnCall[len(fake.addFinishTimeArgsForCall)]
+	fake.addFinishTimeArgsForCall = append(fake.addFinishTimeArgsForCall, struct {
+		arg1 time.Time
+	}{arg1})
+	fake.recordInvocation("AddFinishTime", []interface{}{arg1})
+	fake.addFinishTimeMutex.Unlock()
+	if fake.AddFinishTimeStub != nil {
+		return fake.AddFinishTimeStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.addFinishTimeReturns.result1
+}
+
+func (fake *FakeArtifact) AddFinishTimeCallCount() int {
+	fake.addFinishTimeMutex.RLock()
+	defer fake.addFinishTimeMutex.RUnlock()
+	return len(fake.addFinishTimeArgsForCall)
+}
+
+func (fake *FakeArtifact) AddFinishTimeArgsForCall(i int) time.Time {
+	fake.addFinishTimeMutex.RLock()
+	defer fake.addFinishTimeMutex.RUnlock()
+	return fake.addFinishTimeArgsForCall[i].arg1
+}
+
+func (fake *FakeArtifact) AddFinishTimeReturns(result1 error) {
+	fake.AddFinishTimeStub = nil
+	fake.addFinishTimeReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeArtifact) AddFinishTimeReturnsOnCall(i int, result1 error) {
+	fake.AddFinishTimeStub = nil
+	if fake.addFinishTimeReturnsOnCall == nil {
+		fake.addFinishTimeReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.addFinishTimeReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -523,6 +642,10 @@ func (fake *FakeArtifact) Invocations() map[string][][]interface{} {
 	defer fake.readFileMutex.RUnlock()
 	fake.addChecksumMutex.RLock()
 	defer fake.addChecksumMutex.RUnlock()
+	fake.createMetadataFileWithStartTimeMutex.RLock()
+	defer fake.createMetadataFileWithStartTimeMutex.RUnlock()
+	fake.addFinishTimeMutex.RLock()
+	defer fake.addFinishTimeMutex.RUnlock()
 	fake.fetchChecksumMutex.RLock()
 	defer fake.fetchChecksumMutex.RUnlock()
 	fake.calculateChecksumMutex.RLock()
