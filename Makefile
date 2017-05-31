@@ -33,7 +33,7 @@ generate:
 	ls -F | grep / | grep -v vendor | xargs -IN go generate github.com/pivotal-cf/bosh-backup-and-restore/N/...
 
 setup:
-	glide install --strip-vendor --strip-vcs
+	glide install --strip-vendor
 	go get -u github.com/cloudfoundry/bosh-cli
 	go get -u github.com/maxbrunsfeld/counterfeiter
 	go get -u github.com/onsi/ginkgo/ginkgo
