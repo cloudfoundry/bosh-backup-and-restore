@@ -19,13 +19,13 @@ var _ = Describe("DeploymentManager", func() {
 	var artifact *orchestrator_fakes.FakeArtifact
 	var manifest string
 
-	var deploymentManager *bosh.BoshDeploymentManager
+	var deploymentManager *bosh.DeploymentManager
 	BeforeEach(func() {
 		boshClient = new(fakes.FakeBoshClient)
 		logger = new(fakes.FakeLogger)
 	})
 	JustBeforeEach(func() {
-		deploymentManager = bosh.NewBoshDeploymentManager(boshClient, logger, true)
+		deploymentManager = bosh.NewDeploymentManager(boshClient, logger, true)
 	})
 
 	Context("Find", func() {
@@ -140,7 +140,7 @@ var _ = Describe("DeploymentManager", func() {
 			})
 
 			JustBeforeEach(func() {
-				deploymentManager = bosh.NewBoshDeploymentManager(boshClient, logger, false)
+				deploymentManager = bosh.NewDeploymentManager(boshClient, logger, false)
 				saveManifestError = deploymentManager.SaveManifest(deploymentName, artifact)
 			})
 

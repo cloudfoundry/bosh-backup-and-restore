@@ -143,7 +143,7 @@ COPYRIGHT:
 func preBackupCheck(c *cli.Context) error {
 	var deployment = c.Parent().String("deployment")
 
-	backuper, err := makeBackuper(c)
+	backuper, err := makeDeploymentBackuper(c)
 	if err != nil {
 		return err
 	}
@@ -178,7 +178,7 @@ func directorPreBackupCheck(c *cli.Context) error {
 func backup(c *cli.Context) error {
 	var deployment = c.Parent().String("deployment")
 
-	backuper, err := makeBackuper(c)
+	backuper, err := makeDeploymentBackuper(c)
 	if err != nil {
 		return err
 	}
@@ -205,7 +205,7 @@ func directorBackup(c *cli.Context) error {
 func restore(c *cli.Context) error {
 	var deployment = c.Parent().String("deployment")
 
-	restorer, err := makeRestorer(c)
+	restorer, err := makeDeploymentRestorer(c)
 	if err != nil {
 		return err
 	}
@@ -319,7 +319,7 @@ func availableDirectorFlags() []cli.Flag {
 	}
 }
 
-func makeBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
+func makeDeploymentBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
 	logger := makeLogger(c)
 	deploymentManager, err := newDeploymentManager(
 		c.Parent().String("target"),
@@ -350,7 +350,7 @@ func makeDirectorBackuper(c *cli.Context) *orchestrator.Backuper {
 	return backuper
 }
 
-func makeRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
+func makeDeploymentRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
 	logger := makeLogger(c)
 	deploymentManager, err := newDeploymentManager(
 		c.Parent().String("target"),
@@ -386,7 +386,7 @@ func newDeploymentManager(targetUrl, username, password, caCert string, logger b
 		return nil, redCliError(err)
 	}
 
-	return bosh.NewBoshDeploymentManager(boshClient, logger, downloadManifest), nil
+	return bosh.NewDeploymentManager(boshClient, logger, downloadManifest), nil
 }
 
 func makeLogger(c *cli.Context) boshlog.Logger {
