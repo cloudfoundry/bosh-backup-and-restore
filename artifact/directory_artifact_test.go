@@ -152,7 +152,7 @@ instances:
 			})
 		})
 
-		Context("when the artifact has no index and the sha matches the metadata file", func() {
+		Context("when the named artifact sha matches the metadata file", func() {
 			BeforeEach(func() {
 				contents := createTarWithContents(map[string]string{
 					"file1": "This archive contains some text files.",
@@ -174,7 +174,7 @@ blobs:
 			})
 		})
 
-		Context("when the artifact has no index and the sha doesn't match the metadata file", func() {
+		Context("when the named artifact sha doesn't match the metadata file", func() {
 			BeforeEach(func() {
 				contents := createTarWithContents(map[string]string{
 					"file1": "This archive contains some text files.",
@@ -316,7 +316,7 @@ instances:
 				fakeBackupBlob.NameReturns("my-backup-artifact")
 			})
 
-			It("creates the file in the artifact directory", func() {
+			It("creates the named file in the artifact directory", func() {
 				Expect(artifactName + "/my-backup-artifact.tar").To(BeARegularFile())
 			})
 
@@ -474,7 +474,10 @@ instances:
 				})
 			})
 
-			Context("backup blob with no index", func() {
+			Context("named backup blob", func() {
+				BeforeEach(func() {
+					fakeBackupBlob.IsNamedReturns(true)
+				})
 				JustBeforeEach(func() {
 					writer, fileCreationError := artifact.CreateFile(fakeBackupBlob)
 					Expect(fileCreationError).NotTo(HaveOccurred())
@@ -573,12 +576,12 @@ instances:
 			})
 		})
 
-		Context("Appends to a checksum file, if already exists, with a backup blob with no index", func() {
+		Context("Appends to a checksum file, if already exists, with a named backup blob", func() {
 			BeforeEach(func() {
-				fakeBackupBlob.IndexReturns("")
+				fakeBackupBlob.IsNamedReturns(true)
 				anotherRemoteArtifact := new(fakes.FakeBackupBlob)
 				anotherRemoteArtifact.NameReturns("broker")
-				anotherRemoteArtifact.IndexReturns("")
+				anotherRemoteArtifact.IsNamedReturns(true)
 				Expect(artifact.AddChecksum(anotherRemoteArtifact, map[string]string{"filename1": "orignal_checksum"})).NotTo(HaveOccurred())
 			})
 
@@ -599,9 +602,9 @@ blobs:
 			})
 		})
 
-		Context("Appends to a checksum file, if already exists, with a default backup blob and a backup blob with no index", func() {
+		Context("Appends to a checksum file, if already exists, with a default backup blob and a named backup blob", func() {
 			BeforeEach(func() {
-				fakeBackupBlob.IndexReturns("")
+				fakeBackupBlob.IsNamedReturns(true)
 				anotherRemoteArtifact := new(fakes.FakeBackupBlob)
 				anotherRemoteArtifact.NameReturns("broker")
 				anotherRemoteArtifact.IndexReturns("0")
@@ -663,8 +666,9 @@ blobs:
 
 			checksum, fetchChecksumError = artifact.FetchChecksum(fakeBlob)
 		})
-		Context("backup blob with no index is found in metadata", func() {
+		Context("the named backup blob is found in metadata", func() {
 			BeforeEach(func() {
+				fakeBlob.IsNamedReturns(true)
 				fakeBlob.NameReturns("foo")
 
 				createTestMetadata(artifactName, `---
@@ -727,9 +731,10 @@ instances:
 			})
 		})
 
-		Context("the backup blob has no index and is not found in metadata", func() {
+		Context("the named backup blob is not found in metadata", func() {
 			BeforeEach(func() {
 				fakeBlob.NameReturns("not-foo")
+				fakeBlob.IsNamedReturns(true)
 
 				createTestMetadata(artifactName, `---
 instances:

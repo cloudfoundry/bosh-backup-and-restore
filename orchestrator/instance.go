@@ -29,9 +29,14 @@ type Instance interface {
 	CustomRestoreBlobNames() []string
 }
 
+type BackupBlobIdentifier interface {
+	InstanceIdentifer
+	IsNamed() bool
+}
+
 //go:generate counterfeiter -o fakes/fake_backup_blob.go . BackupBlob
 type BackupBlob interface {
-	InstanceIdentifer
+	BackupBlobIdentifier
 	Size() (string, error)
 	Checksum() (BackupChecksum, error)
 	StreamFromRemote(io.Writer) error

@@ -16,3 +16,7 @@ func (metadata blobMetadata) Index() string {
 func (metadata blobMetadata) ID() string {
 	return ""
 }
+
+func (metadata blobMetadata) IsNamed() bool {
+	return true
+}

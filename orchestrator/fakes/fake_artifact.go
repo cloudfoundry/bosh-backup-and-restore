@@ -10,10 +10,10 @@ import (
 )
 
 type FakeArtifact struct {
-	CreateFileStub        func(orchestrator.InstanceIdentifer) (io.WriteCloser, error)
+	CreateFileStub        func(orchestrator.BackupBlobIdentifier) (io.WriteCloser, error)
 	createFileMutex       sync.RWMutex
 	createFileArgsForCall []struct {
-		arg1 orchestrator.InstanceIdentifer
+		arg1 orchestrator.BackupBlobIdentifier
 	}
 	createFileReturns struct {
 		result1 io.WriteCloser
@@ -23,10 +23,10 @@ type FakeArtifact struct {
 		result1 io.WriteCloser
 		result2 error
 	}
-	ReadFileStub        func(orchestrator.InstanceIdentifer) (io.ReadCloser, error)
+	ReadFileStub        func(orchestrator.BackupBlobIdentifier) (io.ReadCloser, error)
 	readFileMutex       sync.RWMutex
 	readFileArgsForCall []struct {
-		arg1 orchestrator.InstanceIdentifer
+		arg1 orchestrator.BackupBlobIdentifier
 	}
 	readFileReturns struct {
 		result1 io.ReadCloser
@@ -36,10 +36,10 @@ type FakeArtifact struct {
 		result1 io.ReadCloser
 		result2 error
 	}
-	AddChecksumStub        func(orchestrator.InstanceIdentifer, orchestrator.BackupChecksum) error
+	AddChecksumStub        func(orchestrator.BackupBlobIdentifier, orchestrator.BackupChecksum) error
 	addChecksumMutex       sync.RWMutex
 	addChecksumArgsForCall []struct {
-		arg1 orchestrator.InstanceIdentifer
+		arg1 orchestrator.BackupBlobIdentifier
 		arg2 orchestrator.BackupChecksum
 	}
 	addChecksumReturns struct {
@@ -70,10 +70,10 @@ type FakeArtifact struct {
 	addFinishTimeReturnsOnCall map[int]struct {
 		result1 error
 	}
-	FetchChecksumStub        func(orchestrator.InstanceIdentifer) (orchestrator.BackupChecksum, error)
+	FetchChecksumStub        func(orchestrator.BackupBlobIdentifier) (orchestrator.BackupChecksum, error)
 	fetchChecksumMutex       sync.RWMutex
 	fetchChecksumArgsForCall []struct {
-		arg1 orchestrator.InstanceIdentifer
+		arg1 orchestrator.BackupBlobIdentifier
 	}
 	fetchChecksumReturns struct {
 		result1 orchestrator.BackupChecksum
@@ -83,10 +83,10 @@ type FakeArtifact struct {
 		result1 orchestrator.BackupChecksum
 		result2 error
 	}
-	CalculateChecksumStub        func(orchestrator.InstanceIdentifer) (orchestrator.BackupChecksum, error)
+	CalculateChecksumStub        func(orchestrator.BackupBlobIdentifier) (orchestrator.BackupChecksum, error)
 	calculateChecksumMutex       sync.RWMutex
 	calculateChecksumArgsForCall []struct {
-		arg1 orchestrator.InstanceIdentifer
+		arg1 orchestrator.BackupBlobIdentifier
 	}
 	calculateChecksumReturns struct {
 		result1 orchestrator.BackupChecksum
@@ -136,11 +136,11 @@ type FakeArtifact struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeArtifact) CreateFile(arg1 orchestrator.InstanceIdentifer) (io.WriteCloser, error) {
+func (fake *FakeArtifact) CreateFile(arg1 orchestrator.BackupBlobIdentifier) (io.WriteCloser, error) {
 	fake.createFileMutex.Lock()
 	ret, specificReturn := fake.createFileReturnsOnCall[len(fake.createFileArgsForCall)]
 	fake.createFileArgsForCall = append(fake.createFileArgsForCall, struct {
-		arg1 orchestrator.InstanceIdentifer
+		arg1 orchestrator.BackupBlobIdentifier
 	}{arg1})
 	fake.recordInvocation("CreateFile", []interface{}{arg1})
 	fake.createFileMutex.Unlock()
@@ -159,7 +159,7 @@ func (fake *FakeArtifact) CreateFileCallCount() int {
 	return len(fake.createFileArgsForCall)
 }
 
-func (fake *FakeArtifact) CreateFileArgsForCall(i int) orchestrator.InstanceIdentifer {
+func (fake *FakeArtifact) CreateFileArgsForCall(i int) orchestrator.BackupBlobIdentifier {
 	fake.createFileMutex.RLock()
 	defer fake.createFileMutex.RUnlock()
 	return fake.createFileArgsForCall[i].arg1
@@ -187,11 +187,11 @@ func (fake *FakeArtifact) CreateFileReturnsOnCall(i int, result1 io.WriteCloser,
 	}{result1, result2}
 }
 
-func (fake *FakeArtifact) ReadFile(arg1 orchestrator.InstanceIdentifer) (io.ReadCloser, error) {
+func (fake *FakeArtifact) ReadFile(arg1 orchestrator.BackupBlobIdentifier) (io.ReadCloser, error) {
 	fake.readFileMutex.Lock()
 	ret, specificReturn := fake.readFileReturnsOnCall[len(fake.readFileArgsForCall)]
 	fake.readFileArgsForCall = append(fake.readFileArgsForCall, struct {
-		arg1 orchestrator.InstanceIdentifer
+		arg1 orchestrator.BackupBlobIdentifier
 	}{arg1})
 	fake.recordInvocation("ReadFile", []interface{}{arg1})
 	fake.readFileMutex.Unlock()
@@ -210,7 +210,7 @@ func (fake *FakeArtifact) ReadFileCallCount() int {
 	return len(fake.readFileArgsForCall)
 }
 
-func (fake *FakeArtifact) ReadFileArgsForCall(i int) orchestrator.InstanceIdentifer {
+func (fake *FakeArtifact) ReadFileArgsForCall(i int) orchestrator.BackupBlobIdentifier {
 	fake.readFileMutex.RLock()
 	defer fake.readFileMutex.RUnlock()
 	return fake.readFileArgsForCall[i].arg1
@@ -238,11 +238,11 @@ func (fake *FakeArtifact) ReadFileReturnsOnCall(i int, result1 io.ReadCloser, re
 	}{result1, result2}
 }
 
-func (fake *FakeArtifact) AddChecksum(arg1 orchestrator.InstanceIdentifer, arg2 orchestrator.BackupChecksum) error {
+func (fake *FakeArtifact) AddChecksum(arg1 orchestrator.BackupBlobIdentifier, arg2 orchestrator.BackupChecksum) error {
 	fake.addChecksumMutex.Lock()
 	ret, specificReturn := fake.addChecksumReturnsOnCall[len(fake.addChecksumArgsForCall)]
 	fake.addChecksumArgsForCall = append(fake.addChecksumArgsForCall, struct {
-		arg1 orchestrator.InstanceIdentifer
+		arg1 orchestrator.BackupBlobIdentifier
 		arg2 orchestrator.BackupChecksum
 	}{arg1, arg2})
 	fake.recordInvocation("AddChecksum", []interface{}{arg1, arg2})
@@ -262,7 +262,7 @@ func (fake *FakeArtifact) AddChecksumCallCount() int {
 	return len(fake.addChecksumArgsForCall)
 }
 
-func (fake *FakeArtifact) AddChecksumArgsForCall(i int) (orchestrator.InstanceIdentifer, orchestrator.BackupChecksum) {
+func (fake *FakeArtifact) AddChecksumArgsForCall(i int) (orchestrator.BackupBlobIdentifier, orchestrator.BackupChecksum) {
 	fake.addChecksumMutex.RLock()
 	defer fake.addChecksumMutex.RUnlock()
 	return fake.addChecksumArgsForCall[i].arg1, fake.addChecksumArgsForCall[i].arg2
@@ -383,11 +383,11 @@ func (fake *FakeArtifact) AddFinishTimeReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeArtifact) FetchChecksum(arg1 orchestrator.InstanceIdentifer) (orchestrator.BackupChecksum, error) {
+func (fake *FakeArtifact) FetchChecksum(arg1 orchestrator.BackupBlobIdentifier) (orchestrator.BackupChecksum, error) {
 	fake.fetchChecksumMutex.Lock()
 	ret, specificReturn := fake.fetchChecksumReturnsOnCall[len(fake.fetchChecksumArgsForCall)]
 	fake.fetchChecksumArgsForCall = append(fake.fetchChecksumArgsForCall, struct {
-		arg1 orchestrator.InstanceIdentifer
+		arg1 orchestrator.BackupBlobIdentifier
 	}{arg1})
 	fake.recordInvocation("FetchChecksum", []interface{}{arg1})
 	fake.fetchChecksumMutex.Unlock()
@@ -406,7 +406,7 @@ func (fake *FakeArtifact) FetchChecksumCallCount() int {
 	return len(fake.fetchChecksumArgsForCall)
 }
 
-func (fake *FakeArtifact) FetchChecksumArgsForCall(i int) orchestrator.InstanceIdentifer {
+func (fake *FakeArtifact) FetchChecksumArgsForCall(i int) orchestrator.BackupBlobIdentifier {
 	fake.fetchChecksumMutex.RLock()
 	defer fake.fetchChecksumMutex.RUnlock()
 	return fake.fetchChecksumArgsForCall[i].arg1
@@ -434,11 +434,11 @@ func (fake *FakeArtifact) FetchChecksumReturnsOnCall(i int, result1 orchestrator
 	}{result1, result2}
 }
 
-func (fake *FakeArtifact) CalculateChecksum(arg1 orchestrator.InstanceIdentifer) (orchestrator.BackupChecksum, error) {
+func (fake *FakeArtifact) CalculateChecksum(arg1 orchestrator.BackupBlobIdentifier) (orchestrator.BackupChecksum, error) {
 	fake.calculateChecksumMutex.Lock()
 	ret, specificReturn := fake.calculateChecksumReturnsOnCall[len(fake.calculateChecksumArgsForCall)]
 	fake.calculateChecksumArgsForCall = append(fake.calculateChecksumArgsForCall, struct {
-		arg1 orchestrator.InstanceIdentifer
+		arg1 orchestrator.BackupBlobIdentifier
 	}{arg1})
 	fake.recordInvocation("CalculateChecksum", []interface{}{arg1})
 	fake.calculateChecksumMutex.Unlock()
@@ -457,7 +457,7 @@ func (fake *FakeArtifact) CalculateChecksumCallCount() int {
 	return len(fake.calculateChecksumArgsForCall)
 }
 
-func (fake *FakeArtifact) CalculateChecksumArgsForCall(i int) orchestrator.InstanceIdentifer {
+func (fake *FakeArtifact) CalculateChecksumArgsForCall(i int) orchestrator.BackupBlobIdentifier {
 	fake.calculateChecksumMutex.RLock()
 	defer fake.calculateChecksumMutex.RUnlock()
 	return fake.calculateChecksumArgsForCall[i].arg1

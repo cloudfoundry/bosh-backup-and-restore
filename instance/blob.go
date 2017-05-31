@@ -140,6 +140,10 @@ func (b *Blob) Checksum() (orchestrator.BackupChecksum, error) {
 	return convertShasToMap(string(stdout)), nil
 }
 
+func (b *Blob) IsNamed() bool {
+	return b.isNamed
+}
+
 func (b *Blob) Name() string {
 	return b.name
 }

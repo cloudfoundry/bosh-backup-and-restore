@@ -388,6 +388,11 @@ var _ = Describe("blob", func() {
 			})
 		})
 
+		Describe("IsNamed", func() {
+			It("returns true", func() {
+				Expect(blob.IsNamed()).To(BeTrue())
+			})
+		})
 		BlobBehaviourForDirectory("/var/vcap/store/bbr-backup/named-blob")
 	})
 
@@ -420,6 +425,11 @@ var _ = Describe("blob", func() {
 			})
 		})
 
+		Describe("IsNamed", func() {
+			It("returns true", func() {
+				Expect(blob.IsNamed()).To(BeTrue())
+			})
+		})
 		BlobBehaviourForDirectory("/var/vcap/store/bbr-backup/named-blob-to-restore")
 	})
 
@@ -452,6 +462,11 @@ var _ = Describe("blob", func() {
 			})
 		})
 
+		Describe("IsNamed", func() {
+			It("returns false", func() {
+				Expect(blob.IsNamed()).To(BeFalse())
+			})
+		})
 		BlobBehaviourForDirectory("/var/vcap/store/bbr-backup")
 	})
 
