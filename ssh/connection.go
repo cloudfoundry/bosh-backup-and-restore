@@ -41,6 +41,7 @@ func NewConnectionWithServerAliveInterval(hostName, userName, privateKey string,
 			Auth: []ssh.AuthMethod{
 				ssh.PublicKeys(parsedPrivateKey),
 			},
+			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		},
 		logger:              logger,
 		serverAliveInterval: serverAliveInterval,
