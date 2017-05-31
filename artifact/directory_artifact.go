@@ -100,7 +100,7 @@ func (directoryArtifact *DirectoryArtifact) FetchChecksum(blobIdentifier orchest
 }
 
 func logName(artifactIdentifer orchestrator.BackupBlobIdentifier) string {
-	if artifactIdentifer.Index() == "" {
+	if artifactIdentifer.IsNamed() {
 		return fmt.Sprintf("%s", artifactIdentifer.Name())
 	}
 	return fmt.Sprintf("%s/%s", artifactIdentifer.Name(), artifactIdentifer.Index())
@@ -256,7 +256,7 @@ func (directoryArtifact *DirectoryArtifact) metadataExistsAndIsReadable() (bool,
 }
 
 func fileName(blobIdentifier orchestrator.BackupBlobIdentifier) string {
-	if blobIdentifier.Index() == "" {
+	if blobIdentifier.IsNamed() {
 		return blobIdentifier.Name() + ".tar"
 	}
 

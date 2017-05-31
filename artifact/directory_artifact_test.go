@@ -310,9 +310,9 @@ instances:
 				})
 			})
 		})
-		Context("with a backup blob that has no index", func() {
+		Context("with a named backup blob", func() {
 			BeforeEach(func() {
-				fakeBackupBlob.IndexReturns("")
+				fakeBackupBlob.IsNamedReturns(true)
 				fakeBackupBlob.NameReturns("my-backup-artifact")
 			})
 
@@ -399,9 +399,9 @@ instances:
 			})
 		})
 
-		Context("backup blob with no index - file exists and is readable", func() {
+		Context("named backup blob - file exists and is readable", func() {
 			BeforeEach(func() {
-				fakeBackupBlob.IndexReturns("")
+				fakeBackupBlob.IsNamedReturns(true)
 				fakeBackupBlob.NameReturns("foo-bar")
 
 				err := os.MkdirAll(artifactName, 0700)
