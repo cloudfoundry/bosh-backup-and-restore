@@ -24,11 +24,11 @@ type Logger interface {
 	Warn(tag, msg string, args ...interface{})
 }
 
-func NewConnection(hostName, userName, privateKey string, logger Logger) (SSHConnection, error) {
-	return NewConnectionWithServerAliveInterval(hostName, userName, privateKey, 60, logger)
+func NewConnection(hostName, userName, privateKey string, publicKeyCallback ssh.HostKeyCallback, publicKeyAlgorithm []string, logger Logger) (SSHConnection, error) {
+	return NewConnectionWithServerAliveInterval(hostName, userName, privateKey, publicKeyCallback, publicKeyAlgorithm, 60, logger)
 }
 
-func NewConnectionWithServerAliveInterval(hostName, userName, privateKey string, serverAliveInterval time.Duration, logger Logger) (SSHConnection, error) {
+func NewConnectionWithServerAliveInterval(hostName, userName, privateKey string, publicKeyCallback ssh.HostKeyCallback, publicKeyAlgorithm []string, serverAliveInterval time.Duration, logger Logger) (SSHConnection, error) {
 	parsedPrivateKey, err := ssh.ParsePrivateKey([]byte(privateKey))
 	if err != nil {
 		return nil, errors.Wrap(err, "ssh.NewConnection.ParsePrivateKey failed")
@@ -41,7 +41,8 @@ func NewConnectionWithServerAliveInterval(hostName, userName, privateKey string,
 			Auth: []ssh.AuthMethod{
 				ssh.PublicKeys(parsedPrivateKey),
 			},
-			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+			HostKeyCallback:   publicKeyCallback,
+			HostKeyAlgorithms: publicKeyAlgorithm,
 		},
 		logger:              logger,
 		serverAliveInterval: serverAliveInterval,

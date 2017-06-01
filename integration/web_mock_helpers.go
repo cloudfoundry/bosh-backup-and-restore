@@ -55,10 +55,11 @@ func SetupSSH(deploymentName, instanceGroup, instanceID string, instanceIndex in
 		mockbosh.TaskOutput(randomTaskID).RespondsWith(
 			fmt.Sprintf(`[{"status":"success",
 "ip":"%s",
-"host_public_key":"not-relevant",
+"host_public_key":"%s",
 "id":"%s",
 "index":%d}]`,
 				instance.Address(),
+				instance.HostPublicKey(),
 				instanceID,
 				instanceIndex,
 			),

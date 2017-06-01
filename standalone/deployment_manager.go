@@ -2,12 +2,15 @@ package standalone
 
 import (
 	"fmt"
-	"io/ioutil"
 
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 	"github.com/pkg/errors"
+
+	"io/ioutil"
+
+	gossh "golang.org/x/crypto/ssh"
 )
 
 type DeploymentManager struct {
@@ -43,7 +46,7 @@ func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment
 		return nil, err
 	}
 
-	connection, err := dm.connectionFactory(dm.hostName, dm.username, string(keyContents), dm.Logger)
+	connection, err := dm.connectionFactory(dm.hostName, dm.username, string(keyContents), gossh.InsecureIgnoreHostKey(), nil, dm.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -57,6 +60,7 @@ func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment
 		NewDeployedInstance("bosh", connection, dm.Logger, jobs, false),
 	}), nil
 }
+
 func (DeploymentManager) SaveManifest(deploymentName string, artifact orchestrator.Artifact) error {
 	return nil
 }

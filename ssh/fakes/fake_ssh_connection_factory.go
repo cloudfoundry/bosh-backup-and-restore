@@ -5,16 +5,19 @@ import (
 	"sync"
 
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
+	sshcrypto "golang.org/x/crypto/ssh"
 )
 
 type FakeSSHConnectionFactory struct {
-	Stub        func(host, user, privateKey string, logger ssh.Logger) (ssh.SSHConnection, error)
+	Stub        func(host, user, privateKey string, publicKeyCallback sshcrypto.HostKeyCallback, publicKeyAlgorithm []string, logger ssh.Logger) (ssh.SSHConnection, error)
 	mutex       sync.RWMutex
 	argsForCall []struct {
-		host       string
-		user       string
-		privateKey string
-		logger     ssh.Logger
+		host               string
+		user               string
+		privateKey         string
+		publicKeyCallback  sshcrypto.HostKeyCallback
+		publicKeyAlgorithm []string
+		logger             ssh.Logger
 	}
 	returns struct {
 		result1 ssh.SSHConnection
@@ -28,19 +31,26 @@ type FakeSSHConnectionFactory struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeSSHConnectionFactory) Spy(host string, user string, privateKey string, logger ssh.Logger) (ssh.SSHConnection, error) {
+func (fake *FakeSSHConnectionFactory) Spy(host string, user string, privateKey string, publicKeyCallback sshcrypto.HostKeyCallback, publicKeyAlgorithm []string, logger ssh.Logger) (ssh.SSHConnection, error) {
+	var publicKeyAlgorithmCopy []string
+	if publicKeyAlgorithm != nil {
+		publicKeyAlgorithmCopy = make([]string, len(publicKeyAlgorithm))
+		copy(publicKeyAlgorithmCopy, publicKeyAlgorithm)
+	}
 	fake.mutex.Lock()
 	ret, specificReturn := fake.returnsOnCall[len(fake.argsForCall)]
 	fake.argsForCall = append(fake.argsForCall, struct {
-		host       string
-		user       string
-		privateKey string
-		logger     ssh.Logger
-	}{host, user, privateKey, logger})
-	fake.recordInvocation("SSHConnectionFactory", []interface{}{host, user, privateKey, logger})
+		host               string
+		user               string
+		privateKey         string
+		publicKeyCallback  sshcrypto.HostKeyCallback
+		publicKeyAlgorithm []string
+		logger             ssh.Logger
+	}{host, user, privateKey, publicKeyCallback, publicKeyAlgorithmCopy, logger})
+	fake.recordInvocation("SSHConnectionFactory", []interface{}{host, user, privateKey, publicKeyCallback, publicKeyAlgorithmCopy, logger})
 	fake.mutex.Unlock()
 	if fake.Stub != nil {
-		return fake.Stub(host, user, privateKey, logger)
+		return fake.Stub(host, user, privateKey, publicKeyCallback, publicKeyAlgorithm, logger)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -54,10 +64,10 @@ func (fake *FakeSSHConnectionFactory) CallCount() int {
 	return len(fake.argsForCall)
 }
 
-func (fake *FakeSSHConnectionFactory) ArgsForCall(i int) (string, string, string, ssh.Logger) {
+func (fake *FakeSSHConnectionFactory) ArgsForCall(i int) (string, string, string, sshcrypto.HostKeyCallback, []string, ssh.Logger) {
 	fake.mutex.RLock()
 	defer fake.mutex.RUnlock()
-	return fake.argsForCall[i].host, fake.argsForCall[i].user, fake.argsForCall[i].privateKey, fake.argsForCall[i].logger
+	return fake.argsForCall[i].host, fake.argsForCall[i].user, fake.argsForCall[i].privateKey, fake.argsForCall[i].publicKeyCallback, fake.argsForCall[i].publicKeyAlgorithm, fake.argsForCall[i].logger
 }
 
 func (fake *FakeSSHConnectionFactory) Returns(result1 ssh.SSHConnection, result2 error) {

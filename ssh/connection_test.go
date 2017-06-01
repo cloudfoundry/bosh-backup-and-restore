@@ -44,7 +44,10 @@ var _ = Describe("Connection", func() {
 	})
 
 	JustBeforeEach(func() {
-		conn, connErr = ssh.NewConnection(hostname, user, privateKey, logger)
+		hostPublicKey, _, _, _, err := gossh.ParseAuthorizedKey([]byte(instance1.HostPublicKey()))
+		Expect(err).NotTo(HaveOccurred())
+
+		conn, connErr = ssh.NewConnection(hostname, user, privateKey, gossh.FixedHostKey(hostPublicKey), []string{hostPublicKey.Type()}, logger)
 	})
 
 	Describe("Connection Creation", func() {
@@ -287,7 +290,7 @@ var _ = Describe("Connection", func() {
 		})
 
 		JustBeforeEach(func() {
-			conn, connErr = ssh.NewConnectionWithServerAliveInterval(hostname, user, privateKey, 1, logger)
+			conn, connErr = ssh.NewConnectionWithServerAliveInterval(hostname, user, privateKey, gossh.InsecureIgnoreHostKey(), nil, 1, logger)
 			Expect(connErr).NotTo(HaveOccurred())
 
 			numGoRoutinesBeforeRun := runtime.NumGoroutine()

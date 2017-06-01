@@ -119,6 +119,10 @@ func (mockInstance *Instance) DieInBackground() {
 	}
 }
 
+func (mockInstance *Instance) HostPublicKey() string {
+	return dockerRunAndWaitForSuccess("exec", mockInstance.dockerID, "perl", "-p", "-e", "s/\n/ /", "/etc/ssh/ssh_host_rsa_key.pub")
+}
+
 func WaitForContainersToDie() {
 	waitGroup.Wait()
 }

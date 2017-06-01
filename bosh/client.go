@@ -10,6 +10,9 @@ import (
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
+
+	"github.com/pkg/errors"
+	gossh "golang.org/x/crypto/ssh"
 )
 
 //go:generate counterfeiter -o fakes/fake_bosh_client.go . BoshClient
@@ -91,7 +94,13 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 			var err error
 
 			c.Logger.Debug("bbr", "Attempting to SSH onto %s, %s", host.Host, host.IndexOrID)
-			sshConnection, err = c.SSHConnectionFactory(host.Host, host.Username, privateKey, c.Logger)
+
+			hostPublicKey, _, _, _, err := gossh.ParseAuthorizedKey([]byte(host.HostPublicKey))
+			if err != nil {
+				return nil, errors.Wrap(err, "ssh.NewConnection.ParsePublicKey failed")
+			}
+
+			sshConnection, err = c.SSHConnectionFactory(host.Host, host.Username, privateKey, gossh.FixedHostKey(hostPublicKey), []string{hostPublicKey.Type()}, c.Logger)
 
 			if err != nil {
 				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)

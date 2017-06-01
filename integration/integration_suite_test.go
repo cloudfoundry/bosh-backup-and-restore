@@ -26,7 +26,7 @@ var sslCertPath = "../../fixtures/test.crt"
 
 var pathToPrivateKeyFile = "../../fixtures/test_rsa"
 var pathToPublicKeyFile = "../fixtures/test_rsa.pub"
-var runTimeout = 5 * time.Second
+var runTimeout = 99999 * time.Hour
 
 func runBinary(cwd string, env []string, params ...string) *gexec.Session {
 	command := exec.Command(commandPath, params...)
