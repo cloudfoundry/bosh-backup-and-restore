@@ -75,7 +75,7 @@ func (jobs Jobs) AnyNeedDefaultBlobsForBackup() bool {
 	return false
 }
 
-func (jobs Jobs) WithNamedBackupBlobs() Jobs {
+func (jobs Jobs) withNamedBackupBlobs() Jobs {
 	jobsWithNamedBlobs := Jobs{}
 	for _, job := range jobs {
 		if job.HasNamedBackupBlob() {
@@ -85,7 +85,7 @@ func (jobs Jobs) WithNamedBackupBlobs() Jobs {
 	return jobsWithNamedBlobs
 }
 
-func (jobs Jobs) WithNamedRestoreBlobs() Jobs {
+func (jobs Jobs) withNamedRestoreBlobs() Jobs {
 	jobsWithNamedBlobs := Jobs{}
 	for _, job := range jobs {
 		if job.HasNamedRestoreBlob() {
@@ -98,7 +98,7 @@ func (jobs Jobs) WithNamedRestoreBlobs() Jobs {
 func (jobs Jobs) CustomBackupBlobNames() []string {
 	var blobNames []string
 
-	for _, job := range jobs.WithNamedBackupBlobs() {
+	for _, job := range jobs.withNamedBackupBlobs() {
 		blobNames = append(blobNames, job.BackupBlobName())
 	}
 
@@ -108,7 +108,7 @@ func (jobs Jobs) CustomBackupBlobNames() []string {
 func (jobs Jobs) CustomRestoreBlobNames() []string {
 	var blobNames []string
 
-	for _, job := range jobs.WithNamedRestoreBlobs() {
+	for _, job := range jobs.withNamedRestoreBlobs() {
 		blobNames = append(blobNames, job.RestoreBlobName())
 	}
 

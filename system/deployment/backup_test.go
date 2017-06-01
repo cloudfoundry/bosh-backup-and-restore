@@ -51,9 +51,9 @@ var _ = Describe("backup", func() {
 
 		By("creating the backup artifacts locally")
 		AssertJumpboxFilesExist([]string{
-			fmt.Sprintf("%s/%s/redis-0.tar", workspaceDir, RedisDeployment()),
-			fmt.Sprintf("%s/%s/redis-1.tar", workspaceDir, RedisDeployment()),
-			fmt.Sprintf("%s/%s/other-redis-0.tar", workspaceDir, RedisDeployment()),
+			fmt.Sprintf("%s/%s/redis-0-redis-server.tar", workspaceDir, RedisDeployment()),
+			fmt.Sprintf("%s/%s/redis-1-redis-server.tar", workspaceDir, RedisDeployment()),
+			fmt.Sprintf("%s/%s/other-redis-0-redis-server.tar", workspaceDir, RedisDeployment()),
 		})
 
 		By("cleaning up artifacts from the remote instances")

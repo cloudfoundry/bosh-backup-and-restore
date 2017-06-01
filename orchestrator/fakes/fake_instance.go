@@ -139,23 +139,23 @@ type FakeInstance struct {
 	cleanupReturnsOnCall map[int]struct {
 		result1 error
 	}
-	BlobsToBackupStub        func() []orchestrator.BackupBlob
+	BlobsToBackupStub        func() []orchestrator.BackupArtifact
 	blobsToBackupMutex       sync.RWMutex
 	blobsToBackupArgsForCall []struct{}
 	blobsToBackupReturns     struct {
-		result1 []orchestrator.BackupBlob
+		result1 []orchestrator.BackupArtifact
 	}
 	blobsToBackupReturnsOnCall map[int]struct {
-		result1 []orchestrator.BackupBlob
+		result1 []orchestrator.BackupArtifact
 	}
-	BlobsToRestoreStub        func() []orchestrator.BackupBlob
+	BlobsToRestoreStub        func() []orchestrator.BackupArtifact
 	blobsToRestoreMutex       sync.RWMutex
 	blobsToRestoreArgsForCall []struct{}
 	blobsToRestoreReturns     struct {
-		result1 []orchestrator.BackupBlob
+		result1 []orchestrator.BackupArtifact
 	}
 	blobsToRestoreReturnsOnCall map[int]struct {
-		result1 []orchestrator.BackupBlob
+		result1 []orchestrator.BackupArtifact
 	}
 	CustomBackupBlobNamesStub        func() []string
 	customBackupBlobNamesMutex       sync.RWMutex
@@ -758,7 +758,7 @@ func (fake *FakeInstance) CleanupReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeInstance) BlobsToBackup() []orchestrator.BackupBlob {
+func (fake *FakeInstance) BlobsToBackup() []orchestrator.BackupArtifact {
 	fake.blobsToBackupMutex.Lock()
 	ret, specificReturn := fake.blobsToBackupReturnsOnCall[len(fake.blobsToBackupArgsForCall)]
 	fake.blobsToBackupArgsForCall = append(fake.blobsToBackupArgsForCall, struct{}{})
@@ -779,26 +779,26 @@ func (fake *FakeInstance) BlobsToBackupCallCount() int {
 	return len(fake.blobsToBackupArgsForCall)
 }
 
-func (fake *FakeInstance) BlobsToBackupReturns(result1 []orchestrator.BackupBlob) {
+func (fake *FakeInstance) BlobsToBackupReturns(result1 []orchestrator.BackupArtifact) {
 	fake.BlobsToBackupStub = nil
 	fake.blobsToBackupReturns = struct {
-		result1 []orchestrator.BackupBlob
+		result1 []orchestrator.BackupArtifact
 	}{result1}
 }
 
-func (fake *FakeInstance) BlobsToBackupReturnsOnCall(i int, result1 []orchestrator.BackupBlob) {
+func (fake *FakeInstance) BlobsToBackupReturnsOnCall(i int, result1 []orchestrator.BackupArtifact) {
 	fake.BlobsToBackupStub = nil
 	if fake.blobsToBackupReturnsOnCall == nil {
 		fake.blobsToBackupReturnsOnCall = make(map[int]struct {
-			result1 []orchestrator.BackupBlob
+			result1 []orchestrator.BackupArtifact
 		})
 	}
 	fake.blobsToBackupReturnsOnCall[i] = struct {
-		result1 []orchestrator.BackupBlob
+		result1 []orchestrator.BackupArtifact
 	}{result1}
 }
 
-func (fake *FakeInstance) BlobsToRestore() []orchestrator.BackupBlob {
+func (fake *FakeInstance) BlobsToRestore() []orchestrator.BackupArtifact {
 	fake.blobsToRestoreMutex.Lock()
 	ret, specificReturn := fake.blobsToRestoreReturnsOnCall[len(fake.blobsToRestoreArgsForCall)]
 	fake.blobsToRestoreArgsForCall = append(fake.blobsToRestoreArgsForCall, struct{}{})
@@ -819,22 +819,22 @@ func (fake *FakeInstance) BlobsToRestoreCallCount() int {
 	return len(fake.blobsToRestoreArgsForCall)
 }
 
-func (fake *FakeInstance) BlobsToRestoreReturns(result1 []orchestrator.BackupBlob) {
+func (fake *FakeInstance) BlobsToRestoreReturns(result1 []orchestrator.BackupArtifact) {
 	fake.BlobsToRestoreStub = nil
 	fake.blobsToRestoreReturns = struct {
-		result1 []orchestrator.BackupBlob
+		result1 []orchestrator.BackupArtifact
 	}{result1}
 }
 
-func (fake *FakeInstance) BlobsToRestoreReturnsOnCall(i int, result1 []orchestrator.BackupBlob) {
+func (fake *FakeInstance) BlobsToRestoreReturnsOnCall(i int, result1 []orchestrator.BackupArtifact) {
 	fake.BlobsToRestoreStub = nil
 	if fake.blobsToRestoreReturnsOnCall == nil {
 		fake.blobsToRestoreReturnsOnCall = make(map[int]struct {
-			result1 []orchestrator.BackupBlob
+			result1 []orchestrator.BackupArtifact
 		})
 	}
 	fake.blobsToRestoreReturnsOnCall[i] = struct {
-		result1 []orchestrator.BackupBlob
+		result1 []orchestrator.BackupArtifact
 	}{result1}
 }
 

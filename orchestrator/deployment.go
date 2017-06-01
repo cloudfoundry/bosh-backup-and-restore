@@ -194,7 +194,7 @@ func (bd *deployment) CopyLocalBackupToRemote(artifact Artifact) error {
 				return err
 			}
 
-			bd.Logger.Info("bbr", "Copying backup to %s/%s...", blob.Name(), blob.ID())
+			bd.Logger.Info("bbr", "Copying backup to %s/%s...", instance.Name(), instance.Index())
 			if err := blob.StreamToRemote(reader); err != nil {
 				return err
 			} else {

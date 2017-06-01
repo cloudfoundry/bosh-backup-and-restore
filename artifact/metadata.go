@@ -8,9 +8,20 @@ type backupActivityMetadata struct {
 	FinishTime string `yaml:"finish_time,omitempty"`
 }
 
+type instanceMetadata struct {
+	Name      string             `yaml:"name"`
+	Index     string             `yaml:"index"`
+	Artifacts []artifactMetadata `yaml:"artifacts"`
+}
+
+type artifactMetadata struct {
+	Name     string            `yaml:"name"`
+	Checksum map[string]string `yaml:"checksums"`
+}
+
 type metadata struct {
-	MetadataForEachInstance   []instanceMetadata     `yaml:"instances,omitempty"`
-	MetadataForEachBlob       []blobMetadata         `yaml:"blobs,omitempty"`
+	MetadataForEachInstance   []*instanceMetadata    `yaml:"instances,omitempty"`
+	MetadataForEachBlob       []artifactMetadata     `yaml:"custom_artifacts,omitempty"`
 	MetadataForBackupActivity backupActivityMetadata `yaml:"backup_activity"`
 }
 
@@ -35,4 +46,18 @@ func (data *metadata) save(filename string) error {
 	}
 
 	return ioutil.WriteFile(filename, contents, 0666)
+}
+
+func (data *metadata) findOrCreateInstanceMetadata(name, index string) *instanceMetadata {
+	for _, instanceMetadata := range data.MetadataForEachInstance {
+		if instanceMetadata.Name == name && instanceMetadata.Index == index {
+			return instanceMetadata
+		}
+	}
+	newInstanceMetadata := &instanceMetadata{
+		Name:  name,
+		Index: index,
+	}
+	data.MetadataForEachInstance = append(data.MetadataForEachInstance, newInstanceMetadata)
+	return newInstanceMetadata
 }

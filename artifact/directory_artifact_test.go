@@ -50,11 +50,11 @@ var _ = Describe("DirectoryArtifact", func() {
 			BeforeEach(func() {
 				createTestMetadata(artifactName, `---
 instances:
-- instance_name: redis
-  instance_index: 0
+- name: redis
+  index: 0
   checksum: foo
-- instance_name: redis
-  instance_index: 1
+- name: redis
+  index: 1
   checksum: foo
 `)
 			})
@@ -69,14 +69,14 @@ instances:
 			BeforeEach(func() {
 				createTestMetadata(artifactName, `---
 instances:
-- instance_name: redis
-  instance_index: 0
+- name: redis
+  index: 0
   checksum: foo
-- instance_name: redis
-  instance_index: 1
+- name: redis
+  index: 1
   checksum: foo
-- instance_name: broker
-  instance_index: 2
+- name: broker
+  index: 2
   checksum: foo
 `)
 			})
@@ -133,17 +133,19 @@ instances:
 					"file2": "Gopher names:\nGeorge\nGeoffrey\nGonzo",
 				})
 
-				Expect(ioutil.WriteFile(artifactName+"/redis-0.tar", contents, 0666)).NotTo(HaveOccurred())
+				Expect(ioutil.WriteFile(artifactName+"/redis-0-broker.tar", contents, 0666)).NotTo(HaveOccurred())
 
-				createTestMetadata(artifactName, fmt.Sprintf(`---
+				metadataContents := fmt.Sprintf(`---
 instances:
-- instance_name: redis
-  instance_index: 0
-  checksums:
-    file1: %x
-    file2: %x
-`, sha256.Sum256([]byte("This archive contains some text files.")),
-					sha256.Sum256([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo"))))
+- name: redis
+  index: 0
+  artifacts:
+  - name: broker
+    checksums:
+      file1: %x
+      file2: %x
+`, sha256.Sum256([]byte("This archive contains some text files.")), sha256.Sum256([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo")))
+				createTestMetadata(artifactName, metadataContents)
 			})
 
 			It("returns true", func() {
@@ -183,8 +185,8 @@ blobs:
 				Expect(ioutil.WriteFile(artifactName+"/foo_redis.tar", contents, 0666)).NotTo(HaveOccurred())
 
 				createTestMetadata(artifactName, fmt.Sprintf(`---
-blobs:
-- blob_name: foo_redis
+custom_artifacts:
+- name: foo_redis
   checksums:
     file1: %x
 `, sha256.Sum256([]byte("you fools!"))))
@@ -202,14 +204,16 @@ blobs:
 					"file1": "This archive contains some text files.",
 					"file2": "Gopher names:\nGeorge\nGeoffrey\nGonzo",
 				})
-				Expect(ioutil.WriteFile(artifactName+"/redis-0.tar", contents, 0666)).NotTo(HaveOccurred())
+				Expect(ioutil.WriteFile(artifactName+"/redis-0-broker.tar", contents, 0666)).NotTo(HaveOccurred())
 				createTestMetadata(artifactName, fmt.Sprintf(`---
 instances:
-- instance_name: redis
-  instance_index: 0
-  checksums:
-    file1: %x
-    file2: %x
+- name: redis
+  index: 0
+  artifacts:
+  - name: broker
+    checksums:
+      file1: %x
+      file2: %x
 `, sha256.Sum256([]byte("This archive contains some text files.")),
 					sha256.Sum256([]byte("Gopher names:\nNo Goper names"))))
 			})
@@ -220,20 +224,21 @@ instances:
 			})
 		})
 
-		Context("when one of there is an extra file in the backed metadata", func() {
+		Context("when there is an extra file in the backed metadata", func() {
 			BeforeEach(func() {
 				contents := createTarWithContents(map[string]string{
 					"file1": "This archive contains some text files.",
 				})
-				Expect(ioutil.WriteFile(artifactName+"/redis-0.tar", contents, 0666)).NotTo(HaveOccurred())
+				Expect(ioutil.WriteFile(artifactName+"/redis-0-broker.tar", contents, 0666)).NotTo(HaveOccurred())
 				createTestMetadata(artifactName, fmt.Sprintf(`---
 instances:
-- instance_name: redis
-  instance_index: 0
-  checksums:
-    file1: %x
-    file2: %x
-`, sha256.Sum256([]byte("This archive contains some text files.")),
+- name: redis
+  index: 0
+  artifacts:
+  - name: broker
+    checksums:
+      file1: %x
+      file2: %x`, sha256.Sum256([]byte("This archive contains some text files.")),
 					sha256.Sum256([]byte("Gopher names:\nNot present"))))
 			})
 
@@ -243,12 +248,12 @@ instances:
 			})
 		})
 
-		Context("metadata describes a file that dosen't exist", func() {
+		Context("metadata describes a file that doesn't exist", func() {
 			BeforeEach(func() {
 				createTestMetadata(artifactName, fmt.Sprintf(`---
 instances:
-- instance_name: redis
-	instance_index: 0
+- name: redis
+	index: 0
 	checksums:
 		file1: %x
 `, sha256.Sum256([]byte("This archive contains some text files."))))
@@ -262,7 +267,7 @@ instances:
 			})
 		})
 
-		Context("metadata file dosen't exist", func() {
+		Context("metadata file doesn't exist", func() {
 			BeforeEach(func() {
 				contents := createTarWithContents(map[string]string{
 					"file1": "This archive contains some text files.",
@@ -283,26 +288,30 @@ instances:
 		var artifact orchestrator.Artifact
 		var fileCreationError error
 		var writer io.Writer
-		var fakeBackupBlob *fakes.FakeBackupBlob
+		var fakeBackupArtifact *fakes.FakeBackupArtifact
 
 		BeforeEach(func() {
 			artifact, _ = artifactManager.Create(artifactName, logger)
-			fakeBackupBlob = new(fakes.FakeBackupBlob)
-			fakeBackupBlob.IndexReturns("0")
-			fakeBackupBlob.NameReturns("redis")
+			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
+			fakeBackupArtifact.InstanceNameReturns("redis-server")
+			fakeBackupArtifact.InstanceIndexReturns("0")
 		})
 		JustBeforeEach(func() {
-			writer, fileCreationError = artifact.CreateFile(fakeBackupBlob)
+			writer, fileCreationError = artifact.CreateFile(fakeBackupArtifact)
 		})
 		Context("with a default backup blob", func() {
+			BeforeEach(func() {
+				fakeBackupArtifact.NameReturns("redis")
+				fakeBackupArtifact.HasCustomNameReturns(false)
+			})
 			Context("Can create a file", func() {
 				It("creates a file in the artifact directory", func() {
-					Expect(artifactName + "/redis-0.tar").To(BeARegularFile())
+					Expect(artifactName + "/redis-server-0-redis.tar").To(BeARegularFile())
 				})
 
 				It("writer writes contents to the file", func() {
 					writer.Write([]byte("lalala a file"))
-					Expect(ioutil.ReadFile(artifactName + "/redis-0.tar")).To(Equal([]byte("lalala a file")))
+					Expect(ioutil.ReadFile(artifactName + "/redis-server-0-redis.tar")).To(Equal([]byte("lalala a file")))
 				})
 
 				It("does not fail", func() {
@@ -312,8 +321,8 @@ instances:
 		})
 		Context("with a named backup blob", func() {
 			BeforeEach(func() {
-				fakeBackupBlob.IsNamedReturns(true)
-				fakeBackupBlob.NameReturns("my-backup-artifact")
+				fakeBackupArtifact.HasCustomNameReturns(true)
+				fakeBackupArtifact.NameReturns("my-backup-artifact")
 			})
 
 			It("creates the named file in the artifact directory", func() {
@@ -332,7 +341,7 @@ instances:
 
 		Context("Cannot create file", func() {
 			BeforeEach(func() {
-				fakeBackupBlob.NameReturns("foo/bar/baz")
+				fakeBackupArtifact.NameReturns("foo/bar/baz")
 			})
 			It("fails", func() {
 				Expect(fileCreationError).To(HaveOccurred())
@@ -364,27 +373,30 @@ instances:
 		var artifact orchestrator.Artifact
 		var fileReadError error
 		var reader io.Reader
-		var fakeBackupBlob *fakes.FakeBackupBlob
+		var fakeBackupArtifact *fakes.FakeBackupArtifact
 
 		BeforeEach(func() {
 			artifact, _ = artifactManager.Open(artifactName, logger)
-			fakeBackupBlob = new(fakes.FakeBackupBlob)
-			fakeBackupBlob.IndexReturns("0")
-			fakeBackupBlob.NameReturns("redis")
+			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
+			fakeBackupArtifact.InstanceNameReturns("redis-server")
+			fakeBackupArtifact.InstanceIndexReturns("0")
 		})
 
 		Context("default backup blob - file exists and is readable", func() {
 			BeforeEach(func() {
+				fakeBackupArtifact.NameReturns("redis")
+				fakeBackupArtifact.HasCustomNameReturns(false)
+
 				err := os.MkdirAll(artifactName, 0700)
 				Expect(err).NotTo(HaveOccurred())
-				_, err = os.Create(artifactName + "/redis-0.tar")
+				_, err = os.Create(artifactName + "/redis-server-0-redis.tar")
 				Expect(err).NotTo(HaveOccurred())
-				err = ioutil.WriteFile(artifactName+"/redis-0.tar", []byte("backup-content"), 0700)
+				err = ioutil.WriteFile(artifactName+"/redis-server-0-redis.tar", []byte("backup-content"), 0700)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			JustBeforeEach(func() {
-				reader, fileReadError = artifact.ReadFile(fakeBackupBlob)
+				reader, fileReadError = artifact.ReadFile(fakeBackupArtifact)
 			})
 
 			It("does not fail", func() {
@@ -401,8 +413,8 @@ instances:
 
 		Context("named backup blob - file exists and is readable", func() {
 			BeforeEach(func() {
-				fakeBackupBlob.IsNamedReturns(true)
-				fakeBackupBlob.NameReturns("foo-bar")
+				fakeBackupArtifact.HasCustomNameReturns(true)
+				fakeBackupArtifact.NameReturns("foo-bar")
 
 				err := os.MkdirAll(artifactName, 0700)
 				Expect(err).NotTo(HaveOccurred())
@@ -413,7 +425,7 @@ instances:
 			})
 
 			JustBeforeEach(func() {
-				reader, fileReadError = artifact.ReadFile(fakeBackupBlob)
+				reader, fileReadError = artifact.ReadFile(fakeBackupArtifact)
 			})
 
 			It("does not fail", func() {
@@ -430,7 +442,7 @@ instances:
 
 		Context("File is not readable", func() {
 			It("fails", func() {
-				_, fileReadError = artifact.ReadFile(fakeBackupBlob)
+				_, fileReadError = artifact.ReadFile(fakeBackupArtifact)
 				Expect(fileReadError).To(HaveOccurred())
 			})
 		})
@@ -438,20 +450,24 @@ instances:
 
 	Describe("Checksum", func() {
 		var artifact orchestrator.Artifact
-		var fakeBackupBlob *fakes.FakeBackupBlob
+		var fakeBackupArtifact *fakes.FakeBackupArtifact
 
 		BeforeEach(func() {
-			fakeBackupBlob = new(fakes.FakeBackupBlob)
-			fakeBackupBlob.IndexReturns("0")
-			fakeBackupBlob.NameReturns("redis")
+			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
+			fakeBackupArtifact.InstanceNameReturns("redis-server")
+			fakeBackupArtifact.InstanceIndexReturns("0")
 		})
 		JustBeforeEach(func() {
 			artifact, _ = artifactManager.Create(artifactName, logger)
 		})
 		Context("file exists", func() {
 			Context("default backup blob", func() {
+				BeforeEach(func() {
+					fakeBackupArtifact.NameReturns("redis")
+					fakeBackupArtifact.HasCustomNameReturns(false)
+				})
 				JustBeforeEach(func() {
-					writer, fileCreationError := artifact.CreateFile(fakeBackupBlob)
+					writer, fileCreationError := artifact.CreateFile(fakeBackupArtifact)
 					Expect(fileCreationError).NotTo(HaveOccurred())
 
 					contents := createTarWithContents(map[string]string{
@@ -465,7 +481,7 @@ instances:
 				})
 
 				It("returns the checksum for the saved instance data", func() {
-					Expect(artifact.CalculateChecksum(fakeBackupBlob)).To(Equal(
+					Expect(artifact.CalculateChecksum(fakeBackupArtifact)).To(Equal(
 						orchestrator.BackupChecksum{
 							"readme.txt": fmt.Sprintf("%x", sha256.Sum256([]byte("This archive contains some text files."))),
 							"gopher.txt": fmt.Sprintf("%x", sha256.Sum256([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo"))),
@@ -476,10 +492,11 @@ instances:
 
 			Context("named backup blob", func() {
 				BeforeEach(func() {
-					fakeBackupBlob.IsNamedReturns(true)
+					fakeBackupArtifact.NameReturns("foo")
+					fakeBackupArtifact.HasCustomNameReturns(true)
 				})
 				JustBeforeEach(func() {
-					writer, fileCreationError := artifact.CreateFile(fakeBackupBlob)
+					writer, fileCreationError := artifact.CreateFile(fakeBackupArtifact)
 					Expect(fileCreationError).NotTo(HaveOccurred())
 
 					contents := createTarWithContents(map[string]string{
@@ -493,7 +510,7 @@ instances:
 				})
 
 				It("returns the checksum for the saved instance data", func() {
-					Expect(artifact.CalculateChecksum(fakeBackupBlob)).To(Equal(
+					Expect(artifact.CalculateChecksum(fakeBackupArtifact)).To(Equal(
 						orchestrator.BackupChecksum{
 							"readme.txt": fmt.Sprintf("%x", sha256.Sum256([]byte("This archive contains some text files."))),
 							"gopher.txt": fmt.Sprintf("%x", sha256.Sum256([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo"))),
@@ -505,7 +522,7 @@ instances:
 
 		Context("invalid tar file", func() {
 			JustBeforeEach(func() {
-				writer, fileCreationError := artifact.CreateFile(fakeBackupBlob)
+				writer, fileCreationError := artifact.CreateFile(fakeBackupArtifact)
 				Expect(fileCreationError).NotTo(HaveOccurred())
 
 				contents := []byte("this ain't a tarball")
@@ -515,14 +532,14 @@ instances:
 			})
 
 			It("fails to read", func() {
-				_, err := artifact.CalculateChecksum(fakeBackupBlob)
+				_, err := artifact.CalculateChecksum(fakeBackupArtifact)
 				Expect(err).To(HaveOccurred())
 			})
 		})
 
 		Context("file doesn't exist", func() {
 			It("fails", func() {
-				_, err := artifact.CalculateChecksum(fakeBackupBlob)
+				_, err := artifact.CalculateChecksum(fakeBackupArtifact)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -531,7 +548,7 @@ instances:
 	Describe("AddChecksum", func() {
 		var artifact orchestrator.Artifact
 		var addChecksumError error
-		var fakeBackupBlob *fakes.FakeBackupBlob
+		var fakeBackupArtifact *fakes.FakeBackupArtifact
 		var checksum map[string]string
 		var startTime time.Time
 
@@ -539,98 +556,154 @@ instances:
 			artifact, _ = artifactManager.Create(artifactName, logger)
 			startTime = time.Date(2015, 10, 21, 1, 2, 3, 0, time.UTC)
 			Expect(artifact.CreateMetadataFileWithStartTime(startTime)).To(Succeed())
-
-			fakeBackupBlob = new(fakes.FakeBackupBlob)
-			fakeBackupBlob.IndexReturns("0")
-			fakeBackupBlob.NameReturns("redis")
+			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
 			checksum = map[string]string{"filename": "foobar"}
 		})
+
 		JustBeforeEach(func() {
-			addChecksumError = artifact.AddChecksum(fakeBackupBlob, checksum)
+			addChecksumError = artifact.AddChecksum(fakeBackupArtifact, checksum)
 		})
 
-		Context("Appends to a checksum file, if already exists, with a default backup blob", func() {
+		Context("default artifacts", func() {
 			BeforeEach(func() {
-				anotherRemoteArtifact := new(fakes.FakeBackupBlob)
-				anotherRemoteArtifact.IndexReturns("0")
-				anotherRemoteArtifact.NameReturns("broker")
-				Expect(artifact.AddChecksum(anotherRemoteArtifact, map[string]string{"filename1": "orignal_checksum"})).NotTo(HaveOccurred())
+				fakeBackupArtifact.InstanceNameReturns("redis-server")
+				fakeBackupArtifact.InstanceIndexReturns("0")
+				fakeBackupArtifact.HasCustomNameReturns(false)
+				fakeBackupArtifact.NameReturns("redis")
 			})
 
-			It("appends to file", func() {
-				Expect(artifactName + "/metadata").To(BeARegularFile())
+			Context("when no default artifacts have been added", func() {
+				It("adds the instance and the artifact", func() {
+					Expect(artifactName + "/metadata").To(BeARegularFile())
 
-				expectedMetadata := `---
+					expectedMetadata := `---
 backup_activity:
   start_time: 2015/10/21 01:02:03 UTC
 instances:
-- instance_name: broker
-  instance_index: "0"
-  checksums:
-    filename1: orignal_checksum
-- instance_name: redis
-  instance_index: "0"
-  checksums:
-    filename: foobar`
-				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
-			})
-		})
-
-		Context("Appends to a checksum file, if already exists, with a named backup blob", func() {
-			BeforeEach(func() {
-				fakeBackupBlob.IsNamedReturns(true)
-				anotherRemoteArtifact := new(fakes.FakeBackupBlob)
-				anotherRemoteArtifact.NameReturns("broker")
-				anotherRemoteArtifact.IsNamedReturns(true)
-				Expect(artifact.AddChecksum(anotherRemoteArtifact, map[string]string{"filename1": "orignal_checksum"})).NotTo(HaveOccurred())
+- name: redis-server
+  index: "0"
+  artifacts:
+  - name: redis
+    checksums:
+      filename: foobar`
+					Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+				})
 			})
 
-			It("appends to file", func() {
-				Expect(artifactName + "/metadata").To(BeARegularFile())
+			Context("when default artifacts for the same instance have been added", func() {
+				BeforeEach(func() {
+					anotherFakeBackupArtifact := new(fakes.FakeBackupArtifact)
+					anotherFakeBackupArtifact.InstanceNameReturns("redis-server")
+					anotherFakeBackupArtifact.InstanceIndexReturns("0")
+					anotherFakeBackupArtifact.HasCustomNameReturns(false)
+					anotherFakeBackupArtifact.NameReturns("broker")
 
-				expectedMetadata := `---
-backup_activity:
-  start_time: 2015/10/21 01:02:03 UTC
-blobs:
-- blob_name: broker
-  checksums:
-    filename1: orignal_checksum
-- blob_name: redis
-  checksums:
-    filename: foobar`
-				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
-			})
-		})
+					addChecksumError = artifact.AddChecksum(anotherFakeBackupArtifact, checksum)
+				})
+				It("appends the artifact to the instance", func() {
+					Expect(artifactName + "/metadata").To(BeARegularFile())
 
-		Context("Appends to a checksum file, if already exists, with a default backup blob and a named backup blob", func() {
-			BeforeEach(func() {
-				fakeBackupBlob.IsNamedReturns(true)
-				anotherRemoteArtifact := new(fakes.FakeBackupBlob)
-				anotherRemoteArtifact.NameReturns("broker")
-				anotherRemoteArtifact.IndexReturns("0")
-				Expect(artifact.AddChecksum(anotherRemoteArtifact, map[string]string{"filename1": "orignal_checksum"})).NotTo(HaveOccurred())
-			})
-
-			It("appends to file", func() {
-				Expect(artifactName + "/metadata").To(BeARegularFile())
-
-				expectedMetadata := `---
+					expectedMetadata := `---
 backup_activity:
   start_time: 2015/10/21 01:02:03 UTC
 instances:
-- instance_name: broker
-  instance_index: "0"
-  checksums:
-    filename1: orignal_checksum
-blobs:
-- blob_name: redis
-  checksums:
-    filename: foobar`
-				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+- name: redis-server
+  index: "0"
+  artifacts:
+  - name: broker
+    checksums:
+      filename: foobar
+  - name: redis
+    checksums:
+      filename: foobar`
+					Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+				})
+			})
+
+			Context("when default artifacts for another instance have been added", func() {
+				BeforeEach(func() {
+					anotherFakeBackupArtifact := new(fakes.FakeBackupArtifact)
+					anotherFakeBackupArtifact.InstanceNameReturns("memcached-server")
+					anotherFakeBackupArtifact.InstanceIndexReturns("0")
+					anotherFakeBackupArtifact.HasCustomNameReturns(false)
+					anotherFakeBackupArtifact.NameReturns("memcached")
+
+					addChecksumError = artifact.AddChecksum(anotherFakeBackupArtifact, checksum)
+				})
+				It("adds the new instance and the artifact", func() {
+					Expect(artifactName + "/metadata").To(BeARegularFile())
+
+					expectedMetadata := `---
+backup_activity:
+  start_time: 2015/10/21 01:02:03 UTC
+instances:
+- name: memcached-server
+  index: "0"
+  artifacts:
+  - name: memcached
+    checksums:
+      filename: foobar
+- name: redis-server
+  index: "0"
+  artifacts:
+  - name: redis
+    checksums:
+      filename: foobar
+`
+					Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+				})
 			})
 		})
 
-		Context("fails, if existing file isn't valid", func() {
+		Context("named artifacts", func() {
+			BeforeEach(func() {
+				fakeBackupArtifact.HasCustomNameReturns(true)
+				fakeBackupArtifact.NameReturns("foo")
+			})
+
+			Context("when no named artifacts have been added", func() {
+				It("adds the named artifact", func() {
+					Expect(artifactName + "/metadata").To(BeARegularFile())
+
+					expectedMetadata := `---
+backup_activity:
+  start_time: 2015/10/21 01:02:03 UTC
+custom_artifacts:
+- name: foo
+  checksums:
+    filename: foobar`
+					Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+				})
+			})
+
+			Context("when a named artifact has been added", func() {
+				BeforeEach(func() {
+					anotherFakeBackupArtifact := new(fakes.FakeBackupArtifact)
+					anotherFakeBackupArtifact.HasCustomNameReturns(true)
+					anotherFakeBackupArtifact.NameReturns("bar")
+
+					addChecksumError = artifact.AddChecksum(anotherFakeBackupArtifact, checksum)
+				})
+				It("appends the new named artifact", func() {
+					Expect(artifactName + "/metadata").To(BeARegularFile())
+
+					expectedMetadata := `---
+backup_activity:
+  start_time: 2015/10/21 01:02:03 UTC
+custom_artifacts:
+- name: bar
+  checksums:
+    filename: foobar
+- name: foo
+  checksums:
+    filename: foobar
+`
+					Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+				})
+			})
+		})
+
+		Context("when the metadata file is invalid", func() {
 			BeforeEach(func() {
 				createTestMetadata(artifactName, "not valid yaml")
 			})
@@ -640,7 +713,7 @@ blobs:
 			})
 		})
 
-		Context("fails, if file doesn't exist", func() {
+		Context("when the metadata file doesn't exist", func() {
 			BeforeEach(func() {
 				Expect(os.Remove(artifactName + "/" + "metadata")).To(Succeed())
 			})
@@ -654,32 +727,32 @@ blobs:
 	Describe("FetchChecksum", func() {
 		var artifact orchestrator.Artifact
 		var fetchChecksumError error
-		var fakeBlob *fakes.FakeBackupBlob
+		var fakeArtifact *fakes.FakeBackupArtifact
 		var checksum orchestrator.BackupChecksum
 		BeforeEach(func() {
-			fakeBlob = new(fakes.FakeBackupBlob)
+			fakeArtifact = new(fakes.FakeBackupArtifact)
 		})
 		JustBeforeEach(func() {
 			var artifactOpenError error
 			artifact, artifactOpenError = artifactManager.Open(artifactName, logger)
 			Expect(artifactOpenError).NotTo(HaveOccurred())
 
-			checksum, fetchChecksumError = artifact.FetchChecksum(fakeBlob)
+			checksum, fetchChecksumError = artifact.FetchChecksum(fakeArtifact)
 		})
 		Context("the named backup blob is found in metadata", func() {
 			BeforeEach(func() {
-				fakeBlob.IsNamedReturns(true)
-				fakeBlob.NameReturns("foo")
+				fakeArtifact.HasCustomNameReturns(true)
+				fakeArtifact.NameReturns("foo")
 
 				createTestMetadata(artifactName, `---
 instances: []
-blobs:
-- blob_name: foo
+custom_artifacts:
+- name: foo
   checksums:
     filename1: orignal_checksum`)
 			})
 
-			It("dosen't fail", func() {
+			It("doesn't fail", func() {
 				Expect(fetchChecksumError).NotTo(HaveOccurred())
 			})
 
@@ -690,18 +763,21 @@ blobs:
 
 		Context("the default backup blob is found in metadata", func() {
 			BeforeEach(func() {
-				fakeBlob.NameReturns("foo")
-				fakeBlob.IndexReturns("bar")
+				fakeArtifact.InstanceNameReturns("foo")
+				fakeArtifact.InstanceIndexReturns("bar")
+				fakeArtifact.NameReturns("baz")
 
 				createTestMetadata(artifactName, `---
 instances:
-- instance_name: foo
-  instance_index: "bar"
-  checksums:
-    filename1: orignal_checksum`)
+- name: foo
+  index: "bar"
+  artifacts:
+  - name: baz
+    checksums:
+      filename1: orignal_checksum`)
 			})
 
-			It("dosen't fail", func() {
+			It("doesn't fail", func() {
 				Expect(fetchChecksumError).NotTo(HaveOccurred())
 			})
 
@@ -709,20 +785,49 @@ instances:
 				Expect(checksum).To(Equal(orchestrator.BackupChecksum{"filename1": "orignal_checksum"}))
 			})
 		})
+		//TODO: why is this required
 		Context("the default backup blob is not found in metadata", func() {
 			BeforeEach(func() {
-				fakeBlob.NameReturns("not-foo")
-				fakeBlob.IndexReturns("bar")
+				fakeArtifact.NameReturns("not-baz")
+				fakeArtifact.InstanceNameReturns("foo")
+				fakeArtifact.InstanceIndexReturns("bar")
 
 				createTestMetadata(artifactName, `---
 instances:
-- instance_name: foo
-  instance_index: "bar"
-  checksums:
-    filename1: orignal_checksum`)
+- name: foo
+  index: "bar"
+  artifacts:
+  - name: baz
+    checksums:
+      filename1: orignal_checksum`)
 			})
 
-			It("dosen't fail", func() {
+			It("doesn't fail", func() {
+				Expect(fetchChecksumError).ToNot(HaveOccurred())
+			})
+
+			It("returns nil", func() {
+				Expect(checksum).To(BeNil())
+			})
+		})
+
+		Context("the default backup blob's instance is not found in metadata", func() {
+			BeforeEach(func() {
+				fakeArtifact.NameReturns("baz")
+				fakeArtifact.InstanceNameReturns("not-foo")
+				fakeArtifact.InstanceIndexReturns("bar")
+
+				createTestMetadata(artifactName, `---
+instances:
+- name: foo
+  index: "bar"
+  artifacts:
+  - name: baz
+    checksums:
+      filename1: orignal_checksum`)
+			})
+
+			It("doesn't fail", func() {
 				Expect(fetchChecksumError).ToNot(HaveOccurred())
 			})
 
@@ -733,40 +838,18 @@ instances:
 
 		Context("the named backup blob is not found in metadata", func() {
 			BeforeEach(func() {
-				fakeBlob.NameReturns("not-foo")
-				fakeBlob.IsNamedReturns(true)
+				fakeArtifact.NameReturns("not-foo")
+				fakeArtifact.HasCustomNameReturns(true)
 
 				createTestMetadata(artifactName, `---
 instances:
-- instance_name: foo
-  instance_index: "bar"
+- name: foo
+  index: "bar"
   checksums:
     filename1: orignal_checksum`)
 			})
 
-			It("dosen't fail", func() {
-				Expect(fetchChecksumError).ToNot(HaveOccurred())
-			})
-
-			It("returns nil", func() {
-				Expect(checksum).To(BeNil())
-			})
-		})
-
-		Context("the instance is not found in metadata", func() {
-			BeforeEach(func() {
-				fakeBlob.NameReturns("not-foo")
-				fakeBlob.IndexReturns("bar")
-
-				createTestMetadata(artifactName, `---
-instances:
-- instance_name: foo
-  instance_index: "bar"
-  checksums:
-    filename1: orignal_checksum`)
-			})
-
-			It("dosen't fail", func() {
+			It("doesn't fail", func() {
 				Expect(fetchChecksumError).ToNot(HaveOccurred())
 			})
 

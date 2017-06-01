@@ -165,29 +165,29 @@ func (d *DeployedInstance) IsRestorable() bool {
 	return d.Jobs.AnyAreRestorable()
 }
 
-func (d *DeployedInstance) BlobsToBackup() []orchestrator.BackupBlob {
-	blobs := []orchestrator.BackupBlob{}
+func (d *DeployedInstance) BlobsToBackup() []orchestrator.BackupArtifact {
+	blobs := []orchestrator.BackupArtifact{}
 
-	for _, job := range d.Jobs.WithNamedBackupBlobs() {
-		blobs = append(blobs, NewNamedBackupBlob(d, job, d.SSHConnection, d.Logger))
-	}
-
-	if d.Jobs.AnyNeedDefaultBlobsForBackup() {
-		blobs = append(blobs, NewDefaultBlob(d, d.SSHConnection, d.Logger))
+	for _, job := range d.Jobs {
+		if job.HasNamedBackupBlob() {
+			blobs = append(blobs, NewNamedBackupBlob(d, job, d.SSHConnection, d.Logger))
+		} else {
+			blobs = append(blobs, NewDefaultBlob(job.Name(), d, d.SSHConnection, d.Logger))
+		}
 	}
 
 	return blobs
 }
 
-func (d *DeployedInstance) BlobsToRestore() []orchestrator.BackupBlob {
-	blobs := []orchestrator.BackupBlob{}
+func (d *DeployedInstance) BlobsToRestore() []orchestrator.BackupArtifact {
+	blobs := []orchestrator.BackupArtifact{}
 
-	if d.Jobs.AnyNeedDefaultBlobsForRestore() {
-		blobs = append(blobs, NewDefaultBlob(d, d.SSHConnection, d.Logger))
-	}
-
-	for _, job := range d.Jobs.WithNamedRestoreBlobs() {
-		blobs = append(blobs, NewNamedRestoreBlob(d, job, d.SSHConnection, d.Logger))
+	for _, job := range d.Jobs {
+		if job.HasNamedRestoreBlob() {
+			blobs = append(blobs, NewNamedRestoreBlob(d, job, d.SSHConnection, d.Logger))
+		} else {
+			blobs = append(blobs, NewDefaultBlob(job.Name(), d, d.SSHConnection, d.Logger))
+		}
 	}
 
 	return blobs

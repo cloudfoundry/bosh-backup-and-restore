@@ -99,15 +99,16 @@ instances: []`))
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
 instances:
-- instance_name: redis-dedicated-node
-  instance_index: 0
-  checksums:
-    redis-backup: this-is-not-a-checksum-this-is-only-a-tribute
-`))
+- name: redis-dedicated-node
+  index: 0
+  artifacts:
+  - name: redis
+    checksums:
+      redis-backup: this-is-not-a-checksum-this-is-only-a-tribute`))
 
 			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tar", backupContents)
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", backupContents)
 			session = runBinary(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
@@ -154,14 +155,16 @@ cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
 instances:
-- instance_name: redis-dedicated-node
-  instance_index: 0
-  checksums:
-    ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
+- name: redis-dedicated-node
+  index: 0
+  artifacts:
+  - name: redis
+    checksums:
+      ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
 			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tar", backupContents)
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", backupContents)
 		})
 
 		JustBeforeEach(func() {
@@ -191,8 +194,7 @@ instances:
 		})
 
 		It("Runs the restore script on the remote", func() {
-			Expect(instance1.FileExists("" +
-				"/redis-backup"))
+			Expect(instance1.FileExists("/redis-backup"))
 		})
 
 		Context("when restore fails", func() {
@@ -269,19 +271,23 @@ cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
 instances:
-- instance_name: redis-dedicated-node
-  instance_index: 0
-  checksums:
-    ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0
-- instance_name: redis-server
-  instance_index: 0
-  checksums:
-    ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
+- name: redis-dedicated-node
+  index: 0
+  artifacts:
+  - name: redis
+    checksums:
+      ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0
+- name: redis-server
+  index: 0
+  artifacts:
+  - name: redis
+    checksums:
+      ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
 			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tar", backupContents)
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-server-0.tar", backupContents)
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", backupContents)
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-server-0-redis.tar", backupContents)
 		})
 
 		JustBeforeEach(func() {
@@ -349,11 +355,10 @@ cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
 instances:
-- instance_name: redis-dedicated-node
-  instance_index: 0
-  checksums: {}
-blobs:
-- blob_name: foo
+- name: redis-dedicated-node
+  index: 0
+custom_artifacts:
+- name: foo
   checksums:
     ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
@@ -361,7 +366,7 @@ blobs:
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tar", backupContents)
 
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tar", createTarWithContents(map[string]string{}))
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", createTarWithContents(map[string]string{}))
 		})
 
 		JustBeforeEach(func() {
@@ -437,11 +442,10 @@ echo "dosent matter"`)
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
 instances:
-- instance_name: redis-backup-node
-  instance_index: 0
-  checksums: {}
-blobs:
-- blob_name: foo
+- name: redis-backup-node
+  index: 0
+custom_artifacts:
+- name: foo
   checksums:
     ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
@@ -496,11 +500,10 @@ blobs:
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
 instances:
-- instance_name: redis-backup-node
-  instance_index: 0
-  checksums: {}
-blobs:
-- blob_name: foo
+- name: redis-backup-node
+  index: 0
+custom_artifacts:
+- name: foo
   checksums:
     ./redis/redis-backup: this-is-damn-wrong`))
 
@@ -553,14 +556,16 @@ cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/`)
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
 instances:
-- instance_name: redis-dedicated-node
-  instance_index: 0
-  checksums:
-    ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
+- name: redis-dedicated-node
+  index: 0
+  artifacts:
+  - name: redis
+    checksums:
+      ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
 			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0.tar", backupContents)
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", backupContents)
 		})
 
 		JustBeforeEach(func() {

@@ -23,20 +23,22 @@ type Instance interface {
 	PostBackupUnlock() error
 	Restore() error
 	Cleanup() error
-	BlobsToBackup() []BackupBlob
-	BlobsToRestore() []BackupBlob
+	BlobsToBackup() []BackupArtifact
+	BlobsToRestore() []BackupArtifact
 	CustomBackupBlobNames() []string
 	CustomRestoreBlobNames() []string
 }
 
-type BackupBlobIdentifier interface {
-	InstanceIdentifer
-	IsNamed() bool
+type ArtifactIdentifier interface {
+	InstanceName() string
+	InstanceIndex() string
+	Name() string
+	HasCustomName() bool
 }
 
-//go:generate counterfeiter -o fakes/fake_backup_blob.go . BackupBlob
-type BackupBlob interface {
-	BackupBlobIdentifier
+//go:generate counterfeiter -o fakes/fake_backup_artifact.go . BackupArtifact
+type BackupArtifact interface {
+	ArtifactIdentifier
 	Size() (string, error)
 	Checksum() (BackupChecksum, error)
 	StreamFromRemote(io.Writer) error

@@ -94,7 +94,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 `)
 
 				metadataFile = path.Join(backupWorkspace, deploymentName, "/metadata")
-				redisNodeArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tar")
+				redisNodeArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0-redis.tar")
 			})
 
 			Context("and manifest is not being downloaded", func() {
@@ -137,11 +137,12 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						Expect(metadataContents.InstancesMetadata[0].InstanceName).To(Equal("redis-dedicated-node"))
 						Expect(metadataContents.InstancesMetadata[0].InstanceIndex).To(Equal("0"))
 
-						Expect(metadataContents.InstancesMetadata[0].Checksums).To(HaveLen(2))
-						Expect(metadataContents.InstancesMetadata[0].Checksums["./redis/backupdump1"]).To(Equal(shaFor("backupcontent1")))
-						Expect(metadataContents.InstancesMetadata[0].Checksums["./redis/backupdump2"]).To(Equal(shaFor("backupcontent2")))
+						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Name).To(Equal("redis"))
+						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums).To(HaveLen(2))
+						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums["./redis/backupdump1"]).To(Equal(shaFor("backupcontent1")))
+						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums["./redis/backupdump2"]).To(Equal(shaFor("backupcontent2")))
 
-						Expect(metadataContents.BlobsMetadata).To(BeEmpty())
+						Expect(metadataContents.ArtifactsMetadata).To(BeEmpty())
 					})
 
 					It("prints the backup progress to the screen", func() {
@@ -182,7 +183,7 @@ echo "---
 backup_name: foo_redis
 "`)
 						redisCustomArtifactFile = path.Join(backupWorkspace, deploymentName, "/foo_redis.tar")
-						redisDefaultArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tar")
+						redisDefaultArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0-redis.tar")
 					})
 
 					It("runs the metadata scripts", func() {
@@ -210,11 +211,11 @@ backup_name: foo_redis
 						Expect(metadataContents.BackupActivityMetadata.StartTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
 						Expect(metadataContents.BackupActivityMetadata.FinishTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
 
-						Expect(metadataContents.BlobsMetadata).To(HaveLen(1))
-						Expect(metadataContents.BlobsMetadata[0].BlobName).To(Equal("foo_redis"))
-						Expect(metadataContents.BlobsMetadata[0].Checksums).To(HaveLen(2))
-						Expect(metadataContents.BlobsMetadata[0].Checksums["./backupdump1"]).To(Equal(shaFor("backupcontent1")))
-						Expect(metadataContents.BlobsMetadata[0].Checksums["./backupdump2"]).To(Equal(shaFor("backupcontent2")))
+						Expect(metadataContents.ArtifactsMetadata).To(HaveLen(1))
+						Expect(metadataContents.ArtifactsMetadata[0].Name).To(Equal("foo_redis"))
+						Expect(metadataContents.ArtifactsMetadata[0].Checksums).To(HaveLen(2))
+						Expect(metadataContents.ArtifactsMetadata[0].Checksums["./backupdump1"]).To(Equal(shaFor("backupcontent1")))
+						Expect(metadataContents.ArtifactsMetadata[0].Checksums["./backupdump2"]).To(Equal(shaFor("backupcontent2")))
 					})
 				})
 
@@ -561,8 +562,8 @@ echo "not valid yaml
 			It("backs up deployment successfully", func() {
 				Expect(session.ExitCode()).To(BeZero())
 				Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
-				Expect(path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tar")).To(BeARegularFile())
-				Expect(path.Join(backupWorkspace, deploymentName, "/redis-broker-0.tar")).ToNot(BeAnExistingFile())
+				Expect(path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0-redis.tar")).To(BeARegularFile())
+				Expect(path.Join(backupWorkspace, deploymentName, "/redis-broker-0-redis.tar")).ToNot(BeAnExistingFile())
 			})
 		})
 
@@ -600,8 +601,8 @@ echo "not valid yaml
 			It("backs up both instances successfully", func() {
 				Expect(session.ExitCode()).To(BeZero())
 				Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
-				Expect(path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0.tar")).To(BeARegularFile())
-				Expect(path.Join(backupWorkspace, deploymentName, "/redis-broker-0.tar")).To(BeARegularFile())
+				Expect(path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0-redis.tar")).To(BeARegularFile())
+				Expect(path.Join(backupWorkspace, deploymentName, "/redis-broker-0-redis.tar")).To(BeARegularFile())
 			})
 
 			It("prints the backup progress to the screen", func() {
@@ -827,13 +828,13 @@ func assertErrorOutput(session *gexec.Session, strings []string) {
 }
 
 type instanceMetadata struct {
-	InstanceName  string            `yaml:"instance_name"`
-	InstanceIndex string            `yaml:"instance_index"`
-	Checksums     map[string]string `yaml:"checksums"`
+	InstanceName  string             `yaml:"name"`
+	InstanceIndex string             `yaml:"index"`
+	Artifacts     []artifactMetadata `yaml:"artifacts"`
 }
 
-type blobMetadata struct {
-	BlobName  string            `yaml:"blob_name"`
+type artifactMetadata struct {
+	Name      string            `yaml:"name"`
 	Checksums map[string]string `yaml:"checksums"`
 }
 
@@ -844,6 +845,6 @@ type backupActivityMetadata struct {
 
 type metadata struct {
 	InstancesMetadata      []instanceMetadata     `yaml:"instances"`
-	BlobsMetadata          []blobMetadata         `yaml:"blobs,omitempty"`
+	ArtifactsMetadata      []artifactMetadata     `yaml:"custom_artifacts,omitempty"`
 	BackupActivityMetadata backupActivityMetadata `yaml:"backup_activity"`
 }

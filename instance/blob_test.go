@@ -20,18 +20,18 @@ var _ = Describe("blob", func() {
 
 	var sshConnection *fakes.FakeSSHConnection
 	var boshLogger boshlog.Logger
-	var instanceToBackup *backuperfakes.FakeInstance
+	var testInstance *backuperfakes.FakeInstance
 	var stdout, stderr *gbytes.Buffer
 	var job instance.Job
 
-	var blob orchestrator.BackupBlob
+	var blob orchestrator.BackupArtifact
 
 	BeforeEach(func() {
 		sshConnection = new(fakes.FakeSSHConnection)
-		instanceToBackup = new(backuperfakes.FakeInstance)
-		instanceToBackup.NameReturns("redis")
-		instanceToBackup.IDReturns("foo")
-		instanceToBackup.IndexReturns("redis-index-1")
+		testInstance = new(backuperfakes.FakeInstance)
+		testInstance.NameReturns("redis")
+		testInstance.IDReturns("foo")
+		testInstance.IndexReturns("redis-index-1")
 
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
@@ -364,35 +364,17 @@ var _ = Describe("blob", func() {
 			job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/backup"}, instance.Metadata{BackupName: "named-blob"})
 		})
 		JustBeforeEach(func() {
-			blob = instance.NewNamedBackupBlob(instanceToBackup, job, sshConnection, boshLogger)
+			blob = instance.NewNamedBackupBlob(testInstance, job, sshConnection, boshLogger)
 		})
 
-		Describe("Name", func() {
-			It("returns the blob", func() {
-				Expect(blob.Name()).To(Equal("named-blob"))
-			})
+		It("is named with the job's custom backup name", func() {
+			Expect(blob.Name()).To(Equal(job.BackupBlobName()))
 		})
 
-		Describe("ID", func() {
-			BeforeEach(func() {
-				instanceToBackup.IDReturns("instance-id")
-			})
-			It("returns instances id", func() {
-				Expect(blob.ID()).To(Equal("instance-id"))
-			})
+		It("has a custom name", func() {
+			Expect(blob.HasCustomName()).To(BeTrue())
 		})
 
-		Describe("Index", func() {
-			It("returns blank", func() {
-				Expect(blob.Index()).To(BeEmpty())
-			})
-		})
-
-		Describe("IsNamed", func() {
-			It("returns true", func() {
-				Expect(blob.IsNamed()).To(BeTrue())
-			})
-		})
 		BlobBehaviourForDirectory("/var/vcap/store/bbr-backup/named-blob")
 	})
 
@@ -401,35 +383,17 @@ var _ = Describe("blob", func() {
 			job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/restore"}, instance.Metadata{RestoreName: "named-blob-to-restore"})
 		})
 		JustBeforeEach(func() {
-			blob = instance.NewNamedRestoreBlob(instanceToBackup, job, sshConnection, boshLogger)
+			blob = instance.NewNamedRestoreBlob(testInstance, job, sshConnection, boshLogger)
 		})
 
-		Describe("Name", func() {
-			It("returns the blob", func() {
-				Expect(blob.Name()).To(Equal("named-blob-to-restore"))
-			})
+		It("is named with the job's custom restore name", func() {
+			Expect(blob.Name()).To(Equal(job.RestoreBlobName()))
 		})
 
-		Describe("ID", func() {
-			BeforeEach(func() {
-				instanceToBackup.IDReturns("instance-id")
-			})
-			It("returns instances id", func() {
-				Expect(blob.ID()).To(Equal("instance-id"))
-			})
+		It("has a custom name", func() {
+			Expect(blob.HasCustomName()).To(BeTrue())
 		})
 
-		Describe("Index", func() {
-			It("returns blank", func() {
-				Expect(blob.Index()).To(BeEmpty())
-			})
-		})
-
-		Describe("IsNamed", func() {
-			It("returns true", func() {
-				Expect(blob.IsNamed()).To(BeTrue())
-			})
-		})
 		BlobBehaviourForDirectory("/var/vcap/store/bbr-backup/named-blob-to-restore")
 	})
 
@@ -438,35 +402,29 @@ var _ = Describe("blob", func() {
 			job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/restore"}, instance.Metadata{RestoreName: "named-blob-to-restore"})
 		})
 		JustBeforeEach(func() {
-			blob = instance.NewDefaultBlob(instanceToBackup, sshConnection, boshLogger)
+			blob = instance.NewDefaultBlob(job.Name(), testInstance, sshConnection, boshLogger)
 		})
 
-		Describe("Name", func() {
-			It("returns the blob", func() {
-				Expect(blob.Name()).To(Equal("redis"))
-			})
+		It("is named after the job", func() {
+			Expect(blob.Name()).To(Equal(job.Name()))
 		})
 
-		Describe("ID", func() {
-			BeforeEach(func() {
-				instanceToBackup.IDReturns("instance-id")
-			})
-			It("returns instances id", func() {
-				Expect(blob.ID()).To(Equal("instance-id"))
-			})
+		It("does not have a custom name", func() {
+			Expect(blob.HasCustomName()).To(BeFalse())
 		})
 
-		Describe("Index", func() {
-			It("returns instances index", func() {
-				Expect(blob.Index()).To(Equal("redis-index-1"))
+		Describe("InstanceName", func() {
+			It("returns the instance name", func() {
+				Expect(blob.InstanceName()).To(Equal(testInstance.Name()))
 			})
 		})
 
-		Describe("IsNamed", func() {
-			It("returns false", func() {
-				Expect(blob.IsNamed()).To(BeFalse())
+		Describe("InstanceIndex", func() {
+			It("returns the instance index", func() {
+				Expect(blob.InstanceIndex()).To(Equal(testInstance.Index()))
 			})
 		})
+
 		BlobBehaviourForDirectory("/var/vcap/store/bbr-backup")
 	})
 

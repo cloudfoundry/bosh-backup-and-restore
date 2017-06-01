@@ -28,7 +28,7 @@ func NewNamedBackupBlob(instance orchestrator.InstanceIdentifer, job Job, sshCon
 		isNamed:           true,
 		artifactDirectory: job.BackupArtifactDirectory(),
 		name:              job.BackupBlobName(),
-		Instance:          instance,
+		instance:          instance,
 		SSHConnection:     sshConn,
 		Logger:            logger,
 	}
@@ -38,19 +38,19 @@ func NewNamedRestoreBlob(instance orchestrator.InstanceIdentifer, job Job, sshCo
 		isNamed:           true,
 		artifactDirectory: job.RestoreArtifactDirectory(),
 		name:              job.RestoreBlobName(),
-		Instance:          instance,
+		instance:          instance,
 		SSHConnection:     sshConn,
 		Logger:            logger,
 	}
 }
 
-func NewDefaultBlob(instance orchestrator.InstanceIdentifer, sshConn SSHConnection, logger Logger) *Blob {
+func NewDefaultBlob(name string, instance orchestrator.InstanceIdentifer, sshConn SSHConnection, logger Logger) *Blob {
 	return &Blob{
 		isNamed:           false,
 		index:             instance.Index(),
 		artifactDirectory: orchestrator.ArtifactDirectory,
-		name:              instance.Name(),
-		Instance:          instance,
+		name:              name,
+		instance:          instance,
 		SSHConnection:     sshConn,
 		Logger:            logger,
 	}
@@ -61,13 +61,13 @@ type Blob struct {
 	index             string
 	artifactDirectory string
 	name              string
-	Instance          orchestrator.InstanceIdentifer
+	instance          orchestrator.InstanceIdentifer
 	SSHConnection
 	Logger
 }
 
 func (b *Blob) StreamFromRemote(writer io.Writer) error {
-	b.Logger.Debug("bbr", "Streaming backup from instance %s/%s", b.Name(), b.Instance.ID())
+	b.Logger.Debug("bbr", "Streaming backup from instance %s/%s", b.Name(), b.instance.ID())
 	stderr, exitCode, err := b.Stream(fmt.Sprintf("sudo tar -C %s -c .", b.artifactDirectory), writer)
 
 	b.Logger.Debug("bbr", "Stderr: %s", string(stderr))
@@ -95,7 +95,7 @@ func (b *Blob) StreamToRemote(reader io.Reader) error {
 		return errors.Errorf("Creating backup directory on the remote returned %d. Error: %s", exitCode, stderr)
 	}
 
-	b.Logger.Debug("bbr", "Streaming backup to instance %s/%s", b.Instance.Name(), b.Instance.ID())
+	b.Logger.Debug("bbr", "Streaming backup to instance %s/%s", b.instance.Name(), b.instance.ID())
 	stdout, stderr, exitCode, err = b.StreamStdin(fmt.Sprintf("sudo sh -c 'tar -C %s -x'", b.artifactDirectory), reader)
 
 	b.Logger.Debug("bbr", "Stdout: %s", string(stdout))
@@ -125,7 +125,7 @@ func (b *Blob) Size() (string, error) {
 }
 
 func (b *Blob) Checksum() (orchestrator.BackupChecksum, error) {
-	b.Logger.Debug("bbr", "Calculating shasum for remote files on %s/%s", b.Instance.Name(), b.Instance.ID())
+	b.Logger.Debug("bbr", "Calculating shasum for remote files on %s/%s", b.instance.Name(), b.instance.ID())
 
 	stdout, stderr, exitCode, err := b.logAndRun(fmt.Sprintf("cd %s; sudo sh -c 'find . -type f | xargs shasum -a 256'", b.artifactDirectory), "checksum")
 
@@ -134,13 +134,13 @@ func (b *Blob) Checksum() (orchestrator.BackupChecksum, error) {
 	}
 
 	if exitCode != 0 {
-		return nil, errors.Errorf("Instance checksum returned %d. Error: %s", exitCode, stderr)
+		return nil, errors.Errorf("instance checksum returned %d. Error: %s", exitCode, stderr)
 	}
 
 	return convertShasToMap(string(stdout)), nil
 }
 
-func (b *Blob) IsNamed() bool {
+func (b *Blob) HasCustomName() bool {
 	return b.isNamed
 }
 
@@ -148,23 +148,23 @@ func (b *Blob) Name() string {
 	return b.name
 }
 
-func (b *Blob) ID() string {
-	return b.Instance.ID()
+func (b *Blob) InstanceIndex() string {
+	return b.instance.Index()
 }
 
-func (b *Blob) Index() string {
-	return b.index
+func (b *Blob) InstanceName() string {
+	return b.instance.Name()
 }
 
 func (b *Blob) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
-	b.Logger.Debug("bbr", "Running %s on %s/%s", label, b.Instance.Name(), b.Instance.ID())
+	b.Logger.Debug("bbr", "Running %s on %s/%s", label, b.instance.Name(), b.instance.ID())
 
 	stdout, stderr, exitCode, err := b.Run(cmd)
 	b.Logger.Debug("bbr", "Stdout: %s", string(stdout))
 	b.Logger.Debug("bbr", "Stderr: %s", string(stderr))
 
 	if err != nil {
-		b.Logger.Debug("bbr", "Error running %s on instance %s/%s. Exit code %d, error: %s", label, b.Instance.Name(), b.Instance.ID(), exitCode, err.Error())
+		b.Logger.Debug("bbr", "Error running %s on instance %s/%s. Exit code %d, error: %s", label, b.instance.Name(), b.instance.ID(), exitCode, err.Error())
 	}
 
 	return stdout, stderr, exitCode, err
@@ -174,7 +174,7 @@ func (b *Blob) Delete() error {
 	_, _, exitCode, err := b.logAndRun(fmt.Sprintf("sudo rm -rf %s", b.artifactDirectory), "deleting named blobs")
 
 	if exitCode != 0 {
-		return errors.Errorf("Error deleting blobs on instance %s/%s. Directory name %s. Exit code %d", b.Instance.Name(), b.Instance.ID(), b.artifactDirectory, exitCode)
+		return errors.Errorf("Error deleting blobs on instance %s/%s. Directory name %s. Exit code %d", b.instance.Name(), b.instance.ID(), b.artifactDirectory, exitCode)
 	}
 
 	return err
