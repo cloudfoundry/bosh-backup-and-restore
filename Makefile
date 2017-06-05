@@ -18,7 +18,7 @@ test-unit:
 	ginkgo -r artifact # the artifact package tests can't be run in parallel at the moment :(
 
 test-integration:
-	ginkgo -r integration
+	ginkgo -r -trace integration
 
 bin:
 	go build -o bbr github.com/pivotal-cf/bosh-backup-and-restore/cmd/bbr
@@ -45,7 +45,7 @@ sys-test-local:
 	BOSH_CERT_PATH=~/workspace/bosh-backup-and-restore-meta/certs/lite-bosh.backup-and-restore.cf-app.com.crt \
 	BOSH_GATEWAY_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
 	TEST_ENV=`echo $(DEV_ENV)` \
-	ginkgo -r -v system/deployment
+	ginkgo -r -v -trace system/deployment
 
 sys-test-local-director:
 	BOSH_URL=https://genesis-bosh.backup-and-restore.cf-app.com \
@@ -56,11 +56,11 @@ sys-test-local-director:
 	SSH_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
 	HOST_TO_BACKUP=10.0.0.8 \
 	TEST_ENV=ci \
-	ginkgo -r -v system/director
+	ginkgo -r -v -trace system/director
 
 sys-test-director-ci: setup
 	TEST_ENV=ci \
-	ginkgo -r -v system/director
+	ginkgo -r -v -trace system/director
 
 sys-test-local-with-uaa:
 	BOSH_URL=https://lite-bosh-uaa.backup-and-restore.cf-app.com \
@@ -69,7 +69,7 @@ sys-test-local-with-uaa:
 	BOSH_CERT_PATH=~/workspace/bosh-backup-and-restore-meta/certs/lite-bosh-uaa.backup-and-restore.cf-app.com.crt \
 	BOSH_GATEWAY_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
 	TEST_ENV=`echo $(DEV_ENV)` \
-	ginkgo -r -v system/deployment
+	ginkgo -r -v -trace system/deployment
 
 sys-test-local-260:
 	BOSH_URL=https://35.187.10.144 \
@@ -78,11 +78,11 @@ sys-test-local-260:
 	BOSH_CERT_PATH=~/workspace/bosh-backup-and-restore-meta/garden-bosh-260/certs/rootCA.pem \
 	BOSH_GATEWAY_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
 	TEST_ENV=`echo $(DEV_ENV)` \
-	ginkgo -r -v system/deployment
+	ginkgo -r -v -trace system/deployment
 
 sys-test-ci: setup
 	TEST_ENV=ci \
-	ginkgo -r -v system/deployment
+	ginkgo -r -v -trace system/deployment
 
 upload-test-releases:
 	cd fixtures/releases/redis-test-release && bosh -n create release --force && bosh -t $(BOSH_URL) upload release --rebase
