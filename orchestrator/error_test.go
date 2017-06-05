@@ -115,7 +115,8 @@ var _ = Describe("Error", func() {
 				{"cleanupError", []error{cleanupError}, 16, "CLEANUP_ERROR"},
 			}
 
-			for _, errorCase := range errorCases {
+			for i := range errorCases {
+				errorCase := errorCases[i]
 				It(fmt.Sprintf("returns exit code %v in case of %v", errorCase.expectedExitCode, errorCase.name), func() {
 					actualExitCode, _ := orchestrator.ProcessBackupError(errorCase.errors)
 					Expect(actualExitCode).To(Equal(errorCase.expectedExitCode))
