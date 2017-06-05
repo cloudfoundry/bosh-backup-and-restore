@@ -52,10 +52,10 @@ func (b Backuper) CanBeBackedUp(deploymentName string) (bool, Error) {
 	return err == nil, err
 }
 
-func cleanupAndReturnErrors(d Deployment, err error) error {
+func cleanupAndReturnErrors(d Deployment, err error) Error {
 	cleanupErr := d.Cleanup()
 	if cleanupErr != nil {
 		return Error{cleanupErr, err}
 	}
-	return err
+	return Error{err}
 }

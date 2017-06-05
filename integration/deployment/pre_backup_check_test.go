@@ -8,7 +8,10 @@ import (
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
 	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
 
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+
+	"path/filepath"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -106,6 +109,18 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				It("prints an error", func() {
 					Expect(string(session.Out.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' cannot be backed up."))
 					Expect(string(session.Err.Contents())).To(ContainSubstring("Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid"))
+					Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
+				})
+
+				It("writes the stack trace", func() {
+					files, err := filepath.Glob(filepath.Join(backupWorkspace, "bbr-*.err.log"))
+					Expect(err).NotTo(HaveOccurred())
+					logFilePath := files[0]
+					_, err = os.Stat(logFilePath)
+					Expect(os.IsNotExist(err)).To(BeFalse())
+					stackTrace, err := ioutil.ReadFile(logFilePath)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 				})
 			})
 
@@ -132,7 +147,20 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 			It("prints an error", func() {
 				Expect(string(session.Out.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' cannot be backed up."))
 				Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' has no backup scripts"))
+				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
 			})
+
+			It("writes the stack trace", func() {
+				files, err := filepath.Glob(filepath.Join(backupWorkspace, "bbr-*.err.log"))
+				Expect(err).NotTo(HaveOccurred())
+				logFilePath := files[0]
+				_, err = os.Stat(logFilePath)
+				Expect(os.IsNotExist(err)).To(BeFalse())
+				stackTrace, err := ioutil.ReadFile(logFilePath)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
+			})
+
 		})
 	})
 
@@ -153,7 +181,6 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 			Expect(string(session.Out.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' cannot be backed up."))
 			Expect(string(session.Err.Contents())).To(ContainSubstring("Director responded with non-successful status code"))
 		})
-
 	})
 
 	Context("When the director is unreachable", func() {

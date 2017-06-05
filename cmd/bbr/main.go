@@ -11,6 +11,8 @@ import (
 
 	"time"
 
+	"io/ioutil"
+
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/mgutz/ansi"
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
@@ -148,14 +150,15 @@ func preBackupCheck(c *cli.Context) error {
 		return err
 	}
 
-	backupable, err := backuper.CanBeBackedUp(deployment)
+	backupable, checkErr := backuper.CanBeBackedUp(deployment)
 
 	if backupable {
 		fmt.Printf("Deployment '%s' can be backed up.\n", deployment)
 		return cli.NewExitError("", 0)
 	} else {
 		fmt.Printf("Deployment '%s' cannot be backed up.\n", deployment)
-		return cli.NewExitError(err, 1)
+		writeStackTrace(checkErr.PrettyError(true))
+		return cli.NewExitError(checkErr.Error(), 1)
 	}
 }
 
@@ -164,14 +167,15 @@ func directorPreBackupCheck(c *cli.Context) error {
 
 	backuper := makeDirectorBackuper(c)
 
-	backupable, err := backuper.CanBeBackedUp(deployment)
+	backupable, checkErr := backuper.CanBeBackedUp(deployment)
 
 	if backupable {
 		fmt.Printf("Director can be backed up.\n")
 		return cli.NewExitError("", 0)
 	} else {
 		fmt.Printf("Director cannot be backed up.\n")
-		return cli.NewExitError(err, 1)
+		writeStackTrace(checkErr.PrettyError(true))
+		return cli.NewExitError(checkErr.Error(), 1)
 	}
 }
 
@@ -185,7 +189,10 @@ func backup(c *cli.Context) error {
 
 	backupErr := backuper.Backup(deployment)
 
-	errorCode, errorMessage := orchestrator.ProcessBackupError(backupErr)
+	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(backupErr)
+	if err := writeStackTrace(errorWithStackTrace); err != nil {
+		return errors.Wrap(backupErr, err.Error())
+	}
 
 	return cli.NewExitError(errorMessage, errorCode)
 }
@@ -197,7 +204,10 @@ func directorBackup(c *cli.Context) error {
 
 	backupErr := backuper.Backup(deployment)
 
-	errorCode, errorMessage := orchestrator.ProcessBackupError(backupErr)
+	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(backupErr)
+	if err := writeStackTrace(errorWithStackTrace); err != nil {
+		return errors.Wrap(backupErr, err.Error())
+	}
 
 	return cli.NewExitError(errorMessage, errorCode)
 }
@@ -210,8 +220,13 @@ func restore(c *cli.Context) error {
 		return err
 	}
 
-	err = restorer.Restore(deployment)
-	return orchestrator.ProcessRestoreError(err)
+	restoreErr := restorer.Restore(deployment)
+	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(restoreErr)
+	if err := writeStackTrace(errorWithStackTrace); err != nil {
+		return errors.Wrap(restoreErr, err.Error())
+	}
+
+	return cli.NewExitError(errorMessage, errorCode)
 }
 
 func directorRestore(c *cli.Context) error {
@@ -219,8 +234,23 @@ func directorRestore(c *cli.Context) error {
 
 	restorer := makeDirectorRestorer(c)
 
-	err := restorer.Restore(deployment)
-	return orchestrator.ProcessRestoreError(err)
+	restoreErr := restorer.Restore(deployment)
+	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(restoreErr)
+	if err := writeStackTrace(errorWithStackTrace); err != nil {
+		return errors.Wrap(restoreErr, err.Error())
+	}
+
+	return cli.NewExitError(errorMessage, errorCode)
+}
+
+func writeStackTrace(errorWithStackTrace string) error {
+	if errorWithStackTrace != "" {
+		err := ioutil.WriteFile(fmt.Sprintf("bbr-%s.err.log", time.Now().Format(time.RFC3339)), []byte(errorWithStackTrace), 0644)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func validateDeploymentFlags(c *cli.Context) error {

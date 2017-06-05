@@ -11,8 +11,11 @@ import (
 	"archive/tar"
 	"bytes"
 
+	"path/filepath"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 )
 
@@ -66,6 +69,21 @@ instances: []`))
 			By("printing an error", func() {
 				Expect(string(session.Err.Contents())).To(ContainSubstring("Director responded with non-successful status code"))
 			})
+
+			By("not printing the stack trace", func() {
+				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
+			})
+
+			By("writes the stack trace", func() {
+				files, err := filepath.Glob(filepath.Join(restoreWorkspace, "bbr-*.err.log"))
+				Expect(err).NotTo(HaveOccurred())
+				logFilePath := files[0]
+				_, err = os.Stat(logFilePath)
+				Expect(os.IsNotExist(err)).To(BeFalse())
+				stackTrace, err := ioutil.ReadFile(logFilePath)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
+			})
 		})
 	})
 
@@ -93,6 +111,20 @@ instances: []`))
 
 			By("printing an error", func() {
 				Expect(string(session.Err.Contents())).To(ContainSubstring("no such file or directory"))
+			})
+			By("not printing the stack trace", func() {
+				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
+			})
+
+			By("writes the stack trace", func() {
+				files, err := filepath.Glob(filepath.Join(restoreWorkspace, "bbr-*.err.log"))
+				Expect(err).NotTo(HaveOccurred())
+				logFilePath := files[0]
+				_, err = os.Stat(logFilePath)
+				Expect(os.IsNotExist(err)).To(BeFalse())
+				stackTrace, err := ioutil.ReadFile(logFilePath)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 			})
 		})
 	})
@@ -137,6 +169,20 @@ instances:
 
 			By("printing an error", func() {
 				Expect(string(session.Err.Contents())).To(ContainSubstring("Backup artifact is corrupted"))
+			})
+			By("not printing the stack trace", func() {
+				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
+			})
+
+			By("writes the stack trace", func() {
+				files, err := filepath.Glob(filepath.Join(restoreWorkspace, "bbr-*.err.log"))
+				Expect(err).NotTo(HaveOccurred())
+				logFilePath := files[0]
+				_, err = os.Stat(logFilePath)
+				Expect(os.IsNotExist(err)).To(BeFalse())
+				stackTrace, err := ioutil.ReadFile(logFilePath)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 			})
 		})
 	})
@@ -225,6 +271,20 @@ instances:
 				By("returning the failure", func() {
 					Expect(session.Err.Contents()).To(ContainSubstring("dear lord"))
 				})
+				By("not printing the stack trace", func() {
+					Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
+				})
+
+				By("writes the stack trace", func() {
+					files, err := filepath.Glob(filepath.Join(restoreWorkspace, "bbr-*.err.log"))
+					Expect(err).NotTo(HaveOccurred())
+					logFilePath := files[0]
+					_, err = os.Stat(logFilePath)
+					Expect(os.IsNotExist(err)).To(BeFalse())
+					stackTrace, err := ioutil.ReadFile(logFilePath)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
+				})
 			})
 		})
 
@@ -242,6 +302,21 @@ instances:
 					Expect(session.Err.Contents()).To(ContainSubstring(
 						"Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid",
 					))
+				})
+
+				By("not printing the stack trace", func() {
+					Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
+				})
+
+				By("writes the stack trace", func() {
+					files, err := filepath.Glob(filepath.Join(restoreWorkspace, "bbr-*.err.log"))
+					Expect(err).NotTo(HaveOccurred())
+					logFilePath := files[0]
+					_, err = os.Stat(logFilePath)
+					Expect(os.IsNotExist(err)).To(BeFalse())
+					stackTrace, err := ioutil.ReadFile(logFilePath)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 				})
 
 				By("not deleting the artifact", func() {
@@ -555,6 +630,17 @@ custom_artifacts:
 		It("fails", func() {
 			Expect(session.ExitCode()).To(Equal(1))
 		})
+
+		It("writes the stack trace", func() {
+			files, err := filepath.Glob(filepath.Join(restoreWorkspace, "bbr-*.err.log"))
+			Expect(err).NotTo(HaveOccurred())
+			logFilePath := files[0]
+			_, err = os.Stat(logFilePath)
+			Expect(os.IsNotExist(err)).To(BeFalse())
+			stackTrace, err := ioutil.ReadFile(logFilePath)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
+		})
 	})
 
 	Context("the cleanup fails", func() {
@@ -612,7 +698,7 @@ instances:
 
 		It("runs the restore script, fails and cleans up", func() {
 			By("failing", func() {
-				Expect(session.ExitCode()).To(Equal(2))
+				Expect(session.ExitCode()).To(Equal(16))
 			})
 
 			By("cleaning up the archive file on the remote", func() {
@@ -625,6 +711,10 @@ instances:
 
 			By("returning the failure", func() {
 				Expect(session.Err.Contents()).To(ContainSubstring("cleanup err"))
+			})
+
+			By("not printing the stack trace", func() {
+				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
 			})
 		})
 	})

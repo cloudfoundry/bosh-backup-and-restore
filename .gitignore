@@ -3,3 +3,4 @@
 vendor/*
 releases/*
 .idea
+bbr-*.err.log

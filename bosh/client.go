@@ -97,7 +97,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 
 			hostPublicKey, _, _, _, err := gossh.ParseAuthorizedKey([]byte(host.HostPublicKey))
 			if err != nil {
-				return nil, errors.Wrap(err, "ssh.NewConnection.ParsePublicKey failed")
+				return nil, errors.Wrap(err, "ssh.NewConnection.ParseAuthorizedKey failed")
 			}
 
 			sshConnection, err = c.SSHConnectionFactory(host.Host, host.Username, privateKey, gossh.FixedHostKey(hostPublicKey), []string{hostPublicKey.Type()}, c.Logger)

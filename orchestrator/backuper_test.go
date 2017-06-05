@@ -20,7 +20,7 @@ var _ = Describe("Backup", func() {
 		artifactManager       *fakes.FakeArtifactManager
 		logger                *fakes.FakeLogger
 		deploymentName        = "foobarbaz"
-		actualBackupError     orchestrator.Error
+		actualBackupError     error
 		startTime, finishTime time.Time
 	)
 
@@ -153,7 +153,7 @@ var _ = Describe("Backup", func() {
 			})
 
 			It("fails the backup process", func() {
-				Expect(actualBackupError).To(ConsistOf(MatchError(expectedError)))
+				expectErrorMatch(actualBackupError, expectedError)
 			})
 		})
 
@@ -222,7 +222,7 @@ var _ = Describe("Backup", func() {
 			})
 
 			It("fails the backup process", func() {
-				Expect(actualBackupError).To(ConsistOf(lockError))
+				expectErrorMatch(actualBackupError, lockError)
 			})
 
 			It("also runs post-backup-unlock", func() {
@@ -247,13 +247,14 @@ var _ = Describe("Backup", func() {
 				deployment.PostBackupUnlockReturns(unlockError)
 			})
 
-			It("fails the backup process", func() {
-				Expect(actualBackupError).To(ConsistOf(unlockError))
+			It("returns the post backup unlock error", func() {
+				expectErrorMatch(actualBackupError, unlockError)
 			})
 
 			It("continues with the cleanup", func() {
 				Expect(deployment.CleanupCallCount()).To(Equal(1))
 			})
+
 			It("continues with drain artifact", func() {
 				Expect(deployment.CopyRemoteBackupToLocalCallCount()).To(Equal(1))
 			})
@@ -267,7 +268,7 @@ var _ = Describe("Backup", func() {
 
 				It("returns an error of type PostBackupUnlockError and "+
 					"includes the drain error in the returned error", func() {
-					Expect(actualBackupError).To(ConsistOf(drainError, unlockError))
+					expectErrorMatch(actualBackupError, drainError, unlockError)
 				})
 
 				Context("cleanup fails as well", func() {
@@ -279,14 +280,7 @@ var _ = Describe("Backup", func() {
 					It("includes the cleanup error in the returned error and "+
 						"includes the drain error in the returned error and "+
 						"includes the cleanup error in the returned error", func() {
-						Expect(actualBackupError).To(ConsistOf(
-							unlockError,
-							drainError,
-							And(
-								BeAssignableToTypeOf(orchestrator.CleanupError{}),
-								MatchError(ContainSubstring(cleanupError.Error())),
-							),
-						))
+						expectErrorMatch(actualBackupError, drainError, unlockError, cleanupError)
 					})
 				})
 			})
@@ -299,10 +293,7 @@ var _ = Describe("Backup", func() {
 
 				It("includes the cleanup error in the returned error "+
 					"and returns an error of type PostBackupUnlockError", func() {
-					Expect(actualBackupError).To(ConsistOf(
-						MatchError(ContainSubstring(cleanupError.Error())),
-						unlockError,
-					))
+					expectErrorMatch(actualBackupError, unlockError, cleanupError)
 				})
 			})
 		})
@@ -464,9 +455,7 @@ var _ = Describe("Backup", func() {
 			})
 
 			It("fails the backup process", func() {
-				Expect(actualBackupError).To(ConsistOf(
-					MatchError(expectedError),
-				))
+				expectErrorMatch(actualBackupError, expectedError)
 			})
 		})
 	})
@@ -560,9 +549,7 @@ var _ = Describe("CanBeBackedUp", func() {
 		})
 
 		It("fails the backup process", func() {
-			Expect(actualCanBeBackedUpError).To(ConsistOf(
-				MatchError(expectedError),
-			))
+			expectErrorMatch(actualCanBeBackedUpError, expectedError)
 		})
 	})
 
@@ -579,5 +566,15 @@ var _ = Describe("CanBeBackedUp", func() {
 			))
 		})
 	})
-
 })
+
+func expectErrorMatch(actual error, expected ...error) {
+	if actualErrors, isErrorList := actual.(orchestrator.Error); isErrorList {
+		for _, err := range actualErrors {
+			Expect(actual).To(MatchError(ContainSubstring(err.Error())))
+		}
+		Expect(len(actualErrors)).To(Equal(len(expected)))
+	} else {
+		Expect(actual).To(MatchError(expected))
+	}
+}

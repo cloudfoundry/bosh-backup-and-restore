@@ -3,9 +3,11 @@ package director
 import (
 	"io/ioutil"
 	"os"
+	"path/filepath"
 
 	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
 
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 
 	. "github.com/onsi/ginkgo"
@@ -113,6 +115,18 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 			It("prints an error", func() {
 				Expect(string(session.Out.Contents())).To(ContainSubstring("Director cannot be backed up."))
 				Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment 'my-director' has no backup scripts"))
+				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
+			})
+
+			It("writes the stack trace", func() {
+				files, err := filepath.Glob(filepath.Join(backupWorkspace, "bbr-*.err.log"))
+				Expect(err).NotTo(HaveOccurred())
+				logFilePath := files[0]
+				_, err = os.Stat(logFilePath)
+				Expect(os.IsNotExist(err)).To(BeFalse())
+				stackTrace, err := ioutil.ReadFile(logFilePath)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 			})
 		})
 	})
@@ -128,6 +142,18 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 		It("prints an error", func() {
 			Expect(string(session.Err.Contents())).To(ContainSubstring("no such host"))
+			Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
+		})
+
+		It("writes the stack trace", func() {
+			files, err := filepath.Glob(filepath.Join(backupWorkspace, "bbr-*.err.log"))
+			Expect(err).NotTo(HaveOccurred())
+			logFilePath := files[0]
+			_, err = os.Stat(logFilePath)
+			Expect(os.IsNotExist(err)).To(BeFalse())
+			stackTrace, err := ioutil.ReadFile(logFilePath)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 		})
 	})
 })

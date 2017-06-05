@@ -1,6 +1,8 @@
 package orchestrator
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 )
 
@@ -19,22 +21,22 @@ func NewRestorer(artifactManager ArtifactManager, logger Logger, deploymentManag
 	}
 }
 
-func (b Restorer) Restore(deploymentName string) error {
+func (b Restorer) Restore(deploymentName string) Error {
 	b.Logger.Info("bbr", "Starting restore of %s...\n", deploymentName)
 	artifact, err := b.ArtifactManager.Open(deploymentName, b.Logger)
 	if err != nil {
-		return err
+		return Error{errors.Wrap(err, "Could not open backup artifact")}
 	}
 
 	if valid, err := artifact.Valid(); err != nil {
-		return err
+		return Error{errors.Wrap(err, "Could not validate backup artifact")}
 	} else if !valid {
-		return errors.Errorf("Backup artifact is corrupted")
+		return Error{errors.Errorf("Backup artifact is corrupted")}
 	}
 
 	deployment, err := b.DeploymentManager.Find(deploymentName)
 	if err != nil {
-		return err
+		return Error{errors.Wrap(err, "Couldn't find deployment")}
 	}
 
 	if !deployment.IsRestorable() {
@@ -49,7 +51,7 @@ func (b Restorer) Restore(deploymentName string) error {
 
 	err = deployment.CheckArtifactDir()
 	if err != nil {
-		return cleanupAndReturnErrors(deployment, err)
+		return cleanupAndReturnErrors(deployment, errors.Wrap(err, "Check artifact dir failed"))
 	}
 
 	if err = deployment.CopyLocalBackupToRemote(artifact); err != nil {
@@ -58,14 +60,16 @@ func (b Restorer) Restore(deploymentName string) error {
 
 	err = deployment.Restore()
 	if err != nil {
-		return cleanupAndReturnErrors(deployment, err)
+		return cleanupAndReturnErrors(deployment, errors.Wrap(err, "Failed to restore"))
 	}
 
 	b.Logger.Info("bbr", "Completed restore of %s\n", deploymentName)
 
 	if err := deployment.Cleanup(); err != nil {
-		return CleanupError{
-			errors.Errorf("Deployment '%s' failed while cleaning up with error: %v", deploymentName, err),
+		return Error{
+			NewCleanupError(
+				fmt.Sprintf("Deployment '%s' failed while cleaning up with error %v", deploymentName, err),
+			),
 		}
 	}
 	return nil

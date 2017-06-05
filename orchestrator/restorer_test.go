@@ -1,6 +1,7 @@
 package orchestrator_test
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
@@ -13,7 +14,7 @@ import (
 var _ = Describe("restorer", func() {
 	Context("restores a deployment from backup", func() {
 		var (
-			restoreError      error
+			restoreError      orchestrator.Error
 			artifactManager   *fakes.FakeArtifactManager
 			artifact          *fakes.FakeArtifact
 			logger            *fakes.FakeLogger
@@ -106,20 +107,21 @@ var _ = Describe("restorer", func() {
 				})
 
 				It("returns an error", func() {
-					Expect(restoreError).To(MatchError("no deployment here"))
+					Expect(restoreError).To(MatchError(ContainSubstring("no deployment here")))
 				})
 			})
 
 			Context("fails if the artifact cant be opened", func() {
-				var artifactOpenError = fmt.Errorf("I can't open this")
+				var artifactOpenError = "I can't open this"
 				BeforeEach(func() {
 					deploymentManager.FindReturns(deployment, nil)
-					artifactManager.OpenReturns(nil, artifactOpenError)
+					artifactManager.OpenReturns(nil, errors.New(artifactOpenError))
 				})
 				It("returns an error", func() {
-					Expect(restoreError).To(MatchError(artifactOpenError))
+					Expect(restoreError).To(MatchError(ContainSubstring(artifactOpenError)))
 				})
 			})
+
 			Context("fails if the artifact is invalid", func() {
 				BeforeEach(func() {
 					deploymentManager.FindReturns(deployment, nil)
@@ -127,7 +129,7 @@ var _ = Describe("restorer", func() {
 					artifact.ValidReturns(false, nil)
 				})
 				It("returns an error", func() {
-					Expect(restoreError).To(MatchError("Backup artifact is corrupted"))
+					Expect(restoreError).To(MatchError(ContainSubstring("Backup artifact is corrupted")))
 				})
 			})
 
@@ -145,19 +147,20 @@ var _ = Describe("restorer", func() {
 				})
 
 				It("returns an error of type, cleanup error", func() {
-					Expect(restoreError).To(BeAssignableToTypeOf(orchestrator.CleanupError{}))
+					Expect(restoreError[0]).To(BeAssignableToTypeOf(orchestrator.CleanupError{}))
 				})
 			})
+
 			Context("fails if can't check if artifact is valid", func() {
-				var artifactValidError = fmt.Errorf("I don't like this artifact")
+				var artifactValidError = "I don't like this artifact"
 
 				BeforeEach(func() {
 					deploymentManager.FindReturns(deployment, nil)
 					artifactManager.OpenReturns(artifact, nil)
-					artifact.ValidReturns(false, artifactValidError)
+					artifact.ValidReturns(false, errors.New(artifactValidError))
 				})
 				It("returns an error", func() {
-					Expect(restoreError).To(MatchError(artifactValidError))
+					Expect(restoreError).To(MatchError(ContainSubstring(artifactValidError)))
 				})
 			})
 
@@ -218,7 +221,7 @@ var _ = Describe("restorer", func() {
 				It("cleans up", func() {
 					Expect(deployment.CleanupCallCount()).To(Equal(1))
 				})
-				//assertCleanupError()
+				assertCleanupError()
 			})
 
 			Context("if streaming the backup to the remote fails", func() {

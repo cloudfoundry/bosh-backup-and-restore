@@ -1,31 +1,21 @@
 package orchestrator
 
 import (
-	"errors"
-
 	"bytes"
 
 	"fmt"
 
-	"github.com/mgutz/ansi"
-	"github.com/urfave/cli"
+	"github.com/pkg/errors"
 )
 
-type LockError struct {
+type customError struct {
 	error
 }
 
-type BackupError struct {
-	error
-}
-
-type PostBackupUnlockError struct {
-	error
-}
-
-type CleanupError struct {
-	error
-}
+type LockError customError
+type BackupError customError
+type PostBackupUnlockError customError
+type CleanupError customError
 
 func NewLockError(errorMessage string) LockError {
 	return LockError{errors.New(errorMessage)}
@@ -53,6 +43,10 @@ func ConvertErrors(errs []error) error {
 type Error []error
 
 func (e Error) Error() string {
+	return e.PrettyError(false)
+}
+
+func (e Error) PrettyError(includeStacktrace bool) string {
 	if e.IsNil() {
 		return ""
 	}
@@ -61,10 +55,15 @@ func (e Error) Error() string {
 	fmt.Fprintf(buffer, "%d error%s occurred:\n", len(e), e.getPostFix())
 	for index, err := range e {
 		fmt.Fprintf(buffer, "error %d:\n", index+1)
-		fmt.Fprintf(buffer, "%+v\n", err)
+		if includeStacktrace {
+			fmt.Fprintf(buffer, "%+v\n", err)
+		} else {
+			fmt.Fprintf(buffer, "%+v\n", err.Error())
+		}
 	}
 	return buffer.String()
 }
+
 func (e Error) getPostFix() string {
 	errorPostfix := ""
 	if len(e) > 1 {
@@ -107,7 +106,7 @@ func (e Error) IsNil() bool {
 	return len(e) == 0
 }
 
-func ProcessBackupError(errs Error) (int, string) {
+func ProcessError(errs Error) (int, string, string) {
 	exitCode := 0
 
 	for _, err := range errs {
@@ -121,21 +120,7 @@ func ProcessBackupError(errs Error) (int, string) {
 		default:
 			exitCode = exitCode | 1
 		}
-
 	}
 
-	return exitCode, errs.Error()
-}
-
-func ProcessRestoreError(err error) error {
-	switch err := err.(type) {
-	case CleanupError:
-		return cli.NewExitError(ansi.Color(err.Error(), "yellow"), 2)
-	case PostBackupUnlockError:
-		return cli.NewExitError(ansi.Color(err.Error(), "red"), 42)
-	case error:
-		return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
-	default:
-		return err
-	}
+	return exitCode, errs.Error(), errs.PrettyError(true)
 }
