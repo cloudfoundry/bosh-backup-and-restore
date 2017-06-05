@@ -34,6 +34,8 @@ var _ = Describe("Backup", func() {
 
 		AssertJumpboxFilesExist([]string{
 			fmt.Sprintf("%s/%s/bosh-0-test-backup-and-restore.tar", workspaceDir, "my-director"),
+			fmt.Sprintf("%s/%s/bosh-0-remarkable-backup-and-restore.tar", workspaceDir, "my-director"),
+			fmt.Sprintf("%s/%s/bosh-0-amazing-backup-and-restore.tar", workspaceDir, "my-director"),
 		})
 	})
 })
