@@ -85,7 +85,7 @@ var _ = Describe("DeploymentManager", func() {
 			})
 
 			It("should fail", func() {
-				Expect(actualError).To(HaveOccurred())
+				Expect(actualError).To(MatchError(ContainSubstring("failed reading private key")))
 			})
 
 			It("should not invoke connection creator", func() {
@@ -196,7 +196,6 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("returns an error", func() {
-				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError("Unable to clean up backup artifact"))
 			})
 		})
@@ -207,7 +206,6 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("returns the error", func() {
-				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring("fool!")))
 			})
 		})

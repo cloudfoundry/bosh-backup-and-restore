@@ -41,9 +41,8 @@ func NewDeploymentManager(
 
 func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment, error) {
 	keyContents, err := ioutil.ReadFile(dm.privateKeyFile)
-
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed reading private key")
 	}
 
 	connection, err := dm.connectionFactory(dm.hostName, dm.username, string(keyContents), gossh.InsecureIgnoreHostKey(), nil, dm.Logger)
@@ -71,7 +70,6 @@ type DeployedInstance struct {
 
 func (d DeployedInstance) Cleanup() error {
 	d.Logger.Info("", "Cleaning up...")
-
 	if !d.ArtifactDirCreated() {
 		d.Logger.Debug("", "Artifact directory was never created - skipping cleanup")
 		return nil
