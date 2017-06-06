@@ -105,7 +105,7 @@ var _ = Describe("CLI Interface", func() {
 				})
 
 				It("displays a failure message", func() {
-					Expect(output.outputString()).To(ContainSubstring("Target director URL is malformed"))
+					Expect(output.outputString()).To(ContainSubstring("invalid bosh URL"))
 				})
 			})
 

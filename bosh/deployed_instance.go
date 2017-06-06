@@ -7,6 +7,7 @@ import (
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
+	"github.com/pkg/errors"
 )
 
 type BoshDeployedInstance struct {
@@ -35,18 +36,19 @@ func (d *BoshDeployedInstance) Cleanup() error {
 	if d.ArtifactDirCreated() {
 		removeArtifactError := d.removeBackupArtifacts()
 		if removeArtifactError != nil {
-			errs = append(errs, removeArtifactError)
+			errs = append(errs, errors.Wrap(removeArtifactError, "failed to remove backup artifact"))
 		}
 	}
 
 	d.Logger.Debug("bbr", "Cleaning up SSH connection on instance %s %s", d.Name(), d.ID())
 	cleanupSSHError := d.Deployment.CleanUpSSH(director.NewAllOrInstanceGroupOrInstanceSlug(d.Name(), d.ID()), director.SSHOpts{Username: d.SSHConnection.Username()})
 	if cleanupSSHError != nil {
-		errs = append(errs, cleanupSSHError)
+		errs = append(errs, errors.Wrap(cleanupSSHError, "failed to cleanup ssh"))
 	}
 
 	return orchestrator.ConvertErrors(errs)
 }
+
 func (d *BoshDeployedInstance) removeBackupArtifacts() error {
 	_, _, _, err := d.RunOnInstance(fmt.Sprintf("sudo rm -rf %s", orchestrator.ArtifactDirectory), "remove backup artifacts")
 	return err

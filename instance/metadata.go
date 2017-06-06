@@ -1,6 +1,9 @@
 package instance
 
-import "gopkg.in/yaml.v2"
+import (
+	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
+)
 
 type Metadata struct {
 	BackupName  string `yaml:"backup_name"`
@@ -12,7 +15,7 @@ func NewJobMetadata(data []byte) (*Metadata, error) {
 	err := yaml.Unmarshal(data, metadata)
 
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to unmarshal job metadata")
 	}
 
 	return metadata, nil

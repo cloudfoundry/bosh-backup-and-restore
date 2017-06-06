@@ -1,11 +1,11 @@
 package instance
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
+	"github.com/pkg/errors"
 )
 
 type DeployedInstance struct {

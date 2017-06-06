@@ -35,6 +35,6 @@ restore_name: bar`)
 
 		_, err := NewJobMetadata(rawMetadata)
 
-		Expect(err).To(HaveOccurred())
+		Expect(err).To(MatchError(ContainSubstring("failed to unmarshal job metadata")))
 	})
 })

@@ -54,7 +54,7 @@ var _ = Describe("DeploymentManager", func() {
 			})
 
 			It("returns an error", func() {
-				Expect(findError).To(MatchError(expectedFindError))
+				Expect(findError).To(MatchError(ContainSubstring("failed to find instances")))
 			})
 		})
 	})
@@ -105,7 +105,7 @@ var _ = Describe("DeploymentManager", func() {
 				})
 
 				It("should fail", func() {
-					Expect(saveManifestError).To(MatchError(manifestFetchError))
+					Expect(saveManifestError).To(MatchError(ContainSubstring("failed to get manifest")))
 				})
 			})
 

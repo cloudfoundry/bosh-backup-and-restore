@@ -1,7 +1,6 @@
 package bosh_test
 
 import (
-	"fmt"
 	"log"
 
 	"bytes"
@@ -451,15 +450,15 @@ var _ = Describe("Director", func() {
 
 		})
 		Context("failures", func() {
-			var expectedError = fmt.Errorf("er ma gerd")
+			var expectedError = "er ma gerd"
 
 			Context("fails to find the deployment", func() {
 				BeforeEach(func() {
-					boshDirector.FindDeploymentReturns(nil, expectedError)
+					boshDirector.FindDeploymentReturns(nil, errors.New(expectedError))
 				})
 
 				It("does fail", func() {
-					Expect(actualError).To(MatchError(expectedError))
+					Expect(actualError).To(MatchError(ContainSubstring(expectedError)))
 				})
 
 				It("tries to fetch deployment", func() {
@@ -471,11 +470,11 @@ var _ = Describe("Director", func() {
 			Context("fails to find vms for a deployment", func() {
 				BeforeEach(func() {
 					boshDirector.FindDeploymentReturns(boshDeployment, nil)
-					boshDeployment.VMInfosReturns(nil, expectedError)
+					boshDeployment.VMInfosReturns(nil, errors.New(expectedError))
 				})
 
 				It("does fails", func() {
-					Expect(actualError).To(MatchError(expectedError))
+					Expect(actualError).To(MatchError(ContainSubstring(expectedError)))
 				})
 				It("tries to fetch vm infos", func() {
 					Expect(boshDeployment.VMInfosCallCount()).To(Equal(1))
@@ -491,10 +490,10 @@ var _ = Describe("Director", func() {
 				BeforeEach(func() {
 					boshDirector.FindDeploymentReturns(boshDeployment, nil)
 
-					optsGenerator.Returns(director.SSHOpts{}, "", expectedError)
+					optsGenerator.Returns(director.SSHOpts{}, "", errors.New(expectedError))
 				})
 				It("does fails", func() {
-					Expect(actualError).To(MatchError(expectedError))
+					Expect(actualError).To(MatchError(ContainSubstring(expectedError)))
 				})
 
 				It("tries to generate ssh keys", func() {
@@ -510,7 +509,7 @@ var _ = Describe("Director", func() {
 					}}, nil)
 				})
 				It("does fails", func() {
-					Expect(actualError).To(HaveOccurred())
+					Expect(actualError).To(MatchError(ContainSubstring("invalid instance group name")))
 				})
 
 				It("tries to fetch deployment", func() {
@@ -530,11 +529,11 @@ var _ = Describe("Director", func() {
 						JobName: "job1",
 					}}, nil)
 					optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
-					boshDeployment.SetUpSSHReturns(director.SSHResult{}, expectedError)
+					boshDeployment.SetUpSSHReturns(director.SSHResult{}, errors.New(expectedError))
 				})
 
 				It("does fails", func() {
-					Expect(actualError).To(MatchError(expectedError))
+					Expect(actualError).To(MatchError(ContainSubstring(expectedError)))
 				})
 
 				It("tries to fetch vm infos", func() {
@@ -565,11 +564,11 @@ var _ = Describe("Director", func() {
 							HostPublicKey: hostsPublicKey,
 						},
 					}}, nil)
-					sshConnectionFactory.Returns(nil, expectedError)
+					sshConnectionFactory.Returns(nil, errors.New(expectedError))
 				})
 
 				It("does fail", func() {
-					Expect(actualError).To(MatchError(expectedError))
+					Expect(actualError).To(MatchError(ContainSubstring(expectedError)))
 				})
 
 				It("tries to connect to the vm", func() {
@@ -616,7 +615,7 @@ var _ = Describe("Director", func() {
 								},
 							}}, nil
 						} else {
-							return director.SSHResult{}, expectedError
+							return director.SSHResult{}, errors.New(expectedError)
 						}
 					}
 					sshConnectionFactory.Returns(sshConnection, nil)
@@ -624,7 +623,7 @@ var _ = Describe("Director", func() {
 				})
 
 				It("fails", func() {
-					Expect(actualError).To(MatchError(expectedError))
+					Expect(actualError).To(MatchError(ContainSubstring(expectedError)))
 				})
 
 				It("cleans up the successful SSH connection", func() {
@@ -658,7 +657,7 @@ var _ = Describe("Director", func() {
 				})
 
 				It("fails", func() {
-					Expect(actualError).To(HaveOccurred())
+					Expect(actualError).To(MatchError(ContainSubstring("invalid instance group name")))
 				})
 
 				It("cleans up the successful SSH connection", func() {
@@ -693,12 +692,12 @@ var _ = Describe("Director", func() {
 						if host == "hostname_job1" {
 							return sshConnection, nil
 						}
-						return nil, expectedError
+						return nil, errors.New(expectedError)
 					}
 				})
 
 				It("fails", func() {
-					Expect(actualError).To(MatchError(expectedError))
+					Expect(actualError).To(MatchError(ContainSubstring(expectedError)))
 				})
 
 				It("cleans up the successful SSH connection", func() {
@@ -726,12 +725,12 @@ var _ = Describe("Director", func() {
 		})
 		Context("fails", func() {
 			Context("to find deployment", func() {
-				var findDeploymentError = errors.New("no deployment here")
+				var findDeploymentError = "no deployment here"
 				BeforeEach(func() {
-					boshDirector.FindDeploymentReturns(nil, findDeploymentError)
+					boshDirector.FindDeploymentReturns(nil, errors.New(findDeploymentError))
 				})
 				It("returns an error", func() {
-					Expect(acutalError).To(MatchError(findDeploymentError))
+					Expect(acutalError).To(MatchError(ContainSubstring(findDeploymentError)))
 				})
 			})
 			Context("to download manifest", func() {

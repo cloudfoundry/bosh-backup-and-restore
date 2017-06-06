@@ -15,27 +15,22 @@ import (
 func BuildClient(targetUrl, username, password, caCertFileName string, logger boshlog.Logger) (BoshClient, error) {
 	config, err := director.NewConfigFromURL(targetUrl)
 	if err != nil {
-		return nil, errors.Errorf("Target director URL is malformed - %s", err.Error())
+		return nil, errors.Errorf("invalid bosh URL - %s", err.Error())
 	}
 
 	var cert string
 	if caCertFileName != "" {
 		certBytes, err := ioutil.ReadFile(caCertFileName)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "CA-CERT can't be read")
 		}
 		cert = string(certBytes)
 	}
-
 	config.CACert = cert
 
 	directorFactory := director.NewFactory(logger)
-	infoDirector, err := directorFactory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
-	if err != nil {
-		return nil, err
-	}
 
-	info, err := infoDirector.Info()
+	info, err := getDirectorInfo(directorFactory, config, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -54,10 +49,24 @@ func BuildClient(targetUrl, username, password, caCertFileName string, logger bo
 
 	boshDirector, err := directorFactory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "error building bosh director client")
 	}
 
 	return NewClient(boshDirector, director.NewSSHOpts, ssh.NewConnection, logger, instance.NewJobFinder(logger)), nil
+}
+
+func getDirectorInfo(directorFactory director.Factory, config director.Config, logger boshlog.Logger) (director.Info, error) {
+	infoDirector, err := directorFactory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
+	if err != nil {
+		return director.Info{}, errors.Wrap(err, "error building bosh director client")
+	}
+
+	info, err := infoDirector.Info()
+	if err != nil {
+		return director.Info{}, errors.Wrap(err, "bosh director unreachable or unhealthy")
+	}
+
+	return info, nil
 }
 
 func buildUaa(info director.Info, username, password, cert string, logger boshlog.Logger) (boshuaa.UAA, error) {
@@ -69,7 +78,7 @@ func buildUaa(info director.Info, username, password, cert string, logger boshlo
 
 	uaaConfig, err := boshuaa.NewConfigFromURL(url)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "invalid UAA URL")
 	}
 
 	uaaConfig.CACert = cert

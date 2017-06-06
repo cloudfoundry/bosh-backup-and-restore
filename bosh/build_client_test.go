@@ -80,7 +80,7 @@ var _ = Describe("BuildClient", func() {
 			)
 			_, err := BuildClient(director.URL, username, password, sslCertPath, logger)
 
-			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring("invalid UAA URL")))
 
 		})
 	})
@@ -92,7 +92,7 @@ var _ = Describe("BuildClient", func() {
 		basicAuthDirectorUrl := director.URL
 
 		_, err := BuildClient(basicAuthDirectorUrl, username, password, caCertPath, logger)
-		Expect(err).To(HaveOccurred())
+		Expect(err).To(MatchError(ContainSubstring("CA-CERT can't be read")))
 	})
 
 	It("fails if invalid bosh url", func() {
@@ -102,7 +102,7 @@ var _ = Describe("BuildClient", func() {
 		basicAuthDirectorUrl := ""
 
 		_, err := BuildClient(basicAuthDirectorUrl, username, password, caCertPath, logger)
-		Expect(err).To(HaveOccurred())
+		Expect(err).To(MatchError(ContainSubstring("invalid bosh URL")))
 	})
 
 	It("fails if info cant be retrieved", func() {
@@ -114,8 +114,7 @@ var _ = Describe("BuildClient", func() {
 		)
 
 		_, err := BuildClient(director.URL, username, password, sslCertPath, logger)
-
-		Expect(err).To(HaveOccurred())
+		Expect(err).To(MatchError(ContainSubstring("bosh director unreachable or unhealthy")))
 	})
 
 })

@@ -115,20 +115,21 @@ func (b *Blob) StreamToRemote(reader io.Reader) error {
 
 func (b *Blob) Size() (string, error) {
 	stdout, stderr, exitCode, err := b.logAndRun(fmt.Sprintf("sudo du -sh %s | cut -f1", b.artifactDirectory), "check backup size")
+	if err != nil {
+		return "", err
+	}
 
 	if exitCode != 0 {
 		return "", errors.Errorf("Unable to check size of backup: %s", stderr)
 	}
 
-	size := strings.TrimSpace(string(stdout))
-	return size, err
+	return strings.TrimSpace(string(stdout)), nil
 }
 
 func (b *Blob) Checksum() (orchestrator.BackupChecksum, error) {
 	b.Logger.Debug("bbr", "Calculating shasum for remote files on %s/%s", b.instance.Name(), b.instance.ID())
 
 	stdout, stderr, exitCode, err := b.logAndRun(fmt.Sprintf("cd %s; sudo sh -c 'find . -type f | xargs shasum -a 256'", b.artifactDirectory), "checksum")
-
 	if err != nil {
 		return nil, err
 	}

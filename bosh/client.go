@@ -54,17 +54,17 @@ type Logger interface {
 func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, error) {
 	deployment, err := c.Director.FindDeployment(deploymentName)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "couldn't find deployment "+deploymentName)
 	}
 
 	c.Logger.Debug("bbr", "Finding VMs...")
 	vms, err := deployment.VMInfos()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "couldn't get vm infos")
 	}
 	sshOpts, privateKey, err := c.SSHOptsGenerator(uuid.NewGenerator())
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "failed to generate ssh options")
 	}
 	c.Logger.Debug("bbr", "SSH user generated: %s", sshOpts.Username)
 
@@ -79,13 +79,13 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 		allVmInstances, err := director.NewAllOrInstanceGroupOrInstanceSlugFromString(instanceGroupName)
 		if err != nil {
 			cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
-			return nil, err
+			return nil, errors.Wrap(err, "invalid instance group name: "+instanceGroupName)
 		}
 
 		sshRes, err := deployment.SetUpSSH(allVmInstances, sshOpts)
 		if err != nil {
 			cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
-			return nil, err
+			return nil, errors.Wrap(err, "failed to set up ssh")
 		}
 		slugs = append(slugs, allVmInstances)
 
@@ -101,19 +101,17 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 			}
 
 			sshConnection, err = c.SSHConnectionFactory(host.Host, host.Username, privateKey, gossh.FixedHostKey(hostPublicKey), []string{hostPublicKey.Type()}, c.Logger)
-
 			if err != nil {
 				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
-				return nil, err
+				return nil, errors.Wrap(err, "failed to connect using ssh")
 			}
 
 			hostIdentifier := fmt.Sprintf("%s/%s", instanceGroupName, host.IndexOrID)
 
 			jobs, err := c.jobFinder.FindJobs(hostIdentifier, sshConnection)
-
 			if err != nil {
 				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
-				return nil, err
+				return nil, errors.Wrap(err, "couldn't find jobs")
 			}
 
 			instances = append(instances,
@@ -137,7 +135,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 func (c Client) GetManifest(deploymentName string) (string, error) {
 	deployment, err := c.Director.FindDeployment(deploymentName)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "couldn't find deployment "+deploymentName)
 	}
 	return deployment.Manifest()
 }
