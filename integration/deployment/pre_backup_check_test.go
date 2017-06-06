@@ -1,4 +1,4 @@
-package integration
+package deployment
 
 import (
 	"io/ioutil"
@@ -35,7 +35,7 @@ var _ = Describe("Pre-backup checks", func() {
 	})
 
 	JustBeforeEach(func() {
-		session = runBinary(
+		session = binary.Run(
 			backupWorkspace,
 			[]string{"BOSH_CLIENT_SECRET=admin"},
 			"deployment",
@@ -71,7 +71,7 @@ var _ = Describe("Pre-backup checks", func() {
 			BeforeEach(func() {
 				By("creating a dummy backup script")
 
-				mockDirectorWith(director,
+				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
@@ -113,7 +113,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 		Context("if there are no backup scripts", func() {
 			BeforeEach(func() {
-				mockDirectorWith(director,
+				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),

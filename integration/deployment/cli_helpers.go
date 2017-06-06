@@ -1,8 +1,7 @@
-package integration
+package deployment
 
 import (
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
 )
 
 type helpText struct {
@@ -35,14 +34,4 @@ func ShowsTheMainHelpText(helpText *helpText) {
 
 	Expect(helpText.outputString()).To(ContainSubstring(`USAGE:
    bbr command [arguments...] [subcommand]`))
-}
-
-func mockDirectorWith(director *mockhttp.Server, info mockhttp.MockedResponseBuilder, vmsResponse []mockhttp.MockedResponseBuilder, sshResponse []mockhttp.MockedResponseBuilder, cleanupResponse []mockhttp.MockedResponseBuilder) {
-	director.VerifyAndMock(AppendBuilders(
-		[]mockhttp.MockedResponseBuilder{info},
-		vmsResponse,
-		sshResponse,
-		cleanupResponse,
-	)...)
-
 }

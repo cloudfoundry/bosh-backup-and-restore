@@ -1,4 +1,4 @@
-package integration
+package deployment
 
 import (
 	"io/ioutil"
@@ -46,7 +46,7 @@ instances: []`))
 				mockbosh.Info().WithAuthTypeBasic(),
 				mockbosh.VMsForDeployment(deploymentName).NotFound(),
 			)
-			session = runBinary(
+			session = binary.Run(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
 				"deployment",
@@ -74,7 +74,7 @@ instances: []`))
 
 		BeforeEach(func() {
 			director.VerifyAndMock(mockbosh.Info().WithAuthTypeBasic())
-			session = runBinary(
+			session = binary.Run(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
 				"deployment",
@@ -115,10 +115,10 @@ instances:
     checksums:
       redis-backup: this-is-not-a-checksum-this-is-only-a-tribute`))
 
-			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
+			backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", backupContents)
-			session = runBinary(
+			session = binary.Run(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
 				"deployment",
@@ -174,13 +174,13 @@ instances:
     checksums:
       ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
-			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
+			backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", backupContents)
 		})
 
 		JustBeforeEach(func() {
-			session = runBinary(
+			session = binary.Run(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
 				"deployment",
@@ -302,14 +302,14 @@ instances:
     checksums:
       ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
-			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
+			backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", backupContents)
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-server-0-redis.tar", backupContents)
 		})
 
 		JustBeforeEach(func() {
-			session = runBinary(
+			session = binary.Run(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
 				"deployment",
@@ -383,7 +383,7 @@ custom_artifacts:
   checksums:
     ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
-			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
+			backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tar", backupContents)
 
@@ -391,7 +391,7 @@ custom_artifacts:
 		})
 
 		JustBeforeEach(func() {
-			session = runBinary(
+			session = binary.Run(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
 				"deployment",
@@ -472,7 +472,7 @@ custom_artifacts:
   checksums:
     ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
-			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
+			backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tar", backupContents)
 
@@ -480,7 +480,7 @@ custom_artifacts:
 		})
 
 		JustBeforeEach(func() {
-			session = runBinary(
+			session = binary.Run(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
 				"deployment",
@@ -532,7 +532,7 @@ custom_artifacts:
   checksums:
     ./redis/redis-backup: this-is-damn-wrong`))
 
-			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
+			backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tar", backupContents)
 
@@ -540,7 +540,7 @@ custom_artifacts:
 		})
 
 		JustBeforeEach(func() {
-			session = runBinary(
+			session = binary.Run(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
 				"deployment",
@@ -588,13 +588,13 @@ instances:
     checksums:
       ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
-			backupContents, err := ioutil.ReadFile("../fixtures/backup.tar")
+			backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", backupContents)
 		})
 
 		JustBeforeEach(func() {
-			session = runBinary(
+			session = binary.Run(
 				restoreWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
 				"deployment",

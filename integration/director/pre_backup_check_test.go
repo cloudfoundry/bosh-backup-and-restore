@@ -1,4 +1,4 @@
-package integration
+package director
 
 import (
 	"io/ioutil"
@@ -28,7 +28,7 @@ var _ = Describe("Pre-backup checks", func() {
 	})
 
 	JustBeforeEach(func() {
-		session = runBinary(
+		session = binary.Run(
 			backupWorkspace,
 			[]string{"BOSH_CLIENT_SECRET=admin"},
 			"director",

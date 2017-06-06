@@ -1,4 +1,4 @@
-package integration
+package deployment
 
 import (
 	"io/ioutil"
@@ -38,7 +38,7 @@ var _ = Describe("CLI Interface", func() {
 						mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
 					)
 
-					runBinary(backupWorkspace,
+					binary.Run(backupWorkspace,
 						[]string{},
 						"deployment",
 						"--ca-cert", sslCertPath,
@@ -57,7 +57,7 @@ var _ = Describe("CLI Interface", func() {
 						mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
 					)
 
-					runBinary(backupWorkspace,
+					binary.Run(backupWorkspace,
 						[]string{},
 						"deployment",
 						"--ca-cert", sslCertPath,
@@ -78,7 +78,7 @@ var _ = Describe("CLI Interface", func() {
 						mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
 					)
 
-					runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+					binary.Run(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
 
 					director.VerifyMocks()
 				})
@@ -89,7 +89,7 @@ var _ = Describe("CLI Interface", func() {
 				var session *gexec.Session
 				BeforeEach(func() {
 					badDirectorURL := "https://:25555"
-					session = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--username", "admin", "--password", "admin", "--target", badDirectorURL, "--deployment", "my-new-deployment", cmd)
+					session = binary.Run(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--username", "admin", "--password", "admin", "--target", badDirectorURL, "--deployment", "my-new-deployment", cmd)
 					output.output = session.Err.Contents()
 				})
 
@@ -106,7 +106,7 @@ var _ = Describe("CLI Interface", func() {
 				var output helpText
 				var session *gexec.Session
 				BeforeEach(func() {
-					session = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--ca-cert", "/tmp/whatever", "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+					session = binary.Run(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--ca-cert", "/tmp/whatever", "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
 					output.output = session.Err.Contents()
 				})
 
@@ -123,7 +123,7 @@ var _ = Describe("CLI Interface", func() {
 				var output helpText
 				var session *gexec.Session
 				BeforeEach(func() {
-					session = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--dave", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+					session = binary.Run(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--dave", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
 					output.output = session.Out.Contents()
 				})
 
@@ -149,7 +149,7 @@ var _ = Describe("CLI Interface", func() {
 					env = []string{"BOSH_CLIENT_SECRET=admin"}
 				})
 				JustBeforeEach(func() {
-					session = runBinary(backupWorkspace, env, command...)
+					session = binary.Run(backupWorkspace, env, command...)
 					output.output = session.Out.Contents()
 				})
 
@@ -230,7 +230,7 @@ var _ = Describe("CLI Interface", func() {
 						mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
 					)
 
-					session := runBinary(backupWorkspace, []string{}, "deployment", "--debug", "--ca-cert", sslCertPath, "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+					session := binary.Run(backupWorkspace, []string{}, "deployment", "--debug", "--ca-cert", sslCertPath, "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
 
 					Expect(string(session.Out.Contents())).To(ContainSubstring("Sending GET request to endpoint"))
 
@@ -257,7 +257,7 @@ instances: []`))
 			var output helpText
 
 			BeforeEach(func() {
-				output.output = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--help").Out.Contents()
+				output.output = binary.Run(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--help").Out.Contents()
 			})
 
 			It("displays the usable flags", func() {
@@ -269,7 +269,7 @@ instances: []`))
 			var output helpText
 
 			BeforeEach(func() {
-				output.output = runBinary(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment").Out.Contents()
+				output.output = binary.Run(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment").Out.Contents()
 			})
 
 			It("displays the usable flags", func() {
@@ -283,7 +283,7 @@ instances: []`))
 		var output helpText
 
 		BeforeEach(func() {
-			output.output = runBinary(backupWorkspace, []string{""}).Out.Contents()
+			output.output = binary.Run(backupWorkspace, []string{""}).Out.Contents()
 		})
 
 		It("displays the usable flags", func() {

@@ -1,4 +1,4 @@
-package integration
+package deployment
 
 import (
 	"archive/tar"
@@ -61,7 +61,7 @@ var _ = Describe("Backup", func() {
 			params = append(params, "--with-manifest")
 		}
 
-		session = runBinary(
+		session = binary.Run(
 			backupWorkspace,
 			[]string{"BOSH_CLIENT_SECRET=admin"},
 			params...,
@@ -99,7 +99,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 			Context("and we don't ask for the manifest to be downloaded", func() {
 				BeforeEach(func() {
-					mockDirectorWith(director,
+					MockDirectorWith(director,
 						mockbosh.Info().WithAuthTypeBasic(),
 						VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 						SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
@@ -387,7 +387,7 @@ exit 1`)
 		Context("when a deployment can't be backed up", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
-				mockDirectorWith(director,
+				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
@@ -409,7 +409,7 @@ exit 1`)
 		Context("when the instance backup script fails", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
-				mockDirectorWith(director,
+				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
@@ -429,7 +429,7 @@ exit 1`)
 		Context("when both the instance backup script and cleanup fail", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
-				mockDirectorWith(director,
+				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
@@ -460,7 +460,7 @@ exit 1`)
 		Context("when backup succeeds but cleanup fails", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
-				mockDirectorWith(director,
+				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
@@ -500,7 +500,7 @@ touch /tmp/metadata-script-was-run-but-produces-invalid-yaml
 echo "not valid yaml
 "`)
 
-				mockDirectorWith(director,
+				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
@@ -567,7 +567,7 @@ echo "not valid yaml
 				deploymentName = "my-bigger-deployment"
 				backupableInstance = testcluster.NewInstance()
 				nonBackupableInstance = testcluster.NewInstance()
-				mockDirectorWith(director,
+				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
 					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance),
@@ -600,7 +600,7 @@ echo "not valid yaml
 				deploymentName = "my-two-instance-deployment"
 				backupableInstance1 = testcluster.NewInstance()
 				backupableInstance2 = testcluster.NewInstance()
-				mockDirectorWith(director,
+				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
 					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
@@ -675,7 +675,7 @@ echo "not valid yaml
 				deploymentName = "my-two-instance-deployment"
 				backupableInstance1 = testcluster.NewInstance()
 				backupableInstance2 = testcluster.NewInstance()
-				mockDirectorWith(director,
+				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
 					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
@@ -732,7 +732,7 @@ backup_name: duplicate_name
 				deploymentName = "my-two-instance-deployment"
 				restoreInstance = testcluster.NewInstance()
 				backupableInstance = testcluster.NewInstance()
-				mockDirectorWith(director,
+				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
 					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, restoreInstance),

@@ -1,4 +1,4 @@
-package integration
+package deployment
 
 import (
 	"fmt"
@@ -9,11 +9,21 @@ import (
 	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
 )
 
+func MockDirectorWith(director *mockhttp.Server, info mockhttp.MockedResponseBuilder, vmsResponse []mockhttp.MockedResponseBuilder, sshResponse []mockhttp.MockedResponseBuilder, cleanupResponse []mockhttp.MockedResponseBuilder) {
+	director.VerifyAndMock(AppendBuilders(
+		[]mockhttp.MockedResponseBuilder{info},
+		vmsResponse,
+		sshResponse,
+		cleanupResponse,
+	)...)
+}
+
 func InfoWithBasicAuth() []mockhttp.MockedResponseBuilder {
 	return []mockhttp.MockedResponseBuilder{
 		mockbosh.Info().WithAuthTypeBasic(),
 	}
 }
+
 func VmsForDeployment(deploymentName string, responseInstances []mockbosh.VMsOutput) []mockhttp.MockedResponseBuilder {
 	randomTaskID := generateTaskId()
 	return []mockhttp.MockedResponseBuilder{
@@ -36,6 +46,7 @@ func DownloadManifest(deploymentName string, manifest string) []mockhttp.MockedR
 		mockbosh.Manifest(deploymentName).RespondsWith([]byte(manifest)),
 	}
 }
+
 func AppendBuilders(arrayOfArrayOfBuilders ...[]mockhttp.MockedResponseBuilder) []mockhttp.MockedResponseBuilder {
 	var flattenedArrayOfBuilders []mockhttp.MockedResponseBuilder
 	for _, arrayOfBuilders := range arrayOfArrayOfBuilders {
@@ -43,6 +54,7 @@ func AppendBuilders(arrayOfArrayOfBuilders ...[]mockhttp.MockedResponseBuilder) 
 	}
 	return flattenedArrayOfBuilders
 }
+
 func SetupSSH(deploymentName, instanceGroup, instanceID string, instanceIndex int, instance *testcluster.Instance) []mockhttp.MockedResponseBuilder {
 	randomTaskID := generateTaskId()
 	return []mockhttp.MockedResponseBuilder{
@@ -66,6 +78,7 @@ func SetupSSH(deploymentName, instanceGroup, instanceID string, instanceIndex in
 		),
 	}
 }
+
 func CleanupSSH(deploymentName, instanceGroup string) []mockhttp.MockedResponseBuilder {
 	randomTaskID := generateTaskId()
 	return []mockhttp.MockedResponseBuilder{
