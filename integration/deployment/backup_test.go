@@ -20,7 +20,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-cf/bosh-backup-and-restore/integration"
+	. "github.com/pivotal-cf/bosh-backup-and-restore/integration"
 )
 
 var _ = Describe("Backup", func() {
@@ -126,7 +126,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 
 					By("correctly populating the metadata file", func() {
-						metadataContents := integration.ParseMetadata(metadataFile)
+						metadataContents := ParseMetadata(metadataFile)
 
 						currentTimezone, _ := time.Now().Zone()
 						Expect(metadataContents.BackupActivityMetadata.StartTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
@@ -202,7 +202,7 @@ backup_name: custom_backup_named_redis
 						By("recording the artifact as a custom artifact in the backup metadata", func() {
 							Expect(metadataFile).To(BeARegularFile())
 
-							metadataContents := integration.ParseMetadata(metadataFile)
+							metadataContents := ParseMetadata(metadataFile)
 
 							currentTimezone, _ := time.Now().Zone()
 							Expect(metadataContents.BackupActivityMetadata.StartTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))

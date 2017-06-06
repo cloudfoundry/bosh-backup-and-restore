@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/pivotal-cf/bosh-backup-and-restore/integration"
+	. "github.com/pivotal-cf/bosh-backup-and-restore/integration"
 	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
 
 	"github.com/onsi/gomega/gbytes"
@@ -101,7 +101,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 
 					By("correctly populating the metadata file", func() {
-						metadataContents := integration.ParseMetadata(metadataFilePath)
+						metadataContents := ParseMetadata(metadataFilePath)
 
 						currentTimezone, _ := time.Now().Zone()
 						Expect(metadataContents.BackupActivityMetadata.StartTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
