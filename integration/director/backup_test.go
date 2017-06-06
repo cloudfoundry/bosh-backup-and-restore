@@ -16,7 +16,6 @@ import (
 	"io"
 	"time"
 
-	"crypto/sha256"
 	"fmt"
 
 	. "github.com/onsi/ginkgo"
@@ -113,8 +112,8 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Name).To(Equal("bosh"))
 						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums).To(HaveLen(2))
-						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums["./bosh/backupdump1"]).To(Equal(shaFor("backupcontent1")))
-						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums["./bosh/backupdump2"]).To(Equal(shaFor("backupcontent2")))
+						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums["./bosh/backupdump1"]).To(Equal(ShaFor("backupcontent1")))
+						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums["./bosh/backupdump2"]).To(Equal(ShaFor("backupcontent2")))
 
 						Expect(metadataContents.CustomArtifactsMetadata).To(BeEmpty())
 					})
@@ -259,10 +258,4 @@ func contentsInTar(tarFile, file string) string {
 	}
 	Fail("File " + file + " not found in tar " + tarFile)
 	return ""
-}
-
-func shaFor(contents string) string {
-	shasum := sha256.New()
-	shasum.Write([]byte(contents))
-	return fmt.Sprintf("%x", shasum.Sum(nil))
 }

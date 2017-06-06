@@ -2,7 +2,6 @@ package deployment
 
 import (
 	"archive/tar"
-	"crypto/sha256"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -138,8 +137,8 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Name).To(Equal("redis"))
 						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums).To(HaveLen(2))
-						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums["./redis/backupdump1"]).To(Equal(shaFor("backupcontent1")))
-						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums["./redis/backupdump2"]).To(Equal(shaFor("backupcontent2")))
+						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums["./redis/backupdump1"]).To(Equal(ShaFor("backupcontent1")))
+						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums["./redis/backupdump2"]).To(Equal(ShaFor("backupcontent2")))
 
 						Expect(metadataContents.CustomArtifactsMetadata).To(BeEmpty())
 					})
@@ -211,8 +210,8 @@ backup_name: custom_backup_named_redis
 							Expect(metadataContents.CustomArtifactsMetadata).To(HaveLen(1))
 							Expect(metadataContents.CustomArtifactsMetadata[0].Name).To(Equal("custom_backup_named_redis"))
 							Expect(metadataContents.CustomArtifactsMetadata[0].Checksums).To(HaveLen(2))
-							Expect(metadataContents.CustomArtifactsMetadata[0].Checksums["./backupdump1"]).To(Equal(shaFor("backupcontent1")))
-							Expect(metadataContents.CustomArtifactsMetadata[0].Checksums["./backupdump2"]).To(Equal(shaFor("backupcontent2")))
+							Expect(metadataContents.CustomArtifactsMetadata[0].Checksums["./backupdump1"]).To(Equal(ShaFor("backupcontent1")))
+							Expect(metadataContents.CustomArtifactsMetadata[0].Checksums["./backupdump2"]).To(Equal(ShaFor("backupcontent2")))
 						})
 					})
 				})
@@ -841,12 +840,6 @@ func contentsInTar(tarFile, file string) string {
 	}
 	Fail("File " + file + " not found in tar " + tarFile)
 	return ""
-}
-
-func shaFor(contents string) string {
-	shasum := sha256.New()
-	shasum.Write([]byte(contents))
-	return fmt.Sprintf("%x", shasum.Sum(nil))
 }
 
 func assertOutput(session *gexec.Session, strings []string) {

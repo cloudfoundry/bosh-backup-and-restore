@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"gopkg.in/yaml.v2"
+	"crypto/sha256"
 )
 
 type Binary struct {
@@ -65,4 +66,10 @@ func ParseMetadata(filePath string) metadata {
 	contents, _ := ioutil.ReadFile(filePath)
 	yaml.Unmarshal(contents, &metadataContents)
 	return metadataContents
+}
+
+func ShaFor(contents string) string {
+	shasum := sha256.New()
+	shasum.Write([]byte(contents))
+	return fmt.Sprintf("%x", shasum.Sum(nil))
 }
