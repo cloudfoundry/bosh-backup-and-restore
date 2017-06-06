@@ -11,14 +11,13 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var runTimeout = 99999 * time.Hour
-
 type Binary struct {
-	path string
+	path       string
+	runTimeout time.Duration
 }
 
 func NewBinary(path string) Binary {
-	return Binary{path: path}
+	return Binary{path: path, runTimeout: 99999 * time.Hour}
 }
 
 func (b Binary) Run(cwd string, env []string, params ...string) *gexec.Session {
@@ -29,7 +28,7 @@ func (b Binary) Run(cwd string, env []string, params ...string) *gexec.Session {
 	fmt.Fprintf(GinkgoWriter, "Command output start\n")
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ToNot(HaveOccurred())
-	Eventually(session, runTimeout).Should(gexec.Exit())
+	Eventually(session, b.runTimeout).Should(gexec.Exit())
 	fmt.Fprintf(GinkgoWriter, "Command output end\n")
 	fmt.Fprintf(GinkgoWriter, "Exited with %d\n", session.ExitCode())
 
