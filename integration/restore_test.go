@@ -57,11 +57,15 @@ instances: []`))
 				"restore")
 
 		})
-		It("fails", func() {
-			Expect(session.ExitCode()).To(Equal(1))
-		})
-		It("prints an error", func() {
-			Expect(string(session.Err.Contents())).To(ContainSubstring("Director responded with non-successful status code"))
+
+		It("fails and prints an error", func() {
+			By("failing", func() {
+				Expect(session.ExitCode()).To(Equal(1))
+			})
+
+			By("printing an error", func() {
+				Expect(string(session.Err.Contents())).To(ContainSubstring("Director responded with non-successful status code"))
+			})
 		})
 	})
 
@@ -81,17 +85,22 @@ instances: []`))
 				"restore")
 
 		})
-		It("fails", func() {
-			Expect(session.ExitCode()).To(Equal(1))
-		})
-		It("prints an error", func() {
-			Expect(string(session.Err.Contents())).To(ContainSubstring("no such file or directory"))
+
+		It("fails and prints an error", func() {
+			By("failing", func() {
+				Expect(session.ExitCode()).To(Equal(1))
+			})
+
+			By("printing an error", func() {
+				Expect(string(session.Err.Contents())).To(ContainSubstring("no such file or directory"))
+			})
 		})
 	})
 
 	Context("when the backup artifact is corrupted", func() {
 		var session *gexec.Session
 		var deploymentName string
+
 		BeforeEach(func() {
 			deploymentName = "my-new-deployment"
 			director.VerifyAndMock(mockbosh.Info().WithAuthTypeBasic())
@@ -119,13 +128,16 @@ instances:
 				"--target", director.URL,
 				"--deployment", "my-new-deployment",
 				"restore")
+		})
 
-		})
-		It("fails", func() {
-			Expect(session.ExitCode()).To(Equal(1))
-		})
-		It("prints an error", func() {
-			Expect(string(session.Err.Contents())).To(ContainSubstring("Backup artifact is corrupted"))
+		It("fails and prints an error", func() {
+			By("failing", func() {
+				Expect(session.ExitCode()).To(Equal(1))
+			})
+
+			By("printing an error", func() {
+				Expect(string(session.Err.Contents())).To(ContainSubstring("Backup artifact is corrupted"))
+			})
 		})
 	})
 
@@ -185,16 +197,18 @@ instances:
 			Expect(os.RemoveAll(deploymentName)).To(Succeed())
 		})
 
-		It("does not fail", func() {
-			Expect(session.ExitCode()).To(Equal(0))
-		})
+		It("runs the restore script successfully and cleans up", func() {
+			By("succeeding", func() {
+				Expect(session.ExitCode()).To(Equal(0))
+			})
 
-		It("Cleans up the archive file on the remote", func() {
-			Expect(instance1.FileExists("/var/vcap/store/bbr-backup/redis-backup")).To(BeFalse())
-		})
+			By("cleaning up the archive file on the remote", func() {
+				Expect(instance1.FileExists("/var/vcap/store/bbr-backup/redis-backup")).To(BeFalse())
+			})
 
-		It("Runs the restore script on the remote", func() {
-			Expect(instance1.FileExists("/redis-backup"))
+			By("running the restore script on the remote", func() {
+				Expect(instance1.FileExists("/redis-backup"))
+			})
 		})
 
 		Context("when restore fails", func() {
@@ -203,12 +217,14 @@ instances:
 	>&2 echo "dear lord"; exit 1`)
 			})
 
-			It("fails", func() {
-				Expect(session.ExitCode()).To(Equal(1))
-			})
+			It("fails and returns the failure", func() {
+				By("failing", func() {
+					Expect(session.ExitCode()).To(Equal(1))
+				})
 
-			It("returns the failure", func() {
-				Expect(session.Err.Contents()).To(ContainSubstring("dear lord"))
+				By("returning the failure", func() {
+					Expect(session.Err.Contents()).To(ContainSubstring("dear lord"))
+				})
 			})
 		})
 
@@ -217,18 +233,20 @@ instances:
 				instance1.CreateDir("/var/vcap/store/bbr-backup")
 			})
 
-			It("fails", func() {
-				Expect(session.ExitCode()).To(Equal(1))
-			})
+			It("fails, returns an error and does not delete the artifact", func() {
+				By("failing", func() {
+					Expect(session.ExitCode()).To(Equal(1))
+				})
 
-			It("returns the correct error", func() {
-				Expect(session.Err.Contents()).To(ContainSubstring(
-					"Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid",
-				))
-			})
+				By("returning the correct error", func() {
+					Expect(session.Err.Contents()).To(ContainSubstring(
+						"Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid",
+					))
+				})
 
-			It("does not delete the artifact", func() {
-				Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeTrue())
+				By("not deleting the artifact", func() {
+					Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeTrue())
+				})
 			})
 		})
 	})
@@ -309,21 +327,24 @@ instances:
 			Expect(os.RemoveAll(deploymentName)).To(Succeed())
 		})
 
-		It("does not fail", func() {
-			Expect(session.ExitCode()).To(Equal(0))
+		It("runs the restore script and cleans up", func() {
+			By("succeeding", func() {
+				Expect(session.ExitCode()).To(Equal(0))
+			})
+
+			By("cleaning up the archive file on the remote", func() {
+				Expect(instance1.FileExists("/var/vcap/store/bbr-backup/redis-backup")).To(BeFalse())
+				Expect(instance2.FileExists("/var/vcap/store/bbr-backup/redis-backup")).To(BeFalse())
+			})
+
+			By("running the restore script on the remote", func() {
+				Expect(instance1.FileExists("" +
+					"/redis-backup"))
+				Expect(instance2.FileExists("" +
+					"/redis-backup"))
+			})
 		})
 
-		It("Cleans up the archive file on the remote", func() {
-			Expect(instance1.FileExists("/var/vcap/store/bbr-backup/redis-backup")).To(BeFalse())
-			Expect(instance2.FileExists("/var/vcap/store/bbr-backup/redis-backup")).To(BeFalse())
-		})
-
-		It("Runs the restore script on the remote", func() {
-			Expect(instance1.FileExists("" +
-				"/redis-backup"))
-			Expect(instance2.FileExists("" +
-				"/redis-backup"))
-		})
 	})
 
 	Context("when deployment has named artifacts, with a default artifact", func() {
@@ -387,17 +408,19 @@ custom_artifacts:
 			instance1.DieInBackground()
 		})
 
-		It("does not fail", func() {
-			Expect(session.ExitCode()).To(Equal(0))
-		})
+		It("runs the restore script and cleans up", func() {
+			By("succeeding", func() {
+				Expect(session.ExitCode()).To(Equal(0))
+			})
 
-		It("Cleans up the archive file on the remote", func() {
-			Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
-		})
+			By("cleaning up the archive file on the remote", func() {
+				Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
+			})
 
-		It("Runs the restore script on the remote", func() {
-			Expect(instance1.FileExists("" +
-				"/redis-backup"))
+			By("running the restore script on the remote", func() {
+				Expect(instance1.FileExists("" +
+					"/redis-backup"))
+			})
 		})
 	})
 
@@ -475,17 +498,19 @@ custom_artifacts:
 			Expect(os.RemoveAll(deploymentName)).To(Succeed())
 		})
 
-		It("does not fail", func() {
-			Expect(session.ExitCode()).To(Equal(0))
-		})
+		It("runs the restore script and cleans up", func() {
+			By("succeeding", func() {
+				Expect(session.ExitCode()).To(Equal(0))
+			})
 
-		It("Cleans up the archive file on the remote", func() {
-			Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
-		})
+			By("cleaning up the archive file on the remote", func() {
+				Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
+			})
 
-		It("Runs the restore script on the remote", func() {
-			Expect(instance1.FileExists("" +
-				"/redis-backup"))
+			By("running the restore script on the remote", func() {
+				Expect(instance1.FileExists("" +
+					"/redis-backup"))
+			})
 		})
 	})
 
@@ -585,20 +610,22 @@ instances:
 			Expect(os.RemoveAll(deploymentName)).To(Succeed())
 		})
 
-		It("fails", func() {
-			Expect(session.ExitCode()).To(Equal(2))
-		})
+		It("runs the restore script, fails and cleans up", func() {
+			By("failing", func() {
+				Expect(session.ExitCode()).To(Equal(2))
+			})
 
-		It("Cleans up the archive file on the remote", func() {
-			Expect(instance1.FileExists("/var/vcap/store/bbr-backup/redis-backup")).To(BeFalse())
-		})
+			By("cleaning up the archive file on the remote", func() {
+				Expect(instance1.FileExists("/var/vcap/store/bbr-backup/redis-backup")).To(BeFalse())
+			})
 
-		It("Runs the restore script on the remote", func() {
-			Expect(instance1.FileExists("/var/vcap/store/redis-server/redis-backup"))
-		})
+			By("running the restore script on the remote", func() {
+				Expect(instance1.FileExists("/var/vcap/store/redis-server/redis-backup"))
+			})
 
-		It("returns the failure", func() {
-			Expect(session.Err.Contents()).To(ContainSubstring("cleanup err"))
+			By("returning the failure", func() {
+				Expect(session.Err.Contents()).To(ContainSubstring("cleanup err"))
+			})
 		})
 	})
 })
