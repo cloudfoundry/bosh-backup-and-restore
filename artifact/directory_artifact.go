@@ -201,7 +201,7 @@ func (directoryArtifact *DirectoryArtifact) AddFinishTime(finishTime time.Time) 
 }
 
 func (directoryArtifact *DirectoryArtifact) SaveManifest(manifest string) error {
-	return ioutil.WriteFile(directoryArtifact.manifestFilename(), []byte(manifest), 0666)
+	return errors.Wrap(ioutil.WriteFile(directoryArtifact.manifestFilename(), []byte(manifest), 0666), "failed to save manifest")
 }
 
 func (directoryArtifact *DirectoryArtifact) Valid() (bool, error) {
@@ -270,6 +270,7 @@ func fileName(blobIdentifier orchestrator.ArtifactIdentifier) string {
 
 	return instanceArtifactFileName(blobIdentifier.InstanceName(), blobIdentifier.InstanceIndex(), blobIdentifier.Name())
 }
+
 func instanceArtifactFileName(instanceName string, instanceIndex string, name string) string {
 	return instanceName + "-" + instanceIndex + "-" + name + ".tar"
 }

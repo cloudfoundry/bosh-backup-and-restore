@@ -1,7 +1,11 @@
 package artifact
 
-import "gopkg.in/yaml.v2"
-import "io/ioutil"
+import (
+	"io/ioutil"
+
+	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
+)
 
 type backupActivityMetadata struct {
 	StartTime  string `yaml:"start_time"`
@@ -30,11 +34,11 @@ func readMetadata(filename string) (metadata, error) {
 
 	contents, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return metadata, err
+		return metadata, errors.Wrap(err, "failed to read metadata")
 	}
 
 	if err := yaml.Unmarshal(contents, &metadata); err != nil {
-		return metadata, err
+		return metadata, errors.Wrap(err, "failed to unmarshal metadata")
 	}
 	return metadata, nil
 }
@@ -42,7 +46,7 @@ func readMetadata(filename string) (metadata, error) {
 func (data *metadata) save(filename string) error {
 	contents, err := yaml.Marshal(data)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to marshal metadata")
 	}
 
 	return ioutil.WriteFile(filename, contents, 0666)

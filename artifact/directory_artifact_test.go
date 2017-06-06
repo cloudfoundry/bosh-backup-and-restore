@@ -99,14 +99,14 @@ instances:
 
 			It("returns error", func() {
 				_, err := artifact.DeploymentMatches(artifactName, []orchestrator.Instance{instance1, instance2})
-				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError(ContainSubstring("failed to unmarshal metadata")))
 			})
 		})
 
 		Context("when an error occurs checking if the file exists", func() {
 			It("returns error", func() {
 				_, err := artifact.DeploymentMatches(artifactName, []orchestrator.Instance{instance1, instance2})
-				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError(ContainSubstring("Error checking metadata file")))
 			})
 		})
 	})
@@ -263,7 +263,7 @@ instances:
 				Expect(verifyResult).To(BeFalse())
 			})
 			It("returns an error", func() {
-				Expect(verifyError).To(HaveOccurred())
+				Expect(verifyError).To(MatchError(ContainSubstring("failed to unmarshal metadata")))
 			})
 		})
 
@@ -279,7 +279,7 @@ instances:
 				Expect(verifyResult).To(BeFalse())
 			})
 			It("returns an error", func() {
-				Expect(verifyError).To(HaveOccurred())
+				Expect(verifyError).To(MatchError(ContainSubstring("failed to read metadata")))
 			})
 		})
 	})
@@ -344,7 +344,7 @@ instances:
 				fakeBackupArtifact.NameReturns("foo/bar/baz")
 			})
 			It("fails", func() {
-				Expect(fileCreationError).To(HaveOccurred())
+				Expect(fileCreationError).To(MatchError(ContainSubstring("Error creating file")))
 			})
 		})
 
@@ -443,7 +443,7 @@ instances:
 		Context("File is not readable", func() {
 			It("fails", func() {
 				_, fileReadError = artifact.ReadFile(fakeBackupArtifact)
-				Expect(fileReadError).To(HaveOccurred())
+				Expect(fileReadError).To(MatchError(ContainSubstring("Error reading artifact file")))
 			})
 		})
 	})
@@ -533,14 +533,14 @@ instances:
 
 			It("fails to read", func() {
 				_, err := artifact.CalculateChecksum(fakeBackupArtifact)
-				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError(ContainSubstring("Error reading tar")))
 			})
 		})
 
 		Context("file doesn't exist", func() {
 			It("fails", func() {
 				_, err := artifact.CalculateChecksum(fakeBackupArtifact)
-				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError(ContainSubstring("Error reading artifact file")))
 			})
 		})
 	})
@@ -709,7 +709,7 @@ custom_artifacts:
 			})
 
 			It("fails", func() {
-				Expect(addChecksumError).To(HaveOccurred())
+				Expect(addChecksumError).To(MatchError(ContainSubstring("failed to unmarshal metadata")))
 			})
 		})
 
@@ -719,7 +719,7 @@ custom_artifacts:
 			})
 
 			It("fails", func() {
-				Expect(addChecksumError).To(HaveOccurred())
+				Expect(addChecksumError).To(MatchError(ContainSubstring("unable to load metadata")))
 			})
 		})
 	})
@@ -864,7 +864,7 @@ instances:
 			})
 
 			It("fails", func() {
-				Expect(fetchChecksumError).To(HaveOccurred())
+				Expect(fetchChecksumError).To(MatchError(ContainSubstring("failed to unmarshal metadata")))
 			})
 		})
 

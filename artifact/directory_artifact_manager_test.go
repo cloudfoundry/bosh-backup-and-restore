@@ -24,13 +24,12 @@ var _ = Context("ArtifactManager", func() {
 			})
 
 			It("returns an error", func() {
-				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError(ContainSubstring("failed creating directory")))
 			})
 		})
 
 		Context("when the directory doesnt exist", func() {
 			It("creates a directory with the given name", func() {
-
 				Expect(err).NotTo(HaveOccurred())
 				Expect(artifactName).To(BeADirectory())
 			})
@@ -43,6 +42,7 @@ var _ = Context("ArtifactManager", func() {
 				err := os.MkdirAll(artifactName, 0700)
 				Expect(err).NotTo(HaveOccurred())
 			})
+
 			It("does not create a directory", func() {
 				_, err := artifactManager.Open(artifactName, nil)
 				Expect(err).NotTo(HaveOccurred())
@@ -52,7 +52,7 @@ var _ = Context("ArtifactManager", func() {
 		Context("when the directory does not exist", func() {
 			It("fails", func() {
 				_, err := artifactManager.Open(artifactName, nil)
-				Expect(err).To(HaveOccurred())
+				Expect(err).To(MatchError(ContainSubstring("failed opening the directory")))
 				Expect(artifactName).NotTo(BeADirectory())
 			})
 		})
