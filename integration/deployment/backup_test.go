@@ -1,9 +1,7 @@
 package deployment
 
 import (
-	"archive/tar"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -119,9 +117,11 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 
 					By("having successfully run the backup script, using the $BBR_ARTIFACT_DIRECTORY variable", func() {
-						Expect(filesInTar(redisNodeArtifactFile)).To(ConsistOf("backupdump1", "backupdump2"))
-						Expect(contentsInTar(redisNodeArtifactFile, "backupdump1")).To(Equal("backupcontent1"))
-						Expect(contentsInTar(redisNodeArtifactFile, "backupdump2")).To(Equal("backupcontent2"))
+						archive := OpenTarArchive(redisNodeArtifactFile)
+
+						Expect(archive.Files()).To(ConsistOf("backupdump1", "backupdump2"))
+						Expect(archive.FileContents("backupdump1")).To(Equal("backupcontent1"))
+						Expect(archive.FileContents("backupdump2")).To(Equal("backupcontent2"))
 					})
 
 					By("correctly populating the metadata file", func() {
@@ -189,9 +189,11 @@ backup_name: custom_backup_named_redis
 						})
 
 						By("creating a custom backup artifact", func() {
-							Expect(filesInTar(redisCustomArtifactFile)).To(ConsistOf("backupdump1", "backupdump2"))
-							Expect(contentsInTar(redisCustomArtifactFile, "backupdump1")).To(Equal("backupcontent1"))
-							Expect(contentsInTar(redisCustomArtifactFile, "backupdump2")).To(Equal("backupcontent2"))
+							archive := OpenTarArchive(redisCustomArtifactFile)
+
+							Expect(archive.Files()).To(ConsistOf("backupdump1", "backupdump2"))
+							Expect(archive.FileContents("backupdump1")).To(Equal("backupcontent1"))
+							Expect(archive.FileContents("backupdump2")).To(Equal("backupcontent2"))
 						})
 
 						By("not creating an artifact with the default name", func() {
@@ -794,53 +796,6 @@ backup_name: name_2
 
 	})
 })
-
-func getTarReader(path string) *tar.Reader {
-	reader, err := os.Open(path)
-	Expect(err).NotTo(HaveOccurred())
-	tarReader := tar.NewReader(reader)
-	return tarReader
-}
-
-func filesInTar(path string) []string {
-	tarReader := getTarReader(path)
-
-	filenames := []string{}
-	for {
-		header, err := tarReader.Next()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			Expect(err).NotTo(HaveOccurred())
-		}
-		info := header.FileInfo()
-		if !info.IsDir() {
-			filenames = append(filenames, info.Name())
-		}
-	}
-	return filenames
-}
-
-func contentsInTar(tarFile, file string) string {
-	tarReader := getTarReader(tarFile)
-
-	for {
-		header, err := tarReader.Next()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			Expect(err).NotTo(HaveOccurred())
-		}
-		info := header.FileInfo()
-		if !info.IsDir() && info.Name() == file {
-			contents, err := ioutil.ReadAll(tarReader)
-			Expect(err).NotTo(HaveOccurred())
-			return string(contents)
-		}
-	}
-	Fail("File " + file + " not found in tar " + tarFile)
-	return ""
-}
 
 func assertOutput(session *gexec.Session, strings []string) {
 	for _, str := range strings {

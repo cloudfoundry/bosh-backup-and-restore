@@ -8,11 +8,15 @@ import (
 
 	"io/ioutil"
 
+	"archive/tar"
+	"crypto/sha256"
+	"io"
+	"os"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"gopkg.in/yaml.v2"
-	"crypto/sha256"
 )
 
 type Binary struct {
@@ -72,4 +76,58 @@ func ShaFor(contents string) string {
 	shasum := sha256.New()
 	shasum.Write([]byte(contents))
 	return fmt.Sprintf("%x", shasum.Sum(nil))
+}
+
+type TarArchive struct {
+	path string
+}
+
+func OpenTarArchive(path string) TarArchive {
+	return TarArchive{path: path}
+}
+
+func (t TarArchive) Files() []string {
+	reader := getTarReader(t.path)
+
+	filenames := []string{}
+	for {
+		header, err := reader.Next()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			Expect(err).NotTo(HaveOccurred())
+		}
+		info := header.FileInfo()
+		if !info.IsDir() {
+			filenames = append(filenames, info.Name())
+		}
+	}
+	return filenames
+}
+
+func (t TarArchive) FileContents(fileName string) string {
+	reader := getTarReader(t.path)
+
+	for {
+		header, err := reader.Next()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			Expect(err).NotTo(HaveOccurred())
+		}
+		info := header.FileInfo()
+		if !info.IsDir() && info.Name() == fileName {
+			contents, err := ioutil.ReadAll(reader)
+			Expect(err).NotTo(HaveOccurred())
+			return string(contents)
+		}
+	}
+	Fail("File " + fileName + " not found in tar " + t.path)
+	return ""
+}
+
+func getTarReader(path string) *tar.Reader {
+	fileReader, err := os.Open(path)
+	Expect(err).NotTo(HaveOccurred())
+	return tar.NewReader(fileReader)
 }

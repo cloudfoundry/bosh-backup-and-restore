@@ -12,8 +12,6 @@ import (
 
 	"path"
 
-	"archive/tar"
-	"io"
 	"time"
 
 	"fmt"
@@ -94,9 +92,11 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 
 					By("having successfully run the backup script, using the $BBR_ARTIFACT_DIRECTORY variable", func() {
-						Expect(filesInTar(boshBackupFilePath)).To(ConsistOf("backupdump1", "backupdump2"))
-						Expect(contentsInTar(boshBackupFilePath, "backupdump1")).To(Equal("backupcontent1"))
-						Expect(contentsInTar(boshBackupFilePath, "backupdump2")).To(Equal("backupcontent2"))
+						archive := OpenTarArchive(boshBackupFilePath)
+
+						Expect(archive.Files()).To(ConsistOf("backupdump1", "backupdump2"))
+						Expect(archive.FileContents("backupdump1")).To(Equal("backupcontent1"))
+						Expect(archive.FileContents("backupdump2")).To(Equal("backupcontent2"))
 					})
 
 					By("correctly populating the metadata file", func() {
@@ -212,50 +212,3 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 		})
 	})
 })
-
-func getTarReader(path string) *tar.Reader {
-	reader, err := os.Open(path)
-	Expect(err).NotTo(HaveOccurred())
-	tarReader := tar.NewReader(reader)
-	return tarReader
-}
-
-func filesInTar(path string) []string {
-	tarReader := getTarReader(path)
-
-	filenames := []string{}
-	for {
-		header, err := tarReader.Next()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			Expect(err).NotTo(HaveOccurred())
-		}
-		info := header.FileInfo()
-		if !info.IsDir() {
-			filenames = append(filenames, info.Name())
-		}
-	}
-	return filenames
-}
-
-func contentsInTar(tarFile, file string) string {
-	tarReader := getTarReader(tarFile)
-
-	for {
-		header, err := tarReader.Next()
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			Expect(err).NotTo(HaveOccurred())
-		}
-		info := header.FileInfo()
-		if !info.IsDir() && info.Name() == file {
-			contents, err := ioutil.ReadAll(tarReader)
-			Expect(err).NotTo(HaveOccurred())
-			return string(contents)
-		}
-	}
-	Fail("File " + file + " not found in tar " + tarFile)
-	return ""
-}
