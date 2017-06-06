@@ -7,6 +7,8 @@ import (
 
 	"testing"
 
+	"io/ioutil"
+
 	"github.com/pivotal-cf/bosh-backup-and-restore/integration"
 	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
 )
@@ -31,3 +33,9 @@ var _ = AfterSuite(func() {
 	gexec.CleanupBuildArtifacts()
 	testcluster.WaitForContainersToDie()
 })
+
+func readFile(fileName string) string {
+	contents, err := ioutil.ReadFile(fileName)
+	Expect(err).NotTo(HaveOccurred())
+	return string(contents)
+}

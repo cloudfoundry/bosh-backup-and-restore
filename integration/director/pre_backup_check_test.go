@@ -157,9 +157,3 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 		})
 	})
 })
-
-func readFile(fileName string) string {
-	contents, err := ioutil.ReadFile(fileName)
-	Expect(err).NotTo(HaveOccurred())
-	return string(contents)
-}
