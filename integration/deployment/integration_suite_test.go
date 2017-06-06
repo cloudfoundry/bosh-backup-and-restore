@@ -13,7 +13,7 @@ import (
 
 func TestDeploymentIntegration(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Integration Suite")
+	RunSpecs(t, "Deployment Integration Suite")
 }
 
 //Default cert for golang ssh

@@ -13,7 +13,7 @@ import (
 
 func TestDirectorIntegration(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Integration Suite")
+	RunSpecs(t, "Director Integration Suite")
 }
 
 var pathToPrivateKeyFile = "../../../fixtures/test_rsa"
