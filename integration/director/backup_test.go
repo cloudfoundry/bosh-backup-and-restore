@@ -179,7 +179,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 			})
 		})
 
-		Context("if there are no backup scripts", func() {
+		Context("but there are no backup scripts", func() {
 			BeforeEach(func() {
 				directorInstance.CreateFiles("/var/vcap/jobs/bosh/bin/bbr/not-a-backup-script")
 			})
