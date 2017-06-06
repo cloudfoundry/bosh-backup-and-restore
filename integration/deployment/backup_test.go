@@ -20,7 +20,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"gopkg.in/yaml.v2"
+	"github.com/pivotal-cf/bosh-backup-and-restore/integration"
 )
 
 var _ = Describe("Backup", func() {
@@ -126,9 +126,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 
 					By("correctly populating the metadata file", func() {
-						metadataContents := metadata{}
-						contents, _ := ioutil.ReadFile(metadataFile)
-						yaml.Unmarshal(contents, &metadataContents)
+						metadataContents := integration.ParseMetadata(metadataFile)
 
 						currentTimezone, _ := time.Now().Zone()
 						Expect(metadataContents.BackupActivityMetadata.StartTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
@@ -204,9 +202,7 @@ backup_name: custom_backup_named_redis
 						By("recording the artifact as a custom artifact in the backup metadata", func() {
 							Expect(metadataFile).To(BeARegularFile())
 
-							metadataContents := metadata{}
-							contents, _ := ioutil.ReadFile(metadataFile)
-							yaml.Unmarshal(contents, &metadataContents)
+							metadataContents := integration.ParseMetadata(metadataFile)
 
 							currentTimezone, _ := time.Now().Zone()
 							Expect(metadataContents.BackupActivityMetadata.StartTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
@@ -863,26 +859,4 @@ func assertErrorOutput(session *gexec.Session, strings []string) {
 	for _, str := range strings {
 		Expect(string(session.Err.Contents())).To(ContainSubstring(str))
 	}
-}
-
-type instanceMetadata struct {
-	InstanceName  string                   `yaml:"name"`
-	InstanceIndex string                   `yaml:"index"`
-	Artifacts     []customArtifactMetadata `yaml:"artifacts"`
-}
-
-type customArtifactMetadata struct {
-	Name      string            `yaml:"name"`
-	Checksums map[string]string `yaml:"checksums"`
-}
-
-type backupActivityMetadata struct {
-	StartTime  string `yaml:"start_time"`
-	FinishTime string `yaml:"finish_time"`
-}
-
-type metadata struct {
-	InstancesMetadata       []instanceMetadata       `yaml:"instances"`
-	CustomArtifactsMetadata []customArtifactMetadata `yaml:"custom_artifacts,omitempty"`
-	BackupActivityMetadata  backupActivityMetadata   `yaml:"backup_activity"`
 }

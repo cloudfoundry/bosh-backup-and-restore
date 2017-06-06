@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/pivotal-cf/bosh-backup-and-restore/integration"
 	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
 
 	"github.com/onsi/gomega/gbytes"
@@ -20,7 +21,6 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"gopkg.in/yaml.v2"
 )
 
 var _ = Describe("Backup", func() {
@@ -101,9 +101,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 
 					By("correctly populating the metadata file", func() {
-						metadataContents := metadata{}
-						contents, _ := ioutil.ReadFile(metadataFilePath)
-						yaml.Unmarshal(contents, &metadataContents)
+						metadataContents := integration.ParseMetadata(metadataFilePath)
 
 						currentTimezone, _ := time.Now().Zone()
 						Expect(metadataContents.BackupActivityMetadata.StartTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
@@ -267,26 +265,4 @@ func shaFor(contents string) string {
 	shasum := sha256.New()
 	shasum.Write([]byte(contents))
 	return fmt.Sprintf("%x", shasum.Sum(nil))
-}
-
-type instanceMetadata struct {
-	InstanceName  string                   `yaml:"name"`
-	InstanceIndex string                   `yaml:"index"`
-	Artifacts     []customArtifactMetadata `yaml:"artifacts"`
-}
-
-type customArtifactMetadata struct {
-	Name      string            `yaml:"name"`
-	Checksums map[string]string `yaml:"checksums"`
-}
-
-type backupActivityMetadata struct {
-	StartTime  string `yaml:"start_time"`
-	FinishTime string `yaml:"finish_time"`
-}
-
-type metadata struct {
-	InstancesMetadata       []instanceMetadata       `yaml:"instances"`
-	CustomArtifactsMetadata []customArtifactMetadata `yaml:"custom_artifacts,omitempty"`
-	BackupActivityMetadata  backupActivityMetadata   `yaml:"backup_activity"`
 }
