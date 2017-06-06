@@ -301,7 +301,7 @@ instances: []`))
 					Expect(err).NotTo(HaveOccurred())
 					fmt.Fprintf(keyFile, "this is not a valid key")
 
-					session = runBinary(backupWorkspace,
+					session = binary.Run(backupWorkspace,
 						[]string{},
 						"director",
 						"--artifactname", "foo",
