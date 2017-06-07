@@ -129,7 +129,7 @@ var _ = Describe("restorer", func() {
 					artifact.ValidReturns(false, nil)
 				})
 				It("returns an error", func() {
-					Expect(restoreError).To(MatchError(ContainSubstring("Backup artifact is corrupted")))
+					Expect(restoreError).To(MatchError(ContainSubstring("Backup is corrupted")))
 				})
 			})
 

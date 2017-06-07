@@ -26,7 +26,7 @@ var _ = Describe("BoshDeployedInstance", func() {
 	var jobName, jobIndex, jobID, expectedStdout, expectedStderr string
 	var backupAndRestoreScripts []instance.Script
 	var jobs instance.Jobs
-	var blobMetadata map[string]instance.Metadata
+	var artifactMetadata map[string]instance.Metadata
 	var artifactDirCreated bool
 
 	var backuperInstance orchestrator.Instance
@@ -42,12 +42,12 @@ var _ = Describe("BoshDeployedInstance", func() {
 		stderr = gbytes.NewBuffer()
 		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile), log.New(stderr, "[bosh-package] ", log.Lshortfile))
 		backupAndRestoreScripts = []instance.Script{}
-		blobMetadata = map[string]instance.Metadata{}
+		artifactMetadata = map[string]instance.Metadata{}
 		artifactDirCreated = true
 	})
 
 	JustBeforeEach(func() {
-		jobs = instance.NewJobs(backupAndRestoreScripts, blobMetadata)
+		jobs = instance.NewJobs(backupAndRestoreScripts, artifactMetadata)
 		sshConnection.UsernameReturns("sshUsername")
 		backuperInstance = bosh.NewBoshDeployedInstance(jobName, jobIndex, jobID, sshConnection, boshDeployment, artifactDirCreated, boshLogger, jobs)
 	})
@@ -120,7 +120,7 @@ var _ = Describe("BoshDeployedInstance", func() {
 				boshDeployment.CleanUpSSHReturns(expectedErrorWhileCleaningUp)
 			})
 
-			It("tries delete the blob", func() {
+			It("tries delete the artifact", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 			})
 

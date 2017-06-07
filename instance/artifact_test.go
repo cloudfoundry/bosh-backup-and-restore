@@ -16,7 +16,7 @@ import (
 	backuperfakes "github.com/pivotal-cf/bosh-backup-and-restore/orchestrator/fakes"
 )
 
-var _ = Describe("blob", func() {
+var _ = Describe("artifact", func() {
 
 	var sshConnection *fakes.FakeSSHConnection
 	var boshLogger boshlog.Logger
@@ -24,7 +24,7 @@ var _ = Describe("blob", func() {
 	var stdout, stderr *gbytes.Buffer
 	var job instance.Job
 
-	var blob orchestrator.BackupArtifact
+	var backupArtifact orchestrator.BackupArtifact
 
 	BeforeEach(func() {
 		sshConnection = new(fakes.FakeSSHConnection)
@@ -38,13 +38,13 @@ var _ = Describe("blob", func() {
 		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile), log.New(stderr, "[bosh-package] ", log.Lshortfile))
 
 	})
-	var BlobBehaviourForDirectory = func(blobDirectory string) {
+	var ArtifactBehaviourForDirectory = func(artifactDirectory string) {
 		Describe("StreamFromRemote", func() {
 			var err error
 			var writer = bytes.NewBufferString("dave")
 
 			JustBeforeEach(func() {
-				err = blob.StreamFromRemote(writer)
+				err = backupArtifact.StreamFromRemote(writer)
 			})
 
 			Describe("when successful", func() {
@@ -56,7 +56,7 @@ var _ = Describe("blob", func() {
 					Expect(sshConnection.StreamCallCount()).To(Equal(1))
 
 					cmd, returnedWriter := sshConnection.StreamArgsForCall(0)
-					Expect(cmd).To(Equal("sudo tar -C " + blobDirectory + " -c ."))
+					Expect(cmd).To(Equal("sudo tar -C " + artifactDirectory + " -c ."))
 					Expect(returnedWriter).To(Equal(writer))
 				})
 
@@ -74,7 +74,7 @@ var _ = Describe("blob", func() {
 					Expect(sshConnection.StreamCallCount()).To(Equal(1))
 
 					cmd, returnedWriter := sshConnection.StreamArgsForCall(0)
-					Expect(cmd).To(Equal("sudo tar -C " + blobDirectory + " -c ."))
+					Expect(cmd).To(Equal("sudo tar -C " + artifactDirectory + " -c ."))
 					Expect(returnedWriter).To(Equal(writer))
 				})
 
@@ -95,7 +95,7 @@ var _ = Describe("blob", func() {
 					Expect(sshConnection.StreamCallCount()).To(Equal(1))
 
 					cmd, returnedWriter := sshConnection.StreamArgsForCall(0)
-					Expect(cmd).To(Equal("sudo tar -C " + blobDirectory + " -c ."))
+					Expect(cmd).To(Equal("sudo tar -C " + artifactDirectory + " -c ."))
 					Expect(returnedWriter).To(Equal(writer))
 				})
 
@@ -111,7 +111,7 @@ var _ = Describe("blob", func() {
 			var actualChecksumError error
 
 			JustBeforeEach(func() {
-				actualChecksum, actualChecksumError = blob.Checksum()
+				actualChecksum, actualChecksumError = backupArtifact.Checksum()
 			})
 
 			Context("triggers find & shasum as root", func() {
@@ -120,7 +120,7 @@ var _ = Describe("blob", func() {
 				})
 
 				It("generates the correct request", func() {
-					Expect(sshConnection.RunArgsForCall(0)).To(Equal("cd " + blobDirectory + "; sudo sh -c 'find . -type f | xargs shasum -a 256'"))
+					Expect(sshConnection.RunArgsForCall(0)).To(Equal("cd " + artifactDirectory + "; sudo sh -c 'find . -type f | xargs shasum -a 256'"))
 				})
 			})
 			Context("can calculate checksum", func() {
@@ -190,16 +190,16 @@ var _ = Describe("blob", func() {
 			var err error
 
 			JustBeforeEach(func() {
-				err = blob.Delete()
+				err = backupArtifact.Delete()
 			})
 
 			It("succeeds", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
 
-			It("deletes only the named blob's backup directory on the remote", func() {
+			It("deletes only the named artifact directory on the remote", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo rm -rf " + blobDirectory))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo rm -rf " + artifactDirectory))
 			})
 
 			Context("when there is an error with the SSH connection", func() {
@@ -223,7 +223,7 @@ var _ = Describe("blob", func() {
 				It("fails", func() {
 					Expect(err).To(HaveOccurred())
 					Expect(err.Error()).To(ContainSubstring(
-						"Error deleting blobs on instance redis/foo. Directory name " + blobDirectory + ". Exit code 1",
+						"Error deleting artifact on instance redis/foo. Directory name " + artifactDirectory + ". Exit code 1",
 					))
 				})
 			})
@@ -238,12 +238,12 @@ var _ = Describe("blob", func() {
 				})
 
 				JustBeforeEach(func() {
-					size, _ = blob.Size()
+					size, _ = backupArtifact.Size()
 				})
 
 				It("returns the size of the backup according to the root user, as a string", func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh " + blobDirectory + " | cut -f1"))
+					Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh " + artifactDirectory + " | cut -f1"))
 					Expect(size).To(Equal("4.1G"))
 				})
 			})
@@ -256,12 +256,12 @@ var _ = Describe("blob", func() {
 				})
 
 				JustBeforeEach(func() {
-					_, err = blob.Size()
+					_, err = backupArtifact.Size()
 				})
 
 				It("returns the size of the backup according to the root user, as a string", func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh " + blobDirectory + " | cut -f1"))
+					Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh " + artifactDirectory + " | cut -f1"))
 					Expect(err).To(HaveOccurred())
 				})
 			})
@@ -275,7 +275,7 @@ var _ = Describe("blob", func() {
 				})
 
 				JustBeforeEach(func() {
-					_, err = blob.Size()
+					_, err = backupArtifact.Size()
 				})
 
 				It("returns the error", func() {
@@ -291,20 +291,20 @@ var _ = Describe("blob", func() {
 			var reader = bytes.NewBufferString("dave")
 
 			JustBeforeEach(func() {
-				err = blob.StreamToRemote(reader)
+				err = backupArtifact.StreamToRemote(reader)
 			})
 
 			Describe("when successful", func() {
 				It("uses the ssh connection to make the backup directory on the remote machine", func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(1))
 					command := sshConnection.RunArgsForCall(0)
-					Expect(command).To(Equal("sudo mkdir -p " + blobDirectory))
+					Expect(command).To(Equal("sudo mkdir -p " + artifactDirectory))
 				})
 
 				It("uses the ssh connection to stream files from the remote machine", func() {
 					Expect(sshConnection.StreamStdinCallCount()).To(Equal(1))
 					command, sentReader := sshConnection.StreamStdinArgsForCall(0)
-					Expect(command).To(Equal("sudo sh -c 'tar -C " + blobDirectory + " -x'"))
+					Expect(command).To(Equal("sudo sh -c 'tar -C " + artifactDirectory + " -x'"))
 					Expect(reader).To(Equal(sentReader))
 				})
 
@@ -359,99 +359,99 @@ var _ = Describe("blob", func() {
 		})
 	}
 
-	Context("BackupBlob", func() {
+	Context("BackupArtifact", func() {
 		JustBeforeEach(func() {
-			blob = instance.NewBackupBlob(job, testInstance, sshConnection, boshLogger)
+			backupArtifact = instance.NewBackupArtifact(job, testInstance, sshConnection, boshLogger)
 		})
-		Context("Named Blob", func() {
+		Context("Named Artifact", func() {
 			BeforeEach(func() {
-				job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"}, instance.Metadata{BackupName: "named-blob-to-backup"})
+				job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"}, instance.Metadata{BackupName: "named-artifact-to-backup"})
 			})
 
 			It("is named with the job's custom backup name", func() {
-				Expect(blob.Name()).To(Equal(job.BackupBlobName()))
+				Expect(backupArtifact.Name()).To(Equal(job.BackupArtifactName()))
 			})
 
 			It("has a custom name", func() {
-				Expect(blob.HasCustomName()).To(BeTrue())
+				Expect(backupArtifact.HasCustomName()).To(BeTrue())
 			})
 
-			BlobBehaviourForDirectory("/var/vcap/store/bbr-backup/named-blob-to-backup")
+			ArtifactBehaviourForDirectory("/var/vcap/store/bbr-backup/named-artifact-to-backup")
 		})
-		Context("Default Blob", func() {
+		Context("Default Artifact", func() {
 			BeforeEach(func() {
 				job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"}, instance.Metadata{})
 			})
 
 			It("is named after the job", func() {
-				Expect(blob.Name()).To(Equal(job.Name()))
+				Expect(backupArtifact.Name()).To(Equal(job.Name()))
 			})
 
 			It("does not have a custom name", func() {
-				Expect(blob.HasCustomName()).To(BeFalse())
+				Expect(backupArtifact.HasCustomName()).To(BeFalse())
 			})
 
 			Describe("InstanceName", func() {
 				It("returns the instance name", func() {
-					Expect(blob.InstanceName()).To(Equal(testInstance.Name()))
+					Expect(backupArtifact.InstanceName()).To(Equal(testInstance.Name()))
 				})
 			})
 
 			Describe("InstanceIndex", func() {
 				It("returns the instance index", func() {
-					Expect(blob.InstanceIndex()).To(Equal(testInstance.Index()))
+					Expect(backupArtifact.InstanceIndex()).To(Equal(testInstance.Index()))
 				})
 			})
 
-			BlobBehaviourForDirectory("/var/vcap/store/bbr-backup/foo1")
+			ArtifactBehaviourForDirectory("/var/vcap/store/bbr-backup/foo1")
 		})
 	})
 
-	Context("RestoreBlob", func() {
+	Context("RestoreArtifact", func() {
 		JustBeforeEach(func() {
-			blob = instance.NewRestoreBlob(job, testInstance, sshConnection, boshLogger)
+			backupArtifact = instance.NewRestoreArtifact(job, testInstance, sshConnection, boshLogger)
 		})
-		Context("Named Blob", func() {
+		Context("Named Artifact", func() {
 			BeforeEach(func() {
-				job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"}, instance.Metadata{RestoreName: "named-blob-to-restore"})
+				job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"}, instance.Metadata{RestoreName: "named-artifact-to-restore"})
 			})
 
 			It("is named with the job's custom backup name", func() {
-				Expect(blob.Name()).To(Equal(job.RestoreBlobName()))
+				Expect(backupArtifact.Name()).To(Equal(job.RestoreArtifactName()))
 			})
 
 			It("has a custom name", func() {
-				Expect(blob.HasCustomName()).To(BeTrue())
+				Expect(backupArtifact.HasCustomName()).To(BeTrue())
 			})
 
-			BlobBehaviourForDirectory("/var/vcap/store/bbr-backup/named-blob-to-restore")
+			ArtifactBehaviourForDirectory("/var/vcap/store/bbr-backup/named-artifact-to-restore")
 		})
-		Context("Default Blob", func() {
+		Context("Default Artifact", func() {
 			BeforeEach(func() {
 				job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"}, instance.Metadata{})
 			})
 
 			It("is named after the job", func() {
-				Expect(blob.Name()).To(Equal(job.Name()))
+				Expect(backupArtifact.Name()).To(Equal(job.Name()))
 			})
 
 			It("does not have a custom name", func() {
-				Expect(blob.HasCustomName()).To(BeFalse())
+				Expect(backupArtifact.HasCustomName()).To(BeFalse())
 			})
 
 			Describe("InstanceName", func() {
 				It("returns the instance name", func() {
-					Expect(blob.InstanceName()).To(Equal(testInstance.Name()))
+					Expect(backupArtifact.InstanceName()).To(Equal(testInstance.Name()))
 				})
 			})
 
 			Describe("InstanceIndex", func() {
 				It("returns the instance index", func() {
-					Expect(blob.InstanceIndex()).To(Equal(testInstance.Index()))
+					Expect(backupArtifact.InstanceIndex()).To(Equal(testInstance.Index()))
 				})
 			})
 
-			BlobBehaviourForDirectory("/var/vcap/store/bbr-backup/foo1")
+			ArtifactBehaviourForDirectory("/var/vcap/store/bbr-backup/foo1")
 		})
 	})
 })

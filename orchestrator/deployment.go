@@ -13,7 +13,7 @@ const ArtifactDirectory = "/var/vcap/store/bbr-backup"
 //go:generate counterfeiter -o fakes/fake_deployment.go . Deployment
 type Deployment interface {
 	HasBackupScript() bool
-	HasUniqueCustomBackupNames() bool
+	HasUniqueCustomArtifactNames() bool
 	CheckArtifactDir() error
 	IsRestorable() bool
 	PreBackupLock() error
@@ -42,7 +42,7 @@ func (bd *deployment) HasBackupScript() bool {
 	return !backupableInstances.IsEmpty()
 }
 
-func (bd *deployment) HasUniqueCustomBackupNames() bool {
+func (bd *deployment) HasUniqueCustomArtifactNames() bool {
 	names := bd.instances.CustomBlobNames()
 
 	uniqueNames := map[string]bool{}
@@ -131,11 +131,11 @@ func (bd *deployment) CustomArtifactNamesMatch() error {
 	return nil
 }
 
-func (bd *deployment) CopyRemoteBackupToLocal(artifact Backup) error {
+func (bd *deployment) CopyRemoteBackupToLocal(backup Backup) error {
 	instances := bd.instances.AllBackupable()
 	for _, instance := range instances {
 		for _, backupBlob := range instance.BlobsToBackup() {
-			writer, err := artifact.CreateArtifact(backupBlob)
+			writer, err := backup.CreateArtifact(backupBlob)
 
 			if err != nil {
 				return err
@@ -157,7 +157,7 @@ func (bd *deployment) CopyRemoteBackupToLocal(artifact Backup) error {
 			bd.Logger.Info("bbr", "Finished copying backup -- from %s/%s...", instance.Name(), instance.ID())
 
 			bd.Logger.Info("bbr", "Starting validity checks")
-			localChecksum, err := artifact.CalculateChecksum(backupBlob)
+			localChecksum, err := backup.CalculateChecksum(backupBlob)
 			if err != nil {
 				return err
 			}
@@ -168,10 +168,10 @@ func (bd *deployment) CopyRemoteBackupToLocal(artifact Backup) error {
 			}
 			bd.Logger.Debug("bbr", "Comparing shasums")
 			if !localChecksum.Match(remoteChecksum) {
-				return errors.Errorf("Backup artifact is corrupted, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), backupBlob.Name(), remoteChecksum, localChecksum)
+				return errors.Errorf("Backup is corrupted, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), backupBlob.Name(), remoteChecksum, localChecksum)
 			}
 
-			artifact.AddChecksum(backupBlob, localChecksum)
+			backup.AddChecksum(backupBlob, localChecksum)
 
 			err = backupBlob.Delete()
 			if err != nil {
@@ -183,12 +183,12 @@ func (bd *deployment) CopyRemoteBackupToLocal(artifact Backup) error {
 	return nil
 }
 
-func (bd *deployment) CopyLocalBackupToRemote(artifact Backup) error {
+func (bd *deployment) CopyLocalBackupToRemote(backup Backup) error {
 	instances := bd.instances.AllRestoreable()
 
 	for _, instance := range instances {
 		for _, blob := range instance.BlobsToRestore() {
-			reader, err := artifact.ReadArtifact(blob)
+			reader, err := backup.ReadArtifact(blob)
 
 			if err != nil {
 				return err
@@ -201,7 +201,7 @@ func (bd *deployment) CopyLocalBackupToRemote(artifact Backup) error {
 				instance.MarkArtifactDirCreated()
 			}
 
-			localChecksum, err := artifact.FetchChecksum(blob)
+			localChecksum, err := backup.FetchChecksum(blob)
 			if err != nil {
 				return err
 			}

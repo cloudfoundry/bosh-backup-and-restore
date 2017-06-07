@@ -926,8 +926,8 @@ var _ = Describe("DeployedInstance", func() {
 			})
 			It("returns the default blobs", func() {
 				Expect(backupBlobs).To(ConsistOf(
-					instance.NewBackupBlob(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
-					instance.NewBackupBlob(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
+					instance.NewBackupArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
+					instance.NewBackupArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
 				))
 			})
 		})
@@ -945,8 +945,8 @@ var _ = Describe("DeployedInstance", func() {
 
 			It("returns the named blob and the default blob", func() {
 				Expect(backupBlobs).To(ConsistOf(
-					instance.NewBackupBlob(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
-					instance.NewBackupBlob(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{BackupName: "my-blob"}), backuperInstance, sshConnection, boshLogger),
+					instance.NewBackupArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
+					instance.NewBackupArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{BackupName: "my-blob"}), backuperInstance, sshConnection, boshLogger),
 				))
 			})
 		})
@@ -964,7 +964,7 @@ var _ = Describe("DeployedInstance", func() {
 			It("returns the named blob and the default blob", func() {
 				Expect(backupBlobs).To(Equal(
 					[]orchestrator.BackupArtifact{
-						instance.NewBackupBlob(instance.NewJob(	backupAndRestoreScripts, instance.Metadata{BackupName: "my-blob"}), backuperInstance, sshConnection, boshLogger),
+						instance.NewBackupArtifact(instance.NewJob(	backupAndRestoreScripts, instance.Metadata{BackupName: "my-blob"}), backuperInstance, sshConnection, boshLogger),
 					},
 				))
 			})
@@ -987,8 +987,8 @@ var _ = Describe("DeployedInstance", func() {
 			})
 			It("returns the default blobs", func() {
 				Expect(restoreBlobs).To(ConsistOf(
-					instance.NewRestoreBlob(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
-					instance.NewRestoreBlob(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
+					instance.NewRestoreArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
+					instance.NewRestoreArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
 				))
 			})
 		})
@@ -1006,8 +1006,8 @@ var _ = Describe("DeployedInstance", func() {
 
 			It("returns the named blob and the default blob", func() {
 				Expect(restoreBlobs).To(ConsistOf(
-					instance.NewRestoreBlob(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
-					instance.NewRestoreBlob(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{RestoreName: "my-blob"}), backuperInstance, sshConnection, boshLogger),
+					instance.NewRestoreArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
+					instance.NewRestoreArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{RestoreName: "my-blob"}), backuperInstance, sshConnection, boshLogger),
 				))
 			})
 		})
@@ -1025,7 +1025,7 @@ var _ = Describe("DeployedInstance", func() {
 			It("returns only the named blob", func() {
 				Expect(restoreBlobs).To(Equal(
 					[]orchestrator.BackupArtifact{
-						instance.NewRestoreBlob(instance.NewJob(
+						instance.NewRestoreArtifact(instance.NewJob(
 							backupAndRestoreScripts, instance.Metadata{RestoreName: "my-blob"},
 						), backuperInstance, sshConnection, boshLogger),
 					},

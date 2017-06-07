@@ -17,13 +17,13 @@ type FakeDeployment struct {
 	hasBackupScriptReturnsOnCall map[int]struct {
 		result1 bool
 	}
-	HasUniqueCustomBackupNamesStub        func() bool
-	hasUniqueCustomBackupNamesMutex       sync.RWMutex
-	hasUniqueCustomBackupNamesArgsForCall []struct{}
-	hasUniqueCustomBackupNamesReturns     struct {
+	HasUniqueCustomArtifactNamesStub        func() bool
+	hasUniqueCustomArtifactNamesMutex       sync.RWMutex
+	hasUniqueCustomArtifactNamesArgsForCall []struct{}
+	hasUniqueCustomArtifactNamesReturns     struct {
 		result1 bool
 	}
-	hasUniqueCustomBackupNamesReturnsOnCall map[int]struct {
+	hasUniqueCustomArtifactNamesReturnsOnCall map[int]struct {
 		result1 bool
 	}
 	CheckArtifactDirStub        func() error
@@ -173,42 +173,42 @@ func (fake *FakeDeployment) HasBackupScriptReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) HasUniqueCustomBackupNames() bool {
-	fake.hasUniqueCustomBackupNamesMutex.Lock()
-	ret, specificReturn := fake.hasUniqueCustomBackupNamesReturnsOnCall[len(fake.hasUniqueCustomBackupNamesArgsForCall)]
-	fake.hasUniqueCustomBackupNamesArgsForCall = append(fake.hasUniqueCustomBackupNamesArgsForCall, struct{}{})
-	fake.recordInvocation("HasUniqueCustomBackupNames", []interface{}{})
-	fake.hasUniqueCustomBackupNamesMutex.Unlock()
-	if fake.HasUniqueCustomBackupNamesStub != nil {
-		return fake.HasUniqueCustomBackupNamesStub()
+func (fake *FakeDeployment) HasUniqueCustomArtifactNames() bool {
+	fake.hasUniqueCustomArtifactNamesMutex.Lock()
+	ret, specificReturn := fake.hasUniqueCustomArtifactNamesReturnsOnCall[len(fake.hasUniqueCustomArtifactNamesArgsForCall)]
+	fake.hasUniqueCustomArtifactNamesArgsForCall = append(fake.hasUniqueCustomArtifactNamesArgsForCall, struct{}{})
+	fake.recordInvocation("HasUniqueCustomArtifactNames", []interface{}{})
+	fake.hasUniqueCustomArtifactNamesMutex.Unlock()
+	if fake.HasUniqueCustomArtifactNamesStub != nil {
+		return fake.HasUniqueCustomArtifactNamesStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.hasUniqueCustomBackupNamesReturns.result1
+	return fake.hasUniqueCustomArtifactNamesReturns.result1
 }
 
-func (fake *FakeDeployment) HasUniqueCustomBackupNamesCallCount() int {
-	fake.hasUniqueCustomBackupNamesMutex.RLock()
-	defer fake.hasUniqueCustomBackupNamesMutex.RUnlock()
-	return len(fake.hasUniqueCustomBackupNamesArgsForCall)
+func (fake *FakeDeployment) HasUniqueCustomArtifactNamesCallCount() int {
+	fake.hasUniqueCustomArtifactNamesMutex.RLock()
+	defer fake.hasUniqueCustomArtifactNamesMutex.RUnlock()
+	return len(fake.hasUniqueCustomArtifactNamesArgsForCall)
 }
 
-func (fake *FakeDeployment) HasUniqueCustomBackupNamesReturns(result1 bool) {
-	fake.HasUniqueCustomBackupNamesStub = nil
-	fake.hasUniqueCustomBackupNamesReturns = struct {
+func (fake *FakeDeployment) HasUniqueCustomArtifactNamesReturns(result1 bool) {
+	fake.HasUniqueCustomArtifactNamesStub = nil
+	fake.hasUniqueCustomArtifactNamesReturns = struct {
 		result1 bool
 	}{result1}
 }
 
-func (fake *FakeDeployment) HasUniqueCustomBackupNamesReturnsOnCall(i int, result1 bool) {
-	fake.HasUniqueCustomBackupNamesStub = nil
-	if fake.hasUniqueCustomBackupNamesReturnsOnCall == nil {
-		fake.hasUniqueCustomBackupNamesReturnsOnCall = make(map[int]struct {
+func (fake *FakeDeployment) HasUniqueCustomArtifactNamesReturnsOnCall(i int, result1 bool) {
+	fake.HasUniqueCustomArtifactNamesStub = nil
+	if fake.hasUniqueCustomArtifactNamesReturnsOnCall == nil {
+		fake.hasUniqueCustomArtifactNamesReturnsOnCall = make(map[int]struct {
 			result1 bool
 		})
 	}
-	fake.hasUniqueCustomBackupNamesReturnsOnCall[i] = struct {
+	fake.hasUniqueCustomArtifactNamesReturnsOnCall[i] = struct {
 		result1 bool
 	}{result1}
 }
@@ -674,8 +674,8 @@ func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.hasBackupScriptMutex.RLock()
 	defer fake.hasBackupScriptMutex.RUnlock()
-	fake.hasUniqueCustomBackupNamesMutex.RLock()
-	defer fake.hasUniqueCustomBackupNamesMutex.RUnlock()
+	fake.hasUniqueCustomArtifactNamesMutex.RLock()
+	defer fake.hasUniqueCustomArtifactNamesMutex.RUnlock()
 	fake.checkArtifactDirMutex.RLock()
 	defer fake.checkArtifactDirMutex.RUnlock()
 	fake.isRestorableMutex.RLock()

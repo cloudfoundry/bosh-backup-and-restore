@@ -20,12 +20,12 @@ import (
 )
 
 var _ = Describe("BackupDirectory", func() {
-	var artifactName = "my-cool-redis"
-	var artifactManager = BackupDirectoryManager{}
+	var backupName = "my-cool-redis"
+	var backupDirectoryManager = BackupDirectoryManager{}
 	var logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter, GinkgoWriter)
 
 	AfterEach(func() {
-		Expect(os.RemoveAll(artifactName)).To(Succeed())
+		Expect(os.RemoveAll(backupName)).To(Succeed())
 	})
 
 	Describe("DeploymentMatches", func() {
@@ -34,7 +34,7 @@ var _ = Describe("BackupDirectory", func() {
 		var instance2 *fakes.FakeInstance
 
 		BeforeEach(func() {
-			artifactName = "my-cool-redis"
+			backupName = "my-cool-redis"
 			instance1 = new(fakes.FakeInstance)
 			instance1.NameReturns("redis")
 			instance1.IndexReturns("0")
@@ -43,12 +43,12 @@ var _ = Describe("BackupDirectory", func() {
 			instance2.NameReturns("redis")
 			instance2.IndexReturns("1")
 
-			artifact, _ = artifactManager.Open(artifactName, logger)
+			artifact, _ = backupDirectoryManager.Open(backupName, logger)
 		})
 
 		Context("when the backup on disk matches the current deployment", func() {
 			BeforeEach(func() {
-				createTestMetadata(artifactName, `---
+				createTestMetadata(backupName, `---
 instances:
 - name: redis
   index: 0
@@ -60,14 +60,14 @@ instances:
 			})
 
 			It("returns true", func() {
-				match, _ := artifact.DeploymentMatches(artifactName, []orchestrator.Instance{instance1, instance2})
+				match, _ := artifact.DeploymentMatches(backupName, []orchestrator.Instance{instance1, instance2})
 				Expect(match).To(BeTrue())
 			})
 		})
 
 		Context("when the backup doesn't match the current deployment", func() {
 			BeforeEach(func() {
-				createTestMetadata(artifactName, `---
+				createTestMetadata(backupName, `---
 instances:
 - name: redis
   index: 0
@@ -82,15 +82,15 @@ instances:
 			})
 
 			It("returns false", func() {
-				match, _ := artifact.DeploymentMatches(artifactName, []orchestrator.Instance{instance1, instance2})
+				match, _ := artifact.DeploymentMatches(backupName, []orchestrator.Instance{instance1, instance2})
 				Expect(match).To(BeFalse())
 			})
 		})
 
 		Context("when an error occurs unmarshaling the metadata", func() {
 			BeforeEach(func() {
-				Expect(os.Mkdir(artifactName, 0777)).To(Succeed())
-				file, err := os.Create(artifactName + "/" + "metadata")
+				Expect(os.Mkdir(backupName, 0777)).To(Succeed())
+				file, err := os.Create(backupName + "/" + "metadata")
 				Expect(err).NotTo(HaveOccurred())
 				_, err = file.Write([]byte("this is not yaml"))
 				Expect(err).NotTo(HaveOccurred())
@@ -98,32 +98,33 @@ instances:
 			})
 
 			It("returns error", func() {
-				_, err := artifact.DeploymentMatches(artifactName, []orchestrator.Instance{instance1, instance2})
+				_, err := artifact.DeploymentMatches(backupName, []orchestrator.Instance{instance1, instance2})
 				Expect(err).To(MatchError(ContainSubstring("failed to unmarshal metadata")))
 			})
 		})
 
 		Context("when an error occurs checking if the file exists", func() {
 			It("returns error", func() {
-				_, err := artifact.DeploymentMatches(artifactName, []orchestrator.Instance{instance1, instance2})
+				_, err := artifact.DeploymentMatches(backupName, []orchestrator.Instance{instance1, instance2})
 				Expect(err).To(MatchError(ContainSubstring("Error checking metadata file")))
 			})
 		})
 	})
 
 	Describe("Valid", func() {
-		var artifact orchestrator.Backup
+		var backup orchestrator.Backup
 		var verifyResult bool
 		var verifyError error
 
 		JustBeforeEach(func() {
 			var err error
-			artifact, err = artifactManager.Open(artifactName, logger)
+			backup, err = backupDirectoryManager.Open(backupName, logger)
 			Expect(err).NotTo(HaveOccurred())
-			verifyResult, verifyError = artifact.Valid()
+			verifyResult, verifyError = backup.Valid()
 		})
+
 		BeforeEach(func() {
-			Expect(os.Mkdir(artifactName, 0777)).To(Succeed())
+			Expect(os.Mkdir(backupName, 0777)).To(Succeed())
 		})
 
 		Context("when the default artifact sha's match metafile", func() {
@@ -133,7 +134,7 @@ instances:
 					"file2": "Gopher names:\nGeorge\nGeoffrey\nGonzo",
 				})
 
-				Expect(ioutil.WriteFile(artifactName+"/redis-0-broker.tar", contents, 0666)).NotTo(HaveOccurred())
+				Expect(ioutil.WriteFile(backupName+"/redis-0-broker.tar", contents, 0666)).NotTo(HaveOccurred())
 
 				metadataContents := fmt.Sprintf(`---
 instances:
@@ -145,7 +146,7 @@ instances:
       file1: %x
       file2: %x
 `, sha256.Sum256([]byte("This archive contains some text files.")), sha256.Sum256([]byte("Gopher names:\nGeorge\nGeoffrey\nGonzo")))
-				createTestMetadata(artifactName, metadataContents)
+				createTestMetadata(backupName, metadataContents)
 			})
 
 			It("returns true", func() {
@@ -160,11 +161,11 @@ instances:
 					"file1": "This archive contains some text files.",
 				})
 
-				Expect(ioutil.WriteFile(artifactName+"/foo_redis.tar", contents, 0666)).NotTo(HaveOccurred())
+				Expect(ioutil.WriteFile(backupName+"/foo_redis.tar", contents, 0666)).NotTo(HaveOccurred())
 
-				createTestMetadata(artifactName, fmt.Sprintf(`---
-blobs:
-- blob_name: foo_redis
+				createTestMetadata(backupName, fmt.Sprintf(`---
+custom_artifacts:
+- name: foo_redis
   checksums:
     file1: %x
 `, sha256.Sum256([]byte("This archive contains some text files."))))
@@ -182,9 +183,9 @@ blobs:
 					"file1": "This archive contains some text files.",
 				})
 
-				Expect(ioutil.WriteFile(artifactName+"/foo_redis.tar", contents, 0666)).NotTo(HaveOccurred())
+				Expect(ioutil.WriteFile(backupName+"/foo_redis.tar", contents, 0666)).NotTo(HaveOccurred())
 
-				createTestMetadata(artifactName, fmt.Sprintf(`---
+				createTestMetadata(backupName, fmt.Sprintf(`---
 custom_artifacts:
 - name: foo_redis
   checksums:
@@ -204,8 +205,8 @@ custom_artifacts:
 					"file1": "This archive contains some text files.",
 					"file2": "Gopher names:\nGeorge\nGeoffrey\nGonzo",
 				})
-				Expect(ioutil.WriteFile(artifactName+"/redis-0-broker.tar", contents, 0666)).NotTo(HaveOccurred())
-				createTestMetadata(artifactName, fmt.Sprintf(`---
+				Expect(ioutil.WriteFile(backupName+"/redis-0-broker.tar", contents, 0666)).NotTo(HaveOccurred())
+				createTestMetadata(backupName, fmt.Sprintf(`---
 instances:
 - name: redis
   index: 0
@@ -229,8 +230,8 @@ instances:
 				contents := createTarWithContents(map[string]string{
 					"file1": "This archive contains some text files.",
 				})
-				Expect(ioutil.WriteFile(artifactName+"/redis-0-broker.tar", contents, 0666)).NotTo(HaveOccurred())
-				createTestMetadata(artifactName, fmt.Sprintf(`---
+				Expect(ioutil.WriteFile(backupName+"/redis-0-broker.tar", contents, 0666)).NotTo(HaveOccurred())
+				createTestMetadata(backupName, fmt.Sprintf(`---
 instances:
 - name: redis
   index: 0
@@ -250,7 +251,7 @@ instances:
 
 		Context("metadata describes a file that doesn't exist", func() {
 			BeforeEach(func() {
-				createTestMetadata(artifactName, fmt.Sprintf(`---
+				createTestMetadata(backupName, fmt.Sprintf(`---
 instances:
 - name: redis
 	index: 0
@@ -272,7 +273,7 @@ instances:
 				contents := createTarWithContents(map[string]string{
 					"file1": "This archive contains some text files.",
 				})
-				Expect(ioutil.WriteFile(artifactName+"/redis-1.tar", contents, 0666)).NotTo(HaveOccurred())
+				Expect(ioutil.WriteFile(backupName+"/redis-1.tar", contents, 0666)).NotTo(HaveOccurred())
 			})
 
 			It("returns false", func() {
@@ -291,7 +292,7 @@ instances:
 		var fakeBackupArtifact *fakes.FakeBackupArtifact
 
 		BeforeEach(func() {
-			artifact, _ = artifactManager.Create(artifactName, logger)
+			artifact, _ = backupDirectoryManager.Create(backupName, logger)
 			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
 			fakeBackupArtifact.InstanceNameReturns("redis-server")
 			fakeBackupArtifact.InstanceIndexReturns("0")
@@ -299,19 +300,19 @@ instances:
 		JustBeforeEach(func() {
 			writer, fileCreationError = artifact.CreateArtifact(fakeBackupArtifact)
 		})
-		Context("with a default backup blob", func() {
+		Context("with a default backup artifact", func() {
 			BeforeEach(func() {
 				fakeBackupArtifact.NameReturns("redis")
 				fakeBackupArtifact.HasCustomNameReturns(false)
 			})
 			Context("Can create a file", func() {
 				It("creates a file in the artifact directory", func() {
-					Expect(artifactName + "/redis-server-0-redis.tar").To(BeARegularFile())
+					Expect(backupName + "/redis-server-0-redis.tar").To(BeARegularFile())
 				})
 
 				It("writer writes contents to the file", func() {
 					writer.Write([]byte("lalala a file"))
-					Expect(ioutil.ReadFile(artifactName + "/redis-server-0-redis.tar")).To(Equal([]byte("lalala a file")))
+					Expect(ioutil.ReadFile(backupName + "/redis-server-0-redis.tar")).To(Equal([]byte("lalala a file")))
 				})
 
 				It("does not fail", func() {
@@ -319,19 +320,19 @@ instances:
 				})
 			})
 		})
-		Context("with a named backup blob", func() {
+		Context("with a named backup artifact", func() {
 			BeforeEach(func() {
 				fakeBackupArtifact.HasCustomNameReturns(true)
 				fakeBackupArtifact.NameReturns("my-backup-artifact")
 			})
 
 			It("creates the named file in the artifact directory", func() {
-				Expect(artifactName + "/my-backup-artifact.tar").To(BeARegularFile())
+				Expect(backupName + "/my-backup-artifact.tar").To(BeARegularFile())
 			})
 
 			It("writer writes contents to the file", func() {
 				writer.Write([]byte("lalala a file"))
-				Expect(ioutil.ReadFile(artifactName + "/my-backup-artifact.tar")).To(Equal([]byte("lalala a file")))
+				Expect(ioutil.ReadFile(backupName + "/my-backup-artifact.tar")).To(Equal([]byte("lalala a file")))
 			})
 
 			It("does not fail", func() {
@@ -354,8 +355,8 @@ instances:
 		var artifact orchestrator.Backup
 		var saveManifestError error
 		BeforeEach(func() {
-			artifactName = "foo-bar"
-			artifact, _ = artifactManager.Create(artifactName, logger)
+			backupName = "foo-bar"
+			artifact, _ = backupDirectoryManager.Create(backupName, logger)
 		})
 		JustBeforeEach(func() {
 			saveManifestError = artifact.SaveManifest("contents")
@@ -365,7 +366,7 @@ instances:
 		})
 
 		It("writes contents to a file", func() {
-			Expect(ioutil.ReadFile(artifactName + "/manifest.yml")).To(Equal([]byte("contents")))
+			Expect(ioutil.ReadFile(backupName + "/manifest.yml")).To(Equal([]byte("contents")))
 		})
 	})
 
@@ -376,22 +377,22 @@ instances:
 		var fakeBackupArtifact *fakes.FakeBackupArtifact
 
 		BeforeEach(func() {
-			artifact, _ = artifactManager.Open(artifactName, logger)
+			artifact, _ = backupDirectoryManager.Open(backupName, logger)
 			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
 			fakeBackupArtifact.InstanceNameReturns("redis-server")
 			fakeBackupArtifact.InstanceIndexReturns("0")
 		})
 
-		Context("default backup blob - file exists and is readable", func() {
+		Context("default artifact - file exists and is readable", func() {
 			BeforeEach(func() {
 				fakeBackupArtifact.NameReturns("redis")
 				fakeBackupArtifact.HasCustomNameReturns(false)
 
-				err := os.MkdirAll(artifactName, 0700)
+				err := os.MkdirAll(backupName, 0700)
 				Expect(err).NotTo(HaveOccurred())
-				_, err = os.Create(artifactName + "/redis-server-0-redis.tar")
+				_, err = os.Create(backupName + "/redis-server-0-redis.tar")
 				Expect(err).NotTo(HaveOccurred())
-				err = ioutil.WriteFile(artifactName+"/redis-server-0-redis.tar", []byte("backup-content"), 0700)
+				err = ioutil.WriteFile(backupName+"/redis-server-0-redis.tar", []byte("backup-content"), 0700)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -411,16 +412,16 @@ instances:
 			})
 		})
 
-		Context("named backup blob - file exists and is readable", func() {
+		Context("named artifact - file exists and is readable", func() {
 			BeforeEach(func() {
 				fakeBackupArtifact.HasCustomNameReturns(true)
 				fakeBackupArtifact.NameReturns("foo-bar")
 
-				err := os.MkdirAll(artifactName, 0700)
+				err := os.MkdirAll(backupName, 0700)
 				Expect(err).NotTo(HaveOccurred())
-				_, err = os.Create(artifactName + "/foo-bar.tar")
+				_, err = os.Create(backupName + "/foo-bar.tar")
 				Expect(err).NotTo(HaveOccurred())
-				err = ioutil.WriteFile(artifactName+"/foo-bar.tar", []byte("backup-content"), 0700)
+				err = ioutil.WriteFile(backupName+"/foo-bar.tar", []byte("backup-content"), 0700)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -458,10 +459,10 @@ instances:
 			fakeBackupArtifact.InstanceIndexReturns("0")
 		})
 		JustBeforeEach(func() {
-			artifact, _ = artifactManager.Create(artifactName, logger)
+			artifact, _ = backupDirectoryManager.Create(backupName, logger)
 		})
 		Context("file exists", func() {
-			Context("default backup blob", func() {
+			Context("default artifact", func() {
 				BeforeEach(func() {
 					fakeBackupArtifact.NameReturns("redis")
 					fakeBackupArtifact.HasCustomNameReturns(false)
@@ -490,7 +491,7 @@ instances:
 				})
 			})
 
-			Context("named backup blob", func() {
+			Context("named artifact", func() {
 				BeforeEach(func() {
 					fakeBackupArtifact.NameReturns("foo")
 					fakeBackupArtifact.HasCustomNameReturns(true)
@@ -553,7 +554,7 @@ instances:
 		var startTime time.Time
 
 		BeforeEach(func() {
-			artifact, _ = artifactManager.Create(artifactName, logger)
+			artifact, _ = backupDirectoryManager.Create(backupName, logger)
 			startTime = time.Date(2015, 10, 21, 1, 2, 3, 0, time.UTC)
 			Expect(artifact.CreateMetadataFileWithStartTime(startTime)).To(Succeed())
 			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
@@ -574,7 +575,7 @@ instances:
 
 			Context("when no default artifacts have been added", func() {
 				It("adds the instance and the artifact", func() {
-					Expect(artifactName + "/metadata").To(BeARegularFile())
+					Expect(backupName + "/metadata").To(BeARegularFile())
 
 					expectedMetadata := `---
 backup_activity:
@@ -586,7 +587,7 @@ instances:
   - name: redis
     checksums:
       filename: foobar`
-					Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+					Expect(ioutil.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
 				})
 			})
 
@@ -601,7 +602,7 @@ instances:
 					addChecksumError = artifact.AddChecksum(anotherFakeBackupArtifact, checksum)
 				})
 				It("appends the artifact to the instance", func() {
-					Expect(artifactName + "/metadata").To(BeARegularFile())
+					Expect(backupName + "/metadata").To(BeARegularFile())
 
 					expectedMetadata := `---
 backup_activity:
@@ -616,7 +617,7 @@ instances:
   - name: redis
     checksums:
       filename: foobar`
-					Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+					Expect(ioutil.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
 				})
 			})
 
@@ -631,7 +632,7 @@ instances:
 					addChecksumError = artifact.AddChecksum(anotherFakeBackupArtifact, checksum)
 				})
 				It("adds the new instance and the artifact", func() {
-					Expect(artifactName + "/metadata").To(BeARegularFile())
+					Expect(backupName + "/metadata").To(BeARegularFile())
 
 					expectedMetadata := `---
 backup_activity:
@@ -650,7 +651,7 @@ instances:
     checksums:
       filename: foobar
 `
-					Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+					Expect(ioutil.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
 				})
 			})
 		})
@@ -663,7 +664,7 @@ instances:
 
 			Context("when no named artifacts have been added", func() {
 				It("adds the named artifact", func() {
-					Expect(artifactName + "/metadata").To(BeARegularFile())
+					Expect(backupName + "/metadata").To(BeARegularFile())
 
 					expectedMetadata := `---
 backup_activity:
@@ -672,7 +673,7 @@ custom_artifacts:
 - name: foo
   checksums:
     filename: foobar`
-					Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+					Expect(ioutil.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
 				})
 			})
 
@@ -685,7 +686,7 @@ custom_artifacts:
 					addChecksumError = artifact.AddChecksum(anotherFakeBackupArtifact, checksum)
 				})
 				It("appends the new named artifact", func() {
-					Expect(artifactName + "/metadata").To(BeARegularFile())
+					Expect(backupName + "/metadata").To(BeARegularFile())
 
 					expectedMetadata := `---
 backup_activity:
@@ -698,14 +699,14 @@ custom_artifacts:
   checksums:
     filename: foobar
 `
-					Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+					Expect(ioutil.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
 				})
 			})
 		})
 
 		Context("when the metadata file is invalid", func() {
 			BeforeEach(func() {
-				createTestMetadata(artifactName, "not valid yaml")
+				createTestMetadata(backupName, "not valid yaml")
 			})
 
 			It("fails", func() {
@@ -715,7 +716,7 @@ custom_artifacts:
 
 		Context("when the metadata file doesn't exist", func() {
 			BeforeEach(func() {
-				Expect(os.Remove(artifactName + "/" + "metadata")).To(Succeed())
+				Expect(os.Remove(backupName + "/" + "metadata")).To(Succeed())
 			})
 
 			It("fails", func() {
@@ -734,17 +735,17 @@ custom_artifacts:
 		})
 		JustBeforeEach(func() {
 			var artifactOpenError error
-			artifact, artifactOpenError = artifactManager.Open(artifactName, logger)
+			artifact, artifactOpenError = backupDirectoryManager.Open(backupName, logger)
 			Expect(artifactOpenError).NotTo(HaveOccurred())
 
 			checksum, fetchChecksumError = artifact.FetchChecksum(fakeArtifact)
 		})
-		Context("the named backup blob is found in metadata", func() {
+		Context("the named artifact is found in metadata", func() {
 			BeforeEach(func() {
 				fakeArtifact.HasCustomNameReturns(true)
 				fakeArtifact.NameReturns("foo")
 
-				createTestMetadata(artifactName, `---
+				createTestMetadata(backupName, `---
 instances: []
 custom_artifacts:
 - name: foo
@@ -761,13 +762,13 @@ custom_artifacts:
 			})
 		})
 
-		Context("the default backup blob is found in metadata", func() {
+		Context("the default artifact is found in metadata", func() {
 			BeforeEach(func() {
 				fakeArtifact.InstanceNameReturns("foo")
 				fakeArtifact.InstanceIndexReturns("bar")
 				fakeArtifact.NameReturns("baz")
 
-				createTestMetadata(artifactName, `---
+				createTestMetadata(backupName, `---
 instances:
 - name: foo
   index: "bar"
@@ -786,13 +787,13 @@ instances:
 			})
 		})
 		//TODO: why is this required
-		Context("the default backup blob is not found in metadata", func() {
+		Context("the default artifact is not found in metadata", func() {
 			BeforeEach(func() {
 				fakeArtifact.NameReturns("not-baz")
 				fakeArtifact.InstanceNameReturns("foo")
 				fakeArtifact.InstanceIndexReturns("bar")
 
-				createTestMetadata(artifactName, `---
+				createTestMetadata(backupName, `---
 instances:
 - name: foo
   index: "bar"
@@ -811,13 +812,13 @@ instances:
 			})
 		})
 
-		Context("the default backup blob's instance is not found in metadata", func() {
+		Context("the default artifact's instance is not found in metadata", func() {
 			BeforeEach(func() {
 				fakeArtifact.NameReturns("baz")
 				fakeArtifact.InstanceNameReturns("not-foo")
 				fakeArtifact.InstanceIndexReturns("bar")
 
-				createTestMetadata(artifactName, `---
+				createTestMetadata(backupName, `---
 instances:
 - name: foo
   index: "bar"
@@ -836,12 +837,12 @@ instances:
 			})
 		})
 
-		Context("the named backup blob is not found in metadata", func() {
+		Context("the named artifact is not found in metadata", func() {
 			BeforeEach(func() {
 				fakeArtifact.NameReturns("not-foo")
 				fakeArtifact.HasCustomNameReturns(true)
 
-				createTestMetadata(artifactName, `---
+				createTestMetadata(backupName, `---
 instances:
 - name: foo
   index: "bar"
@@ -860,7 +861,7 @@ instances:
 
 		Context("if existing file isn't valid", func() {
 			BeforeEach(func() {
-				createTestMetadata(artifactName, "not valid yaml")
+				createTestMetadata(backupName, "not valid yaml")
 			})
 
 			It("fails", func() {
@@ -875,7 +876,7 @@ instances:
 
 		BeforeEach(func() {
 			var err error
-			artifact, err = artifactManager.Create(artifactName, logger)
+			artifact, err = backupDirectoryManager.Create(backupName, logger)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -888,13 +889,13 @@ instances:
 backup_activity:
   start_time: 2015/10/21 01:02:03 UTC`
 
-				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+				Expect(ioutil.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
 			})
 		})
 
 		Context("when the metadata file already exists", func() {
 			It("returns an error", func() {
-				createTestMetadata(artifactName, "")
+				createTestMetadata(backupName, "")
 				Expect(artifact.CreateMetadataFileWithStartTime(time.Now())).To(MatchError("metadata file already exists"))
 			})
 		})
@@ -905,7 +906,7 @@ backup_activity:
 
 		BeforeEach(func() {
 			var err error
-			artifact, err = artifactManager.Create(artifactName, logger)
+			artifact, err = backupDirectoryManager.Create(backupName, logger)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -927,7 +928,7 @@ backup_activity:
   start_time: 2015/10/21 01:02:03 UTC
   finish_time: 2016/10/21 04:05:06 UTC`
 
-				Expect(ioutil.ReadFile(artifactName + "/metadata")).To(MatchYAML(expectedMetadata))
+				Expect(ioutil.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
 			})
 		})
 	})

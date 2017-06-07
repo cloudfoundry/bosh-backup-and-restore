@@ -23,8 +23,8 @@ func (ai artifactIdentifier) HasCustomName() bool {
 	return ai.hasCustomName
 }
 
-func makeCustomArtifactIdentifier(blob artifactMetadata) artifactIdentifier {
-	return artifactIdentifier{name: blob.Name, hasCustomName: true}
+func makeCustomArtifactIdentifier(artifact artifactMetadata) artifactIdentifier {
+	return artifactIdentifier{name: artifact.Name, hasCustomName: true}
 }
 func makeDefaultArtifactIdentifier(artifact artifactMetadata, inst *instanceMetadata) artifactIdentifier {
 	return artifactIdentifier{name: artifact.Name, hasCustomName: false, instanceName: inst.Name, instanceIndex: inst.Index}

@@ -59,7 +59,7 @@ func (jobs Jobs) AnyArePostBackupable() bool {
 
 func (jobs Jobs) AnyNeedDefaultBlobsForRestore() bool {
 	for _, job := range jobs.Restorable() {
-		if !job.HasNamedRestoreBlob() {
+		if !job.HasNamedRestoreArtifact() {
 			return true
 		}
 	}
@@ -68,7 +68,7 @@ func (jobs Jobs) AnyNeedDefaultBlobsForRestore() bool {
 
 func (jobs Jobs) AnyNeedDefaultBlobsForBackup() bool {
 	for _, job := range jobs.Backupable() {
-		if !job.HasNamedBackupBlob() {
+		if !job.HasNamedBackupArtifact() {
 			return true
 		}
 	}
@@ -78,7 +78,7 @@ func (jobs Jobs) AnyNeedDefaultBlobsForBackup() bool {
 func (jobs Jobs) withNamedBackupBlobs() Jobs {
 	jobsWithNamedBlobs := Jobs{}
 	for _, job := range jobs {
-		if job.HasNamedBackupBlob() {
+		if job.HasNamedBackupArtifact() {
 			jobsWithNamedBlobs = append(jobsWithNamedBlobs, job)
 		}
 	}
@@ -88,7 +88,7 @@ func (jobs Jobs) withNamedBackupBlobs() Jobs {
 func (jobs Jobs) withNamedRestoreBlobs() Jobs {
 	jobsWithNamedBlobs := Jobs{}
 	for _, job := range jobs {
-		if job.HasNamedRestoreBlob() {
+		if job.HasNamedRestoreArtifact() {
 			jobsWithNamedBlobs = append(jobsWithNamedBlobs, job)
 		}
 	}
@@ -99,7 +99,7 @@ func (jobs Jobs) CustomBackupBlobNames() []string {
 	var blobNames []string
 
 	for _, job := range jobs.withNamedBackupBlobs() {
-		blobNames = append(blobNames, job.BackupBlobName())
+		blobNames = append(blobNames, job.BackupArtifactName())
 	}
 
 	return blobNames
@@ -109,7 +109,7 @@ func (jobs Jobs) CustomRestoreBlobNames() []string {
 	var blobNames []string
 
 	for _, job := range jobs.withNamedRestoreBlobs() {
-		blobNames = append(blobNames, job.RestoreBlobName())
+		blobNames = append(blobNames, job.RestoreArtifactName())
 	}
 
 	return blobNames

@@ -25,7 +25,7 @@ type artifactMetadata struct {
 
 type metadata struct {
 	MetadataForEachInstance   []*instanceMetadata    `yaml:"instances,omitempty"`
-	MetadataForEachBlob       []artifactMetadata     `yaml:"custom_artifacts,omitempty"`
+	MetadataForEachArtifact   []artifactMetadata     `yaml:"custom_artifacts,omitempty"`
 	MetadataForBackupActivity backupActivityMetadata `yaml:"backup_activity"`
 }
 

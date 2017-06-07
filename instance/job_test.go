@@ -80,7 +80,7 @@ var _ = Describe("Job", func() {
 		})
 	})
 
-	Describe("BackupBlobName", func() {
+	Describe("BackupArtifactName", func() {
 		Context("the job has a custom backup blob name", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
@@ -89,18 +89,18 @@ var _ = Describe("Job", func() {
 			})
 
 			It("returns the job's custom backup blob name", func() {
-				Expect(job.BackupBlobName()).To(Equal("fool"))
+				Expect(job.BackupArtifactName()).To(Equal("fool"))
 			})
 		})
 
 		Context("the job does not have a custom backup blob name", func() {
 			It("returns empty string", func() {
-				Expect(job.BackupBlobName()).To(Equal(""))
+				Expect(job.BackupArtifactName()).To(Equal(""))
 			})
 		})
 	})
 
-	Describe("RestoreBlobName", func() {
+	Describe("RestoreArtifactName", func() {
 		Context("the job has a custom backup blob name", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
@@ -109,13 +109,13 @@ var _ = Describe("Job", func() {
 			})
 
 			It("returns the job's custom backup blob name", func() {
-				Expect(job.RestoreBlobName()).To(Equal("bard"))
+				Expect(job.RestoreArtifactName()).To(Equal("bard"))
 			})
 		})
 
 		Context("the job does not have a custom backup blob name", func() {
 			It("returns empty string", func() {
-				Expect(job.RestoreBlobName()).To(Equal(""))
+				Expect(job.RestoreArtifactName()).To(Equal(""))
 			})
 		})
 	})
@@ -222,9 +222,9 @@ var _ = Describe("Job", func() {
 		})
 	})
 
-	Describe("HasNamedBackupBlob", func() {
+	Describe("HasNamedBackupArtifact", func() {
 		It("returns false", func() {
-			Expect(job.HasNamedBackupBlob()).To(BeFalse())
+			Expect(job.HasNamedBackupArtifact()).To(BeFalse())
 		})
 
 		Context("when the job has a named backup blob", func() {
@@ -235,7 +235,7 @@ var _ = Describe("Job", func() {
 			})
 
 			It("returns true", func() {
-				Expect(job.HasNamedBackupBlob()).To(BeTrue())
+				Expect(job.HasNamedBackupArtifact()).To(BeTrue())
 			})
 		})
 
@@ -247,14 +247,14 @@ var _ = Describe("Job", func() {
 			})
 
 			It("returns false", func() {
-				Expect(job.HasNamedBackupBlob()).To(BeFalse())
+				Expect(job.HasNamedBackupArtifact()).To(BeFalse())
 			})
 		})
 	})
 
-	Describe("HasNamedRestoreBlob", func() {
+	Describe("HasNamedRestoreArtifact", func() {
 		It("returns false", func() {
-			Expect(job.HasNamedRestoreBlob()).To(BeFalse())
+			Expect(job.HasNamedRestoreArtifact()).To(BeFalse())
 		})
 
 		Context("when the job has a named restore blob", func() {
@@ -265,7 +265,7 @@ var _ = Describe("Job", func() {
 			})
 
 			It("returns true", func() {
-				Expect(job.HasNamedRestoreBlob()).To(BeTrue())
+				Expect(job.HasNamedRestoreArtifact()).To(BeTrue())
 			})
 		})
 
@@ -277,7 +277,7 @@ var _ = Describe("Job", func() {
 			})
 
 			It("returns false", func() {
-				Expect(job.HasNamedRestoreBlob()).To(BeFalse())
+				Expect(job.HasNamedRestoreArtifact()).To(BeFalse())
 			})
 		})
 	})

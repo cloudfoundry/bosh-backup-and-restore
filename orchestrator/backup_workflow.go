@@ -145,7 +145,7 @@ func (bw *backupWorkflow) checkHasBackupScript(e *fsm.Event) {
 		return
 	}
 
-	if !bw.deployment.HasUniqueCustomBackupNames() {
+	if !bw.deployment.HasUniqueCustomArtifactNames() {
 		bw.backupErrors = append(bw.backupErrors, errors.Errorf("Multiple jobs in deployment '%s' specified the same backup name", bw.deploymentName))
 		e.Cancel()
 	}

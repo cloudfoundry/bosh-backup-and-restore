@@ -23,15 +23,15 @@ func NewRestorer(backupManager BackupManager, logger Logger, deploymentManager D
 
 func (b Restorer) Restore(deploymentName string) Error {
 	b.Logger.Info("bbr", "Starting restore of %s...\n", deploymentName)
-	artifact, err := b.BackupManager.Open(deploymentName, b.Logger)
+	backup, err := b.BackupManager.Open(deploymentName, b.Logger)
 	if err != nil {
-		return Error{errors.Wrap(err, "Could not open backup artifact")}
+		return Error{errors.Wrap(err, "Could not open backup")}
 	}
 
-	if valid, err := artifact.Valid(); err != nil {
-		return Error{errors.Wrap(err, "Could not validate backup artifact")}
+	if valid, err := backup.Valid(); err != nil {
+		return Error{errors.Wrap(err, "Could not validate backup")}
 	} else if !valid {
-		return Error{errors.Errorf("Backup artifact is corrupted")}
+		return Error{errors.Errorf("Backup is corrupted")}
 	}
 
 	deployment, err := b.DeploymentManager.Find(deploymentName)
@@ -43,7 +43,7 @@ func (b Restorer) Restore(deploymentName string) Error {
 		return cleanupAndReturnErrors(deployment, errors.Errorf("Deployment '%s' has no restore scripts", deploymentName))
 	}
 
-	if match, err := artifact.DeploymentMatches(deploymentName, deployment.Instances()); err != nil {
+	if match, err := backup.DeploymentMatches(deploymentName, deployment.Instances()); err != nil {
 		return cleanupAndReturnErrors(deployment, errors.Errorf("Unable to check if deployment '%s' matches the structure of the provided backup", deploymentName))
 	} else if match != true {
 		return cleanupAndReturnErrors(deployment, errors.Errorf("Deployment '%s' does not match the structure of the provided backup", deploymentName))
@@ -54,7 +54,7 @@ func (b Restorer) Restore(deploymentName string) Error {
 		return cleanupAndReturnErrors(deployment, errors.Wrap(err, "Check artifact dir failed"))
 	}
 
-	if err = deployment.CopyLocalBackupToRemote(artifact); err != nil {
+	if err = deployment.CopyLocalBackupToRemote(backup); err != nil {
 		return cleanupAndReturnErrors(deployment, errors.Errorf("Unable to send backup to remote machine. Got error: %s", err))
 	}
 

@@ -480,11 +480,11 @@ var _ = Describe("Deployment", func() {
 		})
 	})
 
-	Context("HasUniqueCustomBackupNames", func() {
+	Context("HasUniqueCustomArtifactNames", func() {
 		var isValid bool
 
 		JustBeforeEach(func() {
-			isValid = deployment.HasUniqueCustomBackupNames()
+			isValid = deployment.HasUniqueCustomArtifactNames()
 		})
 
 		Context("Single instance, with unique metadata", func() {
@@ -1385,7 +1385,7 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails the backup process", func() {
-					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(ContainSubstring("Backup artifact is corrupted")))
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(ContainSubstring("Backup is corrupted")))
 				})
 
 				It("dosen't try to append shasum to metadata", func() {
@@ -1410,7 +1410,7 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails the backup process", func() {
-					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(ContainSubstring("Backup artifact is corrupted")))
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(ContainSubstring("Backup is corrupted")))
 				})
 
 				It("dosen't try to append shasum to metadata", func() {

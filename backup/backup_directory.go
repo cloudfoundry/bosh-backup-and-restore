@@ -82,7 +82,7 @@ func (backupDirectory *BackupDirectory) FetchChecksum(artifactIdentifier orchest
 	}
 
 	if artifactIdentifier.HasCustomName() {
-		for _, customArtifactInMetadata := range metadata.MetadataForEachBlob {
+		for _, customArtifactInMetadata := range metadata.MetadataForEachArtifact {
 			if customArtifactInMetadata.Name == artifactIdentifier.Name() {
 				return customArtifactInMetadata.Checksum, nil
 			}
@@ -153,7 +153,7 @@ func (backupDirectory *BackupDirectory) AddChecksum(artifactIdentifier orchestra
 	}
 
 	if artifactIdentifier.HasCustomName() {
-		metadata.MetadataForEachBlob = append(metadata.MetadataForEachBlob, artifactMetadata{
+		metadata.MetadataForEachArtifact = append(metadata.MetadataForEachArtifact, artifactMetadata{
 			Name:     artifactIdentifier.Name(),
 			Checksum: shasum,
 		})
@@ -210,10 +210,10 @@ func (backupDirectory *BackupDirectory) Valid() (bool, error) {
 		return false, backupDirectory.logAndReturn(err, "Error reading metadata from %s", backupDirectory.metadataFilename())
 	}
 
-	for _, blob := range meta.MetadataForEachBlob {
-		actualBlobChecksum, _ := backupDirectory.CalculateChecksum(makeCustomArtifactIdentifier(blob))
-		if !actualBlobChecksum.Match(blob.Checksum) {
-			return false, backupDirectory.logAndReturn(err, "Can't match checksums for %s, in metadata: %v, in actual file: %v", blob.Name, actualBlobChecksum, blob.Checksum)
+	for _, artifact := range meta.MetadataForEachArtifact {
+		actualArtifactChecksum, _ := backupDirectory.CalculateChecksum(makeCustomArtifactIdentifier(artifact))
+		if !actualArtifactChecksum.Match(artifact.Checksum) {
+			return false, backupDirectory.logAndReturn(err, "Can't match checksums for %s, in metadata: %v, in actual file: %v", artifact.Name, actualArtifactChecksum, artifact.Checksum)
 		}
 	}
 
@@ -275,6 +275,6 @@ func instanceArtifactFileName(instanceName string, instanceIndex string, name st
 	return instanceName + "-" + instanceIndex + "-" + name + ".tar"
 }
 
-func customArtifactFileName(blobName string) string {
-	return blobName + ".tar"
+func customArtifactFileName(artifactName string) string {
+	return artifactName + ".tar"
 }

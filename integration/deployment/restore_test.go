@@ -129,7 +129,7 @@ instances: []`))
 		})
 	})
 
-	Context("when the backup artifact is corrupted", func() {
+	Context("when the backup is corrupted", func() {
 		var session *gexec.Session
 		var deploymentName string
 
@@ -168,7 +168,7 @@ instances:
 			})
 
 			By("printing an error", func() {
-				Expect(string(session.Err.Contents())).To(ContainSubstring("Backup artifact is corrupted"))
+				Expect(string(session.Err.Contents())).To(ContainSubstring("Backup is corrupted"))
 			})
 			By("not printing the stack trace", func() {
 				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
