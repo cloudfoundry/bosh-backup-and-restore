@@ -16,7 +16,7 @@ type backupWorkflow struct {
 	deploymentName string
 	events         []fsm.EventDesc
 	deployment     Deployment
-	artifact       Artifact
+	artifact       Backup
 }
 
 const (
@@ -114,7 +114,7 @@ func (bw *backupWorkflow) Run() Error {
 func (bw *backupWorkflow) checkDeployment(e *fsm.Event) {
 	bw.Logger.Info("bbr", "Running pre-checks for backup of %s...\n", bw.deploymentName)
 
-	exists := bw.ArtifactManager.Exists(bw.deploymentName)
+	exists := bw.BackupManager.Exists(bw.deploymentName)
 	if exists {
 		bw.backupErrors = append(bw.backupErrors, errors.Errorf("artifact %s already exists", bw.deploymentName))
 		e.Cancel()
@@ -165,7 +165,7 @@ func (bw *backupWorkflow) cleanup(e *fsm.Event) {
 func (bw *backupWorkflow) createEmptyLocalArtifact(e *fsm.Event) {
 	bw.Logger.Info("bbr", "Starting backup of %s...\n", bw.deploymentName)
 	var err error
-	bw.artifact, err = bw.ArtifactManager.Create(bw.deploymentName, bw.Logger)
+	bw.artifact, err = bw.BackupManager.Create(bw.deploymentName, bw.Logger)
 	if err != nil {
 		bw.backupErrors = append(bw.backupErrors, err)
 		e.Cancel()

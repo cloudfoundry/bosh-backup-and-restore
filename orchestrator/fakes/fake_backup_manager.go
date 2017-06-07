@@ -7,33 +7,33 @@ import (
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 )
 
-type FakeArtifactManager struct {
-	CreateStub        func(string, orchestrator.Logger) (orchestrator.Artifact, error)
+type FakeBackupManager struct {
+	CreateStub        func(string, orchestrator.Logger) (orchestrator.Backup, error)
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
 		arg1 string
 		arg2 orchestrator.Logger
 	}
 	createReturns struct {
-		result1 orchestrator.Artifact
+		result1 orchestrator.Backup
 		result2 error
 	}
 	createReturnsOnCall map[int]struct {
-		result1 orchestrator.Artifact
+		result1 orchestrator.Backup
 		result2 error
 	}
-	OpenStub        func(string, orchestrator.Logger) (orchestrator.Artifact, error)
+	OpenStub        func(string, orchestrator.Logger) (orchestrator.Backup, error)
 	openMutex       sync.RWMutex
 	openArgsForCall []struct {
 		arg1 string
 		arg2 orchestrator.Logger
 	}
 	openReturns struct {
-		result1 orchestrator.Artifact
+		result1 orchestrator.Backup
 		result2 error
 	}
 	openReturnsOnCall map[int]struct {
-		result1 orchestrator.Artifact
+		result1 orchestrator.Backup
 		result2 error
 	}
 	ExistsStub        func(string) bool
@@ -51,7 +51,7 @@ type FakeArtifactManager struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeArtifactManager) Create(arg1 string, arg2 orchestrator.Logger) (orchestrator.Artifact, error) {
+func (fake *FakeBackupManager) Create(arg1 string, arg2 orchestrator.Logger) (orchestrator.Backup, error) {
 	fake.createMutex.Lock()
 	ret, specificReturn := fake.createReturnsOnCall[len(fake.createArgsForCall)]
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
@@ -69,41 +69,41 @@ func (fake *FakeArtifactManager) Create(arg1 string, arg2 orchestrator.Logger) (
 	return fake.createReturns.result1, fake.createReturns.result2
 }
 
-func (fake *FakeArtifactManager) CreateCallCount() int {
+func (fake *FakeBackupManager) CreateCallCount() int {
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
 	return len(fake.createArgsForCall)
 }
 
-func (fake *FakeArtifactManager) CreateArgsForCall(i int) (string, orchestrator.Logger) {
+func (fake *FakeBackupManager) CreateArgsForCall(i int) (string, orchestrator.Logger) {
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
 	return fake.createArgsForCall[i].arg1, fake.createArgsForCall[i].arg2
 }
 
-func (fake *FakeArtifactManager) CreateReturns(result1 orchestrator.Artifact, result2 error) {
+func (fake *FakeBackupManager) CreateReturns(result1 orchestrator.Backup, result2 error) {
 	fake.CreateStub = nil
 	fake.createReturns = struct {
-		result1 orchestrator.Artifact
+		result1 orchestrator.Backup
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeArtifactManager) CreateReturnsOnCall(i int, result1 orchestrator.Artifact, result2 error) {
+func (fake *FakeBackupManager) CreateReturnsOnCall(i int, result1 orchestrator.Backup, result2 error) {
 	fake.CreateStub = nil
 	if fake.createReturnsOnCall == nil {
 		fake.createReturnsOnCall = make(map[int]struct {
-			result1 orchestrator.Artifact
+			result1 orchestrator.Backup
 			result2 error
 		})
 	}
 	fake.createReturnsOnCall[i] = struct {
-		result1 orchestrator.Artifact
+		result1 orchestrator.Backup
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeArtifactManager) Open(arg1 string, arg2 orchestrator.Logger) (orchestrator.Artifact, error) {
+func (fake *FakeBackupManager) Open(arg1 string, arg2 orchestrator.Logger) (orchestrator.Backup, error) {
 	fake.openMutex.Lock()
 	ret, specificReturn := fake.openReturnsOnCall[len(fake.openArgsForCall)]
 	fake.openArgsForCall = append(fake.openArgsForCall, struct {
@@ -121,41 +121,41 @@ func (fake *FakeArtifactManager) Open(arg1 string, arg2 orchestrator.Logger) (or
 	return fake.openReturns.result1, fake.openReturns.result2
 }
 
-func (fake *FakeArtifactManager) OpenCallCount() int {
+func (fake *FakeBackupManager) OpenCallCount() int {
 	fake.openMutex.RLock()
 	defer fake.openMutex.RUnlock()
 	return len(fake.openArgsForCall)
 }
 
-func (fake *FakeArtifactManager) OpenArgsForCall(i int) (string, orchestrator.Logger) {
+func (fake *FakeBackupManager) OpenArgsForCall(i int) (string, orchestrator.Logger) {
 	fake.openMutex.RLock()
 	defer fake.openMutex.RUnlock()
 	return fake.openArgsForCall[i].arg1, fake.openArgsForCall[i].arg2
 }
 
-func (fake *FakeArtifactManager) OpenReturns(result1 orchestrator.Artifact, result2 error) {
+func (fake *FakeBackupManager) OpenReturns(result1 orchestrator.Backup, result2 error) {
 	fake.OpenStub = nil
 	fake.openReturns = struct {
-		result1 orchestrator.Artifact
+		result1 orchestrator.Backup
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeArtifactManager) OpenReturnsOnCall(i int, result1 orchestrator.Artifact, result2 error) {
+func (fake *FakeBackupManager) OpenReturnsOnCall(i int, result1 orchestrator.Backup, result2 error) {
 	fake.OpenStub = nil
 	if fake.openReturnsOnCall == nil {
 		fake.openReturnsOnCall = make(map[int]struct {
-			result1 orchestrator.Artifact
+			result1 orchestrator.Backup
 			result2 error
 		})
 	}
 	fake.openReturnsOnCall[i] = struct {
-		result1 orchestrator.Artifact
+		result1 orchestrator.Backup
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeArtifactManager) Exists(arg1 string) bool {
+func (fake *FakeBackupManager) Exists(arg1 string) bool {
 	fake.existsMutex.Lock()
 	ret, specificReturn := fake.existsReturnsOnCall[len(fake.existsArgsForCall)]
 	fake.existsArgsForCall = append(fake.existsArgsForCall, struct {
@@ -172,26 +172,26 @@ func (fake *FakeArtifactManager) Exists(arg1 string) bool {
 	return fake.existsReturns.result1
 }
 
-func (fake *FakeArtifactManager) ExistsCallCount() int {
+func (fake *FakeBackupManager) ExistsCallCount() int {
 	fake.existsMutex.RLock()
 	defer fake.existsMutex.RUnlock()
 	return len(fake.existsArgsForCall)
 }
 
-func (fake *FakeArtifactManager) ExistsArgsForCall(i int) string {
+func (fake *FakeBackupManager) ExistsArgsForCall(i int) string {
 	fake.existsMutex.RLock()
 	defer fake.existsMutex.RUnlock()
 	return fake.existsArgsForCall[i].arg1
 }
 
-func (fake *FakeArtifactManager) ExistsReturns(result1 bool) {
+func (fake *FakeBackupManager) ExistsReturns(result1 bool) {
 	fake.ExistsStub = nil
 	fake.existsReturns = struct {
 		result1 bool
 	}{result1}
 }
 
-func (fake *FakeArtifactManager) ExistsReturnsOnCall(i int, result1 bool) {
+func (fake *FakeBackupManager) ExistsReturnsOnCall(i int, result1 bool) {
 	fake.ExistsStub = nil
 	if fake.existsReturnsOnCall == nil {
 		fake.existsReturnsOnCall = make(map[int]struct {
@@ -203,7 +203,7 @@ func (fake *FakeArtifactManager) ExistsReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeArtifactManager) Invocations() map[string][][]interface{} {
+func (fake *FakeBackupManager) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.createMutex.RLock()
@@ -219,7 +219,7 @@ func (fake *FakeArtifactManager) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeArtifactManager) recordInvocation(key string, args []interface{}) {
+func (fake *FakeBackupManager) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -231,4 +231,4 @@ func (fake *FakeArtifactManager) recordInvocation(key string, args []interface{}
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ orchestrator.ArtifactManager = new(FakeArtifactManager)
+var _ orchestrator.BackupManager = new(FakeBackupManager)

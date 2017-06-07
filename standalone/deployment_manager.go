@@ -60,7 +60,7 @@ func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment
 	}), nil
 }
 
-func (DeploymentManager) SaveManifest(deploymentName string, artifact orchestrator.Artifact) error {
+func (DeploymentManager) SaveManifest(deploymentName string, artifact orchestrator.Backup) error {
 	return nil
 }
 
@@ -71,7 +71,7 @@ type DeployedInstance struct {
 func (d DeployedInstance) Cleanup() error {
 	d.Logger.Info("", "Cleaning up...")
 	if !d.ArtifactDirCreated() {
-		d.Logger.Debug("", "Artifact directory was never created - skipping cleanup")
+		d.Logger.Debug("", "Backup directory was never created - skipping cleanup")
 		return nil
 	}
 

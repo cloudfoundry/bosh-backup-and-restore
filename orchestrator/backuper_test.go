@@ -16,8 +16,8 @@ var _ = Describe("Backup", func() {
 		b                     *orchestrator.Backuper
 		deployment            *fakes.FakeDeployment
 		deploymentManager     *fakes.FakeDeploymentManager
-		artifact              *fakes.FakeArtifact
-		artifactManager       *fakes.FakeArtifactManager
+		fakeBackup            *fakes.FakeBackup
+		fakeBackupManager     *fakes.FakeBackupManager
 		logger                *fakes.FakeLogger
 		deploymentName        = "foobarbaz"
 		actualBackupError     error
@@ -27,8 +27,8 @@ var _ = Describe("Backup", func() {
 	BeforeEach(func() {
 		deployment = new(fakes.FakeDeployment)
 		deploymentManager = new(fakes.FakeDeploymentManager)
-		artifactManager = new(fakes.FakeArtifactManager)
-		artifact = new(fakes.FakeArtifact)
+		fakeBackupManager = new(fakes.FakeBackupManager)
+		fakeBackup = new(fakes.FakeBackup)
 		logger = new(fakes.FakeLogger)
 
 		startTime = time.Now()
@@ -41,7 +41,7 @@ var _ = Describe("Backup", func() {
 			return now
 		}
 
-		b = orchestrator.NewBackuper(artifactManager, logger, deploymentManager, nowFunc)
+		b = orchestrator.NewBackuper(fakeBackupManager, logger, deploymentManager, nowFunc)
 	})
 
 	JustBeforeEach(func() {
@@ -50,8 +50,8 @@ var _ = Describe("Backup", func() {
 
 	Context("backs up a deployment", func() {
 		BeforeEach(func() {
-			artifactManager.CreateReturns(artifact, nil)
-			artifactManager.ExistsReturns(false)
+			fakeBackupManager.CreateReturns(fakeBackup, nil)
+			fakeBackupManager.ExistsReturns(false)
 			deploymentManager.FindReturns(deployment, nil)
 			deployment.HasBackupScriptReturns(true)
 			deployment.HasUniqueCustomBackupNamesReturns(true)
@@ -72,11 +72,11 @@ var _ = Describe("Backup", func() {
 			Expect(deploymentManager.SaveManifestCallCount()).To(Equal(1))
 			actualDeploymentName, actualArtifact := deploymentManager.SaveManifestArgsForCall(0)
 			Expect(actualDeploymentName).To(Equal(deploymentName))
-			Expect(actualArtifact).To(Equal(artifact))
+			Expect(actualArtifact).To(Equal(fakeBackup))
 		})
 
 		It("checks if the artifact already exists", func() {
-			Expect(artifactManager.ExistsCallCount()).To(Equal(1))
+			Expect(fakeBackupManager.ExistsCallCount()).To(Equal(1))
 		})
 
 		It("checks if the deployment is backupable", func() {
@@ -100,23 +100,23 @@ var _ = Describe("Backup", func() {
 		})
 
 		It("creates a local artifact", func() {
-			Expect(artifactManager.CreateCallCount()).To(Equal(1))
+			Expect(fakeBackupManager.CreateCallCount()).To(Equal(1))
 		})
 
 		It("names the artifact after the deployment", func() {
-			actualDeploymentName, actualLogger := artifactManager.CreateArgsForCall(0)
+			actualDeploymentName, actualLogger := fakeBackupManager.CreateArgsForCall(0)
 			Expect(actualDeploymentName).To(Equal(deploymentName))
 			Expect(actualLogger).To(Equal(logger))
 		})
 
 		It("drains the backup to the artifact", func() {
 			Expect(deployment.CopyRemoteBackupToLocalCallCount()).To(Equal(1))
-			Expect(deployment.CopyRemoteBackupToLocalArgsForCall(0)).To(Equal(artifact))
+			Expect(deployment.CopyRemoteBackupToLocalArgsForCall(0)).To(Equal(fakeBackup))
 		})
 
 		It("saves start and finish timestamps in the metadata file", func() {
-			Expect(artifact.CreateMetadataFileWithStartTimeArgsForCall(0)).To(Equal(startTime))
-			Expect(artifact.AddFinishTimeArgsForCall(0)).To(Equal(finishTime))
+			Expect(fakeBackup.CreateMetadataFileWithStartTimeArgsForCall(0)).To(Equal(startTime))
+			Expect(fakeBackup.AddFinishTimeArgsForCall(0)).To(Equal(finishTime))
 		})
 	})
 
@@ -135,7 +135,7 @@ var _ = Describe("Backup", func() {
 
 		Context("when the artifact already exists", func() {
 			BeforeEach(func() {
-				artifactManager.ExistsReturns(true)
+				fakeBackupManager.ExistsReturns(true)
 			})
 
 			It("fails the backup process", func() {
@@ -164,7 +164,7 @@ var _ = Describe("Backup", func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.HasBackupScriptReturns(true)
 				deployment.HasUniqueCustomBackupNamesReturns(true)
-				artifactManager.CreateReturns(artifact, nil)
+				fakeBackupManager.CreateReturns(fakeBackup, nil)
 				deploymentManager.SaveManifestReturns(expectedError)
 			})
 
@@ -211,8 +211,8 @@ var _ = Describe("Backup", func() {
 			var lockError = orchestrator.NewLockError("smoooooooth jazz")
 
 			BeforeEach(func() {
-				artifactManager.CreateReturns(artifact, nil)
-				artifactManager.ExistsReturns(false)
+				fakeBackupManager.CreateReturns(fakeBackup, nil)
+				fakeBackupManager.ExistsReturns(false)
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.HasBackupScriptReturns(true)
 				deployment.HasUniqueCustomBackupNamesReturns(true)
@@ -237,8 +237,8 @@ var _ = Describe("Backup", func() {
 
 			BeforeEach(func() {
 				unlockError = orchestrator.NewPostBackupUnlockError("lalalalala")
-				artifactManager.CreateReturns(artifact, nil)
-				artifactManager.ExistsReturns(false)
+				fakeBackupManager.CreateReturns(fakeBackup, nil)
+				fakeBackupManager.ExistsReturns(false)
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.HasBackupScriptReturns(true)
 				deployment.HasUniqueCustomBackupNamesReturns(true)
@@ -304,7 +304,7 @@ var _ = Describe("Backup", func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.HasBackupScriptReturns(true)
 				deployment.HasUniqueCustomBackupNamesReturns(true)
-				artifactManager.CreateReturns(artifact, nil)
+				fakeBackupManager.CreateReturns(fakeBackup, nil)
 				deployment.CopyRemoteBackupToLocalReturns(drainError)
 			})
 
@@ -335,7 +335,7 @@ var _ = Describe("Backup", func() {
 				deployment.HasBackupScriptReturns(true)
 				deployment.HasUniqueCustomBackupNamesReturns(true)
 
-				artifactManager.CreateReturns(nil, artifactError)
+				fakeBackupManager.CreateReturns(nil, artifactError)
 			})
 
 			It("should check if the deployment is backupable", func() {
@@ -364,7 +364,7 @@ var _ = Describe("Backup", func() {
 				deployment.HasBackupScriptReturns(true)
 				deployment.HasUniqueCustomBackupNamesReturns(true)
 
-				artifactManager.CreateReturns(artifact, nil)
+				fakeBackupManager.CreateReturns(fakeBackup, nil)
 				deployment.CleanupReturns(cleanupError)
 			})
 
@@ -398,7 +398,7 @@ var _ = Describe("Backup", func() {
 				deployment.HasBackupScriptReturns(true)
 				deployment.HasUniqueCustomBackupNamesReturns(true)
 
-				artifactManager.CreateReturns(artifact, nil)
+				fakeBackupManager.CreateReturns(fakeBackup, nil)
 				deployment.BackupReturns(backupError)
 			})
 
@@ -412,7 +412,7 @@ var _ = Describe("Backup", func() {
 			})
 
 			It("does not try to create files in the artifact", func() {
-				Expect(artifact.CreateFileCallCount()).To(BeZero())
+				Expect(fakeBackup.CreateArtifactCallCount()).To(BeZero())
 			})
 
 			It("fails the backup process", func() {
@@ -424,8 +424,8 @@ var _ = Describe("Backup", func() {
 			})
 
 			It("saves the start timestamp in the metadata file but not the finish timestamp", func() {
-				Expect(artifact.CreateMetadataFileWithStartTimeArgsForCall(0)).To(Equal(startTime))
-				Expect(artifact.AddFinishTimeCallCount()).To(BeZero())
+				Expect(fakeBackup.CreateMetadataFileWithStartTimeArgsForCall(0)).To(Equal(startTime))
+				Expect(fakeBackup.AddFinishTimeCallCount()).To(BeZero())
 			})
 
 			Context("cleanup fails as well", assertCleanupError)
@@ -466,7 +466,7 @@ var _ = Describe("CanBeBackedUp", func() {
 		b                        *orchestrator.Backuper
 		deployment               *fakes.FakeDeployment
 		deploymentManager        *fakes.FakeDeploymentManager
-		artifactManager          *fakes.FakeArtifactManager
+		artifactManager          *fakes.FakeBackupManager
 		logger                   *fakes.FakeLogger
 		deploymentName           = "foobarbaz"
 		isDeploymentBackupable   bool
@@ -476,7 +476,7 @@ var _ = Describe("CanBeBackedUp", func() {
 	BeforeEach(func() {
 		deployment = new(fakes.FakeDeployment)
 		deploymentManager = new(fakes.FakeDeploymentManager)
-		artifactManager = new(fakes.FakeArtifactManager)
+		artifactManager = new(fakes.FakeBackupManager)
 		logger = new(fakes.FakeLogger)
 		b = orchestrator.NewBackuper(artifactManager, logger, deploymentManager, time.Now)
 	})

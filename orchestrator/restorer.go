@@ -7,15 +7,15 @@ import (
 )
 
 type Restorer struct {
-	ArtifactManager
+	BackupManager
 	Logger
 
 	DeploymentManager
 }
 
-func NewRestorer(artifactManager ArtifactManager, logger Logger, deploymentManager DeploymentManager) *Restorer {
+func NewRestorer(artifactManager BackupManager, logger Logger, deploymentManager DeploymentManager) *Restorer {
 	return &Restorer{
-		ArtifactManager:   artifactManager,
+		BackupManager:     artifactManager,
 		Logger:            logger,
 		DeploymentManager: deploymentManager,
 	}
@@ -23,7 +23,7 @@ func NewRestorer(artifactManager ArtifactManager, logger Logger, deploymentManag
 
 func (b Restorer) Restore(deploymentName string) Error {
 	b.Logger.Info("bbr", "Starting restore of %s...\n", deploymentName)
-	artifact, err := b.ArtifactManager.Open(deploymentName, b.Logger)
+	artifact, err := b.BackupManager.Open(deploymentName, b.Logger)
 	if err != nil {
 		return Error{errors.Wrap(err, "Could not open backup artifact")}
 	}

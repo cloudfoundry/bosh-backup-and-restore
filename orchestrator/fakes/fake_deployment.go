@@ -80,10 +80,10 @@ type FakeDeployment struct {
 	restoreReturnsOnCall map[int]struct {
 		result1 error
 	}
-	CopyRemoteBackupToLocalStub        func(orchestrator.Artifact) error
+	CopyRemoteBackupToLocalStub        func(orchestrator.Backup) error
 	copyRemoteBackupToLocalMutex       sync.RWMutex
 	copyRemoteBackupToLocalArgsForCall []struct {
-		arg1 orchestrator.Artifact
+		arg1 orchestrator.Backup
 	}
 	copyRemoteBackupToLocalReturns struct {
 		result1 error
@@ -91,10 +91,10 @@ type FakeDeployment struct {
 	copyRemoteBackupToLocalReturnsOnCall map[int]struct {
 		result1 error
 	}
-	CopyLocalBackupToRemoteStub        func(orchestrator.Artifact) error
+	CopyLocalBackupToRemoteStub        func(orchestrator.Backup) error
 	copyLocalBackupToRemoteMutex       sync.RWMutex
 	copyLocalBackupToRemoteArgsForCall []struct {
-		arg1 orchestrator.Artifact
+		arg1 orchestrator.Backup
 	}
 	copyLocalBackupToRemoteReturns struct {
 		result1 error
@@ -453,11 +453,11 @@ func (fake *FakeDeployment) RestoreReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) CopyRemoteBackupToLocal(arg1 orchestrator.Artifact) error {
+func (fake *FakeDeployment) CopyRemoteBackupToLocal(arg1 orchestrator.Backup) error {
 	fake.copyRemoteBackupToLocalMutex.Lock()
 	ret, specificReturn := fake.copyRemoteBackupToLocalReturnsOnCall[len(fake.copyRemoteBackupToLocalArgsForCall)]
 	fake.copyRemoteBackupToLocalArgsForCall = append(fake.copyRemoteBackupToLocalArgsForCall, struct {
-		arg1 orchestrator.Artifact
+		arg1 orchestrator.Backup
 	}{arg1})
 	fake.recordInvocation("CopyRemoteBackupToLocal", []interface{}{arg1})
 	fake.copyRemoteBackupToLocalMutex.Unlock()
@@ -476,7 +476,7 @@ func (fake *FakeDeployment) CopyRemoteBackupToLocalCallCount() int {
 	return len(fake.copyRemoteBackupToLocalArgsForCall)
 }
 
-func (fake *FakeDeployment) CopyRemoteBackupToLocalArgsForCall(i int) orchestrator.Artifact {
+func (fake *FakeDeployment) CopyRemoteBackupToLocalArgsForCall(i int) orchestrator.Backup {
 	fake.copyRemoteBackupToLocalMutex.RLock()
 	defer fake.copyRemoteBackupToLocalMutex.RUnlock()
 	return fake.copyRemoteBackupToLocalArgsForCall[i].arg1
@@ -501,11 +501,11 @@ func (fake *FakeDeployment) CopyRemoteBackupToLocalReturnsOnCall(i int, result1 
 	}{result1}
 }
 
-func (fake *FakeDeployment) CopyLocalBackupToRemote(arg1 orchestrator.Artifact) error {
+func (fake *FakeDeployment) CopyLocalBackupToRemote(arg1 orchestrator.Backup) error {
 	fake.copyLocalBackupToRemoteMutex.Lock()
 	ret, specificReturn := fake.copyLocalBackupToRemoteReturnsOnCall[len(fake.copyLocalBackupToRemoteArgsForCall)]
 	fake.copyLocalBackupToRemoteArgsForCall = append(fake.copyLocalBackupToRemoteArgsForCall, struct {
-		arg1 orchestrator.Artifact
+		arg1 orchestrator.Backup
 	}{arg1})
 	fake.recordInvocation("CopyLocalBackupToRemote", []interface{}{arg1})
 	fake.copyLocalBackupToRemoteMutex.Unlock()
@@ -524,7 +524,7 @@ func (fake *FakeDeployment) CopyLocalBackupToRemoteCallCount() int {
 	return len(fake.copyLocalBackupToRemoteArgsForCall)
 }
 
-func (fake *FakeDeployment) CopyLocalBackupToRemoteArgsForCall(i int) orchestrator.Artifact {
+func (fake *FakeDeployment) CopyLocalBackupToRemoteArgsForCall(i int) orchestrator.Backup {
 	fake.copyLocalBackupToRemoteMutex.RLock()
 	defer fake.copyLocalBackupToRemoteMutex.RUnlock()
 	return fake.copyLocalBackupToRemoteArgsForCall[i].arg1

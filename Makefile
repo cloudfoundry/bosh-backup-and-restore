@@ -15,7 +15,7 @@ test-ci: setup test
 
 test-unit:
 	ginkgo -p -r bosh orchestrator ssh instance standalone
-	ginkgo -r artifact # the artifact package tests can't be run in parallel at the moment :(
+	ginkgo -r backup # the backup package tests can't be run in parallel at the moment :(
 
 test-integration:
 	ginkgo -r -trace integration

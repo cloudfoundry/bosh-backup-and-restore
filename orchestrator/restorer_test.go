@@ -15,8 +15,8 @@ var _ = Describe("restorer", func() {
 	Context("restores a deployment from backup", func() {
 		var (
 			restoreError      orchestrator.Error
-			artifactManager   *fakes.FakeArtifactManager
-			artifact          *fakes.FakeArtifact
+			artifactManager   *fakes.FakeBackupManager
+			artifact          *fakes.FakeBackup
 			logger            *fakes.FakeLogger
 			instances         []orchestrator.Instance
 			b                 *orchestrator.Restorer
@@ -28,8 +28,8 @@ var _ = Describe("restorer", func() {
 		BeforeEach(func() {
 			instances = []orchestrator.Instance{new(fakes.FakeInstance)}
 			logger = new(fakes.FakeLogger)
-			artifactManager = new(fakes.FakeArtifactManager)
-			artifact = new(fakes.FakeArtifact)
+			artifactManager = new(fakes.FakeBackupManager)
+			artifact = new(fakes.FakeBackup)
 			deploymentManager = new(fakes.FakeDeploymentManager)
 			deployment = new(fakes.FakeDeployment)
 

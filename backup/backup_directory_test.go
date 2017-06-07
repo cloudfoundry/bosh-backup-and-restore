@@ -1,4 +1,4 @@
-package artifact_test
+package backup_test
 
 import (
 	"archive/tar"
@@ -11,7 +11,7 @@ import (
 	"time"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	. "github.com/pivotal-cf/bosh-backup-and-restore/artifact"
+	. "github.com/pivotal-cf/bosh-backup-and-restore/backup"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator/fakes"
 
@@ -19,9 +19,9 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("DirectoryArtifact", func() {
+var _ = Describe("BackupDirectory", func() {
 	var artifactName = "my-cool-redis"
-	var artifactManager = DirectoryArtifactManager{}
+	var artifactManager = BackupDirectoryManager{}
 	var logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter, GinkgoWriter)
 
 	AfterEach(func() {
@@ -29,7 +29,7 @@ var _ = Describe("DirectoryArtifact", func() {
 	})
 
 	Describe("DeploymentMatches", func() {
-		var artifact orchestrator.Artifact
+		var artifact orchestrator.Backup
 		var instance1 *fakes.FakeInstance
 		var instance2 *fakes.FakeInstance
 
@@ -112,7 +112,7 @@ instances:
 	})
 
 	Describe("Valid", func() {
-		var artifact orchestrator.Artifact
+		var artifact orchestrator.Backup
 		var verifyResult bool
 		var verifyError error
 
@@ -284,8 +284,8 @@ instances:
 		})
 	})
 
-	Describe("CreateFile", func() {
-		var artifact orchestrator.Artifact
+	Describe("CreateArtifact", func() {
+		var artifact orchestrator.Backup
 		var fileCreationError error
 		var writer io.Writer
 		var fakeBackupArtifact *fakes.FakeBackupArtifact
@@ -297,7 +297,7 @@ instances:
 			fakeBackupArtifact.InstanceIndexReturns("0")
 		})
 		JustBeforeEach(func() {
-			writer, fileCreationError = artifact.CreateFile(fakeBackupArtifact)
+			writer, fileCreationError = artifact.CreateArtifact(fakeBackupArtifact)
 		})
 		Context("with a default backup blob", func() {
 			BeforeEach(func() {
@@ -351,7 +351,7 @@ instances:
 	})
 
 	Describe("SaveManifest", func() {
-		var artifact orchestrator.Artifact
+		var artifact orchestrator.Backup
 		var saveManifestError error
 		BeforeEach(func() {
 			artifactName = "foo-bar"
@@ -369,8 +369,8 @@ instances:
 		})
 	})
 
-	Describe("ReadFile", func() {
-		var artifact orchestrator.Artifact
+	Describe("ReadArtifact", func() {
+		var artifact orchestrator.Backup
 		var fileReadError error
 		var reader io.Reader
 		var fakeBackupArtifact *fakes.FakeBackupArtifact
@@ -396,7 +396,7 @@ instances:
 			})
 
 			JustBeforeEach(func() {
-				reader, fileReadError = artifact.ReadFile(fakeBackupArtifact)
+				reader, fileReadError = artifact.ReadArtifact(fakeBackupArtifact)
 			})
 
 			It("does not fail", func() {
@@ -425,7 +425,7 @@ instances:
 			})
 
 			JustBeforeEach(func() {
-				reader, fileReadError = artifact.ReadFile(fakeBackupArtifact)
+				reader, fileReadError = artifact.ReadArtifact(fakeBackupArtifact)
 			})
 
 			It("does not fail", func() {
@@ -442,14 +442,14 @@ instances:
 
 		Context("File is not readable", func() {
 			It("fails", func() {
-				_, fileReadError = artifact.ReadFile(fakeBackupArtifact)
+				_, fileReadError = artifact.ReadArtifact(fakeBackupArtifact)
 				Expect(fileReadError).To(MatchError(ContainSubstring("Error reading artifact file")))
 			})
 		})
 	})
 
 	Describe("Checksum", func() {
-		var artifact orchestrator.Artifact
+		var artifact orchestrator.Backup
 		var fakeBackupArtifact *fakes.FakeBackupArtifact
 
 		BeforeEach(func() {
@@ -467,7 +467,7 @@ instances:
 					fakeBackupArtifact.HasCustomNameReturns(false)
 				})
 				JustBeforeEach(func() {
-					writer, fileCreationError := artifact.CreateFile(fakeBackupArtifact)
+					writer, fileCreationError := artifact.CreateArtifact(fakeBackupArtifact)
 					Expect(fileCreationError).NotTo(HaveOccurred())
 
 					contents := createTarWithContents(map[string]string{
@@ -496,7 +496,7 @@ instances:
 					fakeBackupArtifact.HasCustomNameReturns(true)
 				})
 				JustBeforeEach(func() {
-					writer, fileCreationError := artifact.CreateFile(fakeBackupArtifact)
+					writer, fileCreationError := artifact.CreateArtifact(fakeBackupArtifact)
 					Expect(fileCreationError).NotTo(HaveOccurred())
 
 					contents := createTarWithContents(map[string]string{
@@ -522,7 +522,7 @@ instances:
 
 		Context("invalid tar file", func() {
 			JustBeforeEach(func() {
-				writer, fileCreationError := artifact.CreateFile(fakeBackupArtifact)
+				writer, fileCreationError := artifact.CreateArtifact(fakeBackupArtifact)
 				Expect(fileCreationError).NotTo(HaveOccurred())
 
 				contents := []byte("this ain't a tarball")
@@ -546,7 +546,7 @@ instances:
 	})
 
 	Describe("AddChecksum", func() {
-		var artifact orchestrator.Artifact
+		var artifact orchestrator.Backup
 		var addChecksumError error
 		var fakeBackupArtifact *fakes.FakeBackupArtifact
 		var checksum map[string]string
@@ -725,7 +725,7 @@ custom_artifacts:
 	})
 
 	Describe("FetchChecksum", func() {
-		var artifact orchestrator.Artifact
+		var artifact orchestrator.Backup
 		var fetchChecksumError error
 		var fakeArtifact *fakes.FakeBackupArtifact
 		var checksum orchestrator.BackupChecksum
@@ -871,7 +871,7 @@ instances:
 	})
 
 	Describe("CreateMetadataFileWithStartTime", func() {
-		var artifact orchestrator.Artifact
+		var artifact orchestrator.Backup
 
 		BeforeEach(func() {
 			var err error
@@ -901,7 +901,7 @@ backup_activity:
 	})
 
 	Describe("AddFinishTime", func() {
-		var artifact orchestrator.Artifact
+		var artifact orchestrator.Backup
 
 		BeforeEach(func() {
 			var err error

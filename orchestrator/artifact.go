@@ -5,17 +5,17 @@ import (
 	"time"
 )
 
-//go:generate counterfeiter -o fakes/fake_artifact_manager.go . ArtifactManager
-type ArtifactManager interface {
-	Create(string, Logger) (Artifact, error)
-	Open(string, Logger) (Artifact, error)
+//go:generate counterfeiter -o fakes/fake_backup_manager.go . BackupManager
+type BackupManager interface {
+	Create(string, Logger) (Backup, error)
+	Open(string, Logger) (Backup, error)
 	Exists(string) bool
 }
 
-//go:generate counterfeiter -o fakes/fake_artifact.go . Artifact
-type Artifact interface {
-	CreateFile(ArtifactIdentifier) (io.WriteCloser, error)
-	ReadFile(ArtifactIdentifier) (io.ReadCloser, error)
+//go:generate counterfeiter -o fakes/fake_backup.go . Backup
+type Backup interface {
+	CreateArtifact(ArtifactIdentifier) (io.WriteCloser, error)
+	ReadArtifact(ArtifactIdentifier) (io.ReadCloser, error)
 	AddChecksum(ArtifactIdentifier, BackupChecksum) error
 	CreateMetadataFileWithStartTime(time.Time) error
 	AddFinishTime(time.Time) error

@@ -20,7 +20,7 @@ func (b *DeploymentManager) Find(deploymentName string) (orchestrator.Deployment
 	return orchestrator.NewDeployment(b.Logger, instances), errors.Wrap(err, "failed to find instances for deployment "+deploymentName)
 }
 
-func (b *DeploymentManager) SaveManifest(deploymentName string, artifact orchestrator.Artifact) error {
+func (b *DeploymentManager) SaveManifest(deploymentName string, artifact orchestrator.Backup) error {
 	if b.downloadManifest {
 		manifest, err := b.GetManifest(deploymentName)
 		if err != nil {

@@ -2,9 +2,9 @@ package orchestrator
 
 import "time"
 
-func NewBackuper(artifactManager ArtifactManager, logger Logger, deploymentManager DeploymentManager, nowFunc func() time.Time) *Backuper {
+func NewBackuper(artifactManager BackupManager, logger Logger, deploymentManager DeploymentManager, nowFunc func() time.Time) *Backuper {
 	return &Backuper{
-		ArtifactManager:   artifactManager,
+		BackupManager:     artifactManager,
 		Logger:            logger,
 		DeploymentManager: deploymentManager,
 		NowFunc:           nowFunc,
@@ -22,11 +22,11 @@ type Logger interface {
 //go:generate counterfeiter -o fakes/fake_deployment_manager.go . DeploymentManager
 type DeploymentManager interface {
 	Find(deploymentName string) (Deployment, error)
-	SaveManifest(deploymentName string, artifact Artifact) error
+	SaveManifest(deploymentName string, artifact Backup) error
 }
 
 type Backuper struct {
-	ArtifactManager
+	BackupManager
 	Logger
 
 	DeploymentManager

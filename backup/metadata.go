@@ -1,4 +1,4 @@
-package artifact
+package backup
 
 import (
 	"io/ioutil"

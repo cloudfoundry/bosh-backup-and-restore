@@ -20,8 +20,8 @@ type Deployment interface {
 	Backup() error
 	PostBackupUnlock() error
 	Restore() error
-	CopyRemoteBackupToLocal(Artifact) error
-	CopyLocalBackupToRemote(Artifact) error
+	CopyRemoteBackupToLocal(Backup) error
+	CopyLocalBackupToRemote(Backup) error
 	Cleanup() error
 	Instances() []Instance
 	CustomArtifactNamesMatch() error
@@ -131,11 +131,11 @@ func (bd *deployment) CustomArtifactNamesMatch() error {
 	return nil
 }
 
-func (bd *deployment) CopyRemoteBackupToLocal(artifact Artifact) error {
+func (bd *deployment) CopyRemoteBackupToLocal(artifact Backup) error {
 	instances := bd.instances.AllBackupable()
 	for _, instance := range instances {
 		for _, backupBlob := range instance.BlobsToBackup() {
-			writer, err := artifact.CreateFile(backupBlob)
+			writer, err := artifact.CreateArtifact(backupBlob)
 
 			if err != nil {
 				return err
@@ -183,12 +183,12 @@ func (bd *deployment) CopyRemoteBackupToLocal(artifact Artifact) error {
 	return nil
 }
 
-func (bd *deployment) CopyLocalBackupToRemote(artifact Artifact) error {
+func (bd *deployment) CopyLocalBackupToRemote(artifact Backup) error {
 	instances := bd.instances.AllRestoreable()
 
 	for _, instance := range instances {
 		for _, blob := range instance.BlobsToRestore() {
-			reader, err := artifact.ReadFile(blob)
+			reader, err := artifact.ReadArtifact(blob)
 
 			if err != nil {
 				return err

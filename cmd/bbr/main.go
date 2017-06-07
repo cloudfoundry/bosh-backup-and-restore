@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pivotal-cf/bosh-backup-and-restore/artifact"
 	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
@@ -15,6 +14,7 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/mgutz/ansi"
+	"github.com/pivotal-cf/bosh-backup-and-restore/backup"
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 	"github.com/pivotal-cf/bosh-backup-and-restore/standalone"
@@ -77,7 +77,7 @@ COPYRIGHT:
 					Name:    "backup",
 					Aliases: []string{"b"},
 					Usage:   "Backup a deployment",
-					Action:  backup,
+					Action:  deploymentBackup,
 					Flags: []cli.Flag{cli.BoolFlag{
 						Name:  "with-manifest",
 						Usage: "Download the deployment manifest",
@@ -87,7 +87,7 @@ COPYRIGHT:
 					Name:    "restore",
 					Aliases: []string{"r"},
 					Usage:   "Restore a deployment from backup",
-					Action:  restore,
+					Action:  deploymentRestore,
 				},
 			},
 		},
@@ -179,7 +179,7 @@ func directorPreBackupCheck(c *cli.Context) error {
 	}
 }
 
-func backup(c *cli.Context) error {
+func deploymentBackup(c *cli.Context) error {
 	var deployment = c.Parent().String("deployment")
 
 	backuper, err := makeDeploymentBackuper(c)
@@ -212,7 +212,7 @@ func directorBackup(c *cli.Context) error {
 	return cli.NewExitError(errorMessage, errorCode)
 }
 
-func restore(c *cli.Context) error {
+func deploymentRestore(c *cli.Context) error {
 	var deployment = c.Parent().String("deployment")
 
 	restorer, err := makeDeploymentRestorer(c)
@@ -364,7 +364,7 @@ func makeDeploymentBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
 		return nil, redCliError(err)
 	}
 
-	return orchestrator.NewBackuper(artifact.DirectoryArtifactManager{}, logger, deploymentManager, time.Now), nil
+	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager, time.Now), nil
 }
 
 func makeDirectorBackuper(c *cli.Context) *orchestrator.Backuper {
@@ -376,7 +376,7 @@ func makeDirectorBackuper(c *cli.Context) *orchestrator.Backuper {
 		instance.NewJobFinder(logger),
 		ssh.NewConnection,
 	)
-	backuper := orchestrator.NewBackuper(artifact.DirectoryArtifactManager{}, logger, deploymentManager, time.Now)
+	backuper := orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager, time.Now)
 	return backuper
 }
 
@@ -395,7 +395,7 @@ func makeDeploymentRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
 		return nil, redCliError(err)
 	}
 
-	return orchestrator.NewRestorer(artifact.DirectoryArtifactManager{}, logger, deploymentManager), nil
+	return orchestrator.NewRestorer(backup.BackupDirectoryManager{}, logger, deploymentManager), nil
 }
 
 func makeDirectorRestorer(c *cli.Context) *orchestrator.Restorer {
@@ -407,7 +407,7 @@ func makeDirectorRestorer(c *cli.Context) *orchestrator.Restorer {
 		instance.NewJobFinder(logger),
 		ssh.NewConnection,
 	)
-	return orchestrator.NewRestorer(artifact.DirectoryArtifactManager{}, logger, deploymentManager)
+	return orchestrator.NewRestorer(backup.BackupDirectoryManager{}, logger, deploymentManager)
 }
 
 func newDeploymentManager(targetUrl, username, password, caCert string, logger boshlog.Logger, downloadManifest bool) (orchestrator.DeploymentManager, error) {

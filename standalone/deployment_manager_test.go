@@ -21,7 +21,7 @@ import (
 var _ = Describe("DeploymentManager", func() {
 	var deploymentManager DeploymentManager
 	var deploymentName = "bosh"
-	var artifact *fakes.FakeArtifact
+	var artifact *fakes.FakeBackup
 	var logger *fakes.FakeLogger
 	var hostName = "hostname"
 	var username = "username"
@@ -33,7 +33,7 @@ var _ = Describe("DeploymentManager", func() {
 	BeforeEach(func() {
 		privateKey = createTempFile("privateKey")
 		logger = new(fakes.FakeLogger)
-		artifact = new(fakes.FakeArtifact)
+		artifact = new(fakes.FakeBackup)
 		fakeConnFactory = new(sshfakes.FakeSSHConnectionFactory)
 		fakeJobFinder = new(instancefakes.FakeJobFinder)
 		fakeSSHConnection = new(sshfakes.FakeSSHConnection)

@@ -1,16 +1,16 @@
-package artifact_test
+package backup_test
 
 import (
 	"os"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/pivotal-cf/bosh-backup-and-restore/artifact"
+	. "github.com/pivotal-cf/bosh-backup-and-restore/backup"
 )
 
-var _ = Context("ArtifactManager", func() {
+var _ = Context("BackupManager", func() {
 	var artifactName = "my-cool-redis"
-	var artifactManager = DirectoryArtifactManager{}
+	var artifactManager = BackupDirectoryManager{}
 	var err error
 
 	Describe("Create", func() {

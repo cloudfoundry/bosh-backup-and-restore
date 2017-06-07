@@ -1,4 +1,4 @@
-package artifact_test
+package backup_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -9,5 +9,5 @@ import (
 
 func TestArtifact(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Artifact Suite")
+	RunSpecs(t, "Backup Suite")
 }
