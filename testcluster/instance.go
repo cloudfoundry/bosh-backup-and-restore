@@ -52,6 +52,10 @@ func (mockInstance *Instance) Address() string {
 	return strings.TrimSpace(strings.Replace(dockerRunAndWaitForSuccess("port", mockInstance.dockerID, "22"), "0.0.0.0", mockInstance.dockerHostIp(), -1))
 }
 
+func (mockInstance *Instance) IP() string {
+	return mockInstance.dockerHostIp()
+}
+
 func (mockInstance *Instance) dockerHostIp() string {
 	dockerHost := os.Getenv("DOCKER_HOST")
 	if dockerHost == "" {

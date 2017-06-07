@@ -13,6 +13,10 @@ import (
 
 	"io/ioutil"
 
+	"strings"
+
+	"net/url"
+
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/mgutz/ansi"
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
@@ -163,11 +167,11 @@ func preBackupCheck(c *cli.Context) error {
 }
 
 func directorPreBackupCheck(c *cli.Context) error {
-	var deployment = c.Parent().String("artifactname")
+	directorName := ExtractNameFromAddress(c.Parent().String("host"))
 
 	backuper := makeDirectorBackuper(c)
 
-	backupable, checkErr := backuper.CanBeBackedUp(deployment)
+	backupable, checkErr := backuper.CanBeBackedUp(directorName)
 
 	if backupable {
 		fmt.Printf("Director can be backed up.\n")
@@ -198,11 +202,11 @@ func backup(c *cli.Context) error {
 }
 
 func directorBackup(c *cli.Context) error {
-	var deployment = c.Parent().String("artifactname")
+	directorName := ExtractNameFromAddress(c.Parent().String("host"))
 
 	backuper := makeDirectorBackuper(c)
 
-	backupErr := backuper.Backup(deployment)
+	backupErr := backuper.Backup(directorName)
 
 	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(backupErr)
 	if err := writeStackTrace(errorWithStackTrace); err != nil {
@@ -230,11 +234,11 @@ func restore(c *cli.Context) error {
 }
 
 func directorRestore(c *cli.Context) error {
-	var deployment = c.Parent().String("artifactname")
+	directorName := ExtractNameFromAddress(c.Parent().String("host"))
 
 	restorer := makeDirectorRestorer(c)
 
-	restoreErr := restorer.Restore(deployment)
+	restoreErr := restorer.Restore(directorName)
 	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(restoreErr)
 	if err := writeStackTrace(errorWithStackTrace); err != nil {
 		return errors.Wrap(restoreErr, err.Error())
@@ -258,7 +262,7 @@ func validateDeploymentFlags(c *cli.Context) error {
 }
 
 func validateDirectorFlags(c *cli.Context) error {
-	return validateFlags([]string{"artifactname", "host", "username", "private-key-path"}, c)
+	return validateFlags([]string{"host", "username", "private-key-path"}, c)
 }
 
 func validateFlags(requiredFlags []string, c *cli.Context) error {
@@ -323,11 +327,6 @@ func availableDeploymentFlags() []cli.Flag {
 func availableDirectorFlags() []cli.Flag {
 	return []cli.Flag{
 		cli.StringFlag{
-			Name:  "artifactname, n",
-			Value: "",
-			Usage: "Name for backup",
-		},
-		cli.StringFlag{
 			Name:  "host",
 			Value: "",
 			Usage: "BOSH Director hostname, with an optional port. Port defaults to 22",
@@ -347,6 +346,14 @@ func availableDirectorFlags() []cli.Flag {
 			Usage: "Enable debug logs",
 		},
 	}
+}
+
+func ExtractNameFromAddress(address string) string {
+	url, err := url.Parse(address)
+	if err == nil && url.Hostname() != "" {
+		address = url.Hostname()
+	}
+	return strings.Split(address, ":")[0]
 }
 
 func makeDeploymentBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
@@ -376,8 +383,8 @@ func makeDirectorBackuper(c *cli.Context) *orchestrator.Backuper {
 		instance.NewJobFinder(logger),
 		ssh.NewConnection,
 	)
-	backuper := orchestrator.NewBackuper(artifact.DirectoryArtifactManager{}, logger, deploymentManager, time.Now)
-	return backuper
+	return orchestrator.NewBackuper(artifact.DirectoryArtifactManager{}, logger, deploymentManager, time.Now)
+
 }
 
 func makeDeploymentRestorer(c *cli.Context) (*orchestrator.Restorer, error) {

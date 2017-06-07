@@ -16,12 +16,15 @@ var _ = Describe("Restores a deployment", func() {
 	var skipSSHFingerprintCheckOpts = "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 	AfterEach(func() {
+		directorIP := MustHaveEnv("HOST_TO_BACKUP")
+
 		By("cleaning up the jump box")
 		Eventually(RunCommandOnRemoteAsVcap(
 			JumpBoxSSHCommand(),
 			fmt.Sprintf(
-				`sudo rm -rf %s/my-director`,
+				`sudo rm -rf %s/%s`,
 				workspaceDir,
+				directorIP,
 			),
 		)).Should(gexec.Exit(0))
 
@@ -31,28 +34,30 @@ var _ = Describe("Restores a deployment", func() {
 			fmt.Sprintf(`cd %s; ssh %s vcap@%s -i key.pem 'sudo rm -rf %s'`,
 				workspaceDir,
 				skipSSHFingerprintCheckOpts,
-				MustHaveEnv("HOST_TO_BACKUP"),
+				directorIP,
 				restorePath,
 			),
 		)).Should(gexec.Exit(0))
 	})
 
 	It("restores", func() {
+		directorIP := MustHaveEnv("HOST_TO_BACKUP")
+
 		By("setting up the jump box")
 		Eventually(RunCommandOnRemoteAsVcap(JumpBoxSSHCommand(),
 			fmt.Sprintf("sudo mkdir -p %s && sudo chmod -R 0777 %s",
-				workspaceDir+"/my-director", workspaceDir))).Should(gexec.Exit(0))
-		RunBoshCommand(JumpBoxSCPCommand(), fixturesPath+"bosh-0-amazing-backup-and-restore.tar", "jumpbox/0:"+workspaceDir+"/my-director")
-		RunBoshCommand(JumpBoxSCPCommand(), fixturesPath+"bosh-0-remarkable-backup-and-restore.tar", "jumpbox/0:"+workspaceDir+"/my-director")
-		RunBoshCommand(JumpBoxSCPCommand(), fixturesPath+"bosh-0-test-backup-and-restore.tar", "jumpbox/0:"+workspaceDir+"/my-director")
-		RunBoshCommand(JumpBoxSCPCommand(), fixturesPath+"metadata", "jumpbox/0:"+workspaceDir+"/my-director")
+				workspaceDir+"/"+directorIP, workspaceDir))).Should(gexec.Exit(0))
+		RunBoshCommand(JumpBoxSCPCommand(), fixturesPath+"bosh-0-amazing-backup-and-restore.tar", "jumpbox/0:"+workspaceDir+"/"+directorIP)
+		RunBoshCommand(JumpBoxSCPCommand(), fixturesPath+"bosh-0-remarkable-backup-and-restore.tar", "jumpbox/0:"+workspaceDir+"/"+directorIP)
+		RunBoshCommand(JumpBoxSCPCommand(), fixturesPath+"bosh-0-test-backup-and-restore.tar", "jumpbox/0:"+workspaceDir+"/"+directorIP)
+		RunBoshCommand(JumpBoxSCPCommand(), fixturesPath+"metadata", "jumpbox/0:"+workspaceDir+"/"+directorIP)
 
 		By("running the restore command")
 		restoreCommand := RunCommandOnRemote(
 			JumpBoxSSHCommand(),
-			fmt.Sprintf(`cd %s; ./bbr director --username vcap --private-key-path ./key.pem --host %s --artifactname my-director restore`,
+			fmt.Sprintf(`cd %s; ./bbr director --username vcap --private-key-path ./key.pem --host %s restore`,
 				workspaceDir,
-				MustHaveEnv("HOST_TO_BACKUP"),
+				directorIP,
 			))
 		Eventually(restoreCommand).Should(gexec.Exit(0))
 
@@ -62,7 +67,7 @@ var _ = Describe("Restores a deployment", func() {
 			fmt.Sprintf(`cd %s; ssh %s vcap@%s -i key.pem 'stat %s'`,
 				workspaceDir,
 				skipSSHFingerprintCheckOpts,
-				MustHaveEnv("HOST_TO_BACKUP"),
+				directorIP,
 				restoredArtifactPath,
 			),
 		)).Should(gexec.Exit(0))
