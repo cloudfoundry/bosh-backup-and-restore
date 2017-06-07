@@ -1,6 +1,7 @@
 package director
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -17,7 +18,7 @@ import (
 var _ = Describe("Pre-backup checks", func() {
 	var backupWorkspace string
 	var session *gexec.Session
-	var directorIP string
+	var directorAddress string
 
 	BeforeEach(func() {
 		var err error
@@ -34,8 +35,7 @@ var _ = Describe("Pre-backup checks", func() {
 			backupWorkspace,
 			[]string{"BOSH_CLIENT_SECRET=admin"},
 			"director",
-			"--artifactname", "my-director",
-			"--host", directorIP,
+			"--host", directorAddress,
 			"--username", "foobar",
 			"--private-key-path", pathToPrivateKeyFile,
 			"pre-backup-check",
@@ -55,8 +55,7 @@ set -u
 printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
 printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 `)
-				directorIP = directorInstance.Address()
-
+				directorAddress = directorInstance.Address()
 			})
 
 			AfterEach(func() {
@@ -101,7 +100,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				directorInstance.CreateFiles(
 					"/var/vcap/jobs/redis/bin/not-a-backup-script",
 				)
-				directorIP = directorInstance.Address()
+				directorAddress = directorInstance.Address()
 			})
 
 			AfterEach(func() {
@@ -114,7 +113,8 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 			It("prints an error", func() {
 				Expect(string(session.Out.Contents())).To(ContainSubstring("Director cannot be backed up."))
-				Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment 'my-director' has no backup scripts"))
+				directorHost := directorInstance.IP()
+				Expect(string(session.Err.Contents())).To(ContainSubstring(fmt.Sprintf("Deployment '%s' has no backup scripts", directorHost)))
 				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
 			})
 
@@ -133,7 +133,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 	Context("When the director does not resolve", func() {
 		BeforeEach(func() {
-			directorIP = "no:22"
+			directorAddress = "no:22"
 		})
 
 		It("returns exit code 1", func() {

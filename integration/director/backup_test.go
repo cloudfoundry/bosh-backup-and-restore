@@ -23,7 +23,7 @@ import (
 var _ = Describe("Backup", func() {
 	var backupWorkspace string
 	var session *gexec.Session
-	var directorIP string
+	var directorAddress, directorIP string
 
 	BeforeEach(func() {
 		var err error
@@ -40,8 +40,7 @@ var _ = Describe("Backup", func() {
 			backupWorkspace,
 			[]string{"BOSH_CLIENT_SECRET=admin"},
 			"director",
-			"--artifactname", "my-director",
-			"--host", directorIP,
+			"--host", directorAddress,
 			"--username", "foobar",
 			"--private-key-path", pathToPrivateKeyFile,
 			"--debug",
@@ -55,7 +54,8 @@ var _ = Describe("Backup", func() {
 		BeforeEach(func() {
 			directorInstance = testcluster.NewInstance()
 			directorInstance.CreateUser("foobar", readFile(pathToPublicKeyFile))
-			directorIP = directorInstance.Address()
+			directorAddress = directorInstance.Address()
+			directorIP = directorInstance.IP()
 		})
 
 		AfterEach(func() {
@@ -81,7 +81,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						Expect(session.ExitCode()).To(BeZero())
 					})
 
-					backupFolderPath := path.Join(backupWorkspace, "my-director")
+					backupFolderPath := path.Join(backupWorkspace, directorIP)
 					boshBackupFilePath := path.Join(backupFolderPath, "/bosh-0-bosh.tar")
 					metadataFilePath := path.Join(backupFolderPath, "/metadata")
 
@@ -119,9 +119,9 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 
 					By("printing the backup progress to the screen", func() {
-						Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Running pre-checks for backup of my-director...")))
+						Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Running pre-checks for backup of %s...", directorIP)))
 						Expect(session.Out).To(gbytes.Say("INFO - bosh/bosh/backup"))
-						Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Starting backup of my-director...")))
+						Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Starting backup of %s...", directorIP)))
 						Expect(session.Out).To(gbytes.Say("INFO - Running pre-backup scripts..."))
 						Expect(session.Out).To(gbytes.Say("INFO - Done."))
 						Expect(session.Out).To(gbytes.Say("INFO - Running backup scripts..."))
@@ -185,7 +185,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				})
 
 				By("printing an error", func() {
-					Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment 'my-director' has no backup scripts"))
+					Expect(string(session.Err.Contents())).To(ContainSubstring(fmt.Sprintf("Deployment '%s' has no backup scripts", directorIP)))
 				})
 			})
 		})
@@ -193,7 +193,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 	Context("When the director does not resolve", func() {
 		BeforeEach(func() {
-			directorIP = "no:22"
+			directorAddress = "no:22"
 		})
 
 		It("fails to backup the director", func() {

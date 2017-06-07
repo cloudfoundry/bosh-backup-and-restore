@@ -16,26 +16,29 @@ var _ = Describe("Backup", func() {
 		Eventually(RunCommandOnRemoteAsVcap(
 			JumpBoxSSHCommand(),
 			fmt.Sprintf(
-				`sudo rm -rf %s/my-director`,
+				`sudo rm -rf %s/%s`,
 				workspaceDir,
+				MustHaveEnv("HOST_TO_BACKUP"),
 			))).Should(gexec.Exit(0))
 	})
 
 	It("backs up the director", func() {
+		directorIP := MustHaveEnv("HOST_TO_BACKUP")
+
 		By("running the backup command")
 		backupCommand := RunCommandOnRemoteAsVcap(
 			JumpBoxSSHCommand(),
 			fmt.Sprintf(
-				`cd %s; ./bbr director --username vcap --private-key-path ./key.pem --host %s --artifactname my-director backup`,
+				`cd %s; ./bbr director --username vcap --private-key-path ./key.pem --host %s backup`,
 				workspaceDir,
-				MustHaveEnv("HOST_TO_BACKUP")),
+				directorIP),
 		)
 		Eventually(backupCommand).Should(gexec.Exit(0))
 
 		AssertJumpboxFilesExist([]string{
-			fmt.Sprintf("%s/%s/bosh-0-test-backup-and-restore.tar", workspaceDir, "my-director"),
-			fmt.Sprintf("%s/%s/bosh-0-remarkable-backup-and-restore.tar", workspaceDir, "my-director"),
-			fmt.Sprintf("%s/%s/bosh-0-amazing-backup-and-restore.tar", workspaceDir, "my-director"),
+			fmt.Sprintf("%s/%s/bosh-0-test-backup-and-restore.tar", workspaceDir, directorIP),
+			fmt.Sprintf("%s/%s/bosh-0-remarkable-backup-and-restore.tar", workspaceDir, directorIP),
+			fmt.Sprintf("%s/%s/bosh-0-amazing-backup-and-restore.tar", workspaceDir, directorIP),
 		})
 	})
 })

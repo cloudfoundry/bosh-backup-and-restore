@@ -304,7 +304,6 @@ instances: []`))
 					session = binary.Run(backupWorkspace,
 						[]string{},
 						"director",
-						"--artifactname", "foo",
 						"-u", "admin",
 						"--host", "10.0.0.5",
 						"--private-key-path", keyFile.Name(),

@@ -17,7 +17,7 @@ var _ = Describe("PreBackupCheck", func() {
 		preBackupCheckCommand := RunCommandOnRemoteAsVcap(
 			JumpBoxSSHCommand(),
 			fmt.Sprintf(
-				`cd %s; ./bbr director --username vcap --private-key-path ./key.pem --host %s --artifactname my-director pre-backup-check`,
+				`cd %s; ./bbr director --username vcap --private-key-path ./key.pem --host %s pre-backup-check`,
 				workspaceDir,
 				MustHaveEnv("HOST_TO_BACKUP")),
 		)
