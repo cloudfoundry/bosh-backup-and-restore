@@ -30,6 +30,12 @@ var _ = Describe("Restore", func() {
 		var err error
 		restoreWorkspace, err = ioutil.TempDir(".", "restore-workspace-")
 		Expect(err).NotTo(HaveOccurred())
+		artifactName = "director-backup-integration"
+
+		command := exec.Command("cp", "-r", "../../fixtures/director-backup-integration", path.Join(restoreWorkspace, artifactName))
+		cpFiles, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
+		Expect(err).ToNot(HaveOccurred())
+		Eventually(cpFiles).Should(gexec.Exit())
 	})
 
 	AfterEach(func() {
@@ -46,6 +52,7 @@ var _ = Describe("Restore", func() {
 			"--private-key-path", pathToPrivateKeyFile,
 			"--debug",
 			"restore",
+			"--artifact-path", artifactName,
 		)
 	})
 
@@ -57,7 +64,6 @@ var _ = Describe("Restore", func() {
 			directorInstance.CreateUser("foobar", readFile(pathToPublicKeyFile))
 			directorAddress = directorInstance.Address()
 			directorIP = directorInstance.IP()
-			artifactName = "director-backup-integration"
 		})
 
 		AfterEach(func() {
@@ -66,11 +72,6 @@ var _ = Describe("Restore", func() {
 
 		Context("and there is a restore script", func() {
 			BeforeEach(func() {
-				command := exec.Command("cp", "-r", "../../fixtures/director-backup-integration", path.Join(restoreWorkspace, directorIP))
-				cpFiles, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-				Expect(err).ToNot(HaveOccurred())
-				Eventually(cpFiles).Should(gexec.Exit())
-
 				directorInstance.CreateFiles("/var/vcap/jobs/bosh/bin/bbr/backup")
 				directorInstance.CreateFiles("/var/vcap/jobs/bosh/bin/bbr/restore")
 			})
@@ -106,7 +107,7 @@ cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 					directorInstance.CreateScript("/var/vcap/jobs/bosh/bin/bbr/restore", "echo 'NOPE!'; exit 1")
 				})
 
-				It("fails to backup the director", func() {
+				It("fails to restore the director", func() {
 					By("returning exit code 1", func() {
 						Expect(session.ExitCode()).To(Equal(1))
 					})
@@ -118,7 +119,7 @@ cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 					directorInstance.CreateDir("/var/vcap/store/bbr-backup")
 				})
 
-				It("fails to backup the director", func() {
+				It("fails to restore the director", func() {
 					By("exiting non-zero", func() {
 						Expect(session.ExitCode()).NotTo(BeZero())
 					})
@@ -136,16 +137,11 @@ cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 
 		Context("but there are no restore scripts", func() {
 			BeforeEach(func() {
-				command := exec.Command("cp", "-r", "../../fixtures/director-backup-integration", path.Join(restoreWorkspace, directorIP))
-				cpFiles, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-				Expect(err).ToNot(HaveOccurred())
-				Eventually(cpFiles).Should(gexec.Exit())
-
 				directorInstance.CreateFiles("/var/vcap/jobs/bosh/bin/bbr/backup")
 				directorInstance.CreateFiles("/var/vcap/jobs/bosh/bin/bbr/not-a-restore-script")
 			})
 
-			It("fails to backup the director", func() {
+			It("fails to restore the director", func() {
 				By("returning exit code 1", func() {
 					Expect(session.ExitCode()).To(Equal(1))
 				})
@@ -170,11 +166,6 @@ cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 
 	Context("When the director does not resolve", func() {
 		BeforeEach(func() {
-			command := exec.Command("cp", "-r", "../../fixtures/director-backup-integration", path.Join(restoreWorkspace, "does-not-resolve"))
-			cpFiles, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
-			Expect(err).ToNot(HaveOccurred())
-			Eventually(cpFiles).Should(gexec.Exit())
-
 			directorAddress = "does-not-resolve"
 		})
 

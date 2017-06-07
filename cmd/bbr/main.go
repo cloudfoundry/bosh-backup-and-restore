@@ -122,6 +122,10 @@ COPYRIGHT:
 					Aliases: []string{"r"},
 					Usage:   "Restore a deployment from backup",
 					Action:  directorRestore,
+					Flags: []cli.Flag{cli.StringFlag{
+						Name:  "artifact-path",
+						Usage: "Path to the artifact to restore",
+					}},
 				},
 			},
 		},
@@ -244,10 +248,11 @@ func deploymentRestore(c *cli.Context) error {
 
 func directorRestore(c *cli.Context) error {
 	directorName := ExtractNameFromAddress(c.Parent().String("host"))
+	artifactPath := c.String("artifact-path")
 
 	restorer := makeDirectorRestorer(c)
 
-	restoreErr := restorer.Restore(directorName, directorName)
+	restoreErr := restorer.Restore(directorName, artifactPath)
 	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(restoreErr)
 	if err := writeStackTrace(errorWithStackTrace); err != nil {
 		return errors.Wrap(restoreErr, err.Error())

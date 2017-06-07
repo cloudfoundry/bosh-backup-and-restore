@@ -377,23 +377,25 @@ instances: []`))
 					sessionOutput = string(session.Err.Contents())
 				})
 
-				It("prints a meaningful message when the key is invalid", func() {
-					Expect(sessionOutput).To(ContainSubstring("ssh.NewConnection.ParsePrivateKey failed"))
-				})
+				It("fails", func() {
+					By("printing a meaningful message when the key is invalid", func() {
+						Expect(sessionOutput).To(ContainSubstring("ssh.NewConnection.ParsePrivateKey failed"))
+					})
 
-				It("doesn't print a stack trace", func() {
-					Expect(sessionOutput).NotTo(ContainSubstring("main.go"))
-				})
+					By("not printing a stack trace", func() {
+						Expect(sessionOutput).NotTo(ContainSubstring("main.go"))
+					})
 
-				It("saves the stack trace into a file", func() {
-					files, err := filepath.Glob(filepath.Join(backupWorkspace, "bbr-*.err.log"))
-					Expect(err).NotTo(HaveOccurred())
-					logFilePath := files[0]
-					_, err = os.Stat(logFilePath)
-					Expect(os.IsNotExist(err)).To(BeFalse())
-					stackTrace, err := ioutil.ReadFile(logFilePath)
-					Expect(err).ToNot(HaveOccurred())
-					Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
+					By("saving the stack trace into a file", func() {
+						files, err := filepath.Glob(filepath.Join(backupWorkspace, "bbr-*.err.log"))
+						Expect(err).NotTo(HaveOccurred())
+						logFilePath := files[0]
+						_, err = os.Stat(logFilePath)
+						Expect(os.IsNotExist(err)).To(BeFalse())
+						stackTrace, err := ioutil.ReadFile(logFilePath)
+						Expect(err).ToNot(HaveOccurred())
+						Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
+					})
 				})
 			})
 		})
