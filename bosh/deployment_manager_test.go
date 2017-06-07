@@ -79,7 +79,7 @@ var _ = Describe("DeploymentManager", func() {
 					Expect(boshClient.GetManifestArgsForCall(0)).To(Equal(deploymentName))
 				})
 
-				It("saves the manifest to the artifact", func() {
+				It("saves the manifest to the backup", func() {
 					Expect(fakeBackup.SaveManifestCallCount()).To(Equal(1))
 					Expect(fakeBackup.SaveManifestArgsForCall(0)).To(Equal(manifest))
 				})
@@ -100,7 +100,7 @@ var _ = Describe("DeploymentManager", func() {
 					Expect(boshClient.GetManifestArgsForCall(0)).To(Equal(deploymentName))
 				})
 
-				It("does not save the manifest to the artifact", func() {
+				It("does not save the manifest to the backup", func() {
 					Expect(fakeBackup.SaveManifestCallCount()).To(BeZero())
 				})
 
@@ -123,7 +123,7 @@ var _ = Describe("DeploymentManager", func() {
 					Expect(boshClient.GetManifestArgsForCall(0)).To(Equal(deploymentName))
 				})
 
-				It("saves the manifest to the artifact", func() {
+				It("saves the manifest to the backup", func() {
 					Expect(fakeBackup.SaveManifestCallCount()).To(Equal(1))
 					Expect(fakeBackup.SaveManifestArgsForCall(0)).To(Equal(manifest))
 				})

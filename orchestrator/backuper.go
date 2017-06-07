@@ -2,9 +2,9 @@ package orchestrator
 
 import "time"
 
-func NewBackuper(artifactManager BackupManager, logger Logger, deploymentManager DeploymentManager, nowFunc func() time.Time) *Backuper {
+func NewBackuper(backupManager BackupManager, logger Logger, deploymentManager DeploymentManager, nowFunc func() time.Time) *Backuper {
 	return &Backuper{
-		BackupManager:     artifactManager,
+		BackupManager:     backupManager,
 		Logger:            logger,
 		DeploymentManager: deploymentManager,
 		NowFunc:           nowFunc,

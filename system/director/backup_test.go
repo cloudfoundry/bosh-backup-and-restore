@@ -12,7 +12,7 @@ import (
 
 var _ = Describe("Backup", func() {
 	AfterEach(func() {
-		By("removing the backup artifact")
+		By("removing the backup")
 		Eventually(RunCommandOnRemoteAsVcap(
 			JumpBoxSSHCommand(),
 			fmt.Sprintf(

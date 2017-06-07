@@ -13,9 +13,9 @@ type Restorer struct {
 	DeploymentManager
 }
 
-func NewRestorer(artifactManager BackupManager, logger Logger, deploymentManager DeploymentManager) *Restorer {
+func NewRestorer(backupManager BackupManager, logger Logger, deploymentManager DeploymentManager) *Restorer {
 	return &Restorer{
-		BackupManager:     artifactManager,
+		BackupManager:     backupManager,
 		Logger:            logger,
 		DeploymentManager: deploymentManager,
 	}
