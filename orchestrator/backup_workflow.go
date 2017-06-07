@@ -121,6 +121,7 @@ func (bw *backupWorkflow) checkDeployment(e *fsm.Event) {
 		return
 	}
 
+	bw.Logger.Info("bbr", "Scripts found:")
 	deployment, err := bw.DeploymentManager.Find(bw.deploymentName)
 	if err != nil {
 		bw.backupErrors = append(bw.backupErrors, err)

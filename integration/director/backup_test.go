@@ -120,6 +120,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 					By("printing the backup progress to the screen", func() {
 						Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Running pre-checks for backup of %s...", directorIP)))
+						Expect(session.Out).To(gbytes.Say("INFO - Scripts found:"))
 						Expect(session.Out).To(gbytes.Say("INFO - bosh/bosh/backup"))
 						Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Starting backup of %s...", directorIP)))
 						Expect(session.Out).To(gbytes.Say("INFO - Running pre-backup scripts..."))
@@ -132,6 +133,10 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						Expect(session.Out).To(gbytes.Say("INFO - Copying backup -- [^-]*-- from bosh/0..."))
 						Expect(session.Out).To(gbytes.Say("INFO - Finished copying backup -- from bosh/0..."))
 						Expect(session.Out).To(gbytes.Say("INFO - Starting validity checks"))
+						Expect(session.Out).To(gbytes.Say(`DEBUG - Calculating shasum for local file ./backupdump[12]`))
+						Expect(session.Out).To(gbytes.Say(`DEBUG - Calculating shasum for local file ./backupdump[12]`))
+						Expect(session.Out).To(gbytes.Say("DEBUG - Calculating shasum for remote files"))
+						Expect(session.Out).To(gbytes.Say("DEBUG - Comparing shasums"))
 						Expect(session.Out).To(gbytes.Say("INFO - Finished validity checks"))
 					})
 
