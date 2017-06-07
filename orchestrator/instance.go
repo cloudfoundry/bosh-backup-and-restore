@@ -23,10 +23,10 @@ type Instance interface {
 	PostBackupUnlock() error
 	Restore() error
 	Cleanup() error
-	BlobsToBackup() []BackupArtifact
-	BlobsToRestore() []BackupArtifact
-	CustomBackupBlobNames() []string
-	CustomRestoreBlobNames() []string
+	ArtifactsToBackup() []BackupArtifact
+	ArtifactsToRestore() []BackupArtifact
+	CustomBackupArtifactNames() []string
+	CustomRestoreArtifactNames() []string
 }
 
 type ArtifactIdentifier interface {
@@ -63,24 +63,24 @@ func (is instances) AllBackupable() instances {
 	return backupableInstances
 }
 
-func (is instances) CustomBlobNames() []string {
-	var blobNames []string
+func (is instances) CustomArtifactNames() []string {
+	var artifactNames []string
 
 	for _, instance := range is {
-		blobNames = append(blobNames, instance.CustomBackupBlobNames()...)
+		artifactNames = append(artifactNames, instance.CustomBackupArtifactNames()...)
 	}
 
-	return blobNames
+	return artifactNames
 }
 
-func (is instances) RestoreBlobNames() []string {
-	var blobNames []string
+func (is instances) RestoreArtifactNames() []string {
+	var artifactNames []string
 
 	for _, instance := range is {
-		blobNames = append(blobNames, instance.CustomRestoreBlobNames()...)
+		artifactNames = append(artifactNames, instance.CustomRestoreArtifactNames()...)
 	}
 
-	return blobNames
+	return artifactNames
 }
 
 func (is instances) AllPreBackupLockable() instances {

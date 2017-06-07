@@ -57,7 +57,7 @@ func (jobs Jobs) AnyArePostBackupable() bool {
 	return !jobs.PostBackupable().empty()
 }
 
-func (jobs Jobs) AnyNeedDefaultBlobsForRestore() bool {
+func (jobs Jobs) AnyNeedDefaultArtifactsForRestore() bool {
 	for _, job := range jobs.Restorable() {
 		if !job.HasNamedRestoreArtifact() {
 			return true
@@ -66,7 +66,7 @@ func (jobs Jobs) AnyNeedDefaultBlobsForRestore() bool {
 	return false
 }
 
-func (jobs Jobs) AnyNeedDefaultBlobsForBackup() bool {
+func (jobs Jobs) AnyNeedDefaultArtifactsForBackup() bool {
 	for _, job := range jobs.Backupable() {
 		if !job.HasNamedBackupArtifact() {
 			return true
@@ -75,44 +75,44 @@ func (jobs Jobs) AnyNeedDefaultBlobsForBackup() bool {
 	return false
 }
 
-func (jobs Jobs) withNamedBackupBlobs() Jobs {
-	jobsWithNamedBlobs := Jobs{}
+func (jobs Jobs) withNamedBackupArtifacts() Jobs {
+	jobsWithNamedArtifacts := Jobs{}
 	for _, job := range jobs {
 		if job.HasNamedBackupArtifact() {
-			jobsWithNamedBlobs = append(jobsWithNamedBlobs, job)
+			jobsWithNamedArtifacts = append(jobsWithNamedArtifacts, job)
 		}
 	}
-	return jobsWithNamedBlobs
+	return jobsWithNamedArtifacts
 }
 
-func (jobs Jobs) withNamedRestoreBlobs() Jobs {
-	jobsWithNamedBlobs := Jobs{}
+func (jobs Jobs) withNamedRestoreArtifacts() Jobs {
+	jobsWithNamedArtifacts := Jobs{}
 	for _, job := range jobs {
 		if job.HasNamedRestoreArtifact() {
-			jobsWithNamedBlobs = append(jobsWithNamedBlobs, job)
+			jobsWithNamedArtifacts = append(jobsWithNamedArtifacts, job)
 		}
 	}
-	return jobsWithNamedBlobs
+	return jobsWithNamedArtifacts
 }
 
-func (jobs Jobs) CustomBackupBlobNames() []string {
-	var blobNames []string
+func (jobs Jobs) CustomBackupArtifactNames() []string {
+	var artifactNames []string
 
-	for _, job := range jobs.withNamedBackupBlobs() {
-		blobNames = append(blobNames, job.BackupArtifactName())
+	for _, job := range jobs.withNamedBackupArtifacts() {
+		artifactNames = append(artifactNames, job.BackupArtifactName())
 	}
 
-	return blobNames
+	return artifactNames
 }
 
-func (jobs Jobs) CustomRestoreBlobNames() []string {
-	var blobNames []string
+func (jobs Jobs) CustomRestoreArtifactNames() []string {
+	var artifactNames []string
 
-	for _, job := range jobs.withNamedRestoreBlobs() {
-		blobNames = append(blobNames, job.RestoreArtifactName())
+	for _, job := range jobs.withNamedRestoreArtifacts() {
+		artifactNames = append(artifactNames, job.RestoreArtifactName())
 	}
 
-	return blobNames
+	return artifactNames
 }
 
 func NewJobs(scripts BackupAndRestoreScripts, metadata map[string]Metadata) Jobs {

@@ -23,7 +23,7 @@ var _ = Describe("DeployedInstance", func() {
 	var jobName, jobIndex, jobID, expectedStdout, expectedStderr string
 	var backupAndRestoreScripts []instance.Script
 	var jobs instance.Jobs
-	var blobMetadata map[string]instance.Metadata
+	var metadata map[string]instance.Metadata
 
 	var backuperInstance *instance.DeployedInstance
 	BeforeEach(func() {
@@ -37,11 +37,11 @@ var _ = Describe("DeployedInstance", func() {
 		stderr = gbytes.NewBuffer()
 		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile), log.New(stderr, "[bosh-package] ", log.Lshortfile))
 		backupAndRestoreScripts = []instance.Script{}
-		blobMetadata = map[string]instance.Metadata{}
+		metadata = map[string]instance.Metadata{}
 	})
 
 	JustBeforeEach(func() {
-		jobs = instance.NewJobs(backupAndRestoreScripts, blobMetadata)
+		jobs = instance.NewJobs(backupAndRestoreScripts, metadata)
 		sshConnection.UsernameReturns("sshUsername")
 		backuperInstance = instance.NewDeployedInstance(jobIndex, jobName, jobID, false, sshConnection, boshLogger, jobs)
 	})
@@ -227,10 +227,10 @@ var _ = Describe("DeployedInstance", func() {
 		})
 	})
 
-	Describe("CustomBackupBlobNames", func() {
-		Context("when the instance has custom blob names defined", func() {
+	Describe("CustomBackupArtifactNames", func() {
+		Context("when the instance has custom artifact names defined", func() {
 			BeforeEach(func() {
-				blobMetadata = map[string]instance.Metadata{
+				metadata = map[string]instance.Metadata{
 					"dave": {BackupName: "foo"},
 				}
 				backupAndRestoreScripts = []instance.Script{
@@ -238,17 +238,17 @@ var _ = Describe("DeployedInstance", func() {
 				}
 			})
 
-			It("returns a list of the instance's custom blob names", func() {
-				Expect(backuperInstance.CustomBackupBlobNames()).To(ConsistOf("foo"))
+			It("returns a list of the instance's custom artifact names", func() {
+				Expect(backuperInstance.CustomBackupArtifactNames()).To(ConsistOf("foo"))
 			})
 		})
 
 	})
 
-	Describe("CustomRestoreBlobNames", func() {
-		Context("when the instance has custom restore blob names defined", func() {
+	Describe("CustomRestoreArtifactNames", func() {
+		Context("when the instance has custom restore artifact names defined", func() {
 			BeforeEach(func() {
-				blobMetadata = map[string]instance.Metadata{
+				metadata = map[string]instance.Metadata{
 					"dave": {RestoreName: "foo"},
 				}
 				backupAndRestoreScripts = []instance.Script{
@@ -256,8 +256,8 @@ var _ = Describe("DeployedInstance", func() {
 				}
 			})
 
-			It("returns a list of the instance's custom restore blob names", func() {
-				Expect(backuperInstance.CustomRestoreBlobNames()).To(ConsistOf("foo"))
+			It("returns a list of the instance's custom restore artifact names", func() {
+				Expect(backuperInstance.CustomRestoreArtifactNames()).To(ConsistOf("foo"))
 			})
 		})
 
@@ -501,7 +501,7 @@ var _ = Describe("DeployedInstance", func() {
 
 		Context("when there are multiple backup scripts and one of them is named", func() {
 			BeforeEach(func() {
-				blobMetadata = map[string]instance.Metadata{
+				metadata = map[string]instance.Metadata{
 					"baz": {BackupName: "special-backup"},
 				}
 				backupAndRestoreScripts = []instance.Script{
@@ -804,7 +804,7 @@ var _ = Describe("DeployedInstance", func() {
 
 		Context("when there are multiple restore scripts and one of them is named", func() {
 			BeforeEach(func() {
-				blobMetadata = map[string]instance.Metadata{
+				metadata = map[string]instance.Metadata{
 					"baz": {RestoreName: "special-backup"},
 				}
 				backupAndRestoreScripts = []instance.Script{
@@ -910,123 +910,123 @@ var _ = Describe("DeployedInstance", func() {
 		})
 	})
 
-	Describe("BlobsToBackup", func() {
-		var backupBlobs []orchestrator.BackupArtifact
+	Describe("ArtifactsToBackup", func() {
+		var backupArtifacts []orchestrator.BackupArtifact
 
 		JustBeforeEach(func() {
-			backupBlobs = backuperInstance.BlobsToBackup()
+			backupArtifacts = backuperInstance.ArtifactsToBackup()
 		})
 
-		Context("Has no named backup blobs", func() {
+		Context("Has no named backup artifacts", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/foo/bin/bbr/backup",
 					"/var/vcap/jobs/bar/bin/bbr/backup",
 				}
 			})
-			It("returns the default blobs", func() {
-				Expect(backupBlobs).To(ConsistOf(
+			It("returns the default artifacts", func() {
+				Expect(backupArtifacts).To(ConsistOf(
 					instance.NewBackupArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
 					instance.NewBackupArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
 				))
 			})
 		})
 
-		Context("Has a named backup blob and a default blob", func() {
+		Context("Has a named backup artifact and a default artifact", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/foo/bin/bbr/backup",
 					"/var/vcap/jobs/job-name/bin/bbr/backup",
 				}
-				blobMetadata = map[string]instance.Metadata{
-					"job-name": {BackupName: "my-blob"},
+				metadata = map[string]instance.Metadata{
+					"job-name": {BackupName: "my-artifact"},
 				}
 			})
 
-			It("returns the named blob and the default blob", func() {
-				Expect(backupBlobs).To(ConsistOf(
+			It("returns the named artifact and the default artifact", func() {
+				Expect(backupArtifacts).To(ConsistOf(
 					instance.NewBackupArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
-					instance.NewBackupArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{BackupName: "my-blob"}), backuperInstance, sshConnection, boshLogger),
+					instance.NewBackupArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{BackupName: "my-artifact"}), backuperInstance, sshConnection, boshLogger),
 				))
 			})
 		})
 
-		Context("Has only a named backup blob", func() {
+		Context("Has only a named backup artifact", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/job-name/bin/bbr/backup",
 				}
-				blobMetadata = map[string]instance.Metadata{
-					"job-name": {BackupName: "my-blob"},
+				metadata = map[string]instance.Metadata{
+					"job-name": {BackupName: "my-artifact"},
 				}
 			})
 
-			It("returns the named blob and the default blob", func() {
-				Expect(backupBlobs).To(Equal(
+			It("returns the named artifact and the default artifact", func() {
+				Expect(backupArtifacts).To(Equal(
 					[]orchestrator.BackupArtifact{
-						instance.NewBackupArtifact(instance.NewJob(	backupAndRestoreScripts, instance.Metadata{BackupName: "my-blob"}), backuperInstance, sshConnection, boshLogger),
+						instance.NewBackupArtifact(instance.NewJob(backupAndRestoreScripts, instance.Metadata{BackupName: "my-artifact"}), backuperInstance, sshConnection, boshLogger),
 					},
 				))
 			})
 		})
 	})
 
-	Describe("BlobsToRestore", func() {
-		var restoreBlobs []orchestrator.BackupArtifact
+	Describe("ArtifactsToRestore", func() {
+		var restoreArtifacts []orchestrator.BackupArtifact
 
 		JustBeforeEach(func() {
-			restoreBlobs = backuperInstance.BlobsToRestore()
+			restoreArtifacts = backuperInstance.ArtifactsToRestore()
 		})
 
-		Context("Has no named restore blobs", func() {
+		Context("Has no named restore artifacts", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/foo/bin/bbr/restore",
 					"/var/vcap/jobs/bar/bin/bbr/restore",
 				}
 			})
-			It("returns the default blobs", func() {
-				Expect(restoreBlobs).To(ConsistOf(
+			It("returns the default artifacts", func() {
+				Expect(restoreArtifacts).To(ConsistOf(
 					instance.NewRestoreArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
 					instance.NewRestoreArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
 				))
 			})
 		})
 
-		Context("Has a named restore blob", func() {
+		Context("Has a named restore artifact", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/job-name-2/bin/bbr/restore",
 					"/var/vcap/jobs/job-name/bin/bbr/restore",
 				}
-				blobMetadata = map[string]instance.Metadata{
-					"job-name": {RestoreName: "my-blob"},
+				metadata = map[string]instance.Metadata{
+					"job-name": {RestoreName: "my-artifact"},
 				}
 			})
 
-			It("returns the named blob and the default blob", func() {
-				Expect(restoreBlobs).To(ConsistOf(
+			It("returns the named artifact and the default artifact", func() {
+				Expect(restoreArtifacts).To(ConsistOf(
 					instance.NewRestoreArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
-					instance.NewRestoreArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{RestoreName: "my-blob"}), backuperInstance, sshConnection, boshLogger),
+					instance.NewRestoreArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{RestoreName: "my-artifact"}), backuperInstance, sshConnection, boshLogger),
 				))
 			})
 		})
 
-		Context("has only named restore blobs", func() {
+		Context("has only named restore artifacts", func() {
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
 					"/var/vcap/jobs/job-name/bin/bbr/restore",
 				}
-				blobMetadata = map[string]instance.Metadata{
-					"job-name": {RestoreName: "my-blob"},
+				metadata = map[string]instance.Metadata{
+					"job-name": {RestoreName: "my-artifact"},
 				}
 			})
 
-			It("returns only the named blob", func() {
-				Expect(restoreBlobs).To(Equal(
+			It("returns only the named artifact", func() {
+				Expect(restoreArtifacts).To(Equal(
 					[]orchestrator.BackupArtifact{
 						instance.NewRestoreArtifact(instance.NewJob(
-							backupAndRestoreScripts, instance.Metadata{RestoreName: "my-blob"},
+							backupAndRestoreScripts, instance.Metadata{RestoreName: "my-artifact"},
 						), backuperInstance, sshConnection, boshLogger),
 					},
 				))

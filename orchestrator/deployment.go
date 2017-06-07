@@ -43,7 +43,7 @@ func (bd *deployment) HasBackupScript() bool {
 }
 
 func (bd *deployment) HasUniqueCustomArtifactNames() bool {
-	names := bd.instances.CustomBlobNames()
+	names := bd.instances.CustomArtifactNames()
 
 	uniqueNames := map[string]bool{}
 	for _, name := range names {
@@ -110,9 +110,9 @@ func (bd *deployment) IsRestorable() bool {
 func (bd *deployment) CustomArtifactNamesMatch() error {
 	for _, instance := range bd.Instances() {
 		jobName := instance.Name()
-		for _, restoreName := range instance.CustomRestoreBlobNames() {
+		for _, restoreName := range instance.CustomRestoreArtifactNames() {
 			var found bool
-			for _, backupName := range bd.instances.CustomBlobNames() {
+			for _, backupName := range bd.instances.CustomArtifactNames() {
 				if restoreName == backupName {
 					found = true
 				}
@@ -134,20 +134,20 @@ func (bd *deployment) CustomArtifactNamesMatch() error {
 func (bd *deployment) CopyRemoteBackupToLocal(backup Backup) error {
 	instances := bd.instances.AllBackupable()
 	for _, instance := range instances {
-		for _, backupBlob := range instance.BlobsToBackup() {
-			writer, err := backup.CreateArtifact(backupBlob)
+		for _, backupArtifact := range instance.ArtifactsToBackup() {
+			writer, err := backup.CreateArtifact(backupArtifact)
 
 			if err != nil {
 				return err
 			}
 
-			size, err := backupBlob.Size()
+			size, err := backupArtifact.Size()
 			if err != nil {
 				return err
 			}
 
 			bd.Logger.Info("bbr", "Copying backup -- %s uncompressed -- from %s/%s...", size, instance.Name(), instance.ID())
-			if err := backupBlob.StreamFromRemote(writer); err != nil {
+			if err := backupArtifact.StreamFromRemote(writer); err != nil {
 				return err
 			}
 
@@ -157,23 +157,23 @@ func (bd *deployment) CopyRemoteBackupToLocal(backup Backup) error {
 			bd.Logger.Info("bbr", "Finished copying backup -- from %s/%s...", instance.Name(), instance.ID())
 
 			bd.Logger.Info("bbr", "Starting validity checks")
-			localChecksum, err := backup.CalculateChecksum(backupBlob)
+			localChecksum, err := backup.CalculateChecksum(backupArtifact)
 			if err != nil {
 				return err
 			}
 
-			remoteChecksum, err := backupBlob.Checksum()
+			remoteChecksum, err := backupArtifact.Checksum()
 			if err != nil {
 				return err
 			}
 			bd.Logger.Debug("bbr", "Comparing shasums")
 			if !localChecksum.Match(remoteChecksum) {
-				return errors.Errorf("Backup is corrupted, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), backupBlob.Name(), remoteChecksum, localChecksum)
+				return errors.Errorf("Backup is corrupted, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), backupArtifact.Name(), remoteChecksum, localChecksum)
 			}
 
-			backup.AddChecksum(backupBlob, localChecksum)
+			backup.AddChecksum(backupArtifact, localChecksum)
 
-			err = backupBlob.Delete()
+			err = backupArtifact.Delete()
 			if err != nil {
 				return err
 			}
@@ -187,31 +187,31 @@ func (bd *deployment) CopyLocalBackupToRemote(backup Backup) error {
 	instances := bd.instances.AllRestoreable()
 
 	for _, instance := range instances {
-		for _, blob := range instance.BlobsToRestore() {
-			reader, err := backup.ReadArtifact(blob)
+		for _, artifact := range instance.ArtifactsToRestore() {
+			reader, err := backup.ReadArtifact(artifact)
 
 			if err != nil {
 				return err
 			}
 
 			bd.Logger.Info("bbr", "Copying backup to %s/%s...", instance.Name(), instance.Index())
-			if err := blob.StreamToRemote(reader); err != nil {
+			if err := artifact.StreamToRemote(reader); err != nil {
 				return err
 			} else {
 				instance.MarkArtifactDirCreated()
 			}
 
-			localChecksum, err := backup.FetchChecksum(blob)
+			localChecksum, err := backup.FetchChecksum(artifact)
 			if err != nil {
 				return err
 			}
 
-			remoteChecksum, err := blob.Checksum()
+			remoteChecksum, err := artifact.Checksum()
 			if err != nil {
 				return err
 			}
 			if !localChecksum.Match(remoteChecksum) {
-				return errors.Errorf("Backup couldn't be transfered, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), blob.Name(), remoteChecksum, localChecksum)
+				return errors.Errorf("Backup couldn't be transfered, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), artifact.Name(), remoteChecksum, localChecksum)
 			}
 			bd.Logger.Info("bbr", "Done.")
 		}

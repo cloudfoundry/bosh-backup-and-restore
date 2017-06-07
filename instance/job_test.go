@@ -27,11 +27,11 @@ var _ = Describe("Job", func() {
 	})
 
 	Describe("BackupArtifactDirectory", func() {
-		It("calculates the blob directory based on the name", func() {
+		It("calculates the artifact directory based on the name", func() {
 			Expect(job.BackupArtifactDirectory()).To(Equal("/var/vcap/store/bbr-backup/foo"))
 		})
 
-		Context("when an blob name is provided", func() {
+		Context("when an artifact name is provided", func() {
 			var jobWithName instance.Job
 
 			JustBeforeEach(func() {
@@ -40,18 +40,18 @@ var _ = Describe("Job", func() {
 				})
 			})
 
-			It("calculates the blob directory based on the blob name", func() {
+			It("calculates the artifact directory based on the artifact name", func() {
 				Expect(jobWithName.BackupArtifactDirectory()).To(Equal("/var/vcap/store/bbr-backup/a-bosh-backup"))
 			})
 		})
 	})
 
 	Describe("RestoreArtifactDirectory", func() {
-		It("calculates the blob directory based on the name", func() {
+		It("calculates the artifact directory based on the name", func() {
 			Expect(job.BackupArtifactDirectory()).To(Equal("/var/vcap/store/bbr-backup/foo"))
 		})
 
-		Context("when an blob name is provided", func() {
+		Context("when an artifact name is provided", func() {
 			var jobWithName instance.Job
 
 			JustBeforeEach(func() {
@@ -60,7 +60,7 @@ var _ = Describe("Job", func() {
 				})
 			})
 
-			It("calculates the blob directory based on the blob name", func() {
+			It("calculates the artifact directory based on the artifact name", func() {
 				Expect(jobWithName.RestoreArtifactDirectory()).To(Equal("/var/vcap/store/bbr-backup/a-bosh-backup"))
 			})
 		})
@@ -81,19 +81,19 @@ var _ = Describe("Job", func() {
 	})
 
 	Describe("BackupArtifactName", func() {
-		Context("the job has a custom backup blob name", func() {
+		Context("the job has a custom backup artifact name", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
 					BackupName: "fool",
 				}
 			})
 
-			It("returns the job's custom backup blob name", func() {
+			It("returns the job's custom backup artifact name", func() {
 				Expect(job.BackupArtifactName()).To(Equal("fool"))
 			})
 		})
 
-		Context("the job does not have a custom backup blob name", func() {
+		Context("the job does not have a custom backup artifact name", func() {
 			It("returns empty string", func() {
 				Expect(job.BackupArtifactName()).To(Equal(""))
 			})
@@ -101,19 +101,19 @@ var _ = Describe("Job", func() {
 	})
 
 	Describe("RestoreArtifactName", func() {
-		Context("the job has a custom backup blob name", func() {
+		Context("the job has a custom backup artifact name", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
 					RestoreName: "bard",
 				}
 			})
 
-			It("returns the job's custom backup blob name", func() {
+			It("returns the job's custom backup artifact name", func() {
 				Expect(job.RestoreArtifactName()).To(Equal("bard"))
 			})
 		})
 
-		Context("the job does not have a custom backup blob name", func() {
+		Context("the job does not have a custom backup artifact name", func() {
 			It("returns empty string", func() {
 				Expect(job.RestoreArtifactName()).To(Equal(""))
 			})
@@ -227,7 +227,7 @@ var _ = Describe("Job", func() {
 			Expect(job.HasNamedBackupArtifact()).To(BeFalse())
 		})
 
-		Context("when the job has a named backup blob", func() {
+		Context("when the job has a named backup artifact", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
 					BackupName: "foo",
@@ -239,7 +239,7 @@ var _ = Describe("Job", func() {
 			})
 		})
 
-		Context("when the job has a named restore blob", func() {
+		Context("when the job has a named restore artifact", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
 					RestoreName: "foo",
@@ -257,7 +257,7 @@ var _ = Describe("Job", func() {
 			Expect(job.HasNamedRestoreArtifact()).To(BeFalse())
 		})
 
-		Context("when the job has a named restore blob", func() {
+		Context("when the job has a named restore artifact", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
 					RestoreName: "foo",
@@ -269,7 +269,7 @@ var _ = Describe("Job", func() {
 			})
 		})
 
-		Context("when the job has a named backup blob", func() {
+		Context("when the job has a named backup artifact", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
 					BackupName: "foo",

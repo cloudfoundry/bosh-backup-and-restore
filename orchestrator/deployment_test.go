@@ -446,8 +446,8 @@ var _ = Describe("Deployment", func() {
 
 		Context("when the custom names match", func() {
 			BeforeEach(func() {
-				instance1.CustomBackupBlobNamesReturns([]string{"custom1"})
-				instance2.CustomRestoreBlobNamesReturns([]string{"custom1"})
+				instance1.CustomBackupArtifactNamesReturns([]string{"custom1"})
+				instance2.CustomRestoreArtifactNamesReturns([]string{"custom1"})
 			})
 
 			It("is nil", func() {
@@ -457,10 +457,10 @@ var _ = Describe("Deployment", func() {
 
 		Context("when the multiple custom names match", func() {
 			BeforeEach(func() {
-				instance1.CustomBackupBlobNamesReturns([]string{"custom1"})
-				instance1.CustomRestoreBlobNamesReturns([]string{"custom2"})
-				instance2.CustomBackupBlobNamesReturns([]string{"custom2"})
-				instance2.CustomRestoreBlobNamesReturns([]string{"custom1"})
+				instance1.CustomBackupArtifactNamesReturns([]string{"custom1"})
+				instance1.CustomRestoreArtifactNamesReturns([]string{"custom2"})
+				instance2.CustomBackupArtifactNamesReturns([]string{"custom2"})
+				instance2.CustomRestoreArtifactNamesReturns([]string{"custom1"})
 			})
 
 			It("is nil", func() {
@@ -469,9 +469,9 @@ var _ = Describe("Deployment", func() {
 		})
 		Context("when the custom dont match", func() {
 			BeforeEach(func() {
-				instance1.CustomBackupBlobNamesReturns([]string{"custom1"})
+				instance1.CustomBackupArtifactNamesReturns([]string{"custom1"})
 				instance2.NameReturns("job2Name")
-				instance2.CustomRestoreBlobNamesReturns([]string{"custom2"})
+				instance2.CustomRestoreArtifactNamesReturns([]string{"custom2"})
 			})
 
 			It("to return an error", func() {
@@ -489,7 +489,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("Single instance, with unique metadata", func() {
 			BeforeEach(func() {
-				instance1.CustomBackupBlobNamesReturns([]string{"custom1", "custom2"})
+				instance1.CustomBackupArtifactNamesReturns([]string{"custom1", "custom2"})
 				instances = []orchestrator.Instance{instance1}
 			})
 
@@ -500,7 +500,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("Single instance, with non-unique metadata", func() {
 			BeforeEach(func() {
-				instance1.CustomBackupBlobNamesReturns([]string{"the-same", "the-same"})
+				instance1.CustomBackupArtifactNamesReturns([]string{"the-same", "the-same"})
 				instances = []orchestrator.Instance{instance1}
 			})
 
@@ -511,8 +511,8 @@ var _ = Describe("Deployment", func() {
 
 		Context("multiple instances, with unique metadata", func() {
 			BeforeEach(func() {
-				instance1.CustomBackupBlobNamesReturns([]string{"custom1", "custom2"})
-				instance2.CustomBackupBlobNamesReturns([]string{"custom3", "custom4"})
+				instance1.CustomBackupArtifactNamesReturns([]string{"custom1", "custom2"})
+				instance2.CustomBackupArtifactNamesReturns([]string{"custom3", "custom4"})
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
@@ -523,8 +523,8 @@ var _ = Describe("Deployment", func() {
 
 		Context("multiple instances, with non-unique metadata", func() {
 			BeforeEach(func() {
-				instance1.CustomBackupBlobNamesReturns([]string{"custom1", "custom2"})
-				instance2.CustomBackupBlobNamesReturns([]string{"custom2", "custom4"})
+				instance1.CustomBackupArtifactNamesReturns([]string{"custom1", "custom2"})
+				instance2.CustomBackupArtifactNamesReturns([]string{"custom2", "custom4"})
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
@@ -535,8 +535,8 @@ var _ = Describe("Deployment", func() {
 
 		Context("multiple instances, with no metadata", func() {
 			BeforeEach(func() {
-				instance1.CustomBackupBlobNamesReturns([]string{})
-				instance2.CustomBackupBlobNamesReturns([]string{})
+				instance1.CustomBackupArtifactNamesReturns([]string{})
+				instance2.CustomBackupArtifactNamesReturns([]string{})
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
@@ -656,12 +656,12 @@ var _ = Describe("Deployment", func() {
 		})
 
 		Context("Single instance, restorable", func() {
-			var blobCheckSum = orchestrator.BackupChecksum{"file1": "abcd", "file2": "efgh"}
+			var checkSums = orchestrator.BackupChecksum{"file1": "abcd", "file2": "efgh"}
 
 			BeforeEach(func() {
-				artifact.FetchChecksumReturns(blobCheckSum, nil)
-				backupArtifact.ChecksumReturns(blobCheckSum, nil)
-				instance1.BlobsToRestoreReturns([]orchestrator.BackupArtifact{backupArtifact})
+				artifact.FetchChecksumReturns(checkSums, nil)
+				backupArtifact.ChecksumReturns(checkSums, nil)
+				instance1.ArtifactsToRestoreReturns([]orchestrator.BackupArtifact{backupArtifact})
 			})
 
 			It("does not fail", func() {
@@ -752,22 +752,22 @@ var _ = Describe("Deployment", func() {
 		})
 
 		Context("multiple instances, one restorable", func() {
-			var blobCheckSum = orchestrator.BackupChecksum{"file1": "abcd", "file2": "efgh"}
+			var checkSums = orchestrator.BackupChecksum{"file1": "abcd", "file2": "efgh"}
 
 			BeforeEach(func() {
 				instance2.IsRestorableReturns(false)
 
-				artifact.FetchChecksumReturns(blobCheckSum, nil)
-				backupArtifact.ChecksumReturns(blobCheckSum, nil)
-				instance1.BlobsToRestoreReturns([]orchestrator.BackupArtifact{backupArtifact})
+				artifact.FetchChecksumReturns(checkSums, nil)
+				backupArtifact.ChecksumReturns(checkSums, nil)
+				instance1.ArtifactsToRestoreReturns([]orchestrator.BackupArtifact{backupArtifact})
 			})
 
 			It("does not fail", func() {
 				Expect(copyLocalBackupToRemoteError).NotTo(HaveOccurred())
 			})
 
-			It("does not ask blobs for the non restorable instance", func() {
-				Expect(instance2.BlobsToRestoreCallCount()).To(BeZero())
+			It("does not ask artifacts for the non restorable instance", func() {
+				Expect(instance2.ArtifactsToRestoreCallCount()).To(BeZero())
 			})
 
 			It("checks the remote after transfer", func() {
@@ -840,17 +840,17 @@ var _ = Describe("Deployment", func() {
 			})
 		})
 
-		Context("Single instance, restorable, with multiple blobs", func() {
-			var blobCheckSum = orchestrator.BackupChecksum{"file1": "abcd", "file2": "efgh"}
-			var anotherBackupBlob *fakes.FakeBackupArtifact
+		Context("Single instance, restorable, with multiple artifacts", func() {
+			var checkSums = orchestrator.BackupChecksum{"file1": "abcd", "file2": "efgh"}
+			var anotherBackupArtifact *fakes.FakeBackupArtifact
 
 			BeforeEach(func() {
-				anotherBackupBlob = new(fakes.FakeBackupArtifact)
-				artifact.FetchChecksumReturns(blobCheckSum, nil)
-				backupArtifact.ChecksumReturns(blobCheckSum, nil)
-				anotherBackupBlob.ChecksumReturns(blobCheckSum, nil)
+				anotherBackupArtifact = new(fakes.FakeBackupArtifact)
+				artifact.FetchChecksumReturns(checkSums, nil)
+				backupArtifact.ChecksumReturns(checkSums, nil)
+				anotherBackupArtifact.ChecksumReturns(checkSums, nil)
 
-				instance1.BlobsToRestoreReturns([]orchestrator.BackupArtifact{backupArtifact, anotherBackupBlob})
+				instance1.ArtifactsToRestoreReturns([]orchestrator.BackupArtifact{backupArtifact, anotherBackupArtifact})
 			})
 
 			It("does not fail", func() {
@@ -864,7 +864,7 @@ var _ = Describe("Deployment", func() {
 			It("checks the local checksum", func() {
 				Expect(artifact.FetchChecksumCallCount()).To(Equal(2))
 				Expect(artifact.FetchChecksumArgsForCall(0)).To(Equal(backupArtifact))
-				Expect(artifact.FetchChecksumArgsForCall(0)).To(Equal(anotherBackupBlob))
+				Expect(artifact.FetchChecksumArgsForCall(0)).To(Equal(anotherBackupArtifact))
 			})
 
 			It("streams the backup file to the restorable instance", func() {
@@ -1111,7 +1111,7 @@ var _ = Describe("Deployment", func() {
 				localArtifactWriteCloser = new(fakes.FakeWriteCloser)
 				artifact.CreateArtifactReturns(localArtifactWriteCloser, nil)
 
-				instance1.BlobsToBackupReturns([]orchestrator.BackupArtifact{backupArtifact})
+				instance1.ArtifactsToBackupReturns([]orchestrator.BackupArtifact{backupArtifact})
 				instance1.HasBackupScriptReturns(true)
 				artifact.CalculateChecksumReturns(remoteArtifactChecksum, nil)
 				backupArtifact.ChecksumReturns(remoteArtifactChecksum, nil)
@@ -1133,7 +1133,7 @@ var _ = Describe("Deployment", func() {
 				Expect(localArtifactWriteCloser.CloseCallCount()).To(Equal(1))
 			})
 
-			It("deletes the blob on the remote", func() {
+			It("deletes the artifact on the remote", func() {
 				Expect(backupArtifact.DeleteCallCount()).To(Equal(1))
 			})
 
@@ -1159,25 +1159,25 @@ var _ = Describe("Deployment", func() {
 			var writeCloser1 *fakes.FakeWriteCloser
 			var writeCloser2 *fakes.FakeWriteCloser
 
-			var blob1 *fakes.FakeBackupArtifact
-			var blob2 *fakes.FakeBackupArtifact
+			var artifact1 *fakes.FakeBackupArtifact
+			var artifact2 *fakes.FakeBackupArtifact
 
 			BeforeEach(func() {
 				writeCloser1 = new(fakes.FakeWriteCloser)
 				writeCloser2 = new(fakes.FakeWriteCloser)
-				blob1 = new(fakes.FakeBackupArtifact)
-				blob2 = new(fakes.FakeBackupArtifact)
+				artifact1 = new(fakes.FakeBackupArtifact)
+				artifact2 = new(fakes.FakeBackupArtifact)
 
 				artifact.CreateArtifactStub = func(i orchestrator.ArtifactIdentifier) (io.WriteCloser, error) {
-					if i == blob1 {
+					if i == artifact1 {
 						return writeCloser1, nil
 					} else {
 						return writeCloser2, nil
 					}
 				}
 
-				instance1.BlobsToBackupReturns([]orchestrator.BackupArtifact{blob1})
-				instance2.BlobsToBackupReturns([]orchestrator.BackupArtifact{blob2})
+				instance1.ArtifactsToBackupReturns([]orchestrator.BackupArtifact{artifact1})
+				instance2.ArtifactsToBackupReturns([]orchestrator.BackupArtifact{artifact2})
 
 				instance1.HasBackupScriptReturns(true)
 				instance2.HasBackupScriptReturns(true)
@@ -1185,21 +1185,21 @@ var _ = Describe("Deployment", func() {
 				artifact.CalculateChecksumReturns(instanceChecksum, nil)
 
 				instances = []orchestrator.Instance{instance1, instance2}
-				blob1.ChecksumReturns(instanceChecksum, nil)
-				blob2.ChecksumReturns(instanceChecksum, nil)
+				artifact1.ChecksumReturns(instanceChecksum, nil)
+				artifact2.ChecksumReturns(instanceChecksum, nil)
 			})
 			It("creates an artifact file with the instance", func() {
 				Expect(artifact.CreateArtifactCallCount()).To(Equal(2))
-				Expect(artifact.CreateArtifactArgsForCall(0)).To(Equal(blob1))
-				Expect(artifact.CreateArtifactArgsForCall(1)).To(Equal(blob2))
+				Expect(artifact.CreateArtifactArgsForCall(0)).To(Equal(artifact1))
+				Expect(artifact.CreateArtifactArgsForCall(1)).To(Equal(artifact2))
 			})
 
 			It("streams the backup to the writer for the artifact file", func() {
-				Expect(blob1.StreamFromRemoteCallCount()).To(Equal(1))
-				Expect(blob1.StreamFromRemoteArgsForCall(0)).To(Equal(writeCloser1))
+				Expect(artifact1.StreamFromRemoteCallCount()).To(Equal(1))
+				Expect(artifact1.StreamFromRemoteArgsForCall(0)).To(Equal(writeCloser1))
 
-				Expect(blob2.StreamFromRemoteCallCount()).To(Equal(1))
-				Expect(blob2.StreamFromRemoteArgsForCall(0)).To(Equal(writeCloser2))
+				Expect(artifact2.StreamFromRemoteCallCount()).To(Equal(1))
+				Expect(artifact2.StreamFromRemoteArgsForCall(0)).To(Equal(writeCloser2))
 			})
 
 			It("closes the writer after its been streamed", func() {
@@ -1209,28 +1209,28 @@ var _ = Describe("Deployment", func() {
 
 			It("calculates checksum for the instance on the artifact", func() {
 				Expect(artifact.CalculateChecksumCallCount()).To(Equal(2))
-				Expect(artifact.CalculateChecksumArgsForCall(0)).To(Equal(blob1))
-				Expect(artifact.CalculateChecksumArgsForCall(1)).To(Equal(blob2))
+				Expect(artifact.CalculateChecksumArgsForCall(0)).To(Equal(artifact1))
+				Expect(artifact.CalculateChecksumArgsForCall(1)).To(Equal(artifact2))
 			})
 
 			It("calculates checksum for the instance on remote", func() {
-				Expect(blob1.ChecksumCallCount()).To(Equal(1))
-				Expect(blob2.ChecksumCallCount()).To(Equal(1))
+				Expect(artifact1.ChecksumCallCount()).To(Equal(1))
+				Expect(artifact2.ChecksumCallCount()).To(Equal(1))
 			})
 
-			It("deletes both the blobs", func() {
-				Expect(blob1.DeleteCallCount()).To(Equal(1))
-				Expect(blob2.DeleteCallCount()).To(Equal(1))
+			It("deletes both the artifacts", func() {
+				Expect(artifact1.DeleteCallCount()).To(Equal(1))
+				Expect(artifact2.DeleteCallCount()).To(Equal(1))
 			})
 
 			It("appends the checksum for the instance on the artifact", func() {
 				Expect(artifact.AddChecksumCallCount()).To(Equal(2))
 				actualRemoteArtifact, acutalChecksum := artifact.AddChecksumArgsForCall(0)
-				Expect(actualRemoteArtifact).To(Equal(blob1))
+				Expect(actualRemoteArtifact).To(Equal(artifact1))
 				Expect(acutalChecksum).To(Equal(instanceChecksum))
 
 				actualRemoteArtifact, acutalChecksum = artifact.AddChecksumArgsForCall(1)
-				Expect(actualRemoteArtifact).To(Equal(blob2))
+				Expect(actualRemoteArtifact).To(Equal(artifact2))
 				Expect(acutalChecksum).To(Equal(instanceChecksum))
 			})
 		})
@@ -1247,7 +1247,7 @@ var _ = Describe("Deployment", func() {
 				artifact.CreateArtifactReturns(writeCloser1, nil)
 
 				instance1.HasBackupScriptReturns(true)
-				instance1.BlobsToBackupReturns([]orchestrator.BackupArtifact{remoteArtifact1})
+				instance1.ArtifactsToBackupReturns([]orchestrator.BackupArtifact{remoteArtifact1})
 
 				instance2.HasBackupScriptReturns(false)
 				artifact.CalculateChecksumReturns(instanceChecksum, nil)
@@ -1298,7 +1298,7 @@ var _ = Describe("Deployment", func() {
 
 					instances = []orchestrator.Instance{instance1}
 					instance1.HasBackupScriptReturns(true)
-					instance1.BlobsToBackupReturns([]orchestrator.BackupArtifact{backupArtifact})
+					instance1.ArtifactsToBackupReturns([]orchestrator.BackupArtifact{backupArtifact})
 
 					backupArtifact.StreamFromRemoteReturns(drainError)
 				})
@@ -1312,7 +1312,7 @@ var _ = Describe("Deployment", func() {
 				var fileError = fmt.Errorf("not a good file")
 				BeforeEach(func() {
 					instances = []orchestrator.Instance{instance1}
-					instance1.BlobsToBackupReturns([]orchestrator.BackupArtifact{backupArtifact})
+					instance1.ArtifactsToBackupReturns([]orchestrator.BackupArtifact{backupArtifact})
 					instance1.HasBackupScriptReturns(true)
 					artifact.CreateArtifactReturns(nil, fileError)
 				})
@@ -1331,7 +1331,7 @@ var _ = Describe("Deployment", func() {
 					instances = []orchestrator.Instance{instance1}
 					instance1.HasBackupScriptReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.BlobsToBackupReturns([]orchestrator.BackupArtifact{backupArtifact})
+					instance1.ArtifactsToBackupReturns([]orchestrator.BackupArtifact{backupArtifact})
 
 					artifact.CreateArtifactReturns(writeCloser1, nil)
 					artifact.CalculateChecksumReturns(nil, shasumError)
@@ -1352,7 +1352,7 @@ var _ = Describe("Deployment", func() {
 
 					instance1.HasBackupScriptReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.BlobsToBackupReturns([]orchestrator.BackupArtifact{backupArtifact})
+					instance1.ArtifactsToBackupReturns([]orchestrator.BackupArtifact{backupArtifact})
 					backupArtifact.ChecksumReturns(nil, remoteShasumError)
 
 					artifact.CreateArtifactReturns(writeCloser1, nil)
@@ -1376,7 +1376,7 @@ var _ = Describe("Deployment", func() {
 
 					instance1.HasBackupScriptReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.BlobsToBackupReturns([]orchestrator.BackupArtifact{backupArtifact})
+					instance1.ArtifactsToBackupReturns([]orchestrator.BackupArtifact{backupArtifact})
 
 					artifact.CreateArtifactReturns(writeCloser1, nil)
 
@@ -1402,7 +1402,7 @@ var _ = Describe("Deployment", func() {
 
 					instance1.HasBackupScriptReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.BlobsToBackupReturns([]orchestrator.BackupArtifact{backupArtifact})
+					instance1.ArtifactsToBackupReturns([]orchestrator.BackupArtifact{backupArtifact})
 
 					artifact.CreateArtifactReturns(writeCloser1, nil)
 					artifact.CalculateChecksumReturns(orchestrator.BackupChecksum{"file": "this will match", "extra": "this won't match"}, nil)
@@ -1418,7 +1418,7 @@ var _ = Describe("Deployment", func() {
 				})
 			})
 
-			Context("fails if unable to delete blobs", func() {
+			Context("fails if unable to delete artifacts", func() {
 				var writeCloser1 *fakes.FakeWriteCloser
 				var instanceChecksum = orchestrator.BackupChecksum{"file1": "abcd", "file2": "efgh"}
 				var expectedError = fmt.Errorf("brr")
@@ -1429,7 +1429,7 @@ var _ = Describe("Deployment", func() {
 
 					instance1.HasBackupScriptReturns(true)
 					instance1.BackupReturns(nil)
-					instance1.BlobsToBackupReturns([]orchestrator.BackupArtifact{backupArtifact})
+					instance1.ArtifactsToBackupReturns([]orchestrator.BackupArtifact{backupArtifact})
 
 					artifact.CreateArtifactReturns(writeCloser1, nil)
 					artifact.CalculateChecksumReturns(orchestrator.BackupChecksum{"file": "this will match", "extra": "this won't match"}, nil)

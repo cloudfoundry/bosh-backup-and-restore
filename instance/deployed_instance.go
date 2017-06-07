@@ -63,12 +63,12 @@ func (d *DeployedInstance) IsPreBackupLockable() bool {
 	return d.Jobs.AnyArePreBackupable()
 }
 
-func (d *DeployedInstance) CustomBackupBlobNames() []string {
-	return d.Jobs.CustomBackupBlobNames()
+func (d *DeployedInstance) CustomBackupArtifactNames() []string {
+	return d.Jobs.CustomBackupArtifactNames()
 }
 
-func (d *DeployedInstance) CustomRestoreBlobNames() []string {
-	return d.Jobs.CustomRestoreBlobNames()
+func (d *DeployedInstance) CustomRestoreArtifactNames() []string {
+	return d.Jobs.CustomRestoreArtifactNames()
 }
 
 func (d *DeployedInstance) PreBackupLock() error {
@@ -165,24 +165,24 @@ func (d *DeployedInstance) IsRestorable() bool {
 	return d.Jobs.AnyAreRestorable()
 }
 
-func (d *DeployedInstance) BlobsToBackup() []orchestrator.BackupArtifact {
-	blobs := []orchestrator.BackupArtifact{}
+func (d *DeployedInstance) ArtifactsToBackup() []orchestrator.BackupArtifact {
+	artifacts := []orchestrator.BackupArtifact{}
 
 	for _, job := range d.Jobs {
-		blobs = append(blobs, NewBackupArtifact(job, d, d.SSHConnection, d.Logger))
+		artifacts = append(artifacts, NewBackupArtifact(job, d, d.SSHConnection, d.Logger))
 	}
 
-	return blobs
+	return artifacts
 }
 
-func (d *DeployedInstance) BlobsToRestore() []orchestrator.BackupArtifact {
-	blobs := []orchestrator.BackupArtifact{}
+func (d *DeployedInstance) ArtifactsToRestore() []orchestrator.BackupArtifact {
+	artifacts := []orchestrator.BackupArtifact{}
 
 	for _, job := range d.Jobs {
-		blobs = append(blobs, NewRestoreArtifact(job, d, d.SSHConnection, d.Logger))
+		artifacts = append(artifacts, NewRestoreArtifact(job, d, d.SSHConnection, d.Logger))
 	}
 
-	return blobs
+	return artifacts
 }
 
 func (d *DeployedInstance) RunOnInstance(cmd, label string) ([]byte, []byte, int, error) {

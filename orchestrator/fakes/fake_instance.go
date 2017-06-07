@@ -139,40 +139,40 @@ type FakeInstance struct {
 	cleanupReturnsOnCall map[int]struct {
 		result1 error
 	}
-	BlobsToBackupStub        func() []orchestrator.BackupArtifact
-	blobsToBackupMutex       sync.RWMutex
-	blobsToBackupArgsForCall []struct{}
-	blobsToBackupReturns     struct {
+	ArtifactsToBackupStub        func() []orchestrator.BackupArtifact
+	artifactsToBackupMutex       sync.RWMutex
+	artifactsToBackupArgsForCall []struct{}
+	artifactsToBackupReturns     struct {
 		result1 []orchestrator.BackupArtifact
 	}
-	blobsToBackupReturnsOnCall map[int]struct {
+	artifactsToBackupReturnsOnCall map[int]struct {
 		result1 []orchestrator.BackupArtifact
 	}
-	BlobsToRestoreStub        func() []orchestrator.BackupArtifact
-	blobsToRestoreMutex       sync.RWMutex
-	blobsToRestoreArgsForCall []struct{}
-	blobsToRestoreReturns     struct {
+	ArtifactsToRestoreStub        func() []orchestrator.BackupArtifact
+	artifactsToRestoreMutex       sync.RWMutex
+	artifactsToRestoreArgsForCall []struct{}
+	artifactsToRestoreReturns     struct {
 		result1 []orchestrator.BackupArtifact
 	}
-	blobsToRestoreReturnsOnCall map[int]struct {
+	artifactsToRestoreReturnsOnCall map[int]struct {
 		result1 []orchestrator.BackupArtifact
 	}
-	CustomBackupBlobNamesStub        func() []string
-	customBackupBlobNamesMutex       sync.RWMutex
-	customBackupBlobNamesArgsForCall []struct{}
-	customBackupBlobNamesReturns     struct {
+	CustomBackupArtifactNamesStub        func() []string
+	customBackupArtifactNamesMutex       sync.RWMutex
+	customBackupArtifactNamesArgsForCall []struct{}
+	customBackupArtifactNamesReturns     struct {
 		result1 []string
 	}
-	customBackupBlobNamesReturnsOnCall map[int]struct {
+	customBackupArtifactNamesReturnsOnCall map[int]struct {
 		result1 []string
 	}
-	CustomRestoreBlobNamesStub        func() []string
-	customRestoreBlobNamesMutex       sync.RWMutex
-	customRestoreBlobNamesArgsForCall []struct{}
-	customRestoreBlobNamesReturns     struct {
+	CustomRestoreArtifactNamesStub        func() []string
+	customRestoreArtifactNamesMutex       sync.RWMutex
+	customRestoreArtifactNamesArgsForCall []struct{}
+	customRestoreArtifactNamesReturns     struct {
 		result1 []string
 	}
-	customRestoreBlobNamesReturnsOnCall map[int]struct {
+	customRestoreArtifactNamesReturnsOnCall map[int]struct {
 		result1 []string
 	}
 	invocations      map[string][][]interface{}
@@ -758,162 +758,162 @@ func (fake *FakeInstance) CleanupReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeInstance) BlobsToBackup() []orchestrator.BackupArtifact {
-	fake.blobsToBackupMutex.Lock()
-	ret, specificReturn := fake.blobsToBackupReturnsOnCall[len(fake.blobsToBackupArgsForCall)]
-	fake.blobsToBackupArgsForCall = append(fake.blobsToBackupArgsForCall, struct{}{})
-	fake.recordInvocation("BlobsToBackup", []interface{}{})
-	fake.blobsToBackupMutex.Unlock()
-	if fake.BlobsToBackupStub != nil {
-		return fake.BlobsToBackupStub()
+func (fake *FakeInstance) ArtifactsToBackup() []orchestrator.BackupArtifact {
+	fake.artifactsToBackupMutex.Lock()
+	ret, specificReturn := fake.artifactsToBackupReturnsOnCall[len(fake.artifactsToBackupArgsForCall)]
+	fake.artifactsToBackupArgsForCall = append(fake.artifactsToBackupArgsForCall, struct{}{})
+	fake.recordInvocation("ArtifactsToBackup", []interface{}{})
+	fake.artifactsToBackupMutex.Unlock()
+	if fake.ArtifactsToBackupStub != nil {
+		return fake.ArtifactsToBackupStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.blobsToBackupReturns.result1
+	return fake.artifactsToBackupReturns.result1
 }
 
-func (fake *FakeInstance) BlobsToBackupCallCount() int {
-	fake.blobsToBackupMutex.RLock()
-	defer fake.blobsToBackupMutex.RUnlock()
-	return len(fake.blobsToBackupArgsForCall)
+func (fake *FakeInstance) ArtifactsToBackupCallCount() int {
+	fake.artifactsToBackupMutex.RLock()
+	defer fake.artifactsToBackupMutex.RUnlock()
+	return len(fake.artifactsToBackupArgsForCall)
 }
 
-func (fake *FakeInstance) BlobsToBackupReturns(result1 []orchestrator.BackupArtifact) {
-	fake.BlobsToBackupStub = nil
-	fake.blobsToBackupReturns = struct {
+func (fake *FakeInstance) ArtifactsToBackupReturns(result1 []orchestrator.BackupArtifact) {
+	fake.ArtifactsToBackupStub = nil
+	fake.artifactsToBackupReturns = struct {
 		result1 []orchestrator.BackupArtifact
 	}{result1}
 }
 
-func (fake *FakeInstance) BlobsToBackupReturnsOnCall(i int, result1 []orchestrator.BackupArtifact) {
-	fake.BlobsToBackupStub = nil
-	if fake.blobsToBackupReturnsOnCall == nil {
-		fake.blobsToBackupReturnsOnCall = make(map[int]struct {
+func (fake *FakeInstance) ArtifactsToBackupReturnsOnCall(i int, result1 []orchestrator.BackupArtifact) {
+	fake.ArtifactsToBackupStub = nil
+	if fake.artifactsToBackupReturnsOnCall == nil {
+		fake.artifactsToBackupReturnsOnCall = make(map[int]struct {
 			result1 []orchestrator.BackupArtifact
 		})
 	}
-	fake.blobsToBackupReturnsOnCall[i] = struct {
+	fake.artifactsToBackupReturnsOnCall[i] = struct {
 		result1 []orchestrator.BackupArtifact
 	}{result1}
 }
 
-func (fake *FakeInstance) BlobsToRestore() []orchestrator.BackupArtifact {
-	fake.blobsToRestoreMutex.Lock()
-	ret, specificReturn := fake.blobsToRestoreReturnsOnCall[len(fake.blobsToRestoreArgsForCall)]
-	fake.blobsToRestoreArgsForCall = append(fake.blobsToRestoreArgsForCall, struct{}{})
-	fake.recordInvocation("BlobsToRestore", []interface{}{})
-	fake.blobsToRestoreMutex.Unlock()
-	if fake.BlobsToRestoreStub != nil {
-		return fake.BlobsToRestoreStub()
+func (fake *FakeInstance) ArtifactsToRestore() []orchestrator.BackupArtifact {
+	fake.artifactsToRestoreMutex.Lock()
+	ret, specificReturn := fake.artifactsToRestoreReturnsOnCall[len(fake.artifactsToRestoreArgsForCall)]
+	fake.artifactsToRestoreArgsForCall = append(fake.artifactsToRestoreArgsForCall, struct{}{})
+	fake.recordInvocation("ArtifactsToRestore", []interface{}{})
+	fake.artifactsToRestoreMutex.Unlock()
+	if fake.ArtifactsToRestoreStub != nil {
+		return fake.ArtifactsToRestoreStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.blobsToRestoreReturns.result1
+	return fake.artifactsToRestoreReturns.result1
 }
 
-func (fake *FakeInstance) BlobsToRestoreCallCount() int {
-	fake.blobsToRestoreMutex.RLock()
-	defer fake.blobsToRestoreMutex.RUnlock()
-	return len(fake.blobsToRestoreArgsForCall)
+func (fake *FakeInstance) ArtifactsToRestoreCallCount() int {
+	fake.artifactsToRestoreMutex.RLock()
+	defer fake.artifactsToRestoreMutex.RUnlock()
+	return len(fake.artifactsToRestoreArgsForCall)
 }
 
-func (fake *FakeInstance) BlobsToRestoreReturns(result1 []orchestrator.BackupArtifact) {
-	fake.BlobsToRestoreStub = nil
-	fake.blobsToRestoreReturns = struct {
+func (fake *FakeInstance) ArtifactsToRestoreReturns(result1 []orchestrator.BackupArtifact) {
+	fake.ArtifactsToRestoreStub = nil
+	fake.artifactsToRestoreReturns = struct {
 		result1 []orchestrator.BackupArtifact
 	}{result1}
 }
 
-func (fake *FakeInstance) BlobsToRestoreReturnsOnCall(i int, result1 []orchestrator.BackupArtifact) {
-	fake.BlobsToRestoreStub = nil
-	if fake.blobsToRestoreReturnsOnCall == nil {
-		fake.blobsToRestoreReturnsOnCall = make(map[int]struct {
+func (fake *FakeInstance) ArtifactsToRestoreReturnsOnCall(i int, result1 []orchestrator.BackupArtifact) {
+	fake.ArtifactsToRestoreStub = nil
+	if fake.artifactsToRestoreReturnsOnCall == nil {
+		fake.artifactsToRestoreReturnsOnCall = make(map[int]struct {
 			result1 []orchestrator.BackupArtifact
 		})
 	}
-	fake.blobsToRestoreReturnsOnCall[i] = struct {
+	fake.artifactsToRestoreReturnsOnCall[i] = struct {
 		result1 []orchestrator.BackupArtifact
 	}{result1}
 }
 
-func (fake *FakeInstance) CustomBackupBlobNames() []string {
-	fake.customBackupBlobNamesMutex.Lock()
-	ret, specificReturn := fake.customBackupBlobNamesReturnsOnCall[len(fake.customBackupBlobNamesArgsForCall)]
-	fake.customBackupBlobNamesArgsForCall = append(fake.customBackupBlobNamesArgsForCall, struct{}{})
-	fake.recordInvocation("CustomBackupBlobNames", []interface{}{})
-	fake.customBackupBlobNamesMutex.Unlock()
-	if fake.CustomBackupBlobNamesStub != nil {
-		return fake.CustomBackupBlobNamesStub()
+func (fake *FakeInstance) CustomBackupArtifactNames() []string {
+	fake.customBackupArtifactNamesMutex.Lock()
+	ret, specificReturn := fake.customBackupArtifactNamesReturnsOnCall[len(fake.customBackupArtifactNamesArgsForCall)]
+	fake.customBackupArtifactNamesArgsForCall = append(fake.customBackupArtifactNamesArgsForCall, struct{}{})
+	fake.recordInvocation("CustomBackupArtifactNames", []interface{}{})
+	fake.customBackupArtifactNamesMutex.Unlock()
+	if fake.CustomBackupArtifactNamesStub != nil {
+		return fake.CustomBackupArtifactNamesStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.customBackupBlobNamesReturns.result1
+	return fake.customBackupArtifactNamesReturns.result1
 }
 
-func (fake *FakeInstance) CustomBackupBlobNamesCallCount() int {
-	fake.customBackupBlobNamesMutex.RLock()
-	defer fake.customBackupBlobNamesMutex.RUnlock()
-	return len(fake.customBackupBlobNamesArgsForCall)
+func (fake *FakeInstance) CustomBackupArtifactNamesCallCount() int {
+	fake.customBackupArtifactNamesMutex.RLock()
+	defer fake.customBackupArtifactNamesMutex.RUnlock()
+	return len(fake.customBackupArtifactNamesArgsForCall)
 }
 
-func (fake *FakeInstance) CustomBackupBlobNamesReturns(result1 []string) {
-	fake.CustomBackupBlobNamesStub = nil
-	fake.customBackupBlobNamesReturns = struct {
+func (fake *FakeInstance) CustomBackupArtifactNamesReturns(result1 []string) {
+	fake.CustomBackupArtifactNamesStub = nil
+	fake.customBackupArtifactNamesReturns = struct {
 		result1 []string
 	}{result1}
 }
 
-func (fake *FakeInstance) CustomBackupBlobNamesReturnsOnCall(i int, result1 []string) {
-	fake.CustomBackupBlobNamesStub = nil
-	if fake.customBackupBlobNamesReturnsOnCall == nil {
-		fake.customBackupBlobNamesReturnsOnCall = make(map[int]struct {
+func (fake *FakeInstance) CustomBackupArtifactNamesReturnsOnCall(i int, result1 []string) {
+	fake.CustomBackupArtifactNamesStub = nil
+	if fake.customBackupArtifactNamesReturnsOnCall == nil {
+		fake.customBackupArtifactNamesReturnsOnCall = make(map[int]struct {
 			result1 []string
 		})
 	}
-	fake.customBackupBlobNamesReturnsOnCall[i] = struct {
+	fake.customBackupArtifactNamesReturnsOnCall[i] = struct {
 		result1 []string
 	}{result1}
 }
 
-func (fake *FakeInstance) CustomRestoreBlobNames() []string {
-	fake.customRestoreBlobNamesMutex.Lock()
-	ret, specificReturn := fake.customRestoreBlobNamesReturnsOnCall[len(fake.customRestoreBlobNamesArgsForCall)]
-	fake.customRestoreBlobNamesArgsForCall = append(fake.customRestoreBlobNamesArgsForCall, struct{}{})
-	fake.recordInvocation("CustomRestoreBlobNames", []interface{}{})
-	fake.customRestoreBlobNamesMutex.Unlock()
-	if fake.CustomRestoreBlobNamesStub != nil {
-		return fake.CustomRestoreBlobNamesStub()
+func (fake *FakeInstance) CustomRestoreArtifactNames() []string {
+	fake.customRestoreArtifactNamesMutex.Lock()
+	ret, specificReturn := fake.customRestoreArtifactNamesReturnsOnCall[len(fake.customRestoreArtifactNamesArgsForCall)]
+	fake.customRestoreArtifactNamesArgsForCall = append(fake.customRestoreArtifactNamesArgsForCall, struct{}{})
+	fake.recordInvocation("CustomRestoreArtifactNames", []interface{}{})
+	fake.customRestoreArtifactNamesMutex.Unlock()
+	if fake.CustomRestoreArtifactNamesStub != nil {
+		return fake.CustomRestoreArtifactNamesStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.customRestoreBlobNamesReturns.result1
+	return fake.customRestoreArtifactNamesReturns.result1
 }
 
-func (fake *FakeInstance) CustomRestoreBlobNamesCallCount() int {
-	fake.customRestoreBlobNamesMutex.RLock()
-	defer fake.customRestoreBlobNamesMutex.RUnlock()
-	return len(fake.customRestoreBlobNamesArgsForCall)
+func (fake *FakeInstance) CustomRestoreArtifactNamesCallCount() int {
+	fake.customRestoreArtifactNamesMutex.RLock()
+	defer fake.customRestoreArtifactNamesMutex.RUnlock()
+	return len(fake.customRestoreArtifactNamesArgsForCall)
 }
 
-func (fake *FakeInstance) CustomRestoreBlobNamesReturns(result1 []string) {
-	fake.CustomRestoreBlobNamesStub = nil
-	fake.customRestoreBlobNamesReturns = struct {
+func (fake *FakeInstance) CustomRestoreArtifactNamesReturns(result1 []string) {
+	fake.CustomRestoreArtifactNamesStub = nil
+	fake.customRestoreArtifactNamesReturns = struct {
 		result1 []string
 	}{result1}
 }
 
-func (fake *FakeInstance) CustomRestoreBlobNamesReturnsOnCall(i int, result1 []string) {
-	fake.CustomRestoreBlobNamesStub = nil
-	if fake.customRestoreBlobNamesReturnsOnCall == nil {
-		fake.customRestoreBlobNamesReturnsOnCall = make(map[int]struct {
+func (fake *FakeInstance) CustomRestoreArtifactNamesReturnsOnCall(i int, result1 []string) {
+	fake.CustomRestoreArtifactNamesStub = nil
+	if fake.customRestoreArtifactNamesReturnsOnCall == nil {
+		fake.customRestoreArtifactNamesReturnsOnCall = make(map[int]struct {
 			result1 []string
 		})
 	}
-	fake.customRestoreBlobNamesReturnsOnCall[i] = struct {
+	fake.customRestoreArtifactNamesReturnsOnCall[i] = struct {
 		result1 []string
 	}{result1}
 }
@@ -951,14 +951,14 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.restoreMutex.RUnlock()
 	fake.cleanupMutex.RLock()
 	defer fake.cleanupMutex.RUnlock()
-	fake.blobsToBackupMutex.RLock()
-	defer fake.blobsToBackupMutex.RUnlock()
-	fake.blobsToRestoreMutex.RLock()
-	defer fake.blobsToRestoreMutex.RUnlock()
-	fake.customBackupBlobNamesMutex.RLock()
-	defer fake.customBackupBlobNamesMutex.RUnlock()
-	fake.customRestoreBlobNamesMutex.RLock()
-	defer fake.customRestoreBlobNamesMutex.RUnlock()
+	fake.artifactsToBackupMutex.RLock()
+	defer fake.artifactsToBackupMutex.RUnlock()
+	fake.artifactsToRestoreMutex.RLock()
+	defer fake.artifactsToRestoreMutex.RUnlock()
+	fake.customBackupArtifactNamesMutex.RLock()
+	defer fake.customBackupArtifactNamesMutex.RUnlock()
+	fake.customRestoreArtifactNamesMutex.RLock()
+	defer fake.customRestoreArtifactNamesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

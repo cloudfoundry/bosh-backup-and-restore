@@ -48,7 +48,7 @@ var _ = Describe("Jobs", func() {
 			})
 		})
 
-		Context("when there is one job with a backup script and an blob name", func() {
+		Context("when there is one job with a backup script and an artifact name", func() {
 			BeforeEach(func() {
 				scripts = instance.BackupAndRestoreScripts{
 					"/var/vcap/jobs/foo/bin/bbr/backup",
@@ -60,7 +60,7 @@ var _ = Describe("Jobs", func() {
 				}
 			})
 
-			It("creates a job with the correct blob name", func() {
+			It("creates a job with the correct artifact name", func() {
 				Expect(jobs).To(ConsistOf(
 					instance.NewJob(
 						instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/backup"},
@@ -88,7 +88,7 @@ var _ = Describe("Jobs", func() {
 				}
 			})
 
-			It("creates two jobs with the correct blob names", func() {
+			It("creates two jobs with the correct artifact names", func() {
 				Expect(jobs).To(ConsistOf(
 					instance.NewJob(
 						instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/backup"},
@@ -260,9 +260,9 @@ var _ = Describe("Jobs", func() {
 			})
 		})
 
-		Describe("AnyNeedDefaultBlobsForRestore", func() {
-			It("returns true, as all of the jobs need a default blob for restore", func() {
-				Expect(jobs.AnyNeedDefaultBlobsForRestore()).To(BeTrue())
+		Describe("AnyNeedDefaultArtifactsForRestore", func() {
+			It("returns true, as all of the jobs need a default artifact for restore", func() {
+				Expect(jobs.AnyNeedDefaultArtifactsForRestore()).To(BeTrue())
 			})
 		})
 	})
@@ -279,19 +279,19 @@ var _ = Describe("Jobs", func() {
 		})
 	})
 
-	Context("contains no jobs with named backup blobs", func() {
-		Describe("CustomBackupBlobNames", func() {
+	Context("contains no jobs with named backup artifacts", func() {
+		Describe("CustomBackupArtifactNames", func() {
 			It("returns empty", func() {
-				Expect(jobs.CustomBackupBlobNames()).To(BeEmpty())
+				Expect(jobs.CustomBackupArtifactNames()).To(BeEmpty())
 			})
 		})
 	})
 
-	Context("contains jobs with a named backup blob", func() {
+	Context("contains jobs with a named backup artifact", func() {
 		BeforeEach(func() {
 			artifactNames = map[string]instance.Metadata{
 				"bar": {
-					BackupName: "my-cool-blob",
+					BackupName: "my-cool-artifact",
 				},
 			}
 			scripts = instance.BackupAndRestoreScripts{
@@ -302,14 +302,14 @@ var _ = Describe("Jobs", func() {
 			}
 		})
 
-		Describe("AnyNeedDefaultBlobsForBackup", func() {
+		Describe("AnyNeedDefaultArtifactsForBackup", func() {
 			It("returns true", func() {
-				Expect(jobs.AnyNeedDefaultBlobsForBackup()).To(BeTrue())
+				Expect(jobs.AnyNeedDefaultArtifactsForBackup()).To(BeTrue())
 			})
 		})
 	})
 
-	Context("contains jobs with a named restore blob", func() {
+	Context("contains jobs with a named restore artifact", func() {
 		BeforeEach(func() {
 			artifactNames = map[string]instance.Metadata{
 				"bar": {
@@ -324,20 +324,20 @@ var _ = Describe("Jobs", func() {
 			}
 		})
 
-		Describe("CustomRestoreBlobNames", func() {
-			It("returns a list of blob names", func() {
-				Expect(jobs.CustomRestoreBlobNames()).To(ConsistOf("my-cool-restore"))
+		Describe("CustomRestoreArtifactNames", func() {
+			It("returns a list of artifact names", func() {
+				Expect(jobs.CustomRestoreArtifactNames()).To(ConsistOf("my-cool-restore"))
 			})
 		})
 
-		Describe("AnyNeedDefaultBlobsForRestore", func() {
-			It("returns true, as job 'baz' needs a default blob for restore", func() {
-				Expect(jobs.AnyNeedDefaultBlobsForRestore()).To(BeTrue())
+		Describe("AnyNeedDefaultArtifactsForRestore", func() {
+			It("returns true, as job 'baz' needs a default artifact for restore", func() {
+				Expect(jobs.AnyNeedDefaultArtifactsForRestore()).To(BeTrue())
 			})
 		})
 	})
 
-	Context("contains jobs with multiple named blobs", func() {
+	Context("contains jobs with multiple named artifacts", func() {
 		BeforeEach(func() {
 			scripts = instance.BackupAndRestoreScripts{
 				"/var/vcap/jobs/foo/bin/bbr/backup",
@@ -353,21 +353,21 @@ var _ = Describe("Jobs", func() {
 			}
 		})
 
-		Describe("CustomBackupBlobNames", func() {
-			It("returns a list of blob names", func() {
-				Expect(jobs.CustomBackupBlobNames()).To(ConsistOf("a-bosh-backup", "another-backup"))
+		Describe("CustomBackupArtifactNames", func() {
+			It("returns a list of artifact names", func() {
+				Expect(jobs.CustomBackupArtifactNames()).To(ConsistOf("a-bosh-backup", "another-backup"))
 			})
 		})
 
-		Describe("AnyNeedDefaultBlobsForRestore", func() {
-			It("returns false, as none of the jobs need a default blob for restore", func() {
-				Expect(jobs.AnyNeedDefaultBlobsForRestore()).To(BeFalse())
+		Describe("AnyNeedDefaultArtifactsForRestore", func() {
+			It("returns false, as none of the jobs need a default artifact for restore", func() {
+				Expect(jobs.AnyNeedDefaultArtifactsForRestore()).To(BeFalse())
 			})
 		})
 
-		Describe("AnyNeedDefaultBlobsForBackup", func() {
+		Describe("AnyNeedDefaultArtifactsForBackup", func() {
 			It("returns false", func() {
-				Expect(jobs.AnyNeedDefaultBlobsForBackup()).To(BeFalse())
+				Expect(jobs.AnyNeedDefaultArtifactsForBackup()).To(BeFalse())
 			})
 		})
 	})
