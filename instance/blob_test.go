@@ -359,73 +359,99 @@ var _ = Describe("blob", func() {
 		})
 	}
 
-	Context("NamedBackupBlob", func() {
-		BeforeEach(func() {
-			job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/backup"}, instance.Metadata{BackupName: "named-blob"})
-		})
+	Context("BackupBlob", func() {
 		JustBeforeEach(func() {
-			blob = instance.NewNamedBackupBlob(testInstance, job, sshConnection, boshLogger)
+			blob = instance.NewBackupBlob(job, testInstance, sshConnection, boshLogger)
 		})
-
-		It("is named with the job's custom backup name", func() {
-			Expect(blob.Name()).To(Equal(job.BackupBlobName()))
-		})
-
-		It("has a custom name", func() {
-			Expect(blob.HasCustomName()).To(BeTrue())
-		})
-
-		BlobBehaviourForDirectory("/var/vcap/store/bbr-backup/named-blob")
-	})
-
-	Context("NamedRestoreBlob", func() {
-		BeforeEach(func() {
-			job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/restore"}, instance.Metadata{RestoreName: "named-blob-to-restore"})
-		})
-		JustBeforeEach(func() {
-			blob = instance.NewNamedRestoreBlob(testInstance, job, sshConnection, boshLogger)
-		})
-
-		It("is named with the job's custom restore name", func() {
-			Expect(blob.Name()).To(Equal(job.RestoreBlobName()))
-		})
-
-		It("has a custom name", func() {
-			Expect(blob.HasCustomName()).To(BeTrue())
-		})
-
-		BlobBehaviourForDirectory("/var/vcap/store/bbr-backup/named-blob-to-restore")
-	})
-
-	Context("DefaultBlob", func() {
-		BeforeEach(func() {
-			job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/restore"}, instance.Metadata{RestoreName: "named-blob-to-restore"})
-		})
-		JustBeforeEach(func() {
-			blob = instance.NewDefaultBlob(job.Name(), testInstance, sshConnection, boshLogger)
-		})
-
-		It("is named after the job", func() {
-			Expect(blob.Name()).To(Equal(job.Name()))
-		})
-
-		It("does not have a custom name", func() {
-			Expect(blob.HasCustomName()).To(BeFalse())
-		})
-
-		Describe("InstanceName", func() {
-			It("returns the instance name", func() {
-				Expect(blob.InstanceName()).To(Equal(testInstance.Name()))
+		Context("Named Blob", func() {
+			BeforeEach(func() {
+				job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"}, instance.Metadata{BackupName: "named-blob-to-backup"})
 			})
-		})
 
-		Describe("InstanceIndex", func() {
-			It("returns the instance index", func() {
-				Expect(blob.InstanceIndex()).To(Equal(testInstance.Index()))
+			It("is named with the job's custom backup name", func() {
+				Expect(blob.Name()).To(Equal(job.BackupBlobName()))
 			})
-		})
 
-		BlobBehaviourForDirectory("/var/vcap/store/bbr-backup")
+			It("has a custom name", func() {
+				Expect(blob.HasCustomName()).To(BeTrue())
+			})
+
+			BlobBehaviourForDirectory("/var/vcap/store/bbr-backup/named-blob-to-backup")
+		})
+		Context("Default Blob", func() {
+			BeforeEach(func() {
+				job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"}, instance.Metadata{})
+			})
+
+			It("is named after the job", func() {
+				Expect(blob.Name()).To(Equal(job.Name()))
+			})
+
+			It("does not have a custom name", func() {
+				Expect(blob.HasCustomName()).To(BeFalse())
+			})
+
+			Describe("InstanceName", func() {
+				It("returns the instance name", func() {
+					Expect(blob.InstanceName()).To(Equal(testInstance.Name()))
+				})
+			})
+
+			Describe("InstanceIndex", func() {
+				It("returns the instance index", func() {
+					Expect(blob.InstanceIndex()).To(Equal(testInstance.Index()))
+				})
+			})
+
+			BlobBehaviourForDirectory("/var/vcap/store/bbr-backup/foo1")
+		})
 	})
 
+	Context("RestoreBlob", func() {
+		JustBeforeEach(func() {
+			blob = instance.NewRestoreBlob(job, testInstance, sshConnection, boshLogger)
+		})
+		Context("Named Blob", func() {
+			BeforeEach(func() {
+				job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"}, instance.Metadata{RestoreName: "named-blob-to-restore"})
+			})
+
+			It("is named with the job's custom backup name", func() {
+				Expect(blob.Name()).To(Equal(job.RestoreBlobName()))
+			})
+
+			It("has a custom name", func() {
+				Expect(blob.HasCustomName()).To(BeTrue())
+			})
+
+			BlobBehaviourForDirectory("/var/vcap/store/bbr-backup/named-blob-to-restore")
+		})
+		Context("Default Blob", func() {
+			BeforeEach(func() {
+				job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"}, instance.Metadata{})
+			})
+
+			It("is named after the job", func() {
+				Expect(blob.Name()).To(Equal(job.Name()))
+			})
+
+			It("does not have a custom name", func() {
+				Expect(blob.HasCustomName()).To(BeFalse())
+			})
+
+			Describe("InstanceName", func() {
+				It("returns the instance name", func() {
+					Expect(blob.InstanceName()).To(Equal(testInstance.Name()))
+				})
+			})
+
+			Describe("InstanceIndex", func() {
+				It("returns the instance index", func() {
+					Expect(blob.InstanceIndex()).To(Equal(testInstance.Index()))
+				})
+			})
+
+			BlobBehaviourForDirectory("/var/vcap/store/bbr-backup/foo1")
+		})
+	})
 })

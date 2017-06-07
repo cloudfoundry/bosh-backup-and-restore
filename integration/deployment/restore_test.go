@@ -532,7 +532,7 @@ restore_name: foo
 "`)
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
 set -u
-cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server`)
+cp -r $BBR_ARTIFACT_DIRECTORY/redis/redis-backup /var/vcap/store/redis-server`)
 			instance2.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
 set -u
 echo "dosent matter"`)
@@ -585,6 +585,9 @@ custom_artifacts:
 			By("running the restore script on the remote", func() {
 				Expect(instance1.FileExists("" +
 					"/redis-backup"))
+			})
+			By("running the restore script on the remote", func() {
+				Expect(instance1.FileExists("/var/vcap/store/redis-server/redis-backup"))
 			})
 		})
 	})

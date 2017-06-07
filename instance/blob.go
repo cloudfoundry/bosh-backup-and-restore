@@ -23,32 +23,33 @@ type Logger interface {
 	Error(tag, msg string, args ...interface{})
 }
 
-func NewNamedBackupBlob(instance orchestrator.InstanceIdentifer, job Job, sshConn SSHConnection, logger Logger) *Blob {
-	return &Blob{
-		isNamed:           true,
-		artifactDirectory: job.BackupArtifactDirectory(),
-		name:              job.BackupBlobName(),
-		instance:          instance,
-		SSHConnection:     sshConn,
-		Logger:            logger,
+func NewBackupBlob(job Job, instance orchestrator.InstanceIdentifer, sshConn SSHConnection, logger Logger) *Blob {
+	var name string
+	if job.HasNamedBackupBlob() {
+		name = job.BackupBlobName()
+	} else {
+		name = job.Name()
 	}
-}
-func NewNamedRestoreBlob(instance orchestrator.InstanceIdentifer, job Job, sshConn SSHConnection, logger Logger) *Blob {
 	return &Blob{
-		isNamed:           true,
-		artifactDirectory: job.RestoreArtifactDirectory(),
-		name:              job.RestoreBlobName(),
+		isNamed:           job.HasNamedBackupBlob(),
+		artifactDirectory: job.BackupArtifactDirectory(),
+		name:              name,
 		instance:          instance,
 		SSHConnection:     sshConn,
 		Logger:            logger,
 	}
 }
 
-func NewDefaultBlob(name string, instance orchestrator.InstanceIdentifer, sshConn SSHConnection, logger Logger) *Blob {
+func NewRestoreBlob(job Job, instance orchestrator.InstanceIdentifer, sshConn SSHConnection, logger Logger) *Blob {
+	var name string
+	if job.HasNamedRestoreBlob() {
+		name = job.RestoreBlobName()
+	} else {
+		name = job.Name()
+	}
 	return &Blob{
-		isNamed:           false,
-		index:             instance.Index(),
-		artifactDirectory: orchestrator.ArtifactDirectory,
+		isNamed:           job.HasNamedRestoreBlob(),
+		artifactDirectory: job.RestoreArtifactDirectory(),
 		name:              name,
 		instance:          instance,
 		SSHConnection:     sshConn,

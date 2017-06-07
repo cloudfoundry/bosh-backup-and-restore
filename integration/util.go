@@ -49,6 +49,16 @@ type instanceMetadata struct {
 	Artifacts     []customArtifactMetadata `yaml:"artifacts"`
 }
 
+func (metadata instanceMetadata) FindArtifact(artifactName string) customArtifactMetadata {
+	for _, artifact := range metadata.Artifacts {
+		if artifact.Name == artifactName {
+			return artifact
+		}
+	}
+	Fail("No artifact with " + artifactName + " found")
+	return customArtifactMetadata{}
+}
+
 type customArtifactMetadata struct {
 	Name      string            `yaml:"name"`
 	Checksums map[string]string `yaml:"checksums"`

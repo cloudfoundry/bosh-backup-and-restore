@@ -42,6 +42,8 @@ var _ = Describe("Restores a deployment", func() {
 		Eventually(RunCommandOnRemoteAsVcap(JumpBoxSSHCommand(),
 			fmt.Sprintf("sudo mkdir -p %s && sudo chmod -R 0777 %s",
 				workspaceDir+"/my-director", workspaceDir))).Should(gexec.Exit(0))
+		RunBoshCommand(JumpBoxSCPCommand(), fixturesPath+"bosh-0-amazing-backup-and-restore.tar", "jumpbox/0:"+workspaceDir+"/my-director")
+		RunBoshCommand(JumpBoxSCPCommand(), fixturesPath+"bosh-0-remarkable-backup-and-restore.tar", "jumpbox/0:"+workspaceDir+"/my-director")
 		RunBoshCommand(JumpBoxSCPCommand(), fixturesPath+"bosh-0-test-backup-and-restore.tar", "jumpbox/0:"+workspaceDir+"/my-director")
 		RunBoshCommand(JumpBoxSCPCommand(), fixturesPath+"metadata", "jumpbox/0:"+workspaceDir+"/my-director")
 

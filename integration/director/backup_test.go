@@ -112,8 +112,8 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Name).To(Equal("bosh"))
 						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums).To(HaveLen(2))
-						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums["./bosh/backupdump1"]).To(Equal(ShaFor("backupcontent1")))
-						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums["./bosh/backupdump2"]).To(Equal(ShaFor("backupcontent2")))
+						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums["./backupdump1"]).To(Equal(ShaFor("backupcontent1")))
+						Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums["./backupdump2"]).To(Equal(ShaFor("backupcontent2")))
 
 						Expect(metadataContents.CustomArtifactsMetadata).To(BeEmpty())
 					})

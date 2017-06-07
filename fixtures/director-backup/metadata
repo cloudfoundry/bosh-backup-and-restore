@@ -4,4 +4,10 @@ instances:
   artifacts:
   - name: test-backup-and-restore
     checksums:
-      ./test-backup-and-restore/backup: 26e17765aa93724bebd8675aeaef0dc27ac7b778003a8094dffdf9b0ffe2deba
+      ./backup: 26e17765aa93724bebd8675aeaef0dc27ac7b778003a8094dffdf9b0ffe2deba
+  - name: remarkable-backup-and-restore
+    checksums:
+      ./backup: 26e17765aa93724bebd8675aeaef0dc27ac7b778003a8094dffdf9b0ffe2deba
+  - name: amazing-backup-and-restore
+    checksums:
+      ./backup: 26e17765aa93724bebd8675aeaef0dc27ac7b778003a8094dffdf9b0ffe2deba
