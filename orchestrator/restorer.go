@@ -21,9 +21,9 @@ func NewRestorer(backupManager BackupManager, logger Logger, deploymentManager D
 	}
 }
 
-func (b Restorer) Restore(deploymentName string) Error {
+func (b Restorer) Restore(deploymentName, artifactPath string) Error {
 	b.Logger.Info("bbr", "Starting restore of %s...\n", deploymentName)
-	backup, err := b.BackupManager.Open(deploymentName, b.Logger)
+	backup, err := b.BackupManager.Open(artifactPath, b.Logger)
 	if err != nil {
 		return Error{errors.Wrap(err, "Could not open backup")}
 	}

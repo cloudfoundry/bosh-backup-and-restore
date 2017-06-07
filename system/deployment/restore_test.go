@@ -18,17 +18,18 @@ var _ = Describe("Restores a deployment", func() {
 		"redis":       {"0", "1"},
 		"other-redis": {"0"},
 	}
+	var backupName = "redis-backup-2017-05-02.13.25.36"
 
 	It("restores", func() {
 		By("setting up the jump box")
 		Eventually(RunCommandOnRemote(
 			JumpBoxSSHCommand(), fmt.Sprintf("sudo mkdir -p %s && sudo chown -R vcap:vcap %s && sudo chmod -R 0777 %s",
-				workspaceDir+"/"+RedisDeployment(), workspaceDir, workspaceDir),
+				workspaceDir+"/"+backupName, workspaceDir, workspaceDir),
 		)).Should(gexec.Exit(0))
 
 		RunBoshCommand(JumpBoxSCPCommand(), MustHaveEnv("BOSH_CERT_PATH"), "jumpbox/0:"+workspaceDir+"/bosh.crt")
 		RunBoshCommand(JumpBoxSCPCommand(), commandPath, "jumpbox/0:"+workspaceDir)
-		RunBoshCommand(JumpBoxSCPCommand(), backupMetadata, "jumpbox/0:"+workspaceDir+"/"+RedisDeployment()+"/metadata")
+		RunBoshCommand(JumpBoxSCPCommand(), backupMetadata, "jumpbox/0:"+workspaceDir+"/"+backupName+"/metadata")
 		runOnInstances(instanceCollection, func(in, ii string) {
 			fileName := fmt.Sprintf("%s-%s-redis-server.tar", in, ii)
 			RunBoshCommand(
@@ -37,7 +38,7 @@ var _ = Describe("Restores a deployment", func() {
 				fmt.Sprintf(
 					"jumpbox/0:%s/%s/%s",
 					workspaceDir,
-					RedisDeployment(),
+					backupName,
 					fileName,
 				),
 			)
@@ -46,8 +47,22 @@ var _ = Describe("Restores a deployment", func() {
 		By("running the restore command")
 		Eventually(RunCommandOnRemote(
 			JumpBoxSSHCommand(),
-			fmt.Sprintf(`cd %s; BOSH_CLIENT_SECRET=%s ./bbr deployment --debug --ca-cert bosh.crt --username %s --target %s --deployment %s restore`,
-				workspaceDir, MustHaveEnv("BOSH_CLIENT_SECRET"), MustHaveEnv("BOSH_CLIENT"), MustHaveEnv("BOSH_URL"), RedisDeployment()),
+			fmt.Sprintf(`cd %s;
+			BOSH_CLIENT_SECRET=%s ./bbr \
+			  deployment --debug \
+			  --ca-cert bosh.crt \
+			  --username %s \
+			  --target %s \
+			  --deployment %s \
+			  restore \
+			  --artifact-path %s`,
+				workspaceDir,
+				MustHaveEnv("BOSH_CLIENT_SECRET"),
+				MustHaveEnv("BOSH_CLIENT"),
+				MustHaveEnv("BOSH_URL"),
+				RedisDeployment(),
+				backupName,
+			),
 		)).Should(gexec.Exit(0))
 
 		By("cleaning up artifacts from the remote instances")

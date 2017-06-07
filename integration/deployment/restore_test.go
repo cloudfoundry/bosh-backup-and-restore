@@ -57,7 +57,8 @@ instances: []`))
 				"--username", "admin",
 				"--target", director.URL,
 				"--deployment", "my-new-deployment",
-				"restore")
+				"restore",
+				"--artifact-path", deploymentName)
 
 		})
 
@@ -100,7 +101,8 @@ instances: []`))
 				"--username", "admin",
 				"--target", director.URL,
 				"--deployment", "my-new-deployment",
-				"restore")
+				"restore",
+				"--artifact-path", "i-am-not-here")
 
 		})
 
@@ -110,8 +112,9 @@ instances: []`))
 			})
 
 			By("printing an error", func() {
-				Expect(string(session.Err.Contents())).To(ContainSubstring("no such file or directory"))
+				Expect(string(session.Err.Contents())).To(ContainSubstring("i-am-not-here: no such file or directory"))
 			})
+
 			By("not printing the stack trace", func() {
 				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
 			})
@@ -158,8 +161,9 @@ instances:
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
 				"--target", director.URL,
-				"--deployment", "my-new-deployment",
-				"restore")
+				"--deployment", deploymentName,
+				"restore",
+				"--artifact-path", deploymentName)
 		})
 
 		It("fails and prints an error", func() {
@@ -235,7 +239,8 @@ instances:
 				"--debug",
 				"--target", director.URL,
 				"--deployment", deploymentName,
-				"restore")
+				"restore",
+				"--artifact-path", deploymentName)
 		})
 
 		AfterEach(func() {
@@ -393,7 +398,8 @@ instances:
 				"--debug",
 				"--target", director.URL,
 				"--deployment", deploymentName,
-				"restore")
+				"restore",
+				"--artifact-path", deploymentName)
 		})
 
 		AfterEach(func() {
@@ -475,7 +481,8 @@ custom_artifacts:
 				"--debug",
 				"--target", director.URL,
 				"--deployment", deploymentName,
-				"restore")
+				"restore",
+				"--artifact-path", deploymentName)
 		})
 
 		AfterEach(func() {
@@ -564,7 +571,8 @@ custom_artifacts:
 				"--debug",
 				"--target", director.URL,
 				"--deployment", deploymentName,
-				"restore")
+				"restore",
+				"--artifact-path", deploymentName)
 		})
 
 		AfterEach(func() {
@@ -627,7 +635,8 @@ custom_artifacts:
 				"--debug",
 				"--target", director.URL,
 				"--deployment", deploymentName,
-				"restore")
+				"restore",
+				"--artifact-path", deploymentName)
 		})
 
 		It("fails", func() {
@@ -691,7 +700,8 @@ instances:
 				"--username", "admin",
 				"--target", director.URL,
 				"--deployment", deploymentName,
-				"restore")
+				"restore",
+				"--artifact-path", deploymentName)
 		})
 
 		AfterEach(func() {

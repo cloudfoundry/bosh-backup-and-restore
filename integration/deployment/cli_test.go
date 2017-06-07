@@ -37,7 +37,7 @@ var _ = Describe("CLI Interface", func() {
 	})
 
 	Context("bbr deployment", func() {
-		AssertDeploymentCLIBehaviour := func(cmd string) {
+		AssertDeploymentCLIBehaviour := func(cmd string, extraArgs ...string) {
 			Context("params", func() {
 				It("can invoke command with short names", func() {
 					director.VerifyAndMock(
@@ -47,13 +47,14 @@ var _ = Describe("CLI Interface", func() {
 
 					binary.Run(backupWorkspace,
 						[]string{},
-						"deployment",
-						"--ca-cert", sslCertPath,
-						"-u", "admin",
-						"-p", "admin",
-						"-t", director.URL,
-						"-d", "my-new-deployment",
-						cmd)
+						append([]string{
+							"deployment",
+							"--ca-cert", sslCertPath,
+							"-u", "admin",
+							"-p", "admin",
+							"-t", director.URL,
+							"-d", "my-new-deployment",
+							cmd}, extraArgs...)...)
 
 					director.VerifyMocks()
 				})
@@ -66,13 +67,14 @@ var _ = Describe("CLI Interface", func() {
 
 					binary.Run(backupWorkspace,
 						[]string{},
-						"deployment",
-						"--ca-cert", sslCertPath,
-						"--username", "admin",
-						"--password", "admin",
-						"--target", director.URL,
-						"--deployment", "my-new-deployment",
-						cmd)
+						append([]string{
+							"deployment",
+							"--ca-cert", sslCertPath,
+							"--username", "admin",
+							"--password", "admin",
+							"--target", director.URL,
+							"--deployment", "my-new-deployment",
+							cmd}, extraArgs...)...)
 
 					director.VerifyMocks()
 				})
@@ -85,7 +87,15 @@ var _ = Describe("CLI Interface", func() {
 						mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
 					)
 
-					binary.Run(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--ca-cert", sslCertPath, "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+					binary.Run(backupWorkspace,
+						[]string{"BOSH_CLIENT_SECRET=admin"},
+						append([]string{
+							"deployment",
+							"--ca-cert", sslCertPath,
+							"--username", "admin",
+							"--target", director.URL,
+							"--deployment", "my-new-deployment",
+							cmd}, extraArgs...)...)
 
 					director.VerifyMocks()
 				})
@@ -96,7 +106,15 @@ var _ = Describe("CLI Interface", func() {
 				var session *gexec.Session
 				BeforeEach(func() {
 					badDirectorURL := "https://:25555"
-					session = binary.Run(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--username", "admin", "--password", "admin", "--target", badDirectorURL, "--deployment", "my-new-deployment", cmd)
+					session = binary.Run(backupWorkspace,
+						[]string{"BOSH_CLIENT_SECRET=admin"},
+						append([]string{
+							"deployment",
+							"--username", "admin",
+							"--password", "admin",
+							"--target", badDirectorURL,
+							"--deployment", "my-new-deployment",
+							cmd}, extraArgs...)...)
 					output.output = session.Err.Contents()
 				})
 
@@ -113,7 +131,16 @@ var _ = Describe("CLI Interface", func() {
 				var output helpText
 				var session *gexec.Session
 				BeforeEach(func() {
-					session = binary.Run(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--ca-cert", "/tmp/whatever", "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+					session = binary.Run(backupWorkspace,
+						[]string{"BOSH_CLIENT_SECRET=admin"},
+						append([]string{
+							"deployment",
+							"--ca-cert", "/tmp/whatever",
+							"--username", "admin",
+							"--password", "admin",
+							"--target", director.URL,
+							"--deployment", "my-new-deployment",
+							cmd}, extraArgs...)...)
 					output.output = session.Err.Contents()
 				})
 
@@ -130,7 +157,14 @@ var _ = Describe("CLI Interface", func() {
 				var output helpText
 				var session *gexec.Session
 				BeforeEach(func() {
-					session = binary.Run(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--dave", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+					session = binary.Run(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"},
+						append([]string{
+							"deployment",
+							"--dave", "admin",
+							"--password", "admin",
+							"--target", director.URL,
+							"--deployment", "my-new-deployment",
+							cmd}, extraArgs...)...)
 					output.output = session.Out.Contents()
 				})
 
@@ -162,7 +196,7 @@ var _ = Describe("CLI Interface", func() {
 
 				Context("Missing target", func() {
 					BeforeEach(func() {
-						command = []string{"deployment", "--username", "admin", "--password", "admin", "--deployment", "my-new-deployment", cmd}
+						command = append([]string{"deployment", "--username", "admin", "--password", "admin", "--deployment", "my-new-deployment", cmd}, extraArgs...)
 					})
 					It("Exits with non zero", func() {
 						Expect(session.ExitCode()).NotTo(BeZero())
@@ -179,7 +213,7 @@ var _ = Describe("CLI Interface", func() {
 
 				Context("Missing username", func() {
 					BeforeEach(func() {
-						command = []string{"deployment", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd}
+						command = append([]string{"deployment", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd}, extraArgs...)
 					})
 					It("Exits with non zero", func() {
 						Expect(session.ExitCode()).NotTo(BeZero())
@@ -197,7 +231,7 @@ var _ = Describe("CLI Interface", func() {
 				Context("Missing password in args", func() {
 					BeforeEach(func() {
 						env = []string{}
-						command = []string{"deployment", "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd}
+						command = append([]string{"deployment", "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd}, extraArgs...)
 					})
 					It("Exits with non zero", func() {
 						Expect(session.ExitCode()).NotTo(BeZero())
@@ -214,7 +248,7 @@ var _ = Describe("CLI Interface", func() {
 
 				Context("Missing deployment", func() {
 					BeforeEach(func() {
-						command = []string{"deployment", "--username", "admin", "--password", "admin", "--target", director.URL, cmd}
+						command = append([]string{"deployment", "--username", "admin", "--password", "admin", "--target", director.URL, cmd}, extraArgs...)
 					})
 					It("Exits with non zero", func() {
 						Expect(session.ExitCode()).NotTo(BeZero())
@@ -237,7 +271,14 @@ var _ = Describe("CLI Interface", func() {
 						mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
 					)
 
-					session := binary.Run(backupWorkspace, []string{}, "deployment", "--debug", "--ca-cert", sslCertPath, "--username", "admin", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd)
+					session := binary.Run(backupWorkspace, []string{},
+						append([]string{
+							"deployment",
+							"--debug", "--ca-cert",
+							sslCertPath, "--username",
+							"admin", "--password",
+							"admin", "--target",
+							director.URL, "--deployment", "my-new-deployment", cmd}, extraArgs...)...)
 
 					Expect(string(session.Out.Contents())).To(ContainSubstring("Sending GET request to endpoint"))
 
@@ -257,7 +298,31 @@ var _ = Describe("CLI Interface", func() {
 instances: []`))
 			})
 
-			AssertDeploymentCLIBehaviour("restore")
+			AssertDeploymentCLIBehaviour("restore", "--artifact-path", "my-new-deployment")
+
+			Context("when artifact-path is not specified", func() {
+				var session *gexec.Session
+
+				BeforeEach(func() {
+					session = binary.Run(backupWorkspace, []string{},
+						"deployment",
+						"--ca-cert", sslCertPath,
+						"--username", "admin",
+						"--password", "admin",
+						"--target", director.URL,
+						"--deployment", "my-new-deployment",
+						"restore")
+					Eventually(session).Should(gexec.Exit())
+				})
+
+				It("Exits with non zero", func() {
+					Expect(session.ExitCode()).NotTo(BeZero())
+				})
+
+				It("displays a failure message", func() {
+					Expect(session.Err.Contents()).To(ContainSubstring("--artifact-path flag is required"))
+				})
+			})
 		})
 
 		Context("--help", func() {

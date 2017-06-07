@@ -23,6 +23,7 @@ var _ = Describe("restorer", func() {
 			deploymentName    string
 			deploymentManager *fakes.FakeDeploymentManager
 			deployment        *fakes.FakeDeployment
+			artifactPath      string
 		)
 
 		BeforeEach(func() {
@@ -43,10 +44,11 @@ var _ = Describe("restorer", func() {
 			b = orchestrator.NewRestorer(artifactManager, logger, deploymentManager)
 
 			deploymentName = "deployment-to-restore"
+			artifactPath = "/some/path"
 		})
 
 		JustBeforeEach(func() {
-			restoreError = b.Restore(deploymentName)
+			restoreError = b.Restore(deploymentName, artifactPath)
 		})
 
 		It("does not fail", func() {
@@ -59,6 +61,12 @@ var _ = Describe("restorer", func() {
 
 		It("ensures artifact is valid", func() {
 			Expect(artifact.ValidCallCount()).To(Equal(1))
+		})
+
+		It("opens the artifact", func() {
+			Expect(artifactManager.OpenCallCount()).To(Equal(1))
+			openedArtifactName, _ := artifactManager.OpenArgsForCall(0)
+			Expect(openedArtifactName).To(Equal(artifactPath))
 		})
 
 		It("finds the deployment", func() {

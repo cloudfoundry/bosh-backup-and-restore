@@ -92,6 +92,10 @@ COPYRIGHT:
 					Aliases: []string{"r"},
 					Usage:   "Restore a deployment from backup",
 					Action:  deploymentRestore,
+					Flags: []cli.Flag{cli.StringFlag{
+						Name:  "artifact-path",
+						Usage: "Path to the artifact to restore",
+					}},
 				},
 			},
 		},
@@ -217,14 +221,19 @@ func directorBackup(c *cli.Context) error {
 }
 
 func deploymentRestore(c *cli.Context) error {
-	var deployment = c.Parent().String("deployment")
+	if err := validateFlags([]string{"artifact-path"}, c); err != nil {
+		return err
+	}
+
+	deployment := c.Parent().String("deployment")
+	artifactPath := c.String("artifact-path")
 
 	restorer, err := makeDeploymentRestorer(c)
 	if err != nil {
 		return err
 	}
 
-	restoreErr := restorer.Restore(deployment)
+	restoreErr := restorer.Restore(deployment, artifactPath)
 	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(restoreErr)
 	if err := writeStackTrace(errorWithStackTrace); err != nil {
 		return errors.Wrap(restoreErr, err.Error())
@@ -238,7 +247,7 @@ func directorRestore(c *cli.Context) error {
 
 	restorer := makeDirectorRestorer(c)
 
-	restoreErr := restorer.Restore(directorName)
+	restoreErr := restorer.Restore(directorName, directorName)
 	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(restoreErr)
 	if err := writeStackTrace(errorWithStackTrace); err != nil {
 		return errors.Wrap(restoreErr, err.Error())
