@@ -66,7 +66,7 @@ var _ = Describe("Restore", func() {
 
 		Context("and there is a restore script", func() {
 			BeforeEach(func() {
-				command := exec.Command("cp", "-r", "../../fixtures/director-backup-integration", path.Join(restoreWorkspace, "0.0.0.0"))
+				command := exec.Command("cp", "-r", "../../fixtures/director-backup-integration", path.Join(restoreWorkspace, directorAddress))
 				cpFiles, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 				Expect(err).ToNot(HaveOccurred())
 				Eventually(cpFiles).Should(gexec.Exit())
@@ -136,7 +136,7 @@ cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 
 		Context("but there are no restore scripts", func() {
 			BeforeEach(func() {
-				command := exec.Command("cp", "-r", "../../fixtures/director-backup-integration", path.Join(restoreWorkspace, "0.0.0.0"))
+				command := exec.Command("cp", "-r", "../../fixtures/director-backup-integration", path.Join(restoreWorkspace, directorAddress))
 				cpFiles, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 				Expect(err).ToNot(HaveOccurred())
 				Eventually(cpFiles).Should(gexec.Exit())
