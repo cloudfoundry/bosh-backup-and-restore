@@ -9,5 +9,5 @@ import (
 
 func TestBbr(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Bbr Suite")
+	RunSpecs(t, "BBR Cmd Suite")
 }
