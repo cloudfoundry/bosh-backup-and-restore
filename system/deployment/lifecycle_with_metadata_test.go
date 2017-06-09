@@ -26,8 +26,14 @@ var _ = Describe("backup with custom metadata", func() {
 		By("running the backup command")
 		Eventually(RunCommandOnRemoteAsVcap(
 			JumpBoxSSHCommand(),
-			fmt.Sprintf(
-				`cd %s; BOSH_CLIENT_SECRET=%s ./bbr deployment --ca-cert bosh.crt --username %s --target %s --deployment %s backup`,
+			fmt.Sprintf(`cd %s;
+			BOSH_CLIENT_SECRET=%s ./bbr \
+			deployment \
+			--ca-cert bosh.crt \
+			--username %s \
+			--target %s \
+			--deployment %s \
+			backup`,
 				workspaceDir,
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
@@ -38,7 +44,7 @@ var _ = Describe("backup with custom metadata", func() {
 
 		By("creating the named backup artifacts locally")
 		AssertJumpboxFilesExist([]string{
-			fmt.Sprintf("%s/%s/custom-redis-backup.tar", workspaceDir, RedisWithMetadataDeployment()),
+			fmt.Sprintf("%s/%s/custom-redis-backup.tar", workspaceDir, BackupDirWithTimestamp(RedisWithMetadataDeployment())),
 		})
 
 		By("cleaning up artifacts from the remote instances")
@@ -69,7 +75,7 @@ var _ = Describe("backup with custom metadata", func() {
 				MustHaveEnv("BOSH_CLIENT"),
 				MustHaveEnv("BOSH_URL"),
 				RedisWithMetadataDeployment(),
-				RedisWithMetadataDeployment()),
+				BackupDirWithTimestamp(RedisWithMetadataDeployment())),
 		)).Should(gexec.Exit(0))
 
 		By("cleaning up artifacts from the remote restored instances")

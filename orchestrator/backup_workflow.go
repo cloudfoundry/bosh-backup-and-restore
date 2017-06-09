@@ -166,7 +166,7 @@ func (bw *backupWorkflow) cleanup(e *fsm.Event) {
 func (bw *backupWorkflow) createEmptyLocalArtifact(e *fsm.Event) {
 	bw.Logger.Info("bbr", "Starting backup of %s...\n", bw.deploymentName)
 	var err error
-	bw.artifact, err = bw.BackupManager.Create(bw.deploymentName, bw.Logger)
+	bw.artifact, err = bw.BackupManager.Create(bw.deploymentName, bw.Logger, time.Now)
 	if err != nil {
 		bw.backupErrors = append(bw.backupErrors, err)
 		e.Cancel()

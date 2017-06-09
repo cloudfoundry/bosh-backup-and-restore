@@ -18,12 +18,35 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"regexp"
 )
 
 var _ = Describe("Backup", func() {
 	var backupWorkspace string
 	var session *gexec.Session
 	var directorAddress, directorIP string
+
+	possibleBackupDirectories := func() []string {
+		dirs, err := ioutil.ReadDir(backupWorkspace)
+		Expect(err).NotTo(HaveOccurred())
+		backupDirectoryPattern := regexp.MustCompile(`\b` + directorIP + `_(\d){8}T(\d){6}Z\b`)
+
+		matches := []string{}
+		for _, dir := range dirs {
+			dirName := dir.Name()
+			if backupDirectoryPattern.MatchString(dirName) {
+				matches = append(matches, dirName)
+			}
+		}
+		return matches
+	}
+
+	backupDirectory := func() string {
+		matches := possibleBackupDirectories()
+
+		Expect(matches).To(HaveLen(1), "backup directory not found")
+		return path.Join(backupWorkspace, matches[0])
+	}
 
 	BeforeEach(func() {
 		var err error
@@ -81,12 +104,11 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						Expect(session.ExitCode()).To(BeZero())
 					})
 
-					backupFolderPath := path.Join(backupWorkspace, directorIP)
-					boshBackupFilePath := path.Join(backupFolderPath, "/bosh-0-bosh.tar")
-					metadataFilePath := path.Join(backupFolderPath, "/metadata")
+					boshBackupFilePath := path.Join(backupDirectory(), "/bosh-0-bosh.tar")
+					metadataFilePath := path.Join(backupDirectory(), "/metadata")
 
 					By("creating a backup directory which contains a backup artifact and a metadata file", func() {
-						Expect(backupFolderPath).To(BeADirectory())
+						Expect(backupDirectory()).To(BeADirectory())
 						Expect(boshBackupFilePath).To(BeARegularFile())
 						Expect(metadataFilePath).To(BeARegularFile())
 					})

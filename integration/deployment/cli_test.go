@@ -4,15 +4,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	"time"
-
-	"fmt"
-
-	"path/filepath"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
@@ -349,56 +342,6 @@ instances: []`))
 			})
 		})
 
-	})
-
-	Context("bbr director", func() {
-		Describe("invalid command line arguments", func() {
-			Context("private-key-path flag", func() {
-				var (
-					keyFile       *os.File
-					err           error
-					session       *gexec.Session
-					sessionOutput string
-				)
-
-				BeforeEach(func() {
-					keyFile, err = ioutil.TempFile("", time.Now().String())
-					Expect(err).NotTo(HaveOccurred())
-					fmt.Fprintf(keyFile, "this is not a valid key")
-
-					session = binary.Run(backupWorkspace,
-						[]string{},
-						"director",
-						"-u", "admin",
-						"--host", "10.0.0.5",
-						"--private-key-path", keyFile.Name(),
-						"backup")
-					Eventually(session).Should(gexec.Exit())
-					sessionOutput = string(session.Err.Contents())
-				})
-
-				It("fails", func() {
-					By("printing a meaningful message when the key is invalid", func() {
-						Expect(sessionOutput).To(ContainSubstring("ssh.NewConnection.ParsePrivateKey failed"))
-					})
-
-					By("not printing a stack trace", func() {
-						Expect(sessionOutput).NotTo(ContainSubstring("main.go"))
-					})
-
-					By("saving the stack trace into a file", func() {
-						files, err := filepath.Glob(filepath.Join(backupWorkspace, "bbr-*.err.log"))
-						Expect(err).NotTo(HaveOccurred())
-						logFilePath := files[0]
-						_, err = os.Stat(logFilePath)
-						Expect(os.IsNotExist(err)).To(BeFalse())
-						stackTrace, err := ioutil.ReadFile(logFilePath)
-						Expect(err).ToNot(HaveOccurred())
-						Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
-					})
-				})
-			})
-		})
 	})
 
 	Context("bbr with no arguments", func() {

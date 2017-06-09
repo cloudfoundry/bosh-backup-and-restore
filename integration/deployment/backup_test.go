@@ -15,6 +15,8 @@ import (
 
 	"time"
 
+	"regexp"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/pivotal-cf/bosh-backup-and-restore/integration"
@@ -27,6 +29,28 @@ var _ = Describe("Backup", func() {
 	var deploymentName string
 	var downloadManifest bool
 	var instance1 *testcluster.Instance
+
+	possibleBackupDirectories := func() []string {
+		dirs, err := ioutil.ReadDir(backupWorkspace)
+		Expect(err).NotTo(HaveOccurred())
+		backupDirectoryPattern := regexp.MustCompile(`\b` + deploymentName + `_(\d){8}T(\d){6}Z\b`)
+
+		matches := []string{}
+		for _, dir := range dirs {
+			dirName := dir.Name()
+			if backupDirectoryPattern.MatchString(dirName) {
+				matches = append(matches, dirName)
+			}
+		}
+		return matches
+	}
+
+	backupDirectory := func() string {
+		matches := possibleBackupDirectories()
+
+		Expect(matches).To(HaveLen(1), "backup directory not found")
+		return path.Join(backupWorkspace, matches[0])
+	}
 
 	BeforeEach(func() {
 		deploymentName = "my-little-deployment"
@@ -63,6 +87,7 @@ var _ = Describe("Backup", func() {
 			[]string{"BOSH_CLIENT_SECRET=admin"},
 			params...,
 		)
+
 	})
 
 	Context("When there is a deployment which has one instance", func() {
@@ -89,9 +114,11 @@ set -u
 printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
 printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 `)
+			})
 
-				metadataFile = path.Join(backupWorkspace, deploymentName, "/metadata")
-				redisNodeArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0-redis.tar")
+			JustBeforeEach(func() {
+				metadataFile = path.Join(backupDirectory(), "metadata")
+				redisNodeArtifactFile = path.Join(backupDirectory(), "/redis-dedicated-node-0-redis.tar")
 			})
 
 			Context("and we don't ask for the manifest to be downloaded", func() {
@@ -102,6 +129,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 						CleanupSSH(deploymentName, "redis-dedicated-node"))
 				})
+
 				It("successfully backs up the deployment", func() {
 
 					By("not running non-existent pre-backup scripts")
@@ -111,7 +139,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 
 					By("creating a backup directory which contains a backup artifact and a metadata file", func() {
-						Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
+						Expect(backupDirectory()).To(BeADirectory())
 						Expect(redisNodeArtifactFile).To(BeARegularFile())
 						Expect(metadataFile).To(BeARegularFile())
 					})
@@ -180,9 +208,13 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 echo "---
 backup_name: custom_backup_named_redis
 "`)
-						redisCustomArtifactFile = path.Join(backupWorkspace, deploymentName, "/custom_backup_named_redis.tar")
-						redisDefaultArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0-redis.tar")
 					})
+
+					JustBeforeEach(func() {
+						redisCustomArtifactFile = path.Join(backupDirectory(), "/custom_backup_named_redis.tar")
+						redisDefaultArtifactFile = path.Join(backupDirectory(), "/redis-dedicated-node-0-redis.tar")
+					})
+
 					It("creates a named artifact", func() {
 						By("runs the metadata scripts", func() {
 							Expect(instance1.FileExists("/tmp/metadata-script-was-run")).To(BeTrue())
@@ -375,8 +407,8 @@ exit 1`)
 				})
 
 				It("downloads the manifest", func() {
-					Expect(path.Join(backupWorkspace, deploymentName, "manifest.yml")).To(BeARegularFile())
-					Expect(ioutil.ReadFile(path.Join(backupWorkspace, deploymentName, "manifest.yml"))).To(Equal([]byte("this is a totally valid yaml")))
+					Expect(path.Join(backupDirectory(), "manifest.yml")).To(BeARegularFile())
+					Expect(ioutil.ReadFile(path.Join(backupDirectory(), "manifest.yml"))).To(Equal([]byte("this is a totally valid yaml")))
 				})
 			})
 		})
@@ -404,15 +436,17 @@ printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
 printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 `)
 
-				metadataFile = path.Join(backupWorkspace, deploymentName, "/metadata")
-				redisNodeArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0-redis.tar")
-				brokerArtifactFile = path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0-broker.tar")
-
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					CleanupSSH(deploymentName, "redis-dedicated-node"))
+			})
+
+			JustBeforeEach(func() {
+				metadataFile = path.Join(backupDirectory(), "/metadata")
+				redisNodeArtifactFile = path.Join(backupDirectory(), "/redis-dedicated-node-0-redis.tar")
+				brokerArtifactFile = path.Join(backupDirectory(), "/redis-dedicated-node-0-broker.tar")
 			})
 
 			Context("and there are no pre-backup scripts", func() {
@@ -422,7 +456,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				})
 
 				It("creates a backup directory which contains the backup artifacts and a metadata file", func() {
-					Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
+					Expect(backupDirectory()).To(BeADirectory())
 					Expect(redisNodeArtifactFile).To(BeARegularFile())
 					Expect(brokerArtifactFile).To(BeARegularFile())
 					Expect(metadataFile).To(BeARegularFile())
@@ -491,7 +525,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				Expect(session.ExitCode()).NotTo(BeZero(), "returns a non-zero exit code")
 				Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment '"+deploymentName+"' has no backup scripts"),
 					"prints an error")
-				Expect(path.Join(backupWorkspace, deploymentName)).NotTo(BeADirectory(), "does not create a backup on disk")
+				Expect(possibleBackupDirectories()).To(HaveLen(0), "does not create a backup on disk")
 			})
 		})
 
@@ -575,7 +609,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				})
 
 				By("creating a backup on disk", func() {
-					Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
+					Expect(backupDirectory()).To(BeADirectory())
 				})
 			})
 
@@ -604,30 +638,6 @@ echo "not valid yaml
 
 				By("exiting with the correct error code", func() {
 					Expect(session).To(gexec.Exit(1))
-				})
-			})
-
-		})
-
-		Context("when the artifact exists locally", func() {
-			BeforeEach(func() {
-				director.VerifyAndMock(mockbosh.Info().WithAuthTypeBasic())
-				deploymentName = "already-backed-up-deployment"
-				err := os.Mkdir(path.Join(backupWorkspace, deploymentName), 0777)
-				Expect(err).ToNot(HaveOccurred())
-			})
-
-			It("fails and prints an error", func() {
-				By("returning a non-zero exit code", func() {
-					Expect(session.ExitCode()).NotTo(BeZero())
-				})
-
-				By("printing an error", func() {
-					Expect(string(session.Err.Contents())).To(
-						ContainSubstring(
-							fmt.Sprintf("artifact %s already exists", deploymentName),
-						),
-					)
 				})
 			})
 
@@ -676,9 +686,9 @@ echo "not valid yaml
 
 			It("backs up deployment successfully", func() {
 				Expect(session.ExitCode()).To(BeZero())
-				Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
-				Expect(path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0-redis.tar")).To(BeARegularFile())
-				Expect(path.Join(backupWorkspace, deploymentName, "/redis-broker-0-redis.tar")).ToNot(BeAnExistingFile())
+				Expect(backupDirectory()).To(BeADirectory())
+				Expect(path.Join(backupDirectory(), "/redis-dedicated-node-0-redis.tar")).To(BeARegularFile())
+				Expect(path.Join(backupDirectory(), "/redis-broker-0-redis.tar")).ToNot(BeAnExistingFile())
 			})
 		})
 
@@ -716,9 +726,9 @@ echo "not valid yaml
 			It("backs up both instances and prints process to the screen", func() {
 				By("backing up both instances successfully", func() {
 					Expect(session.ExitCode()).To(BeZero())
-					Expect(path.Join(backupWorkspace, deploymentName)).To(BeADirectory())
-					Expect(path.Join(backupWorkspace, deploymentName, "/redis-dedicated-node-0-redis.tar")).To(BeARegularFile())
-					Expect(path.Join(backupWorkspace, deploymentName, "/redis-broker-0-redis.tar")).To(BeARegularFile())
+					Expect(backupDirectory()).To(BeADirectory())
+					Expect(path.Join(backupDirectory(), "/redis-dedicated-node-0-redis.tar")).To(BeARegularFile())
+					Expect(path.Join(backupDirectory(), "/redis-broker-0-redis.tar")).To(BeARegularFile())
 				})
 
 				By("printing the backup progress to the screen", func() {
@@ -798,7 +808,7 @@ backup_name: duplicate_name
 
 			It("fails correctly, and doesn't create artifacts", func() {
 				By("not creating a file with the duplicated backup name", func() {
-					Expect(path.Join(backupWorkspace, deploymentName, "/duplicate_name.tar")).NotTo(BeARegularFile())
+					Expect(len(possibleBackupDirectories())).To(Equal(0))
 				})
 
 				By("refusing to perform backup", func() {

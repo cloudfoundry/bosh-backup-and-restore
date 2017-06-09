@@ -18,7 +18,7 @@ var _ = Describe("Restores a deployment", func() {
 		"redis":       {"0", "1"},
 		"other-redis": {"0"},
 	}
-	var backupName = "redis-backup-2017-05-02.13.25.36"
+	var backupName = "redis-backup_20170502T132536Z"
 
 	It("restores", func() {
 		By("setting up the jump box")

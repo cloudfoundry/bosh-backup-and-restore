@@ -22,11 +22,16 @@ import (
 
 var _ = Describe("BackupDirectory", func() {
 	var backupName string
+	var deploymentName string
 	var backupDirectoryManager = BackupDirectoryManager{}
 	var logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter, GinkgoWriter)
+	var nowFunc = func() time.Time {
+		return time.Date(2015, 10, 21, 02, 2, 3, 0, time.FixedZone("UTC+1", 3600))
+	}
 
 	BeforeEach(func() {
-		backupName = fmt.Sprintf("my-cool-redis-%d", config.GinkgoConfig.ParallelNode)
+		deploymentName = fmt.Sprintf("my-cool-redis-%d", config.GinkgoConfig.ParallelNode)
+		backupName = deploymentName + "_20151021T010203Z"
 	})
 
 	AfterEach(func() {
@@ -296,7 +301,7 @@ instances:
 		var fakeBackupArtifact *fakes.FakeBackupArtifact
 
 		BeforeEach(func() {
-			artifact, _ = backupDirectoryManager.Create(backupName, logger)
+			artifact, _ = backupDirectoryManager.Create(deploymentName, logger, nowFunc)
 			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
 			fakeBackupArtifact.InstanceNameReturns("redis-server")
 			fakeBackupArtifact.InstanceIndexReturns("0")
@@ -358,9 +363,15 @@ instances:
 	Describe("SaveManifest", func() {
 		var artifact orchestrator.Backup
 		var saveManifestError error
+
 		BeforeEach(func() {
-			artifact, _ = backupDirectoryManager.Create(backupName, logger)
+			artifact, _ = backupDirectoryManager.Create(deploymentName, logger, nowFunc)
 		})
+
+		AfterEach(func() {
+			Expect(os.RemoveAll(backupName)).To(Succeed())
+		})
+
 		JustBeforeEach(func() {
 			saveManifestError = artifact.SaveManifest("contents")
 		})
@@ -462,7 +473,7 @@ instances:
 			fakeBackupArtifact.InstanceIndexReturns("0")
 		})
 		JustBeforeEach(func() {
-			artifact, _ = backupDirectoryManager.Create(backupName, logger)
+			artifact, _ = backupDirectoryManager.Create(deploymentName, logger, nowFunc)
 		})
 		Context("file exists", func() {
 			Context("default artifact", func() {
@@ -557,7 +568,7 @@ instances:
 		var startTime time.Time
 
 		BeforeEach(func() {
-			artifact, _ = backupDirectoryManager.Create(backupName, logger)
+			artifact, _ = backupDirectoryManager.Create(deploymentName, logger, nowFunc)
 			startTime = time.Date(2015, 10, 21, 1, 2, 3, 0, time.UTC)
 			Expect(artifact.CreateMetadataFileWithStartTime(startTime)).To(Succeed())
 			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
@@ -879,7 +890,7 @@ instances:
 
 		BeforeEach(func() {
 			var err error
-			artifact, err = backupDirectoryManager.Create(backupName, logger)
+			artifact, err = backupDirectoryManager.Create(deploymentName, logger, nowFunc)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -909,13 +920,13 @@ backup_activity:
 
 		BeforeEach(func() {
 			var err error
-			artifact, err = backupDirectoryManager.Create(backupName, logger)
+			artifact, err = backupDirectoryManager.Create(deploymentName, logger, nowFunc)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
 		Context("when no metadata file exists", func() {
 			It("returns an error", func() {
-				Expect(artifact.AddFinishTime(time.Now())).To(MatchError(ContainSubstring("unable to load metadata")))
+				Expect(artifact.AddFinishTime(nowFunc())).To(MatchError(ContainSubstring("unable to load metadata")))
 			})
 		})
 
@@ -937,10 +948,10 @@ backup_activity:
 	})
 })
 
-func createTestMetadata(deploymentName, metadata string) {
-	Expect(os.MkdirAll(deploymentName, 0777)).To(Succeed())
+func createTestMetadata(backupDirectory string, metadata string) {
+	Expect(os.MkdirAll(backupDirectory, 0777)).To(Succeed())
 
-	file, err := os.Create(deploymentName + "/" + "metadata")
+	file, err := os.Create(backupDirectory + "/" + "metadata")
 	Expect(err).NotTo(HaveOccurred())
 
 	_, err = file.Write([]byte(metadata))

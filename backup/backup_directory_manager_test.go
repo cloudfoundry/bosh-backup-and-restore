@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
@@ -11,26 +13,31 @@ import (
 )
 
 var _ = Context("BackupManager", func() {
-	var artifactName string
-	var artifactManager = BackupDirectoryManager{}
+	var deploymentName string
+	var backupName string
+	var backupManager = BackupDirectoryManager{}
 	var err error
+	fakeClock := func() time.Time {
+		return time.Date(2015, 10, 21, 02, 2, 3, 0, time.FixedZone("UTC+1", 3600))
+	}
 
 	BeforeEach(func() {
-		artifactName = fmt.Sprintf("my-cool-redis-%d", config.GinkgoConfig.ParallelNode)
+		deploymentName = fmt.Sprintf("my-cool-redis-%d", config.GinkgoConfig.ParallelNode)
+		backupName = deploymentName + "_20151021T010203Z"
 	})
 
 	AfterEach(func() {
-		Expect(os.RemoveAll(artifactName)).To(Succeed())
+		Expect(os.RemoveAll(backupName)).To(Succeed())
 	})
 
 	Describe("Create", func() {
 		JustBeforeEach(func() {
-			_, err = artifactManager.Create(artifactName, nil)
+			_, err = backupManager.Create(deploymentName, nil, fakeClock)
 		})
 
 		Context("when the directory exists", func() {
 			BeforeEach(func() {
-				Expect(os.MkdirAll(artifactName, 0777)).To(Succeed())
+				Expect(os.MkdirAll(backupName, 0777)).To(Succeed())
 			})
 
 			It("returns an error", func() {
@@ -41,7 +48,7 @@ var _ = Context("BackupManager", func() {
 		Context("when the directory doesnt exist", func() {
 			It("creates a directory with the given name", func() {
 				Expect(err).NotTo(HaveOccurred())
-				Expect(artifactName).To(BeADirectory())
+				Expect(backupName).To(BeADirectory())
 			})
 		})
 	})
@@ -49,40 +56,50 @@ var _ = Context("BackupManager", func() {
 	Describe("Open", func() {
 		Context("when the directory exists", func() {
 			BeforeEach(func() {
-				err := os.MkdirAll(artifactName, 0700)
+				err := os.MkdirAll(backupName, 0700)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("does not create a directory", func() {
-				_, err := artifactManager.Open(artifactName, nil)
+				_, err := backupManager.Open(backupName, nil)
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
 
 		Context("when the directory does not exist", func() {
 			It("fails", func() {
-				Expect(artifactName).NotTo(BeADirectory())
-				_, err := artifactManager.Open(artifactName, nil)
+				_, err := backupManager.Open(backupName, nil)
 				Expect(err).To(MatchError(ContainSubstring("failed opening the directory")))
+				Expect(backupName).NotTo(BeADirectory())
 			})
 		})
 	})
 
 	Describe("Exists", func() {
+		var exists bool
+
+		JustBeforeEach(func() {
+			exists = backupManager.Exists(backupName)
+		})
+
 		Context("when the artifact exists", func() {
 			BeforeEach(func() {
-				Expect(os.MkdirAll(artifactName, 0777)).To(Succeed())
+				Expect(os.MkdirAll(backupName, 0777)).To(Succeed())
 			})
 
 			It("returns true", func() {
-				Expect(artifactManager.Exists(artifactName)).To(BeTrue())
+				Expect(backupManager.Exists(backupName)).To(BeTrue())
 			})
 		})
 
 		Context("when the artifact doesn't exist", func() {
 			It("returns false", func() {
-				Expect(artifactManager.Exists(artifactName)).To(BeFalse())
+				Expect(backupManager.Exists(backupName)).To(BeFalse())
 			})
 		})
+	})
+
+	AfterEach(func() {
+		Expect(os.RemoveAll(backupName)).To(Succeed())
 	})
 })

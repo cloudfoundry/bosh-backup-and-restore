@@ -180,6 +180,10 @@ func JumpboxDeploymentManifest() string {
 	return "../../fixtures/jumpbox.yml"
 }
 
+func BackupDirWithTimestamp(deploymentName string) string {
+	return fmt.Sprintf("%s_*T*Z", deploymentName)
+}
+
 func testEnv() string {
 	return MustHaveEnv("TEST_ENV")
 }
