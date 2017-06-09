@@ -65,7 +65,7 @@ var _ = Describe("backup", func() {
 				fmt.Sprintf("ls %s", workspaceDir),
 			)
 			Eventually(session).Should(gexec.Exit(0))
-			Expect(session.Out.Contents()).To(MatchRegexp(`\bredis-dev-2_(\d){8}T(\d){6}Z\b`))
+			Expect(string(session.Out.Contents())).To(MatchRegexp(`\b` + RedisDeployment() + `_(\d){8}T(\d){6}Z\b`))
 		})
 
 		By("creating the backup artifacts locally")
