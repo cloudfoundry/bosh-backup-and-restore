@@ -14,8 +14,7 @@ watch:
 test-ci: setup test
 
 test-unit:
-	ginkgo -p -r -skipPackage integration,system,backup
-	ginkgo -r backup # the backup package tests can't be run in parallel at the moment :(
+	ginkgo -p -r -skipPackage integration,system
 
 test-integration:
 	ginkgo -r -trace integration

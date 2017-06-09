@@ -16,13 +16,18 @@ import (
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator/fakes"
 
 	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("BackupDirectory", func() {
-	var backupName = "my-cool-redis"
+	var backupName string
 	var backupDirectoryManager = BackupDirectoryManager{}
 	var logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter, GinkgoWriter)
+
+	BeforeEach(func() {
+		backupName = fmt.Sprintf("my-cool-redis-%d", config.GinkgoConfig.ParallelNode)
+	})
 
 	AfterEach(func() {
 		Expect(os.RemoveAll(backupName)).To(Succeed())
@@ -34,7 +39,6 @@ var _ = Describe("BackupDirectory", func() {
 		var instance2 *fakes.FakeInstance
 
 		BeforeEach(func() {
-			backupName = "my-cool-redis"
 			instance1 = new(fakes.FakeInstance)
 			instance1.NameReturns("redis")
 			instance1.IndexReturns("0")
@@ -355,7 +359,6 @@ instances:
 		var artifact orchestrator.Backup
 		var saveManifestError error
 		BeforeEach(func() {
-			backupName = "foo-bar"
 			artifact, _ = backupDirectoryManager.Create(backupName, logger)
 		})
 		JustBeforeEach(func() {
