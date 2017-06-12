@@ -52,6 +52,14 @@ var _ = Describe("Backup", func() {
 		return path.Join(backupWorkspace, matches[0])
 	}
 
+	metadataFile := func() string {
+		return path.Join(backupDirectory(), "metadata")
+	}
+
+	artifactFile := func(name string) string {
+		return path.Join(backupDirectory(), name)
+	}
+
 	BeforeEach(func() {
 		deploymentName = "my-little-deployment"
 		downloadManifest = false
@@ -91,9 +99,6 @@ var _ = Describe("Backup", func() {
 	})
 
 	Context("When there is a deployment which has one instance", func() {
-		var metadataFile string
-		var redisNodeArtifactFile string
-
 		singleInstanceResponse := func(instanceGroupName string) []mockbosh.VMsOutput {
 			return []mockbosh.VMsOutput{
 				{
@@ -116,11 +121,6 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 `)
 			})
 
-			JustBeforeEach(func() {
-				metadataFile = path.Join(backupDirectory(), "metadata")
-				redisNodeArtifactFile = path.Join(backupDirectory(), "/redis-dedicated-node-0-redis.tar")
-			})
-
 			Context("and we don't ask for the manifest to be downloaded", func() {
 				BeforeEach(func() {
 					MockDirectorWith(director,
@@ -131,21 +131,23 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				})
 
 				It("successfully backs up the deployment", func() {
-
 					By("not running non-existent pre-backup scripts")
 
 					By("exiting zero", func() {
 						Expect(session.ExitCode()).To(BeZero())
 					})
 
+					var redisNodeArchivePath string
+
 					By("creating a backup directory which contains a backup artifact and a metadata file", func() {
+						redisNodeArchivePath = artifactFile("redis-dedicated-node-0-redis.tar")
 						Expect(backupDirectory()).To(BeADirectory())
-						Expect(redisNodeArtifactFile).To(BeARegularFile())
-						Expect(metadataFile).To(BeARegularFile())
+						Expect(redisNodeArchivePath).To(BeARegularFile())
+						Expect(metadataFile()).To(BeARegularFile())
 					})
 
 					By("having successfully run the backup script, using the $BBR_ARTIFACT_DIRECTORY variable", func() {
-						archive := OpenTarArchive(redisNodeArtifactFile)
+						archive := OpenTarArchive(redisNodeArchivePath)
 
 						Expect(archive.Files()).To(ConsistOf("backupdump1", "backupdump2"))
 						Expect(archive.FileContents("backupdump1")).To(Equal("backupcontent1"))
@@ -153,7 +155,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 
 					By("correctly populating the metadata file", func() {
-						metadataContents := ParseMetadata(metadataFile)
+						metadataContents := ParseMetadata(metadataFile())
 
 						currentTimezone, _ := time.Now().Zone()
 						Expect(metadataContents.BackupActivityMetadata.StartTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
@@ -233,9 +235,7 @@ backup_name: custom_backup_named_redis
 						})
 
 						By("recording the artifact as a custom artifact in the backup metadata", func() {
-							Expect(metadataFile).To(BeARegularFile())
-
-							metadataContents := ParseMetadata(metadataFile)
+							metadataContents := ParseMetadata(metadataFile())
 
 							currentTimezone, _ := time.Now().Zone()
 							Expect(metadataContents.BackupActivityMetadata.StartTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
@@ -414,8 +414,6 @@ exit 1`)
 		})
 
 		Context("when there is a multiple plausible backup scripts", func() {
-			var brokerArtifactFile string
-
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				By("creating a dummy backup script")
@@ -443,68 +441,65 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					CleanupSSH(deploymentName, "redis-dedicated-node"))
 			})
 
-			JustBeforeEach(func() {
-				metadataFile = path.Join(backupDirectory(), "/metadata")
-				redisNodeArtifactFile = path.Join(backupDirectory(), "/redis-dedicated-node-0-redis.tar")
-				brokerArtifactFile = path.Join(backupDirectory(), "/redis-dedicated-node-0-broker.tar")
-			})
-
 			Context("and there are no pre-backup scripts", func() {
+				It("successfully backs up the deployment", func() {
+					By("exiting zero", func() {
+						Expect(session.ExitCode()).To(BeZero())
+					})
 
-				It("exits zero", func() {
-					Expect(session.ExitCode()).To(BeZero())
-				})
+					var redisNodeArchivePath, brokerArchivePath string
+					By("creating a backup directory which contains the backup artifacts and a metadata file", func() {
+						Expect(backupDirectory()).To(BeADirectory())
+						redisNodeArchivePath = artifactFile("redis-dedicated-node-0-redis.tar")
+						brokerArchivePath = artifactFile("redis-dedicated-node-0-broker.tar")
+						Expect(redisNodeArchivePath).To(BeARegularFile())
+						Expect(brokerArchivePath).To(BeARegularFile())
+						Expect(metadataFile()).To(BeARegularFile())
+					})
 
-				It("creates a backup directory which contains the backup artifacts and a metadata file", func() {
-					Expect(backupDirectory()).To(BeADirectory())
-					Expect(redisNodeArtifactFile).To(BeARegularFile())
-					Expect(brokerArtifactFile).To(BeARegularFile())
-					Expect(metadataFile).To(BeARegularFile())
-				})
+					By("including the backup files from the instance", func() {
+						redisNodeArchive := OpenTarArchive(redisNodeArchivePath)
+						Expect(redisNodeArchive.Files()).To(ConsistOf("backupdump1", "backupdump2"))
+						Expect(redisNodeArchive.FileContents("backupdump1")).To(Equal("backupcontent1"))
+						Expect(redisNodeArchive.FileContents("backupdump2")).To(Equal("backupcontent2"))
 
-				It("the backup artifacts contains the backup files from the instance", func() {
-					redisNodeArchive := OpenTarArchive(redisNodeArtifactFile)
-					Expect(redisNodeArchive.Files()).To(ConsistOf("backupdump1", "backupdump2"))
-					Expect(redisNodeArchive.FileContents("backupdump1")).To(Equal("backupcontent1"))
-					Expect(redisNodeArchive.FileContents("backupdump2")).To(Equal("backupcontent2"))
+						brokerArchive := OpenTarArchive(brokerArchivePath)
+						Expect(brokerArchive.Files()).To(ConsistOf("backupdump1", "backupdump2"))
+						Expect(brokerArchive.FileContents("backupdump1")).To(Equal("backupcontent1"))
+						Expect(brokerArchive.FileContents("backupdump2")).To(Equal("backupcontent2"))
+					})
 
-					brokerArchive := OpenTarArchive(brokerArtifactFile)
-					Expect(brokerArchive.Files()).To(ConsistOf("backupdump1", "backupdump2"))
-					Expect(brokerArchive.FileContents("backupdump1")).To(Equal("backupcontent1"))
-					Expect(brokerArchive.FileContents("backupdump2")).To(Equal("backupcontent2"))
-				})
+					By("correctly populating the metadata file", func() {
+						metadataContents := ParseMetadata(metadataFile())
 
-				It("the metadata file is correct", func() {
-					metadataContents := ParseMetadata(metadataFile)
+						currentTimezone, _ := time.Now().Zone()
+						Expect(metadataContents.BackupActivityMetadata.StartTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
+						Expect(metadataContents.BackupActivityMetadata.FinishTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
 
-					currentTimezone, _ := time.Now().Zone()
-					Expect(metadataContents.BackupActivityMetadata.StartTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
-					Expect(metadataContents.BackupActivityMetadata.FinishTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
+						Expect(metadataContents.InstancesMetadata).To(HaveLen(1))
+						Expect(metadataContents.InstancesMetadata[0].InstanceName).To(Equal("redis-dedicated-node"))
+						Expect(metadataContents.InstancesMetadata[0].InstanceIndex).To(Equal("0"))
 
-					Expect(metadataContents.InstancesMetadata).To(HaveLen(1))
-					Expect(metadataContents.InstancesMetadata[0].InstanceName).To(Equal("redis-dedicated-node"))
-					Expect(metadataContents.InstancesMetadata[0].InstanceIndex).To(Equal("0"))
+						redisArtifact := metadataContents.InstancesMetadata[0].FindArtifact("redis")
+						Expect(redisArtifact.Name).To(Equal("redis"))
+						Expect(redisArtifact.Checksums).To(HaveLen(2))
+						Expect(redisArtifact.Checksums["./backupdump1"]).To(Equal(ShaFor("backupcontent1")))
+						Expect(redisArtifact.Checksums["./backupdump2"]).To(Equal(ShaFor("backupcontent2")))
 
-					redisArtifact := metadataContents.InstancesMetadata[0].FindArtifact("redis")
-					Expect(redisArtifact.Name).To(Equal("redis"))
-					Expect(redisArtifact.Checksums).To(HaveLen(2))
-					Expect(redisArtifact.Checksums["./backupdump1"]).To(Equal(ShaFor("backupcontent1")))
-					Expect(redisArtifact.Checksums["./backupdump2"]).To(Equal(ShaFor("backupcontent2")))
+						brokerArtifact := metadataContents.InstancesMetadata[0].FindArtifact("broker")
+						Expect(brokerArtifact.Name).To(Equal("broker"))
+						Expect(brokerArtifact.Checksums).To(HaveLen(2))
+						Expect(brokerArtifact.Checksums["./backupdump1"]).To(Equal(ShaFor("backupcontent1")))
+						Expect(brokerArtifact.Checksums["./backupdump2"]).To(Equal(ShaFor("backupcontent2")))
 
-					brokerArtifact := metadataContents.InstancesMetadata[0].FindArtifact("broker")
-					Expect(brokerArtifact.Name).To(Equal("broker"))
-					Expect(brokerArtifact.Checksums).To(HaveLen(2))
-					Expect(brokerArtifact.Checksums["./backupdump1"]).To(Equal(ShaFor("backupcontent1")))
-					Expect(brokerArtifact.Checksums["./backupdump2"]).To(Equal(ShaFor("backupcontent2")))
+						Expect(metadataContents.CustomArtifactsMetadata).To(BeEmpty())
+					})
 
-					Expect(metadataContents.CustomArtifactsMetadata).To(BeEmpty())
-				})
-
-				It("cleans up backup artifacts from remote", func() {
-					Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
+					By("cleaning up backup artifacts from the remote", func() {
+						Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
+					})
 				})
 			})
-
 		})
 
 		Context("when a deployment can't be backed up", func() {
