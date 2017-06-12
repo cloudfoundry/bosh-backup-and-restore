@@ -28,6 +28,7 @@ var _ = Describe("Backup", func() {
 	var session *gexec.Session
 	var deploymentName string
 	var downloadManifest bool
+	var waitForBackupToFinish bool
 	var instance1 *testcluster.Instance
 
 	possibleBackupDirectories := func() []string {
@@ -63,6 +64,7 @@ var _ = Describe("Backup", func() {
 	BeforeEach(func() {
 		deploymentName = "my-little-deployment"
 		downloadManifest = false
+		waitForBackupToFinish = true
 		director = mockbosh.NewTLS()
 		director.ExpectedBasicAuth("admin", "admin")
 		var err error
@@ -77,6 +79,8 @@ var _ = Describe("Backup", func() {
 	})
 
 	JustBeforeEach(func() {
+		env := []string{"BOSH_CLIENT_SECRET=admin"}
+
 		params := []string{
 			"deployment",
 			"--ca-cert", sslCertPath,
@@ -90,12 +94,20 @@ var _ = Describe("Backup", func() {
 			params = append(params, "--with-manifest")
 		}
 
-		session = binary.Run(
-			backupWorkspace,
-			[]string{"BOSH_CLIENT_SECRET=admin"},
-			params...,
-		)
-
+		if waitForBackupToFinish {
+			session = binary.Run(
+				backupWorkspace,
+				env,
+				params...,
+			)
+		} else {
+			session = binary.Start(
+				backupWorkspace,
+				env,
+				params...,
+			)
+			Eventually(session).Should(gbytes.Say(".+"))
+		}
 	})
 
 	Context("When there is a deployment which has one instance", func() {
@@ -119,6 +131,52 @@ set -u
 printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
 printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 `)
+			})
+
+			Context("and the bbr process receives SIGINT while backing up", func() {
+				BeforeEach(func() {
+					waitForBackupToFinish = false
+
+					MockDirectorWith(director,
+						mockbosh.Info().WithAuthTypeBasic(),
+						VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
+						SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
+						CleanupSSH(deploymentName, "redis-dedicated-node"))
+
+					By("creating a backup script that takes a while")
+					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
+
+			set -u
+
+			sleep 4
+
+			printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
+			`)
+				})
+
+				It("continues to run and explains itself", func() {
+					session.Interrupt()
+
+					By("not terminating", func() {
+						time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
+						Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
+					})
+
+					By("outputting a helpful message", func() {
+						Eventually(session).Should(gbytes.Say("Stopping a backup can leave the system in bad state. If you absolutely need to stop the backup, send SIGKILL."))
+					})
+
+					By("waiting for the backup to finish successfully", func() {
+						Eventually(session, 10).Should(gexec.Exit(0))
+					})
+
+					By("still completing the backup", func() {
+						archive := OpenTarArchive(artifactFile("redis-dedicated-node-0-redis.tar"))
+
+						Expect(archive.Files()).To(ConsistOf("backupdump1"))
+						Expect(archive.FileContents("backupdump1")).To(Equal("backupcontent1"))
+					})
+				})
 			})
 
 			Context("and we don't ask for the manifest to be downloaded", func() {

@@ -28,7 +28,7 @@ func NewBinary(path string) Binary {
 	return Binary{path: path, runTimeout: 99999 * time.Hour}
 }
 
-func (b Binary) Run(cwd string, env []string, params ...string) *gexec.Session {
+func (b Binary) Start(cwd string, env []string, params ...string) *gexec.Session {
 	command := exec.Command(b.path, params...)
 	command.Env = env
 	command.Dir = cwd
@@ -36,10 +36,14 @@ func (b Binary) Run(cwd string, env []string, params ...string) *gexec.Session {
 	fmt.Fprintf(GinkgoWriter, "Command output start\n")
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ToNot(HaveOccurred())
+	return session
+}
+
+func (b Binary) Run(cwd string, env []string, params ...string) *gexec.Session {
+	session := b.Start(cwd, env, params...)
 	Eventually(session, b.runTimeout).Should(gexec.Exit())
 	fmt.Fprintf(GinkgoWriter, "Command output end\n")
 	fmt.Fprintf(GinkgoWriter, "Exited with %d\n", session.ExitCode())
-
 	return session
 }
 

@@ -16,6 +16,8 @@ import (
 
 	"net/url"
 
+	"os/signal"
+
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/mgutz/ansi"
 	"github.com/pivotal-cf/bosh-backup-and-restore/backup"
@@ -154,6 +156,16 @@ COPYRIGHT:
 	}
 }
 
+func trapSigint() {
+	sigintChan := make(chan os.Signal, 1)
+	signal.Notify(sigintChan, os.Interrupt)
+	go func() {
+		for range sigintChan {
+			fmt.Println("\nStopping a backup can leave the system in bad state. If you absolutely need to stop the backup, send SIGKILL.")
+		}
+	}()
+}
+
 func preBackupCheck(c *cli.Context) error {
 	var deployment = c.Parent().String("deployment")
 
@@ -192,13 +204,14 @@ func directorPreBackupCheck(c *cli.Context) error {
 }
 
 func deploymentBackup(c *cli.Context) error {
-	var deployment = c.Parent().String("deployment")
+	trapSigint()
 
 	backuper, err := makeDeploymentBackuper(c)
 	if err != nil {
 		return err
 	}
 
+	deployment := c.Parent().String("deployment")
 	backupErr := backuper.Backup(deployment)
 
 	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(backupErr)
