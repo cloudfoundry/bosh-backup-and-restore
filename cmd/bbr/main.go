@@ -94,7 +94,7 @@ COPYRIGHT:
 					Action:  deploymentRestore,
 					Flags: []cli.Flag{cli.StringFlag{
 						Name:  "artifact-path",
-						Usage: "Path to the backup to restore",
+						Usage: "Path to the artifact to restore",
 					}},
 				},
 			},
@@ -124,7 +124,7 @@ COPYRIGHT:
 					Action:  directorRestore,
 					Flags: []cli.Flag{cli.StringFlag{
 						Name:  "artifact-path",
-						Usage: "Path to the backup to restore",
+						Usage: "Path to the artifact to restore",
 					}},
 				},
 			},
@@ -230,14 +230,14 @@ func deploymentRestore(c *cli.Context) error {
 	}
 
 	deployment := c.Parent().String("deployment")
-	backupPath := c.String("artifact-path")
+	artifactPath := c.String("artifact-path")
 
 	restorer, err := makeDeploymentRestorer(c)
 	if err != nil {
 		return err
 	}
 
-	restoreErr := restorer.Restore(deployment, backupPath)
+	restoreErr := restorer.Restore(deployment, artifactPath)
 	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(restoreErr)
 	if err := writeStackTrace(errorWithStackTrace); err != nil {
 		return errors.Wrap(restoreErr, err.Error())
