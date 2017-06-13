@@ -83,6 +83,21 @@ func (c Connection) StreamStdin(cmd string, stdinReader io.Reader) (stdout, stde
 	return stdoutBuffer.Bytes(), stderrBuffer.Bytes(), exitCode, errors.Wrap(err, "ssh.StreamStdin failed")
 }
 
+type sessionClosingOnErrorWriter struct {
+	endGameWriter io.Writer
+	sshSession    *ssh.Session
+	writerError   error
+}
+
+func (w *sessionClosingOnErrorWriter) Write(data []byte) (int, error) {
+	n, err := w.endGameWriter.Write(data)
+	if err != nil {
+		w.writerError = err
+		w.sshSession.Close()
+	}
+	return n, err
+}
+
 func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.Reader) (int, error) {
 	connection, err := ssh.Dial("tcp", c.host, c.sshConfig)
 	if err != nil {
@@ -98,15 +113,20 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 	stopKeepAliveLoop := c.startKeepAliveLoop(session)
 	defer close(stopKeepAliveLoop)
 
+	stdoutWrappingWriter := &sessionClosingOnErrorWriter{endGameWriter: stdout, sshSession: session}
+
 	session.Stdin = stdin
-	session.Stdout = stdout
+	session.Stdout = stdoutWrappingWriter
 	session.Stderr = stderr
 
 	var exitCode int
 
 	err = session.Run(cmd)
-	if err == nil {
+
+	if err == nil && stdoutWrappingWriter.writerError == nil {
 		exitCode = 0
+	} else if stdoutWrappingWriter.writerError != nil {
+		return -1, errors.Wrap(stdoutWrappingWriter.writerError, "stdout.Write failed")
 	} else {
 		switch err := err.(type) {
 		case *ssh.ExitError:

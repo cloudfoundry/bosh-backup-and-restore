@@ -3,6 +3,7 @@ package ssh_test
 import (
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"io"
 	"log"
 
@@ -12,6 +13,8 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 
 	"runtime"
+
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -108,19 +111,19 @@ var _ = Describe("Connection", func() {
 		})
 
 		Describe("Stream", func() {
-			var writer *bytes.Buffer
+			var stdout io.Writer
 			var stdErr []byte
 			var exitCode int
 			var runError error
 			var command string
 			JustBeforeEach(func() {
 				Expect(connErr).NotTo(HaveOccurred())
-				stdErr, exitCode, runError = conn.Stream(command, writer)
+				stdErr, exitCode, runError = conn.Stream(command, stdout)
 			})
 			Context("success", func() {
 				BeforeEach(func() {
 					command = "/tmp/foo"
-					writer = bytes.NewBufferString("")
+					stdout = bytes.NewBufferString("")
 					instance1.CreateScript("/tmp/foo", `#!/usr/bin/env sh
 				echo "stdout"
 				echo "stderr" >&2
@@ -130,7 +133,7 @@ var _ = Describe("Connection", func() {
 					Expect(runError).NotTo(HaveOccurred())
 				})
 				It("writes stdout to the writer", func() {
-					Expect(writer.String()).To(ContainSubstring("stdout"))
+					Expect(stdout.(*bytes.Buffer).String()).To(ContainSubstring("stdout"))
 				})
 				It("drains stderr", func() {
 					Expect(string(stdErr)).To(ContainSubstring("stderr"))
@@ -287,9 +290,7 @@ var _ = Describe("Connection", func() {
 				echo "start"
 				sleep 4
 				echo "end"`)
-		})
 
-		JustBeforeEach(func() {
 			conn, connErr = ssh.NewConnectionWithServerAliveInterval(hostname, user, privateKey, gossh.InsecureIgnoreHostKey(), nil, 1, logger)
 			Expect(connErr).NotTo(HaveOccurred())
 
@@ -305,7 +306,54 @@ var _ = Describe("Connection", func() {
 			Expect(stdOut).To(ContainSubstring("end"))
 		})
 	})
+
+	Context("when streaming stdout from the server fails locally", func() {
+		var stdout io.Writer
+		var stdErr []byte
+		var runError error
+		var command string
+
+		BeforeEach(func() {
+			command = "echo 'about to sleep' && sleep 5 && >&2 echo 'error'"
+
+			stdout = errorWriter{errorMessage: "I am error"}
+
+			rapidKeepAliveSignalInterval := time.Duration(1)
+			conn, connErr = ssh.NewConnectionWithServerAliveInterval(
+				hostname,
+				user,
+				privateKey,
+				gossh.InsecureIgnoreHostKey(),
+				nil,
+				rapidKeepAliveSignalInterval,
+				logger)
+			Expect(connErr).NotTo(HaveOccurred())
+			stdErr, _, runError = conn.Stream(command, stdout)
+		})
+
+		It("does not hang forever", func() {
+			By("not continuing to run the command after receiving an error from the stdout writer", func() {
+				Expect(string(stdErr)).NotTo(ContainSubstring("error"))
+			})
+
+			By("returning the error", func() {
+				Expect(runError).To(MatchError(ContainSubstring("I am error")))
+			})
+
+			By("closing the ssh connection", func() {
+				Eventually(instance1.Run("ps", "auxwww")).ShouldNot(ContainSubstring(user))
+			})
+		})
+	})
 })
+
+type errorWriter struct {
+	errorMessage string
+}
+
+func (ew errorWriter) Write([]byte) (int, error) {
+	return 0, errors.New(ew.errorMessage)
+}
 
 func publicKeyForDocker(privateKey string) string {
 	parsedPrivateKey, err := gossh.ParsePrivateKey([]byte(privateKey))
