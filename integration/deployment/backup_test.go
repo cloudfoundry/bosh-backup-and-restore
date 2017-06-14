@@ -163,7 +163,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 
 					By("outputting a helpful message", func() {
-						Eventually(session).Should(gbytes.Say("Stopping a backup can leave the system in bad state. If you absolutely need to stop the backup, send SIGKILL."))
+						Eventually(session).Should(gbytes.Say("Stopping a backup can leave the system in bad state. If you absolutely need to stop the backup, send SIGTERM."))
 					})
 
 					By("waiting for the backup to finish successfully", func() {

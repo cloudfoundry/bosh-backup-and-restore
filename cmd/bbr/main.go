@@ -161,7 +161,7 @@ func trapSigint() {
 	signal.Notify(sigintChan, os.Interrupt)
 	go func() {
 		for range sigintChan {
-			fmt.Println("\nStopping a backup can leave the system in bad state. If you absolutely need to stop the backup, send SIGKILL.")
+			fmt.Println("\nStopping a backup can leave the system in bad state. If you absolutely need to stop the backup, send SIGTERM.")
 		}
 	}()
 }
