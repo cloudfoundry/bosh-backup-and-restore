@@ -16,15 +16,17 @@ import (
 
 	"fmt"
 
+	"regexp"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"regexp"
 )
 
 var _ = Describe("Backup", func() {
 	var backupWorkspace string
 	var session *gexec.Session
 	var directorAddress, directorIP string
+	var waitForBackupToFinish bool
 
 	possibleBackupDirectories := func() []string {
 		dirs, err := ioutil.ReadDir(backupWorkspace)
@@ -52,6 +54,7 @@ var _ = Describe("Backup", func() {
 		var err error
 		backupWorkspace, err = ioutil.TempDir(".", "backup-workspace-")
 		Expect(err).NotTo(HaveOccurred())
+		waitForBackupToFinish = true
 	})
 
 	AfterEach(func() {
@@ -59,16 +62,31 @@ var _ = Describe("Backup", func() {
 	})
 
 	JustBeforeEach(func() {
-		session = binary.Run(
-			backupWorkspace,
-			[]string{"BOSH_CLIENT_SECRET=admin"},
+		env := []string{"BOSH_CLIENT_SECRET=admin"}
+
+		params := []string{
 			"director",
 			"--host", directorAddress,
 			"--username", "foobar",
 			"--private-key-path", pathToPrivateKeyFile,
 			"--debug",
 			"backup",
-		)
+		}
+
+		if waitForBackupToFinish {
+			session = binary.Run(
+				backupWorkspace,
+				env,
+				params...,
+			)
+		} else {
+			session = binary.Start(
+				backupWorkspace,
+				env,
+				params...,
+			)
+			Eventually(session).Should(gbytes.Say(".+"))
+		}
 	})
 
 	Context("When there is a director instance", func() {
@@ -213,6 +231,47 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 				By("printing an error", func() {
 					Expect(string(session.Err.Contents())).To(ContainSubstring(fmt.Sprintf("Deployment '%s' has no backup scripts", directorIP)))
+				})
+			})
+		})
+
+		Context("and the bbr process receives SIGINT while backing up", func() {
+			BeforeEach(func() {
+				waitForBackupToFinish = false
+
+				By("creating a backup script that takes a while")
+				directorInstance.CreateScript("/var/vcap/jobs/bosh/bin/bbr/backup", `#!/usr/bin/env sh
+
+				set -u
+
+				sleep 4
+
+				printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
+				`)
+			})
+
+			It("continues to run and explains itself", func() {
+				session.Interrupt()
+
+				By("not terminating", func() {
+					time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
+					Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
+				})
+
+				By("outputting a helpful message", func() {
+					Eventually(session).Should(gbytes.Say("Stopping a backup can leave the system in bad state. If you absolutely need to stop the backup, send SIGKILL."))
+				})
+
+				By("waiting for the backup to finish successfully", func() {
+					Eventually(session, 10).Should(gexec.Exit(0))
+				})
+
+				By("still completing the backup", func() {
+					boshBackupFilePath := path.Join(backupDirectory(), "/bosh-0-bosh.tar")
+					archive := OpenTarArchive(boshBackupFilePath)
+
+					Expect(archive.Files()).To(ConsistOf("backupdump1"))
+					Expect(archive.FileContents("backupdump1")).To(Equal("backupcontent1"))
 				})
 			})
 		})

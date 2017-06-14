@@ -223,6 +223,8 @@ func deploymentBackup(c *cli.Context) error {
 }
 
 func directorBackup(c *cli.Context) error {
+	trapSigint()
+
 	directorName := ExtractNameFromAddress(c.Parent().String("host"))
 
 	backuper := makeDirectorBackuper(c)
