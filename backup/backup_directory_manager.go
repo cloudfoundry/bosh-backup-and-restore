@@ -21,8 +21,3 @@ func (BackupDirectoryManager) Open(name string, logger orchestrator.Logger) (orc
 	_, err := os.Stat(name)
 	return &BackupDirectory{baseDirName: name, Logger: logger}, errors.Wrap(err, "failed opening the directory")
 }
-
-func (BackupDirectoryManager) Exists(name string) bool {
-	_, err := os.Stat(name)
-	return !os.IsNotExist(err)
-}

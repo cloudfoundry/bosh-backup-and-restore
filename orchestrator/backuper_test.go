@@ -51,7 +51,6 @@ var _ = Describe("Backup", func() {
 	Context("backs up a deployment", func() {
 		BeforeEach(func() {
 			fakeBackupManager.CreateReturns(fakeBackup, nil)
-			fakeBackupManager.ExistsReturns(false)
 			deploymentManager.FindReturns(deployment, nil)
 			deployment.HasBackupScriptReturns(true)
 			deployment.HasUniqueCustomArtifactNamesReturns(true)
@@ -73,10 +72,6 @@ var _ = Describe("Backup", func() {
 			actualDeploymentName, actualArtifact := deploymentManager.SaveManifestArgsForCall(0)
 			Expect(actualDeploymentName).To(Equal(deploymentName))
 			Expect(actualArtifact).To(Equal(fakeBackup))
-		})
-
-		It("checks if the artifact already exists", func() {
-			Expect(fakeBackupManager.ExistsCallCount()).To(Equal(1))
 		})
 
 		It("checks if the deployment is backupable", func() {
@@ -132,20 +127,6 @@ var _ = Describe("Backup", func() {
 				Expect(actualBackupError).To(MatchError(ContainSubstring(cleanupError.Error())))
 			})
 		}
-
-		Context("when the artifact already exists", func() {
-			BeforeEach(func() {
-				fakeBackupManager.ExistsReturns(true)
-			})
-
-			It("fails the backup process", func() {
-				Expect(actualBackupError).To(
-					ConsistOf(
-						MatchError(fmt.Sprintf("artifact %s already exists", deploymentName)),
-					),
-				)
-			})
-		})
 
 		Context("fails to find deployment", func() {
 			BeforeEach(func() {
@@ -212,7 +193,6 @@ var _ = Describe("Backup", func() {
 
 			BeforeEach(func() {
 				fakeBackupManager.CreateReturns(fakeBackup, nil)
-				fakeBackupManager.ExistsReturns(false)
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.HasBackupScriptReturns(true)
 				deployment.HasUniqueCustomArtifactNamesReturns(true)
@@ -238,7 +218,6 @@ var _ = Describe("Backup", func() {
 			BeforeEach(func() {
 				unlockError = orchestrator.NewPostBackupUnlockError("lalalalala")
 				fakeBackupManager.CreateReturns(fakeBackup, nil)
-				fakeBackupManager.ExistsReturns(false)
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.HasBackupScriptReturns(true)
 				deployment.HasUniqueCustomArtifactNamesReturns(true)
@@ -487,7 +466,6 @@ var _ = Describe("CanBeBackedUp", func() {
 
 	Context("when the deployment can be backed up", func() {
 		BeforeEach(func() {
-			artifactManager.ExistsReturns(false)
 			deploymentManager.FindReturns(deployment, nil)
 			deployment.HasBackupScriptReturns(true)
 			deployment.HasUniqueCustomArtifactNamesReturns(true)
@@ -501,10 +479,6 @@ var _ = Describe("CanBeBackedUp", func() {
 		It("finds the deployment", func() {
 			Expect(deploymentManager.FindCallCount()).To(Equal(1))
 			Expect(deploymentManager.FindArgsForCall(0)).To(Equal(deploymentName))
-		})
-
-		It("checks if the artifact already exists", func() {
-			Expect(artifactManager.ExistsCallCount()).To(Equal(1))
 		})
 
 		It("checks if the deployment is backupable", func() {
@@ -522,7 +496,6 @@ var _ = Describe("CanBeBackedUp", func() {
 
 	Context("when the deployment doesn't exist", func() {
 		BeforeEach(func() {
-			artifactManager.ExistsReturns(false)
 			deploymentManager.FindReturns(nil, fmt.Errorf("deployment not found"))
 			deployment.HasBackupScriptReturns(true)
 			deployment.HasUniqueCustomArtifactNamesReturns(true)

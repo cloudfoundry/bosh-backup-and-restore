@@ -114,13 +114,6 @@ func (bw *backupWorkflow) Run() Error {
 func (bw *backupWorkflow) checkDeployment(e *fsm.Event) {
 	bw.Logger.Info("bbr", "Running pre-checks for backup of %s...\n", bw.deploymentName)
 
-	exists := bw.BackupManager.Exists(bw.deploymentName)
-	if exists {
-		bw.backupErrors = append(bw.backupErrors, errors.Errorf("artifact %s already exists", bw.deploymentName))
-		e.Cancel()
-		return
-	}
-
 	bw.Logger.Info("bbr", "Scripts found:")
 	deployment, err := bw.DeploymentManager.Find(bw.deploymentName)
 	if err != nil {

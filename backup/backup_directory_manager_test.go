@@ -75,30 +75,6 @@ var _ = Context("BackupManager", func() {
 		})
 	})
 
-	Describe("Exists", func() {
-		var exists bool
-
-		JustBeforeEach(func() {
-			exists = backupManager.Exists(backupName)
-		})
-
-		Context("when the artifact exists", func() {
-			BeforeEach(func() {
-				Expect(os.MkdirAll(backupName, 0777)).To(Succeed())
-			})
-
-			It("returns true", func() {
-				Expect(backupManager.Exists(backupName)).To(BeTrue())
-			})
-		})
-
-		Context("when the artifact doesn't exist", func() {
-			It("returns false", func() {
-				Expect(backupManager.Exists(backupName)).To(BeFalse())
-			})
-		})
-	})
-
 	AfterEach(func() {
 		Expect(os.RemoveAll(backupName)).To(Succeed())
 	})

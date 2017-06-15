@@ -9,7 +9,6 @@ import (
 type BackupManager interface {
 	Create(string, Logger, func() time.Time) (Backup, error)
 	Open(string, Logger) (Backup, error)
-	Exists(string) bool
 }
 
 //go:generate counterfeiter -o fakes/fake_backup.go . Backup
