@@ -3,7 +3,7 @@
 set -ex
 
 eval "$(ssh-agent)"
-github_ssh_key=$(mktmp)
+github_ssh_key=$(mktemp)
 echo "$GITHUB_SSH_KEY" > "$github_ssh_key"
 chmod 400 "$github_ssh_key"
 ssh-add "$github_ssh_key"
