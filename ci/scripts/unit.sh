@@ -3,9 +3,11 @@
 set -ex
 
 eval "$(ssh-agent)"
-./bosh-backup-and-restore-meta/unlock-ci.sh
-chmod 400 bosh-backup-and-restore-meta/keys/github
-ssh-add bosh-backup-and-restore-meta/keys/github
+github_ssh_key=$(mktmp)
+echo "$GITHUB_SSH_KEY" > "$github_ssh_key"
+chmod 400 "$github_ssh_key"
+ssh-add "$github_ssh_key"
+
 export GOPATH=$PWD
 export PATH=$PATH:$GOPATH/bin
 

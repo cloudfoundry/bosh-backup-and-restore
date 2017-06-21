@@ -8,11 +8,10 @@ image_resource:
 inputs:
 - name: bosh-backup-and-restore
   path: src/github.com/pivotal-cf/bosh-backup-and-restore
-- name: bosh-backup-and-restore-meta
 
 run:
   path: src/github.com/pivotal-cf/bosh-backup-and-restore/ci/scripts/unit.sh
 
 params:
-  TEAM_GPG_KEY:
   DOCKER_HOST:
+  GITHUB_SSH_KEY:
