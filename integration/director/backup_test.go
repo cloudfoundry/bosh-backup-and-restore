@@ -18,6 +18,8 @@ import (
 
 	"regexp"
 
+	"io"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -25,6 +27,7 @@ import (
 var _ = Describe("Backup", func() {
 	var backupWorkspace string
 	var session *gexec.Session
+	var stdin io.WriteCloser
 	var directorAddress, directorIP string
 	var waitForBackupToFinish bool
 
@@ -80,7 +83,7 @@ var _ = Describe("Backup", func() {
 				params...,
 			)
 		} else {
-			session = binary.Start(
+			session, stdin = binary.Start(
 				backupWorkspace,
 				env,
 				params...,
@@ -244,34 +247,64 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 				set -u
 
-				sleep 4
+				sleep 2
 
 				printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
 				`)
 			})
 
-			It("continues to run and explains itself", func() {
-				session.Interrupt()
+			Context("and the user decides to cancel the backup", func() {
+				It("terminates", func() {
+					session.Interrupt()
 
-				By("not terminating", func() {
-					time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
-					Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
+					By("not terminating", func() {
+						time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
+						Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
+					})
+
+					By("outputting a helpful message", func() {
+						Eventually(session).Should(gbytes.Say(`Stopping a backup can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
+					})
+
+					stdin.Write([]byte("yes\n"))
+
+					By("waiting for the backup to finish successfully", func() {
+						Eventually(session, 10).Should(gexec.Exit(1))
+					})
+
+					By("not completing the backup", func() {
+						boshBackupFilePath := path.Join(backupDirectory(), "/bosh-0-bosh.tar")
+						Expect(boshBackupFilePath).NotTo(BeAnExistingFile())
+					})
 				})
+			})
 
-				By("outputting a helpful message", func() {
-					Eventually(session).Should(gbytes.Say("Stopping a backup can leave the system in bad state. If you absolutely need to stop the backup, send SIGTERM."))
-				})
+			Context("and the user decides not to to cancel the backup", func() {
+				It("continues to run", func() {
+					session.Interrupt()
 
-				By("waiting for the backup to finish successfully", func() {
-					Eventually(session, 10).Should(gexec.Exit(0))
-				})
+					By("not terminating", func() {
+						time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
+						Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
+					})
 
-				By("still completing the backup", func() {
-					boshBackupFilePath := path.Join(backupDirectory(), "/bosh-0-bosh.tar")
-					archive := OpenTarArchive(boshBackupFilePath)
+					By("outputting a helpful message", func() {
+						Eventually(session).Should(gbytes.Say(`Stopping a backup can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
+					})
 
-					Expect(archive.Files()).To(ConsistOf("backupdump1"))
-					Expect(archive.FileContents("backupdump1")).To(Equal("backupcontent1"))
+					stdin.Write([]byte("no\n"))
+
+					By("waiting for the backup to finish successfully", func() {
+						Eventually(session, 10).Should(gexec.Exit(0))
+					})
+
+					By("still completing the backup", func() {
+						boshBackupFilePath := path.Join(backupDirectory(), "/bosh-0-bosh.tar")
+						archive := OpenTarArchive(boshBackupFilePath)
+
+						Expect(archive.Files()).To(ConsistOf("backupdump1"))
+						Expect(archive.FileContents("backupdump1")).To(Equal("backupcontent1"))
+					})
 				})
 			})
 		})

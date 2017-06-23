@@ -18,6 +18,8 @@ import (
 
 	"os/signal"
 
+	"bufio"
+
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/mgutz/ansi"
 	"github.com/pivotal-cf/bosh-backup-and-restore/backup"
@@ -161,7 +163,16 @@ func trapSigint() {
 	signal.Notify(sigintChan, os.Interrupt)
 	go func() {
 		for range sigintChan {
-			fmt.Println("\nStopping a backup can leave the system in bad state. If you absolutely need to stop the backup, send SIGTERM.")
+			stdinReader := bufio.NewReader(os.Stdin)
+			fmt.Println("\nStopping a backup can leave the system in bad state. Are you sure you want to cancel? [yes/no]")
+			input, err := stdinReader.ReadString('\n')
+			if err != nil {
+				fmt.Println("\nCouldn't read from Stdin, if you still want to stop the backup send SIGTERM.")
+			} else if strings.ToLower(strings.TrimSpace(input)) == "yes" {
+				fmt.Println("omg they said yes!")
+				os.Exit(1)
+			}
+
 		}
 	}()
 }

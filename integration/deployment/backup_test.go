@@ -2,6 +2,7 @@ package deployment
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -26,9 +27,11 @@ var _ = Describe("Backup", func() {
 	var director *mockhttp.Server
 	var backupWorkspace string
 	var session *gexec.Session
+	var stdin io.WriteCloser
 	var deploymentName string
 	var downloadManifest bool
 	var waitForBackupToFinish bool
+	var verifyMocks bool
 	var instance1 *testcluster.Instance
 
 	possibleBackupDirectories := func() []string {
@@ -65,6 +68,7 @@ var _ = Describe("Backup", func() {
 		deploymentName = "my-little-deployment"
 		downloadManifest = false
 		waitForBackupToFinish = true
+		verifyMocks = true
 		director = mockbosh.NewTLS()
 		director.ExpectedBasicAuth("admin", "admin")
 		var err error
@@ -75,7 +79,9 @@ var _ = Describe("Backup", func() {
 	AfterEach(func() {
 		instance1.DieInBackground()
 		Expect(os.RemoveAll(backupWorkspace)).To(Succeed())
-		director.VerifyMocks()
+		if verifyMocks {
+			director.VerifyMocks()
+		}
 	})
 
 	JustBeforeEach(func() {
@@ -101,7 +107,7 @@ var _ = Describe("Backup", func() {
 				params...,
 			)
 		} else {
-			session = binary.Start(
+			session, stdin = binary.Start(
 				backupWorkspace,
 				env,
 				params...,
@@ -148,33 +154,66 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 			set -u
 
-			sleep 4
+			sleep 2
 
 			printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
 			`)
 				})
 
-				It("continues to run and explains itself", func() {
-					session.Interrupt()
-
-					By("not terminating", func() {
-						time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
-						Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
+				Context("and the user decides to cancel the backup", func() {
+					BeforeEach(func() {
+						verifyMocks = false
 					})
 
-					By("outputting a helpful message", func() {
-						Eventually(session).Should(gbytes.Say("Stopping a backup can leave the system in bad state. If you absolutely need to stop the backup, send SIGTERM."))
+					It("terminates", func() {
+						session.Interrupt()
+
+						By("not terminating", func() {
+							time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
+							Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
+						})
+
+						By("outputting a helpful message", func() {
+							Eventually(session).Should(gbytes.Say(`Stopping a backup can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
+						})
+
+						stdin.Write([]byte("yes\n"))
+
+						By("waiting for the backup to finish successfully", func() {
+							Eventually(session, 10).Should(gexec.Exit(1))
+						})
+
+						By("not completing the backup", func() {
+							Expect(possibleBackupDirectories()).To(HaveLen(0))
+						})
 					})
+				})
 
-					By("waiting for the backup to finish successfully", func() {
-						Eventually(session, 10).Should(gexec.Exit(0))
-					})
+				Context("and the user decides not to to cancel the backup", func() {
+					It("continues to run", func() {
+						session.Interrupt()
 
-					By("still completing the backup", func() {
-						archive := OpenTarArchive(artifactFile("redis-dedicated-node-0-redis.tar"))
+						By("not terminating", func() {
+							time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
+							Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
+						})
 
-						Expect(archive.Files()).To(ConsistOf("backupdump1"))
-						Expect(archive.FileContents("backupdump1")).To(Equal("backupcontent1"))
+						By("outputting a helpful message", func() {
+							Eventually(session).Should(gbytes.Say(`Stopping a backup can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
+						})
+
+						stdin.Write([]byte("no\n"))
+
+						By("waiting for the backup to finish successfully", func() {
+							Eventually(session, 10).Should(gexec.Exit(0))
+						})
+
+						By("still completing the backup", func() {
+							archive := OpenTarArchive(artifactFile("redis-dedicated-node-0-redis.tar"))
+
+							Expect(archive.Files()).To(ConsistOf("backupdump1"))
+							Expect(archive.FileContents("backupdump1")).To(Equal("backupcontent1"))
+						})
 					})
 				})
 			})
