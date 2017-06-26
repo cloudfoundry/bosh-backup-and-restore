@@ -26,10 +26,13 @@ import (
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
 	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
 	"github.com/pivotal-cf/bosh-backup-and-restore/standalone"
+	"github.com/pivotal-cf/bosh-backup-and-restore/writer"
 	"github.com/pkg/errors"
 )
 
 var version string
+var stdout *writer.PausableWriter = writer.NewPausableWriter(os.Stdout)
+var stderr *writer.PausableWriter = writer.NewPausableWriter(os.Stderr)
 
 func main() {
 	cli.AppHelpTemplate = `NAME:
@@ -165,14 +168,16 @@ func trapSigint() {
 		for range sigintChan {
 			stdinReader := bufio.NewReader(os.Stdin)
 			fmt.Println("\nStopping a backup can leave the system in bad state. Are you sure you want to cancel? [yes/no]")
+			stdout.Pause()
+			stderr.Pause()
 			input, err := stdinReader.ReadString('\n')
 			if err != nil {
 				fmt.Println("\nCouldn't read from Stdin, if you still want to stop the backup send SIGTERM.")
 			} else if strings.ToLower(strings.TrimSpace(input)) == "yes" {
-				fmt.Println("omg they said yes!")
 				os.Exit(1)
 			}
-
+			stdout.Resume()
+			stderr.Resume()
 		}
 	}()
 }
@@ -481,7 +486,7 @@ func redCliError(err error) *cli.ExitError {
 
 func makeBoshLogger(debug bool) boshlog.Logger {
 	if debug {
-		return boshlog.NewLogger(boshlog.LevelDebug)
+		return boshlog.NewWriterLogger(boshlog.LevelDebug, stdout, stderr)
 	}
-	return boshlog.NewLogger(boshlog.LevelInfo)
+	return boshlog.NewWriterLogger(boshlog.LevelInfo, stdout, stderr)
 }

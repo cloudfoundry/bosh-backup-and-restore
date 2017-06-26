@@ -77,11 +77,13 @@ var _ = Describe("Backup", func() {
 	})
 
 	AfterEach(func() {
-		instance1.DieInBackground()
-		Expect(os.RemoveAll(backupWorkspace)).To(Succeed())
 		if verifyMocks {
 			director.VerifyMocks()
 		}
+		director.Close()
+
+		instance1.DieInBackground()
+		Expect(os.RemoveAll(backupWorkspace)).To(Succeed())
 	})
 
 	JustBeforeEach(func() {
@@ -152,12 +154,12 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					By("creating a backup script that takes a while")
 					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
 
-			set -u
+						set -u
 
-			sleep 2
+						sleep 2
 
-			printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
-			`)
+						printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
+					`)
 				})
 
 				Context("and the user decides to cancel the backup", func() {
@@ -177,6 +179,10 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 							Eventually(session).Should(gbytes.Say(`Stopping a backup can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
 						})
 
+						By("buffering the logs", func() {
+							Expect(string(session.Out.Contents())).To(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
+						})
+
 						stdin.Write([]byte("yes\n"))
 
 						By("waiting for the backup to finish successfully", func() {
@@ -185,6 +191,10 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 						By("not completing the backup", func() {
 							Expect(possibleBackupDirectories()).To(HaveLen(0))
+						})
+
+						By("shouldn't output buffered logs", func() {
+							Expect(string(session.Out.Contents())).To(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
 						})
 					})
 				})
@@ -202,6 +212,10 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 							Eventually(session).Should(gbytes.Say(`Stopping a backup can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
 						})
 
+						By("buffering the logs", func() {
+							Expect(string(session.Out.Contents())).To(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
+						})
+
 						stdin.Write([]byte("no\n"))
 
 						By("waiting for the backup to finish successfully", func() {
@@ -214,6 +228,11 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 							Expect(archive.Files()).To(ConsistOf("backupdump1"))
 							Expect(archive.FileContents("backupdump1")).To(Equal("backupcontent1"))
 						})
+
+						By("should output buffered logs", func() {
+							Expect(string(session.Out.Contents())).NotTo(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
+						})
+
 					})
 				})
 			})
