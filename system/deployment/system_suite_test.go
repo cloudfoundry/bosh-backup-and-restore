@@ -29,7 +29,7 @@ var _ = BeforeEach(func() {
 	SetDefaultEventuallyTimeout(4 * time.Minute)
 	var wg sync.WaitGroup
 
-	wg.Add(5)
+	wg.Add(6)
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
@@ -65,6 +65,13 @@ var _ = BeforeEach(func() {
 		AnotherRedisDeployment.Deploy()
 	}()
 
+	go func() {
+		defer GinkgoRecover()
+		defer wg.Done()
+		By("deploying the slow backup Redis test release")
+		RedisSlowBackupDeployment().Deploy()
+	}()
+
 	wg.Wait()
 
 	By("building bbr")
@@ -82,7 +89,7 @@ var _ = BeforeEach(func() {
 var _ = AfterEach(func() {
 	var wg sync.WaitGroup
 
-	wg.Add(5)
+	wg.Add(6)
 
 	go func() {
 		defer GinkgoRecover()
@@ -117,6 +124,13 @@ var _ = AfterEach(func() {
 		defer wg.Done()
 		By("tearing down the jump box")
 		JumpboxDeployment.Delete()
+	}()
+
+	go func() {
+		defer GinkgoRecover()
+		defer wg.Done()
+		By("tearing down the slow backup Redis test release")
+		RedisSlowBackupDeployment().Delete()
 	}()
 
 	wg.Wait()

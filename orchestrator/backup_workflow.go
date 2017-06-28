@@ -102,6 +102,30 @@ func newBackupWorkflow(backuper Backuper, deploymentName string) *backupWorkflow
 
 	return bw
 }
+
+func newBackupCleanupWorkflow(backuper Backuper, deploymentName string) *backupWorkflow {
+	bw := &backupWorkflow{
+		Backuper:       backuper,
+		deployment:     nil,
+		deploymentName: deploymentName,
+		events: fsm.Events{
+			{Name: EventPostBackupUnlock, Src: []string{StateBackedup}, Dst: StateUnlocked},
+			{Name: EventCleanup, Src: []string{StateUnlocked}, Dst: StateFinished},
+		},
+	}
+
+	bw.FSM = fsm.NewFSM(
+		StateBackedup,
+		bw.events,
+		fsm.Callbacks{
+			beforeEvent(EventPostBackupUnlock): bw.postBackupUnlock,
+			EventCleanup:                       bw.cleanup,
+		},
+	)
+
+	return bw
+}
+
 func (bw *backupWorkflow) Run() Error {
 	for _, e := range bw.events {
 		if bw.Can(e.Name) {
