@@ -14,8 +14,7 @@ var _ = Describe("PreBackupCheck", func() {
 
 	It("checks if the director is backupable", func() {
 		By("running the pre-backup-check command")
-		preBackupCheckCommand := RunCommandOnRemoteAsVcap(
-			JumpBoxSSHCommand(),
+		preBackupCheckCommand := JumpboxDeployment().RunCommandAs("vcap", "jumpbox", "0",
 			fmt.Sprintf(
 				`cd %s; ./bbr director --username vcap --private-key-path ./key.pem --host %s pre-backup-check`,
 				workspaceDir,

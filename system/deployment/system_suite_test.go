@@ -34,36 +34,37 @@ var _ = BeforeEach(func() {
 		defer GinkgoRecover()
 		defer wg.Done()
 		By("deploying the Redis test release")
-		RunBoshCommand(RedisDeploymentBoshCommand(), "deploy", SetName(RedisDeployment()), RedisDeploymentManifest())
+		RedisDeployment().Deploy()
 	}()
 
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
 		By("deploying the Redis with metadata")
-		RunBoshCommand(RedisWithMetadataDeploymentBoshCommand(), "deploy", SetName(RedisWithMetadataDeployment()), RedisWithMetadataDeploymentManifest())
+		RedisWithMetadataDeployment().Deploy()
 	}()
 
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
 		By("deploying the Redis with missing backup script")
-		RunBoshCommand(RedisWithMissingScriptBoshCommand(), "deploy", SetName(RedisWithMissingScriptDeployment()), RedisWithMissingScriptDeploymentManifest())
+		RedisWithMissingScriptDeployment().Deploy()
 	}()
 
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
 		By("deploying the jump box")
-		RunBoshCommand(JumpBoxBoshCommand(), "deploy", SetName(JumpboxDeployment()), JumpboxDeploymentManifest())
+		JumpboxDeployment().Deploy()
 	}()
 
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
 		By("deploying the other Redis test release")
-		RunBoshCommand(AnotherRedisDeploymentBoshCommand(), "deploy", SetName(AnotherRedisDeployment()), AnotherRedisDeploymentManifest())
+		AnotherRedisDeployment().Deploy()
 	}()
+
 	wg.Wait()
 
 	By("building bbr")
@@ -71,11 +72,11 @@ var _ = BeforeEach(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	By("setting up the jump box")
-	Eventually(RunCommandOnRemote(
-		JumpBoxSSHCommand(), fmt.Sprintf("sudo mkdir %s && sudo chown vcap:vcap %s && sudo chmod 0777 %s", workspaceDir, workspaceDir, workspaceDir),
-	)).Should(gexec.Exit(0))
-	RunBoshCommand(JumpBoxSCPCommand(), commandPath, "jumpbox/0:"+workspaceDir)
-	RunBoshCommand(JumpBoxSCPCommand(), MustHaveEnv("BOSH_CERT_PATH"), "jumpbox/0:"+workspaceDir+"/bosh.crt")
+	Eventually(JumpboxDeployment().RunCommand("jumpbox", "0",
+		fmt.Sprintf("sudo mkdir %s && sudo chown vcap:vcap %s && sudo chmod 0777 %s", workspaceDir, workspaceDir, workspaceDir))).Should(gexec.Exit(0))
+
+	JumpboxDeployment().Copy("jumpbox", "0", commandPath, workspaceDir)
+	JumpboxDeployment().Copy("jumpbox", "0", MustHaveEnv("BOSH_CERT_PATH"), workspaceDir+"/bosh.crt")
 })
 
 var _ = AfterEach(func() {
@@ -87,35 +88,35 @@ var _ = AfterEach(func() {
 		defer GinkgoRecover()
 		defer wg.Done()
 		By("tearing down the redis release")
-		RunBoshCommand(RedisDeploymentBoshCommand(), "delete-deployment")
+		RedisDeployment().Delete()
 	}()
 
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
 		By("tearing down the other redis release")
-		RunBoshCommand(RedisWithMetadataDeploymentBoshCommand(), "delete-deployment")
+		RedisWithMetadataDeployment().Delete()
 	}()
 
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
 		By("tearing down the other redis release")
-		RunBoshCommand(RedisWithMissingScriptBoshCommand(), "delete-deployment")
+		RedisWithMissingScriptDeployment().Delete()
 	}()
 
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
 		By("tearing down the redis with metadata")
-		RunBoshCommand(AnotherRedisDeploymentBoshCommand(), "delete-deployment")
+		AnotherRedisDeployment().Delete()
 	}()
 
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
 		By("tearing down the jump box")
-		RunBoshCommand(JumpBoxBoshCommand(), "delete-deployment")
+		JumpboxDeployment().Delete()
 	}()
 
 	wg.Wait()
@@ -127,8 +128,4 @@ func runOnInstances(instanceCollection map[string][]string, f func(string, strin
 			f(instanceGroup, instanceIndex)
 		}
 	}
-}
-
-func SetName(name string) string {
-	return "--var=deployment-name=" + name
 }

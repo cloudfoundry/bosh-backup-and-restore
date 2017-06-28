@@ -24,8 +24,7 @@ var _ = Describe("backup with custom metadata", func() {
 		populateRedisWithMetadata(instanceCollectionForBackup)
 
 		By("running the backup command")
-		Eventually(RunCommandOnRemoteAsVcap(
-			JumpBoxSSHCommand(),
+		Eventually(JumpboxDeployment().RunCommandAs("vcap", "jumpbox", "0",
 			fmt.Sprintf(`cd %s;
 			BOSH_CLIENT_SECRET=%s ./bbr \
 			deployment \
@@ -38,18 +37,18 @@ var _ = Describe("backup with custom metadata", func() {
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
 				MustHaveEnv("BOSH_URL"),
-				RedisWithMetadataDeployment()),
+				RedisWithMetadataDeployment().Name),
 		),
 		).Should(gexec.Exit(0))
 
 		By("creating the named backup artifacts locally")
 		AssertJumpboxFilesExist([]string{
-			fmt.Sprintf("%s/%s/custom-redis-backup.tar", workspaceDir, BackupDirWithTimestamp(RedisWithMetadataDeployment())),
+			fmt.Sprintf("%s/%s/custom-redis-backup.tar", workspaceDir, BackupDirWithTimestamp(RedisWithMetadataDeployment().Name)),
 		})
 
 		By("cleaning up artifacts from the remote instances")
 		runOnInstances(instanceCollectionForBackup, func(instName, instIndex string) {
-			session := RunCommandOnRemote(RedisWithMetadataDeploymentSSHCommand(instName, instIndex),
+			session := RedisWithMetadataDeployment().RunCommand(instName, instIndex,
 				"ls -l /var/vcap/store/bbr-backup",
 			)
 			Eventually(session).Should(gexec.Exit())
@@ -58,8 +57,7 @@ var _ = Describe("backup with custom metadata", func() {
 		})
 
 		By("running the restore command")
-		Eventually(RunCommandOnRemoteAsVcap(
-			JumpBoxSSHCommand(),
+		Eventually(JumpboxDeployment().RunCommandAs("vcap", "jumpbox", "0",
 			fmt.Sprintf(`cd %s;
 			BOSH_CLIENT_SECRET=%s ./bbr \
 			deployment \
@@ -74,13 +72,13 @@ var _ = Describe("backup with custom metadata", func() {
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
 				MustHaveEnv("BOSH_URL"),
-				RedisWithMetadataDeployment(),
-				BackupDirWithTimestamp(RedisWithMetadataDeployment())),
+				RedisWithMetadataDeployment().Name,
+				BackupDirWithTimestamp(RedisWithMetadataDeployment().Name)),
 		)).Should(gexec.Exit(0))
 
 		By("cleaning up artifacts from the remote restored instances")
 		runOnInstances(instanceCollectionForRestore, func(instName, instIndex string) {
-			session := RunCommandOnRemote(RedisWithMetadataDeploymentSSHCommand(instName, instIndex),
+			session := RedisWithMetadataDeployment().RunCommand(instName, instIndex,
 				"ls -l /var/vcap/store/bbr-backup",
 			)
 			Eventually(session).Should(gexec.Exit())
@@ -90,12 +88,11 @@ var _ = Describe("backup with custom metadata", func() {
 
 		By("ensuring data is restored")
 		runOnInstances(instanceCollectionForRestore, func(instName, instIndex string) {
-			Eventually(RunCommandOnRemote(
-				RedisWithMetadataDeploymentSSHCommand(instName, instIndex),
+			Eventually(RedisWithMetadataDeployment().RunCommand(instName, instIndex,
 				fmt.Sprintf("sudo ls -la /var/vcap/store/redis-server"),
 			)).Should(gexec.Exit(0))
 
-			redisSession := RunCommandOnRemote(RedisWithMetadataDeploymentSSHCommand(instName, instIndex),
+			redisSession := RedisWithMetadataDeployment().RunCommand(instName, instIndex,
 				"/var/vcap/packages/redis/bin/redis-cli -a redis get FOO23",
 			)
 
@@ -107,9 +104,9 @@ var _ = Describe("backup with custom metadata", func() {
 func populateRedisWithMetadata(instanceCollection map[string][]string) {
 	dataFixture := "../../fixtures/redis_test_commands"
 	runOnInstances(instanceCollection, func(instName, instIndex string) {
-		RunBoshCommand(RedisWithMetadataDeploymentSCPCommand(), dataFixture, fmt.Sprintf("%s/%s:/tmp", instName, instIndex))
+		RedisWithMetadataDeployment().Copy(instName, instIndex, dataFixture, "/tmp")
 		Eventually(
-			RunCommandOnRemote(RedisWithMetadataDeploymentSSHCommand(instName, instIndex),
+			RedisWithMetadataDeployment().RunCommand(instName, instIndex,
 				"cat /tmp/redis_test_commands | /var/vcap/packages/redis/bin/redis-cli > /dev/null",
 			),
 		).Should(gexec.Exit(0))

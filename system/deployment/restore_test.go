@@ -22,31 +22,24 @@ var _ = Describe("Restores a deployment", func() {
 
 	It("restores", func() {
 		By("setting up the jump box")
-		Eventually(RunCommandOnRemote(
-			JumpBoxSSHCommand(), fmt.Sprintf("sudo mkdir -p %s && sudo chown -R vcap:vcap %s && sudo chmod -R 0777 %s",
+		Eventually(JumpboxDeployment().RunCommand("jumpbox", "0",
+			fmt.Sprintf("sudo mkdir -p %s && sudo chown -R vcap:vcap %s && sudo chmod -R 0777 %s",
 				workspaceDir+"/"+backupName, workspaceDir, workspaceDir),
 		)).Should(gexec.Exit(0))
 
-		RunBoshCommand(JumpBoxSCPCommand(), MustHaveEnv("BOSH_CERT_PATH"), "jumpbox/0:"+workspaceDir+"/bosh.crt")
-		RunBoshCommand(JumpBoxSCPCommand(), commandPath, "jumpbox/0:"+workspaceDir)
-		RunBoshCommand(JumpBoxSCPCommand(), backupMetadata, "jumpbox/0:"+workspaceDir+"/"+backupName+"/metadata")
+		JumpboxDeployment().Copy("jumpbox", "0", MustHaveEnv("BOSH_CERT_PATH"), workspaceDir+"/bosh.crt")
+		JumpboxDeployment().Copy("jumpbox", "0", commandPath, workspaceDir)
+		JumpboxDeployment().Copy("jumpbox", "0", backupMetadata, workspaceDir+"/"+backupName+"/metadata")
 		runOnInstances(instanceCollection, func(in, ii string) {
 			fileName := fmt.Sprintf("%s-%s-redis-server.tar", in, ii)
-			RunBoshCommand(
-				JumpBoxSCPCommand(),
+			JumpboxDeployment().Copy("jumpbox", "0",
 				fixturesPath+fileName,
-				fmt.Sprintf(
-					"jumpbox/0:%s/%s/%s",
-					workspaceDir,
-					backupName,
-					fileName,
-				),
+				fmt.Sprintf("%s/%s/%s", workspaceDir, backupName, fileName),
 			)
 		})
 
 		By("running the restore command")
-		Eventually(RunCommandOnRemote(
-			JumpBoxSSHCommand(),
+		Eventually(JumpboxDeployment().RunCommand("jumpbox", "0",
 			fmt.Sprintf(`cd %s;
 			BOSH_CLIENT_SECRET=%s ./bbr \
 			  deployment --debug \
@@ -60,14 +53,14 @@ var _ = Describe("Restores a deployment", func() {
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
 				MustHaveEnv("BOSH_URL"),
-				RedisDeployment(),
+				RedisDeployment().Name,
 				backupName,
 			),
 		)).Should(gexec.Exit(0))
 
 		By("cleaning up artifacts from the remote instances")
 		runOnInstances(instanceCollection, func(instName, instIndex string) {
-			session := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
+			session := RedisDeployment().RunCommand(instName, instIndex,
 				"ls -l /var/vcap/store/bbr-backup",
 			)
 			Eventually(session).Should(gexec.Exit())
@@ -77,12 +70,11 @@ var _ = Describe("Restores a deployment", func() {
 
 		By("ensuring data is restored")
 		runOnInstances(instanceCollection, func(instName, instIndex string) {
-			Eventually(RunCommandOnRemote(
-				RedisDeploymentSSHCommand(instName, instIndex),
+			Eventually(RedisDeployment().RunCommand(instName, instIndex,
 				fmt.Sprintf("sudo ls -la /var/vcap/store/redis-server"),
 			)).Should(gexec.Exit(0))
 
-			redisSession := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
+			redisSession := RedisDeployment().RunCommand(instName, instIndex,
 				"/var/vcap/packages/redis/bin/redis-cli -a redis get FOO23",
 			)
 

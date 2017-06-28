@@ -13,15 +13,14 @@ import (
 var _ = Describe("backup with a missing script", func() {
 	It("fails with a meaningful message", func() {
 		By("running the backup command")
-		session := RunCommandOnRemoteAsVcap(
-			JumpBoxSSHCommand(),
+		session := JumpboxDeployment().RunCommandAs("vcap", "jumpbox", "0",
 			fmt.Sprintf(
 				`cd %s; BOSH_CLIENT_SECRET=%s ./bbr deployment --ca-cert bosh.crt --username %s --target %s --deployment %s backup`,
 				workspaceDir,
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
 				MustHaveEnv("BOSH_URL"),
-				RedisWithMissingScriptDeployment(),
+				RedisWithMissingScriptDeployment().Name,
 			),
 		)
 		Eventually(session).Should(gexec.Exit(1))

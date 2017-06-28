@@ -11,8 +11,7 @@ import (
 
 var _ = Describe("pre-backup-check", func() {
 	It("backs up, and cleans up the backup on the remote", func() {
-		preBackupCheckCommand := RunCommandOnRemoteAsVcap(
-			JumpBoxSSHCommand(),
+		preBackupCheckCommand := JumpboxDeployment().RunCommandAs("vcap", "jumpbox", "0",
 			fmt.Sprintf(`cd %s; \
 			    BOSH_CLIENT_SECRET=%s ./bbr deployment \
 			       --ca-cert bosh.crt \
@@ -24,10 +23,10 @@ var _ = Describe("pre-backup-check", func() {
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
 				MustHaveEnv("BOSH_URL"),
-				RedisDeployment()),
+				RedisDeployment().Name),
 		)
 
 		Eventually(preBackupCheckCommand).Should(gexec.Exit(0))
-		Expect(preBackupCheckCommand.Out.Contents()).To(ContainSubstring(fmt.Sprintf("Deployment '%s' can be backed up", RedisDeployment())))
+		Expect(preBackupCheckCommand.Out.Contents()).To(ContainSubstring(fmt.Sprintf("Deployment '%s' can be backed up", RedisDeployment().Name)))
 	})
 })
