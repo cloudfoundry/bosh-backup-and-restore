@@ -20,7 +20,7 @@ var _ = Describe("Restores a deployment", func() {
 		directorIP := MustHaveEnv("HOST_TO_BACKUP")
 
 		By("cleaning up the jump box")
-		Eventually(JumpboxDeployment().RunCommandAs("vcap", "jumpbox", "0",
+		Eventually(JumpboxDeployment().Instance("jumpbox", "0").RunCommandAs("vcap",
 			fmt.Sprintf(
 				`sudo rm -rf %s/%s`,
 				workspaceDir,
@@ -29,7 +29,7 @@ var _ = Describe("Restores a deployment", func() {
 		)).Should(gexec.Exit(0))
 
 		By("cleaning up the director")
-		Eventually(JumpboxDeployment().RunCommandAs("vcap", "jumpbox", "0",
+		Eventually(JumpboxDeployment().Instance("jumpbox", "0").RunCommandAs("vcap",
 			fmt.Sprintf(`cd %s; ssh %s vcap@%s -i key.pem 'sudo rm -rf %s'`,
 				workspaceDir,
 				skipSSHFingerprintCheckOpts,
@@ -43,16 +43,16 @@ var _ = Describe("Restores a deployment", func() {
 		directorIP := MustHaveEnv("HOST_TO_BACKUP")
 
 		By("setting up the jump box")
-		Eventually(JumpboxDeployment().RunCommandAs("vcap", "jumpbox", "0",
+		Eventually(JumpboxDeployment().Instance("jumpbox", "0").RunCommandAs("vcap",
 			fmt.Sprintf("sudo mkdir -p %s && sudo chmod -R 0777 %s",
 				workspaceDir+"/"+artifactName, workspaceDir))).Should(gexec.Exit(0))
-		JumpboxDeployment().Copy("jumpbox", "0", fixturesPath+"bosh-0-amazing-backup-and-restore.tar", workspaceDir+"/"+artifactName)
-		JumpboxDeployment().Copy("jumpbox", "0", fixturesPath+"bosh-0-remarkable-backup-and-restore.tar", workspaceDir+"/"+artifactName)
-		JumpboxDeployment().Copy("jumpbox", "0", fixturesPath+"bosh-0-test-backup-and-restore.tar", workspaceDir+"/"+artifactName)
-		JumpboxDeployment().Copy("jumpbox", "0", fixturesPath+"metadata", workspaceDir+"/"+artifactName)
+		JumpboxDeployment().Instance("jumpbox", "0").Copy( fixturesPath+"bosh-0-amazing-backup-and-restore.tar", workspaceDir+"/"+artifactName)
+		JumpboxDeployment().Instance("jumpbox", "0").Copy( fixturesPath+"bosh-0-remarkable-backup-and-restore.tar", workspaceDir+"/"+artifactName)
+		JumpboxDeployment().Instance("jumpbox", "0").Copy( fixturesPath+"bosh-0-test-backup-and-restore.tar", workspaceDir+"/"+artifactName)
+		JumpboxDeployment().Instance("jumpbox", "0").Copy( fixturesPath+"metadata", workspaceDir+"/"+artifactName)
 
 		By("running the restore command")
-		restoreCommand := JumpboxDeployment().RunCommand("jumpbox", "0",
+		restoreCommand := JumpboxDeployment().Instance("jumpbox", "0").RunCommand(
 			fmt.Sprintf(`cd %s; ./bbr director --username vcap --private-key-path ./key.pem --host %s restore --artifact-path %s`,
 				workspaceDir,
 				directorIP,
@@ -61,7 +61,7 @@ var _ = Describe("Restores a deployment", func() {
 		Eventually(restoreCommand).Should(gexec.Exit(0))
 
 		By("ensuring data is restored")
-		Eventually(JumpboxDeployment().RunCommand("jumpbox", "0",
+		Eventually(JumpboxDeployment().Instance("jumpbox", "0").RunCommand(
 			fmt.Sprintf(`cd %s; ssh %s vcap@%s -i key.pem 'stat %s'`,
 				workspaceDir,
 				skipSSHFingerprintCheckOpts,

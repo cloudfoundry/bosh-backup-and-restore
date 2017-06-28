@@ -16,6 +16,12 @@ type Deployment struct {
 	Manifest string
 }
 
+type Instance struct {
+	deployment Deployment
+	Group      string
+	Index      string
+}
+
 func NewDeployment(name, manifest string) Deployment {
 	return Deployment{Name: name, Manifest: manifest}
 }
@@ -30,28 +36,8 @@ func (d Deployment) Delete() {
 	Eventually(session).Should(gexec.Exit(0))
 }
 
-func (d Deployment) RunCommand(instanceName, instanceIndex, command string) *gexec.Session {
-	return d.runBosh("ssh",
-		"--gw-user="+MustHaveEnv("BOSH_GATEWAY_USER"),
-		"--gw-host="+MustHaveEnv("BOSH_GATEWAY_HOST"),
-		"--gw-private-key="+MustHaveEnv("BOSH_GATEWAY_KEY"),
-		instanceName+"/"+instanceIndex,
-		command)
-}
-
-func (d Deployment) RunCommandAs(user, instanceName, instanceIndex, command string) *gexec.Session {
-	return d.RunCommand(instanceName, instanceIndex, fmt.Sprintf("sudo su vcap -c '%s'", command))
-}
-
-func (d Deployment) Copy(instanceName, instanceIndex, sourcePath, destinationPath string) {
-	session := d.runBosh("scp",
-		"--gw-user="+MustHaveEnv("BOSH_GATEWAY_USER"),
-		"--gw-host="+MustHaveEnv("BOSH_GATEWAY_HOST"),
-		"--gw-private-key="+MustHaveEnv("BOSH_GATEWAY_KEY"),
-		sourcePath,
-		instanceName+"/"+instanceIndex+":"+destinationPath,
-	)
-	Eventually(session).Should(gexec.Exit(0))
+func (d Deployment) Instance(group, index string) Instance {
+	return Instance{deployment: d, Group: group, Index: index}
 }
 
 func (d Deployment) runBosh(args ...string) *gexec.Session {
@@ -76,4 +62,28 @@ func run(cmd string, args ...string) *gexec.Session {
 
 	Expect(err).ToNot(HaveOccurred())
 	return session
+}
+
+func (i Instance) RunCommand(command string) *gexec.Session {
+	return i.deployment.runBosh("ssh",
+		"--gw-user="+MustHaveEnv("BOSH_GATEWAY_USER"),
+		"--gw-host="+MustHaveEnv("BOSH_GATEWAY_HOST"),
+		"--gw-private-key="+MustHaveEnv("BOSH_GATEWAY_KEY"),
+		i.Group+"/"+i.Index,
+		command)
+}
+
+func (i Instance) RunCommandAs(user, command string) *gexec.Session {
+	return i.RunCommand(fmt.Sprintf("sudo su vcap -c '%s'", command))
+}
+
+func (i Instance) Copy(sourcePath, destinationPath string) {
+	session := i.deployment.runBosh("scp",
+		"--gw-user="+MustHaveEnv("BOSH_GATEWAY_USER"),
+		"--gw-host="+MustHaveEnv("BOSH_GATEWAY_HOST"),
+		"--gw-private-key="+MustHaveEnv("BOSH_GATEWAY_KEY"),
+		sourcePath,
+		i.Group+"/"+i.Index+":"+destinationPath,
+	)
+	Eventually(session).Should(gexec.Exit(0))
 }

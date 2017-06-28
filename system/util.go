@@ -16,7 +16,7 @@ func MustHaveEnv(keyname string) string {
 
 func AssertJumpboxFilesExist(paths []string) {
 	for _, path := range paths {
-		cmd := JumpboxDeployment().RunCommandAs("vcap", "jumpbox", "0", "stat "+path)
+		cmd := JumpboxDeployment().Instance("jumpbox", "0").RunCommandAs("vcap", "stat "+path)
 		Eventually(cmd).Should(gexec.Exit(0), fmt.Sprintf("File at %s not found on jumpbox\n", path))
 	}
 }

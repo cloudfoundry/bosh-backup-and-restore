@@ -72,11 +72,11 @@ var _ = BeforeEach(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	By("setting up the jump box")
-	Eventually(JumpboxDeployment().RunCommand("jumpbox", "0",
+	Eventually(JumpboxDeployment().Instance("jumpbox", "0").RunCommand(
 		fmt.Sprintf("sudo mkdir %s && sudo chown vcap:vcap %s && sudo chmod 0777 %s", workspaceDir, workspaceDir, workspaceDir))).Should(gexec.Exit(0))
 
-	JumpboxDeployment().Copy("jumpbox", "0", commandPath, workspaceDir)
-	JumpboxDeployment().Copy("jumpbox", "0", MustHaveEnv("BOSH_CERT_PATH"), workspaceDir+"/bosh.crt")
+	JumpboxDeployment().Instance("jumpbox", "0").Copy( commandPath, workspaceDir)
+	JumpboxDeployment().Instance("jumpbox", "0").Copy( MustHaveEnv("BOSH_CERT_PATH"), workspaceDir+"/bosh.crt")
 })
 
 var _ = AfterEach(func() {

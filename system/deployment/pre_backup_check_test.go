@@ -11,7 +11,7 @@ import (
 
 var _ = Describe("pre-backup-check", func() {
 	It("backs up, and cleans up the backup on the remote", func() {
-		preBackupCheckCommand := JumpboxDeployment().RunCommandAs("vcap", "jumpbox", "0",
+		preBackupCheckCommand := JumpboxDeployment().Instance("jumpbox", "0").RunCommandAs("vcap",
 			fmt.Sprintf(`cd %s; \
 			    BOSH_CLIENT_SECRET=%s ./bbr deployment \
 			       --ca-cert bosh.crt \

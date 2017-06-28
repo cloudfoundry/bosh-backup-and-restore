@@ -23,7 +23,7 @@ var _ = Describe("backup", func() {
 		populateRedisFixtureOnInstances(instanceCollection)
 
 		By("running the backup command")
-		Eventually(JumpboxDeployment().RunCommandAs("vcap", "jumpbox", "0",
+		Eventually(JumpboxDeployment().Instance("jumpbox", "0").RunCommandAs("vcap",
 			fmt.Sprintf(`cd %s; \
 			    BOSH_CLIENT_SECRET=%s ./bbr deployment \
 			       --ca-cert bosh.crt \
@@ -40,7 +40,7 @@ var _ = Describe("backup", func() {
 
 		By("running the pre-backup lock script")
 		runOnInstances(instanceCollection, func(instName, instIndex string) {
-			session := RedisDeployment().RunCommand(instName, instIndex,
+			session := RedisDeployment().Instance(instName, instIndex).RunCommand(
 				"cat /tmp/pre-backup-lock.out",
 			)
 
@@ -50,7 +50,7 @@ var _ = Describe("backup", func() {
 
 		By("running the post backup unlock script")
 		runOnInstances(instanceCollection, func(instName, instIndex string) {
-			session := RedisDeployment().RunCommand(instName, instIndex,
+			session := RedisDeployment().Instance(instName, instIndex).RunCommand(
 				"cat /tmp/post-backup-unlock.out",
 			)
 			Eventually(session).Should(gexec.Exit(0))
@@ -59,7 +59,7 @@ var _ = Describe("backup", func() {
 		})
 
 		By("creating a timestamped directory for holding the artifacts locally", func() {
-			session := JumpboxDeployment().RunCommandAs("vcap", "jumpbox", "0", "ls "+workspaceDir)
+			session := JumpboxDeployment().Instance("jumpbox", "0").RunCommandAs("vcap",  "ls "+workspaceDir)
 			Eventually(session).Should(gexec.Exit(0))
 			Expect(string(session.Out.Contents())).To(MatchRegexp(`\b` + RedisDeployment().Name + `_(\d){8}T(\d){6}Z\b`))
 		})
@@ -73,7 +73,7 @@ var _ = Describe("backup", func() {
 
 		By("cleaning up artifacts from the remote instances")
 		runOnInstances(instanceCollection, func(instName, instIndex string) {
-			session := RedisDeployment().RunCommand(instName, instIndex,
+			session := RedisDeployment().Instance(instName, instIndex).RunCommand(
 				"ls -l /var/vcap/store/bbr-backup",
 			)
 			Eventually(session).Should(gexec.Exit())
@@ -86,9 +86,9 @@ var _ = Describe("backup", func() {
 func populateRedisFixtureOnInstances(instanceCollection map[string][]string) {
 	dataFixture := "../../fixtures/redis_test_commands"
 	runOnInstances(instanceCollection, func(instName, instIndex string) {
-		RedisDeployment().Copy(instName, instIndex, dataFixture, "/tmp")
+		RedisDeployment().Instance(instName, instIndex).Copy( dataFixture, "/tmp")
 		Eventually(
-			RedisDeployment().RunCommand(instName, instIndex,
+			RedisDeployment().Instance(instName, instIndex).RunCommand(
 				"cat /tmp/redis_test_commands | /var/vcap/packages/redis/bin/redis-cli > /dev/null",
 			),
 		).Should(gexec.Exit(0))

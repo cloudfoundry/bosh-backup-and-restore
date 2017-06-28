@@ -13,7 +13,7 @@ import (
 var _ = Describe("Backup", func() {
 	AfterEach(func() {
 		By("removing the backup")
-		Eventually(JumpboxDeployment().RunCommandAs("vcap", "jumpbox", "0",
+		Eventually(JumpboxDeployment().Instance("jumpbox", "0").RunCommandAs("vcap",
 			fmt.Sprintf(
 				`sudo rm -rf %s/%s`,
 				workspaceDir,
@@ -25,7 +25,7 @@ var _ = Describe("Backup", func() {
 		directorIP := MustHaveEnv("HOST_TO_BACKUP")
 
 		By("running the backup command")
-		backupCommand := JumpboxDeployment().RunCommandAs("vcap", "jumpbox", "0",
+		backupCommand := JumpboxDeployment().Instance("jumpbox", "0").RunCommandAs("vcap",
 			fmt.Sprintf(
 				`cd %s; ./bbr director --username vcap --private-key-path ./key.pem --host %s backup`,
 				workspaceDir,

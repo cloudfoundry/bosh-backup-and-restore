@@ -13,7 +13,7 @@ import (
 var _ = Describe("backup with a missing script", func() {
 	It("fails with a meaningful message", func() {
 		By("running the backup command")
-		session := JumpboxDeployment().RunCommandAs("vcap", "jumpbox", "0",
+		session := JumpboxDeployment().Instance("jumpbox", "0").RunCommandAs("vcap",
 			fmt.Sprintf(
 				`cd %s; BOSH_CLIENT_SECRET=%s ./bbr deployment --ca-cert bosh.crt --username %s --target %s --deployment %s backup`,
 				workspaceDir,
