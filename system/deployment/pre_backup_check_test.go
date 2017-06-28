@@ -28,6 +28,6 @@ var _ = Describe("pre-backup-check", func() {
 		)
 
 		Eventually(preBackupCheckCommand).Should(gexec.Exit(0))
-		Expect(preBackupCheckCommand.Out.Contents()).To(ContainSubstring("Deployment 'redis-dev-1' can be backed up"))
+		Expect(preBackupCheckCommand.Out.Contents()).To(ContainSubstring(fmt.Sprintf("Deployment '%s' can be backed up", RedisDeployment())))
 	})
 })
