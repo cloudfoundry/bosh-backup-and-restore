@@ -3,8 +3,6 @@ package system
 import (
 	"fmt"
 	"os"
-
-	. "github.com/onsi/gomega"
 )
 
 var RedisDeployment = DeploymentWithName("redis")
@@ -16,7 +14,11 @@ var JumpboxInstance = JumpboxDeployment.Instance("jumpbox", "0")
 
 func MustHaveEnv(keyname string) string {
 	val := os.Getenv(keyname)
-	Expect(val).NotTo(BeEmpty(), "Need "+keyname+" for the test")
+
+	if val == "" {
+		panic("Need " + keyname + " for the test")
+	}
+
 	return val
 }
 
