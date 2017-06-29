@@ -29,21 +29,21 @@ var _ = BeforeSuite(func() {
 	workspaceDir = fmt.Sprintf("/var/vcap/store/pre_backup_check_workspace-%d", time.Now().Unix())
 
 	By("setting up the jump box")
-	Eventually(JumpboxDeployment().Instance("jumpbox", "0").RunCommand(
+	Eventually(JumpboxInstance.RunCommand(
 		fmt.Sprintf("sudo mkdir %s && sudo chown vcap:vcap %s && sudo chmod 0777 %s", workspaceDir, workspaceDir, workspaceDir),
 	)).Should(gexec.Exit(0))
 
-	JumpboxDeployment().Instance("jumpbox", "0").Copy( commandPath, workspaceDir)
-	JumpboxDeployment().Instance("jumpbox", "0").Copy( MustHaveEnv("SSH_KEY"), workspaceDir+"/key.pem")
+	JumpboxInstance.Copy( commandPath, workspaceDir)
+	JumpboxInstance.Copy( MustHaveEnv("SSH_KEY"), workspaceDir+"/key.pem")
 
-	Eventually(JumpboxDeployment().Instance("jumpbox", "0").RunCommand(
+	Eventually(JumpboxInstance.RunCommand(
 		fmt.Sprintf("sudo chown -R vcap:vcap %s", workspaceDir),
 	)).Should(gexec.Exit(0))
 })
 
 var _ = AfterSuite(func() {
 	By("cleaning up the jump box")
-	Eventually(JumpboxDeployment().Instance("jumpbox", "0").RunCommand(
+	Eventually(JumpboxInstance.RunCommand(
 		fmt.Sprintf("sudo rm -rf %s", workspaceDir),
 	)).Should(gexec.Exit(0))
 })

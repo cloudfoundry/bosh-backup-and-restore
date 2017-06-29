@@ -87,3 +87,10 @@ func (i Instance) Copy(sourcePath, destinationPath string) {
 	)
 	Eventually(session).Should(gexec.Exit(0))
 }
+
+func (i Instance) AssertFilesExist(paths []string) {
+	for _, path := range paths {
+		cmd := i.RunCommandAs("vcap", "stat "+path)
+		Eventually(cmd).Should(gexec.Exit(0), fmt.Sprintf("File at %s not found on %s/%s\n", path, i.Group, i.Index))
+	}
+}

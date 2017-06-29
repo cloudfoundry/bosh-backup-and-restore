@@ -13,7 +13,7 @@ import (
 var _ = Describe("Backup", func() {
 	AfterEach(func() {
 		By("removing the backup")
-		Eventually(JumpboxDeployment().Instance("jumpbox", "0").RunCommandAs("vcap",
+		Eventually(JumpboxInstance.RunCommandAs("vcap",
 			fmt.Sprintf(
 				`sudo rm -rf %s/%s`,
 				workspaceDir,
@@ -25,7 +25,7 @@ var _ = Describe("Backup", func() {
 		directorIP := MustHaveEnv("HOST_TO_BACKUP")
 
 		By("running the backup command")
-		backupCommand := JumpboxDeployment().Instance("jumpbox", "0").RunCommandAs("vcap",
+		backupCommand := JumpboxInstance.RunCommandAs("vcap",
 			fmt.Sprintf(
 				`cd %s; ./bbr director --username vcap --private-key-path ./key.pem --host %s backup`,
 				workspaceDir,
@@ -33,7 +33,7 @@ var _ = Describe("Backup", func() {
 		)
 		Eventually(backupCommand).Should(gexec.Exit(0))
 
-		AssertJumpboxFilesExist([]string{
+		JumpboxInstance.AssertFilesExist([]string{
 			fmt.Sprintf("%s/%s/bosh-0-test-backup-and-restore.tar", workspaceDir, BackupDirWithTimestamp(directorIP)),
 			fmt.Sprintf("%s/%s/bosh-0-remarkable-backup-and-restore.tar", workspaceDir, BackupDirWithTimestamp(directorIP)),
 			fmt.Sprintf("%s/%s/bosh-0-amazing-backup-and-restore.tar", workspaceDir, BackupDirWithTimestamp(directorIP)),
