@@ -30,7 +30,7 @@ var _ = Describe("Restores a deployment", func() {
 
 		By("cleaning up the director")
 		Eventually(JumpboxInstance.RunCommandAs("vcap",
-			fmt.Sprintf(`cd %s; ssh %s vcap@%s -i key.pem 'sudo rm -rf %s'`,
+			fmt.Sprintf(`cd %s; ssh %s vcap@%s -i key.pem "sudo rm -rf %s"`,
 				workspaceDir,
 				skipSSHFingerprintCheckOpts,
 				directorIP,

@@ -74,7 +74,7 @@ func (i Instance) RunCommand(command string) *gexec.Session {
 }
 
 func (i Instance) RunCommandAs(user, command string) *gexec.Session {
-	return i.RunCommand(fmt.Sprintf("sudo su vcap -c '%s'", command))
+	return i.RunCommand(fmt.Sprintf("sudo su vcap -c %q", command))
 }
 
 func (i Instance) Copy(sourcePath, destinationPath string) {
