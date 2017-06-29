@@ -75,8 +75,8 @@ var _ = BeforeEach(func() {
 	Eventually(JumpboxInstance.RunCommand(
 		fmt.Sprintf("sudo mkdir %s && sudo chown vcap:vcap %s && sudo chmod 0777 %s", workspaceDir, workspaceDir, workspaceDir))).Should(gexec.Exit(0))
 
-	JumpboxInstance.Copy( commandPath, workspaceDir)
-	JumpboxInstance.Copy( MustHaveEnv("BOSH_CERT_PATH"), workspaceDir+"/bosh.crt")
+	JumpboxInstance.Copy(commandPath, workspaceDir)
+	JumpboxInstance.Copy(MustHaveEnv("BOSH_CERT_PATH"), workspaceDir+"/bosh.crt")
 })
 
 var _ = AfterEach(func() {

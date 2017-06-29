@@ -33,8 +33,8 @@ var _ = BeforeSuite(func() {
 		fmt.Sprintf("sudo mkdir %s && sudo chown vcap:vcap %s && sudo chmod 0777 %s", workspaceDir, workspaceDir, workspaceDir),
 	)).Should(gexec.Exit(0))
 
-	JumpboxInstance.Copy( commandPath, workspaceDir)
-	JumpboxInstance.Copy( MustHaveEnv("SSH_KEY"), workspaceDir+"/key.pem")
+	JumpboxInstance.Copy(commandPath, workspaceDir)
+	JumpboxInstance.Copy(MustHaveEnv("SSH_KEY"), workspaceDir+"/key.pem")
 
 	Eventually(JumpboxInstance.RunCommand(
 		fmt.Sprintf("sudo chown -R vcap:vcap %s", workspaceDir),
