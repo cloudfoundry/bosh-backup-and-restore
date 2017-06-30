@@ -37,7 +37,9 @@ setup:
 	go get -u github.com/maxbrunsfeld/counterfeiter
 	go get -u github.com/onsi/ginkgo/ginkgo
 
-sys-test-local: sys-test-local-director
+sys-test-local: sys-test-local-deployment sys-test-local-director
+
+sys-test-local-deployment:
 	BOSH_URL=https://lite-bosh.backup-and-restore.cf-app.com \
 	BOSH_GATEWAY_HOST=lite-bosh.backup-and-restore.cf-app.com \
 	BOSH_CLIENT_SECRET=`lpass show LiteBoshDirector --password` \
