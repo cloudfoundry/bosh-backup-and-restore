@@ -177,9 +177,9 @@ func trapSigint() {
 	go func() {
 		for range sigintChan {
 			stdinReader := bufio.NewReader(os.Stdin)
-			fmt.Println("\nStopping a backup can leave the system in bad state. Are you sure you want to cancel? [yes/no]")
 			stdout.Pause()
 			stderr.Pause()
+			fmt.Fprintln(os.Stdout, "\nStopping a backup can leave the system in bad state. Are you sure you want to cancel? [yes/no]")
 			input, err := stdinReader.ReadString('\n')
 			if err != nil {
 				fmt.Println("\nCouldn't read from Stdin, if you still want to stop the backup send SIGTERM.")
