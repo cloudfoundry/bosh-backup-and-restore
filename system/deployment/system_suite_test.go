@@ -69,7 +69,7 @@ var _ = BeforeEach(func() {
 		defer GinkgoRecover()
 		defer wg.Done()
 		By("deploying the slow backup Redis test release")
-		RedisSlowBackupDeployment().Deploy()
+		RedisSlowBackupDeployment.Deploy()
 	}()
 
 	wg.Wait()
@@ -130,7 +130,7 @@ var _ = AfterEach(func() {
 		defer GinkgoRecover()
 		defer wg.Done()
 		By("tearing down the slow backup Redis test release")
-		RedisSlowBackupDeployment().Delete()
+		RedisSlowBackupDeployment.Delete()
 	}()
 
 	wg.Wait()

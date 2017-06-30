@@ -82,7 +82,7 @@ COPYRIGHT:
 					Name:    "pre-backup-check",
 					Aliases: []string{"c"},
 					Usage:   "Check a deployment can be backed up",
-					Action:  preBackupCheck,
+					Action:  deploymentPreBackupCheck,
 				},
 				{
 					Name:    "backup",
@@ -103,6 +103,12 @@ COPYRIGHT:
 						Name:  "artifact-path",
 						Usage: "Path to the artifact to restore",
 					}},
+				},
+				{
+					Name:    "cleanup",
+					Aliases: []string{"c"},
+					Usage:   "Cleanup a deployment after a backup or restore was interrupted",
+					Action:  deploymentCleanup,
 				},
 			},
 		},
@@ -182,7 +188,7 @@ func trapSigint() {
 	}()
 }
 
-func preBackupCheck(c *cli.Context) error {
+func deploymentPreBackupCheck(c *cli.Context) error {
 	var deployment = c.Parent().String("deployment")
 
 	backuper, err := makeDeploymentBackuper(c)
@@ -291,6 +297,25 @@ func directorRestore(c *cli.Context) error {
 	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(restoreErr)
 	if err := writeStackTrace(errorWithStackTrace); err != nil {
 		return errors.Wrap(restoreErr, err.Error())
+	}
+
+	return cli.NewExitError(errorMessage, errorCode)
+}
+
+func deploymentCleanup(c *cli.Context) error {
+	trapSigint()
+
+	backuper, err := makeDeploymentBackuper(c)
+	if err != nil {
+		return err
+	}
+
+	deployment := c.Parent().String("deployment")
+	cleanupErr := backuper.Cleanup(deployment)
+
+	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(cleanupErr)
+	if err := writeStackTrace(errorWithStackTrace); err != nil {
+		return errors.Wrap(cleanupErr, err.Error())
 	}
 
 	return cli.NewExitError(errorMessage, errorCode)

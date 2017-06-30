@@ -106,6 +106,10 @@ func (e Error) IsNil() bool {
 	return len(e) == 0
 }
 
+func (e Error) Join(otherError Error) Error {
+	return append(e, otherError...)
+}
+
 func ProcessError(errs Error) (int, string, string) {
 	exitCode := 0
 
