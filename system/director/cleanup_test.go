@@ -12,7 +12,7 @@ import (
 	. "github.com/pivotal-cf/bosh-backup-and-restore/system"
 )
 
-var _ = FDescribe("cleanup", func() {
+var _ = Describe("cleanup", func() {
 	var directorIP = MustHaveEnv("HOST_TO_BACKUP")
 
 	BeforeEach(func() {
