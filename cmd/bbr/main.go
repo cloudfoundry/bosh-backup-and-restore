@@ -105,10 +105,9 @@ COPYRIGHT:
 					}},
 				},
 				{
-					Name:    "cleanup",
-					Aliases: []string{"c"},
-					Usage:   "Cleanup a deployment after a backup or restore was interrupted",
-					Action:  deploymentCleanup,
+					Name:   "cleanup",
+					Usage:  "Cleanup a deployment after a backup or restore was interrupted",
+					Action: deploymentCleanup,
 				},
 			},
 		},
@@ -139,6 +138,11 @@ COPYRIGHT:
 						Name:  "artifact-path",
 						Usage: "Path to the artifact to restore",
 					}},
+				},
+				{
+					Name:   "cleanup",
+					Usage:  "Cleanup a director after a backup or restore was interrupted",
+					Action: directorCleanup,
 				},
 			},
 		},
@@ -316,6 +320,23 @@ func deploymentCleanup(c *cli.Context) error {
 	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(cleanupErr)
 	if err := writeStackTrace(errorWithStackTrace); err != nil {
 		return errors.Wrap(cleanupErr, err.Error())
+	}
+
+	return cli.NewExitError(errorMessage, errorCode)
+}
+
+func directorCleanup(c *cli.Context) error {
+	trapSigint()
+
+	directorName := ExtractNameFromAddress(c.Parent().String("host"))
+
+	backuper := makeDirectorBackuper(c)
+
+	backupErr := backuper.Cleanup(directorName)
+
+	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(backupErr)
+	if err := writeStackTrace(errorWithStackTrace); err != nil {
+		return errors.Wrap(backupErr, err.Error())
 	}
 
 	return cli.NewExitError(errorMessage, errorCode)

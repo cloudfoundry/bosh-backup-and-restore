@@ -55,7 +55,7 @@ var _ = Describe("cleanup", func() {
 			)
 
 			Eventually(cleanupCommand).Should(gexec.Exit(0))
-			Expect(cleanupCommand.Out.Contents()).To(ContainSubstring("Deployment '%s' cleaned up", deploymentNameToBackup))
+			Expect(cleanupCommand.Out.Contents()).To(ContainSubstring("'%s' cleaned up", deploymentNameToBackup))
 		})
 
 		By("backup completing successfully", func() {

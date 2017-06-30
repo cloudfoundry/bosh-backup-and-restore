@@ -72,7 +72,7 @@ func (b Backuper) Cleanup(deploymentName string) Error {
 	}
 
 	if len(currentError) == 0 {
-		b.Logger.Info("bbr", "Deployment '%s' cleaned up\n", deploymentName)
+		b.Logger.Info("bbr", "'%s' cleaned up\n", deploymentName)
 	}
 
 	return currentError
