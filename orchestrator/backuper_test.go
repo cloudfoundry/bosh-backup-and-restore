@@ -548,12 +548,14 @@ var _ = Describe("Cleanup", func() {
 		deploymentManager *fakes.FakeDeploymentManager
 		deploymentName    = "foobarbaz"
 		cleanupError      error
+		logger            *fakes.FakeLogger
 	)
 
 	BeforeEach(func() {
 		deployment = new(fakes.FakeDeployment)
 		deploymentManager = new(fakes.FakeDeploymentManager)
-		b = orchestrator.NewBackuper(nil, nil, deploymentManager, time.Now)
+		logger = new(fakes.FakeLogger)
+		b = orchestrator.NewBackuper(nil, logger, deploymentManager, time.Now)
 	})
 
 	JustBeforeEach(func() {
