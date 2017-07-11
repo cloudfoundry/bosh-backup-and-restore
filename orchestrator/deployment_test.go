@@ -1036,7 +1036,7 @@ var _ = Describe("Deployment", func() {
 			It("does not fail", func() {
 				Expect(actualCleanupError).NotTo(HaveOccurred())
 			})
-			It("backs up the only the backupable instance", func() {
+			It("cleanup all the instances", func() {
 				Expect(instance1.CleanupCallCount()).To(Equal(1))
 				Expect(instance2.CleanupCallCount()).To(Equal(1))
 			})
@@ -1077,6 +1077,177 @@ var _ = Describe("Deployment", func() {
 			It("continues cleanup of instances", func() {
 				Expect(instance1.CleanupCallCount()).To(Equal(1))
 				Expect(instance2.CleanupCallCount()).To(Equal(1))
+			})
+		})
+	})
+
+	Context("CleanupPrevious", func() {
+		var (
+			actualCleanupError error
+		)
+		JustBeforeEach(func() {
+			actualCleanupError = deployment.CleanupPrevious()
+		})
+
+		Context("Single instance is backupable", func() {
+			BeforeEach(func() {
+				instance1.HasBackupScriptReturns(true)
+				instance1.IsRestorableReturns(false)
+				instances = []orchestrator.Instance{instance1}
+			})
+			It("does not fail", func() {
+				Expect(actualCleanupError).NotTo(HaveOccurred())
+			})
+			It("cleans up the instance", func() {
+				Expect(instance1.CleanupPreviousCallCount()).To(Equal(1))
+			})
+		})
+		Context("Single instance is restorable", func() {
+			BeforeEach(func() {
+				instance1.HasBackupScriptReturns(false)
+				instance1.IsRestorableReturns(true)
+				instances = []orchestrator.Instance{instance1}
+			})
+			It("does not fail", func() {
+				Expect(actualCleanupError).NotTo(HaveOccurred())
+			})
+			It("cleans up the instance", func() {
+				Expect(instance1.CleanupPreviousCallCount()).To(Equal(1))
+			})
+		})
+		Context("Single instance is neither backupable nor restorable", func() {
+			BeforeEach(func() {
+				instance1.HasBackupScriptReturns(false)
+				instance1.IsRestorableReturns(false)
+				instances = []orchestrator.Instance{instance1}
+			})
+			It("does not fail", func() {
+				Expect(actualCleanupError).NotTo(HaveOccurred())
+			})
+			It("does not clean up the instance", func() {
+				Expect(instance1.CleanupPreviousCallCount()).To(Equal(0))
+			})
+		})
+
+		Context("Multiple backupable instances", func() {
+			BeforeEach(func() {
+				instance1.HasBackupScriptReturns(true)
+				instance1.IsRestorableReturns(false)
+
+				instance2.HasBackupScriptReturns(true)
+				instance2.IsRestorableReturns(false)
+
+				instances = []orchestrator.Instance{instance1, instance2}
+			})
+			It("does not fail", func() {
+				Expect(actualCleanupError).NotTo(HaveOccurred())
+			})
+			It("cleanup all the instances", func() {
+				Expect(instance1.CleanupPreviousCallCount()).To(Equal(1))
+				Expect(instance2.CleanupPreviousCallCount()).To(Equal(1))
+			})
+		})
+
+		Context("Multiple restoable instances", func() {
+			BeforeEach(func() {
+				instance1.HasBackupScriptReturns(false)
+				instance1.IsRestorableReturns(true)
+
+				instance2.HasBackupScriptReturns(true)
+				instance2.IsRestorableReturns(true)
+
+				instances = []orchestrator.Instance{instance1, instance2}
+			})
+			It("does not fail", func() {
+				Expect(actualCleanupError).NotTo(HaveOccurred())
+			})
+			It("cleanup all the instances", func() {
+				Expect(instance1.CleanupPreviousCallCount()).To(Equal(1))
+				Expect(instance2.CleanupPreviousCallCount()).To(Equal(1))
+			})
+		})
+
+		Context("Multiple instances neither backupable nor restoable", func() {
+			BeforeEach(func() {
+				instance1.HasBackupScriptReturns(false)
+				instance1.IsRestorableReturns(false)
+
+				instance2.HasBackupScriptReturns(false)
+				instance2.IsRestorableReturns(false)
+
+				instances = []orchestrator.Instance{instance1, instance2}
+			})
+			It("does not fail", func() {
+				Expect(actualCleanupError).NotTo(HaveOccurred())
+			})
+			It("cleanup none of the instances", func() {
+				Expect(instance1.CleanupPreviousCallCount()).To(Equal(0))
+				Expect(instance2.CleanupPreviousCallCount()).To(Equal(0))
+			})
+		})
+
+		Context("Multiple instances some backuable and restorable", func() {
+			BeforeEach(func() {
+				instance1.HasBackupScriptReturns(true)
+				instance1.IsRestorableReturns(false)
+
+				instance2.HasBackupScriptReturns(false)
+				instance2.IsRestorableReturns(true)
+
+				instance3.HasBackupScriptReturns(false)
+				instance3.IsRestorableReturns(false)
+
+				instances = []orchestrator.Instance{instance1, instance2, instance3}
+			})
+			It("does not fail", func() {
+				Expect(actualCleanupError).NotTo(HaveOccurred())
+			})
+			It("cleanup backupable or restoreable the instances", func() {
+				Expect(instance1.CleanupPreviousCallCount()).To(Equal(1))
+				Expect(instance2.CleanupPreviousCallCount()).To(Equal(1))
+				Expect(instance3.CleanupPreviousCallCount()).To(Equal(0))
+			})
+		})
+
+		Context("Multiple instances, some failing", func() {
+			var cleanupError1 = fmt.Errorf("foo")
+
+			BeforeEach(func() {
+				instance1.HasBackupScriptReturns(true)
+				instance1.CleanupPreviousReturns(cleanupError1)
+				instance2.HasBackupScriptReturns(true)
+				instances = []orchestrator.Instance{instance1, instance2}
+			})
+
+			It("fails", func() {
+				Expect(actualCleanupError).To(MatchError(ContainSubstring(cleanupError1.Error())))
+			})
+
+			It("continues cleanup of instances", func() {
+				Expect(instance1.CleanupPreviousCallCount()).To(Equal(1))
+				Expect(instance2.CleanupPreviousCallCount()).To(Equal(1))
+			})
+		})
+
+		Context("Multiple instances, all failing", func() {
+			var cleanupError1 = fmt.Errorf("foo")
+			var cleanupError2 = fmt.Errorf("bar")
+			BeforeEach(func() {
+				instance1.HasBackupScriptReturns(true)
+				instance1.CleanupPreviousReturns(cleanupError1)
+				instance2.IsRestorableReturns(true)
+				instance2.CleanupPreviousReturns(cleanupError2)
+				instances = []orchestrator.Instance{instance1, instance2}
+			})
+
+			It("fails with both error messages", func() {
+				Expect(actualCleanupError).To(MatchError(ContainSubstring(cleanupError1.Error())))
+				Expect(actualCleanupError).To(MatchError(ContainSubstring(cleanupError2.Error())))
+			})
+
+			It("continues cleanup of instances", func() {
+				Expect(instance1.CleanupPreviousCallCount()).To(Equal(1))
+				Expect(instance2.CleanupPreviousCallCount()).To(Equal(1))
 			})
 		})
 	})

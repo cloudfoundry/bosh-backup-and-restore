@@ -23,6 +23,7 @@ type Deployment interface {
 	CopyRemoteBackupToLocal(Backup) error
 	CopyLocalBackupToRemote(Backup) error
 	Cleanup() error
+	CleanupPrevious() error
 	Instances() []Instance
 	CustomArtifactNamesMatch() error
 }
@@ -100,6 +101,10 @@ func (bd *deployment) Restore() error {
 
 func (bd *deployment) Cleanup() error {
 	return bd.instances.Cleanup()
+}
+
+func (bd *deployment) CleanupPrevious() error {
+	return bd.instances.AllBackupableOrRestorable().CleanupPrevious()
 }
 
 func (bd *deployment) IsRestorable() bool {

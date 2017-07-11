@@ -23,6 +23,7 @@ type Instance interface {
 	PostBackupUnlock() error
 	Restore() error
 	Cleanup() error
+	CleanupPrevious() error
 	ArtifactsToBackup() []BackupArtifact
 	ArtifactsToRestore() []BackupArtifact
 	CustomBackupArtifactNames() []string
@@ -118,6 +119,17 @@ func (is instances) AllRestoreable() instances {
 	return instances
 }
 
+func (is instances) AllBackupableOrRestorable() instances {
+	var instances []Instance
+
+	for _, instance := range is {
+		if instance.HasBackupScript() || instance.IsRestorable() {
+			instances = append(instances, instance)
+		}
+	}
+	return instances
+}
+
 func (is instances) Cleanup() error {
 	var cleanupErrors []error
 	for _, instance := range is {
@@ -126,6 +138,16 @@ func (is instances) Cleanup() error {
 		}
 	}
 	return ConvertErrors(cleanupErrors)
+}
+
+func (is instances) CleanupPrevious() error {
+	var cleanupPreviousErrors []error
+	for _, instance := range is {
+		if err := instance.CleanupPrevious(); err != nil {
+			cleanupPreviousErrors = append(cleanupPreviousErrors, err)
+		}
+	}
+	return ConvertErrors(cleanupPreviousErrors)
 }
 
 func (is instances) PreBackupLock() error {

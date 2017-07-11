@@ -52,32 +52,6 @@ func (b Backuper) CanBeBackedUp(deploymentName string) (bool, Error) {
 	return err == nil, err
 }
 
-func (b Backuper) Cleanup(deploymentName string) Error {
-	deployment, err := b.DeploymentManager.Find(deploymentName)
-	if err != nil {
-		return Error{err}
-	}
-
-	var currentError = Error{}
-
-	// TODO: correct error types
-	err = deployment.Cleanup()
-	if err != nil {
-		currentError = append(currentError, err)
-	}
-
-	err = deployment.PostBackupUnlock()
-	if err != nil {
-		currentError = append(currentError, err)
-	}
-
-	if len(currentError) == 0 {
-		b.Logger.Info("bbr", "'%s' cleaned up\n", deploymentName)
-	}
-
-	return currentError
-}
-
 func cleanupAndReturnErrors(d Deployment, err error) Error {
 	cleanupErr := d.Cleanup()
 	if cleanupErr != nil {

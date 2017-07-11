@@ -28,8 +28,8 @@ var _ = Describe("BoshDeployedInstance", func() {
 	var jobs instance.Jobs
 	var artifactMetadata map[string]instance.Metadata
 	var artifactDirCreated bool
-
 	var backuperInstance orchestrator.Instance
+
 	BeforeEach(func() {
 		sshConnection = new(fakes.FakeSSHConnection)
 		boshDeployment = new(boshfakes.FakeDeployment)
@@ -77,13 +77,109 @@ var _ = Describe("BoshDeployedInstance", func() {
 			})
 		})
 
-		Context("when the backup artifact directory was never created", func() {
+		Context("when the backup artifact directory was not created this time", func() {
 			BeforeEach(func() {
 				artifactDirCreated = false
 			})
 
 			It("does not delete the existing artifact", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(0))
+			})
+
+			It("deletes session from deployment", func() {
+				Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(1))
+				slug, sshOpts := boshDeployment.CleanUpSSHArgsForCall(0)
+				Expect(slug).To(Equal(director.NewAllOrInstanceGroupOrInstanceSlug(jobName, jobID)))
+				Expect(sshOpts).To(Equal(director.SSHOpts{
+					Username: "sshUsername",
+				}))
+			})
+		})
+
+		Describe("error removing the backup folder", func() {
+			BeforeEach(func() {
+				expectedError = fmt.Errorf("foo bar")
+				sshConnection.RunReturns(nil, nil, 1, expectedError)
+			})
+			It("tries to cleanup ssh connection", func() {
+				Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(1))
+			})
+			It("returns the error", func() {
+				Expect(actualError).To(MatchError(ContainSubstring(expectedError.Error())))
+			})
+		})
+
+		Describe("error removing the backup folder and an error while running cleaning up the connection", func() {
+			var expectedErrorWhileDeleting error
+			var expectedErrorWhileCleaningUp error
+
+			BeforeEach(func() {
+				expectedErrorWhileDeleting = fmt.Errorf("error while cleaning up var/vcap/store/bbr-backup")
+				expectedErrorWhileCleaningUp = fmt.Errorf("error while cleaning the ssh tunnel")
+				sshConnection.RunReturns(nil, nil, 1, expectedErrorWhileDeleting)
+				boshDeployment.CleanUpSSHReturns(expectedErrorWhileCleaningUp)
+			})
+
+			It("tries delete the artifact", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+			})
+
+			It("tries to cleanup ssh connection", func() {
+				Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(1))
+			})
+
+			It("returns the aggregated error", func() {
+				Expect(actualError).To(MatchError(ContainSubstring(expectedErrorWhileDeleting.Error())))
+				Expect(actualError).To(MatchError(ContainSubstring(expectedErrorWhileCleaningUp.Error())))
+			})
+		})
+
+		Describe("error while running cleaning up the connection", func() {
+			BeforeEach(func() {
+				expectedError = errors.New("werk niet")
+				boshDeployment.CleanUpSSHReturns(expectedError)
+			})
+
+			It("fails", func() {
+				Expect(actualError).To(MatchError(ContainSubstring(expectedError.Error())))
+			})
+		})
+	})
+
+	Describe("CleanupPrevious", func() {
+		var actualError error
+		var expectedError error
+
+		JustBeforeEach(func() {
+			actualError = backuperInstance.CleanupPrevious()
+		})
+
+		Describe("cleans up successfully", func() {
+			It("deletes the backup folder", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				cmd := sshConnection.RunArgsForCall(0)
+				Expect(cmd).To(Equal("sudo rm -rf /var/vcap/store/bbr-backup"))
+			})
+
+			It("deletes session from deployment", func() {
+				Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(1))
+				slug, sshOpts := boshDeployment.CleanUpSSHArgsForCall(0)
+				Expect(slug).To(Equal(director.NewAllOrInstanceGroupOrInstanceSlug(jobName, jobID)))
+				Expect(sshOpts).To(Equal(director.SSHOpts{
+					Username: "sshUsername",
+				}))
+			})
+		})
+
+		Context("when the backup artifact directory was not created this time", func() {
+			BeforeEach(func() {
+				artifactDirCreated = false
+			})
+
+			It("does attempt to delete the existing artifact", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				cmd := sshConnection.RunArgsForCall(0)
+				Expect(cmd).To(Equal("sudo rm -rf /var/vcap/store/bbr-backup"))
 			})
 
 			It("deletes session from deployment", func() {

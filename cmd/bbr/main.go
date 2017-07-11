@@ -309,13 +309,13 @@ func directorRestore(c *cli.Context) error {
 func deploymentCleanup(c *cli.Context) error {
 	trapSigint()
 
-	backuper, err := makeDeploymentBackuper(c)
+	cleaner, err := makeDeploymentCleaner(c)
 	if err != nil {
 		return err
 	}
 
 	deployment := c.Parent().String("deployment")
-	cleanupErr := backuper.Cleanup(deployment)
+	cleanupErr := cleaner.Cleanup(deployment)
 
 	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(cleanupErr)
 	if err := writeStackTrace(errorWithStackTrace); err != nil {
@@ -330,13 +330,13 @@ func directorCleanup(c *cli.Context) error {
 
 	directorName := ExtractNameFromAddress(c.Parent().String("host"))
 
-	backuper := makeDirectorBackuper(c)
+	cleaner := makeDirectorCleaner(c)
 
-	backupErr := backuper.Cleanup(directorName)
+	cleanupErr := cleaner.Cleanup(directorName)
 
-	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(backupErr)
+	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(cleanupErr)
 	if err := writeStackTrace(errorWithStackTrace); err != nil {
-		return errors.Wrap(backupErr, err.Error())
+		return errors.Wrap(cleanupErr, err.Error())
 	}
 
 	return cli.NewExitError(errorMessage, errorCode)
@@ -449,6 +449,37 @@ func ExtractNameFromAddress(address string) string {
 		address = url.Hostname()
 	}
 	return strings.Split(address, ":")[0]
+}
+
+func makeDeploymentCleaner(c *cli.Context) (*orchestrator.Cleaner, error) {
+	logger := makeLogger(c)
+	deploymentManager, err := newDeploymentManager(
+		c.Parent().String("target"),
+		c.Parent().String("username"),
+		c.Parent().String("password"),
+		c.Parent().String("ca-cert"),
+		logger,
+		c.Bool("with-manifest"),
+	)
+
+	if err != nil {
+		return nil, redCliError(err)
+	}
+
+	return orchestrator.NewCleaner(logger, deploymentManager), nil
+}
+
+func makeDirectorCleaner(c *cli.Context) *orchestrator.Cleaner {
+	logger := makeLogger(c)
+	deploymentManager := standalone.NewDeploymentManager(logger,
+		c.Parent().String("host"),
+		c.Parent().String("username"),
+		c.Parent().String("private-key-path"),
+		instance.NewJobFinder(logger),
+		ssh.NewConnection,
+	)
+
+	return orchestrator.NewCleaner(logger, deploymentManager)
 }
 
 func makeDeploymentBackuper(c *cli.Context) (*orchestrator.Backuper, error) {

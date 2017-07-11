@@ -12,7 +12,7 @@ import (
 	. "github.com/pivotal-cf/bosh-backup-and-restore/system"
 )
 
-var _ = Describe("cleanup", func() {
+var _ = Describe("Deployment backup cleanup", func() {
 	var deploymentNameToBackup = RedisSlowBackupDeployment.Name
 
 	BeforeEach(func() {
@@ -37,28 +37,50 @@ var _ = Describe("cleanup", func() {
 		Eventually(backupSession.Kill()).Should(gexec.Exit())
 	})
 
-	It("succeeds", func() {
-		By("cleaning up the deployment", func() {
-			cleanupCommand := JumpboxInstance.RunCommandAs("vcap",
-				fmt.Sprintf(`cd %s; \
+	Context("When we run cleanup", func() {
+		It("succeeds", func() {
+			By("cleaning up the deployment artifact", func() {
+				cleanupCommand := JumpboxInstance.RunCommandAs("vcap",
+					fmt.Sprintf(`cd %s; \
 			    BOSH_CLIENT_SECRET=%s ./bbr deployment \
 			       --ca-cert bosh.crt \
 			       --username %s \
 			       --target %s \
 			       --deployment %s \
 			       cleanup`,
-					workspaceDir,
-					MustHaveEnv("BOSH_CLIENT_SECRET"),
-					MustHaveEnv("BOSH_CLIENT"),
-					MustHaveEnv("BOSH_URL"),
-					deploymentNameToBackup),
-			)
+						workspaceDir,
+						MustHaveEnv("BOSH_CLIENT_SECRET"),
+						MustHaveEnv("BOSH_CLIENT"),
+						MustHaveEnv("BOSH_URL"),
+						deploymentNameToBackup),
+				)
 
-			Eventually(cleanupCommand).Should(gexec.Exit(0))
-			Expect(cleanupCommand.Out.Contents()).To(ContainSubstring("'%s' cleaned up", deploymentNameToBackup))
+				Eventually(cleanupCommand).Should(gexec.Exit(0))
+				Expect(cleanupCommand.Out.Contents()).To(ContainSubstring("'%s' cleaned up", deploymentNameToBackup))
+			})
+
+			By("allowing subsequent backups to complete successfully", func() {
+				backupCommand := JumpboxInstance.RunCommandAs("vcap",
+					fmt.Sprintf(`cd %s; \
+			    BOSH_CLIENT_SECRET=%s ./bbr deployment \
+			       --ca-cert bosh.crt \
+			       --username %s \
+			       --target %s \
+			       --deployment %s \
+			       backup`,
+						workspaceDir,
+						MustHaveEnv("BOSH_CLIENT_SECRET"),
+						MustHaveEnv("BOSH_CLIENT"),
+						MustHaveEnv("BOSH_URL"),
+						deploymentNameToBackup),
+				)
+				Eventually(backupCommand).Should(gexec.Exit(0))
+			})
 		})
+	})
 
-		By("backup completing successfully", func() {
+	Context("when we don't run a cleanup", func() {
+		It("is in a state where subsequent backups fail", func() {
 			backupCommand := JumpboxInstance.RunCommandAs("vcap",
 				fmt.Sprintf(`cd %s; \
 			    BOSH_CLIENT_SECRET=%s ./bbr deployment \
@@ -74,7 +96,8 @@ var _ = Describe("cleanup", func() {
 					deploymentNameToBackup),
 			)
 
-			Eventually(backupCommand).Should(gexec.Exit(0))
+			Eventually(backupCommand).Should(gexec.Exit(1))
+			Expect(backupCommand.Out.Contents()).To(ContainSubstring("Directory /var/vcap/store/bbr-backup already exists on instance"))
 		})
 	})
 })

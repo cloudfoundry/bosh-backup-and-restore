@@ -139,6 +139,15 @@ type FakeInstance struct {
 	cleanupReturnsOnCall map[int]struct {
 		result1 error
 	}
+	CleanupPreviousStub        func() error
+	cleanupPreviousMutex       sync.RWMutex
+	cleanupPreviousArgsForCall []struct{}
+	cleanupPreviousReturns     struct {
+		result1 error
+	}
+	cleanupPreviousReturnsOnCall map[int]struct {
+		result1 error
+	}
 	ArtifactsToBackupStub        func() []orchestrator.BackupArtifact
 	artifactsToBackupMutex       sync.RWMutex
 	artifactsToBackupArgsForCall []struct{}
@@ -758,6 +767,46 @@ func (fake *FakeInstance) CleanupReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeInstance) CleanupPrevious() error {
+	fake.cleanupPreviousMutex.Lock()
+	ret, specificReturn := fake.cleanupPreviousReturnsOnCall[len(fake.cleanupPreviousArgsForCall)]
+	fake.cleanupPreviousArgsForCall = append(fake.cleanupPreviousArgsForCall, struct{}{})
+	fake.recordInvocation("CleanupPrevious", []interface{}{})
+	fake.cleanupPreviousMutex.Unlock()
+	if fake.CleanupPreviousStub != nil {
+		return fake.CleanupPreviousStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.cleanupPreviousReturns.result1
+}
+
+func (fake *FakeInstance) CleanupPreviousCallCount() int {
+	fake.cleanupPreviousMutex.RLock()
+	defer fake.cleanupPreviousMutex.RUnlock()
+	return len(fake.cleanupPreviousArgsForCall)
+}
+
+func (fake *FakeInstance) CleanupPreviousReturns(result1 error) {
+	fake.CleanupPreviousStub = nil
+	fake.cleanupPreviousReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeInstance) CleanupPreviousReturnsOnCall(i int, result1 error) {
+	fake.CleanupPreviousStub = nil
+	if fake.cleanupPreviousReturnsOnCall == nil {
+		fake.cleanupPreviousReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.cleanupPreviousReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeInstance) ArtifactsToBackup() []orchestrator.BackupArtifact {
 	fake.artifactsToBackupMutex.Lock()
 	ret, specificReturn := fake.artifactsToBackupReturnsOnCall[len(fake.artifactsToBackupArgsForCall)]
@@ -951,6 +1000,8 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.restoreMutex.RUnlock()
 	fake.cleanupMutex.RLock()
 	defer fake.cleanupMutex.RUnlock()
+	fake.cleanupPreviousMutex.RLock()
+	defer fake.cleanupPreviousMutex.RUnlock()
 	fake.artifactsToBackupMutex.RLock()
 	defer fake.artifactsToBackupMutex.RUnlock()
 	fake.artifactsToRestoreMutex.RLock()

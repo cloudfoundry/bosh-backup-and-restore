@@ -180,13 +180,70 @@ var _ = Describe("DeployedInstance", func() {
 			))
 		})
 
-		Context("when the artifact directory was not created by BBR", func() {
+		Context("when the artifact directory was not created this time", func() {
 			BeforeEach(func() {
 				artifactDirCreated = false
 			})
 
 			It("does not remove the artifact directory", func() {
 				Expect(fakeSSHConnection.RunCallCount()).To(Equal(0))
+			})
+		})
+
+		Context("when cleanup fails", func() {
+			BeforeEach(func() {
+				fakeSSHConnection.RunReturns(nil, nil, 5, nil)
+			})
+
+			It("returns an error", func() {
+				Expect(err).To(MatchError("Unable to clean up backup artifact"))
+			})
+		})
+
+		Context("when ssh connection fails", func() {
+			BeforeEach(func() {
+				fakeSSHConnection.RunReturns(nil, nil, 0, errors.New("fool!"))
+			})
+
+			It("returns the error", func() {
+				Expect(err).To(MatchError(ContainSubstring("fool!")))
+			})
+		})
+	})
+
+	Describe("CleanupPrevious", func() {
+		var err error
+
+		JustBeforeEach(func() {
+			inst = NewDeployedInstance("group", fakeSSHConnection, logger, []instance.Job{}, artifactDirCreated)
+			err = inst.CleanupPrevious()
+		})
+
+		BeforeEach(func() {
+			artifactDirCreated = true
+		})
+
+		It("does not fail", func() {
+			Expect(err).NotTo(HaveOccurred())
+		})
+
+		It("removes the artifact directory", func() {
+			Expect(fakeSSHConnection.RunCallCount()).To(Equal(1))
+			Expect(fakeSSHConnection.RunArgsForCall(0)).To(Equal(
+				"sudo rm -rf /var/vcap/store/bbr-backup",
+			))
+		})
+
+		Context("when the artifact directory was not created this time", func() {
+			BeforeEach(func() {
+				artifactDirCreated = false
+			})
+
+			It("does remove the artifact directory", func() {
+				Expect(fakeSSHConnection.RunCallCount()).To(Equal(1))
+				Expect(fakeSSHConnection.RunArgsForCall(0)).To(Equal(
+					"sudo rm -rf /var/vcap/store/bbr-backup",
+				))
 			})
 		})
 

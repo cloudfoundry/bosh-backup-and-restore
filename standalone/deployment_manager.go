@@ -91,6 +91,25 @@ func (d DeployedInstance) Cleanup() error {
 	return nil
 }
 
+func (d DeployedInstance) CleanupPrevious() error {
+	d.Logger.Info("", "Cleaning up...")
+
+	stdout, stderr, exitCode, err := d.SSHConnection.Run(fmt.Sprintf("sudo rm -rf %s", orchestrator.ArtifactDirectory))
+	d.Logger.Debug("", "Stdout: %s", string(stdout))
+	d.Logger.Debug("", "Stderr: %s", string(stderr))
+
+	if err != nil {
+		d.Logger.Error("", "Backup artifact clean up failed")
+		return errors.Wrap(err, "standalone.DeployedInstance.Cleanup failed")
+	}
+
+	if exitCode != 0 {
+		return errors.New("Unable to clean up backup artifact")
+	}
+
+	return nil
+}
+
 func NewDeployedInstance(instanceGroupName string, connection ssh.SSHConnection, logger instance.Logger, jobs instance.Jobs, artifactDirCreated bool) DeployedInstance {
 	return DeployedInstance{
 		DeployedInstance: instance.NewDeployedInstance("0", instanceGroupName, "0", artifactDirCreated, connection, logger, jobs),

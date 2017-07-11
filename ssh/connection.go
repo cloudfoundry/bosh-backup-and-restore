@@ -22,6 +22,7 @@ type SSHConnection interface {
 
 type Logger interface {
 	Warn(tag, msg string, args ...interface{})
+	Debug(tag, msg string, args ...interface{})
 }
 
 func NewConnection(hostName, userName, privateKey string, publicKeyCallback ssh.HostKeyCallback, publicKeyAlgorithm []string, logger Logger) (SSHConnection, error) {
@@ -109,6 +110,7 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 	if err != nil {
 		return -1, errors.Wrap(err, "ssh.NewSession failed")
 	}
+	c.logger.Debug("ssh", "Trying to execute '%s' on remote", cmd)
 
 	stopKeepAliveLoop := c.startKeepAliveLoop(session)
 	defer close(stopKeepAliveLoop)
