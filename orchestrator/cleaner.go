@@ -20,12 +20,12 @@ func (c Cleaner) Cleanup(deploymentName string) Error {
 
 	var currentError = Error{}
 
-	err = deployment.CleanupPrevious()
+	err = deployment.PostBackupUnlock()
 	if err != nil {
 		currentError = append(currentError, err)
 	}
 
-	err = deployment.PostBackupUnlock()
+	err = deployment.CleanupPrevious()
 	if err != nil {
 		currentError = append(currentError, err)
 	}

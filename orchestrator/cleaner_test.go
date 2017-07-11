@@ -51,6 +51,28 @@ var _ = Describe("Cleanup", func() {
 		})
 	})
 
+	Context("the deployment actions are in order", func() {
+		var currentSequenceNumber, unlockCallIndex, cleanupCallIndex int
+		BeforeEach(func() {
+			deploymentManager.FindReturns(deployment, nil)
+			deployment.PostBackupUnlockStub = func() error {
+				unlockCallIndex = currentSequenceNumber
+				currentSequenceNumber = currentSequenceNumber + 1
+				return nil
+			}
+			deployment.CleanupPreviousStub = func() error {
+				cleanupCallIndex = currentSequenceNumber
+				currentSequenceNumber = currentSequenceNumber + 1
+				return nil
+			}
+		})
+
+		It("unlocks and then cleanups", func() {
+			Expect(unlockCallIndex).To(Equal(0))
+			Expect(cleanupCallIndex).To(Equal(1))
+		})
+	})
+
 	Context("when the deployment doesn't exist", func() {
 		BeforeEach(func() {
 			deploymentManager.FindReturns(nil, fmt.Errorf("deployment not found"))
