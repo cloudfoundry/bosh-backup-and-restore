@@ -247,7 +247,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 				set -u
 
-				sleep 2
+				sleep 5
 
 				printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
 				`)
