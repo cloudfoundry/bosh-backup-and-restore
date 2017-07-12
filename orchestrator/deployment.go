@@ -12,7 +12,7 @@ const ArtifactDirectory = "/var/vcap/store/bbr-backup"
 
 //go:generate counterfeiter -o fakes/fake_deployment.go . Deployment
 type Deployment interface {
-	HasBackupScript() bool
+	IsBackupable() bool
 	HasUniqueCustomArtifactNames() bool
 	CheckArtifactDir() error
 	IsRestorable() bool
@@ -38,7 +38,7 @@ func NewDeployment(logger Logger, instancesArray []Instance) Deployment {
 	return &deployment{Logger: logger, instances: instances(instancesArray)}
 }
 
-func (bd *deployment) HasBackupScript() bool {
+func (bd *deployment) IsBackupable() bool {
 	backupableInstances := bd.instances.AllBackupable()
 	return !backupableInstances.IsEmpty()
 }

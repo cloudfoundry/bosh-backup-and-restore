@@ -43,7 +43,7 @@ func (d *DeployedInstance) ArtifactDirExists() (bool, error) {
 	return exitCode == 0, err
 }
 
-func (d *DeployedInstance) HasBackupScript() bool {
+func (d *DeployedInstance) IsBackupable() bool {
 	return d.Jobs.AnyAreBackupable()
 }
 

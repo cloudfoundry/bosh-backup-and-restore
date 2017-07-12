@@ -52,7 +52,7 @@ var _ = Describe("Backup", func() {
 		BeforeEach(func() {
 			fakeBackupManager.CreateReturns(fakeBackup, nil)
 			deploymentManager.FindReturns(deployment, nil)
-			deployment.HasBackupScriptReturns(true)
+			deployment.IsBackupableReturns(true)
 			deployment.HasUniqueCustomArtifactNamesReturns(true)
 			deployment.CleanupReturns(nil)
 			deployment.CopyRemoteBackupToLocalReturns(nil)
@@ -75,7 +75,7 @@ var _ = Describe("Backup", func() {
 		})
 
 		It("checks if the deployment is backupable", func() {
-			Expect(deployment.HasBackupScriptCallCount()).To(Equal(1))
+			Expect(deployment.IsBackupableCallCount()).To(Equal(1))
 		})
 
 		It("runs pre-backup-lock scripts on the deployment", func() {
@@ -143,7 +143,7 @@ var _ = Describe("Backup", func() {
 
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.HasBackupScriptReturns(true)
+				deployment.IsBackupableReturns(true)
 				deployment.HasUniqueCustomArtifactNamesReturns(true)
 				fakeBackupManager.CreateReturns(fakeBackup, nil)
 				deploymentManager.SaveManifestReturns(expectedError)
@@ -161,7 +161,7 @@ var _ = Describe("Backup", func() {
 		Context("fails if the deployment is not backupable", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.HasBackupScriptReturns(false)
+				deployment.IsBackupableReturns(false)
 			})
 
 			It("finds a deployment with the deployment name", func() {
@@ -170,7 +170,7 @@ var _ = Describe("Backup", func() {
 			})
 
 			It("checks if the deployment is backupable", func() {
-				Expect(deployment.HasBackupScriptCallCount()).To(Equal(1))
+				Expect(deployment.IsBackupableCallCount()).To(Equal(1))
 			})
 
 			It("fails the backup process", func() {
@@ -194,7 +194,7 @@ var _ = Describe("Backup", func() {
 			BeforeEach(func() {
 				fakeBackupManager.CreateReturns(fakeBackup, nil)
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.HasBackupScriptReturns(true)
+				deployment.IsBackupableReturns(true)
 				deployment.HasUniqueCustomArtifactNamesReturns(true)
 				deployment.CleanupReturns(nil)
 
@@ -219,7 +219,7 @@ var _ = Describe("Backup", func() {
 				unlockError = orchestrator.NewPostBackupUnlockError("lalalalala")
 				fakeBackupManager.CreateReturns(fakeBackup, nil)
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.HasBackupScriptReturns(true)
+				deployment.IsBackupableReturns(true)
 				deployment.HasUniqueCustomArtifactNamesReturns(true)
 				deployment.CleanupReturns(nil)
 
@@ -281,7 +281,7 @@ var _ = Describe("Backup", func() {
 			var drainError = fmt.Errorf("I would like a sandwich")
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.HasBackupScriptReturns(true)
+				deployment.IsBackupableReturns(true)
 				deployment.HasUniqueCustomArtifactNamesReturns(true)
 				fakeBackupManager.CreateReturns(fakeBackup, nil)
 				deployment.CopyRemoteBackupToLocalReturns(drainError)
@@ -289,7 +289,7 @@ var _ = Describe("Backup", func() {
 
 			It("check if the deployment is backupable", func() {
 				Expect(deploymentManager.FindCallCount()).To(Equal(1))
-				Expect(deployment.HasBackupScriptCallCount()).To(Equal(1))
+				Expect(deployment.IsBackupableCallCount()).To(Equal(1))
 			})
 
 			It("backs up the deployment", func() {
@@ -311,7 +311,7 @@ var _ = Describe("Backup", func() {
 			var artifactError = fmt.Errorf("I would like a sandwich")
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.HasBackupScriptReturns(true)
+				deployment.IsBackupableReturns(true)
 				deployment.HasUniqueCustomArtifactNamesReturns(true)
 
 				fakeBackupManager.CreateReturns(nil, artifactError)
@@ -340,7 +340,7 @@ var _ = Describe("Backup", func() {
 			var cleanupError = fmt.Errorf("a tuna sandwich")
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.HasBackupScriptReturns(true)
+				deployment.IsBackupableReturns(true)
 				deployment.HasUniqueCustomArtifactNamesReturns(true)
 
 				fakeBackupManager.CreateReturns(fakeBackup, nil)
@@ -374,7 +374,7 @@ var _ = Describe("Backup", func() {
 			var backupError = fmt.Errorf("syzygy")
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.HasBackupScriptReturns(true)
+				deployment.IsBackupableReturns(true)
 				deployment.HasUniqueCustomArtifactNamesReturns(true)
 
 				fakeBackupManager.CreateReturns(fakeBackup, nil)
@@ -383,7 +383,7 @@ var _ = Describe("Backup", func() {
 
 			It("check if the deployment is backupable", func() {
 				Expect(deploymentManager.FindCallCount()).To(Equal(1))
-				Expect(deployment.HasBackupScriptCallCount()).To(Equal(1))
+				Expect(deployment.IsBackupableCallCount()).To(Equal(1))
 			})
 
 			It("does try to backup the instance", func() {
@@ -413,7 +413,7 @@ var _ = Describe("Backup", func() {
 		Context("fails if deployment is invalid", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.HasBackupScriptReturns(true)
+				deployment.IsBackupableReturns(true)
 				deployment.HasUniqueCustomArtifactNamesReturns(false)
 			})
 
@@ -428,7 +428,7 @@ var _ = Describe("Backup", func() {
 			var expectedError = fmt.Errorf("artifact names invalid")
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
-				deployment.HasBackupScriptReturns(true)
+				deployment.IsBackupableReturns(true)
 				deployment.HasUniqueCustomArtifactNamesReturns(true)
 				deployment.CustomArtifactNamesMatchReturns(expectedError)
 			})
@@ -467,7 +467,7 @@ var _ = Describe("CanBeBackedUp", func() {
 	Context("when the deployment can be backed up", func() {
 		BeforeEach(func() {
 			deploymentManager.FindReturns(deployment, nil)
-			deployment.HasBackupScriptReturns(true)
+			deployment.IsBackupableReturns(true)
 			deployment.HasUniqueCustomArtifactNamesReturns(true)
 			deployment.CleanupReturns(nil)
 		})
@@ -482,7 +482,7 @@ var _ = Describe("CanBeBackedUp", func() {
 		})
 
 		It("checks if the deployment is backupable", func() {
-			Expect(deployment.HasBackupScriptCallCount()).To(Equal(1))
+			Expect(deployment.IsBackupableCallCount()).To(Equal(1))
 		})
 
 		It("shouldn't do a backup", func() {
@@ -497,7 +497,7 @@ var _ = Describe("CanBeBackedUp", func() {
 	Context("when the deployment doesn't exist", func() {
 		BeforeEach(func() {
 			deploymentManager.FindReturns(nil, fmt.Errorf("deployment not found"))
-			deployment.HasBackupScriptReturns(true)
+			deployment.IsBackupableReturns(true)
 			deployment.HasUniqueCustomArtifactNamesReturns(true)
 			deployment.CleanupReturns(nil)
 		})
@@ -516,7 +516,7 @@ var _ = Describe("CanBeBackedUp", func() {
 		var expectedError = fmt.Errorf("artifact names invalid")
 		BeforeEach(func() {
 			deploymentManager.FindReturns(deployment, nil)
-			deployment.HasBackupScriptReturns(true)
+			deployment.IsBackupableReturns(true)
 			deployment.HasUniqueCustomArtifactNamesReturns(true)
 			deployment.CustomArtifactNamesMatchReturns(expectedError)
 		})
@@ -529,7 +529,7 @@ var _ = Describe("CanBeBackedUp", func() {
 	Context("fails if deployment is invalid", func() {
 		BeforeEach(func() {
 			deploymentManager.FindReturns(deployment, nil)
-			deployment.HasBackupScriptReturns(true)
+			deployment.IsBackupableReturns(true)
 			deployment.HasUniqueCustomArtifactNamesReturns(false)
 		})
 

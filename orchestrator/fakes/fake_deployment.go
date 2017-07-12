@@ -8,13 +8,13 @@ import (
 )
 
 type FakeDeployment struct {
-	HasBackupScriptStub        func() bool
-	hasBackupScriptMutex       sync.RWMutex
-	hasBackupScriptArgsForCall []struct{}
-	hasBackupScriptReturns     struct {
+	IsBackupableStub        func() bool
+	isBackupableMutex       sync.RWMutex
+	isBackupableArgsForCall []struct{}
+	isBackupableReturns     struct {
 		result1 bool
 	}
-	hasBackupScriptReturnsOnCall map[int]struct {
+	isBackupableReturnsOnCall map[int]struct {
 		result1 bool
 	}
 	HasUniqueCustomArtifactNamesStub        func() bool
@@ -142,42 +142,42 @@ type FakeDeployment struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeDeployment) HasBackupScript() bool {
-	fake.hasBackupScriptMutex.Lock()
-	ret, specificReturn := fake.hasBackupScriptReturnsOnCall[len(fake.hasBackupScriptArgsForCall)]
-	fake.hasBackupScriptArgsForCall = append(fake.hasBackupScriptArgsForCall, struct{}{})
-	fake.recordInvocation("HasBackupScript", []interface{}{})
-	fake.hasBackupScriptMutex.Unlock()
-	if fake.HasBackupScriptStub != nil {
-		return fake.HasBackupScriptStub()
+func (fake *FakeDeployment) IsBackupable() bool {
+	fake.isBackupableMutex.Lock()
+	ret, specificReturn := fake.isBackupableReturnsOnCall[len(fake.isBackupableArgsForCall)]
+	fake.isBackupableArgsForCall = append(fake.isBackupableArgsForCall, struct{}{})
+	fake.recordInvocation("IsBackupable", []interface{}{})
+	fake.isBackupableMutex.Unlock()
+	if fake.IsBackupableStub != nil {
+		return fake.IsBackupableStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.hasBackupScriptReturns.result1
+	return fake.isBackupableReturns.result1
 }
 
-func (fake *FakeDeployment) HasBackupScriptCallCount() int {
-	fake.hasBackupScriptMutex.RLock()
-	defer fake.hasBackupScriptMutex.RUnlock()
-	return len(fake.hasBackupScriptArgsForCall)
+func (fake *FakeDeployment) IsBackupableCallCount() int {
+	fake.isBackupableMutex.RLock()
+	defer fake.isBackupableMutex.RUnlock()
+	return len(fake.isBackupableArgsForCall)
 }
 
-func (fake *FakeDeployment) HasBackupScriptReturns(result1 bool) {
-	fake.HasBackupScriptStub = nil
-	fake.hasBackupScriptReturns = struct {
+func (fake *FakeDeployment) IsBackupableReturns(result1 bool) {
+	fake.IsBackupableStub = nil
+	fake.isBackupableReturns = struct {
 		result1 bool
 	}{result1}
 }
 
-func (fake *FakeDeployment) HasBackupScriptReturnsOnCall(i int, result1 bool) {
-	fake.HasBackupScriptStub = nil
-	if fake.hasBackupScriptReturnsOnCall == nil {
-		fake.hasBackupScriptReturnsOnCall = make(map[int]struct {
+func (fake *FakeDeployment) IsBackupableReturnsOnCall(i int, result1 bool) {
+	fake.IsBackupableStub = nil
+	if fake.isBackupableReturnsOnCall == nil {
+		fake.isBackupableReturnsOnCall = make(map[int]struct {
 			result1 bool
 		})
 	}
-	fake.hasBackupScriptReturnsOnCall[i] = struct {
+	fake.isBackupableReturnsOnCall[i] = struct {
 		result1 bool
 	}{result1}
 }
@@ -721,8 +721,8 @@ func (fake *FakeDeployment) CustomArtifactNamesMatchReturnsOnCall(i int, result1
 func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.hasBackupScriptMutex.RLock()
-	defer fake.hasBackupScriptMutex.RUnlock()
+	fake.isBackupableMutex.RLock()
+	defer fake.isBackupableMutex.RUnlock()
 	fake.hasUniqueCustomArtifactNamesMutex.RLock()
 	defer fake.hasUniqueCustomArtifactNamesMutex.RUnlock()
 	fake.checkArtifactDirMutex.RLock()

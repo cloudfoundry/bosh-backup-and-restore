@@ -46,11 +46,11 @@ var _ = Describe("DeployedInstance", func() {
 		backuperInstance = instance.NewDeployedInstance(jobIndex, jobName, jobID, false, sshConnection, boshLogger, jobs)
 	})
 
-	Describe("HasBackupScript", func() {
+	Describe("IsBackupable", func() {
 		var actualBackupable bool
 
 		JustBeforeEach(func() {
-			actualBackupable = backuperInstance.HasBackupScript()
+			actualBackupable = backuperInstance.IsBackupable()
 		})
 
 		Describe("there are backup scripts in the job directories", func() {
