@@ -62,7 +62,7 @@ var _ = Describe("Director backup cleanup", func() {
 						 --username vcap \
 						 --debug \
 						 --private-key-path ./key.pem \
-						 --host %s cleanup`,
+						 --host %s backup-cleanup`,
 						workspaceDir,
 						directorIP),
 				)

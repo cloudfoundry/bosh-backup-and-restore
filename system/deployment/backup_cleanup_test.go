@@ -47,7 +47,7 @@ var _ = Describe("Deployment backup cleanup", func() {
 			       --username %s \
 			       --target %s \
 			       --deployment %s \
-			       cleanup`,
+			       backup-cleanup`,
 						workspaceDir,
 						MustHaveEnv("BOSH_CLIENT_SECRET"),
 						MustHaveEnv("BOSH_CLIENT"),

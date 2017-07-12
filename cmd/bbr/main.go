@@ -57,6 +57,7 @@ COMMANDS:{{range .VisibleCategories}}{{if .Name}}
 
 SUBCOMMANDS:
    backup
+   backup-cleanup
    restore
    pre-backup-check{{if .Copyright}}
 
@@ -105,8 +106,8 @@ COPYRIGHT:
 					}},
 				},
 				{
-					Name:   "cleanup",
-					Usage:  "Cleanup a deployment after a backup or restore was interrupted",
+					Name:   "backup-cleanup",
+					Usage:  "Cleanup a deployment after a backup was interrupted",
 					Action: deploymentCleanup,
 				},
 			},
@@ -140,8 +141,8 @@ COPYRIGHT:
 					}},
 				},
 				{
-					Name:   "cleanup",
-					Usage:  "Cleanup a director after a backup or restore was interrupted",
+					Name:   "backup-cleanup",
+					Usage:  "Cleanup a director after a backup was interrupted",
 					Action: directorCleanup,
 				},
 			},

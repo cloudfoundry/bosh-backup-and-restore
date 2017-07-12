@@ -39,7 +39,7 @@ var _ = Describe("Cleanup", func() {
 				"--username", "foobar",
 				"--private-key-path", pathToPrivateKeyFile,
 				"--debug",
-				"cleanup",
+				"backup-cleanup",
 			)
 		})
 

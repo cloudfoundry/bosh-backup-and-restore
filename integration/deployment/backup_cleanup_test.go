@@ -42,7 +42,6 @@ var _ = Describe("Cleanup", func() {
 				CleanupSSH(deploymentName, "redis-dedicated-node"),
 			)...)
 
-			//TODO: is the script needed for cleanup?
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", ``)
 			instance1.CreateDir("/var/vcap/store/bbr-backup")
 		})
@@ -57,7 +56,7 @@ var _ = Describe("Cleanup", func() {
 				"--debug",
 				"--target", director.URL,
 				"--deployment", deploymentName,
-				"cleanup",
+				"backup-cleanup",
 			)
 		})
 
