@@ -58,6 +58,16 @@ var _ = Describe("Restores a deployment", func() {
 			),
 		)).Should(gexec.Exit(0))
 
+		By("running the post restore unlock script")
+		runOnInstances(instanceCollection, func(instName, instIndex string) {
+			session := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
+				"cat /tmp/post-restore-unlock.out",
+			)
+
+			Eventually(session).Should(gexec.Exit(0))
+			Expect(session.Out.Contents()).Should(ContainSubstring("output from post-restore-unlock"))
+		})
+
 		By("cleaning up artifacts from the remote instances")
 		runOnInstances(instanceCollection, func(instName, instIndex string) {
 			session := RedisDeployment.Instance(instName, instIndex).RunCommand(

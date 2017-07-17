@@ -96,6 +96,10 @@ var _ = Describe("restorer", func() {
 			Expect(deployment.RestoreCallCount()).To(Equal(1))
 		})
 
+		It("calls post-restore-unlock on the deployment", func() {
+			Expect(deployment.PostRestoreUnlockCallCount()).To(Equal(1))
+		})
+
 		Describe("failures", func() {
 
 			var assertCleanupError = func() {
@@ -244,22 +248,57 @@ var _ = Describe("restorer", func() {
 				It("should cleanup", func() {
 					Expect(deployment.CleanupCallCount()).To(Equal(1))
 				})
+
 				assertCleanupError()
 			})
 
-			Context("if running the restore script fails", func() {
-				var restoreError = fmt.Errorf("I will not restore this thing")
+			Context("if post-restore-unlock fails", func() {
+				var expectedPostRestoreUnlockError = fmt.Errorf("I will not restart this thing")
+
 				BeforeEach(func() {
-					deployment.RestoreReturns(restoreError)
+					deployment.PostRestoreUnlockReturns(expectedPostRestoreUnlockError)
 				})
 
 				It("returns an error", func() {
-					Expect(restoreError).To(MatchError(ContainSubstring(restoreError.Error())))
+					Expect(restoreError).To(MatchError(ContainSubstring(expectedPostRestoreUnlockError.Error())))
 				})
 
 				It("should cleanup", func() {
 					Expect(deployment.CleanupCallCount()).To(Equal(1))
 				})
+			})
+
+			Context("if running the restore script fails", func() {
+				BeforeEach(func() {
+					deployment.RestoreReturns(fmt.Errorf("I will not restore this thing"))
+				})
+
+				It("returns an error", func() {
+					Expect(restoreError).To(MatchError(ContainSubstring("Failed to restore: I will not restore this thing")))
+				})
+
+				It("should cleanup", func() {
+					Expect(deployment.CleanupCallCount()).To(Equal(1))
+				})
+
+				It("calls post-restore-unlock on the deployment", func() {
+					Expect(deployment.PostRestoreUnlockCallCount()).To(Equal(1))
+				})
+
+				Context("if post-restore unlock fails", func() {
+					BeforeEach(func() {
+						deployment.PostRestoreUnlockReturns(fmt.Errorf("I will not restart this thing"))
+					})
+
+					It("returns both errors", func() {
+						Expect(restoreError).To(MatchError(ContainSubstring("post-restore-unlock failed:")))
+						Expect(restoreError).To(MatchError(ContainSubstring("I will not restart this thing")))
+						Expect(restoreError).To(MatchError(ContainSubstring("I will not restore this thing")))
+					})
+
+					assertCleanupError()
+				})
+
 				assertCleanupError()
 			})
 		})

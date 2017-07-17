@@ -210,10 +210,6 @@ instances:
 				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 				CleanupSSH(deploymentName, "redis-dedicated-node"))...)
 
-			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
-set -u
-cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server
-touch /tmp/restore-script-was-run`)
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-restore-unlock", `#!/usr/bin/env sh
 touch /tmp/post-restore-unlock-script-was-run
 `)
@@ -252,23 +248,32 @@ instances:
 			Expect(os.RemoveAll(deploymentName)).To(Succeed())
 		})
 
-		It("runs the restore script successfully and cleans up", func() {
-			By("succeeding", func() {
-				Expect(session.ExitCode()).To(Equal(0))
+		Context("and the restore script works", func() {
+			BeforeEach(func() {
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
+set -u
+cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server
+touch /tmp/restore-script-was-run`)
 			})
 
-			By("cleaning up the archive file on the remote", func() {
-				Expect(instance1.FileExists("/var/vcap/store/bbr-backup/redis-backup")).To(BeFalse())
-			})
+			It("runs the restore script successfully and cleans up", func() {
+				By("succeeding", func() {
+					Expect(session.ExitCode()).To(Equal(0))
+				})
 
-			By("running the restore script on the remote", func() {
-				Expect(instance1.FileExists("/var/vcap/store/redis-server/redis-backup")).To(BeTrue())
-				Expect(instance1.FileExists("/tmp/restore-script-was-run")).To(BeTrue())
-			})
+				By("cleaning up the archive file on the remote", func() {
+					Expect(instance1.FileExists("/var/vcap/store/bbr-backup/redis-backup")).To(BeFalse())
+				})
 
-			//By("running the post-backup-unlock script on the remote", func() {
-			//	Expect(instance1.FileExists("/tmp/post-restore-unlock-script-was-run")).To(BeTrue())
-			//})
+				By("running the restore script on the remote", func() {
+					Expect(instance1.FileExists("/var/vcap/store/redis-server/redis-backup")).To(BeTrue())
+					Expect(instance1.FileExists("/tmp/restore-script-was-run")).To(BeTrue())
+				})
+
+				By("running the post-backup-unlock script on the remote", func() {
+					Expect(instance1.FileExists("/tmp/post-restore-unlock-script-was-run")).To(BeTrue())
+				})
+			})
 		})
 
 		Context("when restore fails", func() {
@@ -299,11 +304,19 @@ instances:
 					Expect(err).ToNot(HaveOccurred())
 					Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 				})
+
+				By("running the post-backup-unlock script on the remote", func() {
+					Expect(instance1.FileExists("/tmp/post-restore-unlock-script-was-run")).To(BeTrue())
+				})
 			})
 		})
 
 		Context("when the backup artifact already exists", func() {
 			BeforeEach(func() {
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
+set -u
+cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server
+touch /tmp/restore-script-was-run`)
 				instance1.CreateDir("/var/vcap/store/bbr-backup")
 			})
 
@@ -377,6 +390,9 @@ set -u
 cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server
 touch /tmp/restore-script-was-run`)
 
+			instance2.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-restore-unlock", `#!/usr/bin/env sh
+touch /tmp/post-restore-unlock-script-was-run`)
+
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
 instances:
@@ -434,6 +450,9 @@ instances:
 				Expect(instance1.FileExists("/tmp/restore-script-was-run")).To(BeTrue())
 				Expect(instance2.FileExists("/var/vcap/store/redis-server/redis-backup")).To(BeTrue())
 				Expect(instance2.FileExists("/tmp/restore-script-was-run")).To(BeTrue())
+			})
+			By("running the post restore unlock script on the remote", func() {
+				Expect(instance2.FileExists("/tmp/post-restore-unlock-script-was-run")).To(BeTrue())
 			})
 		})
 
@@ -685,8 +704,11 @@ custom_artifacts:
 				CleanupSSHFails(deploymentName, "redis-dedicated-node", "cleanup err"))...)
 
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
+set-u
 cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server/
 touch /tmp/restore-script-was-run`)
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-restore-unlock", `#!/usr/bin/env sh
+touch /tmp/post-restore-unlock-script-was-run`)
 
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
@@ -733,6 +755,10 @@ instances:
 			By("running the restore script on the remote", func() {
 				Expect(instance1.FileExists("/var/vcap/store/redis-server/redis-backup")).To(BeTrue())
 				Expect(instance1.FileExists("/tmp/restore-script-was-run")).To(BeTrue())
+			})
+
+			By("running the post-restore-unlock scripts", func() {
+				Expect(instance1.FileExists("/tmp/post-restore-unlock")).To(BeTrue())
 			})
 
 			By("returning the failure", func() {

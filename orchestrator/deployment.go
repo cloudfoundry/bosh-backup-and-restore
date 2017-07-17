@@ -26,6 +26,7 @@ type Deployment interface {
 	CleanupPrevious() error
 	Instances() []Instance
 	CustomArtifactNamesMatch() error
+	PostRestoreUnlock() error
 }
 
 type deployment struct {
@@ -97,6 +98,10 @@ func (bd *deployment) PostBackupUnlock() error {
 func (bd *deployment) Restore() error {
 	bd.Logger.Info("bbr", "Running restore scripts...")
 	return bd.instances.AllRestoreable().Restore()
+}
+
+func (bd *deployment) PostRestoreUnlock() error {
+	return nil
 }
 
 func (bd *deployment) Cleanup() error {

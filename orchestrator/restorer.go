@@ -59,11 +59,25 @@ func (b Restorer) Restore(deploymentName, backupPath string) Error {
 	}
 
 	err = deployment.Restore()
+
 	if err != nil {
+		postRestoreUnlockErr := deployment.PostRestoreUnlock()
+		if postRestoreUnlockErr != nil {
+			return cleanupAndReturnErrors(
+				deployment,
+				errors.Wrap(postRestoreUnlockErr, "post-restore-unlock failed"),
+				errors.Wrap(err, "Failed to restore"))
+		}
+
 		return cleanupAndReturnErrors(deployment, errors.Wrap(err, "Failed to restore"))
 	}
 
 	b.Logger.Info("bbr", "Completed restore of %s\n", deploymentName)
+
+	err = deployment.PostRestoreUnlock()
+	if err != nil {
+		return cleanupAndReturnErrors(deployment, errors.Wrap(err, "post-restore-unlock failed"))
+	}
 
 	if err := deployment.Cleanup(); err != nil {
 		return Error{
@@ -73,4 +87,16 @@ func (b Restorer) Restore(deploymentName, backupPath string) Error {
 		}
 	}
 	return nil
+}
+
+func cleanupAndReturnErrors(d Deployment, errs ...error) Error {
+	cleanupErr := d.Cleanup()
+
+	returnedErrors := Error{}
+	returnedErrors = append(returnedErrors, errs...)
+
+	if cleanupErr != nil {
+		return Error{cleanupErr, returnedErrors}
+	}
+	return Error{returnedErrors}
 }
