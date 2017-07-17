@@ -7,6 +7,22 @@ import (
 
 type Script string
 
+const (
+	backupScriptName           = "backup"
+	restoreScriptName          = "restore"
+	metadataScriptName         = "metadata"
+	preBackupLockScriptName    = "pre-backup-lock"
+	postBackupUnlockScriptName = "post-backup-unlock"
+
+	jobBaseDirectory              = "/var/vcap/jobs/"
+	jobDirectoryMatcher           = jobBaseDirectory + "*/bin/bbr/"
+	backupScriptMatcher           = jobDirectoryMatcher + backupScriptName
+	restoreScriptMatcher          = jobDirectoryMatcher + restoreScriptName
+	metadataScriptMatcher         = jobDirectoryMatcher + metadataScriptName
+	preBackupLockScriptMatcher    = jobDirectoryMatcher + preBackupLockScriptName
+	postBackupUnlockScriptMatcher = jobDirectoryMatcher + postBackupUnlockScriptName
+)
+
 func (s Script) isBackup() bool {
 	match, _ := filepath.Match(backupScriptMatcher, string(s))
 	return match

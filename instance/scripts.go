@@ -2,22 +2,6 @@ package instance
 
 type BackupAndRestoreScripts []Script
 
-const (
-	backupScriptName           = "backup"
-	restoreScriptName          = "restore"
-	metadataScriptName         = "metadata"
-	preBackupLockScriptName    = "pre-backup-lock"
-	postBackupUnlockScriptName = "post-backup-unlock"
-
-	jobBaseDirectory              = "/var/vcap/jobs/"
-	jobDirectoryMatcher           = jobBaseDirectory + "*/bin/bbr/"
-	backupScriptMatcher           = jobDirectoryMatcher + backupScriptName
-	restoreScriptMatcher          = jobDirectoryMatcher + restoreScriptName
-	metadataScriptMatcher         = jobDirectoryMatcher + metadataScriptName
-	preBackupLockScriptMatcher    = jobDirectoryMatcher + preBackupLockScriptName
-	postBackupUnlockScriptMatcher = jobDirectoryMatcher + postBackupUnlockScriptName
-)
-
 func NewBackupAndRestoreScripts(files []string) BackupAndRestoreScripts {
 	bandrScripts := []Script{}
 	for _, s := range files {
