@@ -45,6 +45,7 @@ func (j *JobFinderFromScripts) FindJobs(hostIdentifier string, connection SSHCon
 
 	return NewJobs(scripts, metadata), nil
 }
+
 func (j *JobFinderFromScripts) findMetadata(hostIdentifier string, script Script, connection SSHConnection) (*Metadata, error) {
 	metadataContent, _, _, err := connection.Run(string(script))
 

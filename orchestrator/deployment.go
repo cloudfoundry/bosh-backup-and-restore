@@ -101,7 +101,7 @@ func (bd *deployment) Restore() error {
 }
 
 func (bd *deployment) PostRestoreUnlock() error {
-	return nil
+	return bd.instances.PostRestoreUnlock()
 }
 
 func (bd *deployment) Cleanup() error {

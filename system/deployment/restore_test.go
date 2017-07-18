@@ -60,7 +60,7 @@ var _ = Describe("Restores a deployment", func() {
 
 		By("running the post restore unlock script")
 		runOnInstances(instanceCollection, func(instName, instIndex string) {
-			session := RunCommandOnRemote(RedisDeploymentSSHCommand(instName, instIndex),
+			session := RedisDeployment.Instance(instName, instIndex).RunCommand(
 				"cat /tmp/post-restore-unlock.out",
 			)
 

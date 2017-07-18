@@ -184,6 +184,15 @@ type FakeInstance struct {
 	customRestoreArtifactNamesReturnsOnCall map[int]struct {
 		result1 []string
 	}
+	PostRestoreUnlockStub        func() error
+	postRestoreUnlockMutex       sync.RWMutex
+	postRestoreUnlockArgsForCall []struct{}
+	postRestoreUnlockReturns     struct {
+		result1 error
+	}
+	postRestoreUnlockReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -967,6 +976,46 @@ func (fake *FakeInstance) CustomRestoreArtifactNamesReturnsOnCall(i int, result1
 	}{result1}
 }
 
+func (fake *FakeInstance) PostRestoreUnlock() error {
+	fake.postRestoreUnlockMutex.Lock()
+	ret, specificReturn := fake.postRestoreUnlockReturnsOnCall[len(fake.postRestoreUnlockArgsForCall)]
+	fake.postRestoreUnlockArgsForCall = append(fake.postRestoreUnlockArgsForCall, struct{}{})
+	fake.recordInvocation("PostRestoreUnlock", []interface{}{})
+	fake.postRestoreUnlockMutex.Unlock()
+	if fake.PostRestoreUnlockStub != nil {
+		return fake.PostRestoreUnlockStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.postRestoreUnlockReturns.result1
+}
+
+func (fake *FakeInstance) PostRestoreUnlockCallCount() int {
+	fake.postRestoreUnlockMutex.RLock()
+	defer fake.postRestoreUnlockMutex.RUnlock()
+	return len(fake.postRestoreUnlockArgsForCall)
+}
+
+func (fake *FakeInstance) PostRestoreUnlockReturns(result1 error) {
+	fake.PostRestoreUnlockStub = nil
+	fake.postRestoreUnlockReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeInstance) PostRestoreUnlockReturnsOnCall(i int, result1 error) {
+	fake.PostRestoreUnlockStub = nil
+	if fake.postRestoreUnlockReturnsOnCall == nil {
+		fake.postRestoreUnlockReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.postRestoreUnlockReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -1010,6 +1059,8 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.customBackupArtifactNamesMutex.RUnlock()
 	fake.customRestoreArtifactNamesMutex.RLock()
 	defer fake.customRestoreArtifactNamesMutex.RUnlock()
+	fake.postRestoreUnlockMutex.RLock()
+	defer fake.postRestoreUnlockMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

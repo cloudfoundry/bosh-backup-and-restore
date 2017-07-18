@@ -72,7 +72,6 @@ func (d *DeployedInstance) CustomRestoreArtifactNames() []string {
 }
 
 func (d *DeployedInstance) PreBackupLock() error {
-
 	var foundErrors []error
 
 	for _, job := range d.Jobs.PreBackupable() {
@@ -88,7 +87,6 @@ func (d *DeployedInstance) PreBackupLock() error {
 }
 
 func (d *DeployedInstance) Backup() error {
-
 	var foundErrors []error
 
 	for _, job := range d.Jobs.Backupable() {
@@ -116,12 +114,12 @@ func (d *DeployedInstance) Backup() error {
 
 	return orchestrator.ConvertErrors(foundErrors)
 }
+
 func artifactDirectoryVariables(artifactDirectory string) string {
 	return fmt.Sprintf("BBR_ARTIFACT_DIRECTORY=%s/ ARTIFACT_DIRECTORY=%[1]s/", artifactDirectory)
 }
 
 func (d *DeployedInstance) PostBackupUnlock() error {
-
 	var foundErrors []error
 
 	for _, job := range d.Jobs.PostBackupable() {
@@ -159,6 +157,31 @@ func (d *DeployedInstance) Restore() error {
 	}
 
 	return orchestrator.ConvertErrors(restoreErrors)
+}
+
+func (d *DeployedInstance) PostRestoreUnlock() error {
+	var unlockErrors []error
+	for _, job := range d.Jobs {
+		if job.HasPostRestoreUnlock() {
+			d.Logger.Debug("bbr", "> %s", job.PostRestoreUnlockScript())
+			d.Logger.Info("bbr", "Unlocking %s on %s/%s...", job.Name(), d.instanceGroupName, d.instanceID)
+
+			stdout, stderr, exitCode, err := d.RunOnInstance(
+				fmt.Sprintf(
+					"sudo %s",
+					job.PostRestoreUnlockScript(),
+				),
+				"post-restore-unlock",
+			)
+
+			if err := d.handleErrs(job.Name(), "post-restore-unlock", err, exitCode, stdout, stderr); err != nil {
+				unlockErrors = append(unlockErrors, err)
+			}
+			d.Logger.Info("bbr", "Done.")
+		}
+	}
+
+	return orchestrator.ConvertErrors(unlockErrors)
 }
 
 func (d *DeployedInstance) IsRestorable() bool {

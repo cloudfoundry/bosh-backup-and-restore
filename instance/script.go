@@ -8,19 +8,21 @@ import (
 type Script string
 
 const (
-	backupScriptName           = "backup"
-	restoreScriptName          = "restore"
-	metadataScriptName         = "metadata"
-	preBackupLockScriptName    = "pre-backup-lock"
-	postBackupUnlockScriptName = "post-backup-unlock"
+	backupScriptName            = "backup"
+	restoreScriptName           = "restore"
+	metadataScriptName          = "metadata"
+	preBackupLockScriptName     = "pre-backup-lock"
+	postBackupUnlockScriptName  = "post-backup-unlock"
+	postRestoreUnlockScriptName = "post-restore-unlock"
 
-	jobBaseDirectory              = "/var/vcap/jobs/"
-	jobDirectoryMatcher           = jobBaseDirectory + "*/bin/bbr/"
-	backupScriptMatcher           = jobDirectoryMatcher + backupScriptName
-	restoreScriptMatcher          = jobDirectoryMatcher + restoreScriptName
-	metadataScriptMatcher         = jobDirectoryMatcher + metadataScriptName
-	preBackupLockScriptMatcher    = jobDirectoryMatcher + preBackupLockScriptName
-	postBackupUnlockScriptMatcher = jobDirectoryMatcher + postBackupUnlockScriptName
+	jobBaseDirectory               = "/var/vcap/jobs/"
+	jobDirectoryMatcher            = jobBaseDirectory + "*/bin/bbr/"
+	backupScriptMatcher            = jobDirectoryMatcher + backupScriptName
+	restoreScriptMatcher           = jobDirectoryMatcher + restoreScriptName
+	metadataScriptMatcher          = jobDirectoryMatcher + metadataScriptName
+	preBackupLockScriptMatcher     = jobDirectoryMatcher + preBackupLockScriptName
+	postBackupUnlockScriptMatcher  = jobDirectoryMatcher + postBackupUnlockScriptName
+	postRestoreUnlockScriptMatcher = jobDirectoryMatcher + postRestoreUnlockScriptName
 )
 
 func (s Script) isBackup() bool {
@@ -48,11 +50,17 @@ func (s Script) isPostBackupUnlock() bool {
 	return match
 }
 
+func (s Script) isPostRestoreUnlock() bool {
+	match, _ := filepath.Match(postRestoreUnlockScriptMatcher, string(s))
+	return match
+}
+
 func (s Script) isPlatformScript() bool {
 	return s.isBackup() ||
 		s.isRestore() ||
 		s.isPreBackupUnlock() ||
 		s.isPostBackupUnlock() ||
+		s.isPostRestoreUnlock() ||
 		s.isMetadata()
 }
 

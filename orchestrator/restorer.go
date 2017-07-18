@@ -90,13 +90,22 @@ func (b Restorer) Restore(deploymentName, backupPath string) Error {
 }
 
 func cleanupAndReturnErrors(d Deployment, errs ...error) Error {
-	cleanupErr := d.Cleanup()
-
 	returnedErrors := Error{}
+
+	cleanupErr := d.Cleanup()
+	if cleanupErr != nil {
+		returnedErrors = append(returnedErrors, cleanupErr)
+	}
+
 	returnedErrors = append(returnedErrors, errs...)
 
+	return returnedErrors
+}
+
+func cleanupAndReturnErrors2(d Deployment, err error) Error {
+	cleanupErr := d.Cleanup()
 	if cleanupErr != nil {
-		return Error{cleanupErr, returnedErrors}
+		return Error{cleanupErr, err}
 	}
-	return Error{returnedErrors}
+	return Error{err}
 }

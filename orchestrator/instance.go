@@ -1,6 +1,8 @@
 package orchestrator
 
-import "io"
+import (
+	"io"
+)
 
 type InstanceIdentifer interface {
 	Name() string
@@ -28,6 +30,7 @@ type Instance interface {
 	ArtifactsToRestore() []BackupArtifact
 	CustomBackupArtifactNames() []string
 	CustomRestoreArtifactNames() []string
+	PostRestoreUnlock() error
 }
 
 type ArtifactIdentifier interface {
@@ -189,4 +192,14 @@ func (is instances) Restore() error {
 		}
 	}
 	return nil
+}
+
+func (is instances) PostRestoreUnlock() error {
+	var unlockErrors []error
+	for _, instance := range is {
+		if err := instance.PostRestoreUnlock(); err != nil {
+			unlockErrors = append(unlockErrors, err)
+		}
+	}
+	return ConvertErrors(unlockErrors)
 }

@@ -213,7 +213,7 @@ var _ = Describe("Backup", func() {
 		})
 
 		Context("fails if post-backup-unlock fails", func() {
-			var unlockError orchestrator.PostBackupUnlockError
+			var unlockError orchestrator.UnlockError
 
 			BeforeEach(func() {
 				unlockError = orchestrator.NewPostBackupUnlockError("lalalalala")
@@ -245,7 +245,7 @@ var _ = Describe("Backup", func() {
 					deployment.CopyRemoteBackupToLocalReturns(drainError)
 				})
 
-				It("returns an error of type PostBackupUnlockError and "+
+				It("returns an error of type UnlockError and "+
 					"includes the drain error in the returned error", func() {
 					expectErrorMatch(actualBackupError, drainError, unlockError)
 				})
@@ -271,7 +271,7 @@ var _ = Describe("Backup", func() {
 				})
 
 				It("includes the cleanup error in the returned error "+
-					"and returns an error of type PostBackupUnlockError", func() {
+					"and returns an error of type UnlockError", func() {
 					expectErrorMatch(actualBackupError, unlockError, cleanupError)
 				})
 			})

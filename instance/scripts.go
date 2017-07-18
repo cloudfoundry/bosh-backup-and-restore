@@ -12,6 +12,7 @@ func NewBackupAndRestoreScripts(files []string) BackupAndRestoreScripts {
 	}
 	return bandrScripts
 }
+
 func (s BackupAndRestoreScripts) firstOrBlank() Script {
 	if len(s) == 0 {
 		return ""
@@ -71,4 +72,13 @@ func (s BackupAndRestoreScripts) PostBackupUnlockOnly() BackupAndRestoreScripts 
 		}
 	}
 	return scripts
+}
+
+func (s BackupAndRestoreScripts) SinglePostRestoreUnlockScript() Script {
+	for _, script := range s {
+		if script.isPostRestoreUnlock() {
+			return script
+		}
+	}
+	return ""
 }

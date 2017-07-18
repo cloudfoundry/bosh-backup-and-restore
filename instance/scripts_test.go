@@ -253,6 +253,25 @@ var _ = Describe("Backup and Restore Scripts", func() {
 		})
 	})
 
+	Describe("SinglePostRestoreUnlockScript", func() {
+		It("returns exactly one post-restore-unlock script", func() {
+			s := BackupAndRestoreScripts{
+				"/var/vcap/jobs/job1/bin/bbr/post-restore-unlock",
+				"/var/vcap/jobs/job2/bin/bbr/post-restore-unlock",
+				"/var/vcap/jobs/job1/bin/bbr/other-script",
+			}
+			Expect(s.SinglePostRestoreUnlockScript()).To(Equal(Script("/var/vcap/jobs/job1/bin/bbr/post-restore-unlock")))
+		})
+
+		It("returns empty string when it has none", func() {
+			s := BackupAndRestoreScripts{"/var/vcap/jobs/cloud_controller_clock/bin/baz",
+				"/var/vcap/jobs/cloud_controller_clock/bin/cloud_controller_clock_ctl",
+				"/var/vcap/jobs/cloud_controller_clock/bin/foo/bar",
+				"/var/vcap/jobs/cloud_controller_clock/bin/pre-start"}
+			Expect(s.SinglePostRestoreUnlockScript()).To(Equal(Script("")))
+		})
+	})
+
 	Describe("PostBackupUnlockOnly", func() {
 		It("returns the post-backup-unlock scripts when it only has one", func() {
 			s := BackupAndRestoreScripts{"/var/vcap/jobs/cloud_controller_clock/bin/baz",

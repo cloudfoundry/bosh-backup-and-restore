@@ -14,7 +14,7 @@ type customError struct {
 
 type LockError customError
 type BackupError customError
-type PostBackupUnlockError customError
+type UnlockError customError
 type CleanupError customError
 
 func NewLockError(errorMessage string) LockError {
@@ -25,8 +25,8 @@ func NewBackupError(errorMessage string) BackupError {
 	return BackupError{errors.New(errorMessage)}
 }
 
-func NewPostBackupUnlockError(errorMessage string) PostBackupUnlockError {
-	return PostBackupUnlockError{errors.New(errorMessage)}
+func NewPostBackupUnlockError(errorMessage string) UnlockError {
+	return UnlockError{errors.New(errorMessage)}
 }
 
 func NewCleanupError(errorMessage string) CleanupError {
@@ -86,7 +86,7 @@ func (err Error) IsPostBackup() bool {
 
 	for _, e := range err {
 		switch e.(type) {
-		case PostBackupUnlockError:
+		case UnlockError:
 			foundPostBackupError = true
 		case CleanupError:
 			continue
@@ -117,7 +117,7 @@ func ProcessError(errs Error) (int, string, string) {
 		switch err.(type) {
 		case LockError:
 			exitCode = exitCode | 1<<2
-		case PostBackupUnlockError:
+		case UnlockError:
 			exitCode = exitCode | 1<<3
 		case CleanupError:
 			exitCode = exitCode | 1<<4

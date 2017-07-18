@@ -758,7 +758,7 @@ instances:
 			})
 
 			By("running the post-restore-unlock scripts", func() {
-				Expect(instance1.FileExists("/tmp/post-restore-unlock")).To(BeTrue())
+				Expect(instance1.FileExists("/tmp/post-restore-unlock-script-was-run")).To(BeTrue())
 			})
 
 			By("returning the failure", func() {

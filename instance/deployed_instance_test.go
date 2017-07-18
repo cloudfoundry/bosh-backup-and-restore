@@ -25,7 +25,7 @@ var _ = Describe("DeployedInstance", func() {
 	var jobs instance.Jobs
 	var metadata map[string]instance.Metadata
 
-	var backuperInstance *instance.DeployedInstance
+	var deployedInstance *instance.DeployedInstance
 	BeforeEach(func() {
 		sshConnection = new(fakes.FakeSSHConnection)
 		jobName = "job-name"
@@ -43,14 +43,14 @@ var _ = Describe("DeployedInstance", func() {
 	JustBeforeEach(func() {
 		jobs = instance.NewJobs(backupAndRestoreScripts, metadata)
 		sshConnection.UsernameReturns("sshUsername")
-		backuperInstance = instance.NewDeployedInstance(jobIndex, jobName, jobID, false, sshConnection, boshLogger, jobs)
+		deployedInstance = instance.NewDeployedInstance(jobIndex, jobName, jobID, false, sshConnection, boshLogger, jobs)
 	})
 
-	Describe("IsBackupable", func() {
+	Describe("HasBackupScript", func() {
 		var actualBackupable bool
 
 		JustBeforeEach(func() {
-			actualBackupable = backuperInstance.IsBackupable()
+			actualBackupable = deployedInstance.IsBackupable()
 		})
 
 		Describe("there are backup scripts in the job directories", func() {
@@ -82,7 +82,7 @@ var _ = Describe("DeployedInstance", func() {
 		var actualLockable bool
 
 		JustBeforeEach(func() {
-			actualLockable = backuperInstance.IsPreBackupLockable()
+			actualLockable = deployedInstance.IsPreBackupLockable()
 		})
 
 		Describe("there are pre-backup-lock scripts in the job directories", func() {
@@ -114,7 +114,7 @@ var _ = Describe("DeployedInstance", func() {
 		var actualUnlockable bool
 
 		JustBeforeEach(func() {
-			actualUnlockable = backuperInstance.IsPostBackupUnlockable()
+			actualUnlockable = deployedInstance.IsPostBackupUnlockable()
 		})
 
 		Context("there are post-backup-unlock scripts in the job directories", func() {
@@ -151,7 +151,7 @@ var _ = Describe("DeployedInstance", func() {
 
 		JustBeforeEach(func() {
 			sshConnection.RunReturns([]byte{}, []byte{}, sshExitCode, sshError)
-			dirExists, dirError = backuperInstance.ArtifactDirExists()
+			dirExists, dirError = deployedInstance.ArtifactDirExists()
 		})
 
 		BeforeEach(func() {
@@ -199,7 +199,7 @@ var _ = Describe("DeployedInstance", func() {
 		var actualRestorable bool
 
 		JustBeforeEach(func() {
-			actualRestorable = backuperInstance.IsRestorable()
+			actualRestorable = deployedInstance.IsRestorable()
 		})
 
 		Describe("there are restore scripts in the job directories", func() {
@@ -239,7 +239,7 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("returns a list of the instance's custom artifact names", func() {
-				Expect(backuperInstance.CustomBackupArtifactNames()).To(ConsistOf("foo"))
+				Expect(deployedInstance.CustomBackupArtifactNames()).To(ConsistOf("foo"))
 			})
 		})
 
@@ -257,7 +257,7 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("returns a list of the instance's custom restore artifact names", func() {
-				Expect(backuperInstance.CustomRestoreArtifactNames()).To(ConsistOf("foo"))
+				Expect(deployedInstance.CustomRestoreArtifactNames()).To(ConsistOf("foo"))
 			})
 		})
 
@@ -267,7 +267,7 @@ var _ = Describe("DeployedInstance", func() {
 		var err error
 
 		JustBeforeEach(func() {
-			err = backuperInstance.PreBackupLock()
+			err = deployedInstance.PreBackupLock()
 		})
 
 		Context("when there is one pre-backup-lock script in the job directories", func() {
@@ -436,7 +436,7 @@ var _ = Describe("DeployedInstance", func() {
 		var err error
 
 		JustBeforeEach(func() {
-			err = backuperInstance.Backup()
+			err = deployedInstance.Backup()
 		})
 
 		Context("when there are multiple backup scripts in multiple job directories", func() {
@@ -491,7 +491,7 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("marks the instance as having had its artifact directory created", func() {
-				Expect(backuperInstance.ArtifactDirCreated()).To(BeTrue())
+				Expect(deployedInstance.ArtifactDirCreated()).To(BeTrue())
 			})
 
 			It("succeeds", func() {
@@ -532,7 +532,7 @@ var _ = Describe("DeployedInstance", func() {
 					"/var/vcap/jobs/bar/bin/bbr/restore",
 				}
 			})
-			It("makes calls to the instance over the ssh connection", func() {
+			It("doesn't make calls to the instance over the ssh connection", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(0))
 			})
 		})
@@ -609,7 +609,7 @@ var _ = Describe("DeployedInstance", func() {
 		var err error
 
 		JustBeforeEach(func() {
-			err = backuperInstance.PostBackupUnlock()
+			err = deployedInstance.PostBackupUnlock()
 		})
 
 		Context("when there are multiple post-backup-unlock scripts in multiple job directories", func() {
@@ -673,7 +673,7 @@ var _ = Describe("DeployedInstance", func() {
 		Context("when there are several scripts and one of them fails to run post-backup-unlock while another one causes an error", func() {
 			expectedStdout := "some stdout"
 			expectedStderr := "some stderr"
-			expectedError := fmt.Errorf("I still have a problem with your code")
+			sshConnectionError := fmt.Errorf("I still have a problem with your code")
 
 			BeforeEach(func() {
 				backupAndRestoreScripts = []instance.Script{
@@ -686,7 +686,7 @@ var _ = Describe("DeployedInstance", func() {
 						return []byte(expectedStdout), []byte(expectedStderr), 1, nil
 					}
 					if strings.Contains(cmd, "jobs/baz") {
-						return []byte("not relevant"), []byte("not relevant"), 0, expectedError
+						return []byte("not relevant"), []byte("not relevant"), 0, sshConnectionError
 					}
 					return []byte("not relevant"), []byte("not relevant"), 0, nil
 				}
@@ -723,7 +723,7 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("returns an error including the error from running the command", func() {
-				Expect(err.Error()).To(ContainSubstring(expectedError.Error()))
+				Expect(err.Error()).To(ContainSubstring(sshConnectionError.Error()))
 			})
 
 			It("logs the error caused when running the command", func() {
@@ -731,10 +731,156 @@ var _ = Describe("DeployedInstance", func() {
 					"Error attempting to run unlock script for job baz on %s/%s. Error: %s",
 					jobName,
 					jobID,
-					expectedError.Error(),
+					sshConnectionError.Error(),
 				)))
 			})
 
+		})
+	})
+
+	Describe("PostRestoreUnlock", func() {
+		var postRestoreUnlockError error
+
+		JustBeforeEach(func() {
+			postRestoreUnlockError = deployedInstance.PostRestoreUnlock()
+		})
+
+		Context("when there are multiple post-restore-unlock scripts in multiple job directories", func() {
+			BeforeEach(func() {
+				backupAndRestoreScripts = []instance.Script{
+					"/var/vcap/jobs/foo/bin/bbr/post-restore-unlock",
+					"/var/vcap/jobs/bar/bin/bbr/post-restore-unlock",
+					"/var/vcap/jobs/baz/bin/bbr/post-restore-unlock",
+				}
+			})
+
+			It("uses the ssh connection to run each post-restore-unlock script", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(3))
+				Expect([]string{
+					sshConnection.RunArgsForCall(0),
+					sshConnection.RunArgsForCall(1),
+					sshConnection.RunArgsForCall(2),
+				}).To(ConsistOf(
+					"sudo /var/vcap/jobs/foo/bin/bbr/post-restore-unlock",
+					"sudo /var/vcap/jobs/bar/bin/bbr/post-restore-unlock",
+					"sudo /var/vcap/jobs/baz/bin/bbr/post-restore-unlock",
+				))
+			})
+
+			It("logs the paths to the scripts being run", func() {
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/foo/bin/bbr/post-restore-unlock`))
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/bbr/post-restore-unlock`))
+				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/baz/bin/bbr/post-restore-unlock`))
+				Expect(string(stdout.Contents())).NotTo(ContainSubstring("> \n"))
+			})
+
+			It("logs that it is unlocking the job on the instance", func() {
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Unlocking foo on %s/%s",
+					jobName,
+					jobID,
+				)))
+
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Unlocking bar on %s/%s",
+					jobName,
+					jobID,
+				)))
+
+				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					"INFO - Unlocking baz on %s/%s",
+					jobName,
+					jobID,
+				)))
+			})
+
+			It("logs Done.", func() {
+				Expect(string(stdout.Contents())).To(ContainSubstring("Done."))
+			})
+
+			It("succeeds", func() {
+				Expect(postRestoreUnlockError).NotTo(HaveOccurred())
+			})
+		})
+
+		Context("when there are several scripts and one of them fails to run post-restore-unlock while another one causes an error", func() {
+
+			BeforeEach(func() {
+				backupAndRestoreScripts = []instance.Script{
+					"/var/vcap/jobs/foo/bin/bbr/post-restore-unlock",
+					"/var/vcap/jobs/bar/bin/bbr/post-restore-unlock",
+					"/var/vcap/jobs/baz/bin/bbr/post-restore-unlock",
+				}
+
+				sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
+					if strings.Contains(cmd, "jobs/bar") {
+						return []byte("stdout_bar"), []byte("stderr_bar"), 1, nil
+					}
+
+					if strings.Contains(cmd, "jobs/baz") {
+						return []byte("not relevant"), []byte("not relevant"), 0, fmt.Errorf("connection failed, script not run on baz")
+					}
+
+					return []byte("not relevant"), []byte("not relevant"), 0, nil
+				}
+			})
+
+			It("fails", func() {
+				Expect(postRestoreUnlockError).To(HaveOccurred())
+			})
+
+			It("correctly reports a script failure", func() {
+				By("describing the script failure in the returned error", func() {
+					Expect(postRestoreUnlockError.Error()).To(ContainSubstring(
+						fmt.Sprintf("unlock script for job bar failed on %s/%s", jobName, jobID),
+					))
+				})
+
+				By("including the script stdout in the returned error", func() {
+					Expect(postRestoreUnlockError.Error()).To(ContainSubstring("Stdout: stdout_bar"))
+				})
+
+				By("including the script stderr in the returned error", func() {
+					Expect(postRestoreUnlockError.Error()).To(ContainSubstring("Stderr: stderr_bar"))
+				})
+
+				By("logging to stderr the failures related to the failed script", func() {
+					Expect(string(stderr.Contents())).To(ContainSubstring(
+						fmt.Sprintf("unlock script for job bar failed on %s/%s", jobName, jobID),
+					))
+				})
+			})
+
+			It("correctly reports failing to run a script (e.g. ssh connection failure)", func() {
+				By("including the ssh error message in the returned error ", func() {
+					Expect(postRestoreUnlockError.Error()).To(ContainSubstring("connection failed, script not run on baz"))
+				})
+
+				By("including the error message in the logs", func() {
+					Expect(string(stderr.Contents())).To(ContainSubstring(fmt.Sprintf(
+						"Error attempting to run post-restore-unlock script for job baz on %s/%s. Error: %s",
+						jobName,
+						jobID,
+						"connection failed, script not run on baz",
+					)))
+				})
+			})
+
+		})
+
+		Context("When there are some jobs without post-restore-unlock scripts", func() {
+			BeforeEach(func() {
+				backupAndRestoreScripts = []instance.Script{
+					"/var/vcap/jobs/job-has-unlock-script/bin/bbr/post-restore-unlock",
+					"/var/vcap/jobs/job-only-has-backup/bin/bbr/backup",
+					"/var/vcap/jobs/job-only-has-restore/bin/bbr/restore",
+				}
+			})
+
+			It("Only invokes post-restore-unlock on those jobs which have that script", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo /var/vcap/jobs/job-has-unlock-script/bin/bbr/post-restore-unlock"))
+			})
 		})
 	})
 
@@ -742,7 +888,7 @@ var _ = Describe("DeployedInstance", func() {
 		var actualError error
 
 		JustBeforeEach(func() {
-			actualError = backuperInstance.Restore()
+			actualError = deployedInstance.Restore()
 		})
 
 		Context("when there are multiple restore scripts in multiple job directories", func() {
@@ -900,13 +1046,13 @@ var _ = Describe("DeployedInstance", func() {
 
 	Describe("Name", func() {
 		It("returns the instance name", func() {
-			Expect(backuperInstance.Name()).To(Equal("job-name"))
+			Expect(deployedInstance.Name()).To(Equal("job-name"))
 		})
 	})
 
 	Describe("Index", func() {
 		It("returns the instance Index", func() {
-			Expect(backuperInstance.Index()).To(Equal("job-index"))
+			Expect(deployedInstance.Index()).To(Equal("job-index"))
 		})
 	})
 
@@ -914,7 +1060,7 @@ var _ = Describe("DeployedInstance", func() {
 		var backupArtifacts []orchestrator.BackupArtifact
 
 		JustBeforeEach(func() {
-			backupArtifacts = backuperInstance.ArtifactsToBackup()
+			backupArtifacts = deployedInstance.ArtifactsToBackup()
 		})
 
 		Context("Has no named backup artifacts", func() {
@@ -926,8 +1072,8 @@ var _ = Describe("DeployedInstance", func() {
 			})
 			It("returns the default artifacts", func() {
 				Expect(backupArtifacts).To(ConsistOf(
-					instance.NewBackupArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
-					instance.NewBackupArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
+					instance.NewBackupArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), deployedInstance, sshConnection, boshLogger),
+					instance.NewBackupArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{}), deployedInstance, sshConnection, boshLogger),
 				))
 			})
 		})
@@ -945,8 +1091,8 @@ var _ = Describe("DeployedInstance", func() {
 
 			It("returns the named artifact and the default artifact", func() {
 				Expect(backupArtifacts).To(ConsistOf(
-					instance.NewBackupArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
-					instance.NewBackupArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{BackupName: "my-artifact"}), backuperInstance, sshConnection, boshLogger),
+					instance.NewBackupArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), deployedInstance, sshConnection, boshLogger),
+					instance.NewBackupArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{BackupName: "my-artifact"}), deployedInstance, sshConnection, boshLogger),
 				))
 			})
 		})
@@ -964,7 +1110,7 @@ var _ = Describe("DeployedInstance", func() {
 			It("returns the named artifact and the default artifact", func() {
 				Expect(backupArtifacts).To(Equal(
 					[]orchestrator.BackupArtifact{
-						instance.NewBackupArtifact(instance.NewJob(backupAndRestoreScripts, instance.Metadata{BackupName: "my-artifact"}), backuperInstance, sshConnection, boshLogger),
+						instance.NewBackupArtifact(instance.NewJob(backupAndRestoreScripts, instance.Metadata{BackupName: "my-artifact"}), deployedInstance, sshConnection, boshLogger),
 					},
 				))
 			})
@@ -975,7 +1121,7 @@ var _ = Describe("DeployedInstance", func() {
 		var restoreArtifacts []orchestrator.BackupArtifact
 
 		JustBeforeEach(func() {
-			restoreArtifacts = backuperInstance.ArtifactsToRestore()
+			restoreArtifacts = deployedInstance.ArtifactsToRestore()
 		})
 
 		Context("Has no named restore artifacts", func() {
@@ -987,8 +1133,8 @@ var _ = Describe("DeployedInstance", func() {
 			})
 			It("returns the default artifacts", func() {
 				Expect(restoreArtifacts).To(ConsistOf(
-					instance.NewRestoreArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
-					instance.NewRestoreArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
+					instance.NewRestoreArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), deployedInstance, sshConnection, boshLogger),
+					instance.NewRestoreArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{}), deployedInstance, sshConnection, boshLogger),
 				))
 			})
 		})
@@ -1006,8 +1152,8 @@ var _ = Describe("DeployedInstance", func() {
 
 			It("returns the named artifact and the default artifact", func() {
 				Expect(restoreArtifacts).To(ConsistOf(
-					instance.NewRestoreArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), backuperInstance, sshConnection, boshLogger),
-					instance.NewRestoreArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{RestoreName: "my-artifact"}), backuperInstance, sshConnection, boshLogger),
+					instance.NewRestoreArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[0]}, instance.Metadata{}), deployedInstance, sshConnection, boshLogger),
+					instance.NewRestoreArtifact(instance.NewJob([]instance.Script{backupAndRestoreScripts[1]}, instance.Metadata{RestoreName: "my-artifact"}), deployedInstance, sshConnection, boshLogger),
 				))
 			})
 		})
@@ -1027,7 +1173,7 @@ var _ = Describe("DeployedInstance", func() {
 					[]orchestrator.BackupArtifact{
 						instance.NewRestoreArtifact(instance.NewJob(
 							backupAndRestoreScripts, instance.Metadata{RestoreName: "my-artifact"},
-						), backuperInstance, sshConnection, boshLogger),
+						), deployedInstance, sshConnection, boshLogger),
 					},
 				))
 			})

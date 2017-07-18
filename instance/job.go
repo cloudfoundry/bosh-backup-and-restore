@@ -15,6 +15,7 @@ func NewJob(jobScripts BackupAndRestoreScripts, metadata Metadata) Job {
 		restoreScript:    jobScripts.RestoreOnly().firstOrBlank(),
 		preBackupScript:  jobScripts.PreBackupLockOnly().firstOrBlank(),
 		postBackupScript: jobScripts.PostBackupUnlockOnly().firstOrBlank(),
+		postRestoreScript: jobScripts.SinglePostRestoreUnlockScript(),
 	}
 }
 
@@ -25,6 +26,7 @@ type Job struct {
 	preBackupScript  Script
 	postBackupScript Script
 	restoreScript    Script
+	postRestoreScript Script
 }
 
 func (j Job) Name() string {
@@ -53,6 +55,10 @@ func (j Job) BackupScript() Script {
 
 func (j Job) RestoreScript() Script {
 	return j.restoreScript
+}
+
+func (j Job) PostRestoreUnlockScript() Script {
+	return j.postRestoreScript
 }
 
 func (j Job) PreBackupScript() Script {
@@ -85,6 +91,10 @@ func (j Job) HasNamedBackupArtifact() bool {
 
 func (j Job) HasNamedRestoreArtifact() bool {
 	return j.metadata.RestoreName != ""
+}
+
+func (j Job) HasPostRestoreUnlock() bool {
+	return j.postRestoreScript != ""
 }
 
 func (j Job) backupArtifactOrJobName() string {

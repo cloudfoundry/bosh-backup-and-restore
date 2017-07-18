@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
 	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator/fakes"
+	"github.com/pkg/errors"
 )
 
 var _ = Describe("Deployment", func() {
@@ -24,14 +25,16 @@ var _ = Describe("Deployment", func() {
 		instance3  *fakes.FakeInstance
 	)
 
-	JustBeforeEach(func() {
-		deployment = orchestrator.NewDeployment(logger, instances)
-	})
 	BeforeEach(func() {
 		logger = new(fakes.FakeLogger)
+
 		instance1 = new(fakes.FakeInstance)
 		instance2 = new(fakes.FakeInstance)
 		instance3 = new(fakes.FakeInstance)
+	})
+
+	JustBeforeEach(func() {
+		deployment = orchestrator.NewDeployment(logger, instances)
 	})
 
 	Context("PreBackupLock", func() {
@@ -636,153 +639,40 @@ var _ = Describe("Deployment", func() {
 	})
 
 	Context("PostRestoreUnlock", func() {
-		var unlockError, expectedError error
+		var unlockError  error
 
 		BeforeEach(func() {
-			expectedError = fmt.Errorf("something went terribly wrong")
+			instances = []orchestrator.Instance{instance1, instance2, instance3}
 		})
 
 		JustBeforeEach(func() {
 			unlockError = deployment.PostRestoreUnlock()
 		})
 
-		Context("Single instance, with post restore unlock", func() {
-			BeforeEach(func() {
-				instance1.IsPostRestoreUnlockableReturns(true)
-				instance1.PostRestoreUnlockReturns(nil)
-				instances = []orchestrator.Instance{instance1}
-			})
-
-			It("does not fail", func() {
-				Expect(unlockError).NotTo(HaveOccurred())
-			})
-
-			It("unlocks the instance", func() {
-				Expect(instance1.PostBackupUnlockCallCount()).To(Equal(1))
-			})
+		It("Calls PostRestoreUnlock on all instances", func() {
+			Expect(instance1.PostRestoreUnlockCallCount()).To(Equal(1))
+			Expect(instance2.PostRestoreUnlockCallCount()).To(Equal(1))
+			Expect(instance3.PostRestoreUnlockCallCount()).To(Equal(1))
 		})
 
-		//Context("single instance, without post backup unlock", func() {
-		//	BeforeEach(func() {
-		//		instance1.IsPostBackupUnlockableReturns(false)
-		//		instances = []orchestrator.Instance{instance1}
-		//	})
-		//
-		//	It("does not fail", func() {
-		//		Expect(unlockError).NotTo(HaveOccurred())
-		//	})
-		//
-		//	It("doesn't attempt to unlock the instance", func() {
-		//		Expect(instance1.PostBackupUnlockCallCount()).To(Equal(0))
-		//	})
-		//})
-		//
-		//Context("single instance that fails to unlock", func() {
-		//	BeforeEach(func() {
-		//		instance1.IsPostBackupUnlockableReturns(true)
-		//		instance1.PostBackupUnlockReturns(expectedError)
-		//		instances = []orchestrator.Instance{instance1}
-		//	})
-		//
-		//	It("fails", func() {
-		//		Expect(unlockError).To(HaveOccurred())
-		//	})
-		//
-		//	It("attempts to unlock the instance", func() {
-		//		Expect(instance1.PostBackupUnlockCallCount()).To(Equal(1))
-		//	})
-		//})
-		//
-		//Context("Multiple instances, all with post backup unlock scripts", func() {
-		//	BeforeEach(func() {
-		//		instance1.IsPostBackupUnlockableReturns(true)
-		//		instance1.PostBackupUnlockReturns(nil)
-		//		instance2.IsPostBackupUnlockableReturns(true)
-		//		instance2.PostBackupUnlockReturns(nil)
-		//		instances = []orchestrator.Instance{instance1, instance2}
-		//	})
-		//
-		//	It("does not fail", func() {
-		//		Expect(unlockError).NotTo(HaveOccurred())
-		//	})
-		//
-		//	It("unlocks the instances", func() {
-		//		Expect(instance1.PostBackupUnlockCallCount()).To(Equal(1))
-		//		Expect(instance2.PostBackupUnlockCallCount()).To(Equal(1))
-		//	})
-		//})
-		//
-		//Context("Multiple instances, one with post backup unlock scripts", func() {
-		//	BeforeEach(func() {
-		//		instance1.IsPostBackupUnlockableReturns(false)
-		//		instance2.IsPostBackupUnlockableReturns(true)
-		//		instance2.PostBackupUnlockReturns(nil)
-		//		instances = []orchestrator.Instance{instance1, instance2}
-		//	})
-		//
-		//	It("does not fail", func() {
-		//		Expect(unlockError).NotTo(HaveOccurred())
-		//	})
-		//
-		//	It("unlocks the correct instance", func() {
-		//		Expect(instance2.PostBackupUnlockCallCount()).To(Equal(1))
-		//	})
-		//
-		//	It("doesn't unlock the instance with no script", func() {
-		//		Expect(instance1.PostBackupUnlockCallCount()).To(Equal(0))
-		//	})
-		//})
-		//
-		//Context("Multiple instances, where one fails to unlock", func() {
-		//	BeforeEach(func() {
-		//		instance1.IsPostBackupUnlockableReturns(true)
-		//		instance1.PostBackupUnlockReturns(expectedError)
-		//		instance2.IsPostBackupUnlockableReturns(true)
-		//		instance2.PostBackupUnlockReturns(nil)
-		//		instances = []orchestrator.Instance{instance1, instance2}
-		//	})
-		//
-		//	It("fails", func() {
-		//		Expect(unlockError).To(HaveOccurred())
-		//	})
-		//
-		//	It("attempts to unlock both instances", func() {
-		//		Expect(instance1.PostBackupUnlockCallCount()).To(Equal(1))
-		//		Expect(instance2.PostBackupUnlockCallCount()).To(Equal(1))
-		//	})
-		//
-		//	It("returns the expected single error", func() {
-		//		Expect(unlockError).To(MatchError(ContainSubstring(expectedError.Error())))
-		//	})
-		//})
-		//
-		//Context("Multiple instances, all fail to unlock", func() {
-		//	var secondError error
-		//
-		//	BeforeEach(func() {
-		//		instance1.IsPostBackupUnlockableReturns(true)
-		//		instance1.PostBackupUnlockReturns(expectedError)
-		//
-		//		secondError = fmt.Errorf("something else went wrong")
-		//		instance2.IsPostBackupUnlockableReturns(true)
-		//		instance2.PostBackupUnlockReturns(secondError)
-		//		instances = []orchestrator.Instance{instance1, instance2}
-		//	})
-		//
-		//	It("fails", func() {
-		//		Expect(unlockError).To(HaveOccurred())
-		//	})
-		//
-		//	It("attempts to unlock both instances", func() {
-		//		Expect(instance1.PostBackupUnlockCallCount()).To(Equal(1))
-		//		Expect(instance2.PostBackupUnlockCallCount()).To(Equal(1))
-		//	})
-		//
-		//	It("returns all the expected errors", func() {
-		//		Expect(unlockError).To(MatchError(ContainSubstring(expectedError.Error())))
-		//		Expect(unlockError).To(MatchError(ContainSubstring(secondError.Error())))
-		//	})
-		//})
+		Context("when some instances fail to PostRestoreUnlock", func() {
+			BeforeEach(func() {
+				instance1.PostRestoreUnlockReturns(errors.New("instance 1 failed to unlock"))
+				instance2.PostRestoreUnlockReturns(errors.New("instance 2 failed to unlock"))
+			})
+
+			It("Continues attempting unlock on the rest of the deployment", func() {
+				By("attempting unlock on subsequent instances", func() {
+					Expect(instance3.PostRestoreUnlockCallCount()).To(Equal(1))
+				})
+
+				By("returning an amalgamated error", func() {
+					Expect(unlockError).To(HaveOccurred())
+					Expect(unlockError.Error()).To(ContainSubstring("instance 1 failed to unlock"))
+					Expect(unlockError.Error()).To(ContainSubstring("instance 2 failed to unlock"))
+				})
+			})
+		})
 	})
 
 	Context("CopyLocalBackupToRemote", func() {
@@ -1160,6 +1050,7 @@ var _ = Describe("Deployment", func() {
 			})
 		})
 	})
+
 	Context("Cleanup", func() {
 		var (
 			actualCleanupError error
@@ -1402,6 +1293,7 @@ var _ = Describe("Deployment", func() {
 			})
 		})
 	})
+
 	Context("Instances", func() {
 		BeforeEach(func() {
 			instances = []orchestrator.Instance{instance1, instance2, instance3}
