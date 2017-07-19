@@ -17,8 +17,6 @@ type Instance interface {
 	ArtifactDirExists() (bool, error)
 	ArtifactDirCreated() bool
 	MarkArtifactDirCreated()
-	IsPostBackupUnlockable() bool
-	IsPreBackupLockable() bool
 	IsRestorable() bool
 	PreBackupLock() error
 	Backup() error
@@ -85,30 +83,6 @@ func (is instances) RestoreArtifactNames() []string {
 	}
 
 	return artifactNames
-}
-
-func (is instances) AllPreBackupLockable() instances {
-	var lockableInstances []Instance
-
-	for _, instance := range is {
-		if instance.IsPreBackupLockable() {
-			lockableInstances = append(lockableInstances, instance)
-		}
-	}
-
-	return lockableInstances
-}
-
-func (is instances) AllPostBackupUnlockable() instances {
-	var unlockableInstances []Instance
-
-	for _, instance := range is {
-		if instance.IsPostBackupUnlockable() {
-			unlockableInstances = append(unlockableInstances, instance)
-		}
-	}
-
-	return unlockableInstances
 }
 
 func (is instances) AllRestoreable() instances {

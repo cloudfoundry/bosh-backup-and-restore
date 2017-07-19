@@ -67,28 +67,10 @@ type FakeInstance struct {
 	MarkArtifactDirCreatedStub        func()
 	markArtifactDirCreatedMutex       sync.RWMutex
 	markArtifactDirCreatedArgsForCall []struct{}
-	IsPostBackupUnlockableStub        func() bool
-	isPostBackupUnlockableMutex       sync.RWMutex
-	isPostBackupUnlockableArgsForCall []struct{}
-	isPostBackupUnlockableReturns     struct {
-		result1 bool
-	}
-	isPostBackupUnlockableReturnsOnCall map[int]struct {
-		result1 bool
-	}
-	IsPreBackupLockableStub        func() bool
-	isPreBackupLockableMutex       sync.RWMutex
-	isPreBackupLockableArgsForCall []struct{}
-	isPreBackupLockableReturns     struct {
-		result1 bool
-	}
-	isPreBackupLockableReturnsOnCall map[int]struct {
-		result1 bool
-	}
-	IsRestorableStub        func() bool
-	isRestorableMutex       sync.RWMutex
-	isRestorableArgsForCall []struct{}
-	isRestorableReturns     struct {
+	IsRestorableStub                  func() bool
+	isRestorableMutex                 sync.RWMutex
+	isRestorableArgsForCall           []struct{}
+	isRestorableReturns               struct {
 		result1 bool
 	}
 	isRestorableReturnsOnCall map[int]struct {
@@ -454,86 +436,6 @@ func (fake *FakeInstance) MarkArtifactDirCreatedCallCount() int {
 	fake.markArtifactDirCreatedMutex.RLock()
 	defer fake.markArtifactDirCreatedMutex.RUnlock()
 	return len(fake.markArtifactDirCreatedArgsForCall)
-}
-
-func (fake *FakeInstance) IsPostBackupUnlockable() bool {
-	fake.isPostBackupUnlockableMutex.Lock()
-	ret, specificReturn := fake.isPostBackupUnlockableReturnsOnCall[len(fake.isPostBackupUnlockableArgsForCall)]
-	fake.isPostBackupUnlockableArgsForCall = append(fake.isPostBackupUnlockableArgsForCall, struct{}{})
-	fake.recordInvocation("IsPostBackupUnlockable", []interface{}{})
-	fake.isPostBackupUnlockableMutex.Unlock()
-	if fake.IsPostBackupUnlockableStub != nil {
-		return fake.IsPostBackupUnlockableStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.isPostBackupUnlockableReturns.result1
-}
-
-func (fake *FakeInstance) IsPostBackupUnlockableCallCount() int {
-	fake.isPostBackupUnlockableMutex.RLock()
-	defer fake.isPostBackupUnlockableMutex.RUnlock()
-	return len(fake.isPostBackupUnlockableArgsForCall)
-}
-
-func (fake *FakeInstance) IsPostBackupUnlockableReturns(result1 bool) {
-	fake.IsPostBackupUnlockableStub = nil
-	fake.isPostBackupUnlockableReturns = struct {
-		result1 bool
-	}{result1}
-}
-
-func (fake *FakeInstance) IsPostBackupUnlockableReturnsOnCall(i int, result1 bool) {
-	fake.IsPostBackupUnlockableStub = nil
-	if fake.isPostBackupUnlockableReturnsOnCall == nil {
-		fake.isPostBackupUnlockableReturnsOnCall = make(map[int]struct {
-			result1 bool
-		})
-	}
-	fake.isPostBackupUnlockableReturnsOnCall[i] = struct {
-		result1 bool
-	}{result1}
-}
-
-func (fake *FakeInstance) IsPreBackupLockable() bool {
-	fake.isPreBackupLockableMutex.Lock()
-	ret, specificReturn := fake.isPreBackupLockableReturnsOnCall[len(fake.isPreBackupLockableArgsForCall)]
-	fake.isPreBackupLockableArgsForCall = append(fake.isPreBackupLockableArgsForCall, struct{}{})
-	fake.recordInvocation("IsPreBackupLockable", []interface{}{})
-	fake.isPreBackupLockableMutex.Unlock()
-	if fake.IsPreBackupLockableStub != nil {
-		return fake.IsPreBackupLockableStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.isPreBackupLockableReturns.result1
-}
-
-func (fake *FakeInstance) IsPreBackupLockableCallCount() int {
-	fake.isPreBackupLockableMutex.RLock()
-	defer fake.isPreBackupLockableMutex.RUnlock()
-	return len(fake.isPreBackupLockableArgsForCall)
-}
-
-func (fake *FakeInstance) IsPreBackupLockableReturns(result1 bool) {
-	fake.IsPreBackupLockableStub = nil
-	fake.isPreBackupLockableReturns = struct {
-		result1 bool
-	}{result1}
-}
-
-func (fake *FakeInstance) IsPreBackupLockableReturnsOnCall(i int, result1 bool) {
-	fake.IsPreBackupLockableStub = nil
-	if fake.isPreBackupLockableReturnsOnCall == nil {
-		fake.isPreBackupLockableReturnsOnCall = make(map[int]struct {
-			result1 bool
-		})
-	}
-	fake.isPreBackupLockableReturnsOnCall[i] = struct {
-		result1 bool
-	}{result1}
 }
 
 func (fake *FakeInstance) IsRestorable() bool {
@@ -1033,10 +935,6 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.artifactDirCreatedMutex.RUnlock()
 	fake.markArtifactDirCreatedMutex.RLock()
 	defer fake.markArtifactDirCreatedMutex.RUnlock()
-	fake.isPostBackupUnlockableMutex.RLock()
-	defer fake.isPostBackupUnlockableMutex.RUnlock()
-	fake.isPreBackupLockableMutex.RLock()
-	defer fake.isPreBackupLockableMutex.RUnlock()
 	fake.isRestorableMutex.RLock()
 	defer fake.isRestorableMutex.RUnlock()
 	fake.preBackupLockMutex.RLock()

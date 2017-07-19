@@ -78,7 +78,7 @@ func (bd *deployment) CheckArtifactDir() error {
 
 func (bd *deployment) PreBackupLock() error {
 	bd.Logger.Info("bbr", "Running pre-backup scripts...")
-	err := bd.instances.AllPreBackupLockable().PreBackupLock()
+	err := bd.instances.PreBackupLock()
 	bd.Logger.Info("bbr", "Done.")
 	return err
 }
@@ -90,7 +90,7 @@ func (bd *deployment) Backup() error {
 
 func (bd *deployment) PostBackupUnlock() error {
 	bd.Logger.Info("bbr", "Running post-backup scripts...")
-	err := bd.instances.AllPostBackupUnlockable().PostBackupUnlock()
+	err := bd.instances.PostBackupUnlock()
 	bd.Logger.Info("bbr", "Done.")
 	return err
 }

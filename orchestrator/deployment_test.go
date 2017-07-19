@@ -44,10 +44,8 @@ var _ = Describe("Deployment", func() {
 			lockError = deployment.PreBackupLock()
 		})
 
-		Context("Single instance, backupable", func() {
+		Context("Single instance", func() {
 			BeforeEach(func() {
-				instance1.IsPreBackupLockableReturns(true)
-				instance1.PreBackupLockReturns(nil)
 				instances = []orchestrator.Instance{instance1}
 			})
 
@@ -72,12 +70,8 @@ var _ = Describe("Deployment", func() {
 			})
 		})
 
-		Context("Multiple instances, some pre-backup-lockable", func() {
+		Context("Multiple instances", func() {
 			BeforeEach(func() {
-				instance1.IsBackupableReturns(true)
-				instance2.IsBackupableReturns(true)
-				instance1.IsPreBackupLockableReturns(true)
-				instance2.IsPreBackupLockableReturns(false)
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
@@ -85,9 +79,9 @@ var _ = Describe("Deployment", func() {
 				Expect(lockError).NotTo(HaveOccurred())
 			})
 
-			It("runs pre-backup-lock on only the instance with the pre-backup-lock script", func() {
+			It("runs pre-backup-lock on all the instances", func() {
 				Expect(instance1.PreBackupLockCallCount()).To(Equal(1))
-				Expect(instance2.PreBackupLockCallCount()).To(Equal(0))
+				Expect(instance2.PreBackupLockCallCount()).To(Equal(1))
 			})
 		})
 
@@ -175,9 +169,8 @@ var _ = Describe("Deployment", func() {
 			unlockError = deployment.PostBackupUnlock()
 		})
 
-		Context("Single instance, with post backup unlock", func() {
+		Context("Single instance", func() {
 			BeforeEach(func() {
-				instance1.IsPostBackupUnlockableReturns(true)
 				instance1.PostBackupUnlockReturns(nil)
 				instances = []orchestrator.Instance{instance1}
 			})
@@ -191,24 +184,8 @@ var _ = Describe("Deployment", func() {
 			})
 		})
 
-		Context("single instance, without post backup unlock", func() {
-			BeforeEach(func() {
-				instance1.IsPostBackupUnlockableReturns(false)
-				instances = []orchestrator.Instance{instance1}
-			})
-
-			It("does not fail", func() {
-				Expect(unlockError).NotTo(HaveOccurred())
-			})
-
-			It("doesn't attempt to unlock the instance", func() {
-				Expect(instance1.PostBackupUnlockCallCount()).To(Equal(0))
-			})
-		})
-
 		Context("single instance that fails to unlock", func() {
 			BeforeEach(func() {
-				instance1.IsPostBackupUnlockableReturns(true)
 				instance1.PostBackupUnlockReturns(expectedError)
 				instances = []orchestrator.Instance{instance1}
 			})
@@ -222,12 +199,8 @@ var _ = Describe("Deployment", func() {
 			})
 		})
 
-		Context("Multiple instances, all with post backup unlock scripts", func() {
+		Context("Multiple instances", func() {
 			BeforeEach(func() {
-				instance1.IsPostBackupUnlockableReturns(true)
-				instance1.PostBackupUnlockReturns(nil)
-				instance2.IsPostBackupUnlockableReturns(true)
-				instance2.PostBackupUnlockReturns(nil)
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
@@ -241,33 +214,9 @@ var _ = Describe("Deployment", func() {
 			})
 		})
 
-		Context("Multiple instances, one with post backup unlock scripts", func() {
-			BeforeEach(func() {
-				instance1.IsPostBackupUnlockableReturns(false)
-				instance2.IsPostBackupUnlockableReturns(true)
-				instance2.PostBackupUnlockReturns(nil)
-				instances = []orchestrator.Instance{instance1, instance2}
-			})
-
-			It("does not fail", func() {
-				Expect(unlockError).NotTo(HaveOccurred())
-			})
-
-			It("unlocks the correct instance", func() {
-				Expect(instance2.PostBackupUnlockCallCount()).To(Equal(1))
-			})
-
-			It("doesn't unlock the instance with no script", func() {
-				Expect(instance1.PostBackupUnlockCallCount()).To(Equal(0))
-			})
-		})
-
 		Context("Multiple instances, where one fails to unlock", func() {
 			BeforeEach(func() {
-				instance1.IsPostBackupUnlockableReturns(true)
 				instance1.PostBackupUnlockReturns(expectedError)
-				instance2.IsPostBackupUnlockableReturns(true)
-				instance2.PostBackupUnlockReturns(nil)
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
@@ -289,11 +238,8 @@ var _ = Describe("Deployment", func() {
 			var secondError error
 
 			BeforeEach(func() {
-				instance1.IsPostBackupUnlockableReturns(true)
 				instance1.PostBackupUnlockReturns(expectedError)
-
 				secondError = fmt.Errorf("something else went wrong")
-				instance2.IsPostBackupUnlockableReturns(true)
 				instance2.PostBackupUnlockReturns(secondError)
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
@@ -639,7 +585,7 @@ var _ = Describe("Deployment", func() {
 	})
 
 	Context("PostRestoreUnlock", func() {
-		var unlockError  error
+		var unlockError error
 
 		BeforeEach(func() {
 			instances = []orchestrator.Instance{instance1, instance2, instance3}

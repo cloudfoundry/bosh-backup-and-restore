@@ -151,51 +151,6 @@ var _ = Describe("Jobs", func() {
 		})
 	})
 
-	Context("contains jobs with pre-backup-lock scripts", func() {
-		BeforeEach(func() {
-			scripts = instance.BackupAndRestoreScripts{
-				"/var/vcap/jobs/foo/bin/bbr/pre-backup-lock",
-				"/var/vcap/jobs/foo/bin/bbr/backup",
-				"/var/vcap/jobs/bar/bin/bbr/restore",
-			}
-		})
-
-		Describe("PreBackupable", func() {
-			It("returns the lockable job", func() {
-				Expect(jobs.PreBackupable()).To(ConsistOf(instance.NewJob(
-					instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/foo/bin/bbr/pre-backup-lock",
-						"/var/vcap/jobs/foo/bin/bbr/backup",
-					}, instance.Metadata{}),
-				))
-			})
-		})
-
-		Describe("AnyArePreBackupable", func() {
-			It("returns true", func() {
-				Expect(jobs.AnyArePreBackupable()).To(BeTrue())
-			})
-		})
-	})
-	Context("contains no jobs with pre-backup-lock scripts", func() {
-		BeforeEach(func() {
-			scripts = instance.BackupAndRestoreScripts{
-				"/var/vcap/jobs/bar/bin/bbr/restore",
-			}
-		})
-		Describe("PreBackupable", func() {
-			It("returns empty", func() {
-				Expect(jobs.PreBackupable()).To(BeEmpty())
-			})
-		})
-
-		Describe("AnyArePreBackupable", func() {
-			It("returns false", func() {
-				Expect(jobs.AnyArePreBackupable()).To(BeFalse())
-			})
-		})
-	})
-
 	Context("contains jobs with post-backup-lock scripts", func() {
 
 		BeforeEach(func() {
@@ -214,12 +169,6 @@ var _ = Describe("Jobs", func() {
 						"/var/vcap/jobs/foo/bin/bbr/backup",
 					}, instance.Metadata{}),
 				))
-			})
-		})
-
-		Describe("AnyArePostBackupable", func() {
-			It("returns true", func() {
-				Expect(jobs.AnyArePostBackupable()).To(BeTrue())
 			})
 		})
 	})

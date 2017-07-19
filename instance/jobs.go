@@ -39,10 +39,6 @@ func (jobs Jobs) PreBackupable() Jobs {
 	return preBackupableJobs
 }
 
-func (jobs Jobs) AnyArePreBackupable() bool {
-	return !jobs.PreBackupable().empty()
-}
-
 func (jobs Jobs) PostBackupable() Jobs {
 	postBackupableJobs := Jobs{}
 	for _, job := range jobs {
@@ -51,10 +47,6 @@ func (jobs Jobs) PostBackupable() Jobs {
 		}
 	}
 	return postBackupableJobs
-}
-
-func (jobs Jobs) AnyArePostBackupable() bool {
-	return !jobs.PostBackupable().empty()
 }
 
 func (jobs Jobs) AnyNeedDefaultArtifactsForRestore() bool {

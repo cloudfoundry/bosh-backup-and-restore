@@ -55,14 +55,6 @@ func (d *DeployedInstance) MarkArtifactDirCreated() {
 	d.artifactDirCreated = true
 }
 
-func (d *DeployedInstance) IsPostBackupUnlockable() bool {
-	return d.Jobs.AnyArePostBackupable()
-}
-
-func (d *DeployedInstance) IsPreBackupLockable() bool {
-	return d.Jobs.AnyArePreBackupable()
-}
-
 func (d *DeployedInstance) CustomBackupArtifactNames() []string {
 	return d.Jobs.CustomBackupArtifactNames()
 }
