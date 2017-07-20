@@ -56,7 +56,7 @@ var _ = Describe("DeploymentManager", func() {
 
 		Context("success", func() {
 			BeforeEach(func() {
-				fakeJobs = instance.Jobs{instance.NewJob(instance.BackupAndRestoreScripts{"foo"}, instance.Metadata{})}
+				fakeJobs = instance.Jobs{instance.NewJob(nil, "", nil, instance.BackupAndRestoreScripts{"foo"}, instance.Metadata{})}
 				fakeConnFactory.Returns(fakeSSHConnection, nil)
 				fakeJobFinder.FindJobsReturns(fakeJobs, nil)
 			})

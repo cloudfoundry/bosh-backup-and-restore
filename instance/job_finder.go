@@ -22,18 +22,18 @@ func NewJobFinder(logger Logger) *JobFinderFromScripts {
 	}
 }
 
-func (j *JobFinderFromScripts) FindJobs(hostIdentifier string, connection SSHConnection) (Jobs, error) {
-	findOutput, err := j.findScripts(hostIdentifier, connection)
+func (j *JobFinderFromScripts) FindJobs(hostIdentifierForLogging string, connection SSHConnection) (Jobs, error) {
+	findOutput, err := j.findScripts(hostIdentifierForLogging, connection)
 	if err != nil {
 		return nil, err
 	}
 	metadata := map[string]Metadata{}
 	scripts := NewBackupAndRestoreScripts(findOutput)
 	for _, script := range scripts {
-		j.Logger.Info("bbr", "%s/%s/%s", hostIdentifier, script.JobName(), script.Name())
+		j.Logger.Info("bbr", "%s/%s/%s", hostIdentifierForLogging, script.JobName(), script.Name())
 	}
 	for _, script := range scripts.MetadataOnly() {
-		jobMetadata, err := j.findMetadata(hostIdentifier, script, connection)
+		jobMetadata, err := j.findMetadata(hostIdentifierForLogging, script, connection)
 
 		if err != nil {
 			return nil, err
@@ -43,7 +43,7 @@ func (j *JobFinderFromScripts) FindJobs(hostIdentifier string, connection SSHCon
 		metadata[jobName] = *jobMetadata
 	}
 
-	return NewJobs(scripts, metadata), nil
+	return NewJobs(connection, hostIdentifierForLogging, j.Logger, scripts, metadata), nil
 }
 
 func (j *JobFinderFromScripts) findMetadata(hostIdentifier string, script Script, connection SSHConnection) (*Metadata, error) {
@@ -74,15 +74,15 @@ func (j *JobFinderFromScripts) findMetadata(hostIdentifier string, script Script
 	return jobMetadata, nil
 }
 
-func (j *JobFinderFromScripts) findScripts(hostIdentifier string, sshConnection SSHConnection) ([]string, error) {
-	j.Logger.Debug("bbr", "Attempting to find scripts on %s", hostIdentifier)
+func (j *JobFinderFromScripts) findScripts(hostIdentifierForLogging string, sshConnection SSHConnection) ([]string, error) {
+	j.Logger.Debug("bbr", "Attempting to find scripts on %s", hostIdentifierForLogging)
 
 	stdout, stderr, exitCode, err := sshConnection.Run("find /var/vcap/jobs/*/bin/bbr/* -type f")
 	if err != nil {
 		j.Logger.Error(
 			"",
 			"Failed to run find on %s. Error: %s\nStdout: %s\nStderr%s",
-			hostIdentifier,
+			hostIdentifierForLogging,
 			err,
 			stdout,
 			stderr,
@@ -95,7 +95,7 @@ func (j *JobFinderFromScripts) findScripts(hostIdentifier string, sshConnection 
 			j.Logger.Debug(
 				"",
 				"Running find failed on %s.\nStdout: %s\nStderr: %s",
-				hostIdentifier,
+				hostIdentifierForLogging,
 				stdout,
 				stderr,
 			)
@@ -103,13 +103,13 @@ func (j *JobFinderFromScripts) findScripts(hostIdentifier string, sshConnection 
 			j.Logger.Error(
 				"",
 				"Running find failed on %s.\nStdout: %s\nStderr: %s",
-				hostIdentifier,
+				hostIdentifierForLogging,
 				stdout,
 				stderr,
 			)
 			return nil, errors.Errorf(
 				"Running find failed on %s.\nStdout: %s\nStderr: %s",
-				hostIdentifier,
+				hostIdentifierForLogging,
 				stdout,
 				stderr,
 			)

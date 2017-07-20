@@ -94,7 +94,7 @@ var _ = Describe("Director", func() {
 					},
 				}}, nil)
 				sshConnectionFactory.Returns(sshConnection, nil)
-				expectedJobs = instance.NewJobs(instance.BackupAndRestoreScripts{
+				expectedJobs = instance.NewJobs(sshConnection, "", boshLogger, instance.BackupAndRestoreScripts{
 					"/var/vcap/jobs/consul_agent/bin/bbr/backup",
 					"/var/vcap/jobs/consul_agent/bin/bbr/restore",
 				}, map[string]instance.Metadata{})
@@ -215,12 +215,12 @@ var _ = Describe("Director", func() {
 				}}, nil)
 				sshConnectionFactory.Returns(sshConnection, nil)
 
-				instance0Jobs = instance.NewJobs(
+				instance0Jobs = instance.NewJobs(sshConnection, "", boshLogger,
 					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
 					map[string]instance.Metadata{},
 				)
 
-				instance1Jobs = instance.NewJobs(
+				instance1Jobs = instance.NewJobs(sshConnection, "", boshLogger,
 					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
 					map[string]instance.Metadata{},
 				)
@@ -350,7 +350,7 @@ var _ = Describe("Director", func() {
 					}
 				}
 				sshConnectionFactory.Returns(sshConnection, nil)
-				instanceJobs = instance.NewJobs(
+				instanceJobs = instance.NewJobs(sshConnection, "", boshLogger,
 					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
 					map[string]instance.Metadata{},
 				)

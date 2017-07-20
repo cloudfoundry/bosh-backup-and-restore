@@ -47,7 +47,11 @@ var _ = Describe("BoshDeployedInstance", func() {
 	})
 
 	JustBeforeEach(func() {
-		jobs = instance.NewJobs(backupAndRestoreScripts, artifactMetadata)
+		jobs = instance.NewJobs(sshConnection,
+			"job-name/job-index",
+			boshLogger,
+			backupAndRestoreScripts,
+			artifactMetadata)
 		sshConnection.UsernameReturns("sshUsername")
 		backuperInstance = bosh.NewBoshDeployedInstance(jobName, jobIndex, jobID, sshConnection, boshDeployment, artifactDirCreated, boshLogger, jobs)
 	})

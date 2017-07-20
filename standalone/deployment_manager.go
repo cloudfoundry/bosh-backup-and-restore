@@ -50,7 +50,8 @@ func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment
 		return nil, err
 	}
 
-	jobs, err := dm.jobFinder.FindJobs("bosh", connection)
+	//TODO: change hostIdentifier, its not always bosh
+	jobs, err := dm.jobFinder.FindJobs("bosh/0", connection)
 	if err != nil {
 		return nil, err
 	}

@@ -8,10 +8,11 @@ import (
 	"fmt"
 
 	"bytes"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"io"
 	"log"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("JobFinderFromScripts", func() {
@@ -20,6 +21,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 	var sshConnection *fakes.FakeSSHConnection
 	var jobs Jobs
 	var jobsError error
+	var logger Logger
 
 	Describe("FindJobs", func() {
 		BeforeEach(func() {
@@ -28,7 +30,8 @@ var _ = Describe("JobFinderFromScripts", func() {
 			combinedLog := log.New(io.MultiWriter(GinkgoWriter, logStream), "[instance-test] ", log.Lshortfile)
 
 			sshConnection = new(fakes.FakeSSHConnection)
-			jobFinder = NewJobFinder(boshlog.New(boshlog.LevelDebug, combinedLog, combinedLog))
+			logger = boshlog.New(boshlog.LevelDebug, combinedLog, combinedLog)
+			jobFinder = NewJobFinder(logger)
 		})
 		JustBeforeEach(func() {
 			jobs, jobsError = jobFinder.FindJobs("identifier", sshConnection)
@@ -50,7 +53,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 				})
 
 				It("returns a list of jobs", func() {
-					Expect(jobs).To(Equal(NewJobs(BackupAndRestoreScripts{
+					Expect(jobs).To(Equal(NewJobs(sshConnection, "identifier", logger, BackupAndRestoreScripts{
 						"/var/vcap/jobs/consul_agent/bin/bbr/backup",
 						"/var/vcap/jobs/consul_agent/bin/bbr/restore",
 					}, map[string]Metadata{})))
@@ -76,7 +79,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 				})
 
 				It("returns a list of jobs", func() {
-					Expect(jobs).To(Equal(NewJobs(BackupAndRestoreScripts{}, map[string]Metadata{})))
+					Expect(jobs).To(Equal(NewJobs(sshConnection, "identifier", logger, BackupAndRestoreScripts{}, map[string]Metadata{})))
 				})
 			})
 
@@ -92,7 +95,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 				})
 
 				It("returns an empty list", func() {
-					Expect(jobs).To(Equal(NewJobs(BackupAndRestoreScripts{}, map[string]Metadata{})))
+					Expect(jobs).To(Equal(NewJobs(sshConnection, "identifier", logger, BackupAndRestoreScripts{}, map[string]Metadata{})))
 				})
 			})
 
@@ -154,7 +157,7 @@ backup_name: consul_backup`), nil, 0, nil
 				})
 
 				It("returns a list of jobs with metadata", func() {
-					Expect(jobs).To(Equal(NewJobs(BackupAndRestoreScripts{
+					Expect(jobs).To(Equal(NewJobs(sshConnection, "identifier", logger, BackupAndRestoreScripts{
 						"/var/vcap/jobs/consul_agent/bin/bbr/metadata",
 					}, map[string]Metadata{
 						"consul_agent": {BackupName: "consul_backup"},

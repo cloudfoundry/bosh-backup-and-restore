@@ -64,47 +64,29 @@ func (d *DeployedInstance) CustomRestoreArtifactNames() []string {
 }
 
 func (d *DeployedInstance) PreBackupLock() error {
-	var foundErrors []error
-
-	for _, job := range d.Jobs.PreBackupable() {
-		d.Logger.Info("bbr", "Locking %s on %s/%s for backup...", job.Name(), d.instanceGroupName, d.instanceID)
-
-		if err := d.runAndHandleErrs("pre backup lock", job.Name(), job.PreBackupScript()); err != nil {
-			foundErrors = append(foundErrors, err)
+	var preBackupLockErrors []error
+	for _, job := range d.Jobs {
+		if err := job.PreBackupLock(); err != nil {
+			preBackupLockErrors = append(preBackupLockErrors, err)
 		}
-		d.Logger.Info("bbr", "Done.")
 	}
 
-	return orchestrator.ConvertErrors(foundErrors)
+	return orchestrator.ConvertErrors(preBackupLockErrors)
 }
 
 func (d *DeployedInstance) Backup() error {
-	var foundErrors []error
-
-	for _, job := range d.Jobs.Backupable() {
-		d.Logger.Debug("bbr", "> %s", job.BackupScript())
-		d.Logger.Info("bbr", "Backing up %s on %s/%s...", job.Name(), d.instanceGroupName, d.instanceID)
-
-		stdout, stderr, exitCode, err := d.RunOnInstance(
-			fmt.Sprintf(
-				"sudo mkdir -p %s && sudo %s %s",
-				job.BackupArtifactDirectory(),
-				artifactDirectoryVariables(job.BackupArtifactDirectory()),
-				job.BackupScript(),
-			),
-			"backup",
-		)
-
-		d.artifactDirCreated = true
-
-		if err := d.handleErrs(job.Name(), "backup", err, exitCode, stdout, stderr); err != nil {
-			foundErrors = append(foundErrors, err)
+	var backupErrors []error
+	for _, job := range d.Jobs {
+		if err := job.Backup(); err != nil {
+			backupErrors = append(backupErrors, err)
 		}
-
-		d.Logger.Info("bbr", "Done.")
 	}
 
-	return orchestrator.ConvertErrors(foundErrors)
+	if d.IsBackupable() {
+		d.artifactDirCreated = true
+	}
+
+	return orchestrator.ConvertErrors(backupErrors)
 }
 
 func artifactDirectoryVariables(artifactDirectory string) string {
@@ -112,40 +94,22 @@ func artifactDirectoryVariables(artifactDirectory string) string {
 }
 
 func (d *DeployedInstance) PostBackupUnlock() error {
-	var foundErrors []error
-
-	for _, job := range d.Jobs.PostBackupable() {
-		d.Logger.Info("bbr", "Unlocking %s on %s/%s...", job.Name(), d.instanceGroupName, d.instanceID)
-
-		if err := d.runAndHandleErrs("unlock", job.Name(), job.PostBackupScript()); err != nil {
-			foundErrors = append(foundErrors, err)
+	var unlockErrors []error
+	for _, job := range d.Jobs {
+		if err := job.PostBackupUnlock(); err != nil {
+			unlockErrors = append(unlockErrors, err)
 		}
-		d.Logger.Info("bbr", "Done.")
 	}
 
-	return orchestrator.ConvertErrors(foundErrors)
+	return orchestrator.ConvertErrors(unlockErrors)
 }
 
 func (d *DeployedInstance) Restore() error {
 	var restoreErrors []error
-
-	for _, job := range d.Jobs.Restorable() {
-		d.Logger.Debug("bbr", "> %s", job.RestoreScript())
-		d.Logger.Info("bbr", "Restoring %s on %s/%s...", job.Name(), d.instanceGroupName, d.instanceID)
-
-		stdout, stderr, exitCode, err := d.RunOnInstance(
-			fmt.Sprintf(
-				"sudo %s %s",
-				artifactDirectoryVariables(job.RestoreArtifactDirectory()),
-				job.RestoreScript(),
-			),
-			"restore",
-		)
-
-		if err := d.handleErrs(job.Name(), "restore", err, exitCode, stdout, stderr); err != nil {
+	for _, job := range d.Jobs {
+		if err := job.Restore(); err != nil {
 			restoreErrors = append(restoreErrors, err)
 		}
-		d.Logger.Info("bbr", "Done.")
 	}
 
 	return orchestrator.ConvertErrors(restoreErrors)
@@ -154,22 +118,8 @@ func (d *DeployedInstance) Restore() error {
 func (d *DeployedInstance) PostRestoreUnlock() error {
 	var unlockErrors []error
 	for _, job := range d.Jobs {
-		if job.HasPostRestoreUnlock() {
-			d.Logger.Debug("bbr", "> %s", job.PostRestoreUnlockScript())
-			d.Logger.Info("bbr", "Unlocking %s on %s/%s...", job.Name(), d.instanceGroupName, d.instanceID)
-
-			stdout, stderr, exitCode, err := d.RunOnInstance(
-				fmt.Sprintf(
-					"sudo %s",
-					job.PostRestoreUnlockScript(),
-				),
-				"post-restore-unlock",
-			)
-
-			if err := d.handleErrs(job.Name(), "post-restore-unlock", err, exitCode, stdout, stderr); err != nil {
-				unlockErrors = append(unlockErrors, err)
-			}
-			d.Logger.Info("bbr", "Done.")
+		if err := job.PostRestoreUnlock(); err != nil {
+			unlockErrors = append(unlockErrors, err)
 		}
 	}
 
@@ -224,20 +174,6 @@ func (d *DeployedInstance) Index() string {
 
 func (d *DeployedInstance) ID() string {
 	return d.instanceID
-}
-
-func (d *DeployedInstance) runAndHandleErrs(label, jobName string, script Script) error {
-	d.Logger.Debug("bbr", "> %s", script)
-
-	stdout, stderr, exitCode, err := d.RunOnInstance(
-		fmt.Sprintf(
-			"sudo %s",
-			script,
-		),
-		label,
-	)
-
-	return d.handleErrs(jobName, label, err, exitCode, stdout, stderr)
 }
 
 func (d *DeployedInstance) handleErrs(jobName, label string, err error, exitCode int, stdout, stderr []byte) error {

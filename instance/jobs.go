@@ -29,26 +29,6 @@ func (jobs Jobs) AnyAreRestorable() bool {
 	return !jobs.Restorable().empty()
 }
 
-func (jobs Jobs) PreBackupable() Jobs {
-	preBackupableJobs := Jobs{}
-	for _, job := range jobs {
-		if job.HasPreBackup() {
-			preBackupableJobs = append(preBackupableJobs, job)
-		}
-	}
-	return preBackupableJobs
-}
-
-func (jobs Jobs) PostBackupable() Jobs {
-	postBackupableJobs := Jobs{}
-	for _, job := range jobs {
-		if job.HasPostBackup() {
-			postBackupableJobs = append(postBackupableJobs, job)
-		}
-	}
-	return postBackupableJobs
-}
-
 func (jobs Jobs) AnyNeedDefaultArtifactsForRestore() bool {
 	for _, job := range jobs.Restorable() {
 		if !job.HasNamedRestoreArtifact() {
@@ -107,7 +87,7 @@ func (jobs Jobs) CustomRestoreArtifactNames() []string {
 	return artifactNames
 }
 
-func NewJobs(scripts BackupAndRestoreScripts, metadata map[string]Metadata) Jobs {
+func NewJobs(sshConnection SSHConnection, instanceIdentifier string, logger Logger, scripts BackupAndRestoreScripts, metadata map[string]Metadata) Jobs {
 	groupedByJobName := map[string]BackupAndRestoreScripts{}
 	for _, script := range scripts {
 		jobName := script.JobName()
@@ -117,7 +97,7 @@ func NewJobs(scripts BackupAndRestoreScripts, metadata map[string]Metadata) Jobs
 	var jobs []Job
 
 	for jobName, jobScripts := range groupedByJobName {
-		jobs = append(jobs, NewJob(jobScripts, metadata[jobName]))
+		jobs = append(jobs, NewJob(sshConnection, instanceIdentifier, logger, jobScripts, metadata[jobName]))
 	}
 
 	return jobs

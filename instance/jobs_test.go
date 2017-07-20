@@ -1,22 +1,33 @@
 package instance_test
 
 import (
+	"log"
+
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
+	"github.com/pivotal-cf/bosh-backup-and-restore/ssh/fakes"
 )
 
 var _ = Describe("Jobs", func() {
 	var jobs instance.Jobs
 	var scripts instance.BackupAndRestoreScripts
 	var artifactNames map[string]instance.Metadata
+	var sshConnection *fakes.FakeSSHConnection
+	var logger boshlog.Logger
 
 	BeforeEach(func() {
 		artifactNames = map[string]instance.Metadata{}
+		sshConnection = new(fakes.FakeSSHConnection)
+
+		combinedLog := log.New(GinkgoWriter, "[instance-test] ", log.Lshortfile)
+		logger = boshlog.New(boshlog.LevelDebug, combinedLog, combinedLog)
 	})
 
 	JustBeforeEach(func() {
-		jobs = instance.NewJobs(scripts, artifactNames)
+		jobs = instance.NewJobs(sshConnection, "identifier", logger, scripts, artifactNames)
+
 	})
 
 	Describe("NewJobs", func() {
@@ -29,8 +40,10 @@ var _ = Describe("Jobs", func() {
 			})
 			It("groups scripts to create jobs", func() {
 				Expect(jobs).To(ConsistOf(
-					instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/backup"}, instance.Metadata{}),
-					instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/bar/bin/bbr/backup"}, instance.Metadata{}),
+					instance.NewJob(sshConnection, "identifier", logger,
+						instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/backup"}, instance.Metadata{}),
+					instance.NewJob(sshConnection, "identifier", logger,
+						instance.BackupAndRestoreScripts{"/var/vcap/jobs/bar/bin/bbr/backup"}, instance.Metadata{}),
 				))
 			})
 		})
@@ -43,7 +56,8 @@ var _ = Describe("Jobs", func() {
 			})
 			It("groups scripts to create jobs", func() {
 				Expect(jobs).To(ConsistOf(
-					instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/backup"}, instance.Metadata{}),
+					instance.NewJob(sshConnection, "identifier", logger,
+						instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/backup"}, instance.Metadata{}),
 				))
 			})
 		})
@@ -62,7 +76,7 @@ var _ = Describe("Jobs", func() {
 
 			It("creates a job with the correct artifact name", func() {
 				Expect(jobs).To(ConsistOf(
-					instance.NewJob(
+					instance.NewJob(sshConnection, "identifier", logger,
 						instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/backup"},
 						instance.Metadata{
 							BackupName: "a-bosh-backup",
@@ -90,13 +104,13 @@ var _ = Describe("Jobs", func() {
 
 			It("creates two jobs with the correct artifact names", func() {
 				Expect(jobs).To(ConsistOf(
-					instance.NewJob(
+					instance.NewJob(sshConnection, "identifier", logger,
 						instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/backup"},
 						instance.Metadata{
 							BackupName: "a-bosh-backup",
 						},
 					),
-					instance.NewJob(
+					instance.NewJob(sshConnection, "identifier", logger,
 						instance.BackupAndRestoreScripts{"/var/vcap/jobs/bar/bin/bbr/backup"},
 						instance.Metadata{
 							BackupName: "another-backup",
@@ -119,7 +133,8 @@ var _ = Describe("Jobs", func() {
 		Describe("Backupable", func() {
 			It("returns the backupable job", func() {
 				Expect(jobs.Backupable()).To(ConsistOf(
-					instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/backup"}, instance.Metadata{}),
+					instance.NewJob(sshConnection, "identifier", logger,
+						instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/backup"}, instance.Metadata{}),
 				))
 			})
 		})
@@ -160,30 +175,6 @@ var _ = Describe("Jobs", func() {
 				"/var/vcap/jobs/bar/bin/bbr/restore",
 			}
 		})
-
-		Describe("PostBackupable", func() {
-			It("returns the unlockable job", func() {
-				Expect(jobs.PostBackupable()).To(ConsistOf(instance.NewJob(
-					instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/foo/bin/bbr/post-backup-unlock",
-						"/var/vcap/jobs/foo/bin/bbr/backup",
-					}, instance.Metadata{}),
-				))
-			})
-		})
-	})
-	Context("contains no jobs with backup script", func() {
-		BeforeEach(func() {
-			scripts = instance.BackupAndRestoreScripts{
-				"/var/vcap/jobs/bar/bin/bbr/restore",
-			}
-		})
-
-		Describe("PostBackupable", func() {
-			It("returns empty", func() {
-				Expect(jobs.PostBackupable()).To(BeEmpty())
-			})
-		})
 	})
 
 	Context("contains jobs with restore scripts", func() {
@@ -197,7 +188,7 @@ var _ = Describe("Jobs", func() {
 
 		Describe("Restorable", func() {
 			It("returns the unlockable job", func() {
-				Expect(jobs.Restorable()).To(ConsistOf(instance.NewJob(
+				Expect(jobs.Restorable()).To(ConsistOf(instance.NewJob(sshConnection, "identifier", logger,
 					instance.BackupAndRestoreScripts{"/var/vcap/jobs/bar/bin/bbr/restore"}, instance.Metadata{}),
 				))
 			})

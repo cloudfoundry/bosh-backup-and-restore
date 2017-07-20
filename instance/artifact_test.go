@@ -365,7 +365,11 @@ var _ = Describe("artifact", func() {
 		})
 		Context("Named Artifact", func() {
 			BeforeEach(func() {
-				job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"}, instance.Metadata{BackupName: "named-artifact-to-backup"})
+				job = instance.NewJob(nil,
+					"",
+					nil,
+					instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"},
+					instance.Metadata{BackupName: "named-artifact-to-backup"})
 			})
 
 			It("is named with the job's custom backup name", func() {
@@ -380,7 +384,11 @@ var _ = Describe("artifact", func() {
 		})
 		Context("Default Artifact", func() {
 			BeforeEach(func() {
-				job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"}, instance.Metadata{})
+				job = instance.NewJob(nil,
+					"",
+					nil,
+					instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"},
+					instance.Metadata{})
 			})
 
 			It("is named after the job", func() {
@@ -413,7 +421,11 @@ var _ = Describe("artifact", func() {
 		})
 		Context("Named Artifact", func() {
 			BeforeEach(func() {
-				job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"}, instance.Metadata{RestoreName: "named-artifact-to-restore"})
+				job = instance.NewJob(nil,
+					"",
+					nil,
+					instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"},
+					instance.Metadata{RestoreName: "named-artifact-to-restore"})
 			})
 
 			It("is named with the job's custom backup name", func() {
@@ -428,7 +440,11 @@ var _ = Describe("artifact", func() {
 		})
 		Context("Default Artifact", func() {
 			BeforeEach(func() {
-				job = instance.NewJob(instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"}, instance.Metadata{})
+				job = instance.NewJob(nil,
+					"",
+					nil,
+					instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"},
+					instance.Metadata{})
 			})
 
 			It("is named after the job", func() {
