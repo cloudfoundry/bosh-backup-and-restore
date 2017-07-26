@@ -11,6 +11,6 @@ ssh-add "$github_ssh_key"
 export GOPATH=$PWD
 export PATH=$PATH:$GOPATH/bin
 
-cd src/github.com/pivotal-cf/bosh-backup-and-restore
+cd src/github.com/cloudfoundry-incubator/bosh-backup-and-restore
 make test-ci
 make clean-docker || true

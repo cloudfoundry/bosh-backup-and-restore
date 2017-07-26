@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	sshcrypto "golang.org/x/crypto/ssh"
 )
 

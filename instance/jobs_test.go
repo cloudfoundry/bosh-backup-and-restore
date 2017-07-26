@@ -6,8 +6,8 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
-	"github.com/pivotal-cf/bosh-backup-and-restore/ssh/fakes"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 )
 
 var _ = Describe("Jobs", func() {

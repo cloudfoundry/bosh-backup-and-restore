@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 )
 
 type FakeBackup struct {

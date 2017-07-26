@@ -1,7 +1,7 @@
 package writer_test
 
 import (
-	. "github.com/pivotal-cf/bosh-backup-and-restore/writer"
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/writer"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

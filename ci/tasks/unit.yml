@@ -7,10 +7,10 @@ image_resource:
 
 inputs:
 - name: bosh-backup-and-restore
-  path: src/github.com/pivotal-cf/bosh-backup-and-restore
+  path: src/github.com/cloudfoundry-incubator/bosh-backup-and-restore
 
 run:
-  path: src/github.com/pivotal-cf/bosh-backup-and-restore/ci/scripts/unit.sh
+  path: src/github.com/cloudfoundry-incubator/bosh-backup-and-restore/ci/scripts/unit.sh
 
 params:
   DOCKER_HOST:

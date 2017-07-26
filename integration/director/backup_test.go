@@ -4,8 +4,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	. "github.com/pivotal-cf/bosh-backup-and-restore/integration"
-	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"

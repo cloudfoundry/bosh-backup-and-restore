@@ -15,12 +15,12 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
-	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
-	instancefakes "github.com/pivotal-cf/bosh-backup-and-restore/instance/fakes"
-	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
-	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
-	"github.com/pivotal-cf/bosh-backup-and-restore/ssh/fakes"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	instancefakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	gossh "golang.org/x/crypto/ssh"
 )
 

@@ -6,7 +6,7 @@ import (
 
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry/bosh-utils/uuid"
-	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 )
 
 type FakeSSHOptsGenerator struct {

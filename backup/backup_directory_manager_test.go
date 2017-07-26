@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
-	. "github.com/pivotal-cf/bosh-backup-and-restore/backup"
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
 )
 
 var _ = Context("BackupManager", func() {

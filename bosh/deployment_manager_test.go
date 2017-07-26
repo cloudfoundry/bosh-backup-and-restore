@@ -3,13 +3,13 @@ package bosh_test
 import (
 	"fmt"
 
-	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
-	"github.com/pivotal-cf/bosh-backup-and-restore/bosh/fakes"
-	orchestrator_fakes "github.com/pivotal-cf/bosh-backup-and-restore/orchestrator/fakes"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh/fakes"
+	orchestrator_fakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
 )
 
 var _ = Describe("DeploymentManager", func() {

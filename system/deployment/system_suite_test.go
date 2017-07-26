@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	. "github.com/pivotal-cf/bosh-backup-and-restore/system"
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 
 	"sync"
 	"testing"
@@ -75,7 +75,7 @@ var _ = BeforeEach(func() {
 	wg.Wait()
 
 	By("building bbr")
-	commandPath, err = gexec.BuildWithEnvironment("github.com/pivotal-cf/bosh-backup-and-restore/cmd/bbr", []string{"GOOS=linux", "GOARCH=amd64"})
+	commandPath, err = gexec.BuildWithEnvironment("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr", []string{"GOOS=linux", "GOARCH=amd64"})
 	Expect(err).NotTo(HaveOccurred())
 
 	By("setting up the jump box")

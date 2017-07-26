@@ -7,7 +7,7 @@ image_resource:
 
 inputs:
 - name: bosh-backup-and-restore
-  path: src/github.com/pivotal-cf/bosh-backup-and-restore
+  path: src/github.com/cloudfoundry-incubator/bosh-backup-and-restore
 - name: bosh-backup-and-restore-meta
 
 params:
@@ -17,4 +17,4 @@ params:
   HOST_TO_BACKUP:
 
 run:
-  path: src/github.com/pivotal-cf/bosh-backup-and-restore/ci/scripts/system-director.sh
+  path: src/github.com/cloudfoundry-incubator/bosh-backup-and-restore/ci/scripts/system-director.sh

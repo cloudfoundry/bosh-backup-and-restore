@@ -3,7 +3,7 @@ package main_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/pivotal-cf/bosh-backup-and-restore/cmd/bbr"
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr"
 )
 
 var _ = Describe("bbr", func() {

@@ -4,8 +4,8 @@ import (
 	"io/ioutil"
 
 	"github.com/cloudfoundry/bosh-cli/director"
-	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
-	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/pkg/errors"
 
 	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"

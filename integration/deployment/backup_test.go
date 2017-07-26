@@ -9,7 +9,7 @@ import (
 
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
-	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
@@ -20,7 +20,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/pivotal-cf/bosh-backup-and-restore/integration"
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
 )
 
 var _ = Describe("Backup", func() {

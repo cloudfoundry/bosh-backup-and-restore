@@ -7,8 +7,8 @@ import (
 
 	"testing"
 
-	"github.com/pivotal-cf/bosh-backup-and-restore/integration"
-	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 )
 
 func TestDeploymentIntegration(t *testing.T) {
@@ -22,7 +22,7 @@ var sslCertPath = "../../../fixtures/test.crt"
 var binary integration.Binary
 
 var _ = BeforeSuite(func() {
-	commandPath, err := gexec.Build("github.com/pivotal-cf/bosh-backup-and-restore/cmd/bbr")
+	commandPath, err := gexec.Build("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr")
 	Expect(err).NotTo(HaveOccurred())
 	binary = integration.NewBinary(commandPath)
 })

@@ -1,7 +1,7 @@
 package orchestrator_test
 
 import (
-	. "github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

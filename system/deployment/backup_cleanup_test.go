@@ -9,7 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	. "github.com/pivotal-cf/bosh-backup-and-restore/system"
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 )
 
 var _ = Describe("Deployment backup cleanup", func() {

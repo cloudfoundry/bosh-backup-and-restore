@@ -11,7 +11,7 @@ import (
 
 	"testing"
 
-	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 )
 
 func TestSsh(t *testing.T) {

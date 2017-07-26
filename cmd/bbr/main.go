@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pivotal-cf/bosh-backup-and-restore/bosh"
-	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
 
 	"time"
@@ -22,11 +22,11 @@ import (
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/mgutz/ansi"
-	"github.com/pivotal-cf/bosh-backup-and-restore/backup"
-	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
-	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
-	"github.com/pivotal-cf/bosh-backup-and-restore/standalone"
-	"github.com/pivotal-cf/bosh-backup-and-restore/writer"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/standalone"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/writer"
 	"github.com/pkg/errors"
 )
 

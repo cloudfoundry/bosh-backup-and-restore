@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	. "github.com/pivotal-cf/bosh-backup-and-restore/system"
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 )
 
 var workspaceDir = "/var/vcap/store/bbr-backup_workspace"

@@ -11,7 +11,7 @@ import (
 	sha256 "crypto/sha256"
 	"time"
 
-	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/pkg/errors"
 )
 

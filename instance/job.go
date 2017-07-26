@@ -5,7 +5,7 @@ import (
 
 	"errors"
 
-	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 )
 
 func NewJob(sshConnection SSHConnection, instanceIdentifier string, logger Logger, jobScripts BackupAndRestoreScripts, metadata Metadata) Job {

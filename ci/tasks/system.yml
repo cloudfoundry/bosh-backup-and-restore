@@ -7,7 +7,7 @@ image_resource:
 
 inputs:
 - name: bosh-backup-and-restore
-  path: src/github.com/pivotal-cf/bosh-backup-and-restore
+  path: src/github.com/cloudfoundry-incubator/bosh-backup-and-restore
 - name: bosh-backup-and-restore-meta
 
 params:
@@ -16,4 +16,4 @@ params:
   TEAM_GPG_KEY:
 
 run:
-  path: src/github.com/pivotal-cf/bosh-backup-and-restore/ci/scripts/system.sh
+  path: src/github.com/cloudfoundry-incubator/bosh-backup-and-restore/ci/scripts/system.sh

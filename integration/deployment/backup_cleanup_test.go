@@ -9,7 +9,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
-	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 )
 
 var _ = Describe("Cleanup", func() {

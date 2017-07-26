@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
-	. "github.com/pivotal-cf/bosh-backup-and-restore/standalone"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/standalone"
 
 	"io/ioutil"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	instancefakes "github.com/pivotal-cf/bosh-backup-and-restore/instance/fakes"
-	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
-	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator/fakes"
-	sshfakes "github.com/pivotal-cf/bosh-backup-and-restore/ssh/fakes"
+	instancefakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
+	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 )
 
 var _ = Describe("DeploymentManager", func() {

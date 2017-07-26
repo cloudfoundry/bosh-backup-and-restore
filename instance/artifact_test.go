@@ -10,10 +10,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
-	"github.com/pivotal-cf/bosh-backup-and-restore/instance"
-	"github.com/pivotal-cf/bosh-backup-and-restore/instance/fakes"
-	"github.com/pivotal-cf/bosh-backup-and-restore/orchestrator"
-	backuperfakes "github.com/pivotal-cf/bosh-backup-and-restore/orchestrator/fakes"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	backuperfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
 )
 
 var _ = Describe("artifact", func() {

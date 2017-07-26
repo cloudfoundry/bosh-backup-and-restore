@@ -8,8 +8,8 @@ import (
 	"log"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/pivotal-cf/bosh-backup-and-restore/ssh"
-	"github.com/pivotal-cf/bosh-backup-and-restore/testcluster"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 	gossh "golang.org/x/crypto/ssh"
 
 	"runtime"
