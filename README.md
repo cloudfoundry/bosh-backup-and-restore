@@ -6,6 +6,9 @@ This repository contains the source code for BOSH Backup and Restore.
 
 **Slack**: #bbr on https://slack.cloudfoundry.org
 
-Read more about BBR https://content.pivotal.io/blog/cloud-native-recovery-tool-bosh-backup-restore-now-available-in-public-beta
 Cloud Foundry Summit talk on BBR https://www.youtube.com/watch?v=HlO9L9iE9T8
+
+Blog post about BBR https://content.pivotal.io/blog/cloud-native-recovery-tool-bosh-backup-restore-now-available-in-public-beta
+
+
 
