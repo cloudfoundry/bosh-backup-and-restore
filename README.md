@@ -4,11 +4,10 @@ BOSH Backup and Restore is a CLI utility for orchestrating the backup and restor
 
 This repository contains the source code for BOSH Backup and Restore.
 
+**Docs**: http://docs.cloudfoundry.org/bbr/index.html
+
 **Slack**: #bbr on https://slack.cloudfoundry.org
 
 Cloud Foundry Summit talk on BBR https://www.youtube.com/watch?v=HlO9L9iE9T8
 
 Blog post about BBR https://content.pivotal.io/blog/cloud-native-recovery-tool-bosh-backup-restore-now-available-in-public-beta
-
-
-
