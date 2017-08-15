@@ -46,8 +46,8 @@ func (j *JobFinderFromScripts) FindJobs(hostIdentifierForLogging string, connect
 	return NewJobs(connection, hostIdentifierForLogging, j.Logger, scripts, metadata), nil
 }
 
-func (j *JobFinderFromScripts) findMetadata(hostIdentifier string, script Script, connection SSHConnection) (*Metadata, error) {
-	metadataContent, _, _, err := connection.Run(string(script))
+func (j *JobFinderFromScripts) findMetadata(hostIdentifier string, pathToScript Script, connection SSHConnection) (*Metadata, error) {
+	metadataContent, _, _, err := connection.Run(string(pathToScript))
 
 	if err != nil {
 		errorString := fmt.Sprintf(
