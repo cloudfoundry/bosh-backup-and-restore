@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/pkg/errors"
 )
 
 //go:generate counterfeiter -o fakes/fake_job_finder.go . JobFinder
 type JobFinder interface {
-	FindJobs(hostIdentifier string, connection SSHConnection) (Jobs, error)
+	FindJobs(hostIdentifier string, connection SSHConnection) (orchestrator.Jobs, error)
 }
 
 type JobFinderFromScripts struct {
@@ -22,7 +23,7 @@ func NewJobFinder(logger Logger) *JobFinderFromScripts {
 	}
 }
 
-func (j *JobFinderFromScripts) FindJobs(hostIdentifierForLogging string, connection SSHConnection) (Jobs, error) {
+func (j *JobFinderFromScripts) FindJobs(hostIdentifierForLogging string, connection SSHConnection) (orchestrator.Jobs, error) {
 	findOutput, err := j.findScripts(hostIdentifierForLogging, connection)
 	if err != nil {
 		return nil, err
@@ -43,7 +44,7 @@ func (j *JobFinderFromScripts) FindJobs(hostIdentifierForLogging string, connect
 		metadata[jobName] = *jobMetadata
 	}
 
-	return NewJobs(connection, hostIdentifierForLogging, j.Logger, scripts, metadata), nil
+	return j.buildJobs(connection, hostIdentifierForLogging, j.Logger, scripts, metadata), nil
 }
 
 func (j *JobFinderFromScripts) findMetadata(hostIdentifier string, pathToScript Script, connection SSHConnection) (*Metadata, error) {
@@ -116,4 +117,20 @@ func (j *JobFinderFromScripts) findScripts(hostIdentifierForLogging string, sshC
 		}
 	}
 	return strings.Split(string(stdout), "\n"), nil
+}
+
+func (j *JobFinderFromScripts) buildJobs(sshConnection SSHConnection, instanceIdentifier string, logger Logger, scripts BackupAndRestoreScripts, metadata map[string]Metadata) orchestrator.Jobs {
+	groupedByJobName := map[string]BackupAndRestoreScripts{}
+	for _, script := range scripts {
+		jobName := script.JobName()
+		existingScripts := groupedByJobName[jobName]
+		groupedByJobName[jobName] = append(existingScripts, script)
+	}
+	var jobs orchestrator.Jobs
+
+	for jobName, jobScripts := range groupedByJobName {
+		jobs = append(jobs, NewJob(sshConnection, instanceIdentifier, logger, jobScripts, metadata[jobName]))
+	}
+
+	return jobs
 }

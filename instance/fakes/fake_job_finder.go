@@ -5,28 +5,29 @@ import (
 	"sync"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 )
 
 type FakeJobFinder struct {
-	FindJobsStub        func(hostIdentifier string, connection instance.SSHConnection) (instance.Jobs, error)
+	FindJobsStub        func(hostIdentifier string, connection instance.SSHConnection) (orchestrator.Jobs, error)
 	findJobsMutex       sync.RWMutex
 	findJobsArgsForCall []struct {
 		hostIdentifier string
 		connection     instance.SSHConnection
 	}
 	findJobsReturns struct {
-		result1 instance.Jobs
+		result1 orchestrator.Jobs
 		result2 error
 	}
 	findJobsReturnsOnCall map[int]struct {
-		result1 instance.Jobs
+		result1 orchestrator.Jobs
 		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeJobFinder) FindJobs(hostIdentifier string, connection instance.SSHConnection) (instance.Jobs, error) {
+func (fake *FakeJobFinder) FindJobs(hostIdentifier string, connection instance.SSHConnection) (orchestrator.Jobs, error) {
 	fake.findJobsMutex.Lock()
 	ret, specificReturn := fake.findJobsReturnsOnCall[len(fake.findJobsArgsForCall)]
 	fake.findJobsArgsForCall = append(fake.findJobsArgsForCall, struct {
@@ -56,24 +57,24 @@ func (fake *FakeJobFinder) FindJobsArgsForCall(i int) (string, instance.SSHConne
 	return fake.findJobsArgsForCall[i].hostIdentifier, fake.findJobsArgsForCall[i].connection
 }
 
-func (fake *FakeJobFinder) FindJobsReturns(result1 instance.Jobs, result2 error) {
+func (fake *FakeJobFinder) FindJobsReturns(result1 orchestrator.Jobs, result2 error) {
 	fake.FindJobsStub = nil
 	fake.findJobsReturns = struct {
-		result1 instance.Jobs
+		result1 orchestrator.Jobs
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeJobFinder) FindJobsReturnsOnCall(i int, result1 instance.Jobs, result2 error) {
+func (fake *FakeJobFinder) FindJobsReturnsOnCall(i int, result1 orchestrator.Jobs, result2 error) {
 	fake.FindJobsStub = nil
 	if fake.findJobsReturnsOnCall == nil {
 		fake.findJobsReturnsOnCall = make(map[int]struct {
-			result1 instance.Jobs
+			result1 orchestrator.Jobs
 			result2 error
 		})
 	}
 	fake.findJobsReturnsOnCall[i] = struct {
-		result1 instance.Jobs
+		result1 orchestrator.Jobs
 		result2 error
 	}{result1, result2}
 }

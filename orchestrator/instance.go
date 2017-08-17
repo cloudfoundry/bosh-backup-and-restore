@@ -31,6 +31,24 @@ type Instance interface {
 	PostRestoreUnlock() error
 }
 
+//go:generate counterfeiter -o fakes/fake_job.go . Job
+type Job interface {
+	HasBackup() bool
+	HasRestore() bool
+	HasNamedBackupArtifact() bool
+	HasNamedRestoreArtifact() bool
+	BackupArtifactName() string
+	RestoreArtifactName() string
+	Backup() error
+	PreBackupLock() error
+	PostBackupUnlock() error
+	Restore() error
+	PostRestoreUnlock() error
+	Name() string
+	BackupArtifactDirectory() string
+	RestoreArtifactDirectory() string
+}
+
 type ArtifactIdentifier interface {
 	InstanceName() string
 	InstanceIndex() string

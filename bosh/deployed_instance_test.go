@@ -6,16 +6,16 @@ import (
 
 	"errors"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	"github.com/cloudfoundry/bosh-cli/director"
 	boshfakes "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 )
 
 var _ = Describe("BoshDeployedInstance", func() {
@@ -25,7 +25,6 @@ var _ = Describe("BoshDeployedInstance", func() {
 	var stdout, stderr *gbytes.Buffer
 	var jobName, jobIndex, jobID, expectedStdout, expectedStderr string
 	var backupAndRestoreScripts []instance.Script
-	var jobs instance.Jobs
 	var artifactMetadata map[string]instance.Metadata
 	var artifactDirCreated bool
 	var backuperInstance orchestrator.Instance
@@ -47,13 +46,8 @@ var _ = Describe("BoshDeployedInstance", func() {
 	})
 
 	JustBeforeEach(func() {
-		jobs = instance.NewJobs(sshConnection,
-			"job-name/job-index",
-			boshLogger,
-			backupAndRestoreScripts,
-			artifactMetadata)
 		sshConnection.UsernameReturns("sshUsername")
-		backuperInstance = bosh.NewBoshDeployedInstance(jobName, jobIndex, jobID, sshConnection, boshDeployment, artifactDirCreated, boshLogger, jobs)
+		backuperInstance = bosh.NewBoshDeployedInstance(jobName, jobIndex, jobID, sshConnection, boshDeployment, artifactDirCreated, boshLogger, []orchestrator.Job{})
 	})
 
 	Describe("Cleanup", func() {

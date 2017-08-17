@@ -111,7 +111,7 @@ func (d DeployedInstance) CleanupPrevious() error {
 	return nil
 }
 
-func NewDeployedInstance(instanceGroupName string, connection ssh.SSHConnection, logger instance.Logger, jobs instance.Jobs, artifactDirCreated bool) DeployedInstance {
+func NewDeployedInstance(instanceGroupName string, connection ssh.SSHConnection, logger instance.Logger, jobs orchestrator.Jobs, artifactDirCreated bool) DeployedInstance {
 	return DeployedInstance{
 		DeployedInstance: instance.NewDeployedInstance("0", instanceGroupName, "0", artifactDirCreated, connection, logger, jobs),
 	}

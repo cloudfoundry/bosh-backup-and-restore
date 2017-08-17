@@ -1,4 +1,4 @@
-package instance
+package orchestrator
 
 type Jobs []Job
 
@@ -85,22 +85,6 @@ func (jobs Jobs) CustomRestoreArtifactNames() []string {
 	}
 
 	return artifactNames
-}
-
-func NewJobs(sshConnection SSHConnection, instanceIdentifier string, logger Logger, scripts BackupAndRestoreScripts, metadata map[string]Metadata) Jobs {
-	groupedByJobName := map[string]BackupAndRestoreScripts{}
-	for _, script := range scripts {
-		jobName := script.JobName()
-		existingScripts := groupedByJobName[jobName]
-		groupedByJobName[jobName] = append(existingScripts, script)
-	}
-	var jobs []Job
-
-	for jobName, jobScripts := range groupedByJobName {
-		jobs = append(jobs, NewJob(sshConnection, instanceIdentifier, logger, jobScripts, metadata[jobName]))
-	}
-
-	return jobs
 }
 
 func (jobs Jobs) empty() bool {

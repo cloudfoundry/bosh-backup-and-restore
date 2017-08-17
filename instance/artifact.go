@@ -23,7 +23,7 @@ type Logger interface {
 	Error(tag, msg string, args ...interface{})
 }
 
-func NewBackupArtifact(job Job, instance orchestrator.InstanceIdentifer, sshConn SSHConnection, logger Logger) *Artifact {
+func NewBackupArtifact(job orchestrator.Job, instance orchestrator.InstanceIdentifer, sshConn SSHConnection, logger Logger) *Artifact {
 	var name string
 	if job.HasNamedBackupArtifact() {
 		name = job.BackupArtifactName()
@@ -40,7 +40,7 @@ func NewBackupArtifact(job Job, instance orchestrator.InstanceIdentifer, sshConn
 	}
 }
 
-func NewRestoreArtifact(job Job, instance orchestrator.InstanceIdentifer, sshConn SSHConnection, logger Logger) *Artifact {
+func NewRestoreArtifact(job orchestrator.Job, instance orchestrator.InstanceIdentifer, sshConn SSHConnection, logger Logger) *Artifact {
 	var name string
 	if job.HasNamedRestoreArtifact() {
 		name = job.RestoreArtifactName()

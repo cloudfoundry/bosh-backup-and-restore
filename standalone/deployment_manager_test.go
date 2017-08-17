@@ -10,12 +10,12 @@ import (
 
 	"io/ioutil"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	instancefakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
 	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("DeploymentManager", func() {
@@ -48,7 +48,7 @@ var _ = Describe("DeploymentManager", func() {
 	Describe("Find", func() {
 		var actualDeployment orchestrator.Deployment
 		var actualError error
-		var fakeJobs instance.Jobs
+		var fakeJobs orchestrator.Jobs
 
 		JustBeforeEach(func() {
 			actualDeployment, actualError = deploymentManager.Find(deploymentName)
@@ -56,7 +56,7 @@ var _ = Describe("DeploymentManager", func() {
 
 		Context("success", func() {
 			BeforeEach(func() {
-				fakeJobs = instance.Jobs{instance.NewJob(nil, "", nil, instance.BackupAndRestoreScripts{"foo"}, instance.Metadata{})}
+				fakeJobs = orchestrator.Jobs{instance.NewJob(nil, "", nil, instance.BackupAndRestoreScripts{"foo"}, instance.Metadata{})}
 				fakeConnFactory.Returns(fakeSSHConnection, nil)
 				fakeJobFinder.FindJobsReturns(fakeJobs, nil)
 			})
@@ -161,7 +161,7 @@ var _ = Describe("DeployedInstance", func() {
 		var err error
 
 		JustBeforeEach(func() {
-			inst = NewDeployedInstance("group", fakeSSHConnection, logger, []instance.Job{}, artifactDirCreated)
+			inst = NewDeployedInstance("group", fakeSSHConnection, logger, []orchestrator.Job{}, artifactDirCreated)
 			err = inst.Cleanup()
 		})
 
@@ -215,7 +215,7 @@ var _ = Describe("DeployedInstance", func() {
 		var err error
 
 		JustBeforeEach(func() {
-			inst = NewDeployedInstance("group", fakeSSHConnection, logger, []instance.Job{}, artifactDirCreated)
+			inst = NewDeployedInstance("group", fakeSSHConnection, logger, []orchestrator.Job{}, artifactDirCreated)
 			err = inst.CleanupPrevious()
 		})
 

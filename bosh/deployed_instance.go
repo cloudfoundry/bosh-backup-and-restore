@@ -3,10 +3,10 @@ package bosh
 import (
 	"fmt"
 
-	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
+	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/pkg/errors"
 )
 
@@ -22,7 +22,7 @@ func NewBoshDeployedInstance(instanceGroupName,
 	deployment director.Deployment,
 	artifactDirectoryCreated bool,
 	logger Logger,
-	jobs instance.Jobs,
+	jobs orchestrator.Jobs,
 ) orchestrator.Instance {
 	return &BoshDeployedInstance{
 		Deployment:       deployment,

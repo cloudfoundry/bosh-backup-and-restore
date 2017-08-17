@@ -15,10 +15,10 @@ type DeployedInstance struct {
 	artifactDirCreated            bool
 	ssh.SSHConnection
 	Logger
-	Jobs
+	Jobs orchestrator.Jobs
 }
 
-func NewDeployedInstance(instanceIndex string, instanceGroupName string, instanceID string, artifactDirCreated bool, connection ssh.SSHConnection, logger Logger, jobs Jobs) *DeployedInstance {
+func NewDeployedInstance(instanceIndex string, instanceGroupName string, instanceID string, artifactDirCreated bool, connection ssh.SSHConnection, logger Logger, jobs orchestrator.Jobs) *DeployedInstance {
 	deployedInstance := &DeployedInstance{
 		backupAndRestoreInstanceIndex: instanceIndex,
 		instanceGroupName:             instanceGroupName,

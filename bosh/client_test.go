@@ -10,17 +10,17 @@ import (
 
 	"errors"
 
-	"github.com/cloudfoundry/bosh-cli/director"
-	boshfakes "github.com/cloudfoundry/bosh-cli/director/directorfakes"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	instancefakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
+	"github.com/cloudfoundry/bosh-cli/director"
+	boshfakes "github.com/cloudfoundry/bosh-cli/director/directorfakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	gossh "golang.org/x/crypto/ssh"
 )
 
@@ -70,7 +70,7 @@ var _ = Describe("Director", func() {
 			stubbedSshOpts  director.SSHOpts = director.SSHOpts{Username: "user"}
 			actualInstances []orchestrator.Instance
 			actualError     error
-			expectedJobs    instance.Jobs
+			expectedJobs    orchestrator.Jobs
 		)
 
 		JustBeforeEach(func() {
@@ -94,10 +94,12 @@ var _ = Describe("Director", func() {
 					},
 				}}, nil)
 				sshConnectionFactory.Returns(sshConnection, nil)
-				expectedJobs = instance.NewJobs(sshConnection, "", boshLogger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/consul_agent/bin/bbr/backup",
-					"/var/vcap/jobs/consul_agent/bin/bbr/restore",
-				}, map[string]instance.Metadata{})
+				expectedJobs = []orchestrator.Job{
+					instance.NewJob(sshConnection, "", boshLogger, instance.BackupAndRestoreScripts{
+						"/var/vcap/jobs/consul_agent/bin/bbr/backup",
+						"/var/vcap/jobs/consul_agent/bin/bbr/restore",
+					}, instance.Metadata{}),
+				}
 				fakeJobFinder.FindJobsReturns(expectedJobs, nil)
 			})
 
@@ -185,7 +187,7 @@ var _ = Describe("Director", func() {
 		})
 
 		Context("finds instances for the deployment, having multiple instances in an instance group", func() {
-			var instance0Jobs, instance1Jobs instance.Jobs
+			var instance0Jobs, instance1Jobs orchestrator.Jobs
 			BeforeEach(func() {
 				boshDirector.FindDeploymentReturns(boshDeployment, nil)
 				boshDeployment.VMInfosReturns([]director.VMInfo{
@@ -215,16 +217,19 @@ var _ = Describe("Director", func() {
 				}}, nil)
 				sshConnectionFactory.Returns(sshConnection, nil)
 
-				instance0Jobs = instance.NewJobs(sshConnection, "", boshLogger,
-					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
-					map[string]instance.Metadata{},
-				)
-
-				instance1Jobs = instance.NewJobs(sshConnection, "", boshLogger,
-					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
-					map[string]instance.Metadata{},
-				)
-				fakeJobFinder.FindJobsStub = func(hostIdentifier string, connection instance.SSHConnection) (instance.Jobs, error) {
+				instance0Jobs = []orchestrator.Job{
+					instance.NewJob(sshConnection, "", boshLogger,
+						instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
+						instance.Metadata{},
+					),
+				}
+				instance1Jobs = []orchestrator.Job{
+					instance.NewJob(sshConnection, "", boshLogger,
+						instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
+						instance.Metadata{},
+					),
+				}
+				fakeJobFinder.FindJobsStub = func(hostIdentifier string, connection instance.SSHConnection) (orchestrator.Jobs, error) {
 					if strings.HasPrefix(hostIdentifier, "hostname1") {
 						return instance0Jobs, nil
 					} else {
@@ -304,7 +309,7 @@ var _ = Describe("Director", func() {
 		})
 
 		Context("finds instances for the deployment, having multiple instances in multiple instance groups", func() {
-			var instanceJobs instance.Jobs
+			var instanceJobs orchestrator.Jobs
 			BeforeEach(func() {
 				boshDirector.FindDeploymentReturns(boshDeployment, nil)
 				boshDeployment.VMInfosReturns([]director.VMInfo{
@@ -350,10 +355,12 @@ var _ = Describe("Director", func() {
 					}
 				}
 				sshConnectionFactory.Returns(sshConnection, nil)
-				instanceJobs = instance.NewJobs(sshConnection, "", boshLogger,
-					instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
-					map[string]instance.Metadata{},
-				)
+				instanceJobs = []orchestrator.Job{
+					instance.NewJob(sshConnection, "", boshLogger,
+						instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
+						instance.Metadata{},
+					),
+				}
 				fakeJobFinder.FindJobsReturns(instanceJobs, nil)
 			})
 			It("collects the instances", func() {
