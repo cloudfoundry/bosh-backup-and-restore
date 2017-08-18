@@ -72,7 +72,7 @@ func (mockInstance *Instance) CreateUser(username, key string) {
 	dockerRunAndWaitForSuccess("exec", mockInstance.dockerID, "/bin/create_user_with_key", username, key)
 }
 
-func (mockInstance *Instance) CreateFiles(files ...string) {
+func (mockInstance *Instance) CreateExecutableFiles(files ...string) {
 	for _, fileName := range files {
 		dockerRunAndWaitForSuccess("exec", mockInstance.dockerID, "mkdir", "-p", filepath.Dir(fileName))
 		dockerRunAndWaitForSuccess("exec", mockInstance.dockerID, "touch", fileName)

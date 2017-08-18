@@ -108,7 +108,7 @@ var _ = Describe("Backup", func() {
 
 		Context("and there is a backup script", func() {
 			BeforeEach(func() {
-				directorInstance.CreateFiles("/var/vcap/jobs/bosh/bin/bbr/backup")
+				directorInstance.CreateExecutableFiles("/var/vcap/jobs/bosh/bin/bbr/backup")
 			})
 
 			Context("and the backup script succeeds", func() {
@@ -224,7 +224,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 		Context("but there are no backup scripts", func() {
 			BeforeEach(func() {
-				directorInstance.CreateFiles("/var/vcap/jobs/bosh/bin/bbr/not-a-backup-script")
+				directorInstance.CreateExecutableFiles("/var/vcap/jobs/bosh/bin/bbr/not-a-backup-script")
 			})
 
 			It("fails to backup the director", func() {

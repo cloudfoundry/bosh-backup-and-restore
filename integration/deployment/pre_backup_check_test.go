@@ -135,7 +135,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)
 
-				instance1.CreateFiles(
+				instance1.CreateExecutableFiles(
 					"/var/vcap/jobs/redis/bin/not-a-backup-script",
 				)
 			})

@@ -628,7 +628,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)
 
-				instance1.CreateFiles(
+				instance1.CreateExecutableFiles(
 					"/var/vcap/jobs/redis/bin/ctl",
 				)
 			})
@@ -711,7 +711,7 @@ echo "Unlocking release"`)
 					CleanupSSHFails(deploymentName, "redis-dedicated-node", "Can't do it mate"),
 				)
 
-				instance1.CreateFiles(
+				instance1.CreateExecutableFiles(
 					"/var/vcap/jobs/redis/bin/bbr/backup",
 				)
 			})
@@ -795,7 +795,7 @@ echo "not valid yaml
 					append(CleanupSSH(deploymentName, "redis-dedicated-node"),
 						CleanupSSH(deploymentName, "redis-broker")...),
 				)
-				backupableInstance.CreateFiles(
+				backupableInstance.CreateExecutableFiles(
 					"/var/vcap/jobs/redis/bin/bbr/backup",
 				)
 			})
@@ -829,11 +829,11 @@ echo "not valid yaml
 						CleanupSSH(deploymentName, "redis-broker")...),
 				)
 
-				backupableInstance1.CreateFiles(
+				backupableInstance1.CreateExecutableFiles(
 					"/var/vcap/jobs/redis/bin/bbr/backup",
 				)
 
-				backupableInstance2.CreateFiles(
+				backupableInstance2.CreateExecutableFiles(
 					"/var/vcap/jobs/redis/bin/bbr/backup",
 				)
 
@@ -904,11 +904,11 @@ echo "not valid yaml
 						CleanupSSH(deploymentName, "redis-broker")...),
 				)
 
-				backupableInstance1.CreateFiles(
+				backupableInstance1.CreateExecutableFiles(
 					"/var/vcap/jobs/redis/bin/bbr/backup",
 				)
 
-				backupableInstance2.CreateFiles(
+				backupableInstance2.CreateExecutableFiles(
 					"/var/vcap/jobs/redis/bin/bbr/backup",
 				)
 
@@ -961,11 +961,11 @@ backup_name: duplicate_name
 						CleanupSSH(deploymentName, "redis-broker")...),
 				)
 
-				restoreInstance.CreateFiles(
+				restoreInstance.CreateExecutableFiles(
 					"/var/vcap/jobs/redis/bin/bbr/restore",
 				)
 
-				backupableInstance.CreateFiles(
+				backupableInstance.CreateExecutableFiles(
 					"/var/vcap/jobs/redis/bin/bbr/backup",
 				)
 

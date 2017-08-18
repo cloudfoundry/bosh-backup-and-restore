@@ -72,8 +72,8 @@ var _ = Describe("Restore", func() {
 
 		Context("and there are restore scripts", func() {
 			BeforeEach(func() {
-				directorInstance.CreateFiles("/var/vcap/jobs/bosh/bin/bbr/restore")
-				directorInstance.CreateFiles("/var/vcap/jobs/bosh/bin/bbr/post-restore-unlock")
+				directorInstance.CreateExecutableFiles("/var/vcap/jobs/bosh/bin/bbr/restore")
+				directorInstance.CreateExecutableFiles("/var/vcap/jobs/bosh/bin/bbr/post-restore-unlock")
 			})
 
 			Context("and the restore script succeeds", func() {
@@ -228,8 +228,8 @@ exit 1
 
 		Context("but there are no restore scripts", func() {
 			BeforeEach(func() {
-				directorInstance.CreateFiles("/var/vcap/jobs/bosh/bin/bbr/backup")
-				directorInstance.CreateFiles("/var/vcap/jobs/bosh/bin/bbr/not-a-restore-script")
+				directorInstance.CreateExecutableFiles("/var/vcap/jobs/bosh/bin/bbr/backup")
+				directorInstance.CreateExecutableFiles("/var/vcap/jobs/bosh/bin/bbr/not-a-restore-script")
 			})
 
 			It("fails to restore the director", func() {

@@ -97,7 +97,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				directorInstance = testcluster.NewInstance()
 				directorInstance.CreateUser("foobar", readFile(pathToPublicKeyFile))
 
-				directorInstance.CreateFiles(
+				directorInstance.CreateExecutableFiles(
 					"/var/vcap/jobs/redis/bin/not-a-backup-script",
 				)
 				directorAddress = directorInstance.Address()
