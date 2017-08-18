@@ -22,10 +22,10 @@ var _ = Describe("Job", func() {
 
 	BeforeEach(func() {
 		jobScripts = instance.BackupAndRestoreScripts{
-			"/var/vcap/jobs/foo/bin/bbr/restore",
-			"/var/vcap/jobs/foo/bin/bbr/backup",
-			"/var/vcap/jobs/foo/bin/bbr/pre-backup-lock",
-			"/var/vcap/jobs/foo/bin/bbr/post-backup-unlock",
+			"/var/vcap/jobs/jobname/bin/bbr/restore",
+			"/var/vcap/jobs/jobname/bin/bbr/backup",
+			"/var/vcap/jobs/jobname/bin/bbr/pre-backup-lock",
+			"/var/vcap/jobs/jobname/bin/bbr/post-backup-unlock",
 		}
 		metadata = instance.Metadata{}
 		sshConnection = new(fakes.FakeSSHConnection)
@@ -41,7 +41,7 @@ var _ = Describe("Job", func() {
 
 	Describe("BackupArtifactDirectory", func() {
 		It("calculates the artifact directory based on the name", func() {
-			Expect(job.BackupArtifactDirectory()).To(Equal("/var/vcap/store/bbr-backup/foo"))
+			Expect(job.BackupArtifactDirectory()).To(Equal("/var/vcap/store/bbr-backup/jobname"))
 		})
 
 		Context("when an artifact name is provided", func() {
@@ -62,7 +62,7 @@ var _ = Describe("Job", func() {
 
 	Describe("RestoreArtifactDirectory", func() {
 		It("calculates the artifact directory based on the name", func() {
-			Expect(job.BackupArtifactDirectory()).To(Equal("/var/vcap/store/bbr-backup/foo"))
+			Expect(job.BackupArtifactDirectory()).To(Equal("/var/vcap/store/bbr-backup/jobname"))
 		})
 
 		Context("when an artifact name is provided", func() {
@@ -130,7 +130,7 @@ var _ = Describe("Job", func() {
 
 		Context("no backup scripts exist", func() {
 			BeforeEach(func() {
-				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/restore"}
+				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/jobname/bin/bbr/restore"}
 			})
 			It("returns false", func() {
 				Expect(job.HasBackup()).To(BeFalse())
@@ -140,11 +140,11 @@ var _ = Describe("Job", func() {
 
 	Describe("RestoreScript", func() {
 		It("returns the post-backup script", func() {
-			Expect(job.RestoreScript()).To(Equal(instance.Script("/var/vcap/jobs/foo/bin/bbr/restore")))
+			Expect(job.RestoreScript()).To(Equal(instance.Script("/var/vcap/jobs/jobname/bin/bbr/restore")))
 		})
 		Context("no post-backup scripts exist", func() {
 			BeforeEach(func() {
-				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/backup"}
+				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/jobname/bin/bbr/backup"}
 			})
 			It("returns nil", func() {
 				Expect(job.RestoreScript()).To(BeEmpty())
@@ -159,7 +159,7 @@ var _ = Describe("Job", func() {
 
 		Context("no post-backup scripts exist", func() {
 			BeforeEach(func() {
-				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/backup"}
+				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/jobname/bin/bbr/backup"}
 			})
 			It("returns false", func() {
 				Expect(job.HasRestore()).To(BeFalse())
@@ -175,7 +175,7 @@ var _ = Describe("Job", func() {
 		Context("when the job has a named backup artifact", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
-					BackupName: "foo",
+					BackupName: "whatever",
 				}
 			})
 
@@ -187,7 +187,7 @@ var _ = Describe("Job", func() {
 		Context("when the job has a named restore artifact", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
-					RestoreName: "foo",
+					RestoreName: "whatever",
 				}
 			})
 
@@ -205,7 +205,7 @@ var _ = Describe("Job", func() {
 		Context("when the job has a named restore artifact", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
-					RestoreName: "foo",
+					RestoreName: "whatever",
 				}
 			})
 
@@ -217,7 +217,7 @@ var _ = Describe("Job", func() {
 		Context("when the job has a named backup artifact", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
-					BackupName: "foo",
+					BackupName: "whatever",
 				}
 			})
 
@@ -235,7 +235,7 @@ var _ = Describe("Job", func() {
 		Context("job has no backup script", func() {
 			BeforeEach(func() {
 				jobScripts = instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/bbr/pre-backup-lock",
+					"/var/vcap/jobs/jobname/bin/bbr/pre-backup-lock",
 				}
 			})
 			It("should not run anything on the ssh connection", func() {
@@ -245,16 +245,16 @@ var _ = Describe("Job", func() {
 		Context("job has a backup script", func() {
 			BeforeEach(func() {
 				jobScripts = instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/bbr/backup",
+					"/var/vcap/jobs/jobname/bin/bbr/backup",
 				}
 			})
 
 			It("uses the ssh connection to run the script", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
-					"sudo mkdir -p /var/vcap/store/bbr-backup/foo && " +
-						"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ " +
-						"ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ /var/vcap/jobs/foo/bin/bbr/backup"))
+					"sudo mkdir -p /var/vcap/store/bbr-backup/jobname && " +
+						"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/jobname/ " +
+						"ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/jobname/ /var/vcap/jobs/jobname/bin/bbr/backup"))
 			})
 
 			Context("backup script runs successfully", func() {
@@ -294,7 +294,7 @@ var _ = Describe("Job", func() {
 		Context("job has no restore script", func() {
 			BeforeEach(func() {
 				jobScripts = instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/bbr/pre-backup-lock",
+					"/var/vcap/jobs/jobname/bin/bbr/pre-backup-lock",
 				}
 			})
 			It("should not run anything on the ssh connection", func() {
@@ -304,15 +304,15 @@ var _ = Describe("Job", func() {
 		Context("job has a restore script", func() {
 			BeforeEach(func() {
 				jobScripts = instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/bbr/restore",
+					"/var/vcap/jobs/jobname/bin/bbr/restore",
 				}
 			})
 
 			It("uses the ssh connection to run the script", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
-					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ " +
-						"ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ /var/vcap/jobs/foo/bin/bbr/restore"))
+					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/jobname/ " +
+						"ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/jobname/ /var/vcap/jobs/jobname/bin/bbr/restore"))
 			})
 
 			Context("restore script runs successfully", func() {
@@ -352,7 +352,7 @@ var _ = Describe("Job", func() {
 		Context("job has no pre-backup-lock script", func() {
 			BeforeEach(func() {
 				jobScripts = instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/bbr/restore",
+					"/var/vcap/jobs/jobname/bin/bbr/restore",
 				}
 			})
 			It("should not run anything on the ssh connection", func() {
@@ -362,14 +362,14 @@ var _ = Describe("Job", func() {
 		Context("job has a pre-backup-lock script", func() {
 			BeforeEach(func() {
 				jobScripts = instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/bbr/pre-backup-lock",
+					"/var/vcap/jobs/jobname/bin/bbr/pre-backup-lock",
 				}
 			})
 
 			It("uses the ssh connection to run the script", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
-					"sudo /var/vcap/jobs/foo/bin/bbr/pre-backup-lock"))
+					"sudo /var/vcap/jobs/jobname/bin/bbr/pre-backup-lock"))
 			})
 
 			Context("pre-backup-lock script runs successfully", func() {
@@ -411,7 +411,7 @@ var _ = Describe("Job", func() {
 		Context("job has no post-backup-unlock script", func() {
 			BeforeEach(func() {
 				jobScripts = instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/bbr/restore",
+					"/var/vcap/jobs/jobname/bin/bbr/restore",
 				}
 			})
 			It("should not run anything on the ssh connection", func() {
@@ -421,14 +421,14 @@ var _ = Describe("Job", func() {
 		Context("job has a post-backup-unlock script", func() {
 			BeforeEach(func() {
 				jobScripts = instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/bbr/post-backup-unlock",
+					"/var/vcap/jobs/jobname/bin/bbr/post-backup-unlock",
 				}
 			})
 
 			It("uses the ssh connection to run the script", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
-					"sudo /var/vcap/jobs/foo/bin/bbr/post-backup-unlock"))
+					"sudo /var/vcap/jobs/jobname/bin/bbr/post-backup-unlock"))
 			})
 
 			Context("post-backup-unlock script runs successfully", func() {
@@ -469,7 +469,7 @@ var _ = Describe("Job", func() {
 		Context("job has no post-restore-unlock script", func() {
 			BeforeEach(func() {
 				jobScripts = instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/bbr/restore",
+					"/var/vcap/jobs/jobname/bin/bbr/restore",
 				}
 			})
 			It("should not run anything on the ssh connection", func() {
@@ -479,14 +479,14 @@ var _ = Describe("Job", func() {
 		Context("job has a post-restore-unlock script", func() {
 			BeforeEach(func() {
 				jobScripts = instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/bbr/post-restore-unlock",
+					"/var/vcap/jobs/jobname/bin/bbr/post-restore-unlock",
 				}
 			})
 
 			It("uses the ssh connection to run the script", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
-					"sudo /var/vcap/jobs/foo/bin/bbr/post-restore-unlock"))
+					"sudo /var/vcap/jobs/jobname/bin/bbr/post-restore-unlock"))
 			})
 
 			Context("post-restore-unlock script runs successfully", func() {
