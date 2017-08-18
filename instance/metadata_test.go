@@ -37,4 +37,20 @@ restore_name: bar`)
 
 		Expect(err).To(MatchError(ContainSubstring("failed to unmarshal job metadata")))
 	})
+
+	It("has an optional `should_be_locked_before` field", func() {
+		rawMetadata := []byte(`---
+backup_name: foo
+restore_name: bar
+should_be_locked_before:
+- job_name: job1
+- job_name: job2`)
+
+		m, err := NewJobMetadata(rawMetadata)
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(m.BackupName).To(Equal("foo"))
+		Expect(m.RestoreName).To(Equal("bar"))
+		Expect(m.ShouldBeLockedBefore).To(ConsistOf(LockBefore{JobName: "job1"}, LockBefore{"job2"}))
+	})
 })

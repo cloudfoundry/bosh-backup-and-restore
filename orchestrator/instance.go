@@ -29,6 +29,7 @@ type Instance interface {
 	CustomBackupArtifactNames() []string
 	CustomRestoreArtifactNames() []string
 	PostRestoreUnlock() error
+	Jobs() []Job
 }
 
 //go:generate counterfeiter -o fakes/fake_job.go . Job
@@ -56,6 +57,31 @@ type ArtifactIdentifier interface {
 	HasCustomName() bool
 }
 
+func NewLockOrderingJobPair(first, last string) *LockOrderingJobPair {
+	return &LockOrderingJobPair{
+		first: first,
+		last:  last,
+	}
+}
+
+type LockOrderingJobPair struct {
+	first string
+	last  string
+}
+
+func (l *LockOrderingJobPair) First() string {
+	return l.first
+}
+
+func (l *LockOrderingJobPair) Last() string {
+	return l.last
+}
+
+type JobPair interface {
+	First() string
+	Last() string
+}
+
 //go:generate counterfeiter -o fakes/fake_backup_artifact.go . BackupArtifact
 type BackupArtifact interface {
 	ArtifactIdentifier
@@ -70,6 +96,15 @@ type instances []Instance
 
 func (is instances) IsEmpty() bool {
 	return len(is) == 0
+}
+
+func (is instances) Jobs() []Job {
+	var jobs []Job
+	for _, instance := range is {
+		jobs = append(jobs, instance.Jobs()...)
+	}
+
+	return jobs
 }
 
 func (is instances) AllBackupable() instances {

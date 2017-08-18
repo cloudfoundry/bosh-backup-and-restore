@@ -7,9 +7,9 @@ import (
 	"os"
 	"path"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
@@ -18,9 +18,9 @@ import (
 
 	"regexp"
 
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
 )
 
 var _ = Describe("Backup", func() {
@@ -810,6 +810,31 @@ echo "not valid yaml
 				Expect(backupDirectory()).To(BeADirectory())
 				Expect(path.Join(backupDirectory(), "/redis-dedicated-node-0-redis.tar")).To(BeARegularFile())
 				Expect(path.Join(backupDirectory(), "/redis-broker-0-redis.tar")).ToNot(BeAnExistingFile())
+			})
+
+			XContext("with ordering on pre-backup-lock", func() {
+				BeforeEach(func() {
+					backupableInstance.CreateScript(
+						"/var/vcap/jobs/redis/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
+touch /tmp/redis-pre-backup-lock-called
+exit 0`)
+					nonBackupableInstance.CreateScript(
+						"/var/vcap/jobs/redis-writer/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
+touch /tmp/redis-writer-pre-backup-lock-called
+exit 0`)
+					nonBackupableInstance.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata", `#!/usr/bin/env sh
+echo "---
+should_be_locked_before:
+- job_name: redis
+"`)
+				})
+
+				It("locks the redis-writer job before locking the redis job", func() {
+					redisLockTime := backupableInstance.GetCreatedTime("/tmp/redis-pre-backup-lock-called")
+					redisWriterLockTime := nonBackupableInstance.GetCreatedTime("/tmp/redis-writer-pre-backup-lock-called")
+
+					Expect(redisWriterLockTime < redisLockTime).To(BeTrue())
+				})
 			})
 		})
 

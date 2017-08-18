@@ -15,7 +15,7 @@ type DeployedInstance struct {
 	artifactDirCreated            bool
 	ssh.SSHConnection
 	Logger
-	Jobs orchestrator.Jobs
+	jobs orchestrator.Jobs
 }
 
 func NewDeployedInstance(instanceIndex string, instanceGroupName string, instanceID string, artifactDirCreated bool, connection ssh.SSHConnection, logger Logger, jobs orchestrator.Jobs) *DeployedInstance {
@@ -26,7 +26,7 @@ func NewDeployedInstance(instanceIndex string, instanceGroupName string, instanc
 		artifactDirCreated:            artifactDirCreated,
 		SSHConnection:                 connection,
 		Logger:                        logger,
-		Jobs:                          jobs,
+		jobs:                          jobs,
 	}
 	return deployedInstance
 }
@@ -44,7 +44,7 @@ func (i *DeployedInstance) ArtifactDirExists() (bool, error) {
 }
 
 func (i *DeployedInstance) IsBackupable() bool {
-	return i.Jobs.AnyAreBackupable()
+	return i.jobs.AnyAreBackupable()
 }
 
 func (i *DeployedInstance) ArtifactDirCreated() bool {
@@ -56,16 +56,20 @@ func (i *DeployedInstance) MarkArtifactDirCreated() {
 }
 
 func (i *DeployedInstance) CustomBackupArtifactNames() []string {
-	return i.Jobs.CustomBackupArtifactNames()
+	return i.jobs.CustomBackupArtifactNames()
 }
 
 func (i *DeployedInstance) CustomRestoreArtifactNames() []string {
-	return i.Jobs.CustomRestoreArtifactNames()
+	return i.jobs.CustomRestoreArtifactNames()
+}
+
+func (i *DeployedInstance) Jobs() []orchestrator.Job {
+	return i.jobs
 }
 
 func (i *DeployedInstance) PreBackupLock() error {
 	var preBackupLockErrors []error
-	for _, job := range i.Jobs {
+	for _, job := range i.jobs {
 		if err := job.PreBackupLock(); err != nil {
 			preBackupLockErrors = append(preBackupLockErrors, err)
 		}
@@ -76,7 +80,7 @@ func (i *DeployedInstance) PreBackupLock() error {
 
 func (i *DeployedInstance) Backup() error {
 	var backupErrors []error
-	for _, job := range i.Jobs {
+	for _, job := range i.jobs {
 		if err := job.Backup(); err != nil {
 			backupErrors = append(backupErrors, err)
 		}
@@ -95,7 +99,7 @@ func artifactDirectoryVariables(artifactDirectory string) string {
 
 func (i *DeployedInstance) PostBackupUnlock() error {
 	var unlockErrors []error
-	for _, job := range i.Jobs {
+	for _, job := range i.jobs {
 		if err := job.PostBackupUnlock(); err != nil {
 			unlockErrors = append(unlockErrors, err)
 		}
@@ -106,7 +110,7 @@ func (i *DeployedInstance) PostBackupUnlock() error {
 
 func (i *DeployedInstance) Restore() error {
 	var restoreErrors []error
-	for _, job := range i.Jobs {
+	for _, job := range i.jobs {
 		if err := job.Restore(); err != nil {
 			restoreErrors = append(restoreErrors, err)
 		}
@@ -117,7 +121,7 @@ func (i *DeployedInstance) Restore() error {
 
 func (i *DeployedInstance) PostRestoreUnlock() error {
 	var unlockErrors []error
-	for _, job := range i.Jobs {
+	for _, job := range i.jobs {
 		if err := job.PostRestoreUnlock(); err != nil {
 			unlockErrors = append(unlockErrors, err)
 		}
@@ -127,13 +131,13 @@ func (i *DeployedInstance) PostRestoreUnlock() error {
 }
 
 func (i *DeployedInstance) IsRestorable() bool {
-	return i.Jobs.AnyAreRestorable()
+	return i.jobs.AnyAreRestorable()
 }
 
 func (i *DeployedInstance) ArtifactsToBackup() []orchestrator.BackupArtifact {
 	artifacts := []orchestrator.BackupArtifact{}
 
-	for _, job := range i.Jobs {
+	for _, job := range i.jobs {
 		artifacts = append(artifacts, NewBackupArtifact(job, i, i.SSHConnection, i.Logger))
 	}
 
@@ -143,7 +147,7 @@ func (i *DeployedInstance) ArtifactsToBackup() []orchestrator.BackupArtifact {
 func (i *DeployedInstance) ArtifactsToRestore() []orchestrator.BackupArtifact {
 	artifacts := []orchestrator.BackupArtifact{}
 
-	for _, job := range i.Jobs {
+	for _, job := range i.jobs {
 		artifacts = append(artifacts, NewRestoreArtifact(job, i, i.SSHConnection, i.Logger))
 	}
 

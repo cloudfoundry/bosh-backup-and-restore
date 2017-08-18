@@ -109,6 +109,10 @@ func (mockInstance *Instance) GetFileContents(path string) string {
 	return dockerRunAndWaitForSuccess("exec", mockInstance.dockerID, "cat", path)
 }
 
+func (mockInstance *Instance) GetCreatedTime(path string) string {
+	return dockerRunAndWaitForSuccess("exec", mockInstance.dockerID, "/usr/bin/stat", "-c", "%y", path)
+}
+
 var waitGroup sync.WaitGroup
 
 func (mockInstance *Instance) DieInBackground() {

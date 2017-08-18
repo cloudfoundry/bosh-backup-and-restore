@@ -175,6 +175,15 @@ type FakeInstance struct {
 	postRestoreUnlockReturnsOnCall map[int]struct {
 		result1 error
 	}
+	JobsStub        func() []orchestrator.Job
+	jobsMutex       sync.RWMutex
+	jobsArgsForCall []struct{}
+	jobsReturns     struct {
+		result1 []orchestrator.Job
+	}
+	jobsReturnsOnCall map[int]struct {
+		result1 []orchestrator.Job
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -918,6 +927,46 @@ func (fake *FakeInstance) PostRestoreUnlockReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeInstance) Jobs() []orchestrator.Job {
+	fake.jobsMutex.Lock()
+	ret, specificReturn := fake.jobsReturnsOnCall[len(fake.jobsArgsForCall)]
+	fake.jobsArgsForCall = append(fake.jobsArgsForCall, struct{}{})
+	fake.recordInvocation("Jobs", []interface{}{})
+	fake.jobsMutex.Unlock()
+	if fake.JobsStub != nil {
+		return fake.JobsStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.jobsReturns.result1
+}
+
+func (fake *FakeInstance) JobsCallCount() int {
+	fake.jobsMutex.RLock()
+	defer fake.jobsMutex.RUnlock()
+	return len(fake.jobsArgsForCall)
+}
+
+func (fake *FakeInstance) JobsReturns(result1 []orchestrator.Job) {
+	fake.JobsStub = nil
+	fake.jobsReturns = struct {
+		result1 []orchestrator.Job
+	}{result1}
+}
+
+func (fake *FakeInstance) JobsReturnsOnCall(i int, result1 []orchestrator.Job) {
+	fake.JobsStub = nil
+	if fake.jobsReturnsOnCall == nil {
+		fake.jobsReturnsOnCall = make(map[int]struct {
+			result1 []orchestrator.Job
+		})
+	}
+	fake.jobsReturnsOnCall[i] = struct {
+		result1 []orchestrator.Job
+	}{result1}
+}
+
 func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -959,6 +1008,8 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.customRestoreArtifactNamesMutex.RUnlock()
 	fake.postRestoreUnlockMutex.RLock()
 	defer fake.postRestoreUnlockMutex.RUnlock()
+	fake.jobsMutex.RLock()
+	defer fake.jobsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

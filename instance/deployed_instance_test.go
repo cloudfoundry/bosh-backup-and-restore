@@ -211,6 +211,21 @@ var _ = Describe("DeployedInstance", func() {
 
 	})
 
+	Describe("Jobs", func() {
+		BeforeEach(func() {
+			jobs = orchestrator.Jobs([]orchestrator.Job{
+				instance.NewJob(sshConnection, jobName+"/"+jobID, boshLogger, instance.BackupAndRestoreScripts{
+					"/var/vcap/jobs/dave/bin/foo",
+				}, instance.Metadata{}),
+			})
+		})
+
+		It("returns the instance's jobs", func() {
+			Expect(deployedInstance.Jobs()).To(HaveLen(1))
+			Expect(deployedInstance.Jobs()[0].Name()).To(Equal("dave"))
+		})
+	})
+
 	Describe("PreBackupLock", func() {
 		var err error
 

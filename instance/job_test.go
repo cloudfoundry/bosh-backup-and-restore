@@ -1,16 +1,17 @@
 package instance_test
 
 import (
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	"log"
 
 	"fmt"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 )
 
 var _ = Describe("Job", func() {
@@ -163,6 +164,32 @@ var _ = Describe("Job", func() {
 			})
 			It("returns false", func() {
 				Expect(job.HasRestore()).To(BeFalse())
+			})
+		})
+	})
+
+	Describe("LockOrderingJobPairs", func() {
+		Context("when there is no lock ordering metadata", func() {
+			It("returns an empty slice", func() {
+				Expect(job.LockOrderingJobPairs()).To(BeEmpty())
+			})
+		})
+		Context("when there is lock ordering metadata", func() {
+			BeforeEach(func() {
+				metadata = instance.Metadata{
+					ShouldBeLockedBefore: []instance.LockBefore{
+						{"laterJob1"},
+						{"laterJob2"}},
+				}
+			})
+
+			It("returns the list of lock ordering pairs", func() {
+				Expect(job.LockOrderingJobPairs()).To(ConsistOf(
+					[]orchestrator.LockOrderingJobPair{
+						*orchestrator.NewLockOrderingJobPair("jobname", "laterJob1"),
+						*orchestrator.NewLockOrderingJobPair("jobname", "laterJob2"),
+					},
+				))
 			})
 		})
 	})
@@ -401,8 +428,6 @@ var _ = Describe("Job", func() {
 		})
 	})
 
-
-
 	Describe("PostBackupUnlock", func() {
 		var postBackupUnlockError error
 		JustBeforeEach(func() {
@@ -459,7 +484,6 @@ var _ = Describe("Job", func() {
 			})
 		})
 	})
-
 
 	Describe("PostRestoreUnlock", func() {
 		var postRestoreUnlockError error
