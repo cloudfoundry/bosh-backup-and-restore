@@ -78,9 +78,18 @@ func (bd *deployment) CheckArtifactDir() error {
 
 func (bd *deployment) PreBackupLock() error {
 	bd.Logger.Info("bbr", "Running pre-backup scripts...")
-	err := bd.instances.PreBackupLock()
+
+	jobs := bd.instances.Jobs()
+
+	var preBackupLockErrors []error
+	for _, job := range jobs {
+		if err := job.PreBackupLock(); err != nil {
+			preBackupLockErrors = append(preBackupLockErrors, err)
+		}
+	}
+
 	bd.Logger.Info("bbr", "Done.")
-	return err
+	return ConvertErrors(preBackupLockErrors)
 }
 
 func (bd *deployment) Backup() error {

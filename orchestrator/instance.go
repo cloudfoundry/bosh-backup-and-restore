@@ -180,17 +180,6 @@ func (is instances) CleanupPrevious() error {
 	return ConvertErrors(cleanupPreviousErrors)
 }
 
-func (is instances) PreBackupLock() error {
-	var lockErrors []error
-	for _, instance := range is {
-		if err := instance.PreBackupLock(); err != nil {
-			lockErrors = append(lockErrors, err)
-		}
-	}
-
-	return ConvertErrors(lockErrors)
-}
-
 func (is instances) Backup() error {
 	for _, instance := range is {
 		err := instance.Backup()

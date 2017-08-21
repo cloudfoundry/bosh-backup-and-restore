@@ -23,6 +23,11 @@ var _ = Describe("Deployment", func() {
 		instance1  *fakes.FakeInstance
 		instance2  *fakes.FakeInstance
 		instance3  *fakes.FakeInstance
+
+		job1a *fakes.FakeJob
+		job1b *fakes.FakeJob
+		job2a *fakes.FakeJob
+		job3a *fakes.FakeJob
 	)
 
 	BeforeEach(func() {
@@ -31,6 +36,15 @@ var _ = Describe("Deployment", func() {
 		instance1 = new(fakes.FakeInstance)
 		instance2 = new(fakes.FakeInstance)
 		instance3 = new(fakes.FakeInstance)
+
+		job1a = new(fakes.FakeJob)
+		job1b = new(fakes.FakeJob)
+		job2a = new(fakes.FakeJob)
+		job3a = new(fakes.FakeJob)
+
+		instance1.JobsReturns([]orchestrator.Job{job1a, job1b})
+		instance2.JobsReturns([]orchestrator.Job{job2a})
+		instance3.JobsReturns([]orchestrator.Job{job3a})
 	})
 
 	JustBeforeEach(func() {
@@ -40,51 +54,37 @@ var _ = Describe("Deployment", func() {
 	Context("PreBackupLock", func() {
 		var lockError error
 
+		BeforeEach(func() {
+			instances = []orchestrator.Instance{instance1, instance2, instance3}
+		})
+
 		JustBeforeEach(func() {
 			lockError = deployment.PreBackupLock()
 		})
 
-		Context("Single instance", func() {
-			BeforeEach(func() {
-				instances = []orchestrator.Instance{instance1}
-			})
-
-			It("does not fail", func() {
-				Expect(lockError).NotTo(HaveOccurred())
-			})
-
-			It("locks the instance", func() {
-				Expect(instance1.PreBackupLockCallCount()).To(Equal(1))
-			})
-
-			Context("if the pre-backup-lock fails", func() {
-				lockErr := fmt.Errorf("something")
-
-				BeforeEach(func() {
-					instance1.PreBackupLockReturns(lockErr)
-				})
-
-				It("fails", func() {
-					Expect(lockErr).To(HaveOccurred())
-				})
-			})
+		It("does not fail", func() {
+			Expect(lockError).NotTo(HaveOccurred())
 		})
 
-		Context("Multiple instances", func() {
-			BeforeEach(func() {
-				instances = []orchestrator.Instance{instance1, instance2}
-			})
-
-			It("does not fail", func() {
-				Expect(lockError).NotTo(HaveOccurred())
-			})
-
-			It("runs pre-backup-lock on all the instances", func() {
-				Expect(instance1.PreBackupLockCallCount()).To(Equal(1))
-				Expect(instance2.PreBackupLockCallCount()).To(Equal(1))
-			})
+		It("locks the instance", func() {
+			Expect(job1a.PreBackupLockCallCount()).To(Equal(1))
+			Expect(job1b.PreBackupLockCallCount()).To(Equal(1))
+			Expect(job2a.PreBackupLockCallCount()).To(Equal(1))
+			Expect(job3a.PreBackupLockCallCount()).To(Equal(1))
 		})
 
+		Context("if the pre-backup-lock fails", func() {
+			BeforeEach(func() {
+				job1b.PreBackupLockReturns(fmt.Errorf("job1b failed"))
+				job2a.PreBackupLockReturns(fmt.Errorf("job2a failed"))
+			})
+
+			It("fails", func() {
+				Expect(lockError).To(HaveOccurred())
+				Expect(lockError.Error()).To(ContainSubstring("job1b failed"))
+				Expect(lockError.Error()).To(ContainSubstring("job2a failed"))
+			})
+		})
 	})
 
 	Context("Backup", func() {
