@@ -1,3 +1,3 @@
 [submodule "fixtures/releases"]
 	path = fixtures/releases
-	url = git@github.com:pivotal-cf-experimental/bosh-backup-and-restore-test-releases.git
+	url = https://github.com/cloudfoundry-incubator/bosh-backup-and-restore-test-releases.git
