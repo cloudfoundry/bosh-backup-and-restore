@@ -4,6 +4,19 @@ BOSH Backup and Restore is a CLI utility for orchestrating the backup and restor
 
 This repository contains the source code for BOSH Backup and Restore.
 
+## Developing BBR locally
+
+Running `go get` on the BBR repo will not work, as we use [Glide](https://github.com/Masterminds/glide) to manage our dependencies. Instead:
+
+1. `mkdir -p $GOPATH/src/github.com/cloudfoundry-incubator`
+1. `git clone git@github.com:cloudfoundry-incubator/bosh-backup-and-restore.git`
+1. `cd $GOPATH/src/github.com/cloudfoundry-incubator/bosh-backup-and-restore`
+1. `make setup`
+
+You're good to go. Run tests locally with `make test`.
+
+## Additional information
+
 **Docs**: http://docs.cloudfoundry.org/bbr/index.html
 
 **Slack**: #bbr on https://slack.cloudfoundry.org
