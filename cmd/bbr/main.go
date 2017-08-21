@@ -246,6 +246,10 @@ func deploymentBackup(c *cli.Context) error {
 		return errors.Wrap(backupErr, err.Error())
 	}
 
+	if backupErr.ContainsUnlockOrCleanup() {
+		errorMessage = errorMessage + "\nIt is recommended that you run `bbr backup-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."
+	}
+
 	return cli.NewExitError(errorMessage, errorCode)
 }
 
@@ -261,6 +265,10 @@ func directorBackup(c *cli.Context) error {
 	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(backupErr)
 	if err := writeStackTrace(errorWithStackTrace); err != nil {
 		return errors.Wrap(backupErr, err.Error())
+	}
+
+	if backupErr.ContainsUnlockOrCleanup() {
+		errorMessage = errorMessage + "\nIt is recommended that you run `bbr backup-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."
 	}
 
 	return cli.NewExitError(errorMessage, errorCode)

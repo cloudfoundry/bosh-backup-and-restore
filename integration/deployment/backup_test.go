@@ -428,6 +428,10 @@ touch /tmp/post-backup-unlock-output
 						By("also runs the post-backup-unlock scripts", func() {
 							Expect(instance1.FileExists("/tmp/post-backup-unlock-output")).To(BeTrue())
 						})
+
+						By("not printing a recommendation to run bbr backup-cleanup", func() {
+							Expect(string(session.Err.Contents())).NotTo(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
+						})
 					})
 
 				})
@@ -503,6 +507,10 @@ exit 1`)
 
 						By("prints an error", func() {
 							Expect(session.Err.Contents()).To(ContainSubstring("unlock script for job redis failed on redis-dedicated-node/fake-uuid."))
+						})
+
+						By("printing a recommendation to run bbr backup-cleanup", func() {
+							Expect(string(session.Err.Contents())).To(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
 						})
 					})
 
@@ -637,6 +645,10 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment '"+deploymentName+"' has no backup scripts"),
 					"prints an error")
 				Expect(possibleBackupDirectories()).To(HaveLen(0), "does not create a backup on disk")
+
+				By("not printing a recommendation to run bbr backup-cleanup", func() {
+					Expect(string(session.Err.Contents())).NotTo(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
+				})
 			})
 		})
 
@@ -665,6 +677,10 @@ echo "Unlocking release"`)
 				})
 				By("running the the post-backup-unlock scripts", func() {
 					Expect(instance1.FileExists("/tmp/post-backup-unlock-script-was-run")).To(BeTrue())
+				})
+
+				By("not printing a recommendation to run bbr backup-cleanup", func() {
+					Expect(string(session.Err.Contents())).NotTo(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
 				})
 			})
 
@@ -696,6 +712,10 @@ echo "Unlocking release"`)
 						"ultra-baz",
 						"ultra-foo",
 					})
+				})
+
+				By("printing a recommendation to run bbr backup-cleanup", func() {
+					Expect(string(session.Err.Contents())).To(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
 				})
 			})
 
@@ -732,6 +752,10 @@ echo "Unlocking release"`)
 				By("creating a backup on disk", func() {
 					Expect(backupDirectory()).To(BeADirectory())
 				})
+
+				By("printing a recommendation to run bbr backup-cleanup", func() {
+					Expect(string(session.Err.Contents())).To(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
+				})
 			})
 
 		})
@@ -759,6 +783,10 @@ echo "not valid yaml
 
 				By("exiting with the correct error code", func() {
 					Expect(session).To(gexec.Exit(1))
+				})
+
+				By("not printing a recommendation to run bbr backup-cleanup", func() {
+					Expect(string(session.Err.Contents())).NotTo(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
 				})
 			})
 
@@ -1039,6 +1067,10 @@ backup_name: name_2
 
 			By("printing an error", func() {
 				Expect(string(session.Err.Contents())).To(ContainSubstring("Director responded with non-successful status code"))
+			})
+
+			By("not printing a recommendation to run bbr backup-cleanup", func() {
+				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
 			})
 		})
 

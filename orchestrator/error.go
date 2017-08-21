@@ -72,6 +72,21 @@ func (e Error) getPostFix() string {
 	return errorPostfix
 }
 
+func (err Error) ContainsUnlockOrCleanup() bool {
+	for _, e := range err {
+		switch e.(type) {
+		case UnlockError:
+			return true
+		case CleanupError:
+			return true
+		default:
+			continue
+		}
+	}
+
+	return false
+}
+
 func (e Error) IsCleanup() bool {
 	if len(e) == 1 {
 		_, ok := e[0].(CleanupError)

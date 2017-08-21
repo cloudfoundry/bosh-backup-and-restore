@@ -235,6 +235,10 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				By("printing an error", func() {
 					Expect(string(session.Err.Contents())).To(ContainSubstring(fmt.Sprintf("Deployment '%s' has no backup scripts", directorIP)))
 				})
+
+				By("not printing a recommendation to run bbr backup-cleanup", func() {
+					Expect(string(session.Err.Contents())).NotTo(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
+				})
 			})
 		})
 
@@ -322,6 +326,10 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 			By("printing an error", func() {
 				Expect(string(session.Err.Contents())).To(ContainSubstring("no such host"))
+			})
+
+			By("not printing a recommendation to run bbr backup-cleanup", func() {
+				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
 			})
 		})
 	})
