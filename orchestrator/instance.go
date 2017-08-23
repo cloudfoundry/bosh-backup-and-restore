@@ -48,6 +48,11 @@ type Job interface {
 	Name() string
 	BackupArtifactDirectory() string
 	RestoreArtifactDirectory() string
+	ShouldBeLockedBefore() []JobSpecifier
+}
+
+type JobSpecifier struct {
+	Name string
 }
 
 type ArtifactIdentifier interface {
@@ -55,31 +60,6 @@ type ArtifactIdentifier interface {
 	InstanceIndex() string
 	Name() string
 	HasCustomName() bool
-}
-
-func NewLockOrderingJobPair(first, last string) *LockOrderingJobPair {
-	return &LockOrderingJobPair{
-		first: first,
-		last:  last,
-	}
-}
-
-type LockOrderingJobPair struct {
-	first string
-	last  string
-}
-
-func (l *LockOrderingJobPair) First() string {
-	return l.first
-}
-
-func (l *LockOrderingJobPair) Last() string {
-	return l.last
-}
-
-type JobPair interface {
-	First() string
-	Last() string
 }
 
 //go:generate counterfeiter -o fakes/fake_backup_artifact.go . BackupArtifact

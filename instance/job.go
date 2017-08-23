@@ -223,12 +223,12 @@ func (j Job) handleErrs(jobName, label string, err error, exitCode int, stdout, 
 	return orchestrator.ConvertErrors(foundErrors)
 }
 
-func (j Job) LockOrderingJobPairs() []orchestrator.LockOrderingJobPair {
-	jobOrderings := []orchestrator.LockOrderingJobPair{}
+func (j Job) ShouldBeLockedBefore() []orchestrator.JobSpecifier {
+	jobSpecifiers := []orchestrator.JobSpecifier{}
 
-	for _, value := range j.metadata.ShouldBeLockedBefore {
-		newJobPair := orchestrator.NewLockOrderingJobPair(j.name, value.JobName)
-		jobOrderings = append(jobOrderings, *newJobPair)
+	for _, lockBefore := range j.metadata.ShouldBeLockedBefore {
+		jobSpecifiers = append(jobSpecifiers, orchestrator.JobSpecifier{Name: lockBefore.JobName})
 	}
-	return jobOrderings
+
+	return jobSpecifiers
 }
