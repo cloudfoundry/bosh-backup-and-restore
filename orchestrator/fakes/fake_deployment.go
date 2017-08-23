@@ -44,10 +44,12 @@ type FakeDeployment struct {
 	isRestorableReturnsOnCall map[int]struct {
 		result1 bool
 	}
-	PreBackupLockStub        func() error
+	PreBackupLockStub        func(orderer orchestrator.LockOrderer) error
 	preBackupLockMutex       sync.RWMutex
-	preBackupLockArgsForCall []struct{}
-	preBackupLockReturns     struct {
+	preBackupLockArgsForCall []struct {
+		orderer orchestrator.LockOrderer
+	}
+	preBackupLockReturns struct {
 		result1 error
 	}
 	preBackupLockReturnsOnCall map[int]struct {
@@ -311,14 +313,16 @@ func (fake *FakeDeployment) IsRestorableReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) PreBackupLock() error {
+func (fake *FakeDeployment) PreBackupLock(orderer orchestrator.LockOrderer) error {
 	fake.preBackupLockMutex.Lock()
 	ret, specificReturn := fake.preBackupLockReturnsOnCall[len(fake.preBackupLockArgsForCall)]
-	fake.preBackupLockArgsForCall = append(fake.preBackupLockArgsForCall, struct{}{})
-	fake.recordInvocation("PreBackupLock", []interface{}{})
+	fake.preBackupLockArgsForCall = append(fake.preBackupLockArgsForCall, struct {
+		orderer orchestrator.LockOrderer
+	}{orderer})
+	fake.recordInvocation("PreBackupLock", []interface{}{orderer})
 	fake.preBackupLockMutex.Unlock()
 	if fake.PreBackupLockStub != nil {
-		return fake.PreBackupLockStub()
+		return fake.PreBackupLockStub(orderer)
 	}
 	if specificReturn {
 		return ret.result1
@@ -330,6 +334,12 @@ func (fake *FakeDeployment) PreBackupLockCallCount() int {
 	fake.preBackupLockMutex.RLock()
 	defer fake.preBackupLockMutex.RUnlock()
 	return len(fake.preBackupLockArgsForCall)
+}
+
+func (fake *FakeDeployment) PreBackupLockArgsForCall(i int) orchestrator.LockOrderer {
+	fake.preBackupLockMutex.RLock()
+	defer fake.preBackupLockMutex.RUnlock()
+	return fake.preBackupLockArgsForCall[i].orderer
 }
 
 func (fake *FakeDeployment) PreBackupLockReturns(result1 error) {

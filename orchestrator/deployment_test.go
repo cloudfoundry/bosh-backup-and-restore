@@ -8,10 +8,10 @@ import (
 
 	"io/ioutil"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 )
 
@@ -19,10 +19,11 @@ var _ = Describe("Deployment", func() {
 	var (
 		deployment orchestrator.Deployment
 		logger     *fakes.FakeLogger
-		instances  []orchestrator.Instance
-		instance1  *fakes.FakeInstance
-		instance2  *fakes.FakeInstance
-		instance3  *fakes.FakeInstance
+
+		instances []orchestrator.Instance
+		instance1 *fakes.FakeInstance
+		instance2 *fakes.FakeInstance
+		instance3 *fakes.FakeInstance
 
 		job1a *fakes.FakeJob
 		job1b *fakes.FakeJob
@@ -53,24 +54,48 @@ var _ = Describe("Deployment", func() {
 
 	Context("PreBackupLock", func() {
 		var lockError error
+		var lockOrderer *fakes.FakeLockOrderer
+
+		var orderedListOfLockedJobs []string
+		var preBackupLockOrderedStub = func(jobName string) func() error {
+			return func() error {
+				orderedListOfLockedJobs = append(orderedListOfLockedJobs, jobName)
+				return nil
+			}
+		}
 
 		BeforeEach(func() {
+			lockOrderer = new(fakes.FakeLockOrderer)
+
+			orderedListOfLockedJobs = []string{}
+
+			job1a.PreBackupLockStub = preBackupLockOrderedStub("job1a")
+			job1b.PreBackupLockStub = preBackupLockOrderedStub("job1b")
+			job2a.PreBackupLockStub = preBackupLockOrderedStub("job2a")
+			job3a.PreBackupLockStub = preBackupLockOrderedStub("job3a")
+
 			instances = []orchestrator.Instance{instance1, instance2, instance3}
+
+			lockOrderer.OrderReturns([]orchestrator.Job{job2a, job3a, job1a, job1b})
 		})
 
 		JustBeforeEach(func() {
-			lockError = deployment.PreBackupLock()
+			lockError = deployment.PreBackupLock(lockOrderer)
 		})
 
 		It("does not fail", func() {
 			Expect(lockError).NotTo(HaveOccurred())
 		})
 
-		It("locks the instance", func() {
+		It("locks the jobs in the order specified by the orderer", func() {
+			Expect(lockOrderer.OrderArgsForCall(0)).To(ConsistOf(job1a, job1b, job2a, job3a))
+
 			Expect(job1a.PreBackupLockCallCount()).To(Equal(1))
 			Expect(job1b.PreBackupLockCallCount()).To(Equal(1))
 			Expect(job2a.PreBackupLockCallCount()).To(Equal(1))
 			Expect(job3a.PreBackupLockCallCount()).To(Equal(1))
+
+			Expect(orderedListOfLockedJobs).To(Equal([]string{"job2a", "job3a", "job1a", "job1b"}))
 		})
 
 		Context("if the pre-backup-lock fails", func() {

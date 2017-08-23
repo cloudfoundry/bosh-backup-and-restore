@@ -16,7 +16,7 @@ type Deployment interface {
 	HasUniqueCustomArtifactNames() bool
 	CheckArtifactDir() error
 	IsRestorable() bool
-	PreBackupLock() error
+	PreBackupLock(orderer LockOrderer) error
 	Backup() error
 	PostBackupUnlock() error
 	Restore() error
@@ -29,9 +29,13 @@ type Deployment interface {
 	PostRestoreUnlock() error
 }
 
+//go:generate counterfeiter -o fakes/fake_lock_orderer.go . LockOrderer
+type LockOrderer interface {
+	Order(jobs []Job) []Job
+}
+
 type deployment struct {
 	Logger
-
 	instances instances
 }
 
@@ -76,13 +80,15 @@ func (bd *deployment) CheckArtifactDir() error {
 	return nil
 }
 
-func (bd *deployment) PreBackupLock() error {
+func (bd *deployment) PreBackupLock(lockOrderer LockOrderer) error {
 	bd.Logger.Info("bbr", "Running pre-backup scripts...")
 
 	jobs := bd.instances.Jobs()
 
+	orderedJobs := lockOrderer.Order(jobs)
+
 	var preBackupLockErrors []error
-	for _, job := range jobs {
+	for _, job := range orderedJobs {
 		if err := job.PreBackupLock(); err != nil {
 			preBackupLockErrors = append(preBackupLockErrors, err)
 		}

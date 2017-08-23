@@ -180,7 +180,7 @@ func (bw *backupWorkflow) recordStartTime(e *fsm.Event) {
 }
 
 func (bw *backupWorkflow) prebackupLock(e *fsm.Event) {
-	err := bw.deployment.PreBackupLock()
+	err := bw.deployment.PreBackupLock(NewNoopLockOrderer())
 
 	if err != nil {
 		bw.backupErrors = append(bw.backupErrors, NewLockError(err.Error()))
