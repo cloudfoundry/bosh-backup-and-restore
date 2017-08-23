@@ -3,59 +3,131 @@ package orderer
 import (
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("KahnLockOrderer", func() {
-	var lockOrderer KahnLockOrderer
-	var orderedJobs []Job
-	var unorderedJobs []Job
+	Context("new tests", func() {
+		type lockingTestCase struct {
+			orderedJobs   []Job
+			unorderedJobs []Job
+		}
 
-	BeforeEach(func() {
-		lockOrderer = NewKahnLockOrderer()
+		lockOrderer := NewKahnLockOrderer()
+
+		DescribeTable("counting substring matches",
+			func(c func() lockingTestCase) {
+				testCase := c()
+				Expect(lockOrderer.Order(testCase.unorderedJobs)).To(Equal(testCase.orderedJobs))
+			},
+
+			Entry("no jobs", func() lockingTestCase {
+				return lockingTestCase{
+					unorderedJobs: []Job{},
+					orderedJobs:   []Job{},
+				}
+			}),
+
+			Entry("one job", func() lockingTestCase {
+				var job = NewTestJob("test", []JobSpecifier{})
+				return lockingTestCase{
+					unorderedJobs: []Job{job},
+					orderedJobs:   []Job{job},
+				}
+			}),
+
+			Entry("one job, dependency not provided", func() lockingTestCase {
+				var job = NewTestJob("test", []JobSpecifier{{Name: "non-existent"}})
+				return lockingTestCase{
+					unorderedJobs: []Job{job},
+					orderedJobs:   []Job{job},
+				}
+			}),
+
+			Entry("multiple jobs, no dependencies", func() lockingTestCase {
+				var a = NewTestJob("a", []JobSpecifier{})
+				var b = NewTestJob("b", []JobSpecifier{})
+				var c = NewTestJob("c", []JobSpecifier{})
+
+				return lockingTestCase{
+					unorderedJobs: []Job{a, b, c},
+					orderedJobs:   []Job{a, b, c},
+				}
+			}),
+
+			Entry("multiple jobs, single dependency", func() lockingTestCase {
+				var a = NewTestJob("a", []JobSpecifier{})
+				var b = NewTestJob("b", []JobSpecifier{{Name: "c"}})
+				var c = NewTestJob("c", []JobSpecifier{})
+
+				return lockingTestCase{
+					unorderedJobs: []Job{a, c, b},
+					orderedJobs:   []Job{a, b, c},
+				}
+			}),
+
+			Entry("multiple jobs, dependency not provided", func() lockingTestCase {
+				var a = NewTestJob("a", []JobSpecifier{})
+				var b = NewTestJob("b", []JobSpecifier{{Name: "e"}})
+				var c = NewTestJob("c", []JobSpecifier{})
+
+				return lockingTestCase{
+					unorderedJobs: []Job{a, b, c},
+					orderedJobs:   []Job{a, b, c},
+				}
+			}),
+
+			Entry("multiple jobs, double dependency", func() lockingTestCase {
+				var a = NewTestJob("a", []JobSpecifier{})
+				var b = NewTestJob("b", []JobSpecifier{{Name: "c"}, {Name: "d"}})
+				var c = NewTestJob("c", []JobSpecifier{})
+				var d = NewTestJob("d", []JobSpecifier{})
+
+				return lockingTestCase{
+					unorderedJobs: []Job{a, c, d, b},
+					orderedJobs:   []Job{a, b, c, d},
+				}
+			}),
+
+			Entry("multiple jobs, chain of dependencies", func() lockingTestCase {
+				var a = NewTestJob("a", []JobSpecifier{{Name: "b"}})
+				var b = NewTestJob("b", []JobSpecifier{{Name: "c"}})
+				var c = NewTestJob("c", []JobSpecifier{})
+
+				return lockingTestCase{
+					unorderedJobs: []Job{c, b, a},
+					orderedJobs:   []Job{a, b, c},
+				}
+			}),
+
+			Entry("multiple jobs, multiple instances of the same dependee", func() lockingTestCase {
+				var a = NewTestJob("a", []JobSpecifier{})
+				var b = NewTestJob("b", []JobSpecifier{{Name: "c"}})
+				var c1 = NewTestJob("c", []JobSpecifier{})
+				var c2 = NewTestJob("c", []JobSpecifier{})
+				var c3 = NewTestJob("c", []JobSpecifier{})
+
+				return lockingTestCase{
+					unorderedJobs: []Job{c1, c2, c3, a, b},
+					orderedJobs:   []Job{a, b, c1, c2, c3},
+				}
+			}),
+
+			Entry("multiple jobs, multiple instances of the same dependent", func() lockingTestCase {
+				var a = NewTestJob("a", []JobSpecifier{})
+				var b1 = NewTestJob("b", []JobSpecifier{{Name: "c"}})
+				var b2 = NewTestJob("b", []JobSpecifier{{Name: "c"}})
+				var b3 = NewTestJob("b", []JobSpecifier{{Name: "c"}})
+				var c = NewTestJob("c", []JobSpecifier{})
+
+				return lockingTestCase{
+					unorderedJobs: []Job{a, c, b1, b2, b3},
+					orderedJobs:   []Job{a, b1, b2, b3, c},
+				}
+			}),
+		)
 	})
-
-	JustBeforeEach(func() {
-		orderedJobs = lockOrderer.Order(unorderedJobs)
-	})
-
-	Context("when there are no jobs", func() {
-		BeforeEach(func() {
-			unorderedJobs = []Job{}
-		})
-
-		It("returns an empty list", func() {
-			Expect(orderedJobs).To(BeEmpty())
-		})
-	})
-
-	XContext("when there is one job", func() {
-		var job = NewTestJob("test", []JobSpecifier{})
-
-		BeforeEach(func() {
-			unorderedJobs = []Job{job}
-		})
-
-		It("returns a list with that job", func() {
-			Expect(orderedJobs).To(ConsistOf(job))
-		})
-	})
-
-	XContext("when there are two jobs in the wrong order", func() {
-		var first = NewTestJob("first", []JobSpecifier{{Name: "second"}})
-		var second = NewTestJob("second", []JobSpecifier{})
-
-		BeforeEach(func() {
-			unorderedJobs = []Job{second, first}
-		})
-
-		It("returns a list with that job", func() {
-			Expect(orderedJobs).To(Equal([]Job{first, second}))
-		})
-	})
-
-	Context("when there is more than one instance with a job that specifies other jobs to lock after it (e.g. many BAMs)", func() {})
-	Context("when the job that is specified in a tobelockedbefore actually appears on multiple instances (e.g. many CCAPIs", func() {})
 })
 
 // Add id field to Job for testing, otherwise jobs with the same name appear to be equal, and tests pass for the wrong
