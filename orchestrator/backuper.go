@@ -2,12 +2,13 @@ package orchestrator
 
 import "time"
 
-func NewBackuper(backupManager BackupManager, logger Logger, deploymentManager DeploymentManager, nowFunc func() time.Time) *Backuper {
+func NewBackuper(backupManager BackupManager, logger Logger, deploymentManager DeploymentManager, lockOrderer LockOrderer, nowFunc func() time.Time) *Backuper {
 	return &Backuper{
 		BackupManager:     backupManager,
 		Logger:            logger,
 		DeploymentManager: deploymentManager,
 		NowFunc:           nowFunc,
+		LockOrderer:       lockOrderer,
 	}
 }
 
@@ -28,6 +29,7 @@ type DeploymentManager interface {
 type Backuper struct {
 	BackupManager
 	Logger
+	LockOrderer
 
 	DeploymentManager
 	NowFunc func() time.Time

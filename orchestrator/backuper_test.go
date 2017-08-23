@@ -5,10 +5,10 @@ import (
 
 	"time"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Backup", func() {
@@ -19,6 +19,7 @@ var _ = Describe("Backup", func() {
 		fakeBackup            *fakes.FakeBackup
 		fakeBackupManager     *fakes.FakeBackupManager
 		logger                *fakes.FakeLogger
+		lockOrderer           *fakes.FakeLockOrderer
 		deploymentName        = "foobarbaz"
 		actualBackupError     error
 		startTime, finishTime time.Time
@@ -41,7 +42,7 @@ var _ = Describe("Backup", func() {
 			return now
 		}
 
-		b = orchestrator.NewBackuper(fakeBackupManager, logger, deploymentManager, nowFunc)
+		b = orchestrator.NewBackuper(fakeBackupManager, logger, deploymentManager, lockOrderer, nowFunc)
 	})
 
 	JustBeforeEach(func() {
@@ -447,6 +448,7 @@ var _ = Describe("CanBeBackedUp", func() {
 		deploymentManager        *fakes.FakeDeploymentManager
 		artifactManager          *fakes.FakeBackupManager
 		logger                   *fakes.FakeLogger
+		lockOrderer              *fakes.FakeLockOrderer
 		deploymentName           = "foobarbaz"
 		isDeploymentBackupable   bool
 		actualCanBeBackedUpError error
@@ -457,7 +459,7 @@ var _ = Describe("CanBeBackedUp", func() {
 		deploymentManager = new(fakes.FakeDeploymentManager)
 		artifactManager = new(fakes.FakeBackupManager)
 		logger = new(fakes.FakeLogger)
-		b = orchestrator.NewBackuper(artifactManager, logger, deploymentManager, time.Now)
+		b = orchestrator.NewBackuper(artifactManager, logger, deploymentManager, lockOrderer, time.Now)
 	})
 
 	JustBeforeEach(func() {

@@ -20,13 +20,14 @@ import (
 
 	"bufio"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	"github.com/mgutz/ansi"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orderer"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/standalone"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/writer"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	"github.com/mgutz/ansi"
 	"github.com/pkg/errors"
 )
 
@@ -506,7 +507,7 @@ func makeDeploymentBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
 		return nil, redCliError(err)
 	}
 
-	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager, time.Now), nil
+	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewNoopLockOrderer(), time.Now), nil
 }
 
 func makeDirectorBackuper(c *cli.Context) *orchestrator.Backuper {
@@ -519,7 +520,7 @@ func makeDirectorBackuper(c *cli.Context) *orchestrator.Backuper {
 		ssh.NewConnection,
 	)
 
-	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager, time.Now)
+	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewNoopLockOrderer(), time.Now)
 }
 
 func makeDeploymentRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
