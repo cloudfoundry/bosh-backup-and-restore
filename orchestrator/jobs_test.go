@@ -3,9 +3,9 @@ package orchestrator_test
 import (
 	"log"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
+	orchestratorFakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
+	sshFakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -13,34 +13,36 @@ import (
 
 var _ = Describe("Jobs", func() {
 	var jobs orchestrator.Jobs
-	var sshConnection *fakes.FakeSSHConnection
+	var sshConnection *sshFakes.FakeSSHConnection
 	var logger boshlog.Logger
 
 	BeforeEach(func() {
-		sshConnection = new(fakes.FakeSSHConnection)
+		sshConnection = new(sshFakes.FakeSSHConnection)
 
 		combinedLog := log.New(GinkgoWriter, "[instance-test] ", log.Lshortfile)
 		logger = boshlog.New(boshlog.LevelDebug, combinedLog, combinedLog)
 	})
 
 	Context("contains jobs with backup script", func() {
+		var backupableJob *orchestratorFakes.FakeJob
+		var nonBackupableJob *orchestratorFakes.FakeJob
+
 		BeforeEach(func() {
+			backupableJob = new(orchestratorFakes.FakeJob)
+			backupableJob.HasBackupReturns(true)
+
+			nonBackupableJob = new(orchestratorFakes.FakeJob)
+			nonBackupableJob.HasBackupReturns(false)
+
 			jobs = orchestrator.Jobs([]orchestrator.Job{
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/bbr/backup",
-				}, instance.Metadata{}),
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/bar/bin/bbr/restore",
-				}, instance.Metadata{}),
+				backupableJob,
+				nonBackupableJob,
 			})
 		})
 
 		Describe("Backupable", func() {
 			It("returns the backupable job", func() {
-				Expect(jobs.Backupable()).To(ConsistOf(
-					instance.NewJob(sshConnection, "identifier", logger,
-						instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo/bin/bbr/backup"}, instance.Metadata{}),
-				))
+				Expect(jobs.Backupable()).To(ConsistOf(backupableJob))
 			})
 		})
 
@@ -52,11 +54,14 @@ var _ = Describe("Jobs", func() {
 	})
 
 	Context("contains no jobs with backup script", func() {
+		var nonBackupableJob *orchestratorFakes.FakeJob
+
 		BeforeEach(func() {
+			nonBackupableJob = new(orchestratorFakes.FakeJob)
+			nonBackupableJob.HasBackupReturns(false)
+
 			jobs = orchestrator.Jobs([]orchestrator.Job{
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/bar/bin/bbr/restore",
-				}, instance.Metadata{}),
+				nonBackupableJob,
 			})
 		})
 
@@ -73,43 +78,26 @@ var _ = Describe("Jobs", func() {
 		})
 	})
 
-	Context("contains jobs with post-backup-lock scripts", func() {
-
-		BeforeEach(func() {
-			jobs = orchestrator.Jobs([]orchestrator.Job{
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/bbr/backup",
-				}, instance.Metadata{}),
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/bbr/post-backup-unlock",
-				}, instance.Metadata{}),
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/bar/bin/bbr/restore",
-				}, instance.Metadata{}),
-			})
-		})
-	})
-
 	Context("contains jobs with restore scripts", func() {
+		var restorableJob *orchestratorFakes.FakeJob
+		var nonRestorableJob *orchestratorFakes.FakeJob
+
 		BeforeEach(func() {
+			restorableJob = new(orchestratorFakes.FakeJob)
+			restorableJob.HasRestoreReturns(true)
+
+			nonRestorableJob = new(orchestratorFakes.FakeJob)
+			nonRestorableJob.HasRestoreReturns(false)
+
 			jobs = orchestrator.Jobs([]orchestrator.Job{
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/bbr/backup",
-				}, instance.Metadata{}),
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/bbr/post-backup-unlock",
-				}, instance.Metadata{}),
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/bar/bin/bbr/restore",
-				}, instance.Metadata{}),
+				restorableJob,
+				nonRestorableJob,
 			})
 		})
 
 		Describe("Restorable", func() {
-			It("returns the unlockable job", func() {
-				Expect(jobs.Restorable()).To(ConsistOf(instance.NewJob(sshConnection, "identifier", logger,
-					instance.BackupAndRestoreScripts{"/var/vcap/jobs/bar/bin/bbr/restore"}, instance.Metadata{}),
-				))
+			It("returns the restorable job", func() {
+				Expect(jobs.Restorable()).To(ConsistOf(restorableJob))
 			})
 		})
 
@@ -118,25 +106,30 @@ var _ = Describe("Jobs", func() {
 				Expect(jobs.AnyAreRestorable()).To(BeTrue())
 			})
 		})
-
-		Describe("AnyNeedDefaultArtifactsForRestore", func() {
-			It("returns true, as all of the jobs need a default artifact for restore", func() {
-				Expect(jobs.AnyNeedDefaultArtifactsForRestore()).To(BeTrue())
-			})
-		})
 	})
 
-	Context("contains no jobs with backup script", func() {
+	Context("contains no jobs with restore script", func() {
+		var nonRestorableJob *orchestratorFakes.FakeJob
+
 		BeforeEach(func() {
+			nonRestorableJob = new(orchestratorFakes.FakeJob)
+			nonRestorableJob.HasRestoreReturns(false)
+
 			jobs = orchestrator.Jobs([]orchestrator.Job{
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/bar/bin/bbr/backup",
-				}, instance.Metadata{}),
+				nonRestorableJob,
 			})
 		})
 
-		It("returns empty", func() {
-			Expect(jobs.Restorable()).To(BeEmpty())
+		Describe("Restorable", func() {
+			It("returns empty", func() {
+				Expect(jobs.Restorable()).To(BeEmpty())
+			})
+		})
+
+		Describe("AnyAreRestorable", func() {
+			It("returns false", func() {
+				Expect(jobs.AnyAreRestorable()).To(BeFalse())
+			})
 		})
 	})
 
@@ -149,88 +142,59 @@ var _ = Describe("Jobs", func() {
 	})
 
 	Context("contains jobs with a named backup artifact", func() {
+		var jobWithNamedBackupArtifact, anotherJobWithNamedBackupArtifact *orchestratorFakes.FakeJob
+		var jobWithoutNamedBackupArtifact *orchestratorFakes.FakeJob
+
 		BeforeEach(func() {
+			jobWithNamedBackupArtifact = new(orchestratorFakes.FakeJob)
+			jobWithNamedBackupArtifact.HasNamedBackupArtifactReturns(true)
+			jobWithNamedBackupArtifact.BackupArtifactNameReturns("backup-artifact-name")
+
+			anotherJobWithNamedBackupArtifact = new(orchestratorFakes.FakeJob)
+			anotherJobWithNamedBackupArtifact.HasNamedBackupArtifactReturns(true)
+			anotherJobWithNamedBackupArtifact.BackupArtifactNameReturns("another-backup-artifact-name")
+
+			jobWithoutNamedBackupArtifact = new(orchestratorFakes.FakeJob)
+			jobWithoutNamedBackupArtifact.HasNamedBackupArtifactReturns(false)
+
 			jobs = orchestrator.Jobs([]orchestrator.Job{
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/bar/bin/bbr/backup",
-				}, instance.Metadata{BackupName: "my-cool-artifact"}),
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/bar/bin/bbr/restore",
-				}, instance.Metadata{}),
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/bbr/backup",
-				}, instance.Metadata{}),
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/baz/bin/bbr/restore",
-				}, instance.Metadata{}),
-			})
-		})
-
-		Describe("AnyNeedDefaultArtifactsForBackup", func() {
-			It("returns true", func() {
-				Expect(jobs.AnyNeedDefaultArtifactsForBackup()).To(BeTrue())
-			})
-		})
-	})
-
-	Context("contains jobs with a named restore artifact", func() {
-		BeforeEach(func() {
-			jobs = orchestrator.Jobs([]orchestrator.Job{
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/bar/bin/bbr/backup",
-				}, instance.Metadata{}),
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/bar/bin/bbr/restore",
-				}, instance.Metadata{RestoreName: "my-cool-restore"}),
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/bbr/backup",
-				}, instance.Metadata{}),
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/baz/bin/bbr/restore",
-				}, instance.Metadata{}),
-			})
-		})
-
-		Describe("CustomRestoreArtifactNames", func() {
-			It("returns a list of artifact names", func() {
-				Expect(jobs.CustomRestoreArtifactNames()).To(ConsistOf("my-cool-restore"))
-			})
-		})
-
-		Describe("AnyNeedDefaultArtifactsForRestore", func() {
-			It("returns true, as job 'baz' needs a default artifact for restore", func() {
-				Expect(jobs.AnyNeedDefaultArtifactsForRestore()).To(BeTrue())
-			})
-		})
-	})
-
-	Context("contains jobs with multiple named artifacts", func() {
-		BeforeEach(func() {
-			jobs = orchestrator.Jobs([]orchestrator.Job{
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/foo/bin/bbr/backup",
-				}, instance.Metadata{BackupName: "a-bosh-backup"}),
-				instance.NewJob(sshConnection, "identifier", logger, instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/bar/bin/bbr/backup",
-				}, instance.Metadata{BackupName: "another-backup"}),
+				jobWithNamedBackupArtifact,
+				anotherJobWithNamedBackupArtifact,
+				jobWithoutNamedBackupArtifact,
 			})
 		})
 
 		Describe("CustomBackupArtifactNames", func() {
 			It("returns a list of artifact names", func() {
-				Expect(jobs.CustomBackupArtifactNames()).To(ConsistOf("a-bosh-backup", "another-backup"))
+				Expect(jobs.CustomBackupArtifactNames()).To(ConsistOf(
+					"backup-artifact-name",
+					"another-backup-artifact-name",
+				))
+			})
+		})
+	})
+
+	Context("contains jobs with a named restore artifact", func() {
+		var jobWithNamedRestoreArtifact *orchestratorFakes.FakeJob
+		var jobWithoutNamedRestoreArtifact *orchestratorFakes.FakeJob
+
+		BeforeEach(func() {
+			jobWithNamedRestoreArtifact = new(orchestratorFakes.FakeJob)
+			jobWithNamedRestoreArtifact.HasNamedRestoreArtifactReturns(true)
+			jobWithNamedRestoreArtifact.RestoreArtifactNameReturns("restore-artifact-name")
+
+			jobWithoutNamedRestoreArtifact = new(orchestratorFakes.FakeJob)
+			jobWithoutNamedRestoreArtifact.HasNamedRestoreArtifactReturns(false)
+
+			jobs = orchestrator.Jobs([]orchestrator.Job{
+				jobWithNamedRestoreArtifact,
+				jobWithoutNamedRestoreArtifact,
 			})
 		})
 
-		Describe("AnyNeedDefaultArtifactsForRestore", func() {
-			It("returns false, as none of the jobs need a default artifact for restore", func() {
-				Expect(jobs.AnyNeedDefaultArtifactsForRestore()).To(BeFalse())
-			})
-		})
-
-		Describe("AnyNeedDefaultArtifactsForBackup", func() {
-			It("returns false", func() {
-				Expect(jobs.AnyNeedDefaultArtifactsForBackup()).To(BeFalse())
+		Describe("CustomRestoreArtifactNames", func() {
+			It("returns a list of artifact names", func() {
+				Expect(jobs.CustomRestoreArtifactNames()).To(ConsistOf("restore-artifact-name"))
 			})
 		})
 	})

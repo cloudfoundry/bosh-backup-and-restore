@@ -29,24 +29,6 @@ func (jobs Jobs) AnyAreRestorable() bool {
 	return !jobs.Restorable().empty()
 }
 
-func (jobs Jobs) AnyNeedDefaultArtifactsForRestore() bool {
-	for _, job := range jobs.Restorable() {
-		if !job.HasNamedRestoreArtifact() {
-			return true
-		}
-	}
-	return false
-}
-
-func (jobs Jobs) AnyNeedDefaultArtifactsForBackup() bool {
-	for _, job := range jobs.Backupable() {
-		if !job.HasNamedBackupArtifact() {
-			return true
-		}
-	}
-	return false
-}
-
 func (jobs Jobs) withNamedBackupArtifacts() Jobs {
 	jobsWithNamedArtifacts := Jobs{}
 	for _, job := range jobs {
