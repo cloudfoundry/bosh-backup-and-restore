@@ -10,38 +10,40 @@ import (
 var _ = Describe("KahnLockOrderer", func() {
 	Context("new tests", func() {
 		type lockingTestCase struct {
-			orderedJobs   []Job
-			unorderedJobs []Job
+			inputJobs   []Job
+			orderedJobs []Job
 		}
 
 		lockOrderer := NewKahnLockOrderer()
 
 		DescribeTable("counting substring matches",
-			func(c func() lockingTestCase) {
-				testCase := c()
-				Expect(lockOrderer.Order(testCase.unorderedJobs)).To(Equal(testCase.orderedJobs))
+			func(testCaseBuilder func() lockingTestCase) {
+				testCase := testCaseBuilder()
+				Expect(lockOrderer.Order(testCase.inputJobs)).To(Equal(testCase.orderedJobs))
 			},
 
 			Entry("no jobs", func() lockingTestCase {
 				return lockingTestCase{
-					unorderedJobs: []Job{},
-					orderedJobs:   []Job{},
+					inputJobs:   []Job{},
+					orderedJobs: []Job{},
 				}
 			}),
 
 			Entry("one job", func() lockingTestCase {
 				var job = NewTestJob("test", []JobSpecifier{})
+
 				return lockingTestCase{
-					unorderedJobs: []Job{job},
-					orderedJobs:   []Job{job},
+					inputJobs:   []Job{job},
+					orderedJobs: []Job{job},
 				}
 			}),
 
-			Entry("one job, dependency not provided", func() lockingTestCase {
+			Entry("one job, dependency on non-existent job", func() lockingTestCase {
 				var job = NewTestJob("test", []JobSpecifier{{Name: "non-existent"}})
+
 				return lockingTestCase{
-					unorderedJobs: []Job{job},
-					orderedJobs:   []Job{job},
+					inputJobs:   []Job{job},
+					orderedJobs: []Job{job},
 				}
 			}),
 
@@ -51,8 +53,8 @@ var _ = Describe("KahnLockOrderer", func() {
 				var c = NewTestJob("c", []JobSpecifier{})
 
 				return lockingTestCase{
-					unorderedJobs: []Job{a, b, c},
-					orderedJobs:   []Job{a, b, c},
+					inputJobs:   []Job{a, b, c},
+					orderedJobs: []Job{a, b, c},
 				}
 			}),
 
@@ -62,19 +64,19 @@ var _ = Describe("KahnLockOrderer", func() {
 				var c = NewTestJob("c", []JobSpecifier{})
 
 				return lockingTestCase{
-					unorderedJobs: []Job{a, c, b},
-					orderedJobs:   []Job{a, b, c},
+					inputJobs:   []Job{a, c, b},
+					orderedJobs: []Job{a, b, c},
 				}
 			}),
 
-			Entry("multiple jobs, dependency not provided", func() lockingTestCase {
+			Entry("multiple jobs, dependency on non-existent job", func() lockingTestCase {
 				var a = NewTestJob("a", []JobSpecifier{})
 				var b = NewTestJob("b", []JobSpecifier{{Name: "e"}})
 				var c = NewTestJob("c", []JobSpecifier{})
 
 				return lockingTestCase{
-					unorderedJobs: []Job{a, b, c},
-					orderedJobs:   []Job{a, b, c},
+					inputJobs:   []Job{a, b, c},
+					orderedJobs: []Job{a, b, c},
 				}
 			}),
 
@@ -85,8 +87,8 @@ var _ = Describe("KahnLockOrderer", func() {
 				var d = NewTestJob("d", []JobSpecifier{})
 
 				return lockingTestCase{
-					unorderedJobs: []Job{a, c, d, b},
-					orderedJobs:   []Job{a, b, c, d},
+					inputJobs:   []Job{a, c, d, b},
+					orderedJobs: []Job{a, b, c, d},
 				}
 			}),
 
@@ -96,8 +98,8 @@ var _ = Describe("KahnLockOrderer", func() {
 				var c = NewTestJob("c", []JobSpecifier{})
 
 				return lockingTestCase{
-					unorderedJobs: []Job{c, b, a},
-					orderedJobs:   []Job{a, b, c},
+					inputJobs:   []Job{c, b, a},
+					orderedJobs: []Job{a, b, c},
 				}
 			}),
 
@@ -109,8 +111,8 @@ var _ = Describe("KahnLockOrderer", func() {
 				var c3 = NewTestJob("c", []JobSpecifier{})
 
 				return lockingTestCase{
-					unorderedJobs: []Job{c1, c2, c3, a, b},
-					orderedJobs:   []Job{a, b, c1, c2, c3},
+					inputJobs:   []Job{c1, c2, c3, a, b},
+					orderedJobs: []Job{a, b, c1, c2, c3},
 				}
 			}),
 
@@ -122,8 +124,8 @@ var _ = Describe("KahnLockOrderer", func() {
 				var c = NewTestJob("c", []JobSpecifier{})
 
 				return lockingTestCase{
-					unorderedJobs: []Job{a, c, b1, b2, b3},
-					orderedJobs:   []Job{a, b1, b2, b3, c},
+					inputJobs:   []Job{a, c, b1, b2, b3},
+					orderedJobs: []Job{a, b1, b2, b3, c},
 				}
 			}),
 		)
