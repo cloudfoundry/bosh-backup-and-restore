@@ -18,6 +18,8 @@ import (
 
 	"regexp"
 
+	"strings"
+
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -840,7 +842,7 @@ echo "not valid yaml
 				Expect(path.Join(backupDirectory(), "/redis-broker-0-redis.tar")).ToNot(BeAnExistingFile())
 			})
 
-			XContext("with ordering on pre-backup-lock", func() {
+			Context("with ordering on pre-backup-lock", func() {
 				BeforeEach(func() {
 					backupableInstance.CreateScript(
 						"/var/vcap/jobs/redis/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
@@ -850,7 +852,8 @@ exit 0`)
 						"/var/vcap/jobs/redis-writer/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
 touch /tmp/redis-writer-pre-backup-lock-called
 exit 0`)
-					nonBackupableInstance.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata", `#!/usr/bin/env sh
+					nonBackupableInstance.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata",
+						`#!/usr/bin/env sh
 echo "---
 should_be_locked_before:
 - job_name: redis
@@ -861,7 +864,10 @@ should_be_locked_before:
 					redisLockTime := backupableInstance.GetCreatedTime("/tmp/redis-pre-backup-lock-called")
 					redisWriterLockTime := nonBackupableInstance.GetCreatedTime("/tmp/redis-writer-pre-backup-lock-called")
 
-					Expect(redisWriterLockTime < redisLockTime).To(BeTrue())
+					Expect(redisWriterLockTime < redisLockTime).To(BeTrue(), fmt.Sprintf(
+						"Writer locked at %s, which is after the server locked (%s)",
+						strings.TrimSuffix(redisWriterLockTime, "\n"),
+						strings.TrimSuffix(redisLockTime, "\n")))
 				})
 			})
 		})

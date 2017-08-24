@@ -507,7 +507,7 @@ func makeDeploymentBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
 		return nil, redCliError(err)
 	}
 
-	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewNoopLockOrderer(), time.Now), nil
+	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewKahnLockOrderer(), time.Now), nil
 }
 
 func makeDirectorBackuper(c *cli.Context) *orchestrator.Backuper {
@@ -520,7 +520,7 @@ func makeDirectorBackuper(c *cli.Context) *orchestrator.Backuper {
 		ssh.NewConnection,
 	)
 
-	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewNoopLockOrderer(), time.Now)
+	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewKahnLockOrderer(), time.Now)
 }
 
 func makeDeploymentRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
