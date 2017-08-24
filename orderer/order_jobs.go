@@ -18,6 +18,22 @@ func OrderJobsUsingTheKahnAlgorithm(jobs []*orchestrator.Job, lockingDependencie
 	return orderedJobs
 }
 
+func jobsThatCanBeLocked(jobs []*orchestrator.Job, dependencies []lockingDependency) []*orchestrator.Job {
+	var jobsWithNoDeps []*orchestrator.Job
+	for _, job := range jobs {
+		var dependencyFound bool
+		for _, dependency := range dependencies {
+			if dependency.After == job {
+				dependencyFound = true
+			}
+		}
+		if !dependencyFound {
+			jobsWithNoDeps = append(jobsWithNoDeps, job)
+		}
+	}
+	return jobsWithNoDeps
+}
+
 func removeJobs(jobs []*orchestrator.Job, jobsToRemove []*orchestrator.Job) []*orchestrator.Job {
 	var jobsToKeep []*orchestrator.Job
 	for _, job := range jobs {
@@ -52,20 +68,4 @@ func removeDependeciesThatHaveAnyOneJobInBefore(dependencies []lockingDependency
 	}
 
 	return dependenciesToKeep
-}
-
-func jobsThatCanBeLocked(jobs []*orchestrator.Job, dependencies []lockingDependency) []*orchestrator.Job {
-	var jobsWithNoDeps []*orchestrator.Job
-	for _, job := range jobs {
-		var dependencyFound bool
-		for _, dependency := range dependencies {
-			if dependency.After == job {
-				dependencyFound = true
-			}
-		}
-		if !dependencyFound {
-			jobsWithNoDeps = append(jobsWithNoDeps, job)
-		}
-	}
-	return jobsWithNoDeps
 }
