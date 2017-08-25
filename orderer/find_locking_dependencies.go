@@ -2,11 +2,11 @@ package orderer
 
 import "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 
-func FindLockingDependencies(jobs []*orchestrator.Job) []lockingDependency {
+func FindLockingDependencies(jobs []orchestrator.Job) []lockingDependency {
 	var lockingDependencies []lockingDependency
 
 	for _, job := range jobs {
-		jobSpecifiersThatShouldBeLockedAfter := (*job).ShouldBeLockedBefore()
+		jobSpecifiersThatShouldBeLockedAfter := job.ShouldBeLockedBefore()
 
 		for _, jobSpecifierThatShouldBeLockedAfter := range jobSpecifiersThatShouldBeLockedAfter {
 			jobsThatShouldBeLockedAfter := findJobsBySpecifier(jobs, jobSpecifierThatShouldBeLockedAfter)
@@ -19,10 +19,10 @@ func FindLockingDependencies(jobs []*orchestrator.Job) []lockingDependency {
 	return lockingDependencies
 }
 
-func findJobsBySpecifier(jobs []*orchestrator.Job, specifier orchestrator.JobSpecifier) []*orchestrator.Job {
-	var foundJobs []*orchestrator.Job
+func findJobsBySpecifier(jobs []orchestrator.Job, specifier orchestrator.JobSpecifier) []orchestrator.Job {
+	var foundJobs []orchestrator.Job
 	for _, job := range jobs {
-		if (*job).Name() == specifier.Name {
+		if job.Name() == specifier.Name {
 			foundJobs = append(foundJobs, job)
 		}
 	}
