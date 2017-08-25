@@ -9,11 +9,11 @@ import (
 )
 
 type FakeJobFinder struct {
-	FindJobsStub        func(hostIdentifier string, connection instance.SSHConnection) (orchestrator.Jobs, error)
+	FindJobsStub        func(instanceIdentifier string, connection instance.SSHConnection) (orchestrator.Jobs, error)
 	findJobsMutex       sync.RWMutex
 	findJobsArgsForCall []struct {
-		hostIdentifier string
-		connection     instance.SSHConnection
+		instanceIdentifier string
+		connection         instance.SSHConnection
 	}
 	findJobsReturns struct {
 		result1 orchestrator.Jobs
@@ -27,17 +27,17 @@ type FakeJobFinder struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeJobFinder) FindJobs(hostIdentifier string, connection instance.SSHConnection) (orchestrator.Jobs, error) {
+func (fake *FakeJobFinder) FindJobs(instanceIdentifier string, connection instance.SSHConnection) (orchestrator.Jobs, error) {
 	fake.findJobsMutex.Lock()
 	ret, specificReturn := fake.findJobsReturnsOnCall[len(fake.findJobsArgsForCall)]
 	fake.findJobsArgsForCall = append(fake.findJobsArgsForCall, struct {
-		hostIdentifier string
-		connection     instance.SSHConnection
-	}{hostIdentifier, connection})
-	fake.recordInvocation("FindJobs", []interface{}{hostIdentifier, connection})
+		instanceIdentifier string
+		connection         instance.SSHConnection
+	}{instanceIdentifier, connection})
+	fake.recordInvocation("FindJobs", []interface{}{instanceIdentifier, connection})
 	fake.findJobsMutex.Unlock()
 	if fake.FindJobsStub != nil {
-		return fake.FindJobsStub(hostIdentifier, connection)
+		return fake.FindJobsStub(instanceIdentifier, connection)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -54,7 +54,7 @@ func (fake *FakeJobFinder) FindJobsCallCount() int {
 func (fake *FakeJobFinder) FindJobsArgsForCall(i int) (string, instance.SSHConnection) {
 	fake.findJobsMutex.RLock()
 	defer fake.findJobsMutex.RUnlock()
-	return fake.findJobsArgsForCall[i].hostIdentifier, fake.findJobsArgsForCall[i].connection
+	return fake.findJobsArgsForCall[i].instanceIdentifier, fake.findJobsArgsForCall[i].connection
 }
 
 func (fake *FakeJobFinder) FindJobsReturns(result1 orchestrator.Jobs, result2 error) {

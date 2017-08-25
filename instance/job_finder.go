@@ -10,7 +10,7 @@ import (
 
 //go:generate counterfeiter -o fakes/fake_job_finder.go . JobFinder
 type JobFinder interface {
-	FindJobs(hostIdentifier string, connection SSHConnection) (orchestrator.Jobs, error)
+	FindJobs(instanceIdentifier string, connection SSHConnection) (orchestrator.Jobs, error)
 }
 
 type JobFinderFromScripts struct {
@@ -23,18 +23,18 @@ func NewJobFinder(logger Logger) *JobFinderFromScripts {
 	}
 }
 
-func (j *JobFinderFromScripts) FindJobs(hostIdentifierForLogging string, connection SSHConnection) (orchestrator.Jobs, error) {
-	findOutput, err := j.findScripts(hostIdentifierForLogging, connection)
+func (j *JobFinderFromScripts) FindJobs(instanceIdentifier string, connection SSHConnection) (orchestrator.Jobs, error) {
+	findOutput, err := j.findScripts(instanceIdentifier, connection)
 	if err != nil {
 		return nil, err
 	}
 	metadata := map[string]Metadata{}
 	scripts := NewBackupAndRestoreScripts(findOutput)
 	for _, script := range scripts {
-		j.Logger.Info("bbr", "%s/%s/%s", hostIdentifierForLogging, script.JobName(), script.Name())
+		j.Logger.Info("bbr", "%s/%s/%s", instanceIdentifier, script.JobName(), script.Name())
 	}
 	for _, script := range scripts.MetadataOnly() {
-		jobMetadata, err := j.findMetadata(hostIdentifierForLogging, script, connection)
+		jobMetadata, err := j.findMetadata(instanceIdentifier, script, connection)
 
 		if err != nil {
 			return nil, err
@@ -44,16 +44,16 @@ func (j *JobFinderFromScripts) FindJobs(hostIdentifierForLogging string, connect
 		metadata[jobName] = *jobMetadata
 	}
 
-	return j.buildJobs(connection, hostIdentifierForLogging, j.Logger, scripts, metadata), nil
+	return j.buildJobs(connection, instanceIdentifier, j.Logger, scripts, metadata), nil
 }
 
-func (j *JobFinderFromScripts) findMetadata(hostIdentifier string, pathToScript Script, connection SSHConnection) (*Metadata, error) {
+func (j *JobFinderFromScripts) findMetadata(instanceIdentifier string, pathToScript Script, connection SSHConnection) (*Metadata, error) {
 	metadataContent, _, _, err := connection.Run(string(pathToScript))
 
 	if err != nil {
 		errorString := fmt.Sprintf(
 			"An error occurred while running job metadata scripts on %s: %s",
-			hostIdentifier,
+			instanceIdentifier,
 			err,
 		)
 		j.Logger.Error("bbr", errorString)
@@ -65,7 +65,7 @@ func (j *JobFinderFromScripts) findMetadata(hostIdentifier string, pathToScript 
 	if err != nil {
 		errorString := fmt.Sprintf(
 			"Reading job metadata for %s failed: %s",
-			hostIdentifier,
+			instanceIdentifier,
 			err.Error(),
 		)
 		j.Logger.Error("bbr", errorString)
@@ -75,15 +75,15 @@ func (j *JobFinderFromScripts) findMetadata(hostIdentifier string, pathToScript 
 	return jobMetadata, nil
 }
 
-func (j *JobFinderFromScripts) findScripts(hostIdentifierForLogging string, sshConnection SSHConnection) ([]string, error) {
-	j.Logger.Debug("bbr", "Attempting to find scripts on %s", hostIdentifierForLogging)
+func (j *JobFinderFromScripts) findScripts(instanceIdentifierForLogging string, sshConnection SSHConnection) ([]string, error) {
+	j.Logger.Debug("bbr", "Attempting to find scripts on %s", instanceIdentifierForLogging)
 
 	stdout, stderr, exitCode, err := sshConnection.Run("find /var/vcap/jobs/*/bin/bbr/* -type f")
 	if err != nil {
 		j.Logger.Error(
 			"",
 			"Failed to run find on %s. Error: %s\nStdout: %s\nStderr%s",
-			hostIdentifierForLogging,
+			instanceIdentifierForLogging,
 			err,
 			stdout,
 			stderr,
@@ -96,7 +96,7 @@ func (j *JobFinderFromScripts) findScripts(hostIdentifierForLogging string, sshC
 			j.Logger.Debug(
 				"",
 				"Running find failed on %s.\nStdout: %s\nStderr: %s",
-				hostIdentifierForLogging,
+				instanceIdentifierForLogging,
 				stdout,
 				stderr,
 			)
@@ -104,13 +104,13 @@ func (j *JobFinderFromScripts) findScripts(hostIdentifierForLogging string, sshC
 			j.Logger.Error(
 				"",
 				"Running find failed on %s.\nStdout: %s\nStderr: %s",
-				hostIdentifierForLogging,
+				instanceIdentifierForLogging,
 				stdout,
 				stderr,
 			)
 			return nil, errors.Errorf(
 				"Running find failed on %s.\nStdout: %s\nStderr: %s",
-				hostIdentifierForLogging,
+				instanceIdentifierForLogging,
 				stdout,
 				stderr,
 			)

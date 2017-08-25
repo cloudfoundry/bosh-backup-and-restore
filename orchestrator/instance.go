@@ -46,6 +46,7 @@ type Job interface {
 	Restore() error
 	PostRestoreUnlock() error
 	Name() string
+	InstanceIdentifier() string
 	BackupArtifactDirectory() string
 	RestoreArtifactDirectory() string
 	ShouldBeLockedBefore() []JobSpecifier

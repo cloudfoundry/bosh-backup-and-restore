@@ -229,8 +229,8 @@ var _ = Describe("Director", func() {
 						instance.Metadata{},
 					),
 				}
-				fakeJobFinder.FindJobsStub = func(hostIdentifier string, connection instance.SSHConnection) (orchestrator.Jobs, error) {
-					if strings.HasPrefix(hostIdentifier, "hostname1") {
+				fakeJobFinder.FindJobsStub = func(instanceIdentifier string, connection instance.SSHConnection) (orchestrator.Jobs, error) {
+					if strings.HasPrefix(instanceIdentifier, "hostname1") {
 						return instance0Jobs, nil
 					} else {
 						return instance1Jobs, nil

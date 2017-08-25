@@ -116,6 +116,15 @@ type FakeJob struct {
 	nameReturnsOnCall map[int]struct {
 		result1 string
 	}
+	InstanceIdentifierStub        func() string
+	instanceIdentifierMutex       sync.RWMutex
+	instanceIdentifierArgsForCall []struct{}
+	instanceIdentifierReturns     struct {
+		result1 string
+	}
+	instanceIdentifierReturnsOnCall map[int]struct {
+		result1 string
+	}
 	BackupArtifactDirectoryStub        func() string
 	backupArtifactDirectoryMutex       sync.RWMutex
 	backupArtifactDirectoryArgsForCall []struct{}
@@ -627,6 +636,46 @@ func (fake *FakeJob) NameReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
+func (fake *FakeJob) InstanceIdentifier() string {
+	fake.instanceIdentifierMutex.Lock()
+	ret, specificReturn := fake.instanceIdentifierReturnsOnCall[len(fake.instanceIdentifierArgsForCall)]
+	fake.instanceIdentifierArgsForCall = append(fake.instanceIdentifierArgsForCall, struct{}{})
+	fake.recordInvocation("InstanceIdentifier", []interface{}{})
+	fake.instanceIdentifierMutex.Unlock()
+	if fake.InstanceIdentifierStub != nil {
+		return fake.InstanceIdentifierStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.instanceIdentifierReturns.result1
+}
+
+func (fake *FakeJob) InstanceIdentifierCallCount() int {
+	fake.instanceIdentifierMutex.RLock()
+	defer fake.instanceIdentifierMutex.RUnlock()
+	return len(fake.instanceIdentifierArgsForCall)
+}
+
+func (fake *FakeJob) InstanceIdentifierReturns(result1 string) {
+	fake.InstanceIdentifierStub = nil
+	fake.instanceIdentifierReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeJob) InstanceIdentifierReturnsOnCall(i int, result1 string) {
+	fake.InstanceIdentifierStub = nil
+	if fake.instanceIdentifierReturnsOnCall == nil {
+		fake.instanceIdentifierReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.instanceIdentifierReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeJob) BackupArtifactDirectory() string {
 	fake.backupArtifactDirectoryMutex.Lock()
 	ret, specificReturn := fake.backupArtifactDirectoryReturnsOnCall[len(fake.backupArtifactDirectoryArgsForCall)]
@@ -774,6 +823,8 @@ func (fake *FakeJob) Invocations() map[string][][]interface{} {
 	defer fake.postRestoreUnlockMutex.RUnlock()
 	fake.nameMutex.RLock()
 	defer fake.nameMutex.RUnlock()
+	fake.instanceIdentifierMutex.RLock()
+	defer fake.instanceIdentifierMutex.RUnlock()
 	fake.backupArtifactDirectoryMutex.RLock()
 	defer fake.backupArtifactDirectoryMutex.RUnlock()
 	fake.restoreArtifactDirectoryMutex.RLock()

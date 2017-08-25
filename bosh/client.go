@@ -104,9 +104,9 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 				return nil, errors.Wrap(err, "failed to connect using ssh")
 			}
 
-			hostIdentifier := fmt.Sprintf("%s/%s", instanceGroupName, host.IndexOrID)
+			instanceIdentifier := fmt.Sprintf("%s/%s", instanceGroupName, host.IndexOrID)
 
-			jobs, err := c.jobFinder.FindJobs(hostIdentifier, sshConnection)
+			jobs, err := c.jobFinder.FindJobs(instanceIdentifier, sshConnection)
 			if err != nil {
 				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
 				return nil, errors.Wrap(err, "couldn't find jobs")
