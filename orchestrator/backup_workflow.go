@@ -197,7 +197,7 @@ func (bw *backupWorkflow) backup(e *fsm.Event) {
 }
 
 func (bw *backupWorkflow) postBackupUnlock(e *fsm.Event) {
-	err := bw.deployment.PostBackupUnlock()
+	err := bw.deployment.PostBackupUnlock(bw.LockOrderer)
 
 	if err != nil {
 		bw.backupErrors = append(bw.backupErrors, NewPostBackupUnlockError(err.Error()))

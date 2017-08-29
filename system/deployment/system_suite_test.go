@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 
 	"sync"
 	"testing"
@@ -29,7 +29,7 @@ var _ = BeforeEach(func() {
 	SetDefaultEventuallyTimeout(4 * time.Minute)
 	var wg sync.WaitGroup
 
-	wg.Add(6)
+	wg.Add(7)
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
@@ -54,13 +54,6 @@ var _ = BeforeEach(func() {
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
-		By("deploying the jump box")
-		JumpboxDeployment.Deploy()
-	}()
-
-	go func() {
-		defer GinkgoRecover()
-		defer wg.Done()
 		By("deploying the other Redis test release")
 		AnotherRedisDeployment.Deploy()
 	}()
@@ -70,6 +63,20 @@ var _ = BeforeEach(func() {
 		defer wg.Done()
 		By("deploying the slow backup Redis test release")
 		RedisSlowBackupDeployment.Deploy()
+	}()
+
+	go func() {
+		defer GinkgoRecover()
+		defer wg.Done()
+		By("deploying the Redis with locking order release")
+		RedisWithLockingOrderDeployment.Deploy()
+	}()
+
+	go func() {
+		defer GinkgoRecover()
+		defer wg.Done()
+		By("deploying the jump box")
+		JumpboxDeployment.Deploy()
 	}()
 
 	wg.Wait()
@@ -89,8 +96,7 @@ var _ = BeforeEach(func() {
 var _ = AfterEach(func() {
 	var wg sync.WaitGroup
 
-	wg.Add(6)
-
+	wg.Add(7)
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
@@ -122,15 +128,22 @@ var _ = AfterEach(func() {
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
-		By("tearing down the jump box")
-		JumpboxDeployment.Delete()
+		By("tearing down the slow backup Redis test release")
+		RedisSlowBackupDeployment.Delete()
 	}()
 
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
-		By("tearing down the slow backup Redis test release")
-		RedisSlowBackupDeployment.Delete()
+		By("tearing down the Redis with locking order release")
+		RedisWithLockingOrderDeployment.Deploy()
+	}()
+
+	go func() {
+		defer GinkgoRecover()
+		defer wg.Done()
+		By("tearing down the jump box")
+		JumpboxDeployment.Delete()
 	}()
 
 	wg.Wait()

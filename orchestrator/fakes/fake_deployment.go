@@ -64,10 +64,12 @@ type FakeDeployment struct {
 	backupReturnsOnCall map[int]struct {
 		result1 error
 	}
-	PostBackupUnlockStub        func() error
+	PostBackupUnlockStub        func(orderer orchestrator.LockOrderer) error
 	postBackupUnlockMutex       sync.RWMutex
-	postBackupUnlockArgsForCall []struct{}
-	postBackupUnlockReturns     struct {
+	postBackupUnlockArgsForCall []struct {
+		orderer orchestrator.LockOrderer
+	}
+	postBackupUnlockReturns struct {
 		result1 error
 	}
 	postBackupUnlockReturnsOnCall map[int]struct {
@@ -401,14 +403,16 @@ func (fake *FakeDeployment) BackupReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) PostBackupUnlock() error {
+func (fake *FakeDeployment) PostBackupUnlock(orderer orchestrator.LockOrderer) error {
 	fake.postBackupUnlockMutex.Lock()
 	ret, specificReturn := fake.postBackupUnlockReturnsOnCall[len(fake.postBackupUnlockArgsForCall)]
-	fake.postBackupUnlockArgsForCall = append(fake.postBackupUnlockArgsForCall, struct{}{})
-	fake.recordInvocation("PostBackupUnlock", []interface{}{})
+	fake.postBackupUnlockArgsForCall = append(fake.postBackupUnlockArgsForCall, struct {
+		orderer orchestrator.LockOrderer
+	}{orderer})
+	fake.recordInvocation("PostBackupUnlock", []interface{}{orderer})
 	fake.postBackupUnlockMutex.Unlock()
 	if fake.PostBackupUnlockStub != nil {
-		return fake.PostBackupUnlockStub()
+		return fake.PostBackupUnlockStub(orderer)
 	}
 	if specificReturn {
 		return ret.result1
@@ -420,6 +424,12 @@ func (fake *FakeDeployment) PostBackupUnlockCallCount() int {
 	fake.postBackupUnlockMutex.RLock()
 	defer fake.postBackupUnlockMutex.RUnlock()
 	return len(fake.postBackupUnlockArgsForCall)
+}
+
+func (fake *FakeDeployment) PostBackupUnlockArgsForCall(i int) orchestrator.LockOrderer {
+	fake.postBackupUnlockMutex.RLock()
+	defer fake.postBackupUnlockMutex.RUnlock()
+	return fake.postBackupUnlockArgsForCall[i].orderer
 }
 
 func (fake *FakeDeployment) PostBackupUnlockReturns(result1 error) {

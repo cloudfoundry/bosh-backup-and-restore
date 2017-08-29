@@ -811,28 +811,28 @@ echo "not valid yaml
 		}
 
 		Context("one backupable", func() {
-			var backupableInstance, nonBackupableInstance *testcluster.Instance
+			var firstReturnedInstance, secondReturnedInstance *testcluster.Instance
 
 			BeforeEach(func() {
 				deploymentName = "my-bigger-deployment"
-				backupableInstance = testcluster.NewInstance()
-				nonBackupableInstance = testcluster.NewInstance()
+				firstReturnedInstance = testcluster.NewInstance()
+				secondReturnedInstance = testcluster.NewInstance()
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
-					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance),
-						SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, nonBackupableInstance)...),
+					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, firstReturnedInstance),
+						SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, secondReturnedInstance)...),
 					append(CleanupSSH(deploymentName, "redis-dedicated-node"),
 						CleanupSSH(deploymentName, "redis-broker")...),
 				)
-				backupableInstance.CreateExecutableFiles(
+				firstReturnedInstance.CreateExecutableFiles(
 					"/var/vcap/jobs/redis/bin/bbr/backup",
 				)
 			})
 
 			AfterEach(func() {
-				backupableInstance.DieInBackground()
-				nonBackupableInstance.DieInBackground()
+				firstReturnedInstance.DieInBackground()
+				secondReturnedInstance.DieInBackground()
 			})
 
 			It("backs up deployment successfully", func() {
@@ -842,17 +842,17 @@ echo "not valid yaml
 				Expect(path.Join(backupDirectory(), "/redis-broker-0-redis.tar")).ToNot(BeAnExistingFile())
 			})
 
-			Context("with ordering on pre-backup-lock", func() {
+			Context("with ordering on pre-backup-lock (where the default order would be wrong)", func() {
 				BeforeEach(func() {
-					backupableInstance.CreateScript(
+					firstReturnedInstance.CreateScript(
 						"/var/vcap/jobs/redis/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
 touch /tmp/redis-pre-backup-lock-called
 exit 0`)
-					nonBackupableInstance.CreateScript(
+					secondReturnedInstance.CreateScript(
 						"/var/vcap/jobs/redis-writer/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
 touch /tmp/redis-writer-pre-backup-lock-called
 exit 0`)
-					nonBackupableInstance.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata",
+					secondReturnedInstance.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata",
 						`#!/usr/bin/env sh
 echo "---
 should_be_locked_before:
@@ -860,16 +860,56 @@ should_be_locked_before:
 "`)
 				})
 
-				It("locks the redis-writer job before locking the redis job", func() {
-					redisLockTime := backupableInstance.GetCreatedTime("/tmp/redis-pre-backup-lock-called")
-					redisWriterLockTime := nonBackupableInstance.GetCreatedTime("/tmp/redis-writer-pre-backup-lock-called")
+				It("locks in the right order", func() {
+					redisLockTime := firstReturnedInstance.GetCreatedTime("/tmp/redis-pre-backup-lock-called")
+					redisWriterLockTime := secondReturnedInstance.GetCreatedTime("/tmp/redis-writer-pre-backup-lock-called")
 
 					Expect(redisWriterLockTime < redisLockTime).To(BeTrue(), fmt.Sprintf(
 						"Writer locked at %s, which is after the server locked (%s)",
 						strings.TrimSuffix(redisWriterLockTime, "\n"),
 						strings.TrimSuffix(redisLockTime, "\n")))
+
 				})
 			})
+
+			Context("with ordering on pre-backup-lock (where the default ordering would unlock in the wrong order",
+				func() {
+					BeforeEach(func() {
+						secondReturnedInstance.CreateScript(
+							"/var/vcap/jobs/redis/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
+touch /tmp/redis-pre-backup-lock-called
+exit 0`)
+						firstReturnedInstance.CreateScript(
+							"/var/vcap/jobs/redis-writer/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
+touch /tmp/redis-writer-pre-backup-lock-called
+exit 0`)
+						secondReturnedInstance.CreateScript(
+							"/var/vcap/jobs/redis/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
+touch /tmp/redis-post-backup-unlock-called
+exit 0`)
+						firstReturnedInstance.CreateScript(
+							"/var/vcap/jobs/redis-writer/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
+touch /tmp/redis-writer-post-backup-unlock-called
+exit 0`)
+						firstReturnedInstance.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata",
+							`#!/usr/bin/env sh
+echo "---
+should_be_locked_before:
+- job_name: redis
+"`)
+					})
+
+					It("unlocks in the right order", func() {
+						By("unlocking the redis job before unlocking the redis-writer job")
+						redisUnlockTime := secondReturnedInstance.GetCreatedTime("/tmp/redis-post-backup-unlock-called")
+						redisWriterUnlockTime := firstReturnedInstance.GetCreatedTime("/tmp/redis-writer-post-backup-unlock-called")
+
+						Expect(redisUnlockTime < redisWriterUnlockTime).To(BeTrue(), fmt.Sprintf(
+							"Writer unlocked at %s, which is before the server unlocked (%s)",
+							strings.TrimSuffix(redisWriterUnlockTime, "\n"),
+							strings.TrimSuffix(redisUnlockTime, "\n")))
+					})
+				})
 		})
 
 		Context("both backupable", func() {

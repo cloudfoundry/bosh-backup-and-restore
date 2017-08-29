@@ -18,13 +18,15 @@ var _ = Describe("Cleanup", func() {
 		deploymentName    = "foobarbaz"
 		cleanupError      error
 		logger            *fakes.FakeLogger
+		lockOrderer       *fakes.FakeLockOrderer
 	)
 
 	BeforeEach(func() {
 		deployment = new(fakes.FakeDeployment)
 		deploymentManager = new(fakes.FakeDeploymentManager)
 		logger = new(fakes.FakeLogger)
-		c = orchestrator.NewCleaner(logger, deploymentManager)
+		lockOrderer = new(fakes.FakeLockOrderer)
+		c = orchestrator.NewCleaner(logger, deploymentManager, lockOrderer)
 	})
 
 	JustBeforeEach(func() {
@@ -46,8 +48,9 @@ var _ = Describe("Cleanup", func() {
 			Expect(deployment.CleanupPreviousCallCount()).To(Equal(1))
 		})
 
-		It("ensures that deployment is unlocked", func() {
+		It("ensures that deployment is unlocked using the provided lockOrderer", func() {
 			Expect(deployment.PostBackupUnlockCallCount()).To(Equal(1))
+			Expect(deployment.PostBackupUnlockArgsForCall(0)).To(Equal(lockOrderer))
 		})
 	})
 
@@ -55,7 +58,7 @@ var _ = Describe("Cleanup", func() {
 		var currentSequenceNumber, unlockCallIndex, cleanupCallIndex int
 		BeforeEach(func() {
 			deploymentManager.FindReturns(deployment, nil)
-			deployment.PostBackupUnlockStub = func() error {
+			deployment.PostBackupUnlockStub = func(orderer orchestrator.LockOrderer) error {
 				unlockCallIndex = currentSequenceNumber
 				currentSequenceNumber = currentSequenceNumber + 1
 				return nil

@@ -185,102 +185,61 @@ var _ = Describe("Deployment", func() {
 
 	Context("PostBackupUnlock", func() {
 		var unlockError, expectedError error
+		var lockOrderer *fakes.FakeLockOrderer
+		var orderedListOfUnlockedJobs []string
+		var postBackupUnlockOrderedStub = func(jobName string) func() error {
+			return func() error {
+				orderedListOfUnlockedJobs = append(orderedListOfUnlockedJobs, jobName)
+				return nil
+			}
+		}
 
 		BeforeEach(func() {
+			lockOrderer = new(fakes.FakeLockOrderer)
+
+			orderedListOfUnlockedJobs = []string{}
+
+			job1a.PostBackupUnlockStub = postBackupUnlockOrderedStub("job1a")
+			job1b.PostBackupUnlockStub = postBackupUnlockOrderedStub("job1b")
+			job2a.PostBackupUnlockStub = postBackupUnlockOrderedStub("job2a")
+			job3a.PostBackupUnlockStub = postBackupUnlockOrderedStub("job3a")
+
+			instances = []orchestrator.Instance{instance1, instance2, instance3}
+
+			lockOrderer.OrderReturns([]orchestrator.Job{job2a, job3a, job1a, job1b})
+
 			expectedError = fmt.Errorf("something went terribly wrong")
 		})
 
 		JustBeforeEach(func() {
-			unlockError = deployment.PostBackupUnlock()
+			unlockError = deployment.PostBackupUnlock(lockOrderer)
 		})
 
-		Context("Single instance", func() {
-			BeforeEach(func() {
-				instance1.PostBackupUnlockReturns(nil)
-				instances = []orchestrator.Instance{instance1}
-			})
-
-			It("does not fail", func() {
-				Expect(unlockError).NotTo(HaveOccurred())
-			})
-
-			It("unlocks the instance", func() {
-				Expect(instance1.PostBackupUnlockCallCount()).To(Equal(1))
-			})
+		It("does not fail", func() {
+			Expect(unlockError).NotTo(HaveOccurred())
 		})
 
-		Context("single instance that fails to unlock", func() {
+		It("unlocks the jobs in the reverse order to that specified by the orderer", func() {
+			Expect(lockOrderer.OrderArgsForCall(0)).To(ConsistOf(job1a, job1b, job2a, job3a))
+
+			Expect(job1a.PostBackupUnlockCallCount()).To(Equal(1))
+			Expect(job1b.PostBackupUnlockCallCount()).To(Equal(1))
+			Expect(job2a.PostBackupUnlockCallCount()).To(Equal(1))
+			Expect(job3a.PostBackupUnlockCallCount()).To(Equal(1))
+
+			Expect(orderedListOfUnlockedJobs).To(Equal([]string{"job1b", "job1a", "job3a", "job2a"}))
+		})
+
+		Context("if the post-backup-unlock fails", func() {
 			BeforeEach(func() {
-				instance1.PostBackupUnlockReturns(expectedError)
-				instances = []orchestrator.Instance{instance1}
+				job1b.PostBackupUnlockReturns(fmt.Errorf("job1b failed"))
+				job2a.PostBackupUnlockReturns(fmt.Errorf("job2a failed"))
 			})
 
 			It("fails", func() {
 				Expect(unlockError).To(HaveOccurred())
-			})
-
-			It("attempts to unlock the instance", func() {
-				Expect(instance1.PostBackupUnlockCallCount()).To(Equal(1))
-			})
-		})
-
-		Context("Multiple instances", func() {
-			BeforeEach(func() {
-				instances = []orchestrator.Instance{instance1, instance2}
-			})
-
-			It("does not fail", func() {
-				Expect(unlockError).NotTo(HaveOccurred())
-			})
-
-			It("unlocks the instances", func() {
-				Expect(instance1.PostBackupUnlockCallCount()).To(Equal(1))
-				Expect(instance2.PostBackupUnlockCallCount()).To(Equal(1))
-			})
-		})
-
-		Context("Multiple instances, where one fails to unlock", func() {
-			BeforeEach(func() {
-				instance1.PostBackupUnlockReturns(expectedError)
-				instances = []orchestrator.Instance{instance1, instance2}
-			})
-
-			It("fails", func() {
-				Expect(unlockError).To(HaveOccurred())
-			})
-
-			It("attempts to unlock both instances", func() {
-				Expect(instance1.PostBackupUnlockCallCount()).To(Equal(1))
-				Expect(instance2.PostBackupUnlockCallCount()).To(Equal(1))
-			})
-
-			It("returns the expected single error", func() {
-				Expect(unlockError).To(MatchError(ContainSubstring(expectedError.Error())))
-			})
-		})
-
-		Context("Multiple instances, all fail to unlock", func() {
-			var secondError error
-
-			BeforeEach(func() {
-				instance1.PostBackupUnlockReturns(expectedError)
-				secondError = fmt.Errorf("something else went wrong")
-				instance2.PostBackupUnlockReturns(secondError)
-				instances = []orchestrator.Instance{instance1, instance2}
-			})
-
-			It("fails", func() {
-				Expect(unlockError).To(HaveOccurred())
-			})
-
-			It("attempts to unlock both instances", func() {
-				Expect(instance1.PostBackupUnlockCallCount()).To(Equal(1))
-				Expect(instance2.PostBackupUnlockCallCount()).To(Equal(1))
-			})
-
-			It("returns all the expected errors", func() {
-				Expect(unlockError).To(MatchError(ContainSubstring(expectedError.Error())))
-				Expect(unlockError).To(MatchError(ContainSubstring(secondError.Error())))
+				Expect(unlockError.Error()).To(ContainSubstring("job1b failed"))
+				Expect(unlockError.Error()).To(ContainSubstring("job2a failed"))
 			})
 		})
 	})

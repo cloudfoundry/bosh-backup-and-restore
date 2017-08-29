@@ -18,7 +18,7 @@ type Deployment interface {
 	IsRestorable() bool
 	PreBackupLock(orderer LockOrderer) error
 	Backup() error
-	PostBackupUnlock() error
+	PostBackupUnlock(orderer LockOrderer) error
 	Restore() error
 	CopyRemoteBackupToLocal(Backup) error
 	CopyLocalBackupToRemote(Backup) error
@@ -103,11 +103,23 @@ func (bd *deployment) Backup() error {
 	return bd.instances.AllBackupable().Backup()
 }
 
-func (bd *deployment) PostBackupUnlock() error {
+func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer) error {
 	bd.Logger.Info("bbr", "Running post-backup scripts...")
-	err := bd.instances.PostBackupUnlock()
+
+	jobs := bd.instances.Jobs()
+
+	orderedJobs := lockOrderer.Order(jobs)
+	reversedJobs := Jobs(orderedJobs).Reverse()
+
+	var postBackupUnlockErrors []error
+	for _, job := range reversedJobs {
+		if err := job.PostBackupUnlock(); err != nil {
+			postBackupUnlockErrors = append(postBackupUnlockErrors, err)
+		}
+	}
+
 	bd.Logger.Info("bbr", "Done.")
-	return err
+	return ConvertErrors(postBackupUnlockErrors)
 }
 
 func (bd *deployment) Restore() error {

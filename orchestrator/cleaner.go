@@ -1,15 +1,17 @@
 package orchestrator
 
-func NewCleaner(logger Logger, deploymentManager DeploymentManager) *Cleaner {
+func NewCleaner(logger Logger, deploymentManager DeploymentManager, lockOrderer LockOrderer) *Cleaner {
 	return &Cleaner{
 		Logger:            logger,
 		DeploymentManager: deploymentManager,
+		lockOrderer:       lockOrderer,
 	}
 }
 
 type Cleaner struct {
 	Logger
 	DeploymentManager
+	lockOrderer LockOrderer
 }
 
 func (c Cleaner) Cleanup(deploymentName string) Error {
@@ -20,7 +22,7 @@ func (c Cleaner) Cleanup(deploymentName string) Error {
 
 	var currentError = Error{}
 
-	err = deployment.PostBackupUnlock()
+	err = deployment.PostBackupUnlock(c.lockOrderer)
 	if err != nil {
 		currentError = append(currentError, err)
 	}
@@ -34,4 +36,14 @@ func (c Cleaner) Cleanup(deploymentName string) Error {
 		c.Logger.Info("bbr", "'%s' cleaned up\n", deploymentName)
 	}
 	return currentError
+}
+
+type NopLockOrderer struct{}
+
+func NewNopLockOrderer() LockOrderer {
+	return NopLockOrderer{}
+}
+
+func (lo NopLockOrderer) Order(jobs []Job) []Job {
+	return jobs
 }

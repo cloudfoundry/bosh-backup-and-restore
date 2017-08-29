@@ -72,3 +72,11 @@ func (jobs Jobs) CustomRestoreArtifactNames() []string {
 func (jobs Jobs) empty() bool {
 	return len(jobs) == 0
 }
+
+func (jobs Jobs) Reverse() Jobs {
+	reversedJobs := []Job{}
+	for _, job := range jobs {
+		reversedJobs = append([]Job{job}, reversedJobs...)
+	}
+	return reversedJobs
+}

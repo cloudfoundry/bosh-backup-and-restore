@@ -476,7 +476,7 @@ func makeDeploymentCleaner(c *cli.Context) (*orchestrator.Cleaner, error) {
 		return nil, redCliError(err)
 	}
 
-	return orchestrator.NewCleaner(logger, deploymentManager), nil
+	return orchestrator.NewCleaner(logger, deploymentManager, orderer.NewKahnLockOrderer()), nil
 }
 
 func makeDirectorCleaner(c *cli.Context) *orchestrator.Cleaner {
@@ -489,7 +489,7 @@ func makeDirectorCleaner(c *cli.Context) *orchestrator.Cleaner {
 		ssh.NewConnection,
 	)
 
-	return orchestrator.NewCleaner(logger, deploymentManager)
+	return orchestrator.NewCleaner(logger, deploymentManager, orderer.NoopLockOrderer{})
 }
 
 func makeDeploymentBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
