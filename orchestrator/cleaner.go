@@ -37,13 +37,3 @@ func (c Cleaner) Cleanup(deploymentName string) Error {
 	}
 	return currentError
 }
-
-type NopLockOrderer struct{}
-
-func NewNopLockOrderer() LockOrderer {
-	return NopLockOrderer{}
-}
-
-func (lo NopLockOrderer) Order(jobs []Job) []Job {
-	return jobs
-}
