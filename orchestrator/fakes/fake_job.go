@@ -116,6 +116,15 @@ type FakeJob struct {
 	nameReturnsOnCall map[int]struct {
 		result1 string
 	}
+	ReleaseStub        func() string
+	releaseMutex       sync.RWMutex
+	releaseArgsForCall []struct{}
+	releaseReturns     struct {
+		result1 string
+	}
+	releaseReturnsOnCall map[int]struct {
+		result1 string
+	}
 	InstanceIdentifierStub        func() string
 	instanceIdentifierMutex       sync.RWMutex
 	instanceIdentifierArgsForCall []struct{}
@@ -636,6 +645,46 @@ func (fake *FakeJob) NameReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
+func (fake *FakeJob) Release() string {
+	fake.releaseMutex.Lock()
+	ret, specificReturn := fake.releaseReturnsOnCall[len(fake.releaseArgsForCall)]
+	fake.releaseArgsForCall = append(fake.releaseArgsForCall, struct{}{})
+	fake.recordInvocation("Release", []interface{}{})
+	fake.releaseMutex.Unlock()
+	if fake.ReleaseStub != nil {
+		return fake.ReleaseStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.releaseReturns.result1
+}
+
+func (fake *FakeJob) ReleaseCallCount() int {
+	fake.releaseMutex.RLock()
+	defer fake.releaseMutex.RUnlock()
+	return len(fake.releaseArgsForCall)
+}
+
+func (fake *FakeJob) ReleaseReturns(result1 string) {
+	fake.ReleaseStub = nil
+	fake.releaseReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeJob) ReleaseReturnsOnCall(i int, result1 string) {
+	fake.ReleaseStub = nil
+	if fake.releaseReturnsOnCall == nil {
+		fake.releaseReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.releaseReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeJob) InstanceIdentifier() string {
 	fake.instanceIdentifierMutex.Lock()
 	ret, specificReturn := fake.instanceIdentifierReturnsOnCall[len(fake.instanceIdentifierArgsForCall)]
@@ -823,6 +872,8 @@ func (fake *FakeJob) Invocations() map[string][][]interface{} {
 	defer fake.postRestoreUnlockMutex.RUnlock()
 	fake.nameMutex.RLock()
 	defer fake.nameMutex.RUnlock()
+	fake.releaseMutex.RLock()
+	defer fake.releaseMutex.RUnlock()
 	fake.instanceIdentifierMutex.RLock()
 	defer fake.instanceIdentifierMutex.RUnlock()
 	fake.backupArtifactDirectoryMutex.RLock()

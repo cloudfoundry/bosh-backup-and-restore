@@ -8,13 +8,14 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 )
 
-func NewJob(sshConnection SSHConnection, instanceIdentifier string, logger Logger, jobScripts BackupAndRestoreScripts, metadata Metadata) Job {
+func NewJob(sshConnection SSHConnection, instanceIdentifier string, logger Logger, release string, jobScripts BackupAndRestoreScripts, metadata Metadata) Job {
 	jobName := jobScripts[0].JobName()
 	return Job{
 		Logger:             logger,
 		sshConnection:      sshConnection,
 		instanceIdentifier: instanceIdentifier,
 		name:               jobName,
+		release:            release,
 		metadata:           metadata,
 		backupScript:       jobScripts.BackupOnly().firstOrBlank(),
 		restoreScript:      jobScripts.RestoreOnly().firstOrBlank(),
@@ -27,6 +28,7 @@ func NewJob(sshConnection SSHConnection, instanceIdentifier string, logger Logge
 type Job struct {
 	Logger             Logger
 	name               string
+	release            string
 	metadata           Metadata
 	backupScript       Script
 	preBackupScript    Script
@@ -39,6 +41,10 @@ type Job struct {
 
 func (j Job) Name() string {
 	return j.name
+}
+
+func (j Job) Release() string {
+	return j.release
 }
 
 func (j Job) InstanceIdentifier() string {

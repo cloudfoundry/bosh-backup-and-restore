@@ -95,7 +95,7 @@ var _ = Describe("Director", func() {
 				}}, nil)
 				sshConnectionFactory.Returns(sshConnection, nil)
 				expectedJobs = []orchestrator.Job{
-					instance.NewJob(sshConnection, "", boshLogger, instance.BackupAndRestoreScripts{
+					instance.NewJob(sshConnection, "", boshLogger, "", instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/consul_agent/bin/bbr/backup",
 						"/var/vcap/jobs/consul_agent/bin/bbr/restore",
 					}, instance.Metadata{}),
@@ -218,13 +218,13 @@ var _ = Describe("Director", func() {
 				sshConnectionFactory.Returns(sshConnection, nil)
 
 				instance0Jobs = []orchestrator.Job{
-					instance.NewJob(sshConnection, "", boshLogger,
+					instance.NewJob(sshConnection, "", boshLogger, "",
 						instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
 						instance.Metadata{},
 					),
 				}
 				instance1Jobs = []orchestrator.Job{
-					instance.NewJob(sshConnection, "", boshLogger,
+					instance.NewJob(sshConnection, "", boshLogger, "",
 						instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
 						instance.Metadata{},
 					),
@@ -356,7 +356,7 @@ var _ = Describe("Director", func() {
 				}
 				sshConnectionFactory.Returns(sshConnection, nil)
 				instanceJobs = []orchestrator.Job{
-					instance.NewJob(sshConnection, "", boshLogger,
+					instance.NewJob(sshConnection, "", boshLogger, "",
 						instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
 						instance.Metadata{},
 					),

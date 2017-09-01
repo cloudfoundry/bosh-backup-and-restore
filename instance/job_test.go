@@ -19,6 +19,7 @@ var _ = Describe("Job", func() {
 	var metadata instance.Metadata
 	var sshConnection *fakes.FakeSSHConnection
 	var logger boshlog.Logger
+	var releaseName string
 
 	BeforeEach(func() {
 		jobScripts = instance.BackupAndRestoreScripts{
@@ -32,11 +33,12 @@ var _ = Describe("Job", func() {
 
 		combinedLog := log.New(GinkgoWriter, "[instance-test] ", log.Lshortfile)
 		logger = boshlog.New(boshlog.LevelDebug, combinedLog, combinedLog)
+		releaseName = "redis"
 
 	})
 
 	JustBeforeEach(func() {
-		job = instance.NewJob(sshConnection, "", logger, jobScripts, metadata)
+		job = instance.NewJob(sshConnection, "", logger, releaseName, jobScripts, metadata)
 	})
 
 	Describe("BackupArtifactDirectory", func() {
@@ -48,7 +50,7 @@ var _ = Describe("Job", func() {
 			var jobWithName instance.Job
 
 			JustBeforeEach(func() {
-				jobWithName = instance.NewJob(sshConnection, "", logger,
+				jobWithName = instance.NewJob(sshConnection, "", logger, releaseName,
 					jobScripts, instance.Metadata{
 						BackupName: "a-bosh-backup",
 					})
@@ -69,7 +71,7 @@ var _ = Describe("Job", func() {
 			var jobWithName instance.Job
 
 			JustBeforeEach(func() {
-				jobWithName = instance.NewJob(sshConnection, "", logger,
+				jobWithName = instance.NewJob(sshConnection, "", logger, releaseName,
 					jobScripts, instance.Metadata{
 						RestoreName: "a-bosh-backup",
 					})
@@ -455,6 +457,12 @@ var _ = Describe("Job", func() {
 					Expect(postBackupUnlockError).To(MatchError(ContainSubstring("stderr-script-errorred")))
 				})
 			})
+		})
+	})
+
+	Describe("Release", func() {
+		It("returns the job's release name", func() {
+			Expect(job.Release()).To(Equal("redis"))
 		})
 	})
 

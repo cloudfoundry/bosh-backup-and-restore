@@ -55,7 +55,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 
 				It("returns a list of jobs", func() {
 					Expect(jobs).To(ConsistOf(
-						NewJob(sshConnection, "identifier", logger, BackupAndRestoreScripts{
+						NewJob(sshConnection, "identifier", logger, "", BackupAndRestoreScripts{
 							"/var/vcap/jobs/consul_agent/bin/bbr/backup",
 							"/var/vcap/jobs/consul_agent/bin/bbr/restore",
 						}, Metadata{})))
@@ -159,7 +159,7 @@ backup_name: consul_backup`), nil, 0, nil
 				})
 
 				It("returns a list of jobs with metadata", func() {
-					Expect(jobs).To(ConsistOf(NewJob(sshConnection, "identifier", logger, BackupAndRestoreScripts{
+					Expect(jobs).To(ConsistOf(NewJob(sshConnection, "identifier", logger, "", BackupAndRestoreScripts{
 						"/var/vcap/jobs/consul_agent/bin/bbr/metadata",
 					}, Metadata{
 						BackupName: "consul_backup",

@@ -129,7 +129,7 @@ func (j *JobFinderFromScripts) buildJobs(sshConnection SSHConnection, instanceId
 	var jobs orchestrator.Jobs
 
 	for jobName, jobScripts := range groupedByJobName {
-		jobs = append(jobs, NewJob(sshConnection, instanceIdentifier, logger, jobScripts, metadata[jobName]))
+		jobs = append(jobs, NewJob(sshConnection, instanceIdentifier, logger, "", jobScripts, metadata[jobName]))
 	}
 
 	return jobs

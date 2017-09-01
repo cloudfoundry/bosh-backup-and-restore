@@ -46,6 +46,7 @@ type Job interface {
 	Restore() error
 	PostRestoreUnlock() error
 	Name() string
+	Release() string
 	InstanceIdentifier() string
 	BackupArtifactDirectory() string
 	RestoreArtifactDirectory() string

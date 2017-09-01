@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"log"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gbytes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	backuperfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 )
 
 var _ = Describe("artifact", func() {
@@ -368,6 +368,7 @@ var _ = Describe("artifact", func() {
 				job = instance.NewJob(nil,
 					"",
 					nil,
+					"",
 					instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"},
 					instance.Metadata{BackupName: "named-artifact-to-backup"})
 			})
@@ -387,6 +388,7 @@ var _ = Describe("artifact", func() {
 				job = instance.NewJob(nil,
 					"",
 					nil,
+					"",
 					instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"},
 					instance.Metadata{})
 			})
@@ -424,6 +426,7 @@ var _ = Describe("artifact", func() {
 				job = instance.NewJob(nil,
 					"",
 					nil,
+					"",
 					instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"},
 					instance.Metadata{RestoreName: "named-artifact-to-restore"})
 			})
@@ -443,6 +446,7 @@ var _ = Describe("artifact", func() {
 				job = instance.NewJob(nil,
 					"",
 					nil,
+					"",
 					instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"},
 					instance.Metadata{})
 			})
