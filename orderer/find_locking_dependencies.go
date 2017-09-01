@@ -22,7 +22,7 @@ func FindLockingDependencies(jobs []orchestrator.Job) []lockingDependency {
 func findJobsBySpecifier(jobs []orchestrator.Job, specifier orchestrator.JobSpecifier) []orchestrator.Job {
 	var foundJobs []orchestrator.Job
 	for _, job := range jobs {
-		if job.Name() == specifier.Name {
+		if job.Name() == specifier.Name && job.Release() == specifier.Release {
 			foundJobs = append(foundJobs, job)
 		}
 	}

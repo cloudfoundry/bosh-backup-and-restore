@@ -33,7 +33,7 @@ var _ = Describe("KahnLockOrderer", func() {
 		}),
 
 		Entry("one job", func() lockingTestCase {
-			var job = fakeJob("test", []JobSpecifier{})
+			var job = fakeJob("test", "releasetest", []JobSpecifier{})
 
 			return lockingTestCase{
 				inputJobs:   []Job{job},
@@ -42,7 +42,7 @@ var _ = Describe("KahnLockOrderer", func() {
 		}),
 
 		Entry("one job, dependency on non-existent job", func() lockingTestCase {
-			var job = fakeJob("test", []JobSpecifier{{Name: "non-existent"}})
+			var job = fakeJob("test", "releasetest", []JobSpecifier{{Name: "non-existent"}})
 
 			return lockingTestCase{
 				inputJobs:   []Job{job},
@@ -51,9 +51,9 @@ var _ = Describe("KahnLockOrderer", func() {
 		}),
 
 		Entry("multiple jobs, no dependencies", func() lockingTestCase {
-			var a = fakeJob("a", []JobSpecifier{})
-			var b = fakeJob("b", []JobSpecifier{})
-			var c = fakeJob("c", []JobSpecifier{})
+			var a = fakeJob("a", "releasea", []JobSpecifier{})
+			var b = fakeJob("b", "releaseb", []JobSpecifier{})
+			var c = fakeJob("c", "releasec", []JobSpecifier{})
 
 			return lockingTestCase{
 				inputJobs:   []Job{a, b, c},
@@ -62,9 +62,9 @@ var _ = Describe("KahnLockOrderer", func() {
 		}),
 
 		Entry("multiple jobs, single dependency", func() lockingTestCase {
-			var a = fakeJob("a", []JobSpecifier{})
-			var b = fakeJob("b", []JobSpecifier{{Name: "c"}})
-			var c = fakeJob("c", []JobSpecifier{})
+			var a = fakeJob("a", "releasea", []JobSpecifier{})
+			var b = fakeJob("b", "releaseb", []JobSpecifier{{Name: "c", Release: "releasec"}})
+			var c = fakeJob("c", "releasec", []JobSpecifier{})
 
 			return lockingTestCase{
 				inputJobs:   []Job{a, c, b},
@@ -73,9 +73,9 @@ var _ = Describe("KahnLockOrderer", func() {
 		}),
 
 		Entry("multiple jobs, dependency on non-existent job", func() lockingTestCase {
-			var a = fakeJob("a", []JobSpecifier{})
-			var b = fakeJob("b", []JobSpecifier{{Name: "e"}})
-			var c = fakeJob("c", []JobSpecifier{})
+			var a = fakeJob("a", "releasea", []JobSpecifier{})
+			var b = fakeJob("b", "releaseb", []JobSpecifier{{Name: "e", Release: "releasee"}})
+			var c = fakeJob("c", "releasec", []JobSpecifier{})
 
 			return lockingTestCase{
 				inputJobs:   []Job{a, b, c},
@@ -84,10 +84,10 @@ var _ = Describe("KahnLockOrderer", func() {
 		}),
 
 		Entry("multiple jobs, double dependency", func() lockingTestCase {
-			var a = fakeJob("a", []JobSpecifier{})
-			var b = fakeJob("b", []JobSpecifier{{Name: "c"}, {Name: "d"}})
-			var c = fakeJob("c", []JobSpecifier{})
-			var d = fakeJob("d", []JobSpecifier{})
+			var a = fakeJob("a", "releasea", []JobSpecifier{})
+			var b = fakeJob("b", "releaseb", []JobSpecifier{{Name: "c", Release: "releasec"}, {Name: "d", Release: "released"}})
+			var c = fakeJob("c", "releasec", []JobSpecifier{})
+			var d = fakeJob("d", "released", []JobSpecifier{})
 
 			return lockingTestCase{
 				inputJobs:   []Job{a, c, d, b},
@@ -96,9 +96,9 @@ var _ = Describe("KahnLockOrderer", func() {
 		}),
 
 		Entry("multiple jobs, chain of dependencies", func() lockingTestCase {
-			var a = fakeJob("a", []JobSpecifier{{Name: "b"}})
-			var b = fakeJob("b", []JobSpecifier{{Name: "c"}})
-			var c = fakeJob("c", []JobSpecifier{})
+			var a = fakeJob("a", "releasea", []JobSpecifier{{Name: "b", Release: "releaseb"}})
+			var b = fakeJob("b", "releaseb", []JobSpecifier{{Name: "c", Release: "releasec"}})
+			var c = fakeJob("c", "releasec", []JobSpecifier{})
 
 			return lockingTestCase{
 				inputJobs:   []Job{c, b, a},
@@ -107,11 +107,11 @@ var _ = Describe("KahnLockOrderer", func() {
 		}),
 
 		Entry("multiple jobs, multiple instances of the same dependee", func() lockingTestCase {
-			var a = fakeJob("a", []JobSpecifier{})
-			var b = fakeJob("b", []JobSpecifier{{Name: "c"}})
-			var c1 = fakeJobOnInstance("c", "instance_group/0", []JobSpecifier{})
-			var c2 = fakeJobOnInstance("c", "instance_group/1", []JobSpecifier{})
-			var c3 = fakeJobOnInstance("c", "instance_group/2", []JobSpecifier{})
+			var a = fakeJob("a", "releasea", []JobSpecifier{})
+			var b = fakeJob("b", "releaseb", []JobSpecifier{{Name: "c", Release: "releasec"}})
+			var c1 = fakeJobOnInstance("c", "releasec", "instance_group/0", []JobSpecifier{})
+			var c2 = fakeJobOnInstance("c", "releasec", "instance_group/1", []JobSpecifier{})
+			var c3 = fakeJobOnInstance("c", "releasec", "instance_group/2", []JobSpecifier{})
 
 			return lockingTestCase{
 				inputJobs:   []Job{c1, c2, c3, a, b},
@@ -120,28 +120,41 @@ var _ = Describe("KahnLockOrderer", func() {
 		}),
 
 		Entry("multiple jobs, multiple instances of the same dependent", func() lockingTestCase {
-			var a = fakeJob("a", []JobSpecifier{})
-			var b1 = fakeJobOnInstance("b", "instance_group/0", []JobSpecifier{{Name: "c"}})
-			var b2 = fakeJobOnInstance("b", "instance_group/1", []JobSpecifier{{Name: "c"}})
-			var b3 = fakeJobOnInstance("b", "instance_group/2", []JobSpecifier{{Name: "c"}})
-			var c = fakeJob("c", []JobSpecifier{})
+			var a = fakeJob("a", "releasea", []JobSpecifier{})
+			var b1 = fakeJobOnInstance("b", "releaseb", "instance_group/0", []JobSpecifier{{Name: "c", Release: "releasec"}})
+			var b2 = fakeJobOnInstance("b", "releaseb", "instance_group/1", []JobSpecifier{{Name: "c", Release: "releasec"}})
+			var b3 = fakeJobOnInstance("b", "releaseb", "instance_group/2", []JobSpecifier{{Name: "c", Release: "releasec"}})
+			var c = fakeJob("c", "releasec", []JobSpecifier{})
 
 			return lockingTestCase{
 				inputJobs:   []Job{a, c, b1, b2, b3},
 				orderedJobs: []Job{a, b1, b2, b3, c},
 			}
 		}),
+
+		Entry("multiple jobs from different releases, multiple instances of the same dependent", func() lockingTestCase {
+			var a = fakeJobOnInstance("a", "releasea", "instance_group/0", []JobSpecifier{{Name: "c", Release: "release1"}})
+			var b = fakeJobOnInstance("b", "releaseb", "instance_group/1", []JobSpecifier{{Name: "c", Release: "release2"}})
+			var c1 = fakeJobOnInstance("c", "release1", "instance_group/1", []JobSpecifier{{Name: "c", Release: "release2"}})
+			var c2 = fakeJob("c", "release2", []JobSpecifier{})
+
+			return lockingTestCase{
+				inputJobs:   []Job{a, c1, b, c2},
+				orderedJobs: []Job{a, c1, b, c2},
+			}
+		}),
 	)
 })
 
-func fakeJob(name string, shouldBeLockedBefore []JobSpecifier) *fakes.FakeJob {
+func fakeJob(name string, release string, shouldBeLockedBefore []JobSpecifier) *fakes.FakeJob {
 	instanceIdentifier := strconv.FormatInt(time.Now().UnixNano(), 16)
-	return fakeJobOnInstance(name, instanceIdentifier, shouldBeLockedBefore)
+	return fakeJobOnInstance(name, release, instanceIdentifier, shouldBeLockedBefore)
 }
 
-func fakeJobOnInstance(name string, instanceIdentifier string, shouldBeLockedBefore []JobSpecifier) *fakes.FakeJob {
+func fakeJobOnInstance(name, release, instanceIdentifier string, shouldBeLockedBefore []JobSpecifier) *fakes.FakeJob {
 	job := new(fakes.FakeJob)
 	job.NameReturns(name)
+	job.ReleaseReturns(release)
 	job.InstanceIdentifierReturns(instanceIdentifier)
 	job.ShouldBeLockedBeforeReturns(shouldBeLockedBefore)
 	return job
