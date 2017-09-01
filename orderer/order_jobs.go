@@ -10,7 +10,7 @@ func OrderJobsUsingTheKahnAlgorithm(jobs []orchestrator.Job, lockingDependencies
 	for len(jobs) != 0 {
 		jobsToLock := jobsThatCanBeLocked(jobs, lockingDependencies)
 		jobs = removeJobs(jobs, jobsToLock)
-		lockingDependencies = removeDependeciesThatHaveAnyOneJobInBefore(lockingDependencies, jobsToLock)
+		lockingDependencies = removeDependenciesThatHaveAnyOneJobInBefore(lockingDependencies, jobsToLock)
 
 		orderedJobs = append(orderedJobs, jobsToLock...)
 	}
@@ -51,7 +51,7 @@ func removeJobs(jobs []orchestrator.Job, jobsToRemove []orchestrator.Job) []orch
 	return jobsToKeep
 }
 
-func removeDependeciesThatHaveAnyOneJobInBefore(dependencies []lockingDependency, jobs []orchestrator.Job) []lockingDependency {
+func removeDependenciesThatHaveAnyOneJobInBefore(dependencies []lockingDependency, jobs []orchestrator.Job) []lockingDependency {
 	var dependenciesToKeep []lockingDependency
 
 	for _, dependency := range dependencies {
