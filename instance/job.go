@@ -237,7 +237,9 @@ func (j Job) ShouldBeLockedBefore() []orchestrator.JobSpecifier {
 	jobSpecifiers := []orchestrator.JobSpecifier{}
 
 	for _, lockBefore := range j.metadata.ShouldBeLockedBefore {
-		jobSpecifiers = append(jobSpecifiers, orchestrator.JobSpecifier{Name: lockBefore.JobName})
+		jobSpecifiers = append(jobSpecifiers, orchestrator.JobSpecifier{
+			Name: lockBefore.JobName, Release: lockBefore.Release,
+		})
 	}
 
 	return jobSpecifiers

@@ -857,6 +857,7 @@ exit 0`)
 echo "---
 should_be_locked_before:
 - job_name: redis
+  release: redis
 "`)
 				})
 
@@ -896,6 +897,7 @@ exit 0`)
 echo "---
 should_be_locked_before:
 - job_name: redis
+  release: redis
 "`)
 					})
 

@@ -44,13 +44,33 @@ backup_name: foo
 restore_name: bar
 should_be_locked_before:
 - job_name: job1
-- job_name: job2`)
+  release: release1
+- job_name: job2
+  release: release2
+`)
 
 		m, err := NewJobMetadata(rawMetadata)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(m.BackupName).To(Equal("foo"))
 		Expect(m.RestoreName).To(Equal("bar"))
-		Expect(m.ShouldBeLockedBefore).To(ConsistOf(LockBefore{JobName: "job1"}, LockBefore{"job2"}))
+		Expect(m.ShouldBeLockedBefore).To(ConsistOf(
+			LockBefore{JobName: "job1", Release: "release1"}, LockBefore{JobName: "job2", Release: "release2"},
+		))
+	})
+
+	It("errors if either the job name or release are missing", func() {
+		rawMetadata := []byte(`---
+backup_name: foo
+restore_name: bar
+should_be_locked_before:
+- job_name: job1
+  release: release1
+- job_name: job2
+`)
+
+		_, err := NewJobMetadata(rawMetadata)
+
+		Expect(err).To(HaveOccurred())
 	})
 })

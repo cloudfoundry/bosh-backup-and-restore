@@ -54,7 +54,8 @@ type Job interface {
 }
 
 type JobSpecifier struct {
-	Name string
+	Name    string
+	Release string
 }
 
 type ArtifactIdentifier interface {
