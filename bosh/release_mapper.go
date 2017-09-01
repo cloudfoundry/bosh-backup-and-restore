@@ -15,36 +15,55 @@ func NewReleaseMapping(manifest string, instanceNames []string) ReleaseMapping {
 		panic(err)
 	}
 
-	releaseMapping := ReleaseMapping{}
+	releaseMapping := make(ReleaseMapping)
 	for _, igName := range instanceNames {
-		i := 0
-		for {
-			releasePath := patch.MustNewPointerFromString(fmt.Sprintf("/instance_groups/name=%s/jobs/%v/release", igName, i))
-			release, err := patch.FindOp{Path: releasePath}.Apply(parsedManifest)
-			if err != nil {
-				break
+		instCount := instanceCount(parsedManifest, igName)
+		if instCount == 0 {
+			continue
+		}
+		jobs := jobs(parsedManifest, igName)
+		for _, j := range jobs {
+			rn := release(parsedManifest, igName, j)
+			if _, ok := releaseMapping[igName]; !ok {
+				releaseMapping[igName] = map[string]string{}
 			}
-
-			namePath := patch.MustNewPointerFromString(fmt.Sprintf("/instance_groups/name=%s/jobs/%v/name", igName, i))
-			job, _ := patch.FindOp{Path: namePath}.Apply(parsedManifest)
-
-			releaseMapping = add(releaseMapping, release.(string), job.(string))
-			i++
+			releaseMapping[igName][j] = rn
 		}
 	}
 	return releaseMapping
 }
 
-type ReleaseMapping map[string][]string
+type ReleaseMapping map[string]map[string]string
 
-func add(rm map[string][]string, releaseName, jobName string) map[string][]string {
-	if _, ok := rm[releaseName]; ok {
-		for _, jn := range rm[releaseName] {
-			if jn == jobName {
-				return rm
-			}
-		}
+func instanceCount(manifest interface{}, instanceName string) int {
+	countPath := patch.MustNewPointerFromString(fmt.Sprintf("/instance_groups/name=%s/instances", instanceName))
+	count, err := patch.FindOp{Path: countPath}.Apply(manifest)
+	if err != nil {
+		panic(err)
 	}
-	rm[releaseName] = append(rm[releaseName], jobName)
-	return rm
+	return count.(int)
+}
+
+func jobs(manifest interface{}, instanceName string) []string {
+	i := 0
+	jobs := []string{}
+	for {
+		jobPath := patch.MustNewPointerFromString(fmt.Sprintf("/instance_groups/name=%s/jobs/%v/name", instanceName, i))
+		j, err := patch.FindOp{Path: jobPath}.Apply(manifest)
+		if err != nil {
+			return jobs
+		}
+		jobs = append(jobs, j.(string))
+		i++
+	}
+	return jobs
+}
+
+func release(manifest interface{}, instanceName string, jobName string) string {
+	releasePath := patch.MustNewPointerFromString(fmt.Sprintf("/instance_groups/name=%s/jobs/name=%s/release", instanceName, jobName))
+	release, err := patch.FindOp{Path: releasePath}.Apply(manifest)
+	if err != nil {
+		panic(err)
+	}
+	return release.(string)
 }
