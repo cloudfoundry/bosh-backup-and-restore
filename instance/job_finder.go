@@ -10,7 +10,7 @@ import (
 
 //go:generate counterfeiter -o fakes/fake_job_finder.go . JobFinder
 type JobFinder interface {
-	FindJobs(instanceIdentifier string, connection SSHConnection) (orchestrator.Jobs, error)
+	FindJobs(instanceIdentifier string, connection SSHConnection, instanceJobReleaseMapping map[string]string) (orchestrator.Jobs, error)
 }
 
 type JobFinderFromScripts struct {
@@ -23,7 +23,7 @@ func NewJobFinder(logger Logger) *JobFinderFromScripts {
 	}
 }
 
-func (j *JobFinderFromScripts) FindJobs(instanceIdentifier string, connection SSHConnection) (orchestrator.Jobs, error) {
+func (j *JobFinderFromScripts) FindJobs(instanceIdentifier string, connection SSHConnection, instanceJobReleaseMapping map[string]string) (orchestrator.Jobs, error) {
 	findOutput, err := j.findScripts(instanceIdentifier, connection)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func (j *JobFinderFromScripts) FindJobs(instanceIdentifier string, connection SS
 		metadata[jobName] = *jobMetadata
 	}
 
-	return j.buildJobs(connection, instanceIdentifier, j.Logger, scripts, metadata), nil
+	return j.buildJobs(connection, instanceIdentifier, j.Logger, scripts, metadata, instanceJobReleaseMapping), nil
 }
 
 func (j *JobFinderFromScripts) findMetadata(instanceIdentifier string, pathToScript Script, connection SSHConnection) (*Metadata, error) {
@@ -119,7 +119,7 @@ func (j *JobFinderFromScripts) findScripts(instanceIdentifierForLogging string, 
 	return strings.Split(string(stdout), "\n"), nil
 }
 
-func (j *JobFinderFromScripts) buildJobs(sshConnection SSHConnection, instanceIdentifier string, logger Logger, scripts BackupAndRestoreScripts, metadata map[string]Metadata) orchestrator.Jobs {
+func (j *JobFinderFromScripts) buildJobs(sshConnection SSHConnection, instanceIdentifier string, logger Logger, scripts BackupAndRestoreScripts, metadata map[string]Metadata, instanceJobReleaseMapping map[string]string) orchestrator.Jobs {
 	groupedByJobName := map[string]BackupAndRestoreScripts{}
 	for _, script := range scripts {
 		jobName := script.JobName()
@@ -129,7 +129,7 @@ func (j *JobFinderFromScripts) buildJobs(sshConnection SSHConnection, instanceId
 	var jobs orchestrator.Jobs
 
 	for jobName, jobScripts := range groupedByJobName {
-		jobs = append(jobs, NewJob(sshConnection, instanceIdentifier, logger, "", jobScripts, metadata[jobName]))
+		jobs = append(jobs, NewJob(sshConnection, instanceIdentifier, logger, instanceJobReleaseMapping[jobName], jobScripts, metadata[jobName]))
 	}
 
 	return jobs

@@ -11,11 +11,12 @@ import (
 	"errors"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	instancefakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
+	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	"github.com/cloudfoundry/bosh-cli/director"
 	boshfakes "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -25,13 +26,14 @@ import (
 )
 
 var _ = Describe("Director", func() {
-	var optsGenerator *fakes.FakeSSHOptsGenerator
-	var sshConnectionFactory *fakes.FakeSSHConnectionFactory
+	var optsGenerator *sshfakes.FakeSSHOptsGenerator
+	var sshConnectionFactory *sshfakes.FakeSSHConnectionFactory
 	var boshDirector *boshfakes.FakeDirector
 	var boshLogger boshlog.Logger
 	var boshDeployment *boshfakes.FakeDeployment
-	var sshConnection *fakes.FakeSSHConnection
+	var sshConnection *sshfakes.FakeSSHConnection
 	var fakeJobFinder *instancefakes.FakeJobFinder
+	var fakeReleaseMapper *fakes.FakeReleaseMapper
 
 	var deploymentName = "kubernetes"
 
@@ -43,16 +45,17 @@ var _ = Describe("Director", func() {
 
 	var b bosh.BoshClient
 	JustBeforeEach(func() {
-		b = bosh.NewClient(boshDirector, optsGenerator.Spy, sshConnectionFactory.Spy, boshLogger, fakeJobFinder)
+		b = bosh.NewClient(boshDirector, optsGenerator.Spy, sshConnectionFactory.Spy, boshLogger, fakeJobFinder, fakeReleaseMapper)
 	})
 
 	BeforeEach(func() {
-		optsGenerator = new(fakes.FakeSSHOptsGenerator)
-		sshConnectionFactory = new(fakes.FakeSSHConnectionFactory)
+		optsGenerator = new(sshfakes.FakeSSHOptsGenerator)
+		sshConnectionFactory = new(sshfakes.FakeSSHConnectionFactory)
 		boshDirector = new(boshfakes.FakeDirector)
 		boshDeployment = new(boshfakes.FakeDeployment)
-		sshConnection = new(fakes.FakeSSHConnection)
+		sshConnection = new(sshfakes.FakeSSHConnection)
 		fakeJobFinder = new(instancefakes.FakeJobFinder)
+		fakeReleaseMapper = new(fakes.FakeReleaseMapper)
 
 		stdoutLogStream = bytes.NewBufferString("")
 		stderrLogStream = bytes.NewBufferString("")
@@ -93,6 +96,7 @@ var _ = Describe("Director", func() {
 						HostPublicKey: hostsPublicKey,
 					},
 				}}, nil)
+
 				sshConnectionFactory.Returns(sshConnection, nil)
 				expectedJobs = []orchestrator.Job{
 					instance.NewJob(sshConnection, "", boshLogger, "", instance.BackupAndRestoreScripts{
@@ -229,7 +233,7 @@ var _ = Describe("Director", func() {
 						instance.Metadata{},
 					),
 				}
-				fakeJobFinder.FindJobsStub = func(instanceIdentifier string, connection instance.SSHConnection) (orchestrator.Jobs, error) {
+				fakeJobFinder.FindJobsStub = func(instanceIdentifier string, connection instance.SSHConnection, instanceJobReleaseMapping map[string]string) (orchestrator.Jobs, error) {
 					if strings.HasPrefix(instanceIdentifier, "hostname1") {
 						return instance0Jobs, nil
 					} else {

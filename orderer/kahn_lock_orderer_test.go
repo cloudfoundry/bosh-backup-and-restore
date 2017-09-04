@@ -140,7 +140,7 @@ var _ = Describe("KahnLockOrderer", func() {
 
 			return lockingTestCase{
 				inputJobs:   []Job{a, c1, b, c2},
-				orderedJobs: []Job{a, c1, b, c2},
+				orderedJobs: []Job{a, b, c1, c2},
 			}
 		}),
 	)

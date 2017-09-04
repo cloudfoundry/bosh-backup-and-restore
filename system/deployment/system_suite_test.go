@@ -102,7 +102,7 @@ var _ = AfterSuite(func() {
 		defer GinkgoRecover()
 		defer wg.Done()
 		By("tearing down the Redis with locking order release")
-		RedisWithLockingOrderDeployment.Deploy()
+		RedisWithLockingOrderDeployment.Delete()
 
 		By("tearing down the jump box")
 		JumpboxDeployment.Delete()

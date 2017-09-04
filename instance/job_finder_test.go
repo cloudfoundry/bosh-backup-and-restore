@@ -23,6 +23,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 	var jobs orchestrator.Jobs
 	var jobsError error
 	var logger Logger
+	var instanceJobReleaseMapping map[string]string
 
 	Describe("FindJobs", func() {
 		BeforeEach(func() {
@@ -35,14 +36,19 @@ var _ = Describe("JobFinderFromScripts", func() {
 			jobFinder = NewJobFinder(logger)
 		})
 		JustBeforeEach(func() {
-			jobs, jobsError = jobFinder.FindJobs("identifier", sshConnection)
+			jobs, jobsError = jobFinder.FindJobs("identifier", sshConnection, instanceJobReleaseMapping)
 		})
 
 		Context("has no job metadata scripts", func() {
 			Context("Finds jobs based on scripts", func() {
+				consulAgentReleaseName := "consul-agent-release"
 				BeforeEach(func() {
 					sshConnection.RunReturns([]byte("/var/vcap/jobs/consul_agent/bin/bbr/backup\n"+
 						"/var/vcap/jobs/consul_agent/bin/bbr/restore"), nil, 0, nil)
+
+					instanceJobReleaseMapping = map[string]string{
+						"consul_agent": consulAgentReleaseName,
+					}
 				})
 
 				It("succeeds", func() {
@@ -55,7 +61,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 
 				It("returns a list of jobs", func() {
 					Expect(jobs).To(ConsistOf(
-						NewJob(sshConnection, "identifier", logger, "", BackupAndRestoreScripts{
+						NewJob(sshConnection, "identifier", logger, consulAgentReleaseName, BackupAndRestoreScripts{
 							"/var/vcap/jobs/consul_agent/bin/bbr/backup",
 							"/var/vcap/jobs/consul_agent/bin/bbr/restore",
 						}, Metadata{})))
@@ -137,6 +143,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 		})
 
 		Context("ssh connection returns a metadata script", func() {
+			consulAgentReleaseName := "consul-agent-release"
 			Context("metadata is valid", func() {
 				BeforeEach(func() {
 					sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
@@ -147,6 +154,9 @@ backup_name: consul_backup`), nil, 0, nil
 						return []byte("/var/vcap/jobs/consul_agent/bin/bbr/metadata"), nil, 0, nil
 					}
 
+					instanceJobReleaseMapping = map[string]string{
+						"consul_agent": consulAgentReleaseName,
+					}
 				})
 				It("succeeds", func() {
 					Expect(jobsError).NotTo(HaveOccurred())
@@ -159,7 +169,7 @@ backup_name: consul_backup`), nil, 0, nil
 				})
 
 				It("returns a list of jobs with metadata", func() {
-					Expect(jobs).To(ConsistOf(NewJob(sshConnection, "identifier", logger, "", BackupAndRestoreScripts{
+					Expect(jobs).To(ConsistOf(NewJob(sshConnection, "identifier", logger, consulAgentReleaseName, BackupAndRestoreScripts{
 						"/var/vcap/jobs/consul_agent/bin/bbr/metadata",
 					}, Metadata{
 						BackupName: "consul_backup",
@@ -229,6 +239,8 @@ backup_name: consul_backup`), nil, 0, nil
 					Expect(sshConnection.RunArgsForCall(1)).To(Equal("/var/vcap/jobs/consul_agent/bin/bbr/metadata"))
 				})
 			})
+
+			//todo: add test to cover instanceJobReleaseMapper not having entry corresponding to a job
 		})
 	})
 })

@@ -8,6 +8,7 @@ import (
 )
 
 var _ = Describe("ReleaseMapper", func() {
+	var releaseMapper = NewReleaseMapper()
 
 	It("parses a manifest and returns a instance group name to job to release mapping", func() {
 		var manifest = `---
@@ -18,7 +19,7 @@ instance_groups:
   - name: redis-server
     release: redis
 `
-		releaseMapping := NewReleaseMapping(manifest, []string{"red1"})
+		releaseMapping := releaseMapper.NewReleaseMapping(manifest, []string{"red1"})
 		Expect(releaseMapping["red1"]["redis-server"]).To(Equal("redis"))
 	})
 
@@ -36,7 +37,7 @@ instance_groups:
   - name: redis-client
     release: redis
 `
-		releaseMapping := NewReleaseMapping(manifest2jobs, []string{"red1", "red2"})
+		releaseMapping := releaseMapper.NewReleaseMapping(manifest2jobs, []string{"red1", "red2"})
 
 		Expect(releaseMapping["red1"]["redis-server"]).To(Equal("redis"))
 		Expect(releaseMapping["red2"]["redis-client"]).To(Equal("redis"))
@@ -58,7 +59,7 @@ instance_groups:
   - name: redis-client
     release: redis
 `
-		releaseMapping := NewReleaseMapping(manifest, []string{"red1", "red2"})
+		releaseMapping := releaseMapper.NewReleaseMapping(manifest, []string{"red1", "red2"})
 
 		Expect(releaseMapping["red2"]["redis-client"]).To(Equal("redis"))
 		Expect(releaseMapping["red2"]["redis-server"]).To(Equal("redis"))
@@ -79,7 +80,7 @@ instance_groups:
     release: redis-2.5
 `
 
-		releaseMapping := NewReleaseMapping(manifest, []string{"red1", "red2"})
+		releaseMapping := releaseMapper.NewReleaseMapping(manifest, []string{"red1", "red2"})
 
 		Expect(releaseMapping["red1"]["redis-server"]).To(Equal("redis-2.0"))
 		Expect(releaseMapping["red2"]["redis-server"]).To(Equal("redis-2.5"))
@@ -99,7 +100,7 @@ instance_groups:
   - name: redis-server
     release: redis-2.5
 `
-		releaseMapping := NewReleaseMapping(manifest, []string{"red1", "red2"})
+		releaseMapping := releaseMapper.NewReleaseMapping(manifest, []string{"red1", "red2"})
 		_, ok := releaseMapping["red1"]
 		Expect(ok).To(BeFalse())
 		_, ok = releaseMapping["red2"]

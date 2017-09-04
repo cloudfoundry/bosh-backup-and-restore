@@ -22,6 +22,14 @@ var _ = Describe("Pre-backup checks", func() {
 	var backupWorkspace string
 	var session *gexec.Session
 	var deploymentName string
+	manifest := `---
+instance_groups:
+- name: redis-dedicated-node
+  instances: 1
+  jobs:
+  - name: redis
+    release: redis
+`
 
 	BeforeEach(func() {
 		deploymentName = "my-little-deployment"
@@ -77,6 +85,7 @@ var _ = Describe("Pre-backup checks", func() {
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
+					DownloadManifest(deploymentName, manifest),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)
@@ -131,6 +140,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
+					DownloadManifest(deploymentName, manifest),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)

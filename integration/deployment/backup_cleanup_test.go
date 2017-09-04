@@ -21,6 +21,14 @@ var _ = Describe("Cleanup", func() {
 		var instance1 *testcluster.Instance
 		var deploymentName string
 		var err error
+		manifest := `---
+instance_groups:
+- name: redis-dedicated-node
+  instances: 1
+  jobs:
+  - name: redis
+    release: redis
+`
 
 		BeforeEach(func() {
 			cleanupWorkspace, err = ioutil.TempDir(".", "cleanup-workspace-")
@@ -38,6 +46,7 @@ var _ = Describe("Cleanup", func() {
 						JobName: "redis-dedicated-node",
 						JobID:   "fake-uuid",
 					}}),
+				DownloadManifest(deploymentName, manifest),
 				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 				CleanupSSH(deploymentName, "redis-dedicated-node"),
 			)...)

@@ -9,10 +9,11 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 )
 
-func MockDirectorWith(director *mockhttp.Server, info mockhttp.MockedResponseBuilder, vmsResponse []mockhttp.MockedResponseBuilder, sshResponse []mockhttp.MockedResponseBuilder, cleanupResponse []mockhttp.MockedResponseBuilder) {
+func MockDirectorWith(director *mockhttp.Server, info mockhttp.MockedResponseBuilder, vmsResponse []mockhttp.MockedResponseBuilder, manifestResponse []mockhttp.MockedResponseBuilder, sshResponse []mockhttp.MockedResponseBuilder, cleanupResponse []mockhttp.MockedResponseBuilder) {
 	director.VerifyAndMock(AppendBuilders(
 		[]mockhttp.MockedResponseBuilder{info},
 		vmsResponse,
+		manifestResponse,
 		sshResponse,
 		cleanupResponse,
 	)...)

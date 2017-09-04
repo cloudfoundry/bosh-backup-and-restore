@@ -35,6 +35,25 @@ var _ = Describe("Backup", func() {
 	var waitForBackupToFinish bool
 	var verifyMocks bool
 	var instance1 *testcluster.Instance
+	manifest := `---
+instance_groups:
+- name: redis-dedicated-node
+  instances: 1
+  jobs:
+  - name: redis
+    release: redis
+  - name: redis-broker
+    release: redis
+- name: redis-broker
+  instances: 1
+  jobs:
+  - name: redis
+    release: redis
+  - name: redis-writer
+    release: redis
+  - name: redis-broker
+    release: redis
+`
 
 	possibleBackupDirectories := func() []string {
 		dirs, err := ioutil.ReadDir(backupWorkspace)
@@ -150,6 +169,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					MockDirectorWith(director,
 						mockbosh.Info().WithAuthTypeBasic(),
 						VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
+						DownloadManifest(deploymentName, manifest),
 						SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 						CleanupSSH(deploymentName, "redis-dedicated-node"))
 
@@ -244,6 +264,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					MockDirectorWith(director,
 						mockbosh.Info().WithAuthTypeBasic(),
 						VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
+						DownloadManifest(deploymentName, manifest),
 						SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 						CleanupSSH(deploymentName, "redis-dedicated-node"))
 				})
@@ -526,6 +547,7 @@ exit 1`)
 					director.VerifyAndMock(AppendBuilders(
 						[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
 						VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
+						DownloadManifest(deploymentName, manifest),
 						SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 						DownloadManifest(deploymentName, "this is a totally valid yaml"),
 						CleanupSSH(deploymentName, "redis-dedicated-node"),
@@ -552,7 +574,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 `)
 
 				By("creating a dummy backup script")
-				instance1.CreateScript("/var/vcap/jobs/broker/bin/bbr/backup", `#!/usr/bin/env sh
+				instance1.CreateScript("/var/vcap/jobs/redis-broker/bin/bbr/backup", `#!/usr/bin/env sh
 
 set -u
 
@@ -563,6 +585,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
+					DownloadManifest(deploymentName, manifest),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					CleanupSSH(deploymentName, "redis-dedicated-node"))
 			})
@@ -577,7 +600,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					By("creating a backup directory which contains the backup artifacts and a metadata file", func() {
 						Expect(backupDirectory()).To(BeADirectory())
 						redisNodeArchivePath = artifactFile("redis-dedicated-node-0-redis.tar")
-						brokerArchivePath = artifactFile("redis-dedicated-node-0-broker.tar")
+						brokerArchivePath = artifactFile("redis-dedicated-node-0-redis-broker.tar")
 						Expect(redisNodeArchivePath).To(BeARegularFile())
 						Expect(brokerArchivePath).To(BeARegularFile())
 						Expect(metadataFile()).To(BeARegularFile())
@@ -612,8 +635,8 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						Expect(redisArtifact.Checksums["./backupdump1"]).To(Equal(ShaFor("backupcontent1")))
 						Expect(redisArtifact.Checksums["./backupdump2"]).To(Equal(ShaFor("backupcontent2")))
 
-						brokerArtifact := metadataContents.InstancesMetadata[0].FindArtifact("broker")
-						Expect(brokerArtifact.Name).To(Equal("broker"))
+						brokerArtifact := metadataContents.InstancesMetadata[0].FindArtifact("redis-broker")
+						Expect(brokerArtifact.Name).To(Equal("redis-broker"))
 						Expect(brokerArtifact.Checksums).To(HaveLen(2))
 						Expect(brokerArtifact.Checksums["./backupdump1"]).To(Equal(ShaFor("backupcontent1")))
 						Expect(brokerArtifact.Checksums["./backupdump2"]).To(Equal(ShaFor("backupcontent2")))
@@ -634,6 +657,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
+					DownloadManifest(deploymentName, manifest),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)
@@ -660,6 +684,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
+					DownloadManifest(deploymentName, manifest),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)
@@ -694,6 +719,7 @@ echo "Unlocking release"`)
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
+					DownloadManifest(deploymentName, manifest),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					CleanupSSHFails(deploymentName, "redis-dedicated-node", "ultra-foo"),
 				)
@@ -729,6 +755,7 @@ echo "Unlocking release"`)
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
+					DownloadManifest(deploymentName, manifest),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					CleanupSSHFails(deploymentName, "redis-dedicated-node", "Can't do it mate"),
 				)
@@ -773,6 +800,7 @@ echo "not valid yaml
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
+					DownloadManifest(deploymentName, manifest),
 					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)
@@ -820,6 +848,7 @@ echo "not valid yaml
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
+					DownloadManifest(deploymentName, manifest),
 					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, firstReturnedInstance),
 						SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, secondReturnedInstance)...),
 					append(CleanupSSH(deploymentName, "redis-dedicated-node"),
@@ -924,6 +953,7 @@ should_be_locked_before:
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
+					DownloadManifest(deploymentName, manifest),
 					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
 						SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance2)...),
 					append(CleanupSSH(deploymentName, "redis-dedicated-node"),
@@ -999,6 +1029,7 @@ should_be_locked_before:
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
+					DownloadManifest(deploymentName, manifest),
 					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, backupableInstance1),
 						SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance2)...),
 					append(CleanupSSH(deploymentName, "redis-dedicated-node"),
@@ -1056,6 +1087,7 @@ backup_name: duplicate_name
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
+					DownloadManifest(deploymentName, manifest),
 					append(SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, restoreInstance),
 						SetupSSH(deploymentName, "redis-broker", "fake-uuid-2", 0, backupableInstance)...),
 					append(CleanupSSH(deploymentName, "redis-dedicated-node"),

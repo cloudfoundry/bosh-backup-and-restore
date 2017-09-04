@@ -22,6 +22,29 @@ import (
 var _ = Describe("Restore", func() {
 	var director *mockhttp.Server
 	var restoreWorkspace string
+	manifest := `---
+instance_groups:
+- name: redis-dedicated-node
+  instances: 1
+  jobs:
+  - name: redis
+    release: redis
+- name: redis-server
+  instances: 1
+  jobs:
+  - name: redis
+    release: redis
+- name: redis-backup-node
+  instances: 1
+  jobs:
+  - name: redis
+    release: redis
+- name: redis-restore-node
+  instances: 1
+  jobs:
+  - name: redis
+    release: redis
+`
 
 	BeforeEach(func() {
 		director = mockbosh.NewTLS()
@@ -207,6 +230,7 @@ instances:
 						JobName: "redis-dedicated-node",
 						JobID:   "fake-uuid",
 					}}),
+				DownloadManifest(deploymentName, manifest),
 				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 				CleanupSSH(deploymentName, "redis-dedicated-node"))...)
 
@@ -376,6 +400,7 @@ touch /tmp/restore-script-was-run`)
 						JobName: "redis-server",
 						JobID:   "fake-uuid",
 					}}),
+				DownloadManifest(deploymentName, manifest),
 				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 				SetupSSH(deploymentName, "redis-server", "fake-uuid", 0, instance2),
 				CleanupSSH(deploymentName, "redis-dedicated-node"),
@@ -474,6 +499,7 @@ instances:
 						JobName: "redis-dedicated-node",
 						JobID:   "fake-uuid",
 					}}),
+				DownloadManifest(deploymentName, manifest),
 				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 				CleanupSSH(deploymentName, "redis-dedicated-node"))...)
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
@@ -561,6 +587,7 @@ custom_artifacts:
 						JobName: "redis-backup-node",
 						JobID:   "fake-uuid",
 					}}),
+				DownloadManifest(deploymentName, manifest),
 				SetupSSH(deploymentName, "redis-restore-node", "fake-uuid", 0, instance1),
 				SetupSSH(deploymentName, "redis-backup-node", "fake-uuid", 0, instance2),
 				CleanupSSH(deploymentName, "redis-restore-node"),
@@ -700,6 +727,7 @@ custom_artifacts:
 						IPs:     []string{"10.0.0.1"},
 						JobName: "redis-dedicated-node",
 					}}),
+				DownloadManifest(deploymentName, manifest),
 				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
 				CleanupSSHFails(deploymentName, "redis-dedicated-node", "cleanup err"))...)
 
