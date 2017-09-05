@@ -42,6 +42,8 @@ instance_groups:
   jobs:
   - name: redis
     release: redis
+  - name: redis-writer
+    release: redis
   - name: redis-broker
     release: redis
 - name: redis-broker

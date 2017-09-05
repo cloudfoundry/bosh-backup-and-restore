@@ -26,14 +26,14 @@ func NewClient(boshDirector director.Director,
 	connectionFactory ssh.SSHConnectionFactory,
 	logger Logger,
 	jobFinder instance.JobFinder,
-	releaseMapper ReleaseMapper) Client {
+	releaseMappingFinder instance.ReleaseMappingFinder) Client {
 	return Client{
 		Director:             boshDirector,
 		SSHOptsGenerator:     sshOptsGenerator,
 		SSHConnectionFactory: connectionFactory,
 		Logger:               logger,
 		jobFinder:            jobFinder,
-		releaseMapper:        releaseMapper,
+		releaseMappingFinder: releaseMappingFinder,
 	}
 }
 
@@ -42,8 +42,8 @@ type Client struct {
 	ssh.SSHOptsGenerator
 	ssh.SSHConnectionFactory
 	Logger
-	jobFinder     instance.JobFinder
-	releaseMapper ReleaseMapper
+	jobFinder            instance.JobFinder
+	releaseMappingFinder instance.ReleaseMappingFinder
 }
 
 //go:generate counterfeiter -o fakes/fake_logger.go . Logger
@@ -81,7 +81,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 
 	instanceNames := uniqueInstanceGroupNamesFromVMs(vms)
 
-	releaseMapping := c.releaseMapper.NewReleaseMapping(manifest, instanceNames)
+	releaseMapping := c.releaseMappingFinder(manifest, instanceNames)
 
 	for _, instanceGroupName := range instanceNames {
 		c.Logger.Debug("bbr", "Setting up SSH for job %s", instanceGroupName)
@@ -98,8 +98,6 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 			return nil, errors.Wrap(err, "failed to set up ssh")
 		}
 		slugs = append(slugs, allVmInstances)
-
-		instanceJobReleaseMapping := releaseMapping[instanceGroupName]
 
 		for index, host := range sshRes.Hosts {
 			var sshConnection ssh.SSHConnection
@@ -120,7 +118,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 
 			instanceIdentifier := fmt.Sprintf("%s/%s", instanceGroupName, host.IndexOrID)
 
-			jobs, err := c.jobFinder.FindJobs(instanceIdentifier, sshConnection, instanceJobReleaseMapping)
+			jobs, err := c.jobFinder.FindJobs(instanceIdentifier, sshConnection, releaseMapping, instanceGroupName)
 			if err != nil {
 				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
 				return nil, errors.Wrap(err, "couldn't find jobs")

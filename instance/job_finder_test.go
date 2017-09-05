@@ -23,7 +23,8 @@ var _ = Describe("JobFinderFromScripts", func() {
 	var jobs orchestrator.Jobs
 	var jobsError error
 	var logger Logger
-	var instanceJobReleaseMapping map[string]string
+	var releaseMapping *fakes.FakeReleaseMapping
+	instanceName := "instance-group"
 
 	Describe("FindJobs", func() {
 		BeforeEach(func() {
@@ -34,9 +35,10 @@ var _ = Describe("JobFinderFromScripts", func() {
 			sshConnection = new(fakes.FakeSSHConnection)
 			logger = boshlog.New(boshlog.LevelDebug, combinedLog, combinedLog)
 			jobFinder = NewJobFinder(logger)
+			releaseMapping = new(fakes.FakeReleaseMapping)
 		})
 		JustBeforeEach(func() {
-			jobs, jobsError = jobFinder.FindJobs("identifier", sshConnection, instanceJobReleaseMapping)
+			jobs, jobsError = jobFinder.FindJobs("identifier", sshConnection, releaseMapping, instanceName)
 		})
 
 		Context("has no job metadata scripts", func() {
@@ -46,9 +48,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 					sshConnection.RunReturns([]byte("/var/vcap/jobs/consul_agent/bin/bbr/backup\n"+
 						"/var/vcap/jobs/consul_agent/bin/bbr/restore"), nil, 0, nil)
 
-					instanceJobReleaseMapping = map[string]string{
-						"consul_agent": consulAgentReleaseName,
-					}
+					releaseMapping.FindReleaseNameReturns(consulAgentReleaseName, nil)
 				})
 
 				It("succeeds", func() {
@@ -57,6 +57,13 @@ var _ = Describe("JobFinderFromScripts", func() {
 
 				It("finds the scripts", func() {
 					Expect(sshConnection.RunArgsForCall(0)).To(Equal("find /var/vcap/jobs/*/bin/bbr/* -type f"))
+				})
+
+				It("calls the release name mapping with instance group and job", func() {
+					Expect(releaseMapping.FindReleaseNameCallCount()).To(Equal(1))
+					instanceGroupNameActual, jobNameActual := releaseMapping.FindReleaseNameArgsForCall(0)
+					Expect(instanceGroupNameActual).To(Equal(instanceName))
+					Expect(jobNameActual).To(Equal("consul_agent"))
 				})
 
 				It("returns a list of jobs", func() {
@@ -154,12 +161,17 @@ backup_name: consul_backup`), nil, 0, nil
 						return []byte("/var/vcap/jobs/consul_agent/bin/bbr/metadata"), nil, 0, nil
 					}
 
-					instanceJobReleaseMapping = map[string]string{
-						"consul_agent": consulAgentReleaseName,
-					}
+					releaseMapping.FindReleaseNameReturns(consulAgentReleaseName, nil)
 				})
 				It("succeeds", func() {
 					Expect(jobsError).NotTo(HaveOccurred())
+				})
+
+				It("calls the release name mapping with instance group and job", func() {
+					Expect(releaseMapping.FindReleaseNameCallCount()).To(Equal(1))
+					instanceGroupNameActual, jobNameActual := releaseMapping.FindReleaseNameArgsForCall(0)
+					Expect(instanceGroupNameActual).To(Equal(instanceName))
+					Expect(jobNameActual).To(Equal("consul_agent"))
 				})
 
 				It("uses the ssh connection to get the metadata", func() {
@@ -240,16 +252,18 @@ backup_name: consul_backup`), nil, 0, nil
 				})
 			})
 
-			Context("mapping does not have entry for a job", func() {
+			Context("mapping returns an error", func() {
+				var actualError = fmt.Errorf("release name mapping failure")
+
 				BeforeEach(func() {
 					sshConnection.RunReturns([]byte("/var/vcap/jobs/consul_agent/bin/bbr/backup\n"+
 						"/var/vcap/jobs/consul_agent/bin/bbr/restore"), nil, 0, nil)
 
-					instanceJobReleaseMapping = map[string]string{}
+					releaseMapping.FindReleaseNameReturns("", actualError)
 				})
 
-				It("fails with an appropriate error message", func() {
-					Expect(jobsError).To(MatchError(ContainSubstring("error matching jobs to manifest")))
+				It("fails including error message", func() {
+					Expect(jobsError).To(MatchError(ContainSubstring(actualError.Error())))
 				})
 			})
 		})

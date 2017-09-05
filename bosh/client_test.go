@@ -11,7 +11,6 @@ import (
 	"errors"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	instancefakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
@@ -33,7 +32,8 @@ var _ = Describe("Director", func() {
 	var boshDeployment *boshfakes.FakeDeployment
 	var sshConnection *sshfakes.FakeSSHConnection
 	var fakeJobFinder *instancefakes.FakeJobFinder
-	var fakeReleaseMapper *fakes.FakeReleaseMapper
+	var releaseMappingFinder *instancefakes.FakeReleaseMappingFinder
+	var releaseMapping *instancefakes.FakeReleaseMapping
 
 	var deploymentName = "kubernetes"
 
@@ -45,7 +45,7 @@ var _ = Describe("Director", func() {
 
 	var b bosh.BoshClient
 	JustBeforeEach(func() {
-		b = bosh.NewClient(boshDirector, optsGenerator.Spy, sshConnectionFactory.Spy, boshLogger, fakeJobFinder, fakeReleaseMapper)
+		b = bosh.NewClient(boshDirector, optsGenerator.Spy, sshConnectionFactory.Spy, boshLogger, fakeJobFinder, releaseMappingFinder.Spy)
 	})
 
 	BeforeEach(func() {
@@ -55,7 +55,8 @@ var _ = Describe("Director", func() {
 		boshDeployment = new(boshfakes.FakeDeployment)
 		sshConnection = new(sshfakes.FakeSSHConnection)
 		fakeJobFinder = new(instancefakes.FakeJobFinder)
-		fakeReleaseMapper = new(fakes.FakeReleaseMapper)
+		releaseMappingFinder = new(instancefakes.FakeReleaseMappingFinder)
+		releaseMapping = new(instancefakes.FakeReleaseMapping)
 
 		stdoutLogStream = bytes.NewBufferString("")
 		stderrLogStream = bytes.NewBufferString("")
@@ -105,6 +106,8 @@ var _ = Describe("Director", func() {
 					}, instance.Metadata{}),
 				}
 				fakeJobFinder.FindJobsReturns(expectedJobs, nil)
+
+				releaseMappingFinder.Returns(releaseMapping)
 			})
 
 			It("collects the instances", func() {
@@ -137,8 +140,14 @@ var _ = Describe("Director", func() {
 				Expect(optsGenerator.CallCount()).To(Equal(1))
 			})
 
+			It("generates a release mapping with the finder", func() {
+				Expect(releaseMappingFinder.CallCount()).To(Equal(1))
+			})
+
 			It("finds the jobs with the job finder", func() {
 				Expect(fakeJobFinder.FindJobsCallCount()).To(Equal(1))
+				_, _, releaseMapper, _ := fakeJobFinder.FindJobsArgsForCall(0)
+				Expect(releaseMapper).To(Equal(releaseMapper))
 			})
 
 			It("sets up ssh for each group found", func() {
@@ -233,13 +242,15 @@ var _ = Describe("Director", func() {
 						instance.Metadata{},
 					),
 				}
-				fakeJobFinder.FindJobsStub = func(instanceIdentifier string, connection instance.SSHConnection, instanceJobReleaseMapping map[string]string) (orchestrator.Jobs, error) {
+				fakeJobFinder.FindJobsStub = func(instanceIdentifier string, connection instance.SSHConnection, releaseMapping instance.ReleaseMapping, instanceGroupName string) (orchestrator.Jobs, error) {
 					if strings.HasPrefix(instanceIdentifier, "hostname1") {
 						return instance0Jobs, nil
 					} else {
 						return instance1Jobs, nil
 					}
 				}
+
+				releaseMappingFinder.Returns(releaseMapping)
 			})
 			It("collects the instances", func() {
 				Expect(actualInstances).To(Equal([]orchestrator.Instance{
@@ -280,6 +291,10 @@ var _ = Describe("Director", func() {
 
 			It("generates a new ssh private key", func() {
 				Expect(optsGenerator.CallCount()).To(Equal(1))
+			})
+
+			It("generates a release mapping with the finder", func() {
+				Expect(releaseMappingFinder.CallCount()).To(Equal(1))
 			})
 
 			It("sets up ssh for each group found", func() {
@@ -366,6 +381,8 @@ var _ = Describe("Director", func() {
 					),
 				}
 				fakeJobFinder.FindJobsReturns(instanceJobs, nil)
+
+				releaseMappingFinder.Returns(releaseMapping)
 			})
 			It("collects the instances", func() {
 				Expect(actualInstances).To(Equal([]orchestrator.Instance{
@@ -416,6 +433,10 @@ var _ = Describe("Director", func() {
 
 			It("generates a new ssh private key", func() {
 				Expect(optsGenerator.CallCount()).To(Equal(1))
+			})
+
+			It("generates a release mapping with the finder", func() {
+				Expect(releaseMappingFinder.CallCount()).To(Equal(1))
 			})
 
 			It("sets up ssh for each group found", func() {
@@ -630,7 +651,6 @@ var _ = Describe("Director", func() {
 						}
 					}
 					sshConnectionFactory.Returns(sshConnection, nil)
-
 				})
 
 				It("fails", func() {
@@ -664,7 +684,6 @@ var _ = Describe("Director", func() {
 					}}, nil)
 
 					sshConnectionFactory.Returns(sshConnection, nil)
-
 				})
 
 				It("fails", func() {
