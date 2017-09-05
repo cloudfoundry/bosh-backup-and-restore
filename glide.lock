@@ -1,6 +1,8 @@
-hash: efa671b7e9f6f9f687f637166157a39feef23c8bf9d3065eab63f809f852d7bc
-updated: 2017-05-30T13:57:42.681657414+01:00
+hash: ae787de94fee2a61a12ba7b5401539d725dba27757c3b7321dc33e2d27d98542
+updated: 2017-09-05T10:01:12.939581282+01:00
 imports:
+- name: code.cloudfoundry.org/clock
+  version: 2269160ae1757f96bbb8c6475e6fa36c805e73e0
 - name: github.com/bmatcuk/doublestar
   version: dd6a6f0a8cdfaaa88b08cf26cf1bc7d69003ee13
 - name: github.com/charlievieth/fs
@@ -8,7 +10,7 @@ imports:
 - name: github.com/cheggaaa/pb
   version: f6ccf2184de4dd34495277e38dc19b6e7fbe0ea2
 - name: github.com/cloudfoundry/bosh-cli
-  version: 5db7dcb6bec1e406c9ae4af2cfb3f1f8557b6585
+  version: 9e679840fab6752906b8a03f687ceb2b9be005be
   subpackages:
   - common/net
   - director
@@ -28,6 +30,10 @@ imports:
   - retrystrategy
   - system
   - uuid
+- name: github.com/cppforlife/go-patch
+  version: d9e51bef8eda190cdbac94dddd3c304080774726
+  subpackages:
+  - patch
 - name: github.com/cppforlife/go-semi-semantic
   version: 576b6af77ae4f3ccef356902fb3b9a9ae22e0b11
   subpackages:
@@ -52,6 +58,7 @@ imports:
   version: a1f616c97771e46da1722d3aa9dcde0a43f55682
   subpackages:
   - config
+  - extensions/table
   - internal/codelocation
   - internal/containernode
   - internal/failer
@@ -90,12 +97,10 @@ imports:
   - mockbosh
   - mockhttp
   - mockuaa
-- name: github.com/pivotal-golang/clock
-  version: 2269160ae1757f96bbb8c6475e6fa36c805e73e0
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
 - name: github.com/urfave/cli
-  version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
+  version: cfb38830724cc34fedffe9a2a29fb54fa9169cd1
 - name: github.com/vito/go-interact
   version: c5733929fb71999ab2f1cfd57fdab195965994de
   subpackages:
@@ -138,6 +143,8 @@ imports:
   - language
   - runes
   - transform
+- name: gopkg.in/yaml.v1
+  version: 9f9df34309c04878acc86042b16630b0f696e1de
 - name: gopkg.in/yaml.v2
   version: eb3733d160e74a9c7e442f435eb3bea458e1d19f
 testImports: []

@@ -16,3 +16,6 @@ import:
 - package: golang.org/x/crypto
   subpackages:
   - ssh
+- package: github.com/cppforlife/go-patch
+  subpackages:
+  - patch
