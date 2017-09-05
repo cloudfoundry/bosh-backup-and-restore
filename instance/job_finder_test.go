@@ -240,7 +240,18 @@ backup_name: consul_backup`), nil, 0, nil
 				})
 			})
 
-			//todo: add test to cover instanceJobReleaseMapper not having entry corresponding to a job
+			Context("mapping does not have entry for a job", func() {
+				BeforeEach(func() {
+					sshConnection.RunReturns([]byte("/var/vcap/jobs/consul_agent/bin/bbr/backup\n"+
+						"/var/vcap/jobs/consul_agent/bin/bbr/restore"), nil, 0, nil)
+
+					instanceJobReleaseMapping = map[string]string{}
+				})
+
+				It("fails with an appropriate error message", func() {
+					Expect(jobsError).To(MatchError(ContainSubstring("error matching jobs to manifest")))
+				})
+			})
 		})
 	})
 })

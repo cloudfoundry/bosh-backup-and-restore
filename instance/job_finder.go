@@ -44,7 +44,7 @@ func (j *JobFinderFromScripts) FindJobs(instanceIdentifier string, connection SS
 		metadata[jobName] = *jobMetadata
 	}
 
-	return j.buildJobs(connection, instanceIdentifier, j.Logger, scripts, metadata, instanceJobReleaseMapping), nil
+	return j.buildJobs(connection, instanceIdentifier, j.Logger, scripts, metadata, instanceJobReleaseMapping)
 }
 
 func (j *JobFinderFromScripts) findMetadata(instanceIdentifier string, pathToScript Script, connection SSHConnection) (*Metadata, error) {
@@ -119,7 +119,7 @@ func (j *JobFinderFromScripts) findScripts(instanceIdentifierForLogging string, 
 	return strings.Split(string(stdout), "\n"), nil
 }
 
-func (j *JobFinderFromScripts) buildJobs(sshConnection SSHConnection, instanceIdentifier string, logger Logger, scripts BackupAndRestoreScripts, metadata map[string]Metadata, instanceJobReleaseMapping map[string]string) orchestrator.Jobs {
+func (j *JobFinderFromScripts) buildJobs(sshConnection SSHConnection, instanceIdentifier string, logger Logger, scripts BackupAndRestoreScripts, metadata map[string]Metadata, instanceJobReleaseMapping map[string]string) (orchestrator.Jobs, error) {
 	groupedByJobName := map[string]BackupAndRestoreScripts{}
 	for _, script := range scripts {
 		jobName := script.JobName()
@@ -129,8 +129,13 @@ func (j *JobFinderFromScripts) buildJobs(sshConnection SSHConnection, instanceId
 	var jobs orchestrator.Jobs
 
 	for jobName, jobScripts := range groupedByJobName {
-		jobs = append(jobs, NewJob(sshConnection, instanceIdentifier, logger, instanceJobReleaseMapping[jobName], jobScripts, metadata[jobName]))
+		releaseName, foundRelease := instanceJobReleaseMapping[jobName]
+		if !foundRelease {
+			return nil, fmt.Errorf("error matching jobs to manifest")
+		}
+
+		jobs = append(jobs, NewJob(sshConnection, instanceIdentifier, logger, releaseName, jobScripts, metadata[jobName]))
 	}
 
-	return jobs
+	return jobs, nil
 }
