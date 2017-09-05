@@ -146,7 +146,7 @@ var _ = Describe("Director", func() {
 
 			It("finds the jobs with the job finder", func() {
 				Expect(fakeJobFinder.FindJobsCallCount()).To(Equal(1))
-				_, _, releaseMapper, _ := fakeJobFinder.FindJobsArgsForCall(0)
+				_, _, releaseMapper := fakeJobFinder.FindJobsArgsForCall(0)
 				Expect(releaseMapper).To(Equal(releaseMapper))
 			})
 
@@ -242,8 +242,8 @@ var _ = Describe("Director", func() {
 						instance.Metadata{},
 					),
 				}
-				fakeJobFinder.FindJobsStub = func(instanceIdentifier string, connection instance.SSHConnection, releaseMapping instance.ReleaseMapping, instanceGroupName string) (orchestrator.Jobs, error) {
-					if strings.HasPrefix(instanceIdentifier, "hostname1") {
+				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier, connection instance.SSHConnection, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
+					if strings.HasPrefix(instanceIdentifier.String(), "hostname1") {
 						return instance0Jobs, nil
 					} else {
 						return instance1Jobs, nil

@@ -8,9 +8,18 @@ import (
 	"github.com/pkg/errors"
 )
 
+type InstanceIdentifier struct {
+	InstanceGroupName string
+	InstanceId        string
+}
+
+func (i InstanceIdentifier) String() string {
+	return fmt.Sprintf("%s/%s", i.InstanceGroupName, i.InstanceId)
+}
+
 //go:generate counterfeiter -o fakes/fake_job_finder.go . JobFinder
 type JobFinder interface {
-	FindJobs(instanceIdentifier string, connection SSHConnection, releaseMapping ReleaseMapping, instanceGroupName string) (orchestrator.Jobs, error)
+	FindJobs(instanceIdentifier InstanceIdentifier, connection SSHConnection, releaseMapping ReleaseMapping) (orchestrator.Jobs, error)
 }
 
 type JobFinderFromScripts struct {
@@ -23,7 +32,7 @@ func NewJobFinder(logger Logger) *JobFinderFromScripts {
 	}
 }
 
-func (j *JobFinderFromScripts) FindJobs(instanceIdentifier string, connection SSHConnection, releaseMapping ReleaseMapping, instanceGroupName string) (orchestrator.Jobs, error) {
+func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier, connection SSHConnection, releaseMapping ReleaseMapping) (orchestrator.Jobs, error) {
 	findOutput, err := j.findBBRScripts(instanceIdentifier, connection)
 	if err != nil {
 		return nil, err
@@ -44,10 +53,10 @@ func (j *JobFinderFromScripts) FindJobs(instanceIdentifier string, connection SS
 		metadata[jobName] = *jobMetadata
 	}
 
-	return j.buildJobs(connection, instanceIdentifier, j.Logger, scripts, metadata, releaseMapping, instanceGroupName)
+	return j.buildJobs(connection, instanceIdentifier, j.Logger, scripts, metadata, releaseMapping)
 }
 
-func (j *JobFinderFromScripts) findMetadata(instanceIdentifier string, pathToScript Script, connection SSHConnection) (*Metadata, error) {
+func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifier, pathToScript Script, connection SSHConnection) (*Metadata, error) {
 	metadataContent, _, _, err := connection.Run(string(pathToScript))
 
 	if err != nil {
@@ -75,7 +84,7 @@ func (j *JobFinderFromScripts) findMetadata(instanceIdentifier string, pathToScr
 	return jobMetadata, nil
 }
 
-func (j *JobFinderFromScripts) findBBRScripts(instanceIdentifierForLogging string, sshConnection SSHConnection) ([]string, error) {
+func (j *JobFinderFromScripts) findBBRScripts(instanceIdentifierForLogging InstanceIdentifier, sshConnection SSHConnection) ([]string, error) {
 	j.Logger.Debug("bbr", "Attempting to find scripts on %s", instanceIdentifierForLogging)
 
 	stdout, stderr, exitCode, err := sshConnection.Run("find /var/vcap/jobs/*/bin/bbr/* -type f")
@@ -119,7 +128,7 @@ func (j *JobFinderFromScripts) findBBRScripts(instanceIdentifierForLogging strin
 	return strings.Split(string(stdout), "\n"), nil
 }
 
-func (j *JobFinderFromScripts) buildJobs(sshConnection SSHConnection, instanceIdentifier string, logger Logger, scripts BackupAndRestoreScripts, metadata map[string]Metadata, releaseMapping ReleaseMapping, instanceGroupName string) (orchestrator.Jobs, error) {
+func (j *JobFinderFromScripts) buildJobs(sshConnection SSHConnection, instanceIdentifier InstanceIdentifier, logger Logger, scripts BackupAndRestoreScripts, metadata map[string]Metadata, releaseMapping ReleaseMapping) (orchestrator.Jobs, error) {
 	groupedByJobName := map[string]BackupAndRestoreScripts{}
 	for _, script := range scripts {
 		jobName := script.JobName()
@@ -129,12 +138,12 @@ func (j *JobFinderFromScripts) buildJobs(sshConnection SSHConnection, instanceId
 	var jobs orchestrator.Jobs
 
 	for jobName, jobScripts := range groupedByJobName {
-		releaseName, err := releaseMapping.FindReleaseName(instanceGroupName, jobName)
+		releaseName, err := releaseMapping.FindReleaseName(instanceIdentifier.InstanceGroupName, jobName)
 		if err != nil {
 			return nil, errors.Wrap(err, "error matching job to manifest")
 		}
 
-		jobs = append(jobs, NewJob(sshConnection, instanceIdentifier, logger, releaseName, jobScripts, metadata[jobName]))
+		jobs = append(jobs, NewJob(sshConnection, instanceIdentifier.String(), logger, releaseName, jobScripts, metadata[jobName]))
 	}
 
 	return jobs, nil

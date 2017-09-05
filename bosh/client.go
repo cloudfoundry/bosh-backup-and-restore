@@ -3,13 +3,11 @@ package bosh
 import (
 	"strconv"
 
-	"fmt"
-
-	"github.com/cloudfoundry/bosh-cli/director"
-	"github.com/cloudfoundry/bosh-utils/uuid"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
+	"github.com/cloudfoundry/bosh-cli/director"
+	"github.com/cloudfoundry/bosh-utils/uuid"
 
 	"github.com/pkg/errors"
 	gossh "golang.org/x/crypto/ssh"
@@ -116,9 +114,9 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 				return nil, errors.Wrap(err, "failed to connect using ssh")
 			}
 
-			instanceIdentifier := fmt.Sprintf("%s/%s", instanceGroupName, host.IndexOrID)
+			instanceIdentifier := instance.InstanceIdentifier{InstanceGroupName: instanceGroupName, InstanceId: host.IndexOrID}
 
-			jobs, err := c.jobFinder.FindJobs(instanceIdentifier, sshConnection, releaseMapping, instanceGroupName)
+			jobs, err := c.jobFinder.FindJobs(instanceIdentifier, sshConnection, releaseMapping)
 			if err != nil {
 				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
 				return nil, errors.Wrap(err, "couldn't find jobs")

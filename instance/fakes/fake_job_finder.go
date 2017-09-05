@@ -9,13 +9,12 @@ import (
 )
 
 type FakeJobFinder struct {
-	FindJobsStub        func(instanceIdentifier string, connection instance.SSHConnection, releaseMapping instance.ReleaseMapping, instanceGroupName string) (orchestrator.Jobs, error)
+	FindJobsStub        func(instanceIdentifier instance.InstanceIdentifier, connection instance.SSHConnection, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error)
 	findJobsMutex       sync.RWMutex
 	findJobsArgsForCall []struct {
-		instanceIdentifier string
+		instanceIdentifier instance.InstanceIdentifier
 		connection         instance.SSHConnection
 		releaseMapping     instance.ReleaseMapping
-		instanceGroupName  string
 	}
 	findJobsReturns struct {
 		result1 orchestrator.Jobs
@@ -29,19 +28,18 @@ type FakeJobFinder struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeJobFinder) FindJobs(instanceIdentifier string, connection instance.SSHConnection, releaseMapping instance.ReleaseMapping, instanceGroupName string) (orchestrator.Jobs, error) {
+func (fake *FakeJobFinder) FindJobs(instanceIdentifier instance.InstanceIdentifier, connection instance.SSHConnection, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
 	fake.findJobsMutex.Lock()
 	ret, specificReturn := fake.findJobsReturnsOnCall[len(fake.findJobsArgsForCall)]
 	fake.findJobsArgsForCall = append(fake.findJobsArgsForCall, struct {
-		instanceIdentifier string
+		instanceIdentifier instance.InstanceIdentifier
 		connection         instance.SSHConnection
 		releaseMapping     instance.ReleaseMapping
-		instanceGroupName  string
-	}{instanceIdentifier, connection, releaseMapping, instanceGroupName})
-	fake.recordInvocation("FindJobs", []interface{}{instanceIdentifier, connection, releaseMapping, instanceGroupName})
+	}{instanceIdentifier, connection, releaseMapping})
+	fake.recordInvocation("FindJobs", []interface{}{instanceIdentifier, connection, releaseMapping})
 	fake.findJobsMutex.Unlock()
 	if fake.FindJobsStub != nil {
-		return fake.FindJobsStub(instanceIdentifier, connection, releaseMapping, instanceGroupName)
+		return fake.FindJobsStub(instanceIdentifier, connection, releaseMapping)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -55,10 +53,10 @@ func (fake *FakeJobFinder) FindJobsCallCount() int {
 	return len(fake.findJobsArgsForCall)
 }
 
-func (fake *FakeJobFinder) FindJobsArgsForCall(i int) (string, instance.SSHConnection, instance.ReleaseMapping, string) {
+func (fake *FakeJobFinder) FindJobsArgsForCall(i int) (instance.InstanceIdentifier, instance.SSHConnection, instance.ReleaseMapping) {
 	fake.findJobsMutex.RLock()
 	defer fake.findJobsMutex.RUnlock()
-	return fake.findJobsArgsForCall[i].instanceIdentifier, fake.findJobsArgsForCall[i].connection, fake.findJobsArgsForCall[i].releaseMapping, fake.findJobsArgsForCall[i].instanceGroupName
+	return fake.findJobsArgsForCall[i].instanceIdentifier, fake.findJobsArgsForCall[i].connection, fake.findJobsArgsForCall[i].releaseMapping
 }
 
 func (fake *FakeJobFinder) FindJobsReturns(result1 orchestrator.Jobs, result2 error) {

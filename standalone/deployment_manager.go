@@ -51,7 +51,8 @@ func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment
 	}
 
 	//TODO: change instanceIdentifier, its not always bosh
-	jobs, err := dm.jobFinder.FindJobs("bosh/0", connection, instance.NoopReleaseMapping(), "")
+	instanceIdentifier := instance.InstanceIdentifier{InstanceGroupName: "bosh", InstanceId: "0"}
+	jobs, err := dm.jobFinder.FindJobs(instanceIdentifier, connection, instance.NoopReleaseMapping())
 	if err != nil {
 		return nil, err
 	}

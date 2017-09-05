@@ -24,7 +24,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 	var jobsError error
 	var logger Logger
 	var releaseMapping *fakes.FakeReleaseMapping
-	instanceName := "instance-group"
+	instanceIdentifier := InstanceIdentifier{InstanceGroupName: "identifier", InstanceId: "0"}
 
 	Describe("FindJobs", func() {
 		BeforeEach(func() {
@@ -38,7 +38,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 			releaseMapping = new(fakes.FakeReleaseMapping)
 		})
 		JustBeforeEach(func() {
-			jobs, jobsError = jobFinder.FindJobs("identifier", sshConnection, releaseMapping, instanceName)
+			jobs, jobsError = jobFinder.FindJobs(instanceIdentifier, sshConnection, releaseMapping)
 		})
 
 		Context("has no job metadata scripts", func() {
@@ -62,21 +62,21 @@ var _ = Describe("JobFinderFromScripts", func() {
 				It("calls the release name mapping with instance group and job", func() {
 					Expect(releaseMapping.FindReleaseNameCallCount()).To(Equal(1))
 					instanceGroupNameActual, jobNameActual := releaseMapping.FindReleaseNameArgsForCall(0)
-					Expect(instanceGroupNameActual).To(Equal(instanceName))
+					Expect(instanceGroupNameActual).To(Equal(instanceIdentifier.InstanceGroupName))
 					Expect(jobNameActual).To(Equal("consul_agent"))
 				})
 
 				It("returns a list of jobs", func() {
 					Expect(jobs).To(ConsistOf(
-						NewJob(sshConnection, "identifier", logger, consulAgentReleaseName, BackupAndRestoreScripts{
+						NewJob(sshConnection, "identifier/0", logger, consulAgentReleaseName, BackupAndRestoreScripts{
 							"/var/vcap/jobs/consul_agent/bin/bbr/backup",
 							"/var/vcap/jobs/consul_agent/bin/bbr/restore",
 						}, Metadata{})))
 				})
 
 				It("logs the scripts found", func() {
-					Expect(logStream.String()).To(ContainSubstring("identifier/consul_agent/backup"))
-					Expect(logStream.String()).To(ContainSubstring("identifier/consul_agent/restore"))
+					Expect(logStream.String()).To(ContainSubstring("identifier/0/consul_agent/backup"))
+					Expect(logStream.String()).To(ContainSubstring("identifier/0/consul_agent/restore"))
 				})
 			})
 
@@ -170,7 +170,7 @@ backup_name: consul_backup`), nil, 0, nil
 				It("calls the release name mapping with instance group and job", func() {
 					Expect(releaseMapping.FindReleaseNameCallCount()).To(Equal(1))
 					instanceGroupNameActual, jobNameActual := releaseMapping.FindReleaseNameArgsForCall(0)
-					Expect(instanceGroupNameActual).To(Equal(instanceName))
+					Expect(instanceGroupNameActual).To(Equal(instanceIdentifier.InstanceGroupName))
 					Expect(jobNameActual).To(Equal("consul_agent"))
 				})
 
@@ -181,7 +181,7 @@ backup_name: consul_backup`), nil, 0, nil
 				})
 
 				It("returns a list of jobs with metadata", func() {
-					Expect(jobs).To(ConsistOf(NewJob(sshConnection, "identifier", logger, consulAgentReleaseName, BackupAndRestoreScripts{
+					Expect(jobs).To(ConsistOf(NewJob(sshConnection, "identifier/0", logger, consulAgentReleaseName, BackupAndRestoreScripts{
 						"/var/vcap/jobs/consul_agent/bin/bbr/metadata",
 					}, Metadata{
 						BackupName: "consul_backup",
