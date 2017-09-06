@@ -77,11 +77,12 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 		return nil, errors.Wrap(err, "couldn't find manifest for deployment "+deploymentName)
 	}
 
-	instanceNames := uniqueInstanceGroupNamesFromVMs(vms)
+	releaseMapping, err := c.releaseMappingFinder(manifest)
+	if err != nil {
+		return nil, errors.Wrap(err, "couldn't generate release mapping for deployment "+deploymentName)
+	}
 
-	releaseMapping := c.releaseMappingFinder(manifest, instanceNames)
-
-	for _, instanceGroupName := range instanceNames {
+	for _, instanceGroupName := range uniqueInstanceGroupNamesFromVMs(vms) {
 		c.Logger.Debug("bbr", "Setting up SSH for job %s", instanceGroupName)
 
 		allVmInstances, err := director.NewAllOrInstanceGroupOrInstanceSlugFromString(instanceGroupName)

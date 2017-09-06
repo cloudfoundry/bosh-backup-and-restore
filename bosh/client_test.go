@@ -107,7 +107,7 @@ var _ = Describe("Director", func() {
 				}
 				fakeJobFinder.FindJobsReturns(expectedJobs, nil)
 
-				releaseMappingFinder.Returns(releaseMapping)
+				releaseMappingFinder.Returns(releaseMapping, nil)
 			})
 
 			It("collects the instances", func() {
@@ -250,7 +250,7 @@ var _ = Describe("Director", func() {
 					}
 				}
 
-				releaseMappingFinder.Returns(releaseMapping)
+				releaseMappingFinder.Returns(releaseMapping, nil)
 			})
 			It("collects the instances", func() {
 				Expect(actualInstances).To(Equal([]orchestrator.Instance{
@@ -382,7 +382,7 @@ var _ = Describe("Director", func() {
 				}
 				fakeJobFinder.FindJobsReturns(instanceJobs, nil)
 
-				releaseMappingFinder.Returns(releaseMapping)
+				releaseMappingFinder.Returns(releaseMapping, nil)
 			})
 			It("collects the instances", func() {
 				Expect(actualInstances).To(Equal([]orchestrator.Instance{

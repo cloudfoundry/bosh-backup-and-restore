@@ -26,7 +26,7 @@ var (
 var fixturesPath = "../../fixtures/redis-backup/"
 
 var _ = BeforeSuite(func() {
-	SetDefaultEventuallyTimeout(4 * time.Minute)
+	SetDefaultEventuallyTimeout(5 * time.Minute)
 	var wg sync.WaitGroup
 
 	wg.Add(3)

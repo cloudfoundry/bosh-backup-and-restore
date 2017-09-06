@@ -1,7 +1,7 @@
 package instance
 
 //go:generate counterfeiter -o fakes/fake_release_mapping_finder.go . ReleaseMappingFinder
-type ReleaseMappingFinder func(manifest string, instanceNames []string) ReleaseMapping
+type ReleaseMappingFinder func(manifest string) (ReleaseMapping, error)
 
 //go:generate counterfeiter -o fakes/fake_release_mapping.go . ReleaseMapping
 type ReleaseMapping interface {

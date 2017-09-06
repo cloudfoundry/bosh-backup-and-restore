@@ -61,10 +61,11 @@ var _ = Describe("backup with specified locking order", func() {
 		})
 
 		By("unlocking the instances in the correct order", func() {
-			Eventually(backupSession.Out).Should(gbytes.Say("Unlocking redis"))
-			Eventually(backupSession.Out).Should(gbytes.Say("Unlocking capi"))
-			Eventually(backupSession.Out).Should(gbytes.Say("Unlocking capi-consumer-[12]"))
-			Eventually(backupSession.Out).Should(gbytes.Say("Unlocking capi-consumer-[12]"))
+			Eventually(backupSession.Out).Should(gbytes.Say("Unlocking redis-server on redis"))
+			Eventually(backupSession.Out).Should(gbytes.Say("Unlocking capi on capi"))
+			Eventually(backupSession.Out).Should(gbytes.Say("Unlocking capi-consumer-[12] on capi-consumer-[12]"))
+			Eventually(backupSession.Out).Should(gbytes.Say("Unlocking capi-consumer-[12] on capi-consumer-[12]"))
+			Eventually(backupSession.Out).Should(gbytes.Say("Unlocking redis-server on capi-redis"))
 		})
 
 		By("running the restore command")

@@ -8,43 +8,38 @@ import (
 )
 
 type FakeReleaseMappingFinder struct {
-	Stub        func(manifest string, instanceNames []string) instance.ReleaseMapping
+	Stub        func(manifest string) (instance.ReleaseMapping, error)
 	mutex       sync.RWMutex
 	argsForCall []struct {
-		manifest      string
-		instanceNames []string
+		manifest string
 	}
 	returns struct {
 		result1 instance.ReleaseMapping
+		result2 error
 	}
 	returnsOnCall map[int]struct {
 		result1 instance.ReleaseMapping
+		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeReleaseMappingFinder) Spy(manifest string, instanceNames []string) instance.ReleaseMapping {
-	var instanceNamesCopy []string
-	if instanceNames != nil {
-		instanceNamesCopy = make([]string, len(instanceNames))
-		copy(instanceNamesCopy, instanceNames)
-	}
+func (fake *FakeReleaseMappingFinder) Spy(manifest string) (instance.ReleaseMapping, error) {
 	fake.mutex.Lock()
 	ret, specificReturn := fake.returnsOnCall[len(fake.argsForCall)]
 	fake.argsForCall = append(fake.argsForCall, struct {
-		manifest      string
-		instanceNames []string
-	}{manifest, instanceNamesCopy})
-	fake.recordInvocation("ReleaseMappingFinder", []interface{}{manifest, instanceNamesCopy})
+		manifest string
+	}{manifest})
+	fake.recordInvocation("ReleaseMappingFinder", []interface{}{manifest})
 	fake.mutex.Unlock()
 	if fake.Stub != nil {
-		return fake.Stub(manifest, instanceNames)
+		return fake.Stub(manifest)
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
-	return fake.returns.result1
+	return fake.returns.result1, fake.returns.result2
 }
 
 func (fake *FakeReleaseMappingFinder) CallCount() int {
@@ -53,29 +48,32 @@ func (fake *FakeReleaseMappingFinder) CallCount() int {
 	return len(fake.argsForCall)
 }
 
-func (fake *FakeReleaseMappingFinder) ArgsForCall(i int) (string, []string) {
+func (fake *FakeReleaseMappingFinder) ArgsForCall(i int) string {
 	fake.mutex.RLock()
 	defer fake.mutex.RUnlock()
-	return fake.argsForCall[i].manifest, fake.argsForCall[i].instanceNames
+	return fake.argsForCall[i].manifest
 }
 
-func (fake *FakeReleaseMappingFinder) Returns(result1 instance.ReleaseMapping) {
+func (fake *FakeReleaseMappingFinder) Returns(result1 instance.ReleaseMapping, result2 error) {
 	fake.Stub = nil
 	fake.returns = struct {
 		result1 instance.ReleaseMapping
-	}{result1}
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeReleaseMappingFinder) ReturnsOnCall(i int, result1 instance.ReleaseMapping) {
+func (fake *FakeReleaseMappingFinder) ReturnsOnCall(i int, result1 instance.ReleaseMapping, result2 error) {
 	fake.Stub = nil
 	if fake.returnsOnCall == nil {
 		fake.returnsOnCall = make(map[int]struct {
 			result1 instance.ReleaseMapping
+			result2 error
 		})
 	}
 	fake.returnsOnCall[i] = struct {
 		result1 instance.ReleaseMapping
-	}{result1}
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeReleaseMappingFinder) Invocations() map[string][][]interface{} {

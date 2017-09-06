@@ -6,109 +6,53 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cppforlife/go-patch/patch"
 	"gopkg.in/yaml.v1"
+	"github.com/pkg/errors"
 )
 
 type ManifestReleaseMapping struct {
-	releaseMap map[string]map[string]string
+	manifest   interface{}
+	v2Manifest bool
 }
 
 func (rm ManifestReleaseMapping) FindReleaseName(instanceGroupName, jobName string) (string, error) {
-	jobReleaseMap, jobReleaseMapFound := rm.releaseMap[instanceGroupName]
-	if !jobReleaseMapFound {
-		return "", fmt.Errorf("can't find instance group %s in release mapping, %v", instanceGroupName, rm.releaseMap)
+	var releasePath string
+	if rm.v2Manifest {
+		releasePath = fmt.Sprintf("/instance_groups/name=%s/jobs/name=%s/release", instanceGroupName, jobName)
+	} else {
+		releasePath = fmt.Sprintf("/jobs/name=%s/templates/name=%s/release", instanceGroupName, jobName)
 	}
-	releaseName, releaseNameFound := jobReleaseMap[jobName]
-	if !releaseNameFound {
-		return "", fmt.Errorf("can't find job name %s in release mapping, %v", jobName, rm.releaseMap)
+
+	releasePointer, err := patch.NewPointerFromString(releasePath)
+	if err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("error finding release name for job %s in instance group %s", jobName, instanceGroupName))
 	}
-	return releaseName, nil
+
+	release, err := patch.FindOp{Path: releasePointer}.Apply(rm.manifest)
+	if err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("error finding release name for job %s in instance group %s", jobName, instanceGroupName))
+	}
+
+	return release.(string), nil
 }
 
-func NewBoshManifestReleaseMapping(manifest string, instanceNames []string) instance.ReleaseMapping {
+func NewBoshManifestReleaseMapping(manifest string) (instance.ReleaseMapping, error) {
 	var parsedManifest interface{}
 
 	err := yaml.Unmarshal([]byte(manifest), &parsedManifest)
 	if err != nil {
-		panic(err)
+		return nil, errors.Wrap(err, "error unmarshalling manifest yaml")
 	}
 
-	releaseMap := make(map[string]map[string]string)
-	isV2Manifest := v2Manifest(parsedManifest)
+	v2Manifest := isV2Manifest(parsedManifest)
 
-	for _, igName := range instanceNames {
-		instCount := instanceCount(parsedManifest, igName, isV2Manifest)
-		if instCount == 0 {
-			continue
-		}
-		jobs := jobs(parsedManifest, igName, isV2Manifest)
-		for _, j := range jobs {
-			rn := release(parsedManifest, igName, j, isV2Manifest)
-			if _, ok := releaseMap[igName]; !ok {
-				releaseMap[igName] = map[string]string{}
-			}
-			releaseMap[igName][j] = rn
-		}
-	}
-
-	return ManifestReleaseMapping{releaseMap: releaseMap}
+	return ManifestReleaseMapping{manifest: parsedManifest, v2Manifest: v2Manifest}, nil
 }
 
-func v2Manifest(manifest interface{}) bool {
-	uuidPath := patch.MustNewPointerFromString(fmt.Sprintf("/director_uuid"))
-	_, err := patch.FindOp{Path: uuidPath}.Apply(manifest)
+func isV2Manifest(manifest interface{}) bool {
+	instanceGroupPath := patch.MustNewPointerFromString(fmt.Sprintf("/instance_groups"))
+	_, err := patch.FindOp{Path: instanceGroupPath}.Apply(manifest)
 	if err != nil {
-		return true
+		return false
 	}
-	return false
-}
-
-func instanceCount(manifest interface{}, instanceName string, v2Manifest bool) int {
-	var countPathStr string
-	if v2Manifest {
-		countPathStr = fmt.Sprintf("/instance_groups/name=%s/instances", instanceName)
-	} else {
-		countPathStr = fmt.Sprintf("/jobs/name=%s/instances", instanceName)
-	}
-	countPath := patch.MustNewPointerFromString(countPathStr)
-	count, err := patch.FindOp{Path: countPath}.Apply(manifest)
-	if err != nil {
-		panic(err)
-	}
-	return count.(int)
-}
-
-func jobs(manifest interface{}, instanceName string, v2Manifest bool) []string {
-	i := 0
-	jobs := []string{}
-	for {
-		var jobPathStr string
-		if v2Manifest {
-			jobPathStr = fmt.Sprintf("/instance_groups/name=%s/jobs/%v/name", instanceName, i)
-		} else {
-			jobPathStr = fmt.Sprintf("/jobs/name=%s/templates/%v/name", instanceName, i)
-		}
-		jobPath := patch.MustNewPointerFromString(jobPathStr)
-		j, err := patch.FindOp{Path: jobPath}.Apply(manifest)
-		if err != nil {
-			return jobs
-		}
-		jobs = append(jobs, j.(string))
-		i++
-	}
-	return jobs
-}
-
-func release(manifest interface{}, instanceName string, jobName string, v2Manifest bool) string {
-	var releasePathStr string
-	if v2Manifest {
-		releasePathStr = fmt.Sprintf("/instance_groups/name=%s/jobs/name=%s/release", instanceName, jobName)
-	} else {
-		releasePathStr = fmt.Sprintf("/jobs/name=%s/templates/name=%s/release", instanceName, jobName)
-	}
-	releasePath := patch.MustNewPointerFromString(releasePathStr)
-	release, err := patch.FindOp{Path: releasePath}.Apply(manifest)
-	if err != nil {
-		panic(err)
-	}
-	return release.(string)
+	return true
 }
