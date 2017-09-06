@@ -35,6 +35,8 @@ var version string
 var stdout *writer.PausableWriter = writer.NewPausableWriter(os.Stdout)
 var stderr *writer.PausableWriter = writer.NewPausableWriter(os.Stderr)
 
+const cleanupAdvisedNotice = "It is recommended that you run `bbr backup-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."
+
 func main() {
 	cli.AppHelpTemplate = `NAME:
    {{.Name}}{{if .Usage}} - {{.Usage}}{{end}}
@@ -186,6 +188,7 @@ func trapSigint() {
 			if err != nil {
 				fmt.Println("\nCouldn't read from Stdin, if you still want to stop the backup send SIGTERM.")
 			} else if strings.ToLower(strings.TrimSpace(input)) == "yes" {
+				fmt.Println(cleanupAdvisedNotice)
 				os.Exit(1)
 			}
 			stdout.Resume()
@@ -248,7 +251,7 @@ func deploymentBackup(c *cli.Context) error {
 	}
 
 	if backupErr.ContainsUnlockOrCleanup() {
-		errorMessage = errorMessage + "\nIt is recommended that you run `bbr backup-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."
+		errorMessage = errorMessage + "\n" + cleanupAdvisedNotice
 	}
 
 	return cli.NewExitError(errorMessage, errorCode)
@@ -269,7 +272,7 @@ func directorBackup(c *cli.Context) error {
 	}
 
 	if backupErr.ContainsUnlockOrCleanup() {
-		errorMessage = errorMessage + "\nIt is recommended that you run `bbr backup-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."
+		errorMessage = errorMessage + "\n" + cleanupAdvisedNotice
 	}
 
 	return cli.NewExitError(errorMessage, errorCode)

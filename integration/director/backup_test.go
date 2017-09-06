@@ -276,6 +276,10 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						Eventually(session, 10).Should(gexec.Exit(1))
 					})
 
+					By("outputting a warning about cleanup", func() {
+						Eventually(session).Should(gbytes.Say("It is recommended that you run `bbr backup-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."))
+					})
+
 					By("not completing the backup", func() {
 						boshBackupFilePath := path.Join(backupDirectory(), "/bosh-0-bosh.tar")
 						Expect(boshBackupFilePath).NotTo(BeAnExistingFile())

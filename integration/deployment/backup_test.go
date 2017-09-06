@@ -213,12 +213,12 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 							Eventually(session, 10).Should(gexec.Exit(1))
 						})
 
-						By("not completing the backup", func() {
-							Expect(possibleBackupDirectories()).To(HaveLen(0))
+						By("outputting a warning about cleanup", func() {
+							Eventually(session).Should(gbytes.Say("It is recommended that you run `bbr backup-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."))
 						})
 
-						By("shouldn't output buffered logs", func() {
-							Expect(string(session.Out.Contents())).To(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
+						By("not completing the backup", func() {
+							Expect(possibleBackupDirectories()).To(HaveLen(0))
 						})
 					})
 				})
