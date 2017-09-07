@@ -44,10 +44,11 @@ var _ = Describe("backup with specified locking order", func() {
 		Eventually(backupSession).Should(gexec.Exit(0))
 
 		By("locking the instances in the correct order", func() {
-			Eventually(backupSession.Out).Should(gbytes.Say("Locking capi-consumer-[12]"))
-			Eventually(backupSession.Out).Should(gbytes.Say("Locking capi-consumer-[12]"))
-			Eventually(backupSession.Out).Should(gbytes.Say("Locking capi"))
-			Eventually(backupSession.Out).Should(gbytes.Say("Locking redis"))
+			Eventually(backupSession.Out).Should(gbytes.Say("Locking redis-server on capi-redis"))
+			Eventually(backupSession.Out).Should(gbytes.Say("Locking capi-consumer-[12] on capi-consumer-[12]"))
+			Eventually(backupSession.Out).Should(gbytes.Say("Locking capi-consumer-[12] on capi-consumer-[12]"))
+			Eventually(backupSession.Out).Should(gbytes.Say("Locking capi on capi"))
+			Eventually(backupSession.Out).Should(gbytes.Say("Locking redis-server on redis"))
 		})
 
 		By("cleaning up artifacts from the remote instances")
