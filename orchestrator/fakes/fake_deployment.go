@@ -151,6 +151,17 @@ type FakeDeployment struct {
 	postRestoreUnlockReturnsOnCall map[int]struct {
 		result1 error
 	}
+	CheckDependenciesForCyclesStub        func(orderer orchestrator.LockOrderer) error
+	checkDependenciesForCyclesMutex       sync.RWMutex
+	checkDependenciesForCyclesArgsForCall []struct {
+		orderer orchestrator.LockOrderer
+	}
+	checkDependenciesForCyclesReturns struct {
+		result1 error
+	}
+	checkDependenciesForCyclesReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -787,6 +798,54 @@ func (fake *FakeDeployment) PostRestoreUnlockReturnsOnCall(i int, result1 error)
 	}{result1}
 }
 
+func (fake *FakeDeployment) CheckDependenciesForCycles(orderer orchestrator.LockOrderer) error {
+	fake.checkDependenciesForCyclesMutex.Lock()
+	ret, specificReturn := fake.checkDependenciesForCyclesReturnsOnCall[len(fake.checkDependenciesForCyclesArgsForCall)]
+	fake.checkDependenciesForCyclesArgsForCall = append(fake.checkDependenciesForCyclesArgsForCall, struct {
+		orderer orchestrator.LockOrderer
+	}{orderer})
+	fake.recordInvocation("CheckDependenciesForCycles", []interface{}{orderer})
+	fake.checkDependenciesForCyclesMutex.Unlock()
+	if fake.CheckDependenciesForCyclesStub != nil {
+		return fake.CheckDependenciesForCyclesStub(orderer)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.checkDependenciesForCyclesReturns.result1
+}
+
+func (fake *FakeDeployment) CheckDependenciesForCyclesCallCount() int {
+	fake.checkDependenciesForCyclesMutex.RLock()
+	defer fake.checkDependenciesForCyclesMutex.RUnlock()
+	return len(fake.checkDependenciesForCyclesArgsForCall)
+}
+
+func (fake *FakeDeployment) CheckDependenciesForCyclesArgsForCall(i int) orchestrator.LockOrderer {
+	fake.checkDependenciesForCyclesMutex.RLock()
+	defer fake.checkDependenciesForCyclesMutex.RUnlock()
+	return fake.checkDependenciesForCyclesArgsForCall[i].orderer
+}
+
+func (fake *FakeDeployment) CheckDependenciesForCyclesReturns(result1 error) {
+	fake.CheckDependenciesForCyclesStub = nil
+	fake.checkDependenciesForCyclesReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeployment) CheckDependenciesForCyclesReturnsOnCall(i int, result1 error) {
+	fake.CheckDependenciesForCyclesStub = nil
+	if fake.checkDependenciesForCyclesReturnsOnCall == nil {
+		fake.checkDependenciesForCyclesReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.checkDependenciesForCyclesReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -820,6 +879,8 @@ func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	defer fake.customArtifactNamesMatchMutex.RUnlock()
 	fake.postRestoreUnlockMutex.RLock()
 	defer fake.postRestoreUnlockMutex.RUnlock()
+	fake.checkDependenciesForCyclesMutex.RLock()
+	defer fake.checkDependenciesForCyclesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

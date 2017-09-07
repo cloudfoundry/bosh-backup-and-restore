@@ -904,7 +904,7 @@ should_be_locked_before:
 				})
 			})
 
-			Context("with ordering on pre-backup-lock (where the default ordering would unlock in the wrong order",
+			Context("with ordering on pre-backup-lock (where the default ordering would unlock in the wrong order)",
 				func() {
 					BeforeEach(func() {
 						secondReturnedInstance.CreateScript(
@@ -943,6 +943,48 @@ should_be_locked_before:
 							strings.TrimSuffix(redisUnlockTime, "\n")))
 					})
 				})
+
+			Context("but the pre-backup-lock ordering is cyclic", func() {
+				BeforeEach(func() {
+					firstReturnedInstance.CreateScript(
+						"/var/vcap/jobs/redis/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
+touch /tmp/redis-pre-backup-lock-called
+exit 0`)
+					firstReturnedInstance.CreateScript(
+						"/var/vcap/jobs/redis-writer/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
+touch /tmp/redis-writer-pre-backup-lock-called
+exit 0`)
+					firstReturnedInstance.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata",
+						`#!/usr/bin/env sh
+echo "---
+should_be_locked_before:
+- job_name: redis
+  release: redis
+"`)
+					firstReturnedInstance.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata",
+						`#!/usr/bin/env sh
+echo "---
+should_be_locked_before:
+- job_name: redis-writer
+  release: redis
+"`)
+				})
+
+				It("Should fail", func() {
+					By("exiting with an error", func() {
+						Expect(session).To(gexec.Exit(1))
+					})
+
+					By("printing a helpful error message", func() {
+						Expect(string(session.Err.Contents())).To(ContainSubstring("job locking dependency graph is cyclic"))
+					})
+
+					By("not creating a local backup artifact", func() {
+						Expect(possibleBackupDirectories()).To(BeEmpty(),
+							"Should quit before creating any local backup artifact.")
+					})
+				})
+			})
 		})
 
 		Context("both backupable", func() {

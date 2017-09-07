@@ -13,16 +13,23 @@ import (
 
 var _ = Describe("KahnLockOrderer", func() {
 	type lockingTestCase struct {
-		inputJobs   []Job
-		orderedJobs []Job
+		inputJobs    []Job
+		orderedJobs  []Job
+		errorMessage string
 	}
 
 	lockOrderer := NewKahnLockOrderer()
 
-	DescribeTable("counting substring matches",
+	DescribeTable("KahnLockOrderer",
 		func(testCaseBuilder func() lockingTestCase) {
 			testCase := testCaseBuilder()
-			Expect(lockOrderer.Order(testCase.inputJobs)).To(Equal(testCase.orderedJobs))
+			orderedJobs, err := lockOrderer.Order(testCase.inputJobs)
+			Expect(orderedJobs).To(Equal(testCase.orderedJobs))
+			if testCase.errorMessage == "" {
+				Expect(err).NotTo(HaveOccurred())
+			} else {
+				Expect(err).To(MatchError(ContainSubstring(testCase.errorMessage)))
+			}
 		},
 
 		Entry("no jobs", func() lockingTestCase {
@@ -141,6 +148,17 @@ var _ = Describe("KahnLockOrderer", func() {
 			return lockingTestCase{
 				inputJobs:   []Job{a, c1, b, c2},
 				orderedJobs: []Job{a, b, c1, c2},
+			}
+		}),
+
+		Entry("multiple jobs with cyclic dependencies", func() lockingTestCase {
+			var a = fakeJobOnInstance("a", "releasea", "instance_group/0", []JobSpecifier{{Name: "c", Release: "releasec"}})
+			var b = fakeJobOnInstance("b", "releaseb", "instance_group/1", []JobSpecifier{{Name: "a", Release: "releasea"}})
+			var c = fakeJobOnInstance("c", "releasec", "instance_group/2", []JobSpecifier{{Name: "b", Release: "releaseb"}})
+
+			return lockingTestCase{
+				inputJobs:    []Job{a, b, c},
+				errorMessage: "job locking dependency graph is cyclic",
 			}
 		}),
 	)

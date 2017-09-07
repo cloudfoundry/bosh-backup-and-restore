@@ -76,7 +76,7 @@ var _ = Describe("Deployment", func() {
 
 			instances = []orchestrator.Instance{instance1, instance2, instance3}
 
-			lockOrderer.OrderReturns([]orchestrator.Job{job2a, job3a, job1a, job1b})
+			lockOrderer.OrderReturns([]orchestrator.Job{job2a, job3a, job1a, job1b}, nil)
 		})
 
 		JustBeforeEach(func() {
@@ -206,7 +206,7 @@ var _ = Describe("Deployment", func() {
 
 			instances = []orchestrator.Instance{instance1, instance2, instance3}
 
-			lockOrderer.OrderReturns([]orchestrator.Job{job2a, job3a, job1a, job1b})
+			lockOrderer.OrderReturns([]orchestrator.Job{job2a, job3a, job1a, job1b}, nil)
 
 			expectedError = fmt.Errorf("something went terribly wrong")
 		})

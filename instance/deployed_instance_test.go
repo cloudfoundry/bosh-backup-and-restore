@@ -48,7 +48,7 @@ var _ = Describe("DeployedInstance", func() {
 			jobs)
 	})
 
-	Describe("HasBackupScript", func() {
+	Describe("IsBackupable", func() {
 		var actualBackupable bool
 
 		JustBeforeEach(func() {

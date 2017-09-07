@@ -27,11 +27,12 @@ type Deployment interface {
 	Instances() []Instance
 	CustomArtifactNamesMatch() error
 	PostRestoreUnlock() error
+	CheckDependenciesForCycles(orderer LockOrderer) error
 }
 
 //go:generate counterfeiter -o fakes/fake_lock_orderer.go . LockOrderer
 type LockOrderer interface {
-	Order(jobs []Job) []Job
+	Order(jobs []Job) ([]Job, error)
 }
 
 type deployment struct {
@@ -80,12 +81,18 @@ func (bd *deployment) CheckArtifactDir() error {
 	return nil
 }
 
+func (bd *deployment) CheckDependenciesForCycles(lockOrderer LockOrderer) error {
+	jobs := bd.instances.Jobs()
+	_, err := lockOrderer.Order(jobs)
+	return err
+}
+
 func (bd *deployment) PreBackupLock(lockOrderer LockOrderer) error {
 	bd.Logger.Info("bbr", "Running pre-backup scripts...")
 
 	jobs := bd.instances.Jobs()
 
-	orderedJobs := lockOrderer.Order(jobs)
+	orderedJobs, _ := lockOrderer.Order(jobs)
 
 	var preBackupLockErrors []error
 	for _, job := range orderedJobs {
@@ -108,7 +115,7 @@ func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer) error {
 
 	jobs := bd.instances.Jobs()
 
-	orderedJobs := lockOrderer.Order(jobs)
+	orderedJobs, _ := lockOrderer.Order(jobs)
 	reversedJobs := Jobs(orderedJobs).Reverse()
 
 	var postBackupUnlockErrors []error

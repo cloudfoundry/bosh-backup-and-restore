@@ -8,22 +8,24 @@ import (
 )
 
 type FakeLockOrderer struct {
-	OrderStub        func(jobs []orchestrator.Job) []orchestrator.Job
+	OrderStub        func(jobs []orchestrator.Job) ([]orchestrator.Job, error)
 	orderMutex       sync.RWMutex
 	orderArgsForCall []struct {
 		jobs []orchestrator.Job
 	}
 	orderReturns struct {
 		result1 []orchestrator.Job
+		result2 error
 	}
 	orderReturnsOnCall map[int]struct {
 		result1 []orchestrator.Job
+		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeLockOrderer) Order(jobs []orchestrator.Job) []orchestrator.Job {
+func (fake *FakeLockOrderer) Order(jobs []orchestrator.Job) ([]orchestrator.Job, error) {
 	var jobsCopy []orchestrator.Job
 	if jobs != nil {
 		jobsCopy = make([]orchestrator.Job, len(jobs))
@@ -40,9 +42,9 @@ func (fake *FakeLockOrderer) Order(jobs []orchestrator.Job) []orchestrator.Job {
 		return fake.OrderStub(jobs)
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
-	return fake.orderReturns.result1
+	return fake.orderReturns.result1, fake.orderReturns.result2
 }
 
 func (fake *FakeLockOrderer) OrderCallCount() int {
@@ -57,23 +59,26 @@ func (fake *FakeLockOrderer) OrderArgsForCall(i int) []orchestrator.Job {
 	return fake.orderArgsForCall[i].jobs
 }
 
-func (fake *FakeLockOrderer) OrderReturns(result1 []orchestrator.Job) {
+func (fake *FakeLockOrderer) OrderReturns(result1 []orchestrator.Job, result2 error) {
 	fake.OrderStub = nil
 	fake.orderReturns = struct {
 		result1 []orchestrator.Job
-	}{result1}
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeLockOrderer) OrderReturnsOnCall(i int, result1 []orchestrator.Job) {
+func (fake *FakeLockOrderer) OrderReturnsOnCall(i int, result1 []orchestrator.Job, result2 error) {
 	fake.OrderStub = nil
 	if fake.orderReturnsOnCall == nil {
 		fake.orderReturnsOnCall = make(map[int]struct {
 			result1 []orchestrator.Job
+			result2 error
 		})
 	}
 	fake.orderReturnsOnCall[i] = struct {
 		result1 []orchestrator.Job
-	}{result1}
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeLockOrderer) Invocations() map[string][][]interface{} {

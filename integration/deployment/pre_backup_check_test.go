@@ -4,9 +4,9 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
@@ -28,6 +28,10 @@ instance_groups:
   instances: 1
   jobs:
   - name: redis
+    release: redis
+  - name: redis-writer
+    release: redis
+  - name: redis-broker
     release: redis
 `
 
@@ -104,6 +108,43 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 			It("outputs a log message saying the deployment can be backed up", func() {
 				Expect(string(session.Out.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' can be backed up."))
+			})
+
+			Context("but the pre-backup-lock ordering is cyclic", func() {
+				BeforeEach(func() {
+					instance1.CreateScript(
+						"/var/vcap/jobs/redis/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
+touch /tmp/redis-pre-backup-lock-called
+exit 0`)
+					instance1.CreateScript(
+						"/var/vcap/jobs/redis-writer/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
+touch /tmp/redis-writer-pre-backup-lock-called
+exit 0`)
+					instance1.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata",
+						`#!/usr/bin/env sh
+echo "---
+should_be_locked_before:
+- job_name: redis
+  release: redis
+"`)
+					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata",
+						`#!/usr/bin/env sh
+echo "---
+should_be_locked_before:
+- job_name: redis-writer
+  release: redis
+"`)
+				})
+
+				It("Should fail", func() {
+					By("exiting with an error", func() {
+						Expect(session).To(gexec.Exit(1))
+					})
+
+					By("printing a helpful error message", func() {
+						Expect(string(session.Err.Contents())).To(ContainSubstring("job locking dependency graph is cyclic"))
+					})
+				})
 			})
 
 			Context("but the backup artifact directory already exists", func() {
