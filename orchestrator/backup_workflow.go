@@ -79,7 +79,14 @@ func newBackupWorkflow(backuper Backuper, deploymentName string) *backupWorkflow
 			{Name: EventBackup, Src: []string{StateLocked}, Dst: StateBackedup},
 			{Name: EventPostBackupUnlock, Src: []string{StateBackedup, StateArtifactCreated}, Dst: StateUnlocked},
 			{Name: EventDrain, Src: []string{StateUnlocked}, Dst: StateDrained},
-			{Name: EventCleanup, Src: []string{StateDeploymentExists, StateIsBackupable, StateArtifactCreated, StateUnlocked, StateDrained}, Dst: StateFinished},
+			{Name: EventCleanup,
+				Src: []string{
+					StateDeploymentExists,
+					StateIsBackupable,
+					StateArtifactCreated,
+					StateUnlocked,
+					StateDrained},
+				Dst: StateFinished},
 		},
 	}
 
@@ -128,7 +135,8 @@ func (bw *backupWorkflow) checkDeployment(e *fsm.Event) {
 
 func (bw *backupWorkflow) checkIsBackupable(e *fsm.Event) {
 	if !bw.deployment.IsBackupable() {
-		bw.backupErrors = append(bw.backupErrors, errors.Errorf("Deployment '%s' has no backup scripts", bw.deploymentName))
+		bw.backupErrors = append(bw.backupErrors,
+			errors.Errorf("Deployment '%s' has no backup scripts", bw.deploymentName))
 		e.Cancel()
 		return
 	}
@@ -141,7 +149,8 @@ func (bw *backupWorkflow) checkIsBackupable(e *fsm.Event) {
 	}
 
 	if !bw.deployment.HasUniqueCustomArtifactNames() {
-		bw.backupErrors = append(bw.backupErrors, errors.Errorf("Multiple jobs in deployment '%s' specified the same backup name", bw.deploymentName))
+		bw.backupErrors = append(bw.backupErrors,
+			errors.Errorf("Multiple jobs in deployment '%s' specified the same backup name", bw.deploymentName))
 		e.Cancel()
 	}
 
@@ -158,7 +167,10 @@ func (bw *backupWorkflow) checkIsBackupable(e *fsm.Event) {
 
 func (bw *backupWorkflow) cleanup(e *fsm.Event) {
 	if err := bw.deployment.Cleanup(); err != nil {
-		bw.backupErrors = append(bw.backupErrors, NewCleanupError(fmt.Sprintf("Deployment '%s' failed while cleaning up with error: %v", bw.deploymentName, err)))
+		bw.backupErrors = append(
+			bw.backupErrors,
+			NewCleanupError(
+				fmt.Sprintf("Deployment '%s' failed while cleaning up with error: %v", bw.deploymentName, err)))
 	}
 }
 
