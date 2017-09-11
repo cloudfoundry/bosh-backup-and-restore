@@ -492,7 +492,7 @@ func makeDirectorCleaner(c *cli.Context) *orchestrator.Cleaner {
 		ssh.NewConnection,
 	)
 
-	return orchestrator.NewCleaner(logger, deploymentManager, orderer.NoopLockOrderer{})
+	return orchestrator.NewCleaner(logger, deploymentManager, orderer.NewNoopLockOrderer())
 }
 
 func makeDeploymentBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
