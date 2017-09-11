@@ -50,7 +50,7 @@ var _ = Describe("Pre-backup checks", func() {
 				directorInstance = testcluster.NewInstance()
 				directorInstance.CreateUser("foobar", readFile(pathToPublicKeyFile))
 				By("creating a dummy backup script")
-				directorInstance.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
+				directorInstance.CreateScript("/var/vcap/jobs/uaa/bin/bbr/backup", `#!/usr/bin/env sh
 set -u
 printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
 printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
@@ -98,7 +98,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				directorInstance.CreateUser("foobar", readFile(pathToPublicKeyFile))
 
 				directorInstance.CreateExecutableFiles(
-					"/var/vcap/jobs/redis/bin/not-a-backup-script",
+					"/var/vcap/jobs/uaa/bin/not-a-backup-script",
 				)
 				directorAddress = directorInstance.Address()
 			})
