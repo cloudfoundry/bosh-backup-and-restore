@@ -151,15 +151,15 @@ type FakeDeployment struct {
 	postRestoreUnlockReturnsOnCall map[int]struct {
 		result1 error
 	}
-	CheckDependenciesForCyclesStub        func(orderer orchestrator.LockOrderer) error
-	checkDependenciesForCyclesMutex       sync.RWMutex
-	checkDependenciesForCyclesArgsForCall []struct {
+	ValidateLockingDependenciesStub        func(orderer orchestrator.LockOrderer) error
+	validateLockingDependenciesMutex       sync.RWMutex
+	validateLockingDependenciesArgsForCall []struct {
 		orderer orchestrator.LockOrderer
 	}
-	checkDependenciesForCyclesReturns struct {
+	validateLockingDependenciesReturns struct {
 		result1 error
 	}
-	checkDependenciesForCyclesReturnsOnCall map[int]struct {
+	validateLockingDependenciesReturnsOnCall map[int]struct {
 		result1 error
 	}
 	invocations      map[string][][]interface{}
@@ -798,50 +798,50 @@ func (fake *FakeDeployment) PostRestoreUnlockReturnsOnCall(i int, result1 error)
 	}{result1}
 }
 
-func (fake *FakeDeployment) CheckDependenciesForCycles(orderer orchestrator.LockOrderer) error {
-	fake.checkDependenciesForCyclesMutex.Lock()
-	ret, specificReturn := fake.checkDependenciesForCyclesReturnsOnCall[len(fake.checkDependenciesForCyclesArgsForCall)]
-	fake.checkDependenciesForCyclesArgsForCall = append(fake.checkDependenciesForCyclesArgsForCall, struct {
+func (fake *FakeDeployment) ValidateLockingDependencies(orderer orchestrator.LockOrderer) error {
+	fake.validateLockingDependenciesMutex.Lock()
+	ret, specificReturn := fake.validateLockingDependenciesReturnsOnCall[len(fake.validateLockingDependenciesArgsForCall)]
+	fake.validateLockingDependenciesArgsForCall = append(fake.validateLockingDependenciesArgsForCall, struct {
 		orderer orchestrator.LockOrderer
 	}{orderer})
-	fake.recordInvocation("CheckDependenciesForCycles", []interface{}{orderer})
-	fake.checkDependenciesForCyclesMutex.Unlock()
-	if fake.CheckDependenciesForCyclesStub != nil {
-		return fake.CheckDependenciesForCyclesStub(orderer)
+	fake.recordInvocation("ValidateLockingDependencies", []interface{}{orderer})
+	fake.validateLockingDependenciesMutex.Unlock()
+	if fake.ValidateLockingDependenciesStub != nil {
+		return fake.ValidateLockingDependenciesStub(orderer)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.checkDependenciesForCyclesReturns.result1
+	return fake.validateLockingDependenciesReturns.result1
 }
 
-func (fake *FakeDeployment) CheckDependenciesForCyclesCallCount() int {
-	fake.checkDependenciesForCyclesMutex.RLock()
-	defer fake.checkDependenciesForCyclesMutex.RUnlock()
-	return len(fake.checkDependenciesForCyclesArgsForCall)
+func (fake *FakeDeployment) ValidateLockingDependenciesCallCount() int {
+	fake.validateLockingDependenciesMutex.RLock()
+	defer fake.validateLockingDependenciesMutex.RUnlock()
+	return len(fake.validateLockingDependenciesArgsForCall)
 }
 
-func (fake *FakeDeployment) CheckDependenciesForCyclesArgsForCall(i int) orchestrator.LockOrderer {
-	fake.checkDependenciesForCyclesMutex.RLock()
-	defer fake.checkDependenciesForCyclesMutex.RUnlock()
-	return fake.checkDependenciesForCyclesArgsForCall[i].orderer
+func (fake *FakeDeployment) ValidateLockingDependenciesArgsForCall(i int) orchestrator.LockOrderer {
+	fake.validateLockingDependenciesMutex.RLock()
+	defer fake.validateLockingDependenciesMutex.RUnlock()
+	return fake.validateLockingDependenciesArgsForCall[i].orderer
 }
 
-func (fake *FakeDeployment) CheckDependenciesForCyclesReturns(result1 error) {
-	fake.CheckDependenciesForCyclesStub = nil
-	fake.checkDependenciesForCyclesReturns = struct {
+func (fake *FakeDeployment) ValidateLockingDependenciesReturns(result1 error) {
+	fake.ValidateLockingDependenciesStub = nil
+	fake.validateLockingDependenciesReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeDeployment) CheckDependenciesForCyclesReturnsOnCall(i int, result1 error) {
-	fake.CheckDependenciesForCyclesStub = nil
-	if fake.checkDependenciesForCyclesReturnsOnCall == nil {
-		fake.checkDependenciesForCyclesReturnsOnCall = make(map[int]struct {
+func (fake *FakeDeployment) ValidateLockingDependenciesReturnsOnCall(i int, result1 error) {
+	fake.ValidateLockingDependenciesStub = nil
+	if fake.validateLockingDependenciesReturnsOnCall == nil {
+		fake.validateLockingDependenciesReturnsOnCall = make(map[int]struct {
 			result1 error
 		})
 	}
-	fake.checkDependenciesForCyclesReturnsOnCall[i] = struct {
+	fake.validateLockingDependenciesReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -879,8 +879,8 @@ func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	defer fake.customArtifactNamesMatchMutex.RUnlock()
 	fake.postRestoreUnlockMutex.RLock()
 	defer fake.postRestoreUnlockMutex.RUnlock()
-	fake.checkDependenciesForCyclesMutex.RLock()
-	defer fake.checkDependenciesForCyclesMutex.RUnlock()
+	fake.validateLockingDependenciesMutex.RLock()
+	defer fake.validateLockingDependenciesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

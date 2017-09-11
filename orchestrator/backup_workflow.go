@@ -159,7 +159,7 @@ func (bw *backupWorkflow) checkIsBackupable(e *fsm.Event) {
 		e.Cancel()
 	}
 
-	if err := bw.deployment.CheckDependenciesForCycles(bw.LockOrderer); err != nil {
+	if err := bw.deployment.ValidateLockingDependencies(bw.LockOrderer); err != nil {
 		bw.backupErrors = append(bw.backupErrors, err)
 		e.Cancel()
 	}

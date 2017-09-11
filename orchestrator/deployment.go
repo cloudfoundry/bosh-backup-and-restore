@@ -27,7 +27,7 @@ type Deployment interface {
 	Instances() []Instance
 	CustomArtifactNamesMatch() error
 	PostRestoreUnlock() error
-	CheckDependenciesForCycles(orderer LockOrderer) error
+	ValidateLockingDependencies(orderer LockOrderer) error
 }
 
 //go:generate counterfeiter -o fakes/fake_lock_orderer.go . LockOrderer
@@ -81,7 +81,7 @@ func (bd *deployment) CheckArtifactDir() error {
 	return nil
 }
 
-func (bd *deployment) CheckDependenciesForCycles(lockOrderer LockOrderer) error {
+func (bd *deployment) ValidateLockingDependencies(lockOrderer LockOrderer) error {
 	jobs := bd.instances.Jobs()
 	_, err := lockOrderer.Order(jobs)
 	return err
