@@ -107,26 +107,28 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				directorInstance.DieInBackground()
 			})
 
-			It("returns exit code 1", func() {
-				Expect(session.ExitCode()).To(Equal(1))
-			})
+			It("fails", func() {
+				By("returning exit code 1", func() {
+					Expect(session.ExitCode()).To(Equal(1))
+				})
 
-			It("prints an error", func() {
-				Expect(string(session.Out.Contents())).To(ContainSubstring("Director cannot be backed up."))
-				directorHost := directorInstance.IP()
-				Expect(string(session.Err.Contents())).To(ContainSubstring(fmt.Sprintf("Deployment '%s' has no backup scripts", directorHost)))
-				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
-			})
+				By("printing an error", func() {
+					Expect(string(session.Out.Contents())).To(ContainSubstring("Director cannot be backed up."))
+					directorHost := directorInstance.IP()
+					Expect(string(session.Err.Contents())).To(ContainSubstring(fmt.Sprintf("Deployment '%s' has no backup scripts", directorHost)))
+					Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
+				})
 
-			It("writes the stack trace", func() {
-				files, err := filepath.Glob(filepath.Join(backupWorkspace, "bbr-*.err.log"))
-				Expect(err).NotTo(HaveOccurred())
-				logFilePath := files[0]
-				_, err = os.Stat(logFilePath)
-				Expect(os.IsNotExist(err)).To(BeFalse())
-				stackTrace, err := ioutil.ReadFile(logFilePath)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
+				By("writing the stack trace", func() {
+					files, err := filepath.Glob(filepath.Join(backupWorkspace, "bbr-*.err.log"))
+					Expect(err).NotTo(HaveOccurred())
+					logFilePath := files[0]
+					_, err = os.Stat(logFilePath)
+					Expect(os.IsNotExist(err)).To(BeFalse())
+					stackTrace, err := ioutil.ReadFile(logFilePath)
+					Expect(err).ToNot(HaveOccurred())
+					Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
+				})
 			})
 		})
 	})
