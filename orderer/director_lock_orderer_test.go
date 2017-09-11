@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("NoopLockOrderer", func() {
-	var noopLockOrderer = NewNoopLockOrderer()
+var _ = Describe("DirectorLockOrderer", func() {
+	var directorLockOrderer = NewDirectorLockOrderer()
 
 	var jobs []Job
 
@@ -22,7 +22,7 @@ var _ = Describe("NoopLockOrderer", func() {
 		})
 
 		It("returns the list of input jobs, untouched", func() {
-			orderedJobs, err := noopLockOrderer.Order(jobs)
+			orderedJobs, err := directorLockOrderer.Order(jobs)
 
 			Expect(orderedJobs).To(Equal(jobs))
 			Expect(err).NotTo(HaveOccurred())
@@ -39,7 +39,7 @@ var _ = Describe("NoopLockOrderer", func() {
 		})
 
 		It("returns an error", func() {
-			orderedJobs, err := noopLockOrderer.Order(jobs)
+			orderedJobs, err := directorLockOrderer.Order(jobs)
 
 			Expect(orderedJobs).To(BeNil())
 			Expect(err).To(HaveOccurred())

@@ -6,13 +6,13 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 )
 
-type NoopLockOrderer struct{}
+type DirectorLockOrderer struct{}
 
-func NewNoopLockOrderer() NoopLockOrderer {
-	return NoopLockOrderer{}
+func NewDirectorLockOrderer() DirectorLockOrderer {
+	return DirectorLockOrderer{}
 }
 
-func (lo NoopLockOrderer) Order(jobs []orchestrator.Job) ([]orchestrator.Job, error) {
+func (lo DirectorLockOrderer) Order(jobs []orchestrator.Job) ([]orchestrator.Job, error) {
 	for _, job := range jobs {
 		if len(job.ShouldBeLockedBefore()) > 0 {
 			return nil, fmt.Errorf("director job '%s' specifies locking dependencies, which are not allowed for director jobs", job.Name())
