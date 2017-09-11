@@ -220,6 +220,33 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 				})
 			})
+
+			Context("but a metadata script specifying locking dependencies also exists", func() {
+				BeforeEach(func() {
+					directorInstance.CreateScript("/var/vcap/jobs/bosh/bin/bbr/metadata",
+						`#!/usr/bin/env sh
+echo "---
+should_be_locked_before:
+- job_name: postgres
+  release: bosh
+"`)
+				})
+
+				It("fails", func() {
+					By("returning exit code 1", func() {
+						Expect(session.ExitCode()).To(Equal(1))
+					})
+
+					By("printing an helpful error", func() {
+						Expect(string(session.Err.Contents())).To(ContainSubstring(
+							fmt.Sprintf("director job 'bosh' specifies locking dependencies, which are not allowed for director jobs")))
+					})
+
+					By("not printing the stack trace to stderr", func() {
+						Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
+					})
+				})
+			})
 		})
 
 		Context("but there are no backup scripts", func() {
