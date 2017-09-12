@@ -64,6 +64,16 @@ func (s BackupAndRestoreScripts) PreBackupLockOnly() BackupAndRestoreScripts {
 	return scripts
 }
 
+func (s BackupAndRestoreScripts) PreRestoreLockOnly() BackupAndRestoreScripts {
+	scripts := BackupAndRestoreScripts{}
+	for _, script := range s {
+		if script.isPreRestoreUnlock() {
+			scripts = append(scripts, script)
+		}
+	}
+	return scripts
+}
+
 func (s BackupAndRestoreScripts) PostBackupUnlockOnly() BackupAndRestoreScripts {
 	scripts := BackupAndRestoreScripts{}
 	for _, script := range s {

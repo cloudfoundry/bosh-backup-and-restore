@@ -20,6 +20,7 @@ func NewJob(sshConnection SSHConnection, instanceIdentifier string, logger Logge
 		backupScript:       jobScripts.BackupOnly().firstOrBlank(),
 		restoreScript:      jobScripts.RestoreOnly().firstOrBlank(),
 		preBackupScript:    jobScripts.PreBackupLockOnly().firstOrBlank(),
+		preRestoreScript:   jobScripts.PreRestoreLockOnly().firstOrBlank(),
 		postBackupScript:   jobScripts.PostBackupUnlockOnly().firstOrBlank(),
 		postRestoreScript:  jobScripts.SinglePostRestoreUnlockScript(),
 	}
@@ -33,6 +34,7 @@ type Job struct {
 	backupScript       Script
 	preBackupScript    Script
 	postBackupScript   Script
+	preRestoreScript   Script
 	restoreScript      Script
 	postRestoreScript  Script
 	sshConnection      SSHConnection

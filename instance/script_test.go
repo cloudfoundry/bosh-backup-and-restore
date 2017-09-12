@@ -30,7 +30,9 @@ var _ = Describe("Script", func() {
 	Describe("Name", func() {
 		It("returns the job name for a given bosh job script", func() {
 			Expect(Script("/var/vcap/jobs/a-job-name/bin/bbr/backup").Name()).To(Equal("backup"))
+			Expect(Script("/var/vcap/jobs/a-job-name/bin/bbr/pre-restore-lock").Name()).To(Equal("pre-restore-lock"))
 			Expect(Script("/var/vcap/jobs/a-job-name/bin/bbr/restore").Name()).To(Equal("restore"))
+			Expect(Script("/var/vcap/jobs/a-job-name/bin/bbr/post-restore-lock").Name()).To(Equal("post-restore-lock"))
 			Expect(Script("/var/vcap/jobs/a-job-name/bin/bbr/metadata").Name()).To(Equal("metadata"))
 		})
 	})

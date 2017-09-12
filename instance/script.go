@@ -12,6 +12,7 @@ const (
 	restoreScriptName           = "restore"
 	metadataScriptName          = "metadata"
 	preBackupLockScriptName     = "pre-backup-lock"
+	preRestoreLockScriptName    = "pre-restore-lock"
 	postBackupUnlockScriptName  = "post-backup-unlock"
 	postRestoreUnlockScriptName = "post-restore-unlock"
 
@@ -21,6 +22,7 @@ const (
 	restoreScriptMatcher           = jobDirectoryMatcher + restoreScriptName
 	metadataScriptMatcher          = jobDirectoryMatcher + metadataScriptName
 	preBackupLockScriptMatcher     = jobDirectoryMatcher + preBackupLockScriptName
+	preRestoreLockScriptMatcher    = jobDirectoryMatcher + preRestoreLockScriptName
 	postBackupUnlockScriptMatcher  = jobDirectoryMatcher + postBackupUnlockScriptName
 	postRestoreUnlockScriptMatcher = jobDirectoryMatcher + postRestoreUnlockScriptName
 )
@@ -42,6 +44,11 @@ func (s Script) isMetadata() bool {
 
 func (s Script) isPreBackupUnlock() bool {
 	match, _ := filepath.Match(preBackupLockScriptMatcher, string(s))
+	return match
+}
+
+func (s Script) isPreRestoreUnlock() bool {
+	match, _ := filepath.Match(preRestoreLockScriptMatcher, string(s))
 	return match
 }
 
