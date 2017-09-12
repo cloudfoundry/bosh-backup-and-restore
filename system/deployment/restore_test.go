@@ -6,9 +6,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 )
 
 var _ = Describe("Restores a deployment", func() {
@@ -27,9 +27,9 @@ var _ = Describe("Restores a deployment", func() {
 				workspaceDir+"/"+backupName, workspaceDir, workspaceDir),
 		)).Should(gexec.Exit(0))
 
-		JumpboxInstance.Copy( MustHaveEnv("BOSH_CERT_PATH"), workspaceDir+"/bosh.crt")
-		JumpboxInstance.Copy( commandPath, workspaceDir)
-		JumpboxInstance.Copy( backupMetadata, workspaceDir+"/"+backupName+"/metadata")
+		JumpboxInstance.Copy(MustHaveEnv("BOSH_CERT_PATH"), workspaceDir+"/bosh.crt")
+		JumpboxInstance.Copy(commandPath, workspaceDir)
+		JumpboxInstance.Copy(backupMetadata, workspaceDir+"/"+backupName+"/metadata")
 		runOnInstances(instanceCollection, func(in, ii string) {
 			fileName := fmt.Sprintf("%s-%s-redis-server.tar", in, ii)
 			JumpboxInstance.Copy(

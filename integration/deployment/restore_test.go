@@ -4,9 +4,9 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 
 	"archive/tar"
 	"bytes"
@@ -250,7 +250,8 @@ instances:
 
 			backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", backupContents)
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar",
+				backupContents)
 		})
 
 		JustBeforeEach(func() {
@@ -329,7 +330,7 @@ touch /tmp/restore-script-was-run`)
 					Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 				})
 
-				By("running the post-backup-unlock script on the remote", func() {
+				By("running the post-restore-unlock script on the remote", func() {
 					Expect(instance1.FileExists("/tmp/post-restore-unlock-script-was-run")).To(BeTrue())
 				})
 			})

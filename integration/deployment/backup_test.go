@@ -158,7 +158,7 @@ instance_groups:
 				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
 
 set -u
-
+touch /tmp/backup-script-was-run
 printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
 printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 `)
@@ -363,6 +363,10 @@ backup_name: custom_backup_named_redis
 							Expect(instance1.FileExists("/tmp/metadata-script-was-run")).To(BeTrue())
 						})
 
+						By("running a the backup script", func() {
+							Expect(instance1.FileExists("/tmp/backup-script-was-run")).To(BeTrue())
+						})
+
 						By("creating a custom backup artifact", func() {
 							archive := OpenTarArchive(redisCustomArtifactFile)
 
@@ -430,32 +434,38 @@ touch /tmp/post-backup-unlock-output
 					})
 
 					It("logs the failure, and unlocks the system", func() {
-						By("runs the pre-backup-lock scripts", func() {
+						By("running the pre-backup-lock scripts", func() {
 							Expect(instance1.FileExists("/tmp/pre-backup-lock-output")).To(BeTrue())
 						})
 
-						By("exits with the correct error code", func() {
+						By("not running the backup script", func() {
+							Expect(instance1.FileExists("/tmp/backup-script-was-run")).NotTo(BeTrue())
+						})
+
+						By("exiting with the correct error code", func() {
 							Expect(session.ExitCode()).To(Equal(4))
 						})
 
-						By("logs the error", func() {
-							Expect(session.Err.Contents()).To(ContainSubstring("pre backup lock script for job redis failed on redis-dedicated-node/fake-uuid."))
+						By("logging the error", func() {
+							Expect(session.Err.Contents()).To(ContainSubstring(
+								"pre backup lock script for job redis failed on redis-dedicated-node/fake-uuid."))
 						})
 
-						By("logs stdout", func() {
+						By("logging stdout", func() {
 							Expect(session.Err.Contents()).To(ContainSubstring("Stdout: ultra-bar"))
 						})
 
-						By("logs stderr", func() {
+						By("logging stderr", func() {
 							Expect(session.Err.Contents()).To(ContainSubstring("Stderr: ultra-baz"))
 						})
 
-						By("also runs the post-backup-unlock scripts", func() {
+						By("also running the post-backup-unlock scripts", func() {
 							Expect(instance1.FileExists("/tmp/post-backup-unlock-output")).To(BeTrue())
 						})
 
 						By("not printing a recommendation to run bbr backup-cleanup", func() {
-							Expect(string(session.Err.Contents())).NotTo(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
+							Expect(string(session.Err.Contents())).NotTo(ContainSubstring(
+								"It is recommended that you run `bbr backup-cleanup`"))
 						})
 					})
 

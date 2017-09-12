@@ -83,8 +83,6 @@ var _ = Describe("Job", func() {
 		})
 	})
 
-	//TODO test Backup
-
 	Describe("BackupArtifactName", func() {
 		Context("the job has a custom backup artifact name", func() {
 			BeforeEach(func() {
@@ -141,10 +139,10 @@ var _ = Describe("Job", func() {
 	})
 
 	Describe("RestoreScript", func() {
-		It("returns the post-backup script", func() {
+		It("returns the restore script", func() {
 			Expect(job.RestoreScript()).To(Equal(instance.Script("/var/vcap/jobs/jobname/bin/bbr/restore")))
 		})
-		Context("no post-backup scripts exist", func() {
+		Context("no restore scripts exist", func() {
 			BeforeEach(func() {
 				jobScripts = instance.BackupAndRestoreScripts{"/var/vcap/jobs/jobname/bin/bbr/backup"}
 			})
