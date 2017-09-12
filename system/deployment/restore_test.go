@@ -58,7 +58,17 @@ var _ = Describe("Restores a deployment", func() {
 			),
 		)).Should(gexec.Exit(0))
 
-		By("running the post restore unlock script")
+		By("running the pre-restore-lock script")
+		runOnInstances(instanceCollection, func(instName, instIndex string) {
+			session := RedisDeployment.Instance(instName, instIndex).RunCommand(
+				"cat /tmp/pre-restore-lock.out",
+			)
+
+			Eventually(session).Should(gexec.Exit(0))
+			Expect(session.Out.Contents()).Should(ContainSubstring("output from pre-restore-lock"))
+		})
+
+		By("running the post-restore-unlock script")
 		runOnInstances(instanceCollection, func(instName, instIndex string) {
 			session := RedisDeployment.Instance(instName, instIndex).RunCommand(
 				"cat /tmp/post-restore-unlock.out",

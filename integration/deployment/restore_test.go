@@ -237,6 +237,9 @@ instances:
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-restore-unlock", `#!/usr/bin/env sh
 touch /tmp/post-restore-unlock-script-was-run
 `)
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/pre-restore-lock", `#!/usr/bin/env sh
+touch /tmp/pre-restore-lock-script-was-run
+`)
 
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
@@ -295,8 +298,28 @@ touch /tmp/restore-script-was-run`)
 					Expect(instance1.FileExists("/tmp/restore-script-was-run")).To(BeTrue())
 				})
 
+				By("running the pre-restore-lock script on the remote", func() {
+					Expect(instance1.FileExists("/tmp/pre-restore-lock-script-was-run")).To(BeTrue())
+				})
+
 				By("running the post-backup-unlock script on the remote", func() {
 					Expect(instance1.FileExists("/tmp/post-restore-unlock-script-was-run")).To(BeTrue())
+				})
+			})
+
+			Context("and pre-restore-lock script fails", func() {
+				BeforeEach(func() {
+					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/pre-restore-lock", `#!/usr/bin/env sh
+	>&2 echo "dear lord"; exit 1`)
+				})
+				It("exits cleanly", func() {
+					By("not running restore", func() {
+						Expect(instance1.FileExists("/tmp/restore-script-was-run")).NotTo(BeTrue())
+					})
+
+					By("running the post-restore-unlock script on the remote", func() {
+						Expect(instance1.FileExists("/tmp/post-restore-unlock-script-was-run")).To(BeTrue())
+					})
 				})
 			})
 		})
