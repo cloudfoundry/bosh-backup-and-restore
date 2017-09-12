@@ -139,6 +139,19 @@ func (j Job) PostBackupUnlock() error {
 	return nil
 }
 
+func (j Job) PreRestoreLock() error {
+	if j.preRestoreScript != "" {
+		j.Logger.Debug("bbr", "> %s", j.preRestoreScript)
+		j.Logger.Info("bbr", "Locking %s on %s for restore...", j.name, j.instanceIdentifier)
+
+		stdout, stderr, exitCode, err := j.runOnInstance(fmt.Sprintf("sudo %s", j.preRestoreScript), "pre restore lock")
+
+		j.Logger.Info("bbr", "Done.")
+		return j.handleErrs(j.name, "pre-restore-lock", err, exitCode, stdout, stderr)
+	}
+	return nil
+}
+
 func (j Job) Restore() error {
 	if j.restoreScript != "" {
 		j.Logger.Debug("bbr", "> %s", j.restoreScript)

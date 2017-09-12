@@ -464,6 +464,63 @@ var _ = Describe("Job", func() {
 		})
 	})
 
+	Describe("PreRestoreLock", func() {
+		var PreRestoreLockError error
+		JustBeforeEach(func() {
+			PreRestoreLockError = job.PreRestoreLock()
+		})
+		Context("job has no pre-restore-lock script", func() {
+			BeforeEach(func() {
+				jobScripts = instance.BackupAndRestoreScripts{
+					"/var/vcap/jobs/jobname/bin/bbr/restore",
+				}
+			})
+			It("should not run anything on the ssh connection", func() {
+				Expect(sshConnection.RunCallCount()).To(BeZero())
+			})
+		})
+		Context("job has a pre-restore-lock script", func() {
+			BeforeEach(func() {
+				jobScripts = instance.BackupAndRestoreScripts{
+					"/var/vcap/jobs/jobname/bin/bbr/pre-restore-lock",
+				}
+			})
+
+			It("uses the ssh connection to run the script", func() {
+				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
+					"sudo /var/vcap/jobs/jobname/bin/bbr/pre-restore-lock"))
+			})
+
+			Context("pre-restore-lock script runs successfully", func() {
+				BeforeEach(func() {
+					sshConnection.RunReturns([]byte("stdout"), []byte("stderr"), 0, nil)
+				})
+				It("succeeds", func() {
+					Expect(PreRestoreLockError).NotTo(HaveOccurred())
+				})
+
+			})
+			Context("pre-restore-lockscript run has a connection error", func() {
+				var connectionError = fmt.Errorf("wierd error")
+				BeforeEach(func() {
+					sshConnection.RunReturns([]byte("stdout"), []byte("stderr"), 0, connectionError)
+				})
+				It("fails", func() {
+					Expect(PreRestoreLockError).To(MatchError(ContainSubstring(connectionError.Error())))
+				})
+			})
+			Context("pre-restore-lock script exits with a non zero exit code", func() {
+				BeforeEach(func() {
+					sshConnection.RunReturns([]byte("stdout"), []byte("stderr-script-errorred"), 1, nil)
+				})
+				It("fails", func() {
+					Expect(PreRestoreLockError).To(MatchError(ContainSubstring("stderr-script-errorred")))
+				})
+			})
+		})
+	})
+
 	Describe("PostRestoreUnlock", func() {
 		var postRestoreUnlockError error
 		JustBeforeEach(func() {
