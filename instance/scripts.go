@@ -67,7 +67,7 @@ func (s BackupAndRestoreScripts) PreBackupLockOnly() BackupAndRestoreScripts {
 func (s BackupAndRestoreScripts) PreRestoreLockOnly() BackupAndRestoreScripts {
 	scripts := BackupAndRestoreScripts{}
 	for _, script := range s {
-		if script.isPreRestoreUnlock() {
+		if script.isPreRestoreLock() {
 			scripts = append(scripts, script)
 		}
 	}

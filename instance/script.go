@@ -47,7 +47,7 @@ func (s Script) isPreBackupUnlock() bool {
 	return match
 }
 
-func (s Script) isPreRestoreUnlock() bool {
+func (s Script) isPreRestoreLock() bool {
 	match, _ := filepath.Match(preRestoreLockScriptMatcher, string(s))
 	return match
 }
