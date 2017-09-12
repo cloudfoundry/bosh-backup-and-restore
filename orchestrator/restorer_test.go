@@ -92,6 +92,10 @@ var _ = Describe("restorer", func() {
 			Expect(deployment.CopyLocalBackupToRemoteArgsForCall(0)).To(Equal(artifact))
 		})
 
+		It("calls pre-restore-lock on the deployment", func() {
+			Expect(deployment.PreRestoreLockCallCount()).To(Equal(1))
+		})
+
 		It("calls restore on the deployment", func() {
 			Expect(deployment.RestoreCallCount()).To(Equal(1))
 		})
@@ -250,6 +254,23 @@ var _ = Describe("restorer", func() {
 				})
 
 				assertCleanupError()
+			})
+
+			Context("if pre-restore-lock script fails", func() {
+				var expectedPreRestoreLockError = fmt.Errorf("pre-restore-script failed")
+
+				BeforeEach(func() {
+					deployment.PreRestoreLockReturns(expectedPreRestoreLockError)
+				})
+
+				It("returns an error", func() {
+					Expect(restoreError).To(MatchError(ContainSubstring(expectedPreRestoreLockError.Error())))
+				})
+
+				It("should run post-restore-unlock script", func() {
+					Expect(deployment.PostRestoreUnlockCallCount()).To(Equal(1))
+				})
+
 			})
 
 			Context("if post-restore-unlock fails", func() {

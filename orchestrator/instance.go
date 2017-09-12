@@ -21,6 +21,7 @@ type Instance interface {
 	PreBackupLock() error
 	Backup() error
 	PostBackupUnlock() error
+	PreRestoreLock() error
 	Restore() error
 	Cleanup() error
 	CleanupPrevious() error
@@ -43,6 +44,7 @@ type Job interface {
 	Backup() error
 	PreBackupLock() error
 	PostBackupUnlock() error
+	PreRestoreLock() error
 	Restore() error
 	PostRestoreUnlock() error
 	Name() string
@@ -177,6 +179,16 @@ func (is instances) PostBackupUnlock() error {
 	var unlockErrors []error
 	for _, instance := range is {
 		if err := instance.PostBackupUnlock(); err != nil {
+			unlockErrors = append(unlockErrors, err)
+		}
+	}
+	return ConvertErrors(unlockErrors)
+}
+
+func (is instances) PreRestoreLock() error {
+	var unlockErrors []error
+	for _, instance := range is {
+		if err := instance.PreRestoreLock(); err != nil {
 			unlockErrors = append(unlockErrors, err)
 		}
 	}

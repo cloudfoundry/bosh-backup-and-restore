@@ -26,6 +26,7 @@ type Deployment interface {
 	CleanupPrevious() error
 	Instances() []Instance
 	CustomArtifactNamesMatch() error
+	PreRestoreLock() error
 	PostRestoreUnlock() error
 	ValidateLockingDependencies(orderer LockOrderer) error
 }
@@ -88,7 +89,7 @@ func (bd *deployment) ValidateLockingDependencies(lockOrderer LockOrderer) error
 }
 
 func (bd *deployment) PreBackupLock(lockOrderer LockOrderer) error {
-	bd.Logger.Info("bbr", "Running pre-backup scripts...")
+	bd.Logger.Info("bbr", "Running pre-backup-lock scripts...")
 
 	jobs := bd.instances.Jobs()
 
@@ -111,7 +112,7 @@ func (bd *deployment) Backup() error {
 }
 
 func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer) error {
-	bd.Logger.Info("bbr", "Running post-backup scripts...")
+	bd.Logger.Info("bbr", "Running post-backup-unlock scripts...")
 
 	jobs := bd.instances.Jobs()
 
@@ -129,12 +130,18 @@ func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer) error {
 	return ConvertErrors(postBackupUnlockErrors)
 }
 
+func (bd *deployment) PreRestoreLock() error {
+	bd.Logger.Info("bbr", "Running pre-restore-lock scripts...")
+	return bd.instances.PreRestoreLock()
+}
+
 func (bd *deployment) Restore() error {
 	bd.Logger.Info("bbr", "Running restore scripts...")
 	return bd.instances.AllRestoreable().Restore()
 }
 
 func (bd *deployment) PostRestoreUnlock() error {
+	bd.Logger.Info("bbr", "Running post-restore-unlock scripts...")
 	return bd.instances.PostRestoreUnlock()
 }
 

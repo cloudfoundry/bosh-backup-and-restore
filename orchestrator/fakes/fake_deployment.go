@@ -142,6 +142,15 @@ type FakeDeployment struct {
 	customArtifactNamesMatchReturnsOnCall map[int]struct {
 		result1 error
 	}
+	PreRestoreLockStub        func() error
+	preRestoreLockMutex       sync.RWMutex
+	preRestoreLockArgsForCall []struct{}
+	preRestoreLockReturns     struct {
+		result1 error
+	}
+	preRestoreLockReturnsOnCall map[int]struct {
+		result1 error
+	}
 	PostRestoreUnlockStub        func() error
 	postRestoreUnlockMutex       sync.RWMutex
 	postRestoreUnlockArgsForCall []struct{}
@@ -758,6 +767,46 @@ func (fake *FakeDeployment) CustomArtifactNamesMatchReturnsOnCall(i int, result1
 	}{result1}
 }
 
+func (fake *FakeDeployment) PreRestoreLock() error {
+	fake.preRestoreLockMutex.Lock()
+	ret, specificReturn := fake.preRestoreLockReturnsOnCall[len(fake.preRestoreLockArgsForCall)]
+	fake.preRestoreLockArgsForCall = append(fake.preRestoreLockArgsForCall, struct{}{})
+	fake.recordInvocation("PreRestoreLock", []interface{}{})
+	fake.preRestoreLockMutex.Unlock()
+	if fake.PreRestoreLockStub != nil {
+		return fake.PreRestoreLockStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.preRestoreLockReturns.result1
+}
+
+func (fake *FakeDeployment) PreRestoreLockCallCount() int {
+	fake.preRestoreLockMutex.RLock()
+	defer fake.preRestoreLockMutex.RUnlock()
+	return len(fake.preRestoreLockArgsForCall)
+}
+
+func (fake *FakeDeployment) PreRestoreLockReturns(result1 error) {
+	fake.PreRestoreLockStub = nil
+	fake.preRestoreLockReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeDeployment) PreRestoreLockReturnsOnCall(i int, result1 error) {
+	fake.PreRestoreLockStub = nil
+	if fake.preRestoreLockReturnsOnCall == nil {
+		fake.preRestoreLockReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.preRestoreLockReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeDeployment) PostRestoreUnlock() error {
 	fake.postRestoreUnlockMutex.Lock()
 	ret, specificReturn := fake.postRestoreUnlockReturnsOnCall[len(fake.postRestoreUnlockArgsForCall)]
@@ -877,6 +926,8 @@ func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	defer fake.instancesMutex.RUnlock()
 	fake.customArtifactNamesMatchMutex.RLock()
 	defer fake.customArtifactNamesMatchMutex.RUnlock()
+	fake.preRestoreLockMutex.RLock()
+	defer fake.preRestoreLockMutex.RUnlock()
 	fake.postRestoreUnlockMutex.RLock()
 	defer fake.postRestoreUnlockMutex.RUnlock()
 	fake.validateLockingDependenciesMutex.RLock()

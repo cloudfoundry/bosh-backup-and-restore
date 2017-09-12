@@ -58,6 +58,21 @@ func (b Restorer) Restore(deploymentName, backupPath string) Error {
 		return cleanupAndReturnErrors(deployment, errors.Errorf("Unable to send backup to remote machine. Got error: %s", err))
 	}
 
+	err = deployment.PreRestoreLock()
+
+	if err != nil {
+		postRestoreUnlockErr := deployment.PostRestoreUnlock()
+		if postRestoreUnlockErr != nil {
+			return cleanupAndReturnErrors(
+				deployment,
+				errors.Wrap(postRestoreUnlockErr, "post-restore-unlock failed"),
+				errors.Wrap(err, "pre-restore-lock failed"))
+		}
+
+		return cleanupAndReturnErrors(deployment, errors.Wrap(err, "pre-restore-lock failed"))
+
+	}
+
 	err = deployment.Restore()
 
 	if err != nil {

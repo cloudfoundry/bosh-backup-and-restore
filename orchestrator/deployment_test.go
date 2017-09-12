@@ -557,13 +557,51 @@ var _ = Describe("Deployment", func() {
 				instance1.RestoreReturns(restoreError)
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
-			It("does not fail", func() {
+			It("fails", func() {
 				Expect(restoreError).To(MatchError(restoreError))
 			})
 
 			It("stops invoking backup, after the error", func() {
 				Expect(instance1.RestoreCallCount()).To(Equal(1))
 				Expect(instance2.RestoreCallCount()).To(Equal(0))
+			})
+		})
+	})
+
+	Context("PreRestoreLock", func() {
+		var lockError error
+
+		BeforeEach(func() {
+			instances = []orchestrator.Instance{instance1, instance2, instance3}
+		})
+
+		JustBeforeEach(func() {
+			lockError = deployment.PreRestoreLock()
+		})
+
+		It("Calls PreRestoreLock on all instances", func() {
+			Expect(instance1.PreRestoreLockCallCount()).To(Equal(1))
+			Expect(instance2.PreRestoreLockCallCount()).To(Equal(1))
+			Expect(instance3.PreRestoreLockCallCount()).To(Equal(1))
+		})
+
+		Context("when some instances fail to PreRestoreLock", func() {
+			BeforeEach(func() {
+				instance1.PreRestoreLockReturns(errors.New("instance 1 failed to lock"))
+				instance2.PreRestoreLockReturns(errors.New("instance 2 failed to lock"))
+			})
+
+			It("fails", func() {
+				By("returning a helpful error", func() {
+					Expect(lockError).To(HaveOccurred())
+					Expect(lockError.Error()).To(ContainSubstring("instance 1 failed to lock"))
+					Expect(lockError.Error()).To(ContainSubstring("instance 2 failed to lock"))
+
+				})
+				By("running PostRestoreLock script", func() {
+					Expect(instance1.PreRestoreLockCallCount()).To(Equal(1))
+					Expect(instance2.PreRestoreLockCallCount()).To(Equal(1))
+				})
 			})
 		})
 	})

@@ -89,6 +89,15 @@ type FakeJob struct {
 	postBackupUnlockReturnsOnCall map[int]struct {
 		result1 error
 	}
+	PreRestoreLockStub        func() error
+	preRestoreLockMutex       sync.RWMutex
+	preRestoreLockArgsForCall []struct{}
+	preRestoreLockReturns     struct {
+		result1 error
+	}
+	preRestoreLockReturnsOnCall map[int]struct {
+		result1 error
+	}
 	RestoreStub        func() error
 	restoreMutex       sync.RWMutex
 	restoreArgsForCall []struct{}
@@ -525,6 +534,46 @@ func (fake *FakeJob) PostBackupUnlockReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeJob) PreRestoreLock() error {
+	fake.preRestoreLockMutex.Lock()
+	ret, specificReturn := fake.preRestoreLockReturnsOnCall[len(fake.preRestoreLockArgsForCall)]
+	fake.preRestoreLockArgsForCall = append(fake.preRestoreLockArgsForCall, struct{}{})
+	fake.recordInvocation("PreRestoreLock", []interface{}{})
+	fake.preRestoreLockMutex.Unlock()
+	if fake.PreRestoreLockStub != nil {
+		return fake.PreRestoreLockStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.preRestoreLockReturns.result1
+}
+
+func (fake *FakeJob) PreRestoreLockCallCount() int {
+	fake.preRestoreLockMutex.RLock()
+	defer fake.preRestoreLockMutex.RUnlock()
+	return len(fake.preRestoreLockArgsForCall)
+}
+
+func (fake *FakeJob) PreRestoreLockReturns(result1 error) {
+	fake.PreRestoreLockStub = nil
+	fake.preRestoreLockReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeJob) PreRestoreLockReturnsOnCall(i int, result1 error) {
+	fake.PreRestoreLockStub = nil
+	if fake.preRestoreLockReturnsOnCall == nil {
+		fake.preRestoreLockReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.preRestoreLockReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeJob) Restore() error {
 	fake.restoreMutex.Lock()
 	ret, specificReturn := fake.restoreReturnsOnCall[len(fake.restoreArgsForCall)]
@@ -866,6 +915,8 @@ func (fake *FakeJob) Invocations() map[string][][]interface{} {
 	defer fake.preBackupLockMutex.RUnlock()
 	fake.postBackupUnlockMutex.RLock()
 	defer fake.postBackupUnlockMutex.RUnlock()
+	fake.preRestoreLockMutex.RLock()
+	defer fake.preRestoreLockMutex.RUnlock()
 	fake.restoreMutex.RLock()
 	defer fake.restoreMutex.RUnlock()
 	fake.postRestoreUnlockMutex.RLock()
