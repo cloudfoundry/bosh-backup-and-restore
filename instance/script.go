@@ -66,6 +66,7 @@ func (s Script) isPlatformScript() bool {
 	return s.isBackup() ||
 		s.isRestore() ||
 		s.isPreBackupUnlock() ||
+		s.isPreRestoreLock() ||
 		s.isPostBackupUnlock() ||
 		s.isPostRestoreUnlock() ||
 		s.isMetadata()

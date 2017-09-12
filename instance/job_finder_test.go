@@ -45,8 +45,14 @@ var _ = Describe("JobFinderFromScripts", func() {
 			Context("Finds jobs based on scripts", func() {
 				consulAgentReleaseName := "consul-agent-release"
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("/var/vcap/jobs/consul_agent/bin/bbr/backup\n"+
-						"/var/vcap/jobs/consul_agent/bin/bbr/restore"), nil, 0, nil)
+					sshConnection.RunReturns([]byte(
+						"/var/vcap/jobs/consul_agent/bin/bbr/backup\n"+
+							"/var/vcap/jobs/consul_agent/bin/bbr/restore\n"+
+							"/var/vcap/jobs/consul_agent/bin/bbr/pre-backup-lock\n"+
+							"/var/vcap/jobs/consul_agent/bin/bbr/pre-restore-lock\n"+
+							"/var/vcap/jobs/consul_agent/bin/bbr/post-backup-unlock\n"+
+							"/var/vcap/jobs/consul_agent/bin/bbr/post-restore-unlock"),
+						nil, 0, nil)
 
 					releaseMapping.FindReleaseNameReturns(consulAgentReleaseName, nil)
 				})
@@ -71,12 +77,20 @@ var _ = Describe("JobFinderFromScripts", func() {
 						NewJob(sshConnection, "identifier/0", logger, consulAgentReleaseName, BackupAndRestoreScripts{
 							"/var/vcap/jobs/consul_agent/bin/bbr/backup",
 							"/var/vcap/jobs/consul_agent/bin/bbr/restore",
+							"/var/vcap/jobs/consul_agent/bin/bbr/post-backup-unlock",
+							"/var/vcap/jobs/consul_agent/bin/bbr/post-restore-unlock",
+							"/var/vcap/jobs/consul_agent/bin/bbr/pre-backup-lock",
+							"/var/vcap/jobs/consul_agent/bin/bbr/pre-restore-lock",
 						}, Metadata{})))
 				})
 
 				It("logs the scripts found", func() {
 					Expect(logStream.String()).To(ContainSubstring("identifier/0/consul_agent/backup"))
 					Expect(logStream.String()).To(ContainSubstring("identifier/0/consul_agent/restore"))
+					Expect(logStream.String()).To(ContainSubstring("identifier/0/consul_agent/pre-backup-lock"))
+					Expect(logStream.String()).To(ContainSubstring("identifier/0/consul_agent/pre-restore-lock"))
+					Expect(logStream.String()).To(ContainSubstring("identifier/0/consul_agent/post-backup-unlock"))
+					Expect(logStream.String()).To(ContainSubstring("identifier/0/consul_agent/post-restore-unlock"))
 				})
 			})
 
