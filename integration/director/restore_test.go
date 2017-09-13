@@ -106,6 +106,82 @@ cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 					})
 				})
 
+				Context("there is a pre-restore-lock script which succeeds", func() {
+					BeforeEach(func() {
+						directorInstance.CreateScript("/var/vcap/jobs/bosh/bin/bbr/pre-restore-lock", `#!/usr/bin/env sh
+touch /tmp/pre-restore-lock-script-was-run
+`)
+					})
+					It("runs the pre-restore-lock script successfully", func() {
+						By("exiting zero", func() {
+							Expect(session.ExitCode()).To(BeZero())
+						})
+
+						By("running the pre-restore-lock script successfully", func() {
+							Expect(directorInstance.FileExists("/tmp/pre-restore-lock-script-was-run")).To(BeTrue())
+						})
+
+						By("running the restore script successfully", func() {
+							Expect(directorInstance.FileExists("/var/vcap/store/bosh/restored_file")).To(BeTrue())
+							Expect(directorInstance.GetFileContents("/var/vcap/store/bosh/restored_file")).To(ContainSubstring(`this is a backup`))
+						})
+
+						By("cleaning up backup artifacts from the remote", func() {
+							Expect(directorInstance.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
+						})
+					})
+				})
+
+				Context("and there is a pre-restore-lock script which fails", func() {
+					BeforeEach(func() {
+						directorInstance.CreateScript("/var/vcap/jobs/bosh/bin/bbr/pre-restore-lock", `#!/usr/bin/env sh
+echo "pre-restore-lock errored!"
+exit 1
+`)
+					})
+					It("fails the command", func() {
+						By("exiting non-zero", func() {
+							Expect(session.ExitCode()).NotTo(BeZero())
+							Expect(session.Out.Contents()).To(ContainSubstring("pre-restore-lock errored"))
+						})
+
+						By("not running the restore script", func() {
+							Expect(directorInstance.FileExists("/var/vcap/store/bosh/restored_file")).To(BeFalse())
+						})
+
+						By("cleaning up backup artifacts from the remote", func() {
+							Expect(directorInstance.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
+						})
+
+					})
+
+					Context("there is a post-restore-unlock script which succeeds", func() {
+						BeforeEach(func() {
+							directorInstance.CreateScript("/var/vcap/jobs/bosh/bin/bbr/post-restore-unlock", `#!/usr/bin/env sh
+touch /tmp/post-restore-unlock-script-was-run
+`)
+						})
+
+						It("fails the command", func() {
+							By("exiting non-zero", func() {
+								Expect(session.ExitCode()).NotTo(BeZero())
+								Expect(session.Out.Contents()).To(ContainSubstring("pre-restore-lock errored"))
+							})
+
+							By("not running the restore script", func() {
+								Expect(directorInstance.FileExists("/var/vcap/store/bosh/restored_file")).To(BeFalse())
+							})
+
+							By("cleaning up backup artifacts from the remote", func() {
+								Expect(directorInstance.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
+							})
+							By("running the post-restore-unlock script successfully", func() {
+								Expect(directorInstance.FileExists("/tmp/post-restore-unlock-script-was-run")).To(BeTrue())
+							})
+						})
+					})
+				})
+
 				Context("there is a post-restore-unlock script which succeeds", func() {
 					BeforeEach(func() {
 						directorInstance.CreateScript("/var/vcap/jobs/bosh/bin/bbr/post-restore-unlock", `#!/usr/bin/env sh
