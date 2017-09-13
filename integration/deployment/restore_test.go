@@ -321,7 +321,6 @@ touch /tmp/restore-script-was-run`)
 						Expect(instance1.FileExists("/tmp/post-restore-unlock-script-was-run")).To(BeTrue())
 					})
 
-					// TODO add equivalents to the pre-backup-lock logging and stack trace in integration/backup_test.go
 				})
 			})
 		})
