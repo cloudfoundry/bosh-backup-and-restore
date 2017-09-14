@@ -133,13 +133,14 @@ cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 						waitForRestoreToFinish = false
 
 						By("creating a restore script that takes a while")
-						directorInstance.CreateScript("/var/vcap/jobs/bosh/bin/bbr/backup", `#!/usr/bin/env sh
+						directorInstance.CreateScript("/var/vcap/jobs/bosh/bin/bbr/restore", `#!/usr/bin/env sh
 
-				set -u
+set -u
 
-				sleep 5
+sleep 5
 
-				printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
+mkdir -p /var/vcap/store/bosh/
+cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 				`)
 					})
 
