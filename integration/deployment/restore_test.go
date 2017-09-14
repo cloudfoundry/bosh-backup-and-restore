@@ -1,6 +1,7 @@
 package deployment
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -13,6 +14,9 @@ import (
 
 	"path/filepath"
 
+	"io"
+	"time"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -22,6 +26,7 @@ import (
 var _ = Describe("Restore", func() {
 	var director *mockhttp.Server
 	var restoreWorkspace string
+	var verifyMocks bool
 	manifest := `---
 instance_groups:
 - name: redis-dedicated-node
@@ -51,12 +56,15 @@ instance_groups:
 		director.ExpectedBasicAuth("admin", "admin")
 		var err error
 		restoreWorkspace, err = ioutil.TempDir(".", "restore-workspace-")
+		verifyMocks = true
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	AfterEach(func() {
 		Expect(os.RemoveAll(restoreWorkspace)).To(Succeed())
-		director.VerifyMocks()
+		if verifyMocks {
+			director.VerifyMocks()
+		}
 	})
 
 	Context("when deployment is not present", func() {
@@ -218,6 +226,8 @@ instances:
 		var session *gexec.Session
 		var instance1 *testcluster.Instance
 		var deploymentName string
+		var waitForRestoreToFinish bool
+		var stdin io.WriteCloser
 
 		BeforeEach(func() {
 			instance1 = testcluster.NewInstance()
@@ -255,12 +265,13 @@ instances:
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar",
 				backupContents)
+			waitForRestoreToFinish = true
 		})
 
 		JustBeforeEach(func() {
-			session = binary.Run(
-				restoreWorkspace,
-				[]string{"BOSH_CLIENT_SECRET=admin"},
+			env := []string{"BOSH_CLIENT_SECRET=admin"}
+
+			params := []string{
 				"deployment",
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
@@ -268,7 +279,23 @@ instances:
 				"--target", director.URL,
 				"--deployment", deploymentName,
 				"restore",
-				"--artifact-path", deploymentName)
+				"--artifact-path", deploymentName,
+			}
+
+			if waitForRestoreToFinish {
+				session = binary.Run(
+					restoreWorkspace,
+					env,
+					params...,
+				)
+			} else {
+				session, stdin = binary.Start(
+					restoreWorkspace,
+					env,
+					params...,
+				)
+				Eventually(session).Should(gbytes.Say(".+"))
+			}
 		})
 
 		AfterEach(func() {
@@ -304,6 +331,94 @@ touch /tmp/restore-script-was-run`)
 
 				By("running the post-backup-unlock script on the remote", func() {
 					Expect(instance1.FileExists("/tmp/post-restore-unlock-script-was-run")).To(BeTrue())
+				})
+			})
+
+			FContext("and the bbr process receives SIGINT while restoring", func() {
+				BeforeEach(func() {
+					waitForRestoreToFinish = false
+
+					By("creating a restore script that takes a while")
+					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
+
+set -u
+
+sleep 2
+cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server
+touch /tmp/restore-script-was-run`)
+				})
+
+				Context("and the user decides to cancel the restore", func() {
+					BeforeEach(func() {
+						verifyMocks = false
+					})
+
+					It("terminates", func() {
+						session.Interrupt()
+
+						By("not terminating", func() {
+							time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
+							Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
+						})
+
+						By("outputting a helpful message", func() {
+							Eventually(session).Should(gbytes.Say(`Stopping a restore can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
+						})
+
+						By("buffering the logs", func() {
+							Expect(string(session.Out.Contents())).To(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
+						})
+
+						stdin.Write([]byte("yes\n"))
+
+						By("waiting for the restore to finish successfully", func() {
+							Eventually(session, 10).Should(gexec.Exit(1))
+						})
+
+						//TODO: #148732575
+						//By("outputting a warning about cleanup", func() {
+						//	Eventually(session).Should(gbytes.Say("It is recommended that you run `bbr restore-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."))
+						//})
+
+						By("not completing the restore", func() {
+							Expect(instance1.FileExists("/tmp/restore-script-was-run")).To(BeFalse())
+						})
+					})
+				})
+
+				Context("and the user decides not to to cancel the restore", func() {
+					It("continues to run", func() {
+						session.Interrupt()
+
+						By("not terminating", func() {
+							time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
+							Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
+						})
+
+						By("outputting a helpful message", func() {
+							Eventually(session).Should(gbytes.Say(`Stopping a restore can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
+						})
+
+						By("buffering the logs", func() {
+							Expect(string(session.Out.Contents())).To(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
+						})
+
+						stdin.Write([]byte("no\n"))
+
+						By("waiting for the restore to finish successfully", func() {
+							Eventually(session, 10).Should(gexec.Exit(0))
+						})
+
+						By("still completing the restore", func() {
+							Expect(instance1.FileExists("/var/vcap/store/redis-server/redis-backup")).To(BeTrue())
+							Expect(instance1.FileExists("/tmp/restore-script-was-run")).To(BeTrue())
+						})
+
+						By("should output buffered logs", func() {
+							Expect(string(session.Out.Contents())).NotTo(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
+						})
+
+					})
 				})
 			})
 

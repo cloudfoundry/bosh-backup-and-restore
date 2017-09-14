@@ -15,6 +15,10 @@ import (
 
 	"path/filepath"
 
+	"time"
+
+	"io"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -25,8 +29,11 @@ var _ = Describe("Restore", func() {
 	var session *gexec.Session
 	var directorAddress, directorIP string
 	var artifactName string
+	var waitForRestoreToFinish bool
+	var stdin io.WriteCloser
 
 	BeforeEach(func() {
+		waitForRestoreToFinish = true
 		var err error
 		restoreWorkspace, err = ioutil.TempDir(".", "restore-workspace-")
 		Expect(err).NotTo(HaveOccurred())
@@ -43,9 +50,9 @@ var _ = Describe("Restore", func() {
 	})
 
 	JustBeforeEach(func() {
-		session = binary.Run(
-			restoreWorkspace,
-			[]string{"BOSH_CLIENT_SECRET=admin"},
+		env := []string{"BOSH_CLIENT_SECRET=admin"}
+
+		params := []string{
 			"director",
 			"--host", directorAddress,
 			"--username", "foobar",
@@ -53,7 +60,22 @@ var _ = Describe("Restore", func() {
 			"--debug",
 			"restore",
 			"--artifact-path", artifactName,
-		)
+		}
+
+		if waitForRestoreToFinish {
+			session = binary.Run(
+				restoreWorkspace,
+				env,
+				params...,
+			)
+		} else {
+			session, stdin = binary.Start(
+				restoreWorkspace,
+				env,
+				params...,
+			)
+			Eventually(session).Should(gbytes.Say(".+"))
+		}
 	})
 
 	Context("When there is a director instance", func() {
@@ -103,6 +125,78 @@ cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 
 					By("cleaning up backup artifacts from the remote", func() {
 						Expect(directorInstance.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
+					})
+				})
+
+				FContext("and the bbr process receives SIGINT while restore", func() {
+					BeforeEach(func() {
+						waitForRestoreToFinish = false
+
+						By("creating a restore script that takes a while")
+						directorInstance.CreateScript("/var/vcap/jobs/bosh/bin/bbr/backup", `#!/usr/bin/env sh
+
+				set -u
+
+				sleep 5
+
+				printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
+				`)
+					})
+
+					Context("and the user decides to cancel the restore", func() {
+						It("terminates", func() {
+							session.Interrupt()
+
+							By("not terminating", func() {
+								time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
+								Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
+							})
+
+							By("outputting a helpful message", func() {
+								Eventually(session).Should(gbytes.Say(`Stopping a restore can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
+							})
+
+							stdin.Write([]byte("yes\n"))
+
+							By("waiting for the restore to finish successfully", func() {
+								Eventually(session, 10).Should(gexec.Exit(1))
+							})
+
+							//TODO: #148732575
+							//By("outputting a warning about cleanup", func() {
+							//	Eventually(session).Should(gbytes.Say("It is recommended that you run `bbr restore-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."))
+							//})
+
+							By("not completing the restore", func() {
+								Expect(directorInstance.FileExists("/var/vcap/store/bosh/restored_file")).To(BeFalse())
+							})
+						})
+					})
+
+					Context("and the user decides not to to cancel the restore", func() {
+						It("continues to run", func() {
+							session.Interrupt()
+
+							By("not terminating", func() {
+								time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
+								Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
+							})
+
+							By("outputting a helpful message", func() {
+								Eventually(session).Should(gbytes.Say(`Stopping a restore can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
+							})
+
+							stdin.Write([]byte("no\n"))
+
+							By("waiting for the restore to finish successfully", func() {
+								Eventually(session, 10).Should(gexec.Exit(0))
+							})
+
+							By("still completing the restore", func() {
+								Expect(directorInstance.FileExists("/var/vcap/store/bosh/restored_file")).To(BeTrue())
+								Expect(directorInstance.GetFileContents("/var/vcap/store/bosh/restored_file")).To(ContainSubstring(`this is a backup`))
+							})
+						})
 					})
 				})
 

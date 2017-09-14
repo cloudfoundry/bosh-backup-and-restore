@@ -35,7 +35,13 @@ var version string
 var stdout *writer.PausableWriter = writer.NewPausableWriter(os.Stdout)
 var stderr *writer.PausableWriter = writer.NewPausableWriter(os.Stderr)
 
-const cleanupAdvisedNotice = "It is recommended that you run `bbr backup-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."
+const backupSigintQuestion = "Stopping a backup can leave the system in bad state. Are you sure you want to cancel? [yes/no]"
+const backupStdinErrorMessage = "Couldn't read from Stdin, if you still want to stop the backup send SIGTERM."
+const backupCleanupAdvisedNotice = "It is recommended that you run `bbr backup-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."
+
+const restoreSigintQuestion = "Stopping a restore can leave the system in bad state. Are you sure you want to cancel? [yes/no]"
+const restoreStdinErrorMessage = "Couldn't read from Stdin, if you still want to stop the restore send SIGTERM."
+const restoreCleanupAdvisedNotice = "" //TODO: #148732575 "It is recommended that you run `bbr restore-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."
 
 func main() {
 	cli.AppHelpTemplate = `NAME:
@@ -175,18 +181,30 @@ COPYRIGHT:
 	}
 }
 
-func trapSigint() {
+func trapSigint(backup bool) {
 	sigintChan := make(chan os.Signal, 1)
 	signal.Notify(sigintChan, os.Interrupt)
+
+	var sigintQuestion, stdInErrorMessage, cleanupAdvisedNotice string
+	if backup {
+		sigintQuestion = backupSigintQuestion
+		stdInErrorMessage = backupStdinErrorMessage
+		cleanupAdvisedNotice = backupCleanupAdvisedNotice
+	} else {
+		sigintQuestion = restoreSigintQuestion
+		stdInErrorMessage = restoreStdinErrorMessage
+		cleanupAdvisedNotice = restoreCleanupAdvisedNotice
+	}
+
 	go func() {
 		for range sigintChan {
 			stdinReader := bufio.NewReader(os.Stdin)
 			stdout.Pause()
 			stderr.Pause()
-			fmt.Fprintln(os.Stdout, "\nStopping a backup can leave the system in bad state. Are you sure you want to cancel? [yes/no]")
+			fmt.Fprintln(os.Stdout, "\n"+sigintQuestion)
 			input, err := stdinReader.ReadString('\n')
 			if err != nil {
-				fmt.Println("\nCouldn't read from Stdin, if you still want to stop the backup send SIGTERM.")
+				fmt.Println("\n" + stdInErrorMessage)
 			} else if strings.ToLower(strings.TrimSpace(input)) == "yes" {
 				fmt.Println(cleanupAdvisedNotice)
 				os.Exit(1)
@@ -235,7 +253,7 @@ func directorPreBackupCheck(c *cli.Context) error {
 }
 
 func deploymentBackup(c *cli.Context) error {
-	trapSigint()
+	trapSigint(true)
 
 	backuper, err := makeDeploymentBackuper(c)
 	if err != nil {
@@ -251,14 +269,14 @@ func deploymentBackup(c *cli.Context) error {
 	}
 
 	if backupErr.ContainsUnlockOrCleanup() {
-		errorMessage = errorMessage + "\n" + cleanupAdvisedNotice
+		errorMessage = errorMessage + "\n" + backupCleanupAdvisedNotice
 	}
 
 	return cli.NewExitError(errorMessage, errorCode)
 }
 
 func directorBackup(c *cli.Context) error {
-	trapSigint()
+	trapSigint(true)
 
 	directorName := ExtractNameFromAddress(c.Parent().String("host"))
 
@@ -272,13 +290,15 @@ func directorBackup(c *cli.Context) error {
 	}
 
 	if backupErr.ContainsUnlockOrCleanup() {
-		errorMessage = errorMessage + "\n" + cleanupAdvisedNotice
+		errorMessage = errorMessage + "\n" + backupCleanupAdvisedNotice
 	}
 
 	return cli.NewExitError(errorMessage, errorCode)
 }
 
 func deploymentRestore(c *cli.Context) error {
+	trapSigint(false)
+
 	if err := validateFlags([]string{"artifact-path"}, c); err != nil {
 		return err
 	}
@@ -301,6 +321,8 @@ func deploymentRestore(c *cli.Context) error {
 }
 
 func directorRestore(c *cli.Context) error {
+	trapSigint(false)
+
 	if err := validateFlags([]string{"artifact-path"}, c); err != nil {
 		return err
 	}
@@ -320,7 +342,7 @@ func directorRestore(c *cli.Context) error {
 }
 
 func deploymentCleanup(c *cli.Context) error {
-	trapSigint()
+	trapSigint(true)
 
 	cleaner, err := makeDeploymentCleaner(c)
 	if err != nil {
@@ -339,7 +361,7 @@ func deploymentCleanup(c *cli.Context) error {
 }
 
 func directorCleanup(c *cli.Context) error {
-	trapSigint()
+	trapSigint(true)
 
 	directorName := ExtractNameFromAddress(c.Parent().String("host"))
 
