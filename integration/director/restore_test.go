@@ -128,7 +128,7 @@ cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 					})
 				})
 
-				FContext("and the bbr process receives SIGINT while restore", func() {
+				Context("and the bbr process receives SIGINT while restore", func() {
 					BeforeEach(func() {
 						waitForRestoreToFinish = false
 

@@ -334,7 +334,7 @@ touch /tmp/restore-script-was-run`)
 				})
 			})
 
-			FContext("and the bbr process receives SIGINT while restoring", func() {
+			Context("and the bbr process receives SIGINT while restoring", func() {
 				BeforeEach(func() {
 					waitForRestoreToFinish = false
 
