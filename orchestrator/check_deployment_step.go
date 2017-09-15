@@ -1,15 +1,15 @@
 package orchestrator
 
-type CheckDeploymentStep struct {
+type FindDeploymentStep struct {
 	deploymentManager DeploymentManager
 	logger            Logger
 }
 
-func NewCheckDeploymentStep(deploymentManager DeploymentManager, logger Logger) Step {
-	return &CheckDeploymentStep{deploymentManager: deploymentManager, logger: logger}
+func NewFindDeploymentStep(deploymentManager DeploymentManager, logger Logger) Step {
+	return &FindDeploymentStep{deploymentManager: deploymentManager, logger: logger}
 }
 
-func (s *CheckDeploymentStep) Run(session *Session) error {
+func (s *FindDeploymentStep) Run(session *Session) error {
 	s.logger.Info("bbr", "Running pre-checks for backup of %s...\n", session.DeploymentName())
 
 	s.logger.Info("bbr", "Scripts found:")

@@ -403,11 +403,6 @@ var _ = Describe("Backup", func() {
 				Expect(deployment.CleanupCallCount()).To(Equal(1))
 			})
 
-			It("saves the start timestamp in the metadata file but not the finish timestamp", func() {
-				Expect(fakeBackup.CreateMetadataFileWithStartTimeArgsForCall(0)).To(Equal(startTime))
-				Expect(fakeBackup.AddFinishTimeCallCount()).To(BeZero())
-			})
-
 			Context("cleanup fails as well", assertCleanupError)
 		})
 

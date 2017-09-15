@@ -486,7 +486,7 @@ func ExtractNameFromAddress(address string) string {
 	return strings.Split(address, ":")[0]
 }
 
-func makeDeploymentCleaner(c *cli.Context) (*orchestrator.Cleaner, error) {
+func makeDeploymentCleaner(c *cli.Context) (*orchestrator.BackupCleaner, error) {
 	logger := makeLogger(c)
 	deploymentManager, err := newDeploymentManager(
 		c.Parent().String("target"),
@@ -501,10 +501,10 @@ func makeDeploymentCleaner(c *cli.Context) (*orchestrator.Cleaner, error) {
 		return nil, redCliError(err)
 	}
 
-	return orchestrator.NewCleaner(logger, deploymentManager, orderer.NewKahnLockOrderer()), nil
+	return orchestrator.NewBackupCleaner(logger, deploymentManager, orderer.NewKahnLockOrderer()), nil
 }
 
-func makeDirectorCleaner(c *cli.Context) *orchestrator.Cleaner {
+func makeDirectorCleaner(c *cli.Context) *orchestrator.BackupCleaner {
 	logger := makeLogger(c)
 	deploymentManager := standalone.NewDeploymentManager(logger,
 		c.Parent().String("host"),
@@ -514,7 +514,7 @@ func makeDirectorCleaner(c *cli.Context) *orchestrator.Cleaner {
 		ssh.NewConnection,
 	)
 
-	return orchestrator.NewCleaner(logger, deploymentManager, orderer.NewDirectorLockOrderer())
+	return orchestrator.NewBackupCleaner(logger, deploymentManager, orderer.NewDirectorLockOrderer())
 }
 
 func makeDeploymentBackuper(c *cli.Context) (*orchestrator.Backuper, error) {

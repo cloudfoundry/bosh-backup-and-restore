@@ -1,16 +1,16 @@
 package orchestrator
 
-type UnlockStep struct {
+type PostBackupUnlockStep struct {
 	lockOrderer LockOrderer
 }
 
-func NewUnlockStep(lockOrderer LockOrderer) Step {
-	return &UnlockStep{
+func NewPostBackupUnlockStep(lockOrderer LockOrderer) Step {
+	return &PostBackupUnlockStep{
 		lockOrderer: lockOrderer,
 	}
 }
 
-func (s *UnlockStep) Run(session *Session) error {
+func (s *PostBackupUnlockStep) Run(session *Session) error {
 	err := session.CurrentDeployment().PostBackupUnlock(s.lockOrderer)
 	if err != nil {
 		return NewPostBackupUnlockError(err.Error())

@@ -49,26 +49,23 @@ func (b Backuper) Backup(deploymentName string) Error {
 
 	err := workflow.Run(session)
 
-	if !err.IsFatal() {
-		session.CurrentArtifact().AddFinishTime(b.NowFunc())
-	}
-
 	return err
 }
 
 func (b Backuper) buildBackupWorkflow() *Workflow {
-	checkDeployment := NewCheckDeploymentStep(b.DeploymentManager, b.Logger)
+	findDeploymentStep := NewFindDeploymentStep(b.DeploymentManager, b.Logger)
 	backupable := NewBackupableStep(b.LockOrderer)
 	createArtifact := NewCreateArtifactStep(b.Logger, b.BackupManager, b.DeploymentManager, b.NowFunc)
 	lock := NewLockStep(b.LockOrderer)
 	backup := NewBackupStep()
-	unlockAfterSuccessfulBackup := NewUnlockStep(b.LockOrderer)
-	unlockAfterFailedBackup := NewUnlockStep(b.LockOrderer)
+	unlockAfterSuccessfulBackup := NewPostBackupUnlockStep(b.LockOrderer)
+	unlockAfterFailedBackup := NewPostBackupUnlockStep(b.LockOrderer)
 	drain := NewDrainStep(b.Logger)
 	cleanup := NewCleanupStep()
+	addFinishTimeStep := NewAddFinishTimeStep(b.NowFunc)
 
 	workflow := NewWorkflow()
-	workflow.StartWith(checkDeployment).OnSuccess(backupable)
+	workflow.StartWith(findDeploymentStep).OnSuccess(backupable)
 	workflow.Add(backupable).OnSuccess(createArtifact).OnFailure(cleanup)
 	workflow.Add(createArtifact).OnSuccess(lock).OnFailure(cleanup)
 	workflow.Add(lock).OnSuccess(backup).OnFailure(unlockAfterFailedBackup)
@@ -76,13 +73,14 @@ func (b Backuper) buildBackupWorkflow() *Workflow {
 	workflow.Add(unlockAfterSuccessfulBackup).OnSuccessOrFailure(drain)
 	workflow.Add(unlockAfterFailedBackup).OnSuccessOrFailure(cleanup)
 	workflow.Add(drain).OnSuccessOrFailure(cleanup)
-	workflow.Add(cleanup)
+	workflow.Add(cleanup).OnSuccessOrFailure(addFinishTimeStep)
+	workflow.Add(addFinishTimeStep)
 
 	return workflow
 }
 
 func (b Backuper) buildBackupCheckWorkflow() *Workflow {
-	checkDeployment := NewCheckDeploymentStep(b.DeploymentManager, b.Logger)
+	checkDeployment := NewFindDeploymentStep(b.DeploymentManager, b.Logger)
 	backupable := NewBackupableStep(b.LockOrderer)
 	cleanup := NewCleanupStep()
 	workflow := NewWorkflow()
