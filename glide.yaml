@@ -10,7 +10,6 @@ import:
 - package: gopkg.in/yaml.v2
 - package: github.com/onsi/gomega
 - package: github.com/onsi/ginkgo
-- package: github.com/looplab/fsm
 - package: github.com/pkg/errors
   version: ^0.8.0
 - package: golang.org/x/crypto

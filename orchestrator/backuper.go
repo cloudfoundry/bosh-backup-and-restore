@@ -81,9 +81,24 @@ func (b Backuper) buildBackupWorkflow() *Workflow {
 	return workflow
 }
 
-func (b Backuper) CanBeBackedUp(deploymentName string) (bool, Error) {
-	bw := newBackupCheckWorkflow(b, deploymentName)
+func (b Backuper) buildBackupCheckWorkflow() *Workflow {
+	checkDeployment := NewCheckDeploymentStep(b.DeploymentManager, b.Logger)
+	backupable := NewBackupableStep(b.LockOrderer)
+	cleanup := NewCleanupStep()
+	workflow := NewWorkflow()
 
-	err := bw.Run()
+	workflow.StartWith(checkDeployment).OnSuccess(backupable)
+	workflow.Add(backupable).OnSuccessOrFailure(cleanup)
+	workflow.Add(cleanup)
+
+	return workflow
+}
+
+func (b Backuper) CanBeBackedUp(deploymentName string) (bool, Error) {
+	session := NewSession(deploymentName)
+	workflow := b.buildBackupCheckWorkflow()
+
+	err := workflow.Run(session)
+
 	return err == nil, err
 }

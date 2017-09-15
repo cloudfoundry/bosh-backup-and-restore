@@ -41,8 +41,6 @@ imports:
   version: 259d2a102b871d17f30e3cd9881a642961a1e486
 - name: github.com/fatih/color
   version: 62e9147c64a1ed519147b62a56a14e83e2be02c1
-- name: github.com/looplab/fsm
-  version: bcc3636384ce80a109a6039432b30ff5b82476ee
 - name: github.com/mattn/go-colorable
   version: ded68f7a9561c023e790de24279db7ebf473ea80
 - name: github.com/mattn/go-isatty
