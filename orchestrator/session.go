@@ -1,9 +1,10 @@
 package orchestrator
 
 type Session struct {
-	deploymentName  string
-	deployment      Deployment
-	currentArtifact Backup
+	deploymentName      string
+	deployment          Deployment
+	currentArtifact     Backup
+	currentArtifactPath string
 }
 
 func NewSession(deploymentName string) *Session {
@@ -28,4 +29,12 @@ func (session *Session) SetCurrentDeployment(deployment Deployment) {
 
 func (session *Session) CurrentArtifact() Backup {
 	return session.currentArtifact
+}
+
+func (session *Session) SetCurrentArtifactPath(artifactPath string) {
+	session.currentArtifactPath = artifactPath
+}
+
+func (session *Session) CurrentArtifactPath() string {
+	return session.currentArtifactPath
 }

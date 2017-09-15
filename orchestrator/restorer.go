@@ -1,11 +1,5 @@
 package orchestrator
 
-import (
-	"fmt"
-
-	"github.com/pkg/errors"
-)
-
 type Restorer struct {
 	BackupManager
 	Logger
@@ -21,98 +15,35 @@ func NewRestorer(backupManager BackupManager, logger Logger, deploymentManager D
 	}
 }
 
-func (b Restorer) Restore(deploymentName, backupPath string) Error {
-	b.Logger.Info("bbr", "Starting restore of %s...\n", deploymentName)
-	backup, err := b.BackupManager.Open(backupPath, b.Logger)
-	if err != nil {
-		return Error{errors.Wrap(err, "Could not open backup")}
-	}
+func (r Restorer) Restore(deploymentName, backupPath string) Error {
+	session := NewSession(deploymentName)
+	session.SetCurrentArtifactPath(backupPath)
+	workflow := r.buildRestoreWorkflow()
+	err := workflow.Run(session)
 
-	if valid, err := backup.Valid(); err != nil {
-		return Error{errors.Wrap(err, "Could not validate backup")}
-	} else if !valid {
-		return Error{errors.Errorf("Backup is corrupted")}
-	}
-
-	deployment, err := b.DeploymentManager.Find(deploymentName)
-	if err != nil {
-		return Error{errors.Wrap(err, "Couldn't find deployment")}
-	}
-
-	if !deployment.IsRestorable() {
-		return cleanupAndReturnErrors(deployment, errors.Errorf("Deployment '%s' has no restore scripts", deploymentName))
-	}
-
-	if match, err := backup.DeploymentMatches(deploymentName, deployment.Instances()); err != nil {
-		return cleanupAndReturnErrors(deployment, errors.Errorf("Unable to check if deployment '%s' matches the structure of the provided backup", deploymentName))
-	} else if match != true {
-		return cleanupAndReturnErrors(deployment, errors.Errorf("Deployment '%s' does not match the structure of the provided backup", deploymentName))
-	}
-
-	err = deployment.CheckArtifactDir()
-	if err != nil {
-		return cleanupAndReturnErrors(deployment, errors.Wrap(err, "Check artifact dir failed"))
-	}
-
-	if err = deployment.CopyLocalBackupToRemote(backup); err != nil {
-		return cleanupAndReturnErrors(deployment, errors.Errorf("Unable to send backup to remote machine. Got error: %s", err))
-	}
-
-	err = deployment.PreRestoreLock()
-
-	if err != nil {
-		postRestoreUnlockErr := deployment.PostRestoreUnlock()
-		if postRestoreUnlockErr != nil {
-			return cleanupAndReturnErrors(
-				deployment,
-				errors.Wrap(postRestoreUnlockErr, "post-restore-unlock failed"),
-				errors.Wrap(err, "pre-restore-lock failed"))
-		}
-
-		return cleanupAndReturnErrors(deployment, errors.Wrap(err, "pre-restore-lock failed"))
-
-	}
-
-	err = deployment.Restore()
-
-	if err != nil {
-		postRestoreUnlockErr := deployment.PostRestoreUnlock()
-		if postRestoreUnlockErr != nil {
-			return cleanupAndReturnErrors(
-				deployment,
-				errors.Wrap(postRestoreUnlockErr, "post-restore-unlock failed"),
-				errors.Wrap(err, "Failed to restore"))
-		}
-
-		return cleanupAndReturnErrors(deployment, errors.Wrap(err, "Failed to restore"))
-	}
-
-	b.Logger.Info("bbr", "Completed restore of %s\n", deploymentName)
-
-	err = deployment.PostRestoreUnlock()
-	if err != nil {
-		return cleanupAndReturnErrors(deployment, errors.Wrap(err, "post-restore-unlock failed"))
-	}
-
-	if err := deployment.Cleanup(); err != nil {
-		return Error{
-			NewCleanupError(
-				fmt.Sprintf("Deployment '%s' failed while cleaning up with error %v", deploymentName, err),
-			),
-		}
-	}
-	return nil
+	return err
 }
 
-func cleanupAndReturnErrors(d Deployment, errs ...error) Error {
-	returnedErrors := Error{}
+func (r Restorer) buildRestoreWorkflow() *Workflow {
+	workflow := NewWorkflow()
 
-	cleanupErr := d.Cleanup()
-	if cleanupErr != nil {
-		returnedErrors = append(returnedErrors, cleanupErr)
-	}
+	validateArtifactStep := NewValidateArtifactStep(r.Logger, r.BackupManager)
+	checkDeploymentStep := NewCheckDeploymentStep(r.DeploymentManager, r.Logger)
+	restorableStep := NewRestorableStep()
+	cleanupStep := NewCleanupStep()
+	copyToRemoteStep := NewCopyToRemoteStep()
+	preRestoreLockStep := NewPreRestoreLockStep()
+	restoreStep := NewRestoreStep(r.Logger)
+	postRestoreUnlockStep := NewPostRestoreUnlockStep()
 
-	returnedErrors = append(returnedErrors, errs...)
+	workflow.StartWith(validateArtifactStep).OnSuccess(checkDeploymentStep)
+	workflow.Add(checkDeploymentStep).OnSuccess(restorableStep)
+	workflow.Add(restorableStep).OnSuccess(copyToRemoteStep).OnFailure(cleanupStep)
+	workflow.Add(copyToRemoteStep).OnSuccess(preRestoreLockStep).OnFailure(cleanupStep)
+	workflow.Add(preRestoreLockStep).OnSuccess(restoreStep).OnFailure(postRestoreUnlockStep)
+	workflow.Add(restoreStep).OnSuccess(postRestoreUnlockStep).OnFailure(postRestoreUnlockStep)
+	workflow.Add(postRestoreUnlockStep).OnSuccessOrFailure(cleanupStep)
+	workflow.Add(cleanupStep)
 
-	return returnedErrors
+	return workflow
 }
