@@ -218,7 +218,7 @@ func trapSigint(backup bool) {
 func deploymentPreBackupCheck(c *cli.Context) error {
 	var deployment = c.Parent().String("deployment")
 
-	backuper, err := makeDeploymentBackuper(c)
+	backuper, err := makeDeploymentBackupChecker(c)
 	if err != nil {
 		return err
 	}
@@ -238,7 +238,7 @@ func deploymentPreBackupCheck(c *cli.Context) error {
 func directorPreBackupCheck(c *cli.Context) error {
 	directorName := ExtractNameFromAddress(c.Parent().String("host"))
 
-	backuper := makeDirectorBackuper(c)
+	backuper := makeDirectorBackupChecker(c)
 
 	backupable, checkErr := backuper.CanBeBackedUp(directorName)
 
@@ -535,6 +535,24 @@ func makeDeploymentBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
 	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewKahnLockOrderer(), time.Now), nil
 }
 
+func makeDeploymentBackupChecker(c *cli.Context) (*orchestrator.BackupChecker, error) {
+	logger := makeLogger(c)
+	deploymentManager, err := newDeploymentManager(
+		c.Parent().String("target"),
+		c.Parent().String("username"),
+		c.Parent().String("password"),
+		c.Parent().String("ca-cert"),
+		logger,
+		c.Bool("with-manifest"),
+	)
+
+	if err != nil {
+		return nil, redCliError(err)
+	}
+
+	return orchestrator.NewBackupChecker(logger, deploymentManager, orderer.NewKahnLockOrderer()), nil
+}
+
 func makeDirectorBackuper(c *cli.Context) *orchestrator.Backuper {
 	logger := makeLogger(c)
 	deploymentManager := standalone.NewDeploymentManager(logger,
@@ -546,6 +564,19 @@ func makeDirectorBackuper(c *cli.Context) *orchestrator.Backuper {
 	)
 
 	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewDirectorLockOrderer(), time.Now)
+}
+
+func makeDirectorBackupChecker(c *cli.Context) *orchestrator.BackupChecker {
+	logger := makeLogger(c)
+	deploymentManager := standalone.NewDeploymentManager(logger,
+		c.Parent().String("host"),
+		c.Parent().String("username"),
+		c.Parent().String("private-key-path"),
+		instance.NewJobFinder(logger),
+		ssh.NewConnection,
+	)
+
+	return orchestrator.NewBackupChecker(logger, deploymentManager, orderer.NewDirectorLockOrderer())
 }
 
 func makeDeploymentRestorer(c *cli.Context) (*orchestrator.Restorer, error) {

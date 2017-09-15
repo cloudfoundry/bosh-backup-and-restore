@@ -10,8 +10,6 @@ func NewFindDeploymentStep(deploymentManager DeploymentManager, logger Logger) S
 }
 
 func (s *FindDeploymentStep) Run(session *Session) error {
-	s.logger.Info("bbr", "Running pre-checks for backup of %s...\n", session.DeploymentName())
-
 	s.logger.Info("bbr", "Scripts found:")
 	deployment, err := s.deploymentManager.Find(session.DeploymentName())
 	if err != nil {
