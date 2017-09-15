@@ -56,34 +56,6 @@ func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier, c
 	return j.buildJobs(connection, instanceIdentifier, j.Logger, scripts, metadata, releaseMapping)
 }
 
-func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifier, pathToScript Script, connection SSHConnection) (*Metadata, error) {
-	metadataContent, _, _, err := connection.Run(string(pathToScript))
-
-	if err != nil {
-		errorString := fmt.Sprintf(
-			"An error occurred while running job metadata scripts on %s: %s",
-			instanceIdentifier,
-			err,
-		)
-		j.Logger.Error("bbr", errorString)
-		return nil, errors.New(errorString)
-	}
-
-	jobMetadata, err := NewJobMetadata(metadataContent)
-
-	if err != nil {
-		errorString := fmt.Sprintf(
-			"Reading job metadata for %s failed: %s",
-			instanceIdentifier,
-			err.Error(),
-		)
-		j.Logger.Error("bbr", errorString)
-		return nil, errors.New(errorString)
-	}
-
-	return jobMetadata, nil
-}
-
 func (j *JobFinderFromScripts) findBBRScripts(instanceIdentifierForLogging InstanceIdentifier, sshConnection SSHConnection) ([]string, error) {
 	j.Logger.Debug("bbr", "Attempting to find scripts on %s", instanceIdentifierForLogging)
 
@@ -125,7 +97,46 @@ func (j *JobFinderFromScripts) findBBRScripts(instanceIdentifierForLogging Insta
 			)
 		}
 	}
+
 	return strings.Split(string(stdout), "\n"), nil
+}
+
+func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifier, pathToScript Script, connection SSHConnection) (*Metadata, error) {
+	metadataContent, errorContent, exitStatus, err := connection.Run(string(pathToScript))
+
+	if err != nil {
+		errorString := fmt.Sprintf(
+			"An error occurred while running job metadata scripts on %s: %s",
+			instanceIdentifier,
+			err,
+		)
+		j.Logger.Error("bbr", errorString)
+		return nil, errors.New(errorString)
+	}
+
+	if exitStatus != 0 {
+		errorString := fmt.Sprintf(
+			"An error occurred while running job metadata scripts on %s: %s",
+			instanceIdentifier,
+			errorContent,
+		)
+		j.Logger.Error("bbr", errorString)
+		return nil, errors.New(errorString)
+	}
+
+	jobMetadata, err := NewJobMetadata(metadataContent)
+
+	if err != nil {
+		errorString := fmt.Sprintf(
+			"Reading job metadata for %s failed: %s",
+			instanceIdentifier,
+			err.Error(),
+		)
+		j.Logger.Error("bbr", errorString)
+		return nil, errors.New(errorString)
+	}
+
+	return jobMetadata, nil
 }
 
 func (j *JobFinderFromScripts) buildJobs(sshConnection SSHConnection, instanceIdentifier InstanceIdentifier, logger Logger, scripts BackupAndRestoreScripts, metadata map[string]Metadata, releaseMapping ReleaseMapping) (orchestrator.Jobs, error) {
