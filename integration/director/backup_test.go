@@ -226,9 +226,10 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					directorInstance.CreateScript("/var/vcap/jobs/bosh/bin/bbr/metadata",
 						`#!/usr/bin/env sh
 echo "---
-should_be_locked_before:
-- job_name: postgres
-  release: bosh
+backup:
+  should_be_locked_before:
+  - job_name: postgres
+    release: bosh
 "`)
 				})
 

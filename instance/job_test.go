@@ -52,7 +52,9 @@ var _ = Describe("Job", func() {
 			JustBeforeEach(func() {
 				jobWithName = instance.NewJob(sshConnection, "", logger, releaseName,
 					jobScripts, instance.Metadata{
-						BackupName: "a-bosh-backup",
+						Backup: instance.ActionConfig{
+							Name: "a-bosh-backup",
+						},
 					})
 			})
 
@@ -73,7 +75,9 @@ var _ = Describe("Job", func() {
 			JustBeforeEach(func() {
 				jobWithName = instance.NewJob(sshConnection, "", logger, releaseName,
 					jobScripts, instance.Metadata{
-						RestoreName: "a-bosh-backup",
+						Restore: instance.ActionConfig{
+							Name: "a-bosh-backup",
+						},
 					})
 			})
 
@@ -87,7 +91,9 @@ var _ = Describe("Job", func() {
 		Context("the job has a custom backup artifact name", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
-					BackupName: "fool",
+					Backup: instance.ActionConfig{
+						Name: "fool",
+					},
 				}
 			})
 
@@ -107,7 +113,9 @@ var _ = Describe("Job", func() {
 		Context("the job has a custom backup artifact name", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
-					RestoreName: "bard",
+					Restore: instance.ActionConfig{
+						Name: "bard",
+					},
 				}
 			})
 
@@ -175,7 +183,9 @@ var _ = Describe("Job", func() {
 		Context("when the job has a named backup artifact", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
-					BackupName: "whatever",
+					Backup: instance.ActionConfig{
+						Name: "whatever",
+					},
 				}
 			})
 
@@ -187,7 +197,9 @@ var _ = Describe("Job", func() {
 		Context("when the job has a named restore artifact", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
-					RestoreName: "whatever",
+					Restore: instance.ActionConfig{
+						Name: "whatever",
+					},
 				}
 			})
 
@@ -205,7 +217,9 @@ var _ = Describe("Job", func() {
 		Context("when the job has a named restore artifact", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
-					RestoreName: "whatever",
+					Restore: instance.ActionConfig{
+						Name: "whatever",
+					},
 				}
 			})
 
@@ -217,7 +231,9 @@ var _ = Describe("Job", func() {
 		Context("when the job has a named backup artifact", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
-					BackupName: "whatever",
+					Backup: instance.ActionConfig{
+						Name: "whatever",
+					},
 				}
 			})
 

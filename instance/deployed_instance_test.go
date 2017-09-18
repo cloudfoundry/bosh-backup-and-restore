@@ -179,7 +179,9 @@ var _ = Describe("DeployedInstance", func() {
 					instance.NewJob(sshConnection, jobName+"/"+jobID, boshLogger, "", instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/dave/bin/foo",
 					}, instance.Metadata{
-						BackupName: "foo",
+						Backup: instance.ActionConfig{
+							Name: "foo",
+						},
 					}),
 				})
 			})
@@ -198,7 +200,9 @@ var _ = Describe("DeployedInstance", func() {
 					instance.NewJob(sshConnection, jobName+"/"+jobID, boshLogger, "", instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/dave/bin/foo",
 					}, instance.Metadata{
-						RestoreName: "foo",
+						Restore: instance.ActionConfig{
+							Name: "foo",
+						},
 					}),
 				})
 			})
@@ -309,7 +313,7 @@ var _ = Describe("DeployedInstance", func() {
 					}, instance.Metadata{}),
 					instance.NewJob(sshConnection, jobName+"/"+jobID, boshLogger, "", instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/baz/bin/bbr/backup",
-					}, instance.Metadata{BackupName: "special-backup"}),
+					}, instance.Metadata{Backup: instance.ActionConfig{Name: "special-backup"}}),
 				})
 			})
 
@@ -967,7 +971,7 @@ var _ = Describe("DeployedInstance", func() {
 					}, instance.Metadata{}),
 					instance.NewJob(sshConnection, jobName+"/"+jobID, boshLogger, "", instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/baz/bin/bbr/restore",
-					}, instance.Metadata{RestoreName: "special-backup"}),
+					}, instance.Metadata{Restore: instance.ActionConfig{Name: "special-backup"}}),
 				})
 			})
 			It("succeeds", func() {
@@ -1125,14 +1129,14 @@ var _ = Describe("DeployedInstance", func() {
 					}, instance.Metadata{}),
 					instance.NewJob(sshConnection, jobName+"/"+jobID, boshLogger, "", instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/job-name/bin/bbr/backup",
-					}, instance.Metadata{BackupName: "my-artifact"}),
+					}, instance.Metadata{Backup: instance.ActionConfig{Name: "my-artifact"}}),
 				})
 			})
 
 			It("returns the named artifact and the default artifact", func() {
 				Expect(backupArtifacts).To(ConsistOf(
 					instance.NewBackupArtifact(instance.NewJob(sshConnection, jobName+"/"+jobID, boshLogger, "", []instance.Script{"/var/vcap/jobs/foo/bin/bbr/backup"}, instance.Metadata{}), deployedInstance, sshConnection, boshLogger),
-					instance.NewBackupArtifact(instance.NewJob(sshConnection, jobName+"/"+jobID, boshLogger, "", []instance.Script{"/var/vcap/jobs/job-name/bin/bbr/backup"}, instance.Metadata{BackupName: "my-artifact"}), deployedInstance, sshConnection, boshLogger),
+					instance.NewBackupArtifact(instance.NewJob(sshConnection, jobName+"/"+jobID, boshLogger, "", []instance.Script{"/var/vcap/jobs/job-name/bin/bbr/backup"}, instance.Metadata{Backup: instance.ActionConfig{Name: "my-artifact"}}), deployedInstance, sshConnection, boshLogger),
 				))
 			})
 		})
@@ -1142,14 +1146,14 @@ var _ = Describe("DeployedInstance", func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{
 					instance.NewJob(sshConnection, jobName+"/"+jobID, boshLogger, "", instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/job-name/bin/bbr/backup",
-					}, instance.Metadata{BackupName: "my-artifact"}),
+					}, instance.Metadata{Backup: instance.ActionConfig{Name: "my-artifact"}}),
 				})
 			})
 
 			It("returns the named artifact and the default artifact", func() {
 				Expect(backupArtifacts).To(Equal(
 					[]orchestrator.BackupArtifact{
-						instance.NewBackupArtifact(instance.NewJob(sshConnection, jobName+"/"+jobID, boshLogger, "", []instance.Script{"/var/vcap/jobs/job-name/bin/bbr/backup"}, instance.Metadata{BackupName: "my-artifact"}), deployedInstance, sshConnection, boshLogger),
+						instance.NewBackupArtifact(instance.NewJob(sshConnection, jobName+"/"+jobID, boshLogger, "", []instance.Script{"/var/vcap/jobs/job-name/bin/bbr/backup"}, instance.Metadata{Backup: instance.ActionConfig{Name: "my-artifact"}}), deployedInstance, sshConnection, boshLogger),
 					},
 				))
 			})
@@ -1190,14 +1194,14 @@ var _ = Describe("DeployedInstance", func() {
 					}, instance.Metadata{}),
 					instance.NewJob(sshConnection, jobName+"/"+jobID, boshLogger, "", instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/job-name/bin/bbr/restore",
-					}, instance.Metadata{RestoreName: "my-artifact"}),
+					}, instance.Metadata{Restore: instance.ActionConfig{Name: "my-artifact"}}),
 				})
 			})
 
 			It("returns the named artifact and the default artifact", func() {
 				Expect(restoreArtifacts).To(ConsistOf(
 					instance.NewRestoreArtifact(instance.NewJob(sshConnection, jobName+"/"+jobID, boshLogger, "", []instance.Script{"/var/vcap/jobs/job-name-2/bin/bbr/restore"}, instance.Metadata{}), deployedInstance, sshConnection, boshLogger),
-					instance.NewRestoreArtifact(instance.NewJob(sshConnection, jobName+"/"+jobID, boshLogger, "", []instance.Script{"/var/vcap/jobs/job-name/bin/bbr/restore"}, instance.Metadata{RestoreName: "my-artifact"}), deployedInstance, sshConnection, boshLogger),
+					instance.NewRestoreArtifact(instance.NewJob(sshConnection, jobName+"/"+jobID, boshLogger, "", []instance.Script{"/var/vcap/jobs/job-name/bin/bbr/restore"}, instance.Metadata{Restore: instance.ActionConfig{Name: "my-artifact"}}), deployedInstance, sshConnection, boshLogger),
 				))
 			})
 		})
@@ -1207,7 +1211,7 @@ var _ = Describe("DeployedInstance", func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{
 					instance.NewJob(sshConnection, jobName+"/"+jobID, boshLogger, "", instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/job-name/bin/bbr/restore",
-					}, instance.Metadata{RestoreName: "my-artifact"}),
+					}, instance.Metadata{Restore: instance.ActionConfig{Name: "my-artifact"}}),
 				})
 			})
 
@@ -1216,7 +1220,7 @@ var _ = Describe("DeployedInstance", func() {
 					[]orchestrator.BackupArtifact{
 						instance.NewRestoreArtifact(instance.NewJob(
 							sshConnection, jobName+"/"+jobID, boshLogger, "",
-							[]instance.Script{"/var/vcap/jobs/job-name/bin/bbr/restore"}, instance.Metadata{RestoreName: "my-artifact"},
+							[]instance.Script{"/var/vcap/jobs/job-name/bin/bbr/restore"}, instance.Metadata{Restore: instance.ActionConfig{Name: "my-artifact"}},
 						), deployedInstance, sshConnection, boshLogger),
 					},
 				))
