@@ -116,10 +116,10 @@ func (j Job) PreBackupLock() error {
 		j.Logger.Debug("bbr", "> %s", j.preBackupScript)
 		j.Logger.Info("bbr", "Locking %s on %s for backup...", j.name, j.instanceIdentifier)
 
-		stdout, stderr, exitCode, err := j.runOnInstance(fmt.Sprintf("sudo %s", j.preBackupScript), "pre backup lock")
+		stdout, stderr, exitCode, err := j.runOnInstance(fmt.Sprintf("sudo %s", j.preBackupScript), "pre-backup-lock")
 
 		j.Logger.Info("bbr", "Done.")
-		return j.handleErrs(j.name, "pre backup lock", err, exitCode, stdout, stderr)
+		return j.handleErrs(j.name, "pre-backup-lock", err, exitCode, stdout, stderr)
 	}
 
 	return nil

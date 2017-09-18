@@ -483,6 +483,7 @@ var _ = Describe("Deployment", func() {
 		var (
 			restoreError error
 		)
+
 		JustBeforeEach(func() {
 			restoreError = deployment.Restore()
 		})
@@ -492,12 +493,15 @@ var _ = Describe("Deployment", func() {
 				instance1.IsRestorableReturns(true)
 				instances = []orchestrator.Instance{instance1}
 			})
+
 			It("does not fail", func() {
 				Expect(restoreError).NotTo(HaveOccurred())
 			})
+
 			It("restores the instance", func() {
 				Expect(instance1.RestoreCallCount()).To(Equal(1))
 			})
+
 			It("logs before restoring", func() {
 				_, message, _ := logger.InfoArgsForCall(0)
 				Expect(message).To(Equal("Running restore scripts..."))
@@ -509,9 +513,11 @@ var _ = Describe("Deployment", func() {
 				instance1.IsRestorableReturns(false)
 				instances = []orchestrator.Instance{instance1}
 			})
+
 			It("does not fail", func() {
 				Expect(restoreError).NotTo(HaveOccurred())
 			})
+
 			It("restores the instance", func() {
 				Expect(instance1.RestoreCallCount()).To(Equal(0))
 			})
@@ -523,26 +529,32 @@ var _ = Describe("Deployment", func() {
 				instance2.IsRestorableReturns(true)
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
+
 			It("does not fail", func() {
 				Expect(restoreError).NotTo(HaveOccurred())
 			})
+
 			It("backs up the only the restoreable instance", func() {
 				Expect(instance1.RestoreCallCount()).To(Equal(1))
 				Expect(instance2.RestoreCallCount()).To(Equal(1))
 			})
 		})
+
 		Context("Multiple instances, some restorable", func() {
 			BeforeEach(func() {
 				instance1.IsRestorableReturns(true)
 				instance2.IsRestorableReturns(false)
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
+
 			It("does not fail", func() {
 				Expect(restoreError).NotTo(HaveOccurred())
 			})
+
 			It("backs up the only the restorable instance", func() {
 				Expect(instance1.RestoreCallCount()).To(Equal(1))
 			})
+
 			It("does not back up the non restorable instance", func() {
 				Expect(instance2.RestoreCallCount()).To(Equal(0))
 			})
@@ -557,6 +569,7 @@ var _ = Describe("Deployment", func() {
 				instance1.RestoreReturns(restoreError)
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
+
 			It("fails", func() {
 				Expect(restoreError).To(MatchError(restoreError))
 			})
@@ -579,28 +592,24 @@ var _ = Describe("Deployment", func() {
 			lockError = deployment.PreRestoreLock()
 		})
 
-		It("Calls PreRestoreLock on all instances", func() {
-			Expect(instance1.PreRestoreLockCallCount()).To(Equal(1))
-			Expect(instance2.PreRestoreLockCallCount()).To(Equal(1))
-			Expect(instance3.PreRestoreLockCallCount()).To(Equal(1))
+		It("calls PreRestoreLock on all jobs", func() {
+			Expect(job1a.PreRestoreLockCallCount()).To(Equal(1))
+			Expect(job1b.PreRestoreLockCallCount()).To(Equal(1))
+			Expect(job2a.PreRestoreLockCallCount()).To(Equal(1))
+			Expect(job3a.PreRestoreLockCallCount()).To(Equal(1))
 		})
 
-		Context("when some instances fail to PreRestoreLock", func() {
+		Context("when some jobs fail to PreRestoreLock", func() {
 			BeforeEach(func() {
-				instance1.PreRestoreLockReturns(errors.New("instance 1 failed to lock"))
-				instance2.PreRestoreLockReturns(errors.New("instance 2 failed to lock"))
+				job1a.PreRestoreLockReturns(errors.New("job 1a failed to lock"))
+				job2a.PreRestoreLockReturns(errors.New("job 2a failed to lock"))
 			})
 
 			It("fails", func() {
 				By("returning a helpful error", func() {
 					Expect(lockError).To(HaveOccurred())
-					Expect(lockError.Error()).To(ContainSubstring("instance 1 failed to lock"))
-					Expect(lockError.Error()).To(ContainSubstring("instance 2 failed to lock"))
-
-				})
-				By("running PostRestoreLock script", func() {
-					Expect(instance1.PreRestoreLockCallCount()).To(Equal(1))
-					Expect(instance2.PreRestoreLockCallCount()).To(Equal(1))
+					Expect(lockError.Error()).To(ContainSubstring("job 1a failed to lock"))
+					Expect(lockError.Error()).To(ContainSubstring("job 2a failed to lock"))
 				})
 			})
 		})

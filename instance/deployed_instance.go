@@ -97,17 +97,6 @@ func (i *DeployedInstance) PostBackupUnlock() error {
 	return orchestrator.ConvertErrors(unlockErrors)
 }
 
-func (i *DeployedInstance) PreRestoreLock() error {
-	var lockErrors []error
-	for _, job := range i.jobs {
-		if err := job.PreRestoreLock(); err != nil {
-			lockErrors = append(lockErrors, err)
-		}
-	}
-
-	return orchestrator.ConvertErrors(lockErrors)
-}
-
 func (i *DeployedInstance) Restore() error {
 	var restoreErrors []error
 	for _, job := range i.jobs {

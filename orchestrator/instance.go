@@ -20,7 +20,6 @@ type Instance interface {
 	IsRestorable() bool
 	Backup() error
 	PostBackupUnlock() error
-	PreRestoreLock() error
 	Restore() error
 	Cleanup() error
 	CleanupPrevious() error
@@ -178,16 +177,6 @@ func (is instances) PostBackupUnlock() error {
 	var unlockErrors []error
 	for _, instance := range is {
 		if err := instance.PostBackupUnlock(); err != nil {
-			unlockErrors = append(unlockErrors, err)
-		}
-	}
-	return ConvertErrors(unlockErrors)
-}
-
-func (is instances) PreRestoreLock() error {
-	var unlockErrors []error
-	for _, instance := range is {
-		if err := instance.PreRestoreLock(); err != nil {
 			unlockErrors = append(unlockErrors, err)
 		}
 	}

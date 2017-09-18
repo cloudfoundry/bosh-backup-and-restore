@@ -449,7 +449,7 @@ touch /tmp/post-backup-unlock-output
 
 						By("logging the error", func() {
 							Expect(session.Err.Contents()).To(ContainSubstring(
-								"pre backup lock script for job redis failed on redis-dedicated-node/fake-uuid."))
+								"pre-backup-lock script for job redis failed on redis-dedicated-node/fake-uuid."))
 						})
 
 						By("logging stdout", func() {
@@ -469,7 +469,6 @@ touch /tmp/post-backup-unlock-output
 								"It is recommended that you run `bbr backup-cleanup`"))
 						})
 					})
-
 				})
 
 				Context("when backup file has owner only permissions of different user", func() {

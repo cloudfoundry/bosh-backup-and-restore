@@ -132,7 +132,18 @@ func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer) error {
 
 func (bd *deployment) PreRestoreLock() error {
 	bd.Logger.Info("bbr", "Running pre-restore-lock scripts...")
-	return bd.instances.PreRestoreLock()
+
+	jobs := bd.instances.Jobs()
+
+	var preRestoreLockErrors []error
+	for _, job := range jobs {
+		if err := job.PreRestoreLock(); err != nil {
+			preRestoreLockErrors = append(preRestoreLockErrors, err)
+		}
+	}
+
+	bd.Logger.Info("bbr", "Done.")
+	return ConvertErrors(preRestoreLockErrors)
 }
 
 func (bd *deployment) Restore() error {
