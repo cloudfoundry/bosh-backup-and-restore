@@ -18,7 +18,6 @@ type Instance interface {
 	ArtifactDirCreated() bool
 	MarkArtifactDirCreated()
 	IsRestorable() bool
-	PreBackupLock() error
 	Backup() error
 	PostBackupUnlock() error
 	PreRestoreLock() error

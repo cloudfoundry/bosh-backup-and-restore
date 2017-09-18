@@ -67,17 +67,6 @@ func (i *DeployedInstance) Jobs() []orchestrator.Job {
 	return i.jobs
 }
 
-func (i *DeployedInstance) PreBackupLock() error {
-	var preBackupLockErrors []error
-	for _, job := range i.jobs {
-		if err := job.PreBackupLock(); err != nil {
-			preBackupLockErrors = append(preBackupLockErrors, err)
-		}
-	}
-
-	return orchestrator.ConvertErrors(preBackupLockErrors)
-}
-
 func (i *DeployedInstance) Backup() error {
 	var backupErrors []error
 	for _, job := range i.jobs {
