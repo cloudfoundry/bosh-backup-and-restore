@@ -17,7 +17,6 @@ import (
 )
 
 var _ = Describe("artifact", func() {
-
 	var sshConnection *fakes.FakeSSHConnection
 	var boshLogger boshlog.Logger
 	var testInstance *backuperfakes.FakeInstance
@@ -36,8 +35,8 @@ var _ = Describe("artifact", func() {
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
 		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile), log.New(stderr, "[bosh-package] ", log.Lshortfile))
-
 	})
+
 	var ArtifactBehaviourForDirectory = func(artifactDirectory string) {
 		Describe("StreamFromRemote", func() {
 			var err error
@@ -123,10 +122,12 @@ var _ = Describe("artifact", func() {
 					Expect(sshConnection.RunArgsForCall(0)).To(Equal("cd " + artifactDirectory + "; sudo sh -c 'find . -type f | xargs shasum -a 256'"))
 				})
 			})
+
 			Context("can calculate checksum", func() {
 				BeforeEach(func() {
 					sshConnection.RunReturns([]byte("07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e  file1\n07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e  file2\nn87fc29fb3aacd99f7f7b81df9c43b13e71c56a1e file3/file4"), nil, 0, nil)
 				})
+
 				It("converts the checksum to a map", func() {
 					Expect(actualChecksumError).NotTo(HaveOccurred())
 					Expect(actualChecksum).To(Equal(map[string]string{
@@ -136,10 +137,12 @@ var _ = Describe("artifact", func() {
 					}))
 				})
 			})
+
 			Context("can calculate checksum, with trailing spaces", func() {
 				BeforeEach(func() {
 					sshConnection.RunReturns([]byte("07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e file1\n"), nil, 0, nil)
 				})
+
 				It("converts the checksum to a map", func() {
 					Expect(actualChecksumError).NotTo(HaveOccurred())
 					Expect(actualChecksum).To(Equal(map[string]string{
@@ -147,19 +150,23 @@ var _ = Describe("artifact", func() {
 					}))
 				})
 			})
+
 			Context("sha output is empty", func() {
 				BeforeEach(func() {
 					sshConnection.RunReturns([]byte(""), nil, 0, nil)
 				})
+
 				It("converts an empty map", func() {
 					Expect(actualChecksumError).NotTo(HaveOccurred())
 					Expect(actualChecksum).To(Equal(map[string]string{}))
 				})
 			})
+
 			Context("sha for a empty directory", func() {
 				BeforeEach(func() {
 					sshConnection.RunReturns([]byte("da39a3ee5e6b4b0d3255bfef95601890afd80709  -"), nil, 0, nil)
 				})
+
 				It("reject '-' as a filename", func() {
 					Expect(actualChecksumError).NotTo(HaveOccurred())
 					Expect(actualChecksum).To(Equal(map[string]string{}))
@@ -172,14 +179,17 @@ var _ = Describe("artifact", func() {
 				BeforeEach(func() {
 					sshConnection.RunReturns(nil, nil, 0, expectedErr)
 				})
+
 				It("returns an error", func() {
 					Expect(actualChecksumError).To(MatchError(expectedErr))
 				})
 			})
+
 			Context("fails to execute the command", func() {
 				BeforeEach(func() {
 					sshConnection.RunReturns(nil, nil, 1, nil)
 				})
+
 				It("returns an error", func() {
 					Expect(actualChecksumError).To(HaveOccurred())
 				})
@@ -363,6 +373,7 @@ var _ = Describe("artifact", func() {
 		JustBeforeEach(func() {
 			backupArtifact = instance.NewBackupArtifact(job, testInstance, sshConnection, boshLogger)
 		})
+
 		Context("Named Artifact", func() {
 			BeforeEach(func() {
 				job = instance.NewJob(nil,
@@ -370,7 +381,7 @@ var _ = Describe("artifact", func() {
 					nil,
 					"",
 					instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"},
-					instance.Metadata{BackupName: "named-artifact-to-backup"})
+					instance.Metadata{Backup: instance.ActionConfig{Name: "named-artifact-to-backup"}})
 			})
 
 			It("is named with the job's custom backup name", func() {
@@ -383,6 +394,7 @@ var _ = Describe("artifact", func() {
 
 			ArtifactBehaviourForDirectory("/var/vcap/store/bbr-backup/named-artifact-to-backup")
 		})
+
 		Context("Default Artifact", func() {
 			BeforeEach(func() {
 				job = instance.NewJob(nil,
@@ -421,6 +433,7 @@ var _ = Describe("artifact", func() {
 		JustBeforeEach(func() {
 			backupArtifact = instance.NewRestoreArtifact(job, testInstance, sshConnection, boshLogger)
 		})
+
 		Context("Named Artifact", func() {
 			BeforeEach(func() {
 				job = instance.NewJob(nil,
@@ -428,7 +441,7 @@ var _ = Describe("artifact", func() {
 					nil,
 					"",
 					instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"},
-					instance.Metadata{RestoreName: "named-artifact-to-restore"})
+					instance.Metadata{Restore: instance.ActionConfig{Name: "named-artifact-to-restore"}})
 			})
 
 			It("is named with the job's custom backup name", func() {
@@ -441,6 +454,7 @@ var _ = Describe("artifact", func() {
 
 			ArtifactBehaviourForDirectory("/var/vcap/store/bbr-backup/named-artifact-to-restore")
 		})
+
 		Context("Default Artifact", func() {
 			BeforeEach(func() {
 				job = instance.NewJob(nil,
