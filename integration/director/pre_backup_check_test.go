@@ -99,10 +99,9 @@ exit 0`)
 					directorInstance.CreateScript("/var/vcap/jobs/uaa/bin/bbr/metadata",
 						`#!/usr/bin/env sh
 echo "---
-backup:
-  should_be_locked_before:
-  - job_name: postgres
-    release: bosh
+should_be_locked_before:
+- job_name: postgres
+  release: bosh
 "`)
 				})
 

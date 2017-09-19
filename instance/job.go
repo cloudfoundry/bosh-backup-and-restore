@@ -54,11 +54,11 @@ func (j Job) InstanceIdentifier() string {
 }
 
 func (j Job) BackupArtifactName() string {
-	return j.metadata.Backup.Name
+	return j.metadata.BackupName
 }
 
 func (j Job) RestoreArtifactName() string {
-	return j.metadata.Restore.Name
+	return j.metadata.RestoreName
 }
 
 func (j Job) BackupArtifactDirectory() string {
@@ -82,11 +82,11 @@ func (j Job) HasRestore() bool {
 }
 
 func (j Job) HasNamedBackupArtifact() bool {
-	return j.metadata.Backup.Name != ""
+	return j.metadata.BackupName != ""
 }
 
 func (j Job) HasNamedRestoreArtifact() bool {
-	return j.metadata.Restore.Name != ""
+	return j.metadata.RestoreName != ""
 }
 
 func (j Job) Backup() error {
@@ -251,7 +251,7 @@ func (j Job) handleErrs(jobName, label string, err error, exitCode int, stdout, 
 func (j Job) ShouldBeLockedBefore() []orchestrator.JobSpecifier {
 	jobSpecifiers := []orchestrator.JobSpecifier{}
 
-	for _, lockBefore := range j.metadata.Backup.ShouldBeLockedBefore {
+	for _, lockBefore := range j.metadata.ShouldBeLockedBefore {
 		jobSpecifiers = append(jobSpecifiers, orchestrator.JobSpecifier{
 			Name: lockBefore.JobName, Release: lockBefore.Release,
 		})

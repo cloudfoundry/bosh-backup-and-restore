@@ -644,8 +644,7 @@ instances:
 				CleanupSSH(deploymentName, "redis-dedicated-node"))...)
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
 echo "---
-restore:
-  name: foo
+restore_name: foo
 "`)
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
 set -u
@@ -735,8 +734,7 @@ custom_artifacts:
 				CleanupSSH(deploymentName, "redis-backup-node"))...)
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
 echo "---
-restore:
-  name: foo
+restore_name: foo
 "`)
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
 set -u
