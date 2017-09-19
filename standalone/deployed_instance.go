@@ -20,11 +20,12 @@ func NewDeployedInstance(instanceGroupName string, connection ssh.SSHConnection,
 }
 
 func (i DeployedInstance) Cleanup() error {
-	i.Logger.Info("", "Cleaning up...")
 	if !i.ArtifactDirCreated() {
 		i.Logger.Debug("", "Backup directory was never created - skipping cleanup")
 		return nil
 	}
+
+	i.Logger.Info("", "Cleaning up...")
 
 	stdout, stderr, exitCode, err := i.SSHConnection.Run(fmt.Sprintf("sudo rm -rf %s", orchestrator.ArtifactDirectory))
 	i.Logger.Debug("", "Stdout: %s", string(stdout))
