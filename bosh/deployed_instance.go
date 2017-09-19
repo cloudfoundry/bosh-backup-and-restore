@@ -30,18 +30,17 @@ func NewBoshDeployedInstance(instanceGroupName,
 	}
 }
 
-func (d *BoshDeployedInstance) Cleanup() error {
+func (i *BoshDeployedInstance) Cleanup() error {
 	var errs []error
 
-	if d.ArtifactDirCreated() {
-		removeArtifactError := d.removeBackupArtifacts()
+	if i.ArtifactDirCreated() {
+		removeArtifactError := i.removeBackupArtifacts()
 		if removeArtifactError != nil {
 			errs = append(errs, errors.Wrap(removeArtifactError, "failed to remove backup artifact"))
 		}
 	}
 
-	d.Logger.Debug("bbr", "Cleaning up SSH connection on instance %s %s", d.Name(), d.ID())
-	cleanupSSHError := d.Deployment.CleanUpSSH(director.NewAllOrInstanceGroupOrInstanceSlug(d.Name(), d.ID()), director.SSHOpts{Username: d.SSHConnection.Username()})
+	cleanupSSHError := i.cleanupSSHConnections()
 	if cleanupSSHError != nil {
 		errs = append(errs, errors.Wrap(cleanupSSHError, "failed to cleanup ssh"))
 	}
@@ -49,16 +48,15 @@ func (d *BoshDeployedInstance) Cleanup() error {
 	return orchestrator.ConvertErrors(errs)
 }
 
-func (d *BoshDeployedInstance) CleanupPrevious() error {
+func (i *BoshDeployedInstance) CleanupPrevious() error {
 	var errs []error
 
-	removeArtifactError := d.removeBackupArtifacts()
+	removeArtifactError := i.removeBackupArtifacts()
 	if removeArtifactError != nil {
 		errs = append(errs, errors.Wrap(removeArtifactError, "failed to remove backup artifact"))
 	}
 
-	d.Logger.Debug("bbr", "Cleaning up SSH connection on instance %s %s", d.Name(), d.ID())
-	cleanupSSHError := d.Deployment.CleanUpSSH(director.NewAllOrInstanceGroupOrInstanceSlug(d.Name(), d.ID()), director.SSHOpts{Username: d.SSHConnection.Username()})
+	cleanupSSHError := i.cleanupSSHConnections()
 	if cleanupSSHError != nil {
 		errs = append(errs, errors.Wrap(cleanupSSHError, "failed to cleanup ssh"))
 	}
@@ -66,7 +64,12 @@ func (d *BoshDeployedInstance) CleanupPrevious() error {
 	return orchestrator.ConvertErrors(errs)
 }
 
-func (d *BoshDeployedInstance) removeBackupArtifacts() error {
-	_, _, _, err := d.RunOnInstance(fmt.Sprintf("sudo rm -rf %s", orchestrator.ArtifactDirectory), "remove backup artifacts")
+func (i *BoshDeployedInstance) removeBackupArtifacts() error {
+	_, _, _, err := i.RunOnInstance(fmt.Sprintf("sudo rm -rf %s", orchestrator.ArtifactDirectory), "remove backup artifacts")
 	return err
+}
+
+func (i *BoshDeployedInstance) cleanupSSHConnections() error {
+	i.Logger.Debug("bbr", "Cleaning up SSH connection on instance %s %s", i.Name(), i.ID())
+	return i.Deployment.CleanUpSSH(director.NewAllOrInstanceGroupOrInstanceSlug(i.Name(), i.ID()), director.SSHOpts{Username: i.SSHConnection.Username()})
 }
