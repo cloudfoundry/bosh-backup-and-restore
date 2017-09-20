@@ -117,7 +117,12 @@ COPYRIGHT:
 				{
 					Name:   "backup-cleanup",
 					Usage:  "Cleanup a deployment after a backup was interrupted",
-					Action: deploymentCleanup,
+					Action: deploymentBackupCleanup,
+				},
+				{
+					Name:   "restore-cleanup",
+					Usage:  "Cleanup a deployment after a restore was interrupted",
+					Action: deploymentRestoreCleanup,
 				},
 			},
 		},
@@ -341,10 +346,29 @@ func directorRestore(c *cli.Context) error {
 	return cli.NewExitError(errorMessage, errorCode)
 }
 
-func deploymentCleanup(c *cli.Context) error {
+func deploymentBackupCleanup(c *cli.Context) error {
 	trapSigint(true)
 
-	cleaner, err := makeDeploymentCleaner(c)
+	cleaner, err := makeDeploymentBackupCleaner(c)
+	if err != nil {
+		return err
+	}
+
+	deployment := c.Parent().String("deployment")
+	cleanupErr := cleaner.Cleanup(deployment)
+
+	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(cleanupErr)
+	if err := writeStackTrace(errorWithStackTrace); err != nil {
+		return errors.Wrap(cleanupErr, err.Error())
+	}
+
+	return cli.NewExitError(errorMessage, errorCode)
+}
+
+func deploymentRestoreCleanup(c *cli.Context) error {
+	trapSigint(true)
+
+	cleaner, err := makeDeploymentRestoreCleaner(c)
 	if err != nil {
 		return err
 	}
@@ -486,7 +510,7 @@ func ExtractNameFromAddress(address string) string {
 	return strings.Split(address, ":")[0]
 }
 
-func makeDeploymentCleaner(c *cli.Context) (*orchestrator.BackupCleaner, error) {
+func makeDeploymentBackupCleaner(c *cli.Context) (*orchestrator.BackupCleaner, error) {
 	logger := makeLogger(c)
 	deploymentManager, err := newDeploymentManager(
 		c.Parent().String("target"),
@@ -502,6 +526,24 @@ func makeDeploymentCleaner(c *cli.Context) (*orchestrator.BackupCleaner, error) 
 	}
 
 	return orchestrator.NewBackupCleaner(logger, deploymentManager, orderer.NewKahnLockOrderer()), nil
+}
+
+func makeDeploymentRestoreCleaner(c *cli.Context) (*orchestrator.RestoreCleaner, error) {
+	logger := makeLogger(c)
+	deploymentManager, err := newDeploymentManager(
+		c.Parent().String("target"),
+		c.Parent().String("username"),
+		c.Parent().String("password"),
+		c.Parent().String("ca-cert"),
+		logger,
+		c.Bool("with-manifest"),
+	)
+
+	if err != nil {
+		return nil, redCliError(err)
+	}
+
+	return orchestrator.NewRestoreCleaner(logger, deploymentManager), nil
 }
 
 func makeDirectorCleaner(c *cli.Context) *orchestrator.BackupCleaner {
