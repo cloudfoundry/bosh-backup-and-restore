@@ -39,12 +39,12 @@ var _ = Describe("Deployment backup cleanup", func() {
 			By("cleaning up the deployment artifact", func() {
 				cleanupCommand := JumpboxInstance.RunCommandAs("vcap",
 					fmt.Sprintf(`cd %s; \
-			    BOSH_CLIENT_SECRET=%s ./bbr deployment \
-			       --ca-cert bosh.crt \
-			       --username %s \
-			       --target %s \
-			       --deployment %s \
-			       backup-cleanup`,
+						BOSH_CLIENT_SECRET=%s ./bbr deployment \
+				    	--ca-cert bosh.crt \
+						--username %s \
+						--target %s \
+						--deployment %s \
+						backup-cleanup`,
 						workspaceDir,
 						MustHaveEnv("BOSH_CLIENT_SECRET"),
 						MustHaveEnv("BOSH_CLIENT"),
@@ -77,7 +77,7 @@ var _ = Describe("Deployment backup cleanup", func() {
 	})
 
 	Context("when we don't run a cleanup", func() {
-		It("is in a state where subsequent backups fail", func() {
+		It("leaves deployment in a state where subsequent backups fail", func() {
 			backupCommand := JumpboxInstance.RunCommandAs("vcap",
 				fmt.Sprintf(`cd %s; \
 			    BOSH_CLIENT_SECRET=%s ./bbr deployment \
@@ -95,6 +95,22 @@ var _ = Describe("Deployment backup cleanup", func() {
 
 			Eventually(backupCommand).Should(gexec.Exit(1))
 			Expect(backupCommand.Out.Contents()).To(ContainSubstring("Directory /var/vcap/store/bbr-backup already exists on instance"))
+
+			// clean the corrupted environment for subsequent tests
+			Eventually(JumpboxInstance.RunCommandAs("vcap",
+				fmt.Sprintf(`cd %s; \
+						BOSH_CLIENT_SECRET=%s ./bbr deployment \
+						--ca-cert bosh.crt \
+						--username %s \
+						--target %s \
+						--deployment %s \
+						backup-cleanup`,
+					workspaceDir,
+					MustHaveEnv("BOSH_CLIENT_SECRET"),
+					MustHaveEnv("BOSH_CLIENT"),
+					MustHaveEnv("BOSH_URL"),
+					deploymentNameToBackup),
+			)).Should(gexec.Exit(0))
 		})
 	})
 })
