@@ -3,13 +3,11 @@ package deployment
 import (
 	"fmt"
 
-	"time"
-
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 )
 
 var _ = Describe("Deployment backup cleanup", func() {
@@ -33,11 +31,10 @@ var _ = Describe("Deployment backup cleanup", func() {
 		)
 
 		Eventually(backupSession.Out).Should(gbytes.Say("Backing up slow-backup on"))
-		time.Sleep(5 * time.Second)
-		Eventually(backupSession.Kill()).Should(gexec.Exit())
+		Eventually(JumpboxInstance.RunCommandAs("vcap", "killall bbr")).Should(gexec.Exit(0))
 	})
 
-	Context("When we run cleanup", func() {
+	Context("When we run backup cleanup", func() {
 		It("succeeds", func() {
 			By("cleaning up the deployment artifact", func() {
 				cleanupCommand := JumpboxInstance.RunCommandAs("vcap",
