@@ -12,7 +12,7 @@ import (
 
 var _ = Describe("Cleanup", func() {
 	var (
-		c                 *orchestrator.BackupCleaner
+		backupCleaner     *orchestrator.BackupCleaner
 		deployment        *fakes.FakeDeployment
 		deploymentManager *fakes.FakeDeploymentManager
 		deploymentName    = "foobarbaz"
@@ -26,11 +26,11 @@ var _ = Describe("Cleanup", func() {
 		deploymentManager = new(fakes.FakeDeploymentManager)
 		logger = new(fakes.FakeLogger)
 		lockOrderer = new(fakes.FakeLockOrderer)
-		c = orchestrator.NewBackupCleaner(logger, deploymentManager, lockOrderer)
+		backupCleaner = orchestrator.NewBackupCleaner(logger, deploymentManager, lockOrderer)
 	})
 
 	JustBeforeEach(func() {
-		cleanupError = c.Cleanup(deploymentName)
+		cleanupError = backupCleaner.Cleanup(deploymentName)
 	})
 
 	Context("when the deployment can be cleaned up", func() {
