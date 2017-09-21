@@ -157,7 +157,12 @@ COPYRIGHT:
 				{
 					Name:   "backup-cleanup",
 					Usage:  "Cleanup a director after a backup was interrupted",
-					Action: directorCleanup,
+					Action: directorBackupCleanup,
+				},
+				{
+					Name:   "restore-cleanup",
+					Usage:  "Cleanup a director after a restore was interrupted",
+					Action: directorRestoreCleanup,
 				},
 			},
 		},
@@ -384,12 +389,29 @@ func deploymentRestoreCleanup(c *cli.Context) error {
 	return cli.NewExitError(errorMessage, errorCode)
 }
 
-func directorCleanup(c *cli.Context) error {
+func directorBackupCleanup(c *cli.Context) error {
 	trapSigint(true)
 
 	directorName := ExtractNameFromAddress(c.Parent().String("host"))
 
-	cleaner := makeDirectorCleaner(c)
+	cleaner := makeDirectorBackupCleaner(c)
+
+	cleanupErr := cleaner.Cleanup(directorName)
+
+	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(cleanupErr)
+	if err := writeStackTrace(errorWithStackTrace); err != nil {
+		return errors.Wrap(cleanupErr, err.Error())
+	}
+
+	return cli.NewExitError(errorMessage, errorCode)
+}
+
+func directorRestoreCleanup(c *cli.Context) error {
+	trapSigint(true)
+
+	directorName := ExtractNameFromAddress(c.Parent().String("host"))
+
+	cleaner := makeDirectorRestoreCleaner(c)
 
 	cleanupErr := cleaner.Cleanup(directorName)
 
@@ -546,7 +568,7 @@ func makeDeploymentRestoreCleaner(c *cli.Context) (*orchestrator.RestoreCleaner,
 	return orchestrator.NewRestoreCleaner(logger, deploymentManager), nil
 }
 
-func makeDirectorCleaner(c *cli.Context) *orchestrator.BackupCleaner {
+func makeDirectorBackupCleaner(c *cli.Context) *orchestrator.BackupCleaner {
 	logger := makeLogger(c)
 	deploymentManager := standalone.NewDeploymentManager(logger,
 		c.Parent().String("host"),
@@ -557,6 +579,19 @@ func makeDirectorCleaner(c *cli.Context) *orchestrator.BackupCleaner {
 	)
 
 	return orchestrator.NewBackupCleaner(logger, deploymentManager, orderer.NewDirectorLockOrderer())
+}
+
+func makeDirectorRestoreCleaner(c *cli.Context) *orchestrator.RestoreCleaner {
+	logger := makeLogger(c)
+	deploymentManager := standalone.NewDeploymentManager(logger,
+		c.Parent().String("host"),
+		c.Parent().String("username"),
+		c.Parent().String("private-key-path"),
+		instance.NewJobFinder(logger),
+		ssh.NewConnection,
+	)
+
+	return orchestrator.NewRestoreCleaner(logger, deploymentManager)
 }
 
 func makeDeploymentBackuper(c *cli.Context) (*orchestrator.Backuper, error) {

@@ -10,7 +10,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Cleanup", func() {
+var _ = Describe("Restore Cleanup", func() {
 	var cleanupWorkspace string
 
 	Context("when director has a backup artifact", func() {
@@ -39,7 +39,7 @@ var _ = Describe("Cleanup", func() {
 				"--username", "foobar",
 				"--private-key-path", pathToPrivateKeyFile,
 				"--debug",
-				"backup-cleanup",
+				"restore-cleanup",
 			)
 		})
 
@@ -48,7 +48,7 @@ var _ = Describe("Cleanup", func() {
 			Expect(os.RemoveAll(cleanupWorkspace)).To(Succeed())
 		})
 
-		It("successfully cleans up the director after a failed backup", func() {
+		It("successfully cleans up the director after a failed restore", func() {
 			Eventually(session.ExitCode()).Should(Equal(0))
 			Expect(directorInstance.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
 		})

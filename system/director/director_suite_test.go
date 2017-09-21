@@ -1,10 +1,10 @@
 package director
 
 import (
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 
 	"fmt"
 	"testing"
@@ -14,6 +14,10 @@ import (
 var workspaceDir string
 var fixturesPath = "../../fixtures/director-backup/"
 var skipSSHFingerprintCheckOpts = "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+var (
+	commandPath string
+	err         error
+)
 
 func TestDirector(t *testing.T) {
 	RegisterFailHandler(Fail)
@@ -24,7 +28,7 @@ var _ = BeforeSuite(func() {
 	SetDefaultEventuallyTimeout(4 * time.Minute)
 
 	By("building bbr")
-	commandPath, err := gexec.BuildWithEnvironment("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr", []string{"GOOS=linux", "GOARCH=amd64"})
+	commandPath, err = gexec.BuildWithEnvironment("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr", []string{"GOOS=linux", "GOARCH=amd64"})
 	Expect(err).NotTo(HaveOccurred())
 
 	workspaceDir = fmt.Sprintf("/var/vcap/store/pre_backup_check_workspace-%d", time.Now().Unix())
