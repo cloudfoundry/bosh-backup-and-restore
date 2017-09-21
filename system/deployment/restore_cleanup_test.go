@@ -26,7 +26,9 @@ var _ = Describe("Deployment restore cleanup", func() {
 			JumpboxInstance.Copy(MustHaveEnv("BOSH_CERT_PATH"), workspaceDir+"/bosh.crt")
 			JumpboxInstance.Copy(commandPath, workspaceDir)
 			JumpboxInstance.Copy(backupArtifactPath, workspaceDir)
-			JumpboxInstance.RunCommandAs("vcap", fmt.Sprintf("cd %s; tar xvf redis-with-slow-backup.tar", workspaceDir))
+			Eventually(JumpboxInstance.RunCommandAs("vcap",
+				fmt.Sprintf("cd %s; tar xvf redis-with-slow-backup.tar", workspaceDir),
+			)).Should(gexec.Exit(0))
 		})
 
 		By("starting a restore and aborting mid-way")
