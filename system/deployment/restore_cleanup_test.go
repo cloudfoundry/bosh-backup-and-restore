@@ -10,7 +10,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = FDescribe("Deployment restore cleanup", func() {
+var _ = Describe("Deployment restore cleanup", func() {
 	var deploymentNameToRestore = RedisSlowBackupDeployment.Name
 	var backupArtifactName = "redis-with-slow-backup"
 	var backupArtifactPath = "../../fixtures/" + backupArtifactName + ".tar"
@@ -49,6 +49,25 @@ var _ = FDescribe("Deployment restore cleanup", func() {
 
 		Eventually(restoreSession.Out).Should(gbytes.Say("Restoring slow-backup"))
 		Eventually(JumpboxInstance.RunCommandAs("vcap", "killall bbr")).Should(gexec.Exit(0))
+	})
+
+	AfterEach(func() {
+		By("cleaning up the deployment", func() {
+			Eventually(JumpboxInstance.RunCommandAs("vcap",
+				fmt.Sprintf(`cd %s; \
+						BOSH_CLIENT_SECRET=%s ./bbr deployment \
+						--ca-cert bosh.crt \
+						--username %s \
+						--target %s \
+						--deployment %s \
+						restore-cleanup`,
+					workspaceDir,
+					MustHaveEnv("BOSH_CLIENT_SECRET"),
+					MustHaveEnv("BOSH_CLIENT"),
+					MustHaveEnv("BOSH_URL"),
+					deploymentNameToRestore),
+			)).Should(gexec.Exit(0))
+		})
 	})
 
 	Context("when we run restore cleanup", func() {
@@ -117,22 +136,6 @@ var _ = FDescribe("Deployment restore cleanup", func() {
 
 			Eventually(restoreCommand).Should(gexec.Exit(1))
 			Expect(restoreCommand.Out.Contents()).To(ContainSubstring("Directory /var/vcap/store/bbr-backup already exists on instance"))
-
-			// clean the corrupted environment for subsequent tests
-			Eventually(JumpboxInstance.RunCommandAs("vcap",
-				fmt.Sprintf(`cd %s; \
-						BOSH_CLIENT_SECRET=%s ./bbr deployment \
-						--ca-cert bosh.crt \
-						--username %s \
-						--target %s \
-						--deployment %s \
-						restore-cleanup`,
-					workspaceDir,
-					MustHaveEnv("BOSH_CLIENT_SECRET"),
-					MustHaveEnv("BOSH_CLIENT"),
-					MustHaveEnv("BOSH_URL"),
-					deploymentNameToRestore),
-			)).Should(gexec.Exit(0))
 		})
 	})
 })
