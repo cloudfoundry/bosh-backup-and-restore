@@ -902,13 +902,13 @@ var _ = Describe("DeployedInstance", func() {
 
 	Describe("Name", func() {
 		It("returns the instance name", func() {
-			Expect(deployedInstance.Name()).To(Equal("job-name"))
+			Expect(deployedInstance.Name()).To(Equal("instance-group-name"))
 		})
 	})
 
 	Describe("Index", func() {
 		It("returns the instance Index", func() {
-			Expect(deployedInstance.Index()).To(Equal("job-index"))
+			Expect(deployedInstance.Index()).To(Equal("instance-index"))
 		})
 	})
 
