@@ -236,7 +236,7 @@ backup_name: consul_backup`), nil, 0, nil
 			})
 
 			Context("when executing a metadata script fails", func() {
-				expectedError := fmt.Errorf("foo!")
+				expectedError := fmt.Errorf("EXPECTED_ERROR")
 
 				BeforeEach(func() {
 					sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
@@ -248,8 +248,10 @@ backup_name: consul_backup`), nil, 0, nil
 					}
 				})
 
-				It("returns the error from the SSH connection", func() {
-					Expect(jobsError.Error()).To(ContainSubstring(expectedError.Error()))
+				It("printing the location of the error, and the original error message", func() {
+					Expect(jobsError).To(MatchError(ContainSubstring(
+						"An error occurred while running metadata script for job consul_agent on identifier/0: EXPECTED_ERROR",
+					)))
 				})
 			})
 
@@ -269,8 +271,10 @@ backup_name: consul_backup`), nil, 0, nil
 						Expect(jobsError).To(HaveOccurred())
 					})
 
-					By("using the contents of stderr as the error message", func() {
-						Expect(jobsError).To(MatchError(ContainSubstring("STDERR")))
+					By("printing the location of the error, and the stderr from the script", func() {
+						Expect(jobsError).To(MatchError(ContainSubstring(
+							"An error occurred while running metadata script for job consul_agent on identifier/0: STDERR",
+						)))
 					})
 				})
 			})
@@ -286,10 +290,10 @@ backup_name: consul_backup`), nil, 0, nil
 					}
 				})
 
-				It("returns an error", func() {
-					Expect(jobsError).To(MatchError(
-						ContainSubstring("Reading job metadata for identifier/0 failed"),
-					))
+				It("prints the location of the error", func() {
+					Expect(jobsError).To(MatchError(ContainSubstring(
+						"Parsing metadata from job consul_agent on identifier/0 failed",
+					)))
 				})
 			})
 		})

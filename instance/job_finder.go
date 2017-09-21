@@ -105,12 +105,13 @@ func (j *JobFinderFromScripts) findBBRScripts(instanceIdentifierForLogging Insta
 }
 
 func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifier,
-	pathToScript Script, connection SSHConnection) (*Metadata, error) {
-	metadataContent, errorContent, exitStatus, err := connection.Run(string(pathToScript))
+	script Script, connection SSHConnection) (*Metadata, error) {
+	metadataContent, errorContent, exitStatus, err := connection.Run(string(script))
 
 	if err != nil {
 		errorString := fmt.Sprintf(
-			"An error occurred while running job metadata scripts on %s: %s",
+			"An error occurred while running metadata script for job %s on %s: %s",
+			script.JobName(),
 			instanceIdentifier,
 			err,
 		)
@@ -120,7 +121,8 @@ func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifie
 
 	if exitStatus != 0 {
 		errorString := fmt.Sprintf(
-			"An error occurred while running job metadata scripts on %s: %s",
+			"An error occurred while running metadata script for job %s on %s: %s",
+			script.JobName(),
 			instanceIdentifier,
 			errorContent,
 		)
@@ -132,7 +134,8 @@ func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifie
 
 	if err != nil {
 		errorString := fmt.Sprintf(
-			"Reading job metadata for %s failed: %s",
+			"Parsing metadata from job %s on %s failed: %s",
+			script.JobName(),
 			instanceIdentifier,
 			err.Error(),
 		)
