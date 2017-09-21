@@ -68,6 +68,7 @@ SUBCOMMANDS:
    backup
    backup-cleanup
    restore
+   restore-cleanup
    pre-backup-check{{if .Copyright}}
 
 COPYRIGHT:
