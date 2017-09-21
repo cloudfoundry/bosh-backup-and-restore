@@ -939,6 +939,12 @@ var _ = Describe("DeployedInstance", func() {
 				BackupName: "my-artifact",
 			},
 		)
+		var jobWithRestoreScript = instance.NewJob(sshConnection,
+			instanceGroupName+"/"+instanceID,
+			boshLogger,
+			"",
+			[]instance.Script{"/var/vcap/jobs/job-with-restore-script-1/bin/bbr/restore"},
+			instance.Metadata{})
 		var jobWithOnlyLockScript = instance.NewJob(sshConnection,
 			instanceGroupName+"/"+instanceID,
 			boshLogger,
@@ -952,7 +958,11 @@ var _ = Describe("DeployedInstance", func() {
 
 		Context("when the instance has no named backup artifacts", func() {
 			BeforeEach(func() {
-				jobs = orchestrator.Jobs([]orchestrator.Job{jobWithBackupScript1, jobWithBackupScript2})
+				jobs = orchestrator.Jobs([]orchestrator.Job{
+					jobWithBackupScript1,
+					jobWithBackupScript2,
+					jobWithRestoreScript,
+				})
 			})
 
 			It("returns artifacts with default names", func() {
@@ -1050,6 +1060,12 @@ var _ = Describe("DeployedInstance", func() {
 				RestoreName: "my-artifact",
 			},
 		)
+		var jobWithBackupScript = instance.NewJob(sshConnection,
+			instanceGroupName+"/"+instanceID,
+			boshLogger,
+			"",
+			[]instance.Script{"/var/vcap/jobs/job-with-backup-script-1/bin/bbr/backup"},
+			instance.Metadata{})
 		var jobWithOnlyLockScript = instance.NewJob(sshConnection,
 			instanceGroupName+"/"+instanceID,
 			boshLogger,
@@ -1063,8 +1079,13 @@ var _ = Describe("DeployedInstance", func() {
 
 		Context("Has no named restore artifacts", func() {
 			BeforeEach(func() {
-				jobs = orchestrator.Jobs([]orchestrator.Job{jobWithRestoreScript1, jobWithRestoreScript2})
+				jobs = orchestrator.Jobs([]orchestrator.Job{
+					jobWithRestoreScript1,
+					jobWithRestoreScript2,
+					jobWithBackupScript,
+				})
 			})
+
 			It("returns the default artifacts", func() {
 				Expect(restoreArtifacts).To(ConsistOf(
 					instance.NewRestoreArtifact(jobWithRestoreScript1, deployedInstance, sshConnection, boshLogger),
@@ -1105,7 +1126,7 @@ var _ = Describe("DeployedInstance", func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{jobWithRestoreScript1, jobWithOnlyLockScript})
 			})
 
-			It("only returns artifacts for the jobs with backup scripts", func() {
+			It("only returns artifacts for the jobs with restore scripts", func() {
 				Expect(restoreArtifacts).To(Equal(
 					[]orchestrator.BackupArtifact{
 						instance.NewBackupArtifact(
