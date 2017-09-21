@@ -68,7 +68,7 @@ type Artifact struct {
 }
 
 func (b *Artifact) StreamFromRemote(writer io.Writer) error {
-	b.Logger.Debug("bbr", "Streaming backup from instance %s/%s", b.Name(), b.instance.ID())
+	b.Logger.Debug("bbr", "Streaming backup from instance %s/%s", b.instance.Name(), b.instance.ID())
 	stderr, exitCode, err := b.Stream(fmt.Sprintf("sudo tar -C %s -c .", b.artifactDirectory), writer)
 
 	b.Logger.Debug("bbr", "Stderr: %s", string(stderr))
