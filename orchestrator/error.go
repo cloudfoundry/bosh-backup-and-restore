@@ -25,7 +25,7 @@ func NewBackupError(errorMessage string) BackupError {
 	return BackupError{errors.New(errorMessage)}
 }
 
-func NewPostBackupUnlockError(errorMessage string) UnlockError {
+func NewPostUnlockError(errorMessage string) UnlockError {
 	return UnlockError{errors.New(errorMessage)}
 }
 
