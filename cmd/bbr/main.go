@@ -41,7 +41,7 @@ const backupCleanupAdvisedNotice = "It is recommended that you run `bbr backup-c
 
 const restoreSigintQuestion = "Stopping a restore can leave the system in bad state. Are you sure you want to cancel? [yes/no]"
 const restoreStdinErrorMessage = "Couldn't read from Stdin, if you still want to stop the restore send SIGTERM."
-const restoreCleanupAdvisedNotice = "" //TODO: #148732575 "It is recommended that you run `bbr restore-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."
+const restoreCleanupAdvisedNotice = "It is recommended that you run `bbr restore-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."
 
 func main() {
 	cli.AppHelpTemplate = `NAME:

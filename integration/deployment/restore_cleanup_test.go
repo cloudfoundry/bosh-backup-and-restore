@@ -12,7 +12,7 @@ import (
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
 )
 
-var _ = FDescribe("Restore cleanup", func() {
+var _ = Describe("Restore cleanup", func() {
 	var cleanupWorkspace string
 	var director *mockhttp.Server
 

@@ -163,10 +163,9 @@ cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 								Eventually(session, 10).Should(gexec.Exit(1))
 							})
 
-							//TODO: #148732575
-							//By("outputting a warning about cleanup", func() {
-							//	Eventually(session).Should(gbytes.Say("It is recommended that you run `bbr restore-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."))
-							//})
+							By("outputting a warning about cleanup", func() {
+								Eventually(session).Should(gbytes.Say("It is recommended that you run `bbr restore-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."))
+							})
 
 							By("not completing the restore", func() {
 								Expect(directorInstance.FileExists("/var/vcap/store/bosh/restored_file")).To(BeFalse())
