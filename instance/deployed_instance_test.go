@@ -912,7 +912,7 @@ var _ = Describe("DeployedInstance", func() {
 		})
 	})
 
-	FDescribe("ArtifactsToBackup", func() {
+	Describe("ArtifactsToBackup", func() {
 		var backupArtifacts []orchestrator.BackupArtifact
 
 		var jobWithBackupScript1 = instance.NewJob(sshConnection,
@@ -1023,7 +1023,7 @@ var _ = Describe("DeployedInstance", func() {
 		})
 	})
 
-	FDescribe("ArtifactsToRestore", func() {
+	Describe("ArtifactsToRestore", func() {
 		var restoreArtifacts []orchestrator.BackupArtifact
 
 		var jobWithRestoreScript1 = instance.NewJob(sshConnection,
