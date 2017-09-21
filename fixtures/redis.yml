@@ -31,6 +31,8 @@ jobs:
   templates:
   - name: redis-server
     release: redis-test
+  - name: lock-only-job
+    release: redis-test
   vm_type: container
   persistent_disk_type: five
   stemcell: trusty

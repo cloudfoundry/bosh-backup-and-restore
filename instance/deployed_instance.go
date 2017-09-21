@@ -126,7 +126,7 @@ func (i *DeployedInstance) IsRestorable() bool {
 func (i *DeployedInstance) ArtifactsToBackup() []orchestrator.BackupArtifact {
 	artifacts := []orchestrator.BackupArtifact{}
 
-	for _, job := range i.jobs {
+	for _, job := range i.jobs.Backupable() {
 		artifacts = append(artifacts, NewBackupArtifact(job, i, i.SSHConnection, i.Logger))
 	}
 
@@ -136,7 +136,7 @@ func (i *DeployedInstance) ArtifactsToBackup() []orchestrator.BackupArtifact {
 func (i *DeployedInstance) ArtifactsToRestore() []orchestrator.BackupArtifact {
 	artifacts := []orchestrator.BackupArtifact{}
 
-	for _, job := range i.jobs {
+	for _, job := range i.jobs.Restorable() {
 		artifacts = append(artifacts, NewRestoreArtifact(job, i, i.SSHConnection, i.Logger))
 	}
 
