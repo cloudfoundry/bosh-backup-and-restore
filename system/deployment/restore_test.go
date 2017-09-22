@@ -41,14 +41,14 @@ var _ = Describe("Restores a deployment", func() {
 		By("running the restore command")
 		Eventually(JumpboxInstance.RunCommand(
 			fmt.Sprintf(`cd %s;
-			BOSH_CLIENT_SECRET=%s ./bbr \
-			  deployment --debug \
-			  --ca-cert bosh.crt \
-			  --username %s \
-			  --target %s \
-			  --deployment %s \
-			  restore \
-			  --artifact-path %s`,
+				BOSH_CLIENT_SECRET=%s ./bbr \
+				deployment --debug \
+				--ca-cert bosh.crt \
+				--username %s \
+				--target %s \
+				--deployment %s \
+				restore \
+				--artifact-path %s`,
 				workspaceDir,
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),

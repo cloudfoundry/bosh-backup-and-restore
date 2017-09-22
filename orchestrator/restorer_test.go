@@ -312,7 +312,6 @@ var _ = Describe("restorer", func() {
 					})
 
 					It("returns both errors", func() {
-						Expect(restoreError).To(MatchError(ContainSubstring("post-restore-unlock failed:")))
 						Expect(restoreError).To(MatchError(ContainSubstring("I will not restart this thing")))
 						Expect(restoreError).To(MatchError(ContainSubstring("I will not restore this thing")))
 					})

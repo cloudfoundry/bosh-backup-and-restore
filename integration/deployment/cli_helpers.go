@@ -31,6 +31,7 @@ func ShowsTheMainHelpText(helpText *helpText) {
    backup
    backup-cleanup
    restore
+   restore-cleanup
    pre-backup-check`))
 
 	Expect(helpText.outputString()).To(ContainSubstring(`USAGE:

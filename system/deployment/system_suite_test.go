@@ -27,12 +27,15 @@ var fixturesPath = "../../fixtures/redis-backup/"
 
 var _ = BeforeSuite(func() {
 	SetDefaultEventuallyTimeout(5 * time.Minute)
+
 	var wg sync.WaitGroup
 
 	wg.Add(3)
+
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
+
 		By("deploying the Redis test release")
 		RedisDeployment.Deploy()
 
@@ -43,6 +46,7 @@ var _ = BeforeSuite(func() {
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
+
 		By("deploying the Redis with missing backup script")
 		RedisWithMissingScriptDeployment.Deploy()
 
@@ -53,6 +57,7 @@ var _ = BeforeSuite(func() {
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
+
 		By("deploying the Redis with locking order release")
 		RedisWithLockingOrderDeployment.Deploy()
 
@@ -78,9 +83,11 @@ var _ = AfterSuite(func() {
 	var wg sync.WaitGroup
 
 	wg.Add(3)
+
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
+
 		By("tearing down the redis release")
 		RedisDeployment.Delete()
 
@@ -91,6 +98,7 @@ var _ = AfterSuite(func() {
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
+
 		By("tearing down the other redis release")
 		RedisWithMissingScriptDeployment.Delete()
 
@@ -101,6 +109,7 @@ var _ = AfterSuite(func() {
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
+
 		By("tearing down the Redis with locking order release")
 		RedisWithLockingOrderDeployment.Delete()
 

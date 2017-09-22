@@ -375,10 +375,9 @@ touch /tmp/restore-script-was-run`)
 							Eventually(session, 10).Should(gexec.Exit(1))
 						})
 
-						//TODO: #148732575
-						//By("outputting a warning about cleanup", func() {
-						//	Eventually(session).Should(gbytes.Say("It is recommended that you run `bbr restore-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."))
-						//})
+						By("outputting a warning about cleanup", func() {
+							Eventually(session).Should(gbytes.Say("It is recommended that you run `bbr restore-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."))
+						})
 
 						By("not completing the restore", func() {
 							Expect(instance1.FileExists("/tmp/restore-script-was-run")).To(BeFalse())

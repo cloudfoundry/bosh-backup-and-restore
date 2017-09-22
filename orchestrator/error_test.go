@@ -24,7 +24,7 @@ var _ = Describe("Error", func() {
 	var genericError = goerr.Wrap(errors.New("Just a little error"), "generic cause")
 	var lockError = orchestrator.NewLockError("LOCK_ERROR")
 	var backupError = orchestrator.NewBackupError("BACKUP_ERROR")
-	var postBackupUnlockError = orchestrator.NewPostBackupUnlockError("POST_BACKUP_ERROR")
+	var postBackupUnlockError = orchestrator.NewPostUnlockError("POST_BACKUP_ERROR")
 	var cleanupError = orchestrator.NewCleanupError("CLEANUP_ERROR")
 
 	Describe("IsCleanup", func() {

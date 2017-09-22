@@ -4,15 +4,15 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 )
 
-var _ = Describe("Cleanup", func() {
+var _ = Describe("Backup cleanup", func() {
 	var cleanupWorkspace string
 	var director *mockhttp.Server
 
@@ -74,14 +74,9 @@ instance_groups:
 			Expect(os.RemoveAll(cleanupWorkspace)).To(Succeed())
 		})
 
-		It("runs the restore script successfully and cleans up", func() {
-			By("succeeding", func() {
-				Eventually(session.ExitCode()).Should(Equal(0))
-			})
-
-			By("cleaning up the archive file on the remote", func() {
-				Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
-			})
+		It("successfully cleans up a deployment after a failed backup", func() {
+			Eventually(session.ExitCode()).Should(Equal(0))
+			Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
 		})
 	})
 })

@@ -217,7 +217,7 @@ var _ = Describe("Backup", func() {
 			var unlockError orchestrator.UnlockError
 
 			BeforeEach(func() {
-				unlockError = orchestrator.NewPostBackupUnlockError("lalalalala")
+				unlockError = orchestrator.NewPostUnlockError("lalalalala")
 				fakeBackupManager.CreateReturns(fakeBackup, nil)
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)

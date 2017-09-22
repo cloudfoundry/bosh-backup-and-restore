@@ -41,7 +41,7 @@ const backupCleanupAdvisedNotice = "It is recommended that you run `bbr backup-c
 
 const restoreSigintQuestion = "Stopping a restore can leave the system in bad state. Are you sure you want to cancel? [yes/no]"
 const restoreStdinErrorMessage = "Couldn't read from Stdin, if you still want to stop the restore send SIGTERM."
-const restoreCleanupAdvisedNotice = "" //TODO: #148732575 "It is recommended that you run `bbr restore-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."
+const restoreCleanupAdvisedNotice = "It is recommended that you run `bbr restore-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."
 
 func main() {
 	cli.AppHelpTemplate = `NAME:
@@ -68,6 +68,7 @@ SUBCOMMANDS:
    backup
    backup-cleanup
    restore
+   restore-cleanup
    pre-backup-check{{if .Copyright}}
 
 COPYRIGHT:
@@ -117,7 +118,12 @@ COPYRIGHT:
 				{
 					Name:   "backup-cleanup",
 					Usage:  "Cleanup a deployment after a backup was interrupted",
-					Action: deploymentCleanup,
+					Action: deploymentBackupCleanup,
+				},
+				{
+					Name:   "restore-cleanup",
+					Usage:  "Cleanup a deployment after a restore was interrupted",
+					Action: deploymentRestoreCleanup,
 				},
 			},
 		},
@@ -152,7 +158,12 @@ COPYRIGHT:
 				{
 					Name:   "backup-cleanup",
 					Usage:  "Cleanup a director after a backup was interrupted",
-					Action: directorCleanup,
+					Action: directorBackupCleanup,
+				},
+				{
+					Name:   "restore-cleanup",
+					Usage:  "Cleanup a director after a restore was interrupted",
+					Action: directorRestoreCleanup,
 				},
 			},
 		},
@@ -341,10 +352,10 @@ func directorRestore(c *cli.Context) error {
 	return cli.NewExitError(errorMessage, errorCode)
 }
 
-func deploymentCleanup(c *cli.Context) error {
+func deploymentBackupCleanup(c *cli.Context) error {
 	trapSigint(true)
 
-	cleaner, err := makeDeploymentCleaner(c)
+	cleaner, err := makeDeploymentBackupCleaner(c)
 	if err != nil {
 		return err
 	}
@@ -360,12 +371,48 @@ func deploymentCleanup(c *cli.Context) error {
 	return cli.NewExitError(errorMessage, errorCode)
 }
 
-func directorCleanup(c *cli.Context) error {
+func deploymentRestoreCleanup(c *cli.Context) error {
+	trapSigint(true)
+
+	cleaner, err := makeDeploymentRestoreCleaner(c)
+	if err != nil {
+		return err
+	}
+
+	deployment := c.Parent().String("deployment")
+	cleanupErr := cleaner.Cleanup(deployment)
+
+	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(cleanupErr)
+	if err := writeStackTrace(errorWithStackTrace); err != nil {
+		return errors.Wrap(cleanupErr, err.Error())
+	}
+
+	return cli.NewExitError(errorMessage, errorCode)
+}
+
+func directorBackupCleanup(c *cli.Context) error {
 	trapSigint(true)
 
 	directorName := ExtractNameFromAddress(c.Parent().String("host"))
 
-	cleaner := makeDirectorCleaner(c)
+	cleaner := makeDirectorBackupCleaner(c)
+
+	cleanupErr := cleaner.Cleanup(directorName)
+
+	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(cleanupErr)
+	if err := writeStackTrace(errorWithStackTrace); err != nil {
+		return errors.Wrap(cleanupErr, err.Error())
+	}
+
+	return cli.NewExitError(errorMessage, errorCode)
+}
+
+func directorRestoreCleanup(c *cli.Context) error {
+	trapSigint(true)
+
+	directorName := ExtractNameFromAddress(c.Parent().String("host"))
+
+	cleaner := makeDirectorRestoreCleaner(c)
 
 	cleanupErr := cleaner.Cleanup(directorName)
 
@@ -486,7 +533,7 @@ func ExtractNameFromAddress(address string) string {
 	return strings.Split(address, ":")[0]
 }
 
-func makeDeploymentCleaner(c *cli.Context) (*orchestrator.BackupCleaner, error) {
+func makeDeploymentBackupCleaner(c *cli.Context) (*orchestrator.BackupCleaner, error) {
 	logger := makeLogger(c)
 	deploymentManager, err := newDeploymentManager(
 		c.Parent().String("target"),
@@ -504,7 +551,25 @@ func makeDeploymentCleaner(c *cli.Context) (*orchestrator.BackupCleaner, error) 
 	return orchestrator.NewBackupCleaner(logger, deploymentManager, orderer.NewKahnLockOrderer()), nil
 }
 
-func makeDirectorCleaner(c *cli.Context) *orchestrator.BackupCleaner {
+func makeDeploymentRestoreCleaner(c *cli.Context) (*orchestrator.RestoreCleaner, error) {
+	logger := makeLogger(c)
+	deploymentManager, err := newDeploymentManager(
+		c.Parent().String("target"),
+		c.Parent().String("username"),
+		c.Parent().String("password"),
+		c.Parent().String("ca-cert"),
+		logger,
+		c.Bool("with-manifest"),
+	)
+
+	if err != nil {
+		return nil, redCliError(err)
+	}
+
+	return orchestrator.NewRestoreCleaner(logger, deploymentManager), nil
+}
+
+func makeDirectorBackupCleaner(c *cli.Context) *orchestrator.BackupCleaner {
 	logger := makeLogger(c)
 	deploymentManager := standalone.NewDeploymentManager(logger,
 		c.Parent().String("host"),
@@ -515,6 +580,19 @@ func makeDirectorCleaner(c *cli.Context) *orchestrator.BackupCleaner {
 	)
 
 	return orchestrator.NewBackupCleaner(logger, deploymentManager, orderer.NewDirectorLockOrderer())
+}
+
+func makeDirectorRestoreCleaner(c *cli.Context) *orchestrator.RestoreCleaner {
+	logger := makeLogger(c)
+	deploymentManager := standalone.NewDeploymentManager(logger,
+		c.Parent().String("host"),
+		c.Parent().String("username"),
+		c.Parent().String("private-key-path"),
+		instance.NewJobFinder(logger),
+		ssh.NewConnection,
+	)
+
+	return orchestrator.NewRestoreCleaner(logger, deploymentManager)
 }
 
 func makeDeploymentBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
