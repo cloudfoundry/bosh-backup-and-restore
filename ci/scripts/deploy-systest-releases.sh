@@ -20,7 +20,7 @@ export BOSH_CLIENT_SECRET=$BOSH_UAA_CLIENT_SECRET
 bosh login
 bosh upload release --rebase
 
-cd bbr-systest-releases/lock-ordering-release
+cd ../lock-ordering-release
 bosh -n create release --force
 
 bosh -n target $BOSH_HOST
