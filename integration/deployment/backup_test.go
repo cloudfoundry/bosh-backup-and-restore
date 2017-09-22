@@ -341,7 +341,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 				})
 
-				Context("and there is a metadata script which produces yaml containing the custom backup_name", func() {
+				Context("and there is a metadata script which produces yaml containing the custom backup name", func() {
 					var redisCustomArtifactFile string
 					var redisDefaultArtifactFile string
 
@@ -349,7 +349,8 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
 	touch /tmp/metadata-script-was-run
 echo "---
-backup_name: custom_backup_named_redis
+backup:
+  name: custom_backup_named_redis
 "`)
 					})
 
@@ -895,9 +896,10 @@ exit 0`)
 					secondReturnedInstance.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata",
 						`#!/usr/bin/env sh
 echo "---
-should_be_locked_before:
-- job_name: redis
-  release: redis
+backup:
+  should_be_locked_before:
+  - job_name: redis
+    release: redis
 "`)
 				})
 
@@ -935,9 +937,10 @@ exit 0`)
 						firstReturnedInstance.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata",
 							`#!/usr/bin/env sh
 echo "---
-should_be_locked_before:
-- job_name: redis
-  release: redis
+backup:
+  should_be_locked_before:
+  - job_name: redis
+    release: redis
 "`)
 					})
 
@@ -966,16 +969,18 @@ exit 0`)
 					firstReturnedInstance.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata",
 						`#!/usr/bin/env sh
 echo "---
-should_be_locked_before:
-- job_name: redis
-  release: redis
+backup:
+  should_be_locked_before:
+  - job_name: redis
+    release: redis
 "`)
 					firstReturnedInstance.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata",
 						`#!/usr/bin/env sh
 echo "---
-should_be_locked_before:
-- job_name: redis-writer
-  release: redis
+backup:
+  should_be_locked_before:
+  - job_name: redis-writer
+    release: redis
 "`)
 				})
 
@@ -1099,11 +1104,13 @@ should_be_locked_before:
 
 				backupableInstance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
 echo "---
-backup_name: duplicate_name
+backup:
+  name: duplicate_name
 "`)
 				backupableInstance2.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
 echo "---
-backup_name: duplicate_name
+backup:
+  name: duplicate_name
 "`)
 			})
 
@@ -1157,11 +1164,13 @@ backup_name: duplicate_name
 
 				restoreInstance.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
 echo "---
-restore_name: name_1
+restore:
+  name: name_1
 "`)
 				backupableInstance.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
 echo "---
-backup_name: name_2
+backup:
+  name: name_2
 "`)
 			})
 

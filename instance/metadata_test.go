@@ -8,26 +8,18 @@ import (
 )
 
 var _ = Describe("Metadata", func() {
-	It("has BackupName and RestoreName fields", func() {
-		metadata := Metadata{
-			BackupName:  "foo",
-			RestoreName: "bar",
-		}
-
-		Expect(metadata.BackupName).To(Equal("foo"))
-		Expect(metadata.RestoreName).To(Equal("bar"))
-	})
-
 	It("can be created with raw metadata YAML", func() {
 		rawMetadata := []byte(`---
-backup_name: foo
-restore_name: bar`)
+backup:
+  name: foo
+restore:
+  name: bar`)
 
 		m, err := NewJobMetadata(rawMetadata)
 
 		Expect(err).NotTo(HaveOccurred())
-		Expect(m.BackupName).To(Equal("foo"))
-		Expect(m.RestoreName).To(Equal("bar"))
+		Expect(m.Backup.Name).To(Equal("foo"))
+		Expect(m.Restore.Name).To(Equal("bar"))
 	})
 
 	It("fails when provided invalid YAML", func() {
@@ -40,33 +32,37 @@ restore_name: bar`)
 
 	It("has an optional `should_be_locked_before` field", func() {
 		rawMetadata := []byte(`---
-backup_name: foo
-restore_name: bar
-should_be_locked_before:
-- job_name: job1
-  release: release1
-- job_name: job2
-  release: release2
+backup:
+  name: foo
+  should_be_locked_before:
+  - job_name: job1
+    release: release1
+  - job_name: job2
+    release: release2
+restore:
+  name: bar
 `)
 
 		m, err := NewJobMetadata(rawMetadata)
 
 		Expect(err).NotTo(HaveOccurred())
-		Expect(m.BackupName).To(Equal("foo"))
-		Expect(m.RestoreName).To(Equal("bar"))
-		Expect(m.ShouldBeLockedBefore).To(ConsistOf(
+		Expect(m.Backup.Name).To(Equal("foo"))
+		Expect(m.Restore.Name).To(Equal("bar"))
+		Expect(m.Backup.ShouldBeLockedBefore).To(ConsistOf(
 			LockBefore{JobName: "job1", Release: "release1"}, LockBefore{JobName: "job2", Release: "release2"},
 		))
 	})
 
 	It("errors if either the job name or release are missing", func() {
 		rawMetadata := []byte(`---
-backup_name: foo
-restore_name: bar
-should_be_locked_before:
-- job_name: job1
-  release: release1
-- job_name: job2
+backup:
+  name: foo
+  should_be_locked_before:
+  - job_name: job1
+    release: release1
+  - job_name: job2
+restore:
+  name: bar
 `)
 
 		_, err := NewJobMetadata(rawMetadata)

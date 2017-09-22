@@ -183,7 +183,8 @@ var _ = Describe("JobFinderFromScripts", func() {
 					sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
 						if cmd == "/var/vcap/jobs/consul_agent/bin/bbr/metadata" {
 							return []byte(`---
-backup_name: consul_backup`), nil, 0, nil
+backup:
+  name: consul_backup`), nil, 0, nil
 						}
 
 						return []byte("/var/vcap/jobs/consul_agent/bin/bbr/metadata"), nil, 0, nil
@@ -205,7 +206,9 @@ backup_name: consul_backup`), nil, 0, nil
 								BackupAndRestoreScripts{
 									"/var/vcap/jobs/consul_agent/bin/bbr/metadata",
 								}, Metadata{
-									BackupName: "consul_backup",
+									Backup: ActionConfig{
+										Name: "consul_backup",
+									},
 								},
 							),
 						))

@@ -381,7 +381,7 @@ var _ = Describe("artifact", func() {
 					nil,
 					"",
 					instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"},
-					instance.Metadata{BackupName: "named-artifact-to-backup"})
+					instance.Metadata{Backup: instance.ActionConfig{Name: "named-artifact-to-backup"}})
 			})
 
 			It("is named with the job's custom backup name", func() {
@@ -441,7 +441,7 @@ var _ = Describe("artifact", func() {
 					nil,
 					"",
 					instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"},
-					instance.Metadata{RestoreName: "named-artifact-to-restore"})
+					instance.Metadata{Restore: instance.ActionConfig{Name: "named-artifact-to-restore"}})
 			})
 
 			It("is named with the job's custom backup name", func() {

@@ -123,16 +123,18 @@ exit 0`)
 					instance1.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata",
 						`#!/usr/bin/env sh
 echo "---
-should_be_locked_before:
-- job_name: redis
-  release: redis
+backup:
+  should_be_locked_before:
+  - job_name: redis
+    release: redis
 "`)
 					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata",
 						`#!/usr/bin/env sh
 echo "---
-should_be_locked_before:
-- job_name: redis-writer
-  release: redis
+backup:
+  should_be_locked_before:
+  - job_name: redis-writer
+    release: redis
 "`)
 				})
 
