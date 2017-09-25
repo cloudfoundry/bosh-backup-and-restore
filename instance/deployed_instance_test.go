@@ -179,7 +179,7 @@ var _ = Describe("DeployedInstance", func() {
 					instance.NewJob(sshConnection, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/dave/bin/foo",
 					}, instance.Metadata{
-						Backup: instance.ActionConfig{Name: "foo"},
+						BackupName: "foo",
 					}),
 				})
 			})
@@ -198,7 +198,7 @@ var _ = Describe("DeployedInstance", func() {
 					instance.NewJob(sshConnection, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/dave/bin/foo",
 					}, instance.Metadata{
-						Restore: instance.ActionConfig{Name: "foo"},
+						RestoreName: "foo",
 					}),
 				})
 			})
@@ -309,7 +309,7 @@ var _ = Describe("DeployedInstance", func() {
 					}, instance.Metadata{}),
 					instance.NewJob(sshConnection, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/baz/bin/bbr/backup",
-					}, instance.Metadata{Backup: instance.ActionConfig{Name: "special-backup"}}),
+					}, instance.Metadata{BackupName: "special-backup"}),
 				})
 			})
 
@@ -806,7 +806,7 @@ var _ = Describe("DeployedInstance", func() {
 					}, instance.Metadata{}),
 					instance.NewJob(sshConnection, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/baz/bin/bbr/restore",
-					}, instance.Metadata{Restore: instance.ActionConfig{Name: "special-backup"}}),
+					}, instance.Metadata{RestoreName: "special-backup"}),
 				})
 			})
 			It("succeeds", func() {
@@ -936,7 +936,7 @@ var _ = Describe("DeployedInstance", func() {
 				"/var/vcap/jobs/job-with-backup-script-and-metadata/bin/bbr/backup",
 			},
 			instance.Metadata{
-				Backup: instance.ActionConfig{Name: "my-artifact"},
+				BackupName: "my-artifact",
 			},
 		)
 		var jobWithRestoreScript = instance.NewJob(sshConnection,
@@ -1057,7 +1057,7 @@ var _ = Describe("DeployedInstance", func() {
 				"/var/vcap/jobs/job-with-restore-script-and-metadata/bin/bbr/restore",
 			},
 			instance.Metadata{
-				Restore: instance.ActionConfig{Name: "my-artifact"},
+				RestoreName: "my-artifact",
 			},
 		)
 		var jobWithBackupScript = instance.NewJob(sshConnection,
