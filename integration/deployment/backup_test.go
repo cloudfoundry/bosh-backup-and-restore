@@ -895,7 +895,7 @@ exit 0`)
 					secondReturnedInstance.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata",
 						`#!/usr/bin/env sh
 echo "---
-should_be_locked_before:
+backup_should_be_locked_before:
 - job_name: redis
   release: redis
 "`)
@@ -935,7 +935,7 @@ exit 0`)
 						firstReturnedInstance.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata",
 							`#!/usr/bin/env sh
 echo "---
-should_be_locked_before:
+backup_should_be_locked_before:
 - job_name: redis
   release: redis
 "`)
@@ -966,14 +966,14 @@ exit 0`)
 					firstReturnedInstance.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata",
 						`#!/usr/bin/env sh
 echo "---
-should_be_locked_before:
+backup_should_be_locked_before:
 - job_name: redis
   release: redis
 "`)
 					firstReturnedInstance.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata",
 						`#!/usr/bin/env sh
 echo "---
-should_be_locked_before:
+backup_should_be_locked_before:
 - job_name: redis-writer
   release: redis
 "`)

@@ -38,11 +38,11 @@ restore_name: bar`)
 		Expect(err).To(MatchError(ContainSubstring("failed to unmarshal job metadata")))
 	})
 
-	It("has an optional `should_be_locked_before` field", func() {
+	It("has an optional `backup_should_be_locked_before` field", func() {
 		rawMetadata := []byte(`---
 backup_name: foo
 restore_name: bar
-should_be_locked_before:
+backup_should_be_locked_before:
 - job_name: job1
   release: release1
 - job_name: job2
@@ -54,16 +54,16 @@ should_be_locked_before:
 		Expect(err).NotTo(HaveOccurred())
 		Expect(m.BackupName).To(Equal("foo"))
 		Expect(m.RestoreName).To(Equal("bar"))
-		Expect(m.ShouldBeLockedBefore).To(ConsistOf(
+		Expect(m.BackupShouldBeLockedBefore).To(ConsistOf(
 			LockBefore{JobName: "job1", Release: "release1"}, LockBefore{JobName: "job2", Release: "release2"},
 		))
 	})
 
-	It("errors if either the job name or release are missing", func() {
+	It("errors if either the job name or release are missing from backup_should_be_locked_before", func() {
 		rawMetadata := []byte(`---
 backup_name: foo
 restore_name: bar
-should_be_locked_before:
+backup_should_be_locked_before:
 - job_name: job1
   release: release1
 - job_name: job2
