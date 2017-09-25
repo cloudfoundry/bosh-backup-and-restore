@@ -142,19 +142,23 @@ type FakeDeployment struct {
 	customArtifactNamesMatchReturnsOnCall map[int]struct {
 		result1 error
 	}
-	PreRestoreLockStub        func() error
+	PreRestoreLockStub        func(orderer orchestrator.LockOrderer) error
 	preRestoreLockMutex       sync.RWMutex
-	preRestoreLockArgsForCall []struct{}
-	preRestoreLockReturns     struct {
+	preRestoreLockArgsForCall []struct {
+		orderer orchestrator.LockOrderer
+	}
+	preRestoreLockReturns struct {
 		result1 error
 	}
 	preRestoreLockReturnsOnCall map[int]struct {
 		result1 error
 	}
-	PostRestoreUnlockStub        func() error
+	PostRestoreUnlockStub        func(orderer orchestrator.LockOrderer) error
 	postRestoreUnlockMutex       sync.RWMutex
-	postRestoreUnlockArgsForCall []struct{}
-	postRestoreUnlockReturns     struct {
+	postRestoreUnlockArgsForCall []struct {
+		orderer orchestrator.LockOrderer
+	}
+	postRestoreUnlockReturns struct {
 		result1 error
 	}
 	postRestoreUnlockReturnsOnCall map[int]struct {
@@ -767,14 +771,16 @@ func (fake *FakeDeployment) CustomArtifactNamesMatchReturnsOnCall(i int, result1
 	}{result1}
 }
 
-func (fake *FakeDeployment) PreRestoreLock() error {
+func (fake *FakeDeployment) PreRestoreLock(orderer orchestrator.LockOrderer) error {
 	fake.preRestoreLockMutex.Lock()
 	ret, specificReturn := fake.preRestoreLockReturnsOnCall[len(fake.preRestoreLockArgsForCall)]
-	fake.preRestoreLockArgsForCall = append(fake.preRestoreLockArgsForCall, struct{}{})
-	fake.recordInvocation("PreRestoreLock", []interface{}{})
+	fake.preRestoreLockArgsForCall = append(fake.preRestoreLockArgsForCall, struct {
+		orderer orchestrator.LockOrderer
+	}{orderer})
+	fake.recordInvocation("PreRestoreLock", []interface{}{orderer})
 	fake.preRestoreLockMutex.Unlock()
 	if fake.PreRestoreLockStub != nil {
-		return fake.PreRestoreLockStub()
+		return fake.PreRestoreLockStub(orderer)
 	}
 	if specificReturn {
 		return ret.result1
@@ -786,6 +792,12 @@ func (fake *FakeDeployment) PreRestoreLockCallCount() int {
 	fake.preRestoreLockMutex.RLock()
 	defer fake.preRestoreLockMutex.RUnlock()
 	return len(fake.preRestoreLockArgsForCall)
+}
+
+func (fake *FakeDeployment) PreRestoreLockArgsForCall(i int) orchestrator.LockOrderer {
+	fake.preRestoreLockMutex.RLock()
+	defer fake.preRestoreLockMutex.RUnlock()
+	return fake.preRestoreLockArgsForCall[i].orderer
 }
 
 func (fake *FakeDeployment) PreRestoreLockReturns(result1 error) {
@@ -807,14 +819,16 @@ func (fake *FakeDeployment) PreRestoreLockReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) PostRestoreUnlock() error {
+func (fake *FakeDeployment) PostRestoreUnlock(orderer orchestrator.LockOrderer) error {
 	fake.postRestoreUnlockMutex.Lock()
 	ret, specificReturn := fake.postRestoreUnlockReturnsOnCall[len(fake.postRestoreUnlockArgsForCall)]
-	fake.postRestoreUnlockArgsForCall = append(fake.postRestoreUnlockArgsForCall, struct{}{})
-	fake.recordInvocation("PostRestoreUnlock", []interface{}{})
+	fake.postRestoreUnlockArgsForCall = append(fake.postRestoreUnlockArgsForCall, struct {
+		orderer orchestrator.LockOrderer
+	}{orderer})
+	fake.recordInvocation("PostRestoreUnlock", []interface{}{orderer})
 	fake.postRestoreUnlockMutex.Unlock()
 	if fake.PostRestoreUnlockStub != nil {
-		return fake.PostRestoreUnlockStub()
+		return fake.PostRestoreUnlockStub(orderer)
 	}
 	if specificReturn {
 		return ret.result1
@@ -826,6 +840,12 @@ func (fake *FakeDeployment) PostRestoreUnlockCallCount() int {
 	fake.postRestoreUnlockMutex.RLock()
 	defer fake.postRestoreUnlockMutex.RUnlock()
 	return len(fake.postRestoreUnlockArgsForCall)
+}
+
+func (fake *FakeDeployment) PostRestoreUnlockArgsForCall(i int) orchestrator.LockOrderer {
+	fake.postRestoreUnlockMutex.RLock()
+	defer fake.postRestoreUnlockMutex.RUnlock()
+	return fake.postRestoreUnlockArgsForCall[i].orderer
 }
 
 func (fake *FakeDeployment) PostRestoreUnlockReturns(result1 error) {

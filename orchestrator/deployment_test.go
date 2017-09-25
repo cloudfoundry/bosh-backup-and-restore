@@ -603,20 +603,44 @@ var _ = Describe("Deployment", func() {
 
 	Context("PreRestoreLock", func() {
 		var lockError error
+		var lockOrderer *fakes.FakeLockOrderer
+
+		var orderedListOfLockedJobs []string
+		var preRestoreLockOrderedStub = func(jobName string) func() error {
+			return func() error {
+				orderedListOfLockedJobs = append(orderedListOfLockedJobs, jobName)
+				return nil
+			}
+		}
 
 		BeforeEach(func() {
+			lockOrderer = new(fakes.FakeLockOrderer)
+
+			orderedListOfLockedJobs = []string{}
+
+			job1a.PreRestoreLockStub = preRestoreLockOrderedStub("job1a")
+			job1b.PreRestoreLockStub = preRestoreLockOrderedStub("job1b")
+			job2a.PreRestoreLockStub = preRestoreLockOrderedStub("job2a")
+			job3a.PreRestoreLockStub = preRestoreLockOrderedStub("job3a")
+
 			instances = []orchestrator.Instance{instance1, instance2, instance3}
+
+			lockOrderer.OrderReturns([]orchestrator.Job{job2a, job3a, job1a, job1b}, nil)
 		})
 
 		JustBeforeEach(func() {
-			lockError = deployment.PreRestoreLock()
+			lockError = deployment.PreRestoreLock(lockOrderer)
 		})
 
-		It("calls PreRestoreLock on all jobs", func() {
+		It("locks the jobs in the order specified by the orderer", func() {
+			Expect(lockOrderer.OrderArgsForCall(0)).To(ConsistOf(job1a, job1b, job2a, job3a))
+
 			Expect(job1a.PreRestoreLockCallCount()).To(Equal(1))
 			Expect(job1b.PreRestoreLockCallCount()).To(Equal(1))
 			Expect(job2a.PreRestoreLockCallCount()).To(Equal(1))
 			Expect(job3a.PreRestoreLockCallCount()).To(Equal(1))
+
+			Expect(orderedListOfLockedJobs).To(Equal([]string{"job2a", "job3a", "job1a", "job1b"}))
 		})
 
 		Context("when some jobs fail to PreRestoreLock", func() {
@@ -633,41 +657,82 @@ var _ = Describe("Deployment", func() {
 				})
 			})
 		})
+
+		Context("if the lockOrderer returns an error", func() {
+			BeforeEach(func() {
+				lockOrderer.OrderReturns(nil, fmt.Errorf("test lock orderer error"))
+			})
+
+			It("fails", func() {
+				Expect(lockError).To(MatchError(ContainSubstring("test lock orderer error")))
+			})
+		})
 	})
 
 	Context("PostRestoreUnlock", func() {
 		var unlockError error
+		var lockOrderer *fakes.FakeLockOrderer
+
+		var orderedListOfLockedJobs []string
+		var postRestoreUnlockOrderedStub = func(jobName string) func() error {
+			return func() error {
+				orderedListOfLockedJobs = append(orderedListOfLockedJobs, jobName)
+				return nil
+			}
+		}
 
 		BeforeEach(func() {
+			lockOrderer = new(fakes.FakeLockOrderer)
+
+			orderedListOfLockedJobs = []string{}
+
+			job1a.PostRestoreUnlockStub = postRestoreUnlockOrderedStub("job1a")
+			job1b.PostRestoreUnlockStub = postRestoreUnlockOrderedStub("job1b")
+			job2a.PostRestoreUnlockStub = postRestoreUnlockOrderedStub("job2a")
+			job3a.PostRestoreUnlockStub = postRestoreUnlockOrderedStub("job3a")
+
 			instances = []orchestrator.Instance{instance1, instance2, instance3}
+
+			lockOrderer.OrderReturns([]orchestrator.Job{job2a, job3a, job1a, job1b}, nil)
 		})
 
 		JustBeforeEach(func() {
-			unlockError = deployment.PostRestoreUnlock()
+			unlockError = deployment.PostRestoreUnlock(lockOrderer)
 		})
 
-		It("Calls PostRestoreUnlock on all instances", func() {
-			Expect(instance1.PostRestoreUnlockCallCount()).To(Equal(1))
-			Expect(instance2.PostRestoreUnlockCallCount()).To(Equal(1))
-			Expect(instance3.PostRestoreUnlockCallCount()).To(Equal(1))
+		It("unlocks the jobs in the reverse order to that specified by the orderer", func() {
+			Expect(lockOrderer.OrderArgsForCall(0)).To(ConsistOf(job1a, job1b, job2a, job3a))
+
+			Expect(job1a.PostRestoreUnlockCallCount()).To(Equal(1))
+			Expect(job1b.PostRestoreUnlockCallCount()).To(Equal(1))
+			Expect(job2a.PostRestoreUnlockCallCount()).To(Equal(1))
+			Expect(job3a.PostRestoreUnlockCallCount()).To(Equal(1))
+
+			Expect(orderedListOfLockedJobs).To(Equal([]string{"job1b", "job1a", "job3a", "job2a"}))
 		})
 
-		Context("when some instances fail to PostRestoreUnlock", func() {
+		Context("when some jobs fail to PostRestoreUnlock", func() {
 			BeforeEach(func() {
-				instance1.PostRestoreUnlockReturns(errors.New("instance 1 failed to unlock"))
-				instance2.PostRestoreUnlockReturns(errors.New("instance 2 failed to unlock"))
+				job1a.PostRestoreUnlockReturns(errors.New("job 1a failed to unlock"))
+				job2a.PostRestoreUnlockReturns(errors.New("job 2a failed to unlock"))
 			})
 
-			It("Continues attempting unlock on the rest of the deployment", func() {
-				By("attempting unlock on subsequent instances", func() {
-					Expect(instance3.PostRestoreUnlockCallCount()).To(Equal(1))
-				})
-
-				By("returning an amalgamated error", func() {
+			It("fails", func() {
+				By("returning a helpful error", func() {
 					Expect(unlockError).To(HaveOccurred())
-					Expect(unlockError.Error()).To(ContainSubstring("instance 1 failed to unlock"))
-					Expect(unlockError.Error()).To(ContainSubstring("instance 2 failed to unlock"))
+					Expect(unlockError.Error()).To(ContainSubstring("job 1a failed to unlock"))
+					Expect(unlockError.Error()).To(ContainSubstring("job 2a failed to unlock"))
 				})
+			})
+		})
+
+		Context("if the lockOrderer returns an error", func() {
+			BeforeEach(func() {
+				lockOrderer.OrderReturns(nil, fmt.Errorf("test lock orderer error"))
+			})
+
+			It("fails", func() {
+				Expect(unlockError).To(MatchError(ContainSubstring("test lock orderer error")))
 			})
 		})
 	})

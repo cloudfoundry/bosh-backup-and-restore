@@ -5,10 +5,13 @@ import (
 )
 
 type RestorableStep struct {
+	lockOrderer LockOrderer
 }
 
-func NewRestorableStep() Step {
-	return &RestorableStep{}
+func NewRestorableStep(lockOrderer LockOrderer) Step {
+	return &RestorableStep{
+		lockOrderer: lockOrderer,
+	}
 }
 
 func (s *RestorableStep) Run(session *Session) error {
@@ -26,5 +29,10 @@ func (s *RestorableStep) Run(session *Session) error {
 	if err != nil {
 		return errors.Wrap(err, "Check artifact dir failed")
 	}
+
+	if err := session.CurrentDeployment().ValidateLockingDependencies(s.lockOrderer); err != nil {
+		return err
+	}
+
 	return nil
 }

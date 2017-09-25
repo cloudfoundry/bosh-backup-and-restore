@@ -566,7 +566,7 @@ func makeDeploymentRestoreCleaner(c *cli.Context) (*orchestrator.RestoreCleaner,
 		return nil, redCliError(err)
 	}
 
-	return orchestrator.NewRestoreCleaner(logger, deploymentManager), nil
+	return orchestrator.NewRestoreCleaner(logger, deploymentManager, orderer.NewKahnRestoreLockOrderer()), nil
 }
 
 func makeDirectorBackupCleaner(c *cli.Context) *orchestrator.BackupCleaner {
@@ -592,7 +592,7 @@ func makeDirectorRestoreCleaner(c *cli.Context) *orchestrator.RestoreCleaner {
 		ssh.NewConnection,
 	)
 
-	return orchestrator.NewRestoreCleaner(logger, deploymentManager)
+	return orchestrator.NewRestoreCleaner(logger, deploymentManager, orderer.NewKahnRestoreLockOrderer())
 }
 
 func makeDeploymentBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
@@ -672,7 +672,7 @@ func makeDeploymentRestorer(c *cli.Context) (*orchestrator.Restorer, error) {
 		return nil, redCliError(err)
 	}
 
-	return orchestrator.NewRestorer(backup.BackupDirectoryManager{}, logger, deploymentManager), nil
+	return orchestrator.NewRestorer(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewKahnRestoreLockOrderer()), nil
 }
 
 func makeDirectorRestorer(c *cli.Context) *orchestrator.Restorer {
@@ -684,7 +684,7 @@ func makeDirectorRestorer(c *cli.Context) *orchestrator.Restorer {
 		instance.NewJobFinder(logger),
 		ssh.NewConnection,
 	)
-	return orchestrator.NewRestorer(backup.BackupDirectoryManager{}, logger, deploymentManager)
+	return orchestrator.NewRestorer(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewDirectorLockOrderer())
 }
 
 func newDeploymentManager(targetUrl, username, password, caCert string, logger boshlog.Logger, downloadManifest bool) (orchestrator.DeploymentManager, error) {

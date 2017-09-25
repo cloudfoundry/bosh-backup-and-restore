@@ -24,6 +24,7 @@ var _ = Describe("restorer", func() {
 			deploymentManager *fakes.FakeDeploymentManager
 			deployment        *fakes.FakeDeployment
 			artifactPath      string
+			lockOrderer       *fakes.FakeLockOrderer
 		)
 
 		BeforeEach(func() {
@@ -33,6 +34,7 @@ var _ = Describe("restorer", func() {
 			artifact = new(fakes.FakeBackup)
 			deploymentManager = new(fakes.FakeDeploymentManager)
 			deployment = new(fakes.FakeDeployment)
+			lockOrderer = new(fakes.FakeLockOrderer)
 
 			artifactManager.OpenReturns(artifact, nil)
 			deploymentManager.FindReturns(deployment, nil)
@@ -41,7 +43,7 @@ var _ = Describe("restorer", func() {
 			artifact.DeploymentMatchesReturns(true, nil)
 			artifact.ValidReturns(true, nil)
 
-			b = orchestrator.NewRestorer(artifactManager, logger, deploymentManager)
+			b = orchestrator.NewRestorer(artifactManager, logger, deploymentManager, lockOrderer)
 
 			deploymentName = "deployment-to-restore"
 			artifactPath = "/some/path"

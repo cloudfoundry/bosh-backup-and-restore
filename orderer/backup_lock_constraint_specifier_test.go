@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("PreBackupLockContraintSpecifier", func() {
+var _ = Describe("PreBackupLockConstraintSpecifier", func() {
 	It("returns the job specifier for pre backup lock", func() {
 		backupLockBeforeSpecifier := []orchestrator.JobSpecifier{{Name: "name1", Release: "release1"}}
 

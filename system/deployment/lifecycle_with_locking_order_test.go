@@ -70,7 +70,7 @@ var _ = Describe("backup with specified locking order", func() {
 		})
 
 		By("running the restore command")
-		Eventually(JumpboxInstance.RunCommandAs("vcap",
+		restoreSession := JumpboxInstance.RunCommandAs("vcap",
 			fmt.Sprintf(`cd %s;
 			BOSH_CLIENT_SECRET=%s ./bbr \
 			deployment \
@@ -87,7 +87,16 @@ var _ = Describe("backup with specified locking order", func() {
 				MustHaveEnv("BOSH_URL"),
 				RedisWithLockingOrderDeployment.Name,
 				BackupDirWithTimestamp(RedisWithLockingOrderDeployment.Name)),
-		)).Should(gexec.Exit(0))
+		)
+		Eventually(restoreSession).Should(gexec.Exit(0))
+
+		By("locking the instances in the correct order", func() {
+			Eventually(restoreSession.Out).Should(gbytes.Say("Locking capi-consumer-[12] on capi-consumer-[12]"))
+			Eventually(restoreSession.Out).Should(gbytes.Say("Locking capi-consumer-[12] on capi-consumer-[12]"))
+			Eventually(restoreSession.Out).Should(gbytes.Say("Locking capi on capi"))
+			Eventually(restoreSession.Out).Should(gbytes.Say("Locking redis-server on capi-redis"))
+			Eventually(restoreSession.Out).Should(gbytes.Say("Locking redis-server on redis"))
+		})
 
 		By("cleaning up artifacts from the remote restored instances")
 		runOnInstances(allInstances, func(instName, instIndex string) {
@@ -97,6 +106,14 @@ var _ = Describe("backup with specified locking order", func() {
 			Eventually(session).Should(gexec.Exit())
 			Expect(session.ExitCode()).To(Equal(1))
 			Expect(session.Out).To(gbytes.Say("No such file or directory"))
+		})
+
+		By("unlocking the instances in the correct order", func() {
+			Eventually(restoreSession.Out).Should(gbytes.Say("Unlocking redis-server on redis"))
+			Eventually(restoreSession.Out).Should(gbytes.Say("Unlocking redis-server on capi-redis"))
+			Eventually(restoreSession.Out).Should(gbytes.Say("Unlocking capi on capi"))
+			Eventually(restoreSession.Out).Should(gbytes.Say("Unlocking capi-consumer-[12] on capi-consumer-[12]"))
+			Eventually(restoreSession.Out).Should(gbytes.Say("Unlocking capi-consumer-[12] on capi-consumer-[12]"))
 		})
 
 		By("ensuring data is restored")

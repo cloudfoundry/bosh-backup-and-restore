@@ -26,8 +26,8 @@ type Deployment interface {
 	CleanupPrevious() error
 	Instances() []Instance
 	CustomArtifactNamesMatch() error
-	PreRestoreLock() error
-	PostRestoreUnlock() error
+	PreRestoreLock(orderer LockOrderer) error
+	PostRestoreUnlock(orderer LockOrderer) error
 	ValidateLockingDependencies(orderer LockOrderer) error
 }
 
@@ -136,13 +136,18 @@ func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer) error {
 	return ConvertErrors(postBackupUnlockErrors)
 }
 
-func (bd *deployment) PreRestoreLock() error {
+func (bd *deployment) PreRestoreLock(lockOrderer LockOrderer) error {
 	bd.Logger.Info("bbr", "Running pre-restore-lock scripts...")
 
 	jobs := bd.instances.Jobs()
 
+	orderedJobs, err := lockOrderer.Order(jobs)
+	if err != nil {
+		return err
+	}
+
 	var preRestoreLockErrors []error
-	for _, job := range jobs {
+	for _, job := range orderedJobs {
 		if err := job.PreRestoreLock(); err != nil {
 			preRestoreLockErrors = append(preRestoreLockErrors, err)
 		}
@@ -157,9 +162,26 @@ func (bd *deployment) Restore() error {
 	return bd.instances.AllRestoreable().Restore()
 }
 
-func (bd *deployment) PostRestoreUnlock() error {
+func (bd *deployment) PostRestoreUnlock(lockOrderer LockOrderer) error {
 	bd.Logger.Info("bbr", "Running post-restore-unlock scripts...")
-	return bd.instances.PostRestoreUnlock()
+
+	jobs := bd.instances.Jobs()
+
+	orderedJobs, err := lockOrderer.Order(jobs)
+	if err != nil {
+		return err
+	}
+	reversedJobs := Jobs(orderedJobs).Reverse()
+
+	var postRestoreUnlockErrors []error
+	for _, job := range reversedJobs {
+		if err := job.PostRestoreUnlock(); err != nil {
+			postRestoreUnlockErrors = append(postRestoreUnlockErrors, err)
+		}
+	}
+
+	bd.Logger.Info("bbr", "Done.")
+	return ConvertErrors(postRestoreUnlockErrors)
 }
 
 func (bd *deployment) Cleanup() error {

@@ -20,6 +20,10 @@ func NewKahnBackupLockOrderer() KahnLockOrderer {
 	return newKahnLockOrderer(NewBackupOrderConstraintSpecifier())
 }
 
+func NewKahnRestoreLockOrderer() KahnLockOrderer {
+	return newKahnLockOrderer(NewRestoreOrderConstraintSpecifier())
+}
+
 type orderConstraintSpecifier interface {
 	Before(job orchestrator.Job) []orchestrator.JobSpecifier
 }

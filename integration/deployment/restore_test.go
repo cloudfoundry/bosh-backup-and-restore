@@ -17,6 +17,8 @@ import (
 	"io"
 	"time"
 
+	"strings"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -34,10 +36,14 @@ instance_groups:
   jobs:
   - name: redis
     release: redis
+  - name: redis-writer
+    release: redis
 - name: redis-server
   instances: 1
   jobs:
   - name: redis
+    release: redis
+  - name: redis-writer
     release: redis
 - name: redis-backup-node
   instances: 1
@@ -554,9 +560,6 @@ set -u
 cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server
 touch /tmp/restore-script-was-run`)
 
-			instance2.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-restore-unlock", `#!/usr/bin/env sh
-touch /tmp/post-restore-unlock-script-was-run`)
-
 			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
 instances:
@@ -615,11 +618,115 @@ instances:
 				Expect(instance2.FileExists("/var/vcap/store/redis-server/redis-backup")).To(BeTrue())
 				Expect(instance2.FileExists("/tmp/restore-script-was-run")).To(BeTrue())
 			})
-			By("running the post restore unlock script on the remote", func() {
-				Expect(instance2.FileExists("/tmp/post-restore-unlock-script-was-run")).To(BeTrue())
+		})
+
+		Context("with ordering on pre-restore-lock (where the default order would be wrong)", func() {
+			BeforeEach(func() {
+				instance1.CreateScript(
+					"/var/vcap/jobs/redis/bin/bbr/pre-restore-lock", `#!/usr/bin/env sh
+touch /tmp/redis-pre-restore-lock-called
+exit 0`)
+				instance2.CreateScript(
+					"/var/vcap/jobs/redis-writer/bin/bbr/pre-restore-lock", `#!/usr/bin/env sh
+touch /tmp/redis-writer-pre-restore-lock-called
+exit 0`)
+				instance2.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata",
+					`#!/usr/bin/env sh
+echo "---
+restore_should_be_locked_before:
+- job_name: redis
+  release: redis
+"`)
+			})
+
+			It("locks in the right order", func() {
+				redisLockTime := instance1.GetCreatedTime("/tmp/redis-pre-restore-lock-called")
+				redisWriterLockTime := instance2.GetCreatedTime("/tmp/redis-writer-pre-restore-lock-called")
+
+				Expect(redisWriterLockTime < redisLockTime).To(BeTrue(), fmt.Sprintf(
+					"Writer locked at %s, which is after the server locked (%s)",
+					strings.TrimSuffix(redisWriterLockTime, "\n"),
+					strings.TrimSuffix(redisLockTime, "\n")))
+
 			})
 		})
 
+		Context("with ordering on pre-restore-lock (where the default ordering would unlock in the wrong order)",
+			func() {
+				BeforeEach(func() {
+					instance2.CreateScript(
+						"/var/vcap/jobs/redis/bin/bbr/pre-restore-lock", `#!/usr/bin/env sh
+touch /tmp/redis-pre-restore-lock-called
+exit 0`)
+					instance1.CreateScript(
+						"/var/vcap/jobs/redis-writer/bin/bbr/pre-restore-lock", `#!/usr/bin/env sh
+touch /tmp/redis-writer-pre-restore-lock-called
+exit 0`)
+					instance2.CreateScript(
+						"/var/vcap/jobs/redis/bin/bbr/post-restore-unlock", `#!/usr/bin/env sh
+touch /tmp/redis-post-restore-unlock-called
+exit 0`)
+					instance1.CreateScript(
+						"/var/vcap/jobs/redis-writer/bin/bbr/post-restore-unlock", `#!/usr/bin/env sh
+touch /tmp/redis-writer-post-restore-unlock-called
+exit 0`)
+					instance1.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata",
+						`#!/usr/bin/env sh
+echo "---
+restore_should_be_locked_before:
+- job_name: redis
+  release: redis
+"`)
+				})
+
+				It("unlocks in the right order", func() {
+					By("unlocking the redis job before unlocking the redis-writer job")
+					redisUnlockTime := instance2.GetCreatedTime("/tmp/redis-post-restore-unlock-called")
+					redisWriterUnlockTime := instance1.GetCreatedTime("/tmp/redis-writer-post-restore-unlock-called")
+
+					Expect(redisUnlockTime < redisWriterUnlockTime).To(BeTrue(), fmt.Sprintf(
+						"Writer unlocked at %s, which is before the server unlocked (%s)",
+						strings.TrimSuffix(redisWriterUnlockTime, "\n"),
+						strings.TrimSuffix(redisUnlockTime, "\n")))
+				})
+			})
+
+		Context("but the pre-restore-lock ordering is cyclic", func() {
+			BeforeEach(func() {
+				instance1.CreateScript(
+					"/var/vcap/jobs/redis/bin/bbr/pre-restore-lock", `#!/usr/bin/env sh
+touch /tmp/redis-pre-restore-lock-called
+exit 0`)
+				instance1.CreateScript(
+					"/var/vcap/jobs/redis-writer/bin/bbr/pre-restore-lock", `#!/usr/bin/env sh
+touch /tmp/redis-writer-pre-restore-lock-called
+exit 0`)
+				instance1.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata",
+					`#!/usr/bin/env sh
+echo "---
+restore_should_be_locked_before:
+- job_name: redis
+  release: redis
+"`)
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata",
+					`#!/usr/bin/env sh
+echo "---
+restore_should_be_locked_before:
+- job_name: redis-writer
+  release: redis
+"`)
+			})
+
+			It("Should fail", func() {
+				By("exiting with an error", func() {
+					Expect(session).To(gexec.Exit(1))
+				})
+
+				By("printing a helpful error message", func() {
+					Expect(string(session.Err.Contents())).To(ContainSubstring("job locking dependency graph is cyclic"))
+				})
+			})
+		})
 	})
 
 	Context("when deployment has named artifacts, with a default artifact", func() {

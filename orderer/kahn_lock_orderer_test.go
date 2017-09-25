@@ -140,7 +140,7 @@ var _ = Describe("KahnLockOrderer", func() {
 			}
 		}),
 
-		Entry("multiple jobs, multiple instances of the same dependee", func() lockingTestCase {
+		Entry("multiple jobs, multiple instances of the same dependent", func() lockingTestCase {
 			var a = fakeJob("a", "releasea")
 			var b = fakeJob("b", "releaseb")
 			var c1 = fakeJobOnInstance("c", "releasec", "instance_group/0")
@@ -211,6 +211,18 @@ var _ = Describe("KahnLockOrderer", func() {
 			}
 		}),
 	)
+
+	Describe("NewKahnBackupLockOrderer", func() {
+		It("creates a kahn backup lock order with the backup lock constraint", func() {
+			Expect(NewKahnBackupLockOrderer()).To(Equal(newKahnLockOrderer(NewBackupOrderConstraintSpecifier())))
+		})
+	})
+
+	Describe("NewKahnRestoreLockOrderer", func() {
+		It("creates a kahn restore lock order with the restore lock constraint", func() {
+			Expect(NewKahnRestoreLockOrderer()).To(Equal(newKahnLockOrderer(NewRestoreOrderConstraintSpecifier())))
+		})
+	})
 })
 
 func NewFakeOrderConstraintSpecifier() *FakeOrderConstraintSpecifier {
