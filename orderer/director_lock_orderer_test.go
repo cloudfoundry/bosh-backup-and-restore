@@ -15,9 +15,9 @@ var _ = Describe("DirectorLockOrderer", func() {
 	Context("when no job has any locking dependency", func() {
 		BeforeEach(func() {
 			jobs = []Job{
-				fakeJobWithDependencies("first", []JobSpecifier{}),
-				fakeJobWithDependencies("second", []JobSpecifier{}),
-				fakeJobWithDependencies("third", []JobSpecifier{}),
+				fakeJobWithDependencies("first", []JobSpecifier{}, []JobSpecifier{}),
+				fakeJobWithDependencies("second", []JobSpecifier{}, []JobSpecifier{}),
+				fakeJobWithDependencies("third", []JobSpecifier{}, []JobSpecifier{}),
 			}
 		})
 
@@ -29,12 +29,30 @@ var _ = Describe("DirectorLockOrderer", func() {
 		})
 	})
 
-	Context("when a job has some locking dependencies", func() {
+	Context("when a job has some backup locking backup dependencies", func() {
 		BeforeEach(func() {
 			jobs = []Job{
-				fakeJobWithDependencies("first", []JobSpecifier{}),
-				fakeJobWithDependencies("second", []JobSpecifier{{Name: "first"}}),
-				fakeJobWithDependencies("third", []JobSpecifier{}),
+				fakeJobWithDependencies("first", []JobSpecifier{}, []JobSpecifier{}),
+				fakeJobWithDependencies("second", []JobSpecifier{{Name: "first"}}, []JobSpecifier{}),
+				fakeJobWithDependencies("third", []JobSpecifier{}, []JobSpecifier{}),
+			}
+		})
+
+		It("returns an error", func() {
+			orderedJobs, err := directorLockOrderer.Order(jobs)
+
+			Expect(orderedJobs).To(BeNil())
+			Expect(err).To(HaveOccurred())
+			Expect(err).To(MatchError(ContainSubstring("director job 'second' specifies locking dependencies, which are not allowed for director jobs")))
+		})
+	})
+
+	Context("when a job has some restore locking dependencies", func() {
+		BeforeEach(func() {
+			jobs = []Job{
+				fakeJobWithDependencies("first", []JobSpecifier{}, []JobSpecifier{}),
+				fakeJobWithDependencies("second", []JobSpecifier{}, []JobSpecifier{{Name: "first"}}),
+				fakeJobWithDependencies("third", []JobSpecifier{}, []JobSpecifier{}),
 			}
 		})
 
@@ -48,9 +66,10 @@ var _ = Describe("DirectorLockOrderer", func() {
 	})
 })
 
-func fakeJobWithDependencies(name string, shouldBeLockedBefore []JobSpecifier) *fakes.FakeJob {
+func fakeJobWithDependencies(name string, backupShouldBeLockedBefore, restoreShouldBeLockedBefore []JobSpecifier) *fakes.FakeJob {
 	job := new(fakes.FakeJob)
 	job.NameReturns(name)
-	job.ShouldBeLockedBeforeReturns(shouldBeLockedBefore)
+	job.BackupShouldBeLockedBeforeReturns(backupShouldBeLockedBefore)
+	job.RestoreShouldBeLockedBeforeReturns(restoreShouldBeLockedBefore)
 	return job
 }

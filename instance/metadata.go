@@ -17,20 +17,27 @@ type Metadata struct {
 	RestoreShouldBeLockedBefore []LockBefore `yaml:"restore_should_be_locked_before"`
 }
 
-func NewJobMetadata(data []byte) (*Metadata, error) {
+func ParseJobMetadata(data []byte) (*Metadata, error) {
 	metadata := &Metadata{}
 	err := yaml.Unmarshal(data, metadata)
-
-	for _, lockBefore := range metadata.BackupShouldBeLockedBefore {
-		if lockBefore.JobName == "" || lockBefore.Release == "" {
-			return nil, errors.New(
-				"both job name and release should be specified for should be locked before")
-		}
-	}
-
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal job metadata")
 	}
 
+	for _, lockBefore := range append(metadata.BackupShouldBeLockedBefore, metadata.RestoreShouldBeLockedBefore...) {
+		err = lockBefore.Validate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return metadata, nil
+}
+
+func (l LockBefore) Validate() error {
+	if l.JobName == "" || l.Release == "" {
+		return errors.New(
+			"both job name and release should be specified for should be locked before")
+	}
+	return nil
 }

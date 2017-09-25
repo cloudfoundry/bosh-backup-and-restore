@@ -548,7 +548,7 @@ func makeDeploymentBackupCleaner(c *cli.Context) (*orchestrator.BackupCleaner, e
 		return nil, redCliError(err)
 	}
 
-	return orchestrator.NewBackupCleaner(logger, deploymentManager, orderer.NewKahnLockOrderer()), nil
+	return orchestrator.NewBackupCleaner(logger, deploymentManager, orderer.NewKahnBackupLockOrderer()), nil
 }
 
 func makeDeploymentRestoreCleaner(c *cli.Context) (*orchestrator.RestoreCleaner, error) {
@@ -610,7 +610,7 @@ func makeDeploymentBackuper(c *cli.Context) (*orchestrator.Backuper, error) {
 		return nil, redCliError(err)
 	}
 
-	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewKahnLockOrderer(), time.Now), nil
+	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewKahnBackupLockOrderer(), time.Now), nil
 }
 
 func makeDeploymentBackupChecker(c *cli.Context) (*orchestrator.BackupChecker, error) {
@@ -628,7 +628,7 @@ func makeDeploymentBackupChecker(c *cli.Context) (*orchestrator.BackupChecker, e
 		return nil, redCliError(err)
 	}
 
-	return orchestrator.NewBackupChecker(logger, deploymentManager, orderer.NewKahnLockOrderer()), nil
+	return orchestrator.NewBackupChecker(logger, deploymentManager, orderer.NewKahnBackupLockOrderer()), nil
 }
 
 func makeDirectorBackuper(c *cli.Context) *orchestrator.Backuper {

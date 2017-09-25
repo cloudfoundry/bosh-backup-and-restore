@@ -50,7 +50,8 @@ type Job interface {
 	InstanceIdentifier() string
 	BackupArtifactDirectory() string
 	RestoreArtifactDirectory() string
-	ShouldBeLockedBefore() []JobSpecifier
+	BackupShouldBeLockedBefore() []JobSpecifier
+	RestoreShouldBeLockedBefore() []JobSpecifier
 }
 
 type JobSpecifier struct {

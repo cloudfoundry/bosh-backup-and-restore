@@ -23,7 +23,7 @@ var _ = Describe("Metadata", func() {
 backup_name: foo
 restore_name: bar`)
 
-		m, err := NewJobMetadata(rawMetadata)
+		m, err := ParseJobMetadata(rawMetadata)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(m.BackupName).To(Equal("foo"))
@@ -33,7 +33,7 @@ restore_name: bar`)
 	It("fails when provided invalid YAML", func() {
 		rawMetadata := []byte(`arrrr`)
 
-		_, err := NewJobMetadata(rawMetadata)
+		_, err := ParseJobMetadata(rawMetadata)
 
 		Expect(err).To(MatchError(ContainSubstring("failed to unmarshal job metadata")))
 	})
@@ -49,7 +49,7 @@ backup_should_be_locked_before:
   release: release2
 `)
 
-		m, err := NewJobMetadata(rawMetadata)
+		m, err := ParseJobMetadata(rawMetadata)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(m.BackupName).To(Equal("foo"))
@@ -69,8 +69,44 @@ backup_should_be_locked_before:
 - job_name: job2
 `)
 
-		_, err := NewJobMetadata(rawMetadata)
+		_, err := ParseJobMetadata(rawMetadata)
 
-		Expect(err).To(HaveOccurred())
+		Expect(err).To(MatchError(ContainSubstring("both job name and release should be specified for should be locked before")))
+	})
+
+	It("has an optional `restore_should_be_locked_before` field", func() {
+		rawMetadata := []byte(`---
+backup_name: foo
+restore_name: bar
+restore_should_be_locked_before:
+- job_name: job1
+  release: release1
+- job_name: job2
+  release: release2
+`)
+
+		m, err := ParseJobMetadata(rawMetadata)
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(m.BackupName).To(Equal("foo"))
+		Expect(m.RestoreName).To(Equal("bar"))
+		Expect(m.RestoreShouldBeLockedBefore).To(ConsistOf(
+			LockBefore{JobName: "job1", Release: "release1"}, LockBefore{JobName: "job2", Release: "release2"},
+		))
+	})
+
+	It("errors if either the job name or release are missing", func() {
+		rawMetadata := []byte(`---
+backup_name: foo
+restore_name: bar
+restore_should_be_locked_before:
+- job_name: job1
+  release: release1
+- job_name: job2
+`)
+
+		_, err := ParseJobMetadata(rawMetadata)
+
+		Expect(err).To(MatchError(ContainSubstring("both job name and release should be specified for should be locked before")))
 	})
 })

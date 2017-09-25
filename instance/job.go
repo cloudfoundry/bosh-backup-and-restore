@@ -248,10 +248,22 @@ func (j Job) handleErrs(jobName, label string, err error, exitCode int, stdout, 
 	return orchestrator.ConvertErrors(foundErrors)
 }
 
-func (j Job) ShouldBeLockedBefore() []orchestrator.JobSpecifier {
+func (j Job) BackupShouldBeLockedBefore() []orchestrator.JobSpecifier {
 	jobSpecifiers := []orchestrator.JobSpecifier{}
 
 	for _, lockBefore := range j.metadata.BackupShouldBeLockedBefore {
+		jobSpecifiers = append(jobSpecifiers, orchestrator.JobSpecifier{
+			Name: lockBefore.JobName, Release: lockBefore.Release,
+		})
+	}
+
+	return jobSpecifiers
+}
+
+func (j Job) RestoreShouldBeLockedBefore() []orchestrator.JobSpecifier {
+	jobSpecifiers := []orchestrator.JobSpecifier{}
+
+	for _, lockBefore := range j.metadata.RestoreShouldBeLockedBefore {
 		jobSpecifiers = append(jobSpecifiers, orchestrator.JobSpecifier{
 			Name: lockBefore.JobName, Release: lockBefore.Release,
 		})

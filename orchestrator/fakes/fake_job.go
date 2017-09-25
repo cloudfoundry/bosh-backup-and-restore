@@ -161,13 +161,22 @@ type FakeJob struct {
 	restoreArtifactDirectoryReturnsOnCall map[int]struct {
 		result1 string
 	}
-	ShouldBeLockedBeforeStub        func() []orchestrator.JobSpecifier
-	shouldBeLockedBeforeMutex       sync.RWMutex
-	shouldBeLockedBeforeArgsForCall []struct{}
-	shouldBeLockedBeforeReturns     struct {
+	BackupShouldBeLockedBeforeStub        func() []orchestrator.JobSpecifier
+	backupShouldBeLockedBeforeMutex       sync.RWMutex
+	backupShouldBeLockedBeforeArgsForCall []struct{}
+	backupShouldBeLockedBeforeReturns     struct {
 		result1 []orchestrator.JobSpecifier
 	}
-	shouldBeLockedBeforeReturnsOnCall map[int]struct {
+	backupShouldBeLockedBeforeReturnsOnCall map[int]struct {
+		result1 []orchestrator.JobSpecifier
+	}
+	RestoreShouldBeLockedBeforeStub        func() []orchestrator.JobSpecifier
+	restoreShouldBeLockedBeforeMutex       sync.RWMutex
+	restoreShouldBeLockedBeforeArgsForCall []struct{}
+	restoreShouldBeLockedBeforeReturns     struct {
+		result1 []orchestrator.JobSpecifier
+	}
+	restoreShouldBeLockedBeforeReturnsOnCall map[int]struct {
 		result1 []orchestrator.JobSpecifier
 	}
 	invocations      map[string][][]interface{}
@@ -854,42 +863,82 @@ func (fake *FakeJob) RestoreArtifactDirectoryReturnsOnCall(i int, result1 string
 	}{result1}
 }
 
-func (fake *FakeJob) ShouldBeLockedBefore() []orchestrator.JobSpecifier {
-	fake.shouldBeLockedBeforeMutex.Lock()
-	ret, specificReturn := fake.shouldBeLockedBeforeReturnsOnCall[len(fake.shouldBeLockedBeforeArgsForCall)]
-	fake.shouldBeLockedBeforeArgsForCall = append(fake.shouldBeLockedBeforeArgsForCall, struct{}{})
-	fake.recordInvocation("ShouldBeLockedBefore", []interface{}{})
-	fake.shouldBeLockedBeforeMutex.Unlock()
-	if fake.ShouldBeLockedBeforeStub != nil {
-		return fake.ShouldBeLockedBeforeStub()
+func (fake *FakeJob) BackupShouldBeLockedBefore() []orchestrator.JobSpecifier {
+	fake.backupShouldBeLockedBeforeMutex.Lock()
+	ret, specificReturn := fake.backupShouldBeLockedBeforeReturnsOnCall[len(fake.backupShouldBeLockedBeforeArgsForCall)]
+	fake.backupShouldBeLockedBeforeArgsForCall = append(fake.backupShouldBeLockedBeforeArgsForCall, struct{}{})
+	fake.recordInvocation("BackupShouldBeLockedBefore", []interface{}{})
+	fake.backupShouldBeLockedBeforeMutex.Unlock()
+	if fake.BackupShouldBeLockedBeforeStub != nil {
+		return fake.BackupShouldBeLockedBeforeStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.shouldBeLockedBeforeReturns.result1
+	return fake.backupShouldBeLockedBeforeReturns.result1
 }
 
-func (fake *FakeJob) ShouldBeLockedBeforeCallCount() int {
-	fake.shouldBeLockedBeforeMutex.RLock()
-	defer fake.shouldBeLockedBeforeMutex.RUnlock()
-	return len(fake.shouldBeLockedBeforeArgsForCall)
+func (fake *FakeJob) BackupShouldBeLockedBeforeCallCount() int {
+	fake.backupShouldBeLockedBeforeMutex.RLock()
+	defer fake.backupShouldBeLockedBeforeMutex.RUnlock()
+	return len(fake.backupShouldBeLockedBeforeArgsForCall)
 }
 
-func (fake *FakeJob) ShouldBeLockedBeforeReturns(result1 []orchestrator.JobSpecifier) {
-	fake.ShouldBeLockedBeforeStub = nil
-	fake.shouldBeLockedBeforeReturns = struct {
+func (fake *FakeJob) BackupShouldBeLockedBeforeReturns(result1 []orchestrator.JobSpecifier) {
+	fake.BackupShouldBeLockedBeforeStub = nil
+	fake.backupShouldBeLockedBeforeReturns = struct {
 		result1 []orchestrator.JobSpecifier
 	}{result1}
 }
 
-func (fake *FakeJob) ShouldBeLockedBeforeReturnsOnCall(i int, result1 []orchestrator.JobSpecifier) {
-	fake.ShouldBeLockedBeforeStub = nil
-	if fake.shouldBeLockedBeforeReturnsOnCall == nil {
-		fake.shouldBeLockedBeforeReturnsOnCall = make(map[int]struct {
+func (fake *FakeJob) BackupShouldBeLockedBeforeReturnsOnCall(i int, result1 []orchestrator.JobSpecifier) {
+	fake.BackupShouldBeLockedBeforeStub = nil
+	if fake.backupShouldBeLockedBeforeReturnsOnCall == nil {
+		fake.backupShouldBeLockedBeforeReturnsOnCall = make(map[int]struct {
 			result1 []orchestrator.JobSpecifier
 		})
 	}
-	fake.shouldBeLockedBeforeReturnsOnCall[i] = struct {
+	fake.backupShouldBeLockedBeforeReturnsOnCall[i] = struct {
+		result1 []orchestrator.JobSpecifier
+	}{result1}
+}
+
+func (fake *FakeJob) RestoreShouldBeLockedBefore() []orchestrator.JobSpecifier {
+	fake.restoreShouldBeLockedBeforeMutex.Lock()
+	ret, specificReturn := fake.restoreShouldBeLockedBeforeReturnsOnCall[len(fake.restoreShouldBeLockedBeforeArgsForCall)]
+	fake.restoreShouldBeLockedBeforeArgsForCall = append(fake.restoreShouldBeLockedBeforeArgsForCall, struct{}{})
+	fake.recordInvocation("RestoreShouldBeLockedBefore", []interface{}{})
+	fake.restoreShouldBeLockedBeforeMutex.Unlock()
+	if fake.RestoreShouldBeLockedBeforeStub != nil {
+		return fake.RestoreShouldBeLockedBeforeStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.restoreShouldBeLockedBeforeReturns.result1
+}
+
+func (fake *FakeJob) RestoreShouldBeLockedBeforeCallCount() int {
+	fake.restoreShouldBeLockedBeforeMutex.RLock()
+	defer fake.restoreShouldBeLockedBeforeMutex.RUnlock()
+	return len(fake.restoreShouldBeLockedBeforeArgsForCall)
+}
+
+func (fake *FakeJob) RestoreShouldBeLockedBeforeReturns(result1 []orchestrator.JobSpecifier) {
+	fake.RestoreShouldBeLockedBeforeStub = nil
+	fake.restoreShouldBeLockedBeforeReturns = struct {
+		result1 []orchestrator.JobSpecifier
+	}{result1}
+}
+
+func (fake *FakeJob) RestoreShouldBeLockedBeforeReturnsOnCall(i int, result1 []orchestrator.JobSpecifier) {
+	fake.RestoreShouldBeLockedBeforeStub = nil
+	if fake.restoreShouldBeLockedBeforeReturnsOnCall == nil {
+		fake.restoreShouldBeLockedBeforeReturnsOnCall = make(map[int]struct {
+			result1 []orchestrator.JobSpecifier
+		})
+	}
+	fake.restoreShouldBeLockedBeforeReturnsOnCall[i] = struct {
 		result1 []orchestrator.JobSpecifier
 	}{result1}
 }
@@ -931,8 +980,10 @@ func (fake *FakeJob) Invocations() map[string][][]interface{} {
 	defer fake.backupArtifactDirectoryMutex.RUnlock()
 	fake.restoreArtifactDirectoryMutex.RLock()
 	defer fake.restoreArtifactDirectoryMutex.RUnlock()
-	fake.shouldBeLockedBeforeMutex.RLock()
-	defer fake.shouldBeLockedBeforeMutex.RUnlock()
+	fake.backupShouldBeLockedBeforeMutex.RLock()
+	defer fake.backupShouldBeLockedBeforeMutex.RUnlock()
+	fake.restoreShouldBeLockedBeforeMutex.RLock()
+	defer fake.restoreShouldBeLockedBeforeMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

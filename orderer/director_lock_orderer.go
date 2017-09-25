@@ -14,7 +14,7 @@ func NewDirectorLockOrderer() DirectorLockOrderer {
 
 func (lo DirectorLockOrderer) Order(jobs []orchestrator.Job) ([]orchestrator.Job, error) {
 	for _, job := range jobs {
-		if len(job.ShouldBeLockedBefore()) > 0 {
+		if len(append(job.BackupShouldBeLockedBefore(), job.RestoreShouldBeLockedBefore()...)) > 0 {
 			return nil, fmt.Errorf("director job '%s' specifies locking dependencies, which are not allowed for director jobs", job.Name())
 		}
 	}

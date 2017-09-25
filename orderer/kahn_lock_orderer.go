@@ -6,10 +6,22 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 )
 
-type KahnLockOrderer struct{}
+type KahnLockOrderer struct {
+	orderConstraintSpecifier orderConstraintSpecifier
+}
 
-func NewKahnLockOrderer() KahnLockOrderer {
-	return KahnLockOrderer{}
+func newKahnLockOrderer(specifier orderConstraintSpecifier) KahnLockOrderer {
+	return KahnLockOrderer{
+		orderConstraintSpecifier: specifier,
+	}
+}
+
+func NewKahnBackupLockOrderer() KahnLockOrderer {
+	return newKahnLockOrderer(NewBackupOrderConstraintSpecifier())
+}
+
+type orderConstraintSpecifier interface {
+	Before(job orchestrator.Job) []orchestrator.JobSpecifier
 }
 
 type lockingDependency struct {
@@ -18,15 +30,15 @@ type lockingDependency struct {
 }
 
 func (lo KahnLockOrderer) Order(jobs []orchestrator.Job) ([]orchestrator.Job, error) {
-	var lockingDependencies = findLockingDependencies(jobs)
+	var lockingDependencies = findLockingDependencies(jobs, lo.orderConstraintSpecifier)
 	return orderJobsUsingTheKahnAlgorithm(jobs, lockingDependencies)
 }
 
-func findLockingDependencies(jobs []orchestrator.Job) []lockingDependency {
+func findLockingDependencies(jobs []orchestrator.Job, orderConstraintSpecifier orderConstraintSpecifier) []lockingDependency {
 	var lockingDependencies []lockingDependency
 
 	for _, job := range jobs {
-		jobSpecifiersThatShouldBeLockedAfter := job.ShouldBeLockedBefore()
+		jobSpecifiersThatShouldBeLockedAfter := orderConstraintSpecifier.Before(job)
 
 		for _, jobSpecifierThatShouldBeLockedAfter := range jobSpecifiersThatShouldBeLockedAfter {
 			jobsThatShouldBeLockedAfter := findJobsBySpecifier(jobs, jobSpecifierThatShouldBeLockedAfter)

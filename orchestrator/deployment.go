@@ -93,7 +93,10 @@ func (bd *deployment) PreBackupLock(lockOrderer LockOrderer) error {
 
 	jobs := bd.instances.Jobs()
 
-	orderedJobs, _ := lockOrderer.Order(jobs)
+	orderedJobs, err := lockOrderer.Order(jobs)
+	if err != nil {
+		return err
+	}
 
 	var preBackupLockErrors []error
 	for _, job := range orderedJobs {
@@ -116,7 +119,10 @@ func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer) error {
 
 	jobs := bd.instances.Jobs()
 
-	orderedJobs, _ := lockOrderer.Order(jobs)
+	orderedJobs, err := lockOrderer.Order(jobs)
+	if err != nil {
+		return err
+	}
 	reversedJobs := Jobs(orderedJobs).Reverse()
 
 	var postBackupUnlockErrors []error

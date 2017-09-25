@@ -110,6 +110,16 @@ var _ = Describe("Deployment", func() {
 				Expect(lockError.Error()).To(ContainSubstring("job2a failed"))
 			})
 		})
+
+		Context("if the lockOrderer returns an error", func() {
+			BeforeEach(func() {
+				lockOrderer.OrderReturns(nil, fmt.Errorf("test lock orderer error"))
+			})
+
+			It("fails", func() {
+				Expect(lockError).To(MatchError(ContainSubstring("test lock orderer error")))
+			})
+		})
 	})
 
 	Context("Backup", func() {
@@ -240,6 +250,16 @@ var _ = Describe("Deployment", func() {
 				Expect(unlockError).To(HaveOccurred())
 				Expect(unlockError.Error()).To(ContainSubstring("job1b failed"))
 				Expect(unlockError.Error()).To(ContainSubstring("job2a failed"))
+			})
+		})
+
+		Context("if the lockOrderer returns an error", func() {
+			BeforeEach(func() {
+				lockOrderer.OrderReturns(nil, fmt.Errorf("test lock orderer error"))
+			})
+
+			It("fails", func() {
+				Expect(unlockError).To(MatchError(ContainSubstring("test lock orderer error")))
 			})
 		})
 	})

@@ -130,7 +130,7 @@ func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifie
 		return nil, errors.New(errorString)
 	}
 
-	jobMetadata, err := NewJobMetadata(metadataContent)
+	jobMetadata, err := ParseJobMetadata(metadataContent)
 
 	if err != nil {
 		errorString := fmt.Sprintf(
