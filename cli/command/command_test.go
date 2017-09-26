@@ -1,9 +1,8 @@
-package main_test
+package command
 
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr"
 )
 
 var _ = Describe("bbr", func() {

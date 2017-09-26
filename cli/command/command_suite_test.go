@@ -1,4 +1,4 @@
-package main_test
+package command
 
 import (
 	. "github.com/onsi/ginkgo"
