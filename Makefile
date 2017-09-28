@@ -90,7 +90,7 @@ upload-test-releases:
 
 release: setup
 	mkdir releases
-	GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/bbr github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/bbr github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr
 	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/bbr-mac github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr
 	cd releases && shasum -a 256 * > checksum.sha256
 
