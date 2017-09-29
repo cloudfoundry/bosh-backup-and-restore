@@ -10,7 +10,7 @@ func NewFindDeploymentStep(deploymentManager DeploymentManager, logger Logger) S
 }
 
 func (s *FindDeploymentStep) Run(session *Session) error {
-	s.logger.Info("bbr", "Scripts found:")
+	s.logger.Info("bbr", "Looking for scripts")
 	deployment, err := s.deploymentManager.Find(session.DeploymentName())
 	if err != nil {
 		return err

@@ -162,7 +162,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 
 					By("printing the backup progress to the screen", func() {
-						Expect(session.Out).To(gbytes.Say("INFO - Scripts found:"))
+						Expect(session.Out).To(gbytes.Say("INFO - Looking for scripts"))
 						Expect(session.Out).To(gbytes.Say("INFO - bosh/0/bosh/backup"))
 						Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Running pre-checks for backup of %s...", directorIP)))
 						Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Starting backup of %s...", directorIP)))
