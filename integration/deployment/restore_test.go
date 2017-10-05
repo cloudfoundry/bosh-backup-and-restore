@@ -208,9 +208,15 @@ instances:
 				Expect(session.ExitCode()).To(Equal(1))
 			})
 
+			By("logging the steps it takes", func() {
+				Expect(session.Out).To(gbytes.Say("INFO - Starting restore of my-new-deployment"))
+				Expect(session.Out).To(gbytes.Say("INFO - Validating backup artifact for my-new-deployment"))
+			})
+
 			By("printing an error", func() {
 				Expect(string(session.Err.Contents())).To(ContainSubstring("Backup is corrupted"))
 			})
+
 			By("not printing the stack trace", func() {
 				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
 			})
@@ -320,6 +326,13 @@ touch /tmp/restore-script-was-run`)
 			It("runs the restore script successfully and cleans up", func() {
 				By("succeeding", func() {
 					Expect(session.ExitCode()).To(Equal(0))
+				})
+
+				By("logging the steps it takes", func() {
+					Expect(session.Out).To(gbytes.Say("INFO - Starting restore of my-new-deployment"))
+					Expect(session.Out).To(gbytes.Say("INFO - Validating backup artifact for my-new-deployment"))
+					Expect(session.Out).To(gbytes.Say("INFO - Looking for scripts"))
+					Expect(session.Out).To(gbytes.Say("INFO - Completed restore of my-new-deployment"))
 				})
 
 				By("cleaning up the archive file on the remote", func() {

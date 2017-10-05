@@ -113,6 +113,13 @@ cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 						Expect(session.ExitCode()).To(BeZero())
 					})
 
+					By("logging the steps it takes", func() {
+						Expect(session.Out).To(gbytes.Say("INFO - Starting restore of"))
+						Expect(session.Out).To(gbytes.Say("INFO - Validating backup artifact for"))
+						Expect(session.Out).To(gbytes.Say("INFO - Looking for scripts"))
+						Expect(session.Out).To(gbytes.Say("INFO - Completed restore of"))
+					})
+
 					By("running the restore script successfully", func() {
 						Expect(directorInstance.FileExists("/var/vcap/store/bosh/restored_file")).To(BeTrue())
 						Expect(directorInstance.GetFileContents("/var/vcap/store/bosh/restored_file")).To(ContainSubstring(`this is a backup`))

@@ -21,6 +21,7 @@ func (s *ValidateArtifactStep) Run(session *Session) error {
 	}
 	session.SetCurrentArtifact(backup)
 
+	s.logger.Info("bbr", "Validating backup artifact for %s...\n", session.deploymentName)
 	if valid, err := backup.Valid(); err != nil {
 		return errors.Wrap(err, "Could not validate backup")
 	} else if !valid {
