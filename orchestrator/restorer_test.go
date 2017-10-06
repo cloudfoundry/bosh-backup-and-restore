@@ -188,7 +188,9 @@ var _ = Describe("restorer", func() {
 				})
 
 				It("returns an error", func() {
-					Expect(restoreError).To(HaveOccurred())
+					Expect(restoreError).To(MatchError(
+						ContainSubstring("Deployment 'deployment-to-restore' has no restore scripts")),
+					)
 				})
 
 				It("should cleanup", func() {
@@ -203,7 +205,9 @@ var _ = Describe("restorer", func() {
 				})
 
 				It("returns an error", func() {
-					Expect(restoreError).To(HaveOccurred())
+					Expect(restoreError).To(MatchError(
+						ContainSubstring("Deployment 'deployment-to-restore' does not match the structure of the provided backup")),
+					)
 				})
 
 				It("should cleanup", func() {
@@ -218,7 +222,9 @@ var _ = Describe("restorer", func() {
 				})
 
 				It("returns an error", func() {
-					Expect(restoreError).To(HaveOccurred())
+					Expect(restoreError).To(MatchError(
+						ContainSubstring("Unable to check if deployment 'deployment-to-restore' matches the structure of the provided backup")),
+					)
 				})
 
 				It("should cleanup", func() {

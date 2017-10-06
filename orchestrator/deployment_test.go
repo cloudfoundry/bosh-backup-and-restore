@@ -105,9 +105,10 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("fails", func() {
-				Expect(lockError).To(HaveOccurred())
-				Expect(lockError.Error()).To(ContainSubstring("job1b failed"))
-				Expect(lockError.Error()).To(ContainSubstring("job2a failed"))
+				Expect(lockError).To(MatchError(SatisfyAll(
+					ContainSubstring("job1b failed"),
+					ContainSubstring("job2a failed"),
+				)))
 			})
 		})
 
@@ -183,7 +184,7 @@ var _ = Describe("Deployment", func() {
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
 			It("does not fail", func() {
-				Expect(backupError).To(HaveOccurred())
+				Expect(backupError).To(MatchError("very clever sandwich"))
 			})
 
 			It("stops invoking backup, after the error", func() {
@@ -247,9 +248,10 @@ var _ = Describe("Deployment", func() {
 			})
 
 			It("fails", func() {
-				Expect(unlockError).To(HaveOccurred())
-				Expect(unlockError.Error()).To(ContainSubstring("job1b failed"))
-				Expect(unlockError.Error()).To(ContainSubstring("job2a failed"))
+				Expect(unlockError).To(MatchError(SatisfyAll(
+					ContainSubstring("job1b failed"),
+					ContainSubstring("job2a failed"),
+				)))
 			})
 		})
 
@@ -314,6 +316,7 @@ var _ = Describe("Deployment", func() {
 				Expect(IsBackupable).To(BeTrue())
 			})
 		})
+
 		Context("Multiple instances, none with backup scripts", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(false)
@@ -360,13 +363,11 @@ var _ = Describe("Deployment", func() {
 				instance2.ArtifactDirExistsReturns(true, nil)
 			})
 
-			It("fails", func() {
-				Expect(artifactDirError).To(HaveOccurred())
-			})
-
-			It("the error includes the names of the instances on which the directory exists", func() {
-				Expect(artifactDirError.Error()).To(ContainSubstring("Directory /var/vcap/store/bbr-backup already exists on instance foo/0"))
-				Expect(artifactDirError.Error()).To(ContainSubstring("Directory /var/vcap/store/bbr-backup already exists on instance bar/0"))
+			It("fails and the error includes the names of the instances on which the directory exists", func() {
+				Expect(artifactDirError).To(MatchError(SatisfyAll(
+					ContainSubstring("Directory /var/vcap/store/bbr-backup already exists on instance foo/0"),
+					ContainSubstring("Directory /var/vcap/store/bbr-backup already exists on instance bar/0"),
+				)))
 			})
 		})
 
@@ -376,15 +377,10 @@ var _ = Describe("Deployment", func() {
 				instance1.ArtifactDirExistsReturns(false, fmt.Errorf("oh dear"))
 			})
 
-			It("fails", func() {
-				Expect(artifactDirError).To(HaveOccurred())
-			})
-
-			It("the error includes the names of the instances on which the error occurred", func() {
+			It("fails and the error includes the names of the instances on which the error occurred", func() {
 				Expect(artifactDirError.Error()).To(ContainSubstring("Error checking /var/vcap/store/bbr-backup on instance foo/0"))
 			})
 		})
-
 	})
 
 	Context("CustomArtifactNamesMatch", func() {
@@ -393,6 +389,7 @@ var _ = Describe("Deployment", func() {
 		JustBeforeEach(func() {
 			artifactMatchError = deployment.CustomArtifactNamesMatch()
 		})
+
 		BeforeEach(func() {
 			instances = []orchestrator.Instance{instance1, instance2}
 		})
@@ -651,9 +648,10 @@ var _ = Describe("Deployment", func() {
 
 			It("fails", func() {
 				By("returning a helpful error", func() {
-					Expect(lockError).To(HaveOccurred())
-					Expect(lockError.Error()).To(ContainSubstring("job 1a failed to lock"))
-					Expect(lockError.Error()).To(ContainSubstring("job 2a failed to lock"))
+					Expect(lockError).To(MatchError(SatisfyAll(
+						ContainSubstring("job 1a failed to lock"),
+						ContainSubstring("job 2a failed to lock"),
+					)))
 				})
 			})
 		})
@@ -719,9 +717,10 @@ var _ = Describe("Deployment", func() {
 
 			It("fails", func() {
 				By("returning a helpful error", func() {
-					Expect(unlockError).To(HaveOccurred())
-					Expect(unlockError.Error()).To(ContainSubstring("job 1a failed to unlock"))
-					Expect(unlockError.Error()).To(ContainSubstring("job 2a failed to unlock"))
+					Expect(unlockError).To(MatchError(SatisfyAll(
+						ContainSubstring("job 1a failed to unlock"),
+						ContainSubstring("job 2a failed to unlock"),
+					)))
 				})
 			})
 		})
@@ -805,7 +804,6 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(HaveOccurred())
 					Expect(copyLocalBackupToRemoteError).To(MatchError("streaming had a problem"))
 				})
 			})
@@ -816,7 +814,6 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(HaveOccurred())
 					Expect(copyLocalBackupToRemoteError).To(MatchError(checksumError))
 				})
 			})
@@ -827,7 +824,6 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(HaveOccurred())
 					Expect(copyLocalBackupToRemoteError).To(MatchError(checksumError))
 				})
 			})
@@ -848,7 +844,6 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(HaveOccurred())
 					Expect(copyLocalBackupToRemoteError).To(MatchError("leave me alone"))
 				})
 			})
@@ -894,7 +889,6 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(HaveOccurred())
 					Expect(copyLocalBackupToRemoteError).To(MatchError("I'm still here"))
 				})
 			})
@@ -905,7 +899,6 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(HaveOccurred())
 					Expect(copyLocalBackupToRemoteError).To(MatchError(checksumError))
 				})
 			})
@@ -916,7 +909,6 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(HaveOccurred())
 					Expect(copyLocalBackupToRemoteError).To(MatchError(checksumError))
 				})
 			})
@@ -937,7 +929,6 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(HaveOccurred())
 					Expect(copyLocalBackupToRemoteError).To(MatchError("foo bar baz read error"))
 				})
 			})
@@ -982,7 +973,6 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(HaveOccurred())
 					Expect(copyLocalBackupToRemoteError).To(MatchError("this is a problem"))
 				})
 			})
@@ -993,7 +983,6 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(HaveOccurred())
 					Expect(copyLocalBackupToRemoteError).To(MatchError(checksumError))
 				})
 			})
@@ -1004,7 +993,6 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(HaveOccurred())
 					Expect(copyLocalBackupToRemoteError).To(MatchError(checksumError))
 				})
 			})
@@ -1025,7 +1013,6 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(HaveOccurred())
 					Expect(copyLocalBackupToRemoteError).To(MatchError("a huge problem"))
 				})
 			})

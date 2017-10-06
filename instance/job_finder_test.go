@@ -146,7 +146,10 @@ var _ = Describe("JobFinderFromScripts", func() {
 				})
 
 				By("returning an error", func() {
-					Expect(jobsError).To(HaveOccurred())
+					Expect(jobsError).To(MatchError(SatisfyAll(
+						ContainSubstring("Running find failed on identifier/0."),
+						ContainSubstring("find: `unknown error"),
+					)))
 				})
 			})
 		})
@@ -226,7 +229,10 @@ backup_name: consul_backup`), nil, 0, nil
 
 				It("fails", func() {
 					By("returning an error", func() {
-						Expect(jobsError).To(HaveOccurred())
+						Expect(jobsError).To(MatchError(SatisfyAll(
+							ContainSubstring("Running find failed on identifier/0."),
+							ContainSubstring("/var/vcap/jobs/consul_agent/bin/bbr/metadata"),
+						)))
 					})
 
 					By("not trying to invoke the metadata scripts", func() {
@@ -267,10 +273,6 @@ backup_name: consul_backup`), nil, 0, nil
 				})
 
 				It("fails", func() {
-					By("returning an error", func() {
-						Expect(jobsError).To(HaveOccurred())
-					})
-
 					By("printing the location of the error, and the stderr from the script", func() {
 						Expect(jobsError).To(MatchError(ContainSubstring(
 							"An error occurred while running metadata script for job consul_agent on identifier/0: STDERR",

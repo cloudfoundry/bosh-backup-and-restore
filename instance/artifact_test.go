@@ -78,7 +78,7 @@ var _ = Describe("artifact", func() {
 				})
 
 				It("fails", func() {
-					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring("not relevant")))
 				})
 			})
 
@@ -99,7 +99,6 @@ var _ = Describe("artifact", func() {
 				})
 
 				It("fails", func() {
-					Expect(err).To(HaveOccurred())
 					Expect(err).To(MatchError(ContainSubstring(sshError.Error())))
 				})
 			})
@@ -191,7 +190,7 @@ var _ = Describe("artifact", func() {
 				})
 
 				It("returns an error", func() {
-					Expect(actualChecksumError).To(HaveOccurred())
+					Expect(actualChecksumError).To(MatchError(ContainSubstring("instance checksum returned 1")))
 				})
 			})
 		})
@@ -231,10 +230,9 @@ var _ = Describe("artifact", func() {
 				})
 
 				It("fails", func() {
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring(
+					Expect(err).To(MatchError(ContainSubstring(
 						"Error deleting artifact on instance redis/foo. Directory name " + artifactDirectory + ". Exit code 1",
-					))
+					)))
 				})
 			})
 		})
@@ -272,7 +270,7 @@ var _ = Describe("artifact", func() {
 				It("returns the size of the backup according to the root user, as a string", func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(1))
 					Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh " + artifactDirectory + " | cut -f1"))
-					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring("Unable to check size of backup")))
 				})
 			})
 
@@ -329,8 +327,7 @@ var _ = Describe("artifact", func() {
 				})
 
 				It("fails and return the error", func() {
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("All the pies"))
+					Expect(err).To(MatchError(ContainSubstring("All the pies")))
 				})
 			})
 
@@ -340,8 +337,7 @@ var _ = Describe("artifact", func() {
 				})
 
 				It("fails", func() {
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Errorerrororororororor"))
+					Expect(err).To(MatchError(ContainSubstring("Errorerrororororororor")))
 				})
 			})
 
@@ -351,8 +347,7 @@ var _ = Describe("artifact", func() {
 				})
 
 				It("fails and returns the error", func() {
-					Expect(err).To(HaveOccurred())
-					Expect(err.Error()).To(ContainSubstring("Creating backup directory on the remote returned 1"))
+					Expect(err).To(MatchError(ContainSubstring("Creating backup directory on the remote returned 1")))
 				})
 			})
 
@@ -362,7 +357,6 @@ var _ = Describe("artifact", func() {
 				})
 
 				It("fails and returns the error", func() {
-					Expect(err).To(HaveOccurred())
 					Expect(err).To(MatchError("I refuse to create you this directory."))
 				})
 			})

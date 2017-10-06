@@ -7,9 +7,9 @@ import (
 	"io"
 	"log"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	gossh "golang.org/x/crypto/ssh"
 
 	"runtime"
@@ -59,7 +59,7 @@ var _ = Describe("Connection", func() {
 				privateKey = "laksdjf"
 			})
 			It("fails", func() {
-				Expect(connErr).To(HaveOccurred())
+				Expect(connErr).To(MatchError(ContainSubstring("ssh.NewConnection.ParsePrivateKey failed")))
 			})
 		})
 	})
@@ -218,62 +218,76 @@ var _ = Describe("Connection", func() {
 	Context("connection failures", func() {
 		Describe("unreachable host", func() {
 			var err error
+
 			BeforeEach(func() {
 				hostname = "laksdjf"
 			})
+
 			Context("Run", func() {
 				JustBeforeEach(func() {
 					_, _, _, err = conn.Run("ls")
 				})
+
 				It("fails", func() {
-					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring("ssh.Run failed")))
 				})
 			})
+
 			Context("Stream", func() {
 				JustBeforeEach(func() {
 					_, _, err = conn.Stream("ls", bytes.NewBufferString("dont matter"))
 				})
+
 				It("fails", func() {
-					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring("ssh.Stream failed")))
 				})
 			})
+
 			Context("StreamStdin", func() {
 				JustBeforeEach(func() {
 					_, _, _, err = conn.StreamStdin("ls", bytes.NewBufferString("dont matter"))
 				})
+
 				It("fails", func() {
-					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring("ssh.StreamStdin failed")))
 				})
 			})
 		})
 
 		Describe("authorization failure", func() {
 			var err error
+
 			BeforeEach(func() {
 				user = "foo"
 			})
+
 			Context("Run", func() {
 				JustBeforeEach(func() {
 					_, _, _, err = conn.Run("ls")
 				})
+
 				It("fails", func() {
-					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring("ssh.Run failed")))
 				})
 			})
+
 			Context("Stream", func() {
 				JustBeforeEach(func() {
 					_, _, err = conn.Stream("ls", bytes.NewBufferString("dont matter"))
 				})
+
 				It("fails", func() {
-					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring("ssh.Stream failed")))
 				})
 			})
+
 			Context("StreamStdin", func() {
 				JustBeforeEach(func() {
 					_, _, _, err = conn.StreamStdin("ls", bytes.NewBufferString("dont matter"))
 				})
+
 				It("fails", func() {
-					Expect(err).To(HaveOccurred())
+					Expect(err).To(MatchError(ContainSubstring("ssh.StreamStdin failed")))
 				})
 			})
 		})

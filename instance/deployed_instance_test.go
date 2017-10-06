@@ -372,37 +372,26 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("fails", func() {
-				Expect(err).To(HaveOccurred())
-			})
+				By("including all relevant information", func() {
+					Expect(err).To(MatchError(SatisfyAll(
+						ContainSubstring(fmt.Sprintf("backup script for job bar failed on %s/%s", instanceGroupName, instanceID)),
+						ContainSubstring(fmt.Sprintf("Stdout: %s", expectedStdout)),
+						ContainSubstring(fmt.Sprintf("Stderr: %s", expectedStderr)),
+						ContainSubstring(expectedError.Error()),
+					)))
+				})
 
-			It("returns an error including the failure for the failed script", func() {
-				Expect(err.Error()).To(ContainSubstring(
-					fmt.Sprintf("backup script for job bar failed on %s/%s", instanceGroupName, instanceID),
-				))
+				By("not including a message related to the script which passed", func() {
+					Expect(err.Error()).NotTo(ContainSubstring(
+						fmt.Sprintf("backup script for job foo failed on %s/%s", instanceGroupName, instanceID),
+					))
+				})
 			})
 
 			It("logs the failures related to the failed script", func() {
 				Expect(string(stderr.Contents())).To(ContainSubstring(
 					fmt.Sprintf("backup script for job bar failed on %s/%s", instanceGroupName, instanceID),
 				))
-			})
-
-			It("returns an error without a message related to the script which passed", func() {
-				Expect(err.Error()).NotTo(ContainSubstring(
-					fmt.Sprintf("backup script for job foo failed on %s/%s", instanceGroupName, instanceID),
-				))
-			})
-
-			It("prints stdout from the failing job", func() {
-				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Stdout: %s", expectedStdout)))
-			})
-
-			It("prints stderr from the failing job", func() {
-				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Stderr: %s", expectedStderr)))
-			})
-
-			It("returns an error including the error from running the command", func() {
-				Expect(err.Error()).To(ContainSubstring(expectedError.Error()))
 			})
 
 			It("logs the error caused when running the command", func() {
@@ -413,7 +402,6 @@ var _ = Describe("DeployedInstance", func() {
 					expectedError.Error(),
 				)))
 			})
-
 		})
 	})
 
@@ -517,37 +505,26 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("fails", func() {
-				Expect(err).To(HaveOccurred())
-			})
+				By("including all relevant information", func() {
+					Expect(err).To(MatchError(SatisfyAll(
+						ContainSubstring(fmt.Sprintf("unlock script for job bar failed on %s/%s", instanceGroupName, instanceID)),
+						ContainSubstring(fmt.Sprintf("Stdout: %s", expectedStdout)),
+						ContainSubstring(fmt.Sprintf("Stderr: %s", expectedStderr)),
+						ContainSubstring(sshConnectionError.Error()),
+					)))
+				})
 
-			It("returns an error including the failure for the failed script", func() {
-				Expect(err.Error()).To(ContainSubstring(
-					fmt.Sprintf("unlock script for job bar failed on %s/%s", instanceGroupName, instanceID),
-				))
+				By("not including a message related to the script which passed", func() {
+					Expect(err.Error()).NotTo(ContainSubstring(
+						fmt.Sprintf("unlock script for job foo failed on %s/%s", instanceGroupName, instanceID),
+					))
+				})
 			})
 
 			It("logs the failures related to the failed script", func() {
 				Expect(string(stderr.Contents())).To(ContainSubstring(
 					fmt.Sprintf("unlock script for job bar failed on %s/%s", instanceGroupName, instanceID),
 				))
-			})
-
-			It("returns an error without a message related to the script which passed", func() {
-				Expect(err.Error()).NotTo(ContainSubstring(
-					fmt.Sprintf("unlock script for job foo failed on %s/%s", instanceGroupName, instanceID),
-				))
-			})
-
-			It("prints stdout from the failing job", func() {
-				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Stdout: %s", expectedStdout)))
-			})
-
-			It("prints stderr from the failing job", func() {
-				Expect(err.Error()).To(ContainSubstring(fmt.Sprintf("Stderr: %s", expectedStderr)))
-			})
-
-			It("returns an error including the error from running the command", func() {
-				Expect(err.Error()).To(ContainSubstring(sshConnectionError.Error()))
 			})
 
 			It("logs the error caused when running the command", func() {
@@ -661,34 +638,21 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("fails", func() {
-				Expect(postRestoreUnlockError).To(HaveOccurred())
+				By("including all relevant information", func() {
+					Expect(postRestoreUnlockError).To(MatchError(SatisfyAll(
+						ContainSubstring(fmt.Sprintf("unlock script for job bar failed on %s/%s", instanceGroupName, instanceID)),
+						ContainSubstring("Stdout: stdout_bar"),
+						ContainSubstring("Stderr: stderr_bar"),
+						ContainSubstring("connection failed, script not run on baz"),
+					)))
+				})
 			})
 
-			It("correctly reports a script failure", func() {
-				By("describing the script failure in the returned error", func() {
-					Expect(postRestoreUnlockError.Error()).To(ContainSubstring(
-						fmt.Sprintf("unlock script for job bar failed on %s/%s", instanceGroupName, instanceID),
-					))
-				})
-
-				By("including the script stdout in the returned error", func() {
-					Expect(postRestoreUnlockError.Error()).To(ContainSubstring("Stdout: stdout_bar"))
-				})
-
-				By("including the script stderr in the returned error", func() {
-					Expect(postRestoreUnlockError.Error()).To(ContainSubstring("Stderr: stderr_bar"))
-				})
-
+			It("correctly prints logs to stderr", func() {
 				By("logging to stderr the failures related to the failed script", func() {
 					Expect(string(stderr.Contents())).To(ContainSubstring(
 						fmt.Sprintf("unlock script for job bar failed on %s/%s", instanceGroupName, instanceID),
 					))
-				})
-			})
-
-			It("correctly reports failing to run a script (e.g. ssh connection failure)", func() {
-				By("including the ssh error message in the returned error ", func() {
-					Expect(postRestoreUnlockError.Error()).To(ContainSubstring("connection failed, script not run on baz"))
 				})
 
 				By("including the error message in the logs", func() {
@@ -700,7 +664,6 @@ var _ = Describe("DeployedInstance", func() {
 					)))
 				})
 			})
-
 		})
 
 		Context("When there are some jobs without post-restore-unlock scripts", func() {
@@ -855,37 +818,26 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("fails", func() {
-				Expect(actualError).To(HaveOccurred())
-			})
+				By("including all relevant information", func() {
+					Expect(actualError).To(MatchError(SatisfyAll(
+						ContainSubstring(fmt.Sprintf("restore script for job bar failed on %s/%s", instanceGroupName, instanceID)),
+						ContainSubstring(fmt.Sprintf("Stdout: %s", expectedStdout)),
+						ContainSubstring(fmt.Sprintf("Stderr: %s", expectedStderr)),
+						ContainSubstring(expectedError.Error()),
+					)))
+				})
 
-			It("returns an error including the failure for the failed script", func() {
-				Expect(actualError.Error()).To(ContainSubstring(
-					fmt.Sprintf("restore script for job bar failed on %s/%s", instanceGroupName, instanceID),
-				))
+				By("not including a message related to the script which passed", func() {
+					Expect(actualError.Error()).NotTo(ContainSubstring(
+						fmt.Sprintf("restore script for job foo failed on %s/%s", instanceGroupName, instanceID),
+					))
+				})
 			})
 
 			It("logs the failures related to the failed script", func() {
 				Expect(string(stderr.Contents())).To(ContainSubstring(
 					fmt.Sprintf("restore script for job bar failed on %s/%s", instanceGroupName, instanceID),
 				))
-			})
-
-			It("returns an error without a message related to the script which passed", func() {
-				Expect(actualError.Error()).NotTo(ContainSubstring(
-					fmt.Sprintf("restore script for job foo failed on %s/%s", instanceGroupName, instanceID),
-				))
-			})
-
-			It("prints stdout from the failing job", func() {
-				Expect(actualError.Error()).To(ContainSubstring(fmt.Sprintf("Stdout: %s", expectedStdout)))
-			})
-
-			It("prints stderr from the failing job", func() {
-				Expect(actualError.Error()).To(ContainSubstring(fmt.Sprintf("Stderr: %s", expectedStderr)))
-			})
-
-			It("returns an error including the error from running the command", func() {
-				Expect(actualError.Error()).To(ContainSubstring(expectedError.Error()))
 			})
 
 			It("logs the error caused when running the command", func() {

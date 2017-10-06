@@ -86,7 +86,7 @@ var _ = Describe("Restore Cleanup", func() {
 		})
 
 		It("fails", func() {
-			Expect(cleanupError).To(HaveOccurred())
+			Expect(cleanupError).To(MatchError(ContainSubstring("deployment not found")))
 		})
 	})
 

@@ -42,7 +42,6 @@ var _ = Describe("DirectorLockOrderer", func() {
 			orderedJobs, err := directorLockOrderer.Order(jobs)
 
 			Expect(orderedJobs).To(BeNil())
-			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(ContainSubstring("director job 'second' specifies locking dependencies, which are not allowed for director jobs")))
 		})
 	})
@@ -60,7 +59,6 @@ var _ = Describe("DirectorLockOrderer", func() {
 			orderedJobs, err := directorLockOrderer.Order(jobs)
 
 			Expect(orderedJobs).To(BeNil())
-			Expect(err).To(HaveOccurred())
 			Expect(err).To(MatchError(ContainSubstring("director job 'second' specifies locking dependencies, which are not allowed for director jobs")))
 		})
 	})
