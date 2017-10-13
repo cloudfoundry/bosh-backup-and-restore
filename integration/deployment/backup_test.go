@@ -882,7 +882,7 @@ echo "not valid yaml
 				Expect(path.Join(backupDirectory(), "/redis-broker-0-redis.tar")).ToNot(BeAnExistingFile())
 			})
 
-			Context("with ordering on pre-backup-lock (where the default order would be wrong)", func() {
+			Context("with ordering on pre-backup-lock specified", func() {
 				BeforeEach(func() {
 					firstReturnedInstance.CreateScript(
 						"/var/vcap/jobs/redis/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
@@ -901,9 +901,11 @@ backup_should_be_locked_before:
 "`)
 				})
 
-				It("locks in the right order", func() {
+				It("locks in the specified order", func() {
 					redisLockTime := firstReturnedInstance.GetCreatedTime("/tmp/redis-pre-backup-lock-called")
 					redisWriterLockTime := secondReturnedInstance.GetCreatedTime("/tmp/redis-writer-pre-backup-lock-called")
+
+					Expect(string(session.Out.Contents())).To(ContainSubstring("Detected order: redis-writer should be locked before redis/redis during backup"))
 
 					Expect(redisWriterLockTime < redisLockTime).To(BeTrue(), fmt.Sprintf(
 						"Writer locked at %s, which is after the server locked (%s)",

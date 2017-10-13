@@ -656,6 +656,8 @@ restore_should_be_locked_before:
 				redisLockTime := instance1.GetCreatedTime("/tmp/redis-pre-restore-lock-called")
 				redisWriterLockTime := instance2.GetCreatedTime("/tmp/redis-writer-pre-restore-lock-called")
 
+				Expect(string(session.Out.Contents())).To(ContainSubstring("Detected order: redis-writer should be locked before redis/redis during restore"))
+
 				Expect(redisWriterLockTime < redisLockTime).To(BeTrue(), fmt.Sprintf(
 					"Writer locked at %s, which is after the server locked (%s)",
 					strings.TrimSuffix(redisWriterLockTime, "\n"),

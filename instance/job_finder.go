@@ -43,19 +43,28 @@ func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier,
 	scripts := NewBackupAndRestoreScripts(findOutput)
 	for _, script := range scripts {
 		j.Logger.Info("bbr", "%s/%s/%s", instanceIdentifier, script.JobName(), script.Name())
-	}
-	for _, script := range scripts.MetadataOnly() {
-		jobMetadata, err := j.findMetadata(instanceIdentifier, script, connection)
+		if script.isMetadata() {
+			jobMetadata, err := j.findMetadata(instanceIdentifier, script, connection)
 
-		if err != nil {
-			return nil, err
+			if err != nil {
+				return nil, err
+			}
+
+			jobName := script.JobName()
+			metadata[jobName] = *jobMetadata
+			j.logMetadata(jobMetadata, script.JobName())
 		}
-
-		jobName := script.JobName()
-		metadata[jobName] = *jobMetadata
 	}
 
 	return j.buildJobs(connection, instanceIdentifier, j.Logger, scripts, metadata, releaseMapping)
+}
+func (j *JobFinderFromScripts) logMetadata(jobMetadata *Metadata, jobName string) {
+	for _, lockBefore := range jobMetadata.BackupShouldBeLockedBefore {
+		j.Logger.Info("bbr", "Detected order: %s should be locked before %s/%s during backup", jobName, lockBefore.Release, lockBefore.JobName)
+	}
+	for _, lockBefore := range jobMetadata.RestoreShouldBeLockedBefore {
+		j.Logger.Info("bbr", "Detected order: %s should be locked before %s/%s during restore", jobName, lockBefore.Release, lockBefore.JobName)
+	}
 }
 
 func (j *JobFinderFromScripts) findBBRScripts(instanceIdentifierForLogging InstanceIdentifier,
