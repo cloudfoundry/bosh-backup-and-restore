@@ -32,7 +32,7 @@ generate:
 	ls -F | grep / | grep -v vendor | xargs -IN go generate github.com/cloudfoundry-incubator/bosh-backup-and-restore/N/...
 
 setup:
-	glide install --strip-vendor
+	dep ensure
 	go get -u github.com/cloudfoundry/bosh-cli
 	go get -u github.com/maxbrunsfeld/counterfeiter
 	go get -u github.com/onsi/ginkgo/ginkgo
