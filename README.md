@@ -6,10 +6,9 @@ This repository contains the source code for BOSH Backup and Restore.
 
 ## Developing BBR locally
 
-Running `go get` on the BBR repo will not work, as we use [Glide](https://github.com/Masterminds/glide) to manage our dependencies. Instead:
+We use [dep](https://github.com/golang/dep) to manage our dependencies, so run:
 
-1. `mkdir -p $GOPATH/src/github.com/cloudfoundry-incubator`
-1. `git clone git@github.com:cloudfoundry-incubator/bosh-backup-and-restore.git`
+1. `go get cloudfoundry-incubator/bosh-backup-and-restore`
 1. `cd $GOPATH/src/github.com/cloudfoundry-incubator/bosh-backup-and-restore`
 1. `make setup`
 
