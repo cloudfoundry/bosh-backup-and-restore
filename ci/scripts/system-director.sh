@@ -11,6 +11,7 @@ export BOSH_GATEWAY_HOST=$BOSH_HOST
 export BOSH_URL=https://$BOSH_HOST
 export GOPATH=$PWD
 export PATH=$PATH:$GOPATH/bin
+export BOSH_GATEWAY_USER=${BOSH_GATEWAY_USER:-vcap}
 export BOSH_GATEWAY_KEY=`pwd`/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem
 export SSH_KEY=`pwd`/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem
 export BOSH_CERT_PATH=`pwd`/bosh-backup-and-restore-meta/certs/$BOSH_HOST.crt
