@@ -13,6 +13,7 @@ inputs:
 params:
   BOSH_CLIENT_SECRET:
   BOSH_HOST:
+  BOSH_GATEWAY_HOST:
   TEAM_GPG_KEY:
 
 run:
