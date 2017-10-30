@@ -4,6 +4,10 @@ BOSH Backup and Restore is a CLI utility for orchestrating the backup and restor
 
 This repository contains the source code for BOSH Backup and Restore.
 
+## CI Status
+
+BBR build status [![BBR Build Status Badge](https://backup-and-restore.ci.cf-app.com/api/v1/teams/main/pipelines/bbr/jobs/build-rc/badge)](https://backup-and-restore.ci.cf-app.com/teams/main/pipelines/bbr)
+
 ## Developing BBR locally
 
 We use [dep](https://github.com/golang/dep) to manage our dependencies, so run:
