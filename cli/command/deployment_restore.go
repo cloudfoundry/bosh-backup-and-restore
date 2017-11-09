@@ -3,6 +3,7 @@ package command
 import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/cli/flags"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
 )
 
@@ -30,7 +31,7 @@ func (d DeploymentRestoreCommand) Action(c *cli.Context) error {
 	trapSigint(false)
 
 	if err := flags.Validate([]string{"artifact-path"}, c); err != nil {
-		return redCliError(err)
+		return err
 	}
 
 	deployment := c.Parent().String("deployment")
@@ -41,8 +42,9 @@ func (d DeploymentRestoreCommand) Action(c *cli.Context) error {
 		c.Parent().String("password"),
 		c.Parent().String("ca-cert"),
 		c.GlobalBool("debug"))
+
 	if err != nil {
-		return redCliError(err)
+		return processError(orchestrator.NewError(err))
 	}
 
 	restoreErr := restorer.Restore(deployment, artifactPath)

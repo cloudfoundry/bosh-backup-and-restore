@@ -3,7 +3,6 @@ package command
 import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -39,20 +38,15 @@ func (d DeploymentBackupCommand) Action(c *cli.Context) error {
 	)
 
 	if err != nil {
-		return redCliError(err)
+		return processError(orchestrator.NewError(err))
 	}
 
 	deployment := c.Parent().String("deployment")
 	backupErr := backuper.Backup(deployment)
 
-	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(backupErr)
-	if err := writeStackTrace(errorWithStackTrace); err != nil {
-		return errors.Wrap(backupErr, err.Error())
-	}
-
 	if backupErr.ContainsUnlockOrCleanup() {
-		errorMessage = errorMessage + "\n" + backupCleanupAdvisedNotice
+		return processErrorWithFooter(backupErr, backupCleanupAdvisedNotice)
+	} else {
+		return processError(backupErr)
 	}
-
-	return cli.NewExitError(errorMessage, errorCode)
 }

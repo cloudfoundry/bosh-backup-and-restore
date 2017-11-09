@@ -17,11 +17,10 @@ type ErrorCase struct {
 	name             string
 	errors           []error
 	expectedExitCode int
-	expectedString   string
 }
 
 var _ = Describe("Error", func() {
-	var genericError = goerr.Wrap(errors.New("Just a little error"), "generic cause")
+	var genericError = goerr.Wrap(errors.New("just a little error"), "generic cause")
 	var lockError = orchestrator.NewLockError("LOCK_ERROR")
 	var backupError = orchestrator.NewBackupError("BACKUP_ERROR")
 	var postBackupUnlockError = orchestrator.NewPostUnlockError("POST_BACKUP_ERROR")
@@ -98,102 +97,63 @@ var _ = Describe("Error", func() {
 		})
 	})
 
-	Describe("ProcessError", func() {
+	Describe("BuildExitCode", func() {
 		Context("when there are no errors", func() {
 			It("returns exit code 0", func() {
-				exitCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError([]error{})
+				exitCode := orchestrator.BuildExitCode([]error{})
 				Expect(exitCode).To(Equal(0))
-				Expect(errorMessage).To(Equal(""))
-				Expect(errorWithStackTrace).To(Equal(""))
 			})
 		})
 
 		Context("errors", func() {
-			errorFmt := func(errMsg string) string {
-				return fmt.Sprintf("1 error occurred:\nerror 1:\n%s\n", errMsg)
-			}
-
 			errorCases := []ErrorCase{
-				{"genericError", []error{genericError}, 1, errorFmt("generic cause: Just a little error")},
-				{"backupError", []error{backupError}, 1, errorFmt("BACKUP_ERROR")},
-				{"lockError", []error{lockError}, 4, errorFmt("LOCK_ERROR")},
-				{"unlockError", []error{postBackupUnlockError}, 8, errorFmt("POST_BACKUP_ERROR")},
-				{"cleanupError", []error{cleanupError}, 16, errorFmt("CLEANUP_ERROR")},
+				{"genericError", []error{genericError}, 1},
+				{"backupError", []error{backupError}, 1},
+				{"lockError", []error{lockError}, 4},
+				{"unlockError", []error{postBackupUnlockError}, 8},
+				{"cleanupError", []error{cleanupError}, 16},
 			}
 
 			for i := range errorCases {
 				errorCase := errorCases[i]
+
 				It(fmt.Sprintf("returns exit code %v in case of %v", errorCase.expectedExitCode, errorCase.name), func() {
-					actualExitCode, _, _ := orchestrator.ProcessError(errorCase.errors)
+					actualExitCode := orchestrator.BuildExitCode(errorCase.errors)
 					Expect(actualExitCode).To(Equal(errorCase.expectedExitCode))
 				})
-
-				It("includes the correct error message", func() {
-					_, actualMessage, _ := orchestrator.ProcessError(errorCase.errors)
-					Expect(actualMessage).To(Equal(errorCase.expectedString))
-				})
 			}
-
-			Context("when the error includes the stack trace", func() {
-				var errorWithStackTrace string
-				var actualMessage string
-				errorWithStacktrace := goerr.Wrap(errors.New("Just a little error"), "generic cause")
-
-				BeforeEach(func() {
-					_, actualMessage, errorWithStackTrace = orchestrator.ProcessError([]error{errorWithStacktrace})
-				})
-
-				It("is not in the actual message", func() {
-					Expect(actualMessage).NotTo(ContainSubstring("main.init"))
-				})
-				It("is in the full error message", func() {
-					Expect(errorWithStackTrace).To(ContainSubstring("main.init"))
-				})
-			})
 		})
 
 		Context("when there is only a lock error", func() {
 			var exitCode int
-			var errorMessage string
 
 			BeforeEach(func() {
-				exitCode, errorMessage, _ = orchestrator.ProcessError([]error{lockError})
+				exitCode = orchestrator.BuildExitCode([]error{lockError})
 			})
 
 			It("returns exit code 4", func() {
 				Expect(exitCode).To(Equal(4))
-				Expect(errorMessage).To(ContainSubstring("LOCK_ERROR"))
-			})
-
-			It("only reports one error", func() {
-				Expect(errorMessage).To(ContainSubstring("1 error occurred:"))
 			})
 		})
 
 		Context("when there is a backup error and a cleanup error", func() {
 			It("returns exit code 17 (16 | 1)", func() {
-				exitCode, errorMessage, _ := orchestrator.ProcessError([]error{cleanupError, backupError})
+				exitCode := orchestrator.BuildExitCode([]error{cleanupError, backupError})
 				Expect(exitCode).To(Equal(17))
-				Expect(errorMessage).To(ContainSubstring("BACKUP_ERROR"))
-				Expect(errorMessage).To(ContainSubstring("CLEANUP_ERROR"))
 			})
 		})
 
 		Context("when there is a generic error and a cleanup error", func() {
 			It("returns exit code 17 (16 | 1)", func() {
-				exitCode, errorMessage, _ := orchestrator.ProcessError([]error{cleanupError, genericError})
+				exitCode := orchestrator.BuildExitCode([]error{cleanupError, genericError})
 				Expect(exitCode).To(Equal(17))
-				Expect(errorMessage).To(ContainSubstring("Just a little error"))
-				Expect(errorMessage).To(ContainSubstring("CLEANUP_ERROR"))
 			})
 		})
 
 		Context("when there are two errors of the same type", func() {
 			It("the error bit is only set once", func() {
-				exitCode, errorMessage, _ := orchestrator.ProcessError([]error{cleanupError, cleanupError})
+				exitCode := orchestrator.BuildExitCode([]error{cleanupError, cleanupError})
 				Expect(exitCode).To(Equal(16))
-				Expect(errorMessage).To(ContainSubstring("2 errors occurred:"))
-				Expect(errorMessage).To(ContainSubstring("CLEANUP_ERROR"))
 			})
 		})
 	})

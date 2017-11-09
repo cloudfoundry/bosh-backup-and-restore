@@ -15,7 +15,6 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/mgutz/ansi"
-	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -54,10 +53,20 @@ func trapSigint(backup bool) {
 }
 
 func processError(err orchestrator.Error) error {
-	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(err)
-	if err := writeStackTrace(errorWithStackTrace); err != nil {
-		return errors.Wrap(err, err.Error())
+	return processErrorWithFooter(err, "")
+}
+
+func processErrorWithFooter(err orchestrator.Error, footer string) error {
+	errorCode := orchestrator.BuildExitCode(err)
+	errorMessage := err.Error()
+	errorWithStackTrace := err.PrettyError(true)
+
+	writeErr := writeStackTrace(errorWithStackTrace)
+	if writeErr != nil {
+		errorMessage = errorWithStackTrace
 	}
+
+	errorMessage = errorMessage + "\n" + footer
 
 	return cli.NewExitError(errorMessage, errorCode)
 }

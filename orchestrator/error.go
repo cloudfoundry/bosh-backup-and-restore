@@ -40,6 +40,13 @@ func ConvertErrors(errs []error) error {
 	return Error(errs)
 }
 
+func NewError(errs ...error) Error {
+	if len(errs) == 0 {
+		return nil
+	}
+	return Error(errs)
+}
+
 type Error []error
 
 func (e Error) Error() string {
@@ -125,7 +132,7 @@ func (e Error) Join(otherError Error) Error {
 	return append(e, otherError...)
 }
 
-func ProcessError(errs Error) (int, string, string) {
+func BuildExitCode(errs Error) int {
 	exitCode := 0
 
 	for _, err := range errs {
@@ -141,5 +148,5 @@ func ProcessError(errs Error) (int, string, string) {
 		}
 	}
 
-	return exitCode, errs.Error(), errs.PrettyError(true)
+	return exitCode
 }

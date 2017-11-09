@@ -2,6 +2,7 @@ package command
 
 import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
 )
 
@@ -32,7 +33,7 @@ func (d DeploymentBackupCleanupCommand) Action(c *cli.Context) error {
 		c.GlobalBool("debug"),
 	)
 	if err != nil {
-		return redCliError(err)
+		return processError(orchestrator.NewError(err))
 	}
 
 	deployment := c.Parent().String("deployment")

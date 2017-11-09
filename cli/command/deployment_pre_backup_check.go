@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
 )
 
@@ -33,7 +34,7 @@ func (d DeploymentPreBackupCheck) Action(c *cli.Context) error {
 		c.Bool("with-manifest"))
 
 	if err != nil {
-		return redCliError(err)
+		return processError(orchestrator.NewError(err))
 	}
 
 	backupable, checkErr := backupChecker.CanBeBackedUp(deployment)
@@ -43,7 +44,6 @@ func (d DeploymentPreBackupCheck) Action(c *cli.Context) error {
 		return cli.NewExitError("", 0)
 	} else {
 		fmt.Printf("Deployment '%s' cannot be backed up.\n", deployment)
-		writeStackTrace(checkErr.PrettyError(true))
-		return cli.NewExitError(checkErr.Error(), 1)
+		return processError(checkErr)
 	}
 }

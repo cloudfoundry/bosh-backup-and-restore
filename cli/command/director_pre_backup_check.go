@@ -40,7 +40,6 @@ func (checkCommand DirectorPreBackupCheckCommand) Action(c *cli.Context) error {
 		return cli.NewExitError("", 0)
 	} else {
 		fmt.Printf("Director cannot be backed up.\n")
-		writeStackTrace(checkErr.PrettyError(true))
-		return cli.NewExitError(checkErr.Error(), 1)
+		return processError(checkErr)
 	}
 }

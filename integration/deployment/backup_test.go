@@ -549,6 +549,22 @@ exit 1`)
 					})
 
 				})
+
+				Context("when the working directory is not writable", func() {
+					BeforeEach(func() {
+						os.Chmod(backupWorkspace, 0555)
+					})
+
+					It("fails", func() {
+						By("exiting 1", func() {
+							Expect(session).To(gexec.Exit(1))
+						})
+
+						By("printing an error message", func() {
+							Expect(session.Err.Contents()).To(ContainSubstring("failed creating directory"))
+						})
+					})
+				})
 			})
 
 			Context("and we ask for the manifest to be downloaded", func() {
