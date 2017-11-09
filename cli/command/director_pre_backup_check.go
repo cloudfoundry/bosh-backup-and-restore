@@ -2,10 +2,6 @@ package command
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/url"
-	"strings"
-	"time"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
 	"github.com/urfave/cli"
@@ -47,21 +43,4 @@ func (checkCommand DirectorPreBackupCheckCommand) Action(c *cli.Context) error {
 		writeStackTrace(checkErr.PrettyError(true))
 		return cli.NewExitError(checkErr.Error(), 1)
 	}
-}
-func writeStackTrace(errorWithStackTrace string) error {
-	if errorWithStackTrace != "" {
-		err := ioutil.WriteFile(fmt.Sprintf("bbr-%s.err.log", time.Now().UTC().Format(time.RFC3339)), []byte(errorWithStackTrace), 0644)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func extractNameFromAddress(address string) string {
-	url, err := url.Parse(address)
-	if err == nil && url.Hostname() != "" {
-		address = url.Hostname()
-	}
-	return strings.Split(address, ":")[0]
 }

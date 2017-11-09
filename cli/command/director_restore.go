@@ -3,8 +3,6 @@ package command
 import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/cli/flags"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	"github.com/pkg/errors"
 	"github.com/urfave/cli"
 )
 
@@ -49,13 +47,4 @@ func (cmd DirectorRestoreCommand) Action(c *cli.Context) error {
 
 	restoreErr := restorer.Restore(directorName, artifactPath)
 	return processError(restoreErr)
-}
-
-func processError(err orchestrator.Error) error {
-	errorCode, errorMessage, errorWithStackTrace := orchestrator.ProcessError(err)
-	if err := writeStackTrace(errorWithStackTrace); err != nil {
-		return errors.Wrap(err, err.Error())
-	}
-
-	return cli.NewExitError(errorMessage, errorCode)
 }

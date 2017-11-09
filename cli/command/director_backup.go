@@ -1,12 +1,6 @@
 package command
 
 import (
-	"bufio"
-	"fmt"
-	"os"
-	"os/signal"
-	"strings"
-
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/pkg/errors"
@@ -52,38 +46,4 @@ func (checkCommand DirectorBackupCommand) Action(c *cli.Context) error {
 	}
 
 	return cli.NewExitError(errorMessage, errorCode)
-}
-
-func trapSigint(backup bool) {
-	sigintChan := make(chan os.Signal, 1)
-	signal.Notify(sigintChan, os.Interrupt)
-
-	var sigintQuestion, stdInErrorMessage, cleanupAdvisedNotice string
-	if backup {
-		sigintQuestion = backupSigintQuestion
-		stdInErrorMessage = backupStdinErrorMessage
-		cleanupAdvisedNotice = backupCleanupAdvisedNotice
-	} else {
-		sigintQuestion = restoreSigintQuestion
-		stdInErrorMessage = restoreStdinErrorMessage
-		cleanupAdvisedNotice = restoreCleanupAdvisedNotice
-	}
-
-	go func() {
-		for range sigintChan {
-			stdinReader := bufio.NewReader(os.Stdin)
-			factory.ApplicationLoggerStdout.Pause()
-			factory.ApplicationLoggerStderr.Pause()
-			fmt.Fprintln(os.Stdout, "\n"+sigintQuestion)
-			input, err := stdinReader.ReadString('\n')
-			if err != nil {
-				fmt.Println("\n" + stdInErrorMessage)
-			} else if strings.ToLower(strings.TrimSpace(input)) == "yes" {
-				fmt.Println(cleanupAdvisedNotice)
-				os.Exit(1)
-			}
-			factory.ApplicationLoggerStdout.Resume()
-			factory.ApplicationLoggerStderr.Resume()
-		}
-	}()
 }

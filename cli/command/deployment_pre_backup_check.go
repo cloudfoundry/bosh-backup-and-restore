@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
-	"github.com/mgutz/ansi"
 	"github.com/urfave/cli"
 )
 
@@ -45,8 +44,4 @@ func (d DeploymentPreBackupCheck) Action(c *cli.Context) error {
 		writeStackTrace(checkErr.PrettyError(true))
 		return cli.NewExitError(checkErr.Error(), 1)
 	}
-}
-
-func redCliError(err error) *cli.ExitError {
-	return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
 }
