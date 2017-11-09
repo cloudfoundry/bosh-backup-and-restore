@@ -26,14 +26,14 @@ func NewDirectorPreBackupCheckCommand() DirectorPreBackupCheckCommand {
 func (checkCommand DirectorPreBackupCheckCommand) Action(c *cli.Context) error {
 	directorName := extractNameFromAddress(c.Parent().String("host"))
 
-	backuper := factory.BuildDirectorBackupChecker(
+	backupChecker := factory.BuildDirectorBackupChecker(
 		c.Parent().String("host"),
 		c.Parent().String("username"),
 		c.Parent().String("private-key-path"),
 		c.GlobalBool("debug"),
 	)
 
-	backupable, checkErr := backuper.CanBeBackedUp(directorName)
+	backupable, checkErr := backupChecker.CanBeBackedUp(directorName)
 
 	if backupable {
 		fmt.Printf("Director can be backed up.\n")

@@ -50,7 +50,7 @@ func (e Error) PrettyError(includeStacktrace bool) string {
 	if e.IsNil() {
 		return ""
 	}
-	var buffer *bytes.Buffer = bytes.NewBufferString("")
+	var buffer = bytes.NewBufferString("")
 
 	fmt.Fprintf(buffer, "%d error%s occurred:\n", len(e), e.getPostFix())
 	for index, err := range e {

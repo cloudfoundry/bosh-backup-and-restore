@@ -29,6 +29,7 @@ func (d DeploymentRestoreCleanupCommand) Action(c *cli.Context) error {
 		c.Parent().String("ca-cert"),
 		c.Bool("with-manifest"),
 		c.GlobalBool("debug"))
+
 	if err != nil {
 		return redCliError(err)
 	}

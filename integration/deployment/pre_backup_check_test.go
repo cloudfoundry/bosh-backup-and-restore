@@ -173,7 +173,6 @@ backup_should_be_locked_before:
 					Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 				})
 			})
-
 		})
 
 		Context("if there are no backup scripts", func() {

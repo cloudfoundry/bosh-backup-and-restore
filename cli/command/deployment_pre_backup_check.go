@@ -20,9 +20,11 @@ func (d DeploymentPreBackupCheck) Cli() cli.Command {
 		Action:  d.Action,
 	}
 }
+
 func (d DeploymentPreBackupCheck) Action(c *cli.Context) error {
 	var deployment = c.Parent().String("deployment")
-	backuper, err := factory.BuildDeploymentBackupChecker(
+
+	backupChecker, err := factory.BuildDeploymentBackupChecker(
 		c.Parent().String("target"),
 		c.Parent().String("username"),
 		c.Parent().String("password"),
@@ -34,7 +36,7 @@ func (d DeploymentPreBackupCheck) Action(c *cli.Context) error {
 		return redCliError(err)
 	}
 
-	backupable, checkErr := backuper.CanBeBackedUp(deployment)
+	backupable, checkErr := backupChecker.CanBeBackedUp(deployment)
 
 	if backupable {
 		fmt.Printf("Deployment '%s' can be backed up.\n", deployment)

@@ -3,9 +3,9 @@ package bosh
 import (
 	"io/ioutil"
 
-	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
+	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/pkg/errors"
 
 	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"

@@ -13,6 +13,7 @@ type DirectorBackupCommand struct {
 func NewDirectorBackupCommand() DirectorBackupCommand {
 	return DirectorBackupCommand{}
 }
+
 func (checkCommand DirectorBackupCommand) Cli() cli.Command {
 	return cli.Command{
 		Name:    "backup",
