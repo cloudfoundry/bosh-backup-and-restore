@@ -22,7 +22,7 @@ func (d DirectorBackupCleanupCommand) Cli() cli.Command {
 func (d DirectorBackupCleanupCommand) Action(c *cli.Context) error {
 	trapSigint(true)
 
-	directorName := ExtractNameFromAddress(c.Parent().String("host"))
+	directorName := extractNameFromAddress(c.Parent().String("host"))
 
 	cleaner := factory.BuildDirectorBackupCleaner(c.Parent().String("host"),
 		c.Parent().String("username"),

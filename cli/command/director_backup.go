@@ -28,10 +28,11 @@ func (checkCommand DirectorBackupCommand) Cli() cli.Command {
 	}
 
 }
+
 func (checkCommand DirectorBackupCommand) Action(c *cli.Context) error {
 	trapSigint(true)
 
-	directorName := ExtractNameFromAddress(c.Parent().String("host"))
+	directorName := extractNameFromAddress(c.Parent().String("host"))
 
 	backuper := factory.BuildDirectorBackuper(
 		c.Parent().String("host"),

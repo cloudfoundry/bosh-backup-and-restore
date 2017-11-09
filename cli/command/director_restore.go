@@ -37,7 +37,7 @@ func (cmd DirectorRestoreCommand) Action(c *cli.Context) error {
 		return err
 	}
 
-	directorName := ExtractNameFromAddress(c.Parent().String("host"))
+	directorName := extractNameFromAddress(c.Parent().String("host"))
 	artifactPath := c.String("artifact-path")
 
 	restorer := factory.BuildDirectorRestorer(

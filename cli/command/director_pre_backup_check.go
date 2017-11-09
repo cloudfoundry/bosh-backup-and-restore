@@ -28,7 +28,7 @@ func NewDirectorPreBackupCheckCommand() DirectorPreBackupCheckCommand {
 }
 
 func (checkCommand DirectorPreBackupCheckCommand) Action(c *cli.Context) error {
-	directorName := ExtractNameFromAddress(c.Parent().String("host"))
+	directorName := extractNameFromAddress(c.Parent().String("host"))
 
 	backuper := factory.BuildDirectorBackupChecker(
 		c.Parent().String("host"),
@@ -58,7 +58,7 @@ func writeStackTrace(errorWithStackTrace string) error {
 	return nil
 }
 
-func ExtractNameFromAddress(address string) string {
+func extractNameFromAddress(address string) string {
 	url, err := url.Parse(address)
 	if err == nil && url.Hostname() != "" {
 		address = url.Hostname()
