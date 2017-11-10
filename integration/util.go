@@ -28,8 +28,18 @@ func NewBinary(path string) Binary {
 	return Binary{path: path, runTimeout: 99999 * time.Hour}
 }
 
+func (b Binary) StartAs(user string, cwd string, env []string, params ...string) (*gexec.Session, io.WriteCloser) {
+	sudoParams := []string{"-u", user, b.path}
+	command := exec.Command("sudo", append(sudoParams, params...)...)
+	return b.setupAndStart(command, cwd, env, params)
+}
+
 func (b Binary) Start(cwd string, env []string, params ...string) (*gexec.Session, io.WriteCloser) {
 	command := exec.Command(b.path, params...)
+	return b.setupAndStart(command, cwd, env, params)
+}
+
+func (b Binary) setupAndStart(command *exec.Cmd, cwd string, env []string, params []string) (*gexec.Session, io.WriteCloser) {
 	command.Env = env
 	command.Dir = cwd
 	stdin, err := command.StdinPipe()
@@ -41,8 +51,17 @@ func (b Binary) Start(cwd string, env []string, params ...string) (*gexec.Sessio
 	return session, stdin
 }
 
+func (b Binary) RunAs(user string, cwd string, env []string, params ...string) *gexec.Session {
+	session, _ := b.StartAs(user, cwd, env, params...)
+	return b.waitForSessionAndPrintOutput(session)
+}
+
 func (b Binary) Run(cwd string, env []string, params ...string) *gexec.Session {
 	session, _ := b.Start(cwd, env, params...)
+	return b.waitForSessionAndPrintOutput(session)
+}
+
+func (b Binary) waitForSessionAndPrintOutput(session *gexec.Session) *gexec.Session {
 	Eventually(session, b.runTimeout).Should(gexec.Exit())
 	fmt.Fprintf(GinkgoWriter, "Command output end\n")
 	fmt.Fprintf(GinkgoWriter, "Exited with %d\n", session.ExitCode())

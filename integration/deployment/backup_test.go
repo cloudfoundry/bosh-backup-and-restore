@@ -20,6 +20,8 @@ import (
 
 	"strings"
 
+	"os/user"
+
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -35,6 +37,7 @@ var _ = Describe("Backup", func() {
 	var waitForBackupToFinish bool
 	var verifyMocks bool
 	var instance1 *testcluster.Instance
+	var testUser string
 	manifest := `---
 instance_groups:
 - name: redis-dedicated-node
@@ -126,17 +129,17 @@ instance_groups:
 		}
 
 		if waitForBackupToFinish {
-			session = binary.Run(
-				backupWorkspace,
-				env,
-				params...,
-			)
+			if testUser == "" {
+				session = binary.Run(backupWorkspace, env, params...)
+			} else {
+				session = binary.RunAs(testUser, backupWorkspace, env, params...)
+			}
 		} else {
-			session, stdin = binary.Start(
-				backupWorkspace,
-				env,
-				params...,
-			)
+			if testUser == "" {
+				session, stdin = binary.Start(backupWorkspace, env, params...)
+			} else {
+				session, stdin = binary.StartAs(testUser, backupWorkspace, env, params...)
+			}
 			Eventually(session).Should(gbytes.Say(".+"))
 		}
 	})
@@ -552,6 +555,11 @@ exit 1`)
 
 				Context("when the working directory is not writable", func() {
 					BeforeEach(func() {
+						currentUser, _ := user.Current()
+						if currentUser.Username == "root" {
+							testUser = "non-root"
+						}
+
 						os.Chmod(backupWorkspace, 0555)
 					})
 
