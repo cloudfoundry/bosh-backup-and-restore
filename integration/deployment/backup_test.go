@@ -557,7 +557,7 @@ exit 1`)
 					BeforeEach(func() {
 						currentUser, _ := user.Current()
 						if currentUser.Username == "root" {
-							testUser = "non-root"
+							testUser = "not-root"
 						}
 
 						os.Chmod(backupWorkspace, 0555)
