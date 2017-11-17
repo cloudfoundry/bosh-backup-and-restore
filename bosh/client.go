@@ -135,6 +135,10 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 					jobs,
 				),
 			)
+
+			if len(jobs) == 0 {
+				break
+			}
 		}
 	}
 

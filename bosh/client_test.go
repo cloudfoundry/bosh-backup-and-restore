@@ -344,6 +344,10 @@ var _ = Describe("Director", func() {
 						JobName: "job2",
 						ID:      "id3",
 					},
+					{
+						JobName: "job2",
+						ID:      "id4",
+					},
 				}, nil)
 				optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
 				boshDeployment.SetUpSSHStub = func(slug director.AllOrInstanceGroupOrInstanceSlug, sshOpts director.SSHOpts) (director.SSHResult, error) {
@@ -370,6 +374,12 @@ var _ = Describe("Director", func() {
 								IndexOrID:     "id3",
 								HostPublicKey: hostsPublicKey,
 							},
+							{
+								Username:      "username",
+								Host:          "hostname4",
+								IndexOrID:     "id4",
+								HostPublicKey: hostsPublicKey,
+							},
 						}}, nil
 					}
 				}
@@ -380,10 +390,22 @@ var _ = Describe("Director", func() {
 						instance.Metadata{},
 					),
 				}
-				fakeJobFinder.FindJobsReturns(instanceJobs, nil)
+				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier,
+					connection instance.SSHConnection, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
+					if instanceIdentifier.InstanceGroupName == "job2" {
+						return []orchestrator.Job{
+							instance.NewJob(sshConnection, "", boshLogger, "",
+								instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
+								instance.Metadata{},
+							),
+						}, nil
+					}
 
+					return []orchestrator.Job{}, nil
+				}
 				releaseMappingFinder.Returns(releaseMapping, nil)
 			})
+
 			It("collects the instances", func() {
 				Expect(actualInstances).To(Equal([]orchestrator.Instance{
 					bosh.NewBoshDeployedInstance(
@@ -394,17 +416,7 @@ var _ = Describe("Director", func() {
 						boshDeployment,
 						false,
 						boshLogger,
-						instanceJobs,
-					),
-					bosh.NewBoshDeployedInstance(
-						"job1",
-						"1",
-						"id2",
-						sshConnection,
-						boshDeployment,
-						false,
-						boshLogger,
-						instanceJobs,
+						[]orchestrator.Job{},
 					),
 					bosh.NewBoshDeployedInstance(
 						"job2",
@@ -416,8 +428,19 @@ var _ = Describe("Director", func() {
 						boshLogger,
 						instanceJobs,
 					),
+					bosh.NewBoshDeployedInstance(
+						"job2",
+						"1",
+						"id4",
+						sshConnection,
+						boshDeployment,
+						false,
+						boshLogger,
+						instanceJobs,
+					),
 				}))
 			})
+
 			It("does not fail", func() {
 				Expect(actualError).NotTo(HaveOccurred())
 			})
@@ -451,7 +474,7 @@ var _ = Describe("Director", func() {
 				Expect(opts).To(Equal(stubbedSshOpts))
 			})
 
-			It("creates a ssh connection to each host", func() {
+			It("creates a ssh connection to each host that has scripts, and the first instance of each group that doesn't", func() {
 				Expect(sshConnectionFactory.CallCount()).To(Equal(3))
 
 				host, username, privateKey, _, hostPublicKeyAlgorithm, logger := sshConnectionFactory.ArgsForCall(0)
@@ -462,25 +485,40 @@ var _ = Describe("Director", func() {
 				Expect(logger).To(Equal(boshLogger))
 
 				host, username, privateKey, _, hostPublicKeyAlgorithm, logger = sshConnectionFactory.ArgsForCall(1)
-				Expect(host).To(Equal("hostname2"))
+				Expect(host).To(Equal("hostname3"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
 				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithm))
 				Expect(logger).To(Equal(boshLogger))
 
 				host, username, privateKey, _, hostPublicKeyAlgorithm, logger = sshConnectionFactory.ArgsForCall(2)
-				Expect(host).To(Equal("hostname3"))
+				Expect(host).To(Equal("hostname4"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
 				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithm))
 				Expect(logger).To(Equal(boshLogger))
 			})
 
-			It("finds the jobs with the job finder", func() {
+			It("for each ssh connection, it finds the jobs with the job finder", func() {
 				Expect(fakeJobFinder.FindJobsCallCount()).To(Equal(3))
-			})
 
+				actualInstanceIdentifier, actualSshConnection, actualReleaseMapping := fakeJobFinder.FindJobsArgsForCall(0)
+				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id1"}))
+				Expect(actualSshConnection).To(Equal(sshConnection))
+				Expect(actualReleaseMapping).To(Equal(releaseMapping))
+
+				actualInstanceIdentifier, actualSshConnection, actualReleaseMapping = fakeJobFinder.FindJobsArgsForCall(1)
+				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id3"}))
+				Expect(actualSshConnection).To(Equal(sshConnection))
+				Expect(actualReleaseMapping).To(Equal(releaseMapping))
+
+				actualInstanceIdentifier, actualSshConnection, actualReleaseMapping = fakeJobFinder.FindJobsArgsForCall(2)
+				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id4"}))
+				Expect(actualSshConnection).To(Equal(sshConnection))
+				Expect(actualReleaseMapping).To(Equal(releaseMapping))
+			})
 		})
+
 		Context("failures", func() {
 			var expectedError = "er ma gerd"
 
