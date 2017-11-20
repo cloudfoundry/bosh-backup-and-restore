@@ -137,6 +137,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 			)
 
 			if len(jobs) == 0 {
+				c.Logger.Debug("bbr", "no scripts found on instance %s/%s, skipping rest of the instances for %s", instanceGroupName, host.IndexOrID, instanceGroupName)
 				break
 			}
 		}
