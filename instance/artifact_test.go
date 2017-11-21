@@ -118,7 +118,7 @@ var _ = Describe("artifact", func() {
 				})
 
 				It("generates the correct request", func() {
-					Expect(sshConnection.RunArgsForCall(0)).To(Equal("cd " + artifactDirectory + "; sudo sh -c 'find . -type f | xargs shasum -a 256'"))
+					Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo sh -c 'cd " + artifactDirectory + " && find . -type f | xargs shasum -a 256'"))
 				})
 			})
 
