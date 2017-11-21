@@ -130,7 +130,7 @@ func (b *Artifact) Size() (string, error) {
 func (b *Artifact) Checksum() (orchestrator.BackupChecksum, error) {
 	b.Logger.Debug("bbr", "Calculating shasum for remote files on %s/%s", b.instance.Name(), b.instance.ID())
 
-	stdout, stderr, exitCode, err := b.logAndRun(fmt.Sprintf("cd %s; sudo sh -c 'find . -type f | xargs shasum -a 256'", b.artifactDirectory), "checksum")
+	stdout, stderr, exitCode, err := b.logAndRun(fmt.Sprintf("sudo sh -c 'cd %s && find . -type f | xargs shasum -a 256'", b.artifactDirectory), "checksum")
 	if err != nil {
 		return nil, err
 	}

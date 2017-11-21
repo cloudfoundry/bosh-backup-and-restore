@@ -540,6 +540,16 @@ exit 1`)
 						})
 					})
 				})
+
+				Context("but /var/vcap/store is not world-accessible", func() {
+					BeforeEach(func() {
+						instance1.Run("sudo", "chmod", "700", "/var/vcap/store")
+					})
+
+					It("successfully backs up the deployment", func() {
+						Expect(session.ExitCode()).To(BeZero())
+					})
+				})
 			})
 
 			Context("and we ask for the manifest to be downloaded", func() {
@@ -563,7 +573,7 @@ exit 1`)
 			})
 		})
 
-		Context("when there is a multiple plausible backup scripts", func() {
+		Context("when there are multiple plausible backup scripts", func() {
 			BeforeEach(func() {
 				instance1 = testcluster.NewInstance()
 				By("creating a dummy backup script")
@@ -592,8 +602,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					CleanupSSH(deploymentName, "redis-dedicated-node"))
 			})
 
-			Context("and there are no pre-backup scripts", func() {
-				It("successfully backs up the deployment", func() {
+			It("successfully backs up the deployment", func() {
 					By("exiting zero", func() {
 						Expect(session.ExitCode()).To(BeZero())
 					})
@@ -650,7 +659,6 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
 					})
 				})
-			})
 		})
 
 		Context("when a deployment can't be backed up", func() {
