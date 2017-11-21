@@ -24,7 +24,14 @@ type Instance struct {
 
 const timeout = 10 * time.Second
 
+var pulled = false
+
 func NewInstance() *Instance {
+	if !pulled {
+		dockerRunAndWaitForSuccess("pull", "cloudfoundrylondon/backup-and-restore-node-with-ssh")
+		pulled = true
+	}
+
 	contents := dockerRunAndWaitForSuccess("run", "--publish", "22", "--detach", "cloudfoundrylondon/backup-and-restore-node-with-ssh")
 
 	dockerID := strings.TrimSpace(contents)
@@ -35,13 +42,8 @@ func NewInstance() *Instance {
 }
 
 func NewInstanceWithKeepAlive(aliveInterval int) *Instance {
-	contents := dockerRunAndWaitForSuccess("run", "--publish", "22", "--detach", "cloudfoundrylondon/backup-and-restore-node-with-ssh", "tail", "-f", "/dev/null")
+	instance := NewInstance()
 
-	dockerID := strings.TrimSpace(contents)
-
-	instance := &Instance{
-		dockerID: dockerID,
-	}
 	dockerRunAndWaitForSuccess("exec", instance.dockerID, "sed", "-i", fmt.Sprintf("s/^ClientAliveInterval .*/ClientAliveInterval %d/g", aliveInterval), "/etc/ssh/sshd_config")
 	dockerRunAndWaitForSuccess("exec", "--detach", instance.dockerID, "/usr/sbin/sshd")
 
