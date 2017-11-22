@@ -71,7 +71,7 @@ var _ = Describe("Director", func() {
 	})
 	Describe("FindInstances", func() {
 		var (
-			stubbedSshOpts  director.SSHOpts = director.SSHOpts{Username: "user"}
+			stubbedSshOpts  = director.SSHOpts{Username: "user"}
 			actualInstances []orchestrator.Instance
 			actualError     error
 			expectedJobs    orchestrator.Jobs
@@ -115,7 +115,7 @@ var _ = Describe("Director", func() {
 					"job1",
 					"0",
 					"jobID",
-					sshConnection,
+					instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "jobID"}, boshLogger),
 					boshDeployment,
 					false,
 					boshLogger,
@@ -258,7 +258,7 @@ var _ = Describe("Director", func() {
 						"job1",
 						"0",
 						"id1",
-						sshConnection,
+						instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id1"}, boshLogger),
 						boshDeployment,
 						false,
 						boshLogger,
@@ -268,7 +268,7 @@ var _ = Describe("Director", func() {
 						"job1",
 						"1",
 						"id2",
-						sshConnection,
+						instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id2"}, boshLogger),
 						boshDeployment,
 						false,
 						boshLogger,
@@ -412,7 +412,7 @@ var _ = Describe("Director", func() {
 						"job1",
 						"0",
 						"id1",
-						sshConnection,
+						instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id1"}, boshLogger),
 						boshDeployment,
 						false,
 						boshLogger,
@@ -422,7 +422,7 @@ var _ = Describe("Director", func() {
 						"job2",
 						"0",
 						"id3",
-						sshConnection,
+						instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id3"}, boshLogger),
 						boshDeployment,
 						false,
 						boshLogger,
@@ -432,7 +432,7 @@ var _ = Describe("Director", func() {
 						"job2",
 						"1",
 						"id4",
-						sshConnection,
+						instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id4"}, boshLogger),
 						boshDeployment,
 						false,
 						boshLogger,

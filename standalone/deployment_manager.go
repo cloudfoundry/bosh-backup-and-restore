@@ -34,7 +34,6 @@ func NewDeploymentManager(
 		jobFinder:         jobFinder,
 		connectionFactory: connectionFactory,
 	}
-
 }
 
 func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment, error) {
@@ -55,8 +54,9 @@ func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment
 		return nil, err
 	}
 
+	remoteRunner := instance.NewRemoteRunner(connection, instanceIdentifier, dm.Logger)
 	return orchestrator.NewDeployment(dm.Logger, []orchestrator.Instance{
-		NewDeployedInstance("bosh", connection, dm.Logger, jobs, false),
+		NewDeployedInstance("bosh", remoteRunner, dm.Logger, jobs, false),
 	}), nil
 }
 

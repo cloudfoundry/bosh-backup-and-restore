@@ -123,12 +123,13 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 				return nil, errors.Wrap(err, "couldn't find jobs")
 			}
 
+			remoteRunner := instance.NewRemoteRunner(sshConnection, instanceIdentifier, c.Logger)
 			instances = append(instances,
 				NewBoshDeployedInstance(
 					instanceGroupName,
 					strconv.Itoa(index),
 					host.IndexOrID,
-					sshConnection,
+					remoteRunner,
 					deployment,
 					false,
 					c.Logger,

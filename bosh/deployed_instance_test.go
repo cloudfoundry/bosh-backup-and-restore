@@ -47,7 +47,16 @@ var _ = Describe("BoshDeployedInstance", func() {
 
 	JustBeforeEach(func() {
 		sshConnection.UsernameReturns("sshUsername")
-		backuperInstance = bosh.NewBoshDeployedInstance(jobName, jobIndex, jobID, sshConnection, boshDeployment, artifactDirCreated, boshLogger, []orchestrator.Job{})
+		backuperInstance = bosh.NewBoshDeployedInstance(
+			jobName,
+			jobIndex,
+			jobID,
+			instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{}, boshLogger),
+			boshDeployment,
+			artifactDirCreated,
+			boshLogger,
+			[]orchestrator.Job{},
+		)
 	})
 
 	Describe("Cleanup", func() {

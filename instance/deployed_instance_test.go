@@ -42,7 +42,7 @@ var _ = Describe("DeployedInstance", func() {
 			instanceGroupName,
 			instanceID,
 			false,
-			sshConnection,
+			instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: instanceGroupName, InstanceId: instanceID}, boshLogger),
 			boshLogger,
 			jobs)
 	})

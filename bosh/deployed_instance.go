@@ -3,7 +3,6 @@ package bosh
 import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/pkg/errors"
 )
@@ -16,7 +15,7 @@ type BoshDeployedInstance struct {
 func NewBoshDeployedInstance(instanceGroupName,
 	instanceIndex,
 	instanceID string,
-	connection ssh.SSHConnection,
+	remoteRunner instance.RemoteRunner,
 	deployment director.Deployment,
 	artifactDirectoryCreated bool,
 	logger Logger,
@@ -24,7 +23,7 @@ func NewBoshDeployedInstance(instanceGroupName,
 ) orchestrator.Instance {
 	return &BoshDeployedInstance{
 		Deployment:       deployment,
-		DeployedInstance: instance.NewDeployedInstance(instanceIndex, instanceGroupName, instanceID, artifactDirectoryCreated, connection, logger, jobs),
+		DeployedInstance: instance.NewDeployedInstance(instanceIndex, instanceGroupName, instanceID, artifactDirectoryCreated, remoteRunner, logger, jobs),
 	}
 }
 
@@ -64,5 +63,5 @@ func (i *BoshDeployedInstance) CleanupPrevious() error {
 
 func (i *BoshDeployedInstance) cleanupSSHConnections() error {
 	i.Logger.Debug("bbr", "Cleaning up SSH connection on instance %s %s", i.Name(), i.ID())
-	return i.Deployment.CleanUpSSH(director.NewAllOrInstanceGroupOrInstanceSlug(i.Name(), i.ID()), director.SSHOpts{Username: i.SSHConnection.Username()})
+	return i.Deployment.CleanUpSSH(director.NewAllOrInstanceGroupOrInstanceSlug(i.Name(), i.ID()), director.SSHOpts{Username: i.ConnectedUsername()})
 }

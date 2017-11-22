@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/pkg/errors"
 )
 
@@ -13,48 +12,29 @@ type DeployedInstance struct {
 	instanceID                    string
 	instanceGroupName             string
 	artifactDirCreated            bool
-	ssh.SSHConnection
 	Logger
 	jobs                          orchestrator.Jobs
+	remoteRunner                  RemoteRunner
 }
 
-func NewDeployedInstance(instanceIndex string, instanceGroupName string, instanceID string, artifactDirCreated bool, connection ssh.SSHConnection, logger Logger, jobs orchestrator.Jobs) *DeployedInstance {
-	deployedInstance := &DeployedInstance{
+func NewDeployedInstance(instanceIndex string, instanceGroupName string, instanceID string, artifactDirCreated bool, remoteRunner RemoteRunner, logger Logger, jobs orchestrator.Jobs) *DeployedInstance {
+	return &DeployedInstance{
 		backupAndRestoreInstanceIndex: instanceIndex,
 		instanceGroupName:             instanceGroupName,
 		instanceID:                    instanceID,
 		artifactDirCreated:            artifactDirCreated,
-		SSHConnection:                 connection,
 		Logger:                        logger,
 		jobs:                          jobs,
+		remoteRunner:                  remoteRunner,
 	}
-	return deployedInstance
 }
 
 func (i *DeployedInstance) ArtifactDirExists() (bool, error) {
-	_, _, exitCode, err := i.runOnInstance(
-		fmt.Sprintf(
-			"stat %s",
-			orchestrator.ArtifactDirectory,
-		),
-		"artifact directory check",
-	)
-
-	return exitCode == 0, err
+	return i.remoteRunner.directoryExists(orchestrator.ArtifactDirectory)
 }
 
 func (i *DeployedInstance) RemoveArtifactDir() error {
-	_, stdErr, exitCode, err := i.runOnInstance(fmt.Sprintf("sudo rm -rf %s", orchestrator.ArtifactDirectory), "remove artifact directory")
-
-	if err != nil {
-		return err
-	}
-
-	if exitCode != 0 {
-		return errors.New(string(stdErr))
-	}
-
-	return err
+	return i.remoteRunner.removeDirectory(orchestrator.ArtifactDirectory)
 }
 
 func (i *DeployedInstance) IsBackupable() bool {
@@ -141,7 +121,7 @@ func (i *DeployedInstance) ArtifactsToBackup() []orchestrator.BackupArtifact {
 	artifacts := []orchestrator.BackupArtifact{}
 
 	for _, job := range i.jobs.Backupable() {
-		artifacts = append(artifacts, NewBackupArtifact(job, i, i.SSHConnection, i.Logger))
+		artifacts = append(artifacts, NewBackupArtifact(job, i, i.remoteRunner.connection, i.Logger))
 	}
 
 	return artifacts
@@ -151,24 +131,10 @@ func (i *DeployedInstance) ArtifactsToRestore() []orchestrator.BackupArtifact {
 	artifacts := []orchestrator.BackupArtifact{}
 
 	for _, job := range i.jobs.Restorable() {
-		artifacts = append(artifacts, NewRestoreArtifact(job, i, i.SSHConnection, i.Logger))
+		artifacts = append(artifacts, NewRestoreArtifact(job, i, i.remoteRunner.connection, i.Logger))
 	}
 
 	return artifacts
-}
-
-func (i *DeployedInstance) runOnInstance(cmd, label string) ([]byte, []byte, int, error) {
-	i.Logger.Debug("bbr", "Running %s on %s/%s", label, i.instanceGroupName, i.instanceID)
-
-	stdout, stderr, exitCode, err := i.Run(cmd)
-	i.Logger.Debug("bbr", "Stdout: %s", string(stdout))
-	i.Logger.Debug("bbr", "Stderr: %s", string(stderr))
-
-	if err != nil {
-		i.Logger.Debug("bbr", "Error running %s on instance %s/%s. Exit code %d, error: %s", label, i.instanceGroupName, i.instanceID, exitCode, err.Error())
-	}
-
-	return stdout, stderr, exitCode, err
 }
 
 func (i *DeployedInstance) Name() string {
@@ -181,6 +147,10 @@ func (i *DeployedInstance) Index() string {
 
 func (i *DeployedInstance) ID() string {
 	return i.instanceID
+}
+
+func (i *DeployedInstance) ConnectedUsername() string {
+	return i.remoteRunner.connection.Username()
 }
 
 func (i *DeployedInstance) handleErrs(jobName, label string, err error, exitCode int, stdout, stderr []byte) error {
