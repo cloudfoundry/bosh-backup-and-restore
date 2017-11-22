@@ -15,7 +15,7 @@ type DeployedInstance struct {
 	artifactDirCreated            bool
 	ssh.SSHConnection
 	Logger
-	jobs orchestrator.Jobs
+	jobs                          orchestrator.Jobs
 }
 
 func NewDeployedInstance(instanceIndex string, instanceGroupName string, instanceID string, artifactDirCreated bool, connection ssh.SSHConnection, logger Logger, jobs orchestrator.Jobs) *DeployedInstance {
@@ -32,7 +32,7 @@ func NewDeployedInstance(instanceIndex string, instanceGroupName string, instanc
 }
 
 func (i *DeployedInstance) ArtifactDirExists() (bool, error) {
-	_, _, exitCode, err := i.RunOnInstance(
+	_, _, exitCode, err := i.runOnInstance(
 		fmt.Sprintf(
 			"stat %s",
 			orchestrator.ArtifactDirectory,
@@ -41,6 +41,20 @@ func (i *DeployedInstance) ArtifactDirExists() (bool, error) {
 	)
 
 	return exitCode == 0, err
+}
+
+func (i *DeployedInstance) RemoveArtifactDir() error {
+	_, stdErr, exitCode, err := i.runOnInstance(fmt.Sprintf("sudo rm -rf %s", orchestrator.ArtifactDirectory), "remove artifact directory")
+
+	if err != nil {
+		return err
+	}
+
+	if exitCode != 0 {
+		return errors.New(string(stdErr))
+	}
+
+	return err
 }
 
 func (i *DeployedInstance) IsBackupable() bool {
@@ -143,7 +157,7 @@ func (i *DeployedInstance) ArtifactsToRestore() []orchestrator.BackupArtifact {
 	return artifacts
 }
 
-func (i *DeployedInstance) RunOnInstance(cmd, label string) ([]byte, []byte, int, error) {
+func (i *DeployedInstance) runOnInstance(cmd, label string) ([]byte, []byte, int, error) {
 	i.Logger.Debug("bbr", "Running %s on %s/%s", label, i.instanceGroupName, i.instanceID)
 
 	stdout, stderr, exitCode, err := i.Run(cmd)

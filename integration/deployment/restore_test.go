@@ -435,7 +435,6 @@ touch /tmp/restore-script-was-run`)
 						By("should output buffered logs", func() {
 							Expect(string(session.Out.Contents())).NotTo(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
 						})
-
 					})
 				})
 			})

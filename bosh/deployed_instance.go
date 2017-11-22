@@ -1,8 +1,6 @@
 package bosh
 
 import (
-	"fmt"
-
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
@@ -34,7 +32,7 @@ func (i *BoshDeployedInstance) Cleanup() error {
 	var errs []error
 
 	if i.ArtifactDirCreated() {
-		removeArtifactError := i.removeBackupArtifacts()
+		removeArtifactError := i.RemoveArtifactDir()
 		if removeArtifactError != nil {
 			errs = append(errs, errors.Wrap(removeArtifactError, "failed to remove backup artifact"))
 		}
@@ -51,7 +49,7 @@ func (i *BoshDeployedInstance) Cleanup() error {
 func (i *BoshDeployedInstance) CleanupPrevious() error {
 	var errs []error
 
-	removeArtifactError := i.removeBackupArtifacts()
+	removeArtifactError := i.RemoveArtifactDir()
 	if removeArtifactError != nil {
 		errs = append(errs, errors.Wrap(removeArtifactError, "failed to remove backup artifact"))
 	}
@@ -62,11 +60,6 @@ func (i *BoshDeployedInstance) CleanupPrevious() error {
 	}
 
 	return orchestrator.ConvertErrors(errs)
-}
-
-func (i *BoshDeployedInstance) removeBackupArtifacts() error {
-	_, _, _, err := i.RunOnInstance(fmt.Sprintf("sudo rm -rf %s", orchestrator.ArtifactDirectory), "remove backup artifacts")
-	return err
 }
 
 func (i *BoshDeployedInstance) cleanupSSHConnections() error {

@@ -196,7 +196,7 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("returns an error", func() {
-				Expect(err).To(MatchError("Unable to clean up backup artifact"))
+				Expect(err).To(MatchError(ContainSubstring("Unable to clean up backup artifact")))
 			})
 		})
 
@@ -253,7 +253,7 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("returns an error", func() {
-				Expect(err).To(MatchError("Unable to clean up backup artifact"))
+				Expect(err).To(MatchError(ContainSubstring("Unable to clean up backup artifact")))
 			})
 		})
 

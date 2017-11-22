@@ -1,8 +1,6 @@
 package standalone
 
 import (
-	"fmt"
-
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
@@ -35,15 +33,10 @@ func (i DeployedInstance) CleanupPrevious() error {
 func (i DeployedInstance) cleanupArtifact() error{
 	i.Logger.Info("", "Cleaning up...")
 
-	_, _, exitCode, err := i.RunOnInstance(fmt.Sprintf("sudo rm -rf %s", orchestrator.ArtifactDirectory), "cleanup backup artifacts")
-
+	err := i.RemoveArtifactDir()
 	if err != nil {
 		i.Logger.Error("", "Backup artifact clean up failed")
-		return errors.Wrap(err, "standalone.DeployedInstance.Cleanup failed")
-	}
-
-	if exitCode != 0 {
-		return errors.New("Unable to clean up backup artifact")
+		return errors.Wrap(err, "Unable to clean up backup artifact")
 	}
 
 	return nil
