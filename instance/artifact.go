@@ -126,17 +126,3 @@ func (b *Artifact) InstanceIndex() string {
 func (b *Artifact) InstanceName() string {
 	return b.instance.Name()
 }
-
-func (b *Artifact) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
-	b.Logger.Debug("bbr", "Running %s on %s/%s", label, b.instance.Name(), b.instance.ID())
-
-	stdout, stderr, exitCode, err := b.remoteRunner.connection.Run(cmd)
-	b.Logger.Debug("bbr", "Stdout: %s", string(stdout))
-	b.Logger.Debug("bbr", "Stderr: %s", string(stderr))
-
-	if err != nil {
-		b.Logger.Debug("bbr", "Error running %s on instance %s/%s. Exit code %d, error: %s", label, b.instance.Name(), b.instance.ID(), exitCode, err.Error())
-	}
-
-	return stdout, stderr, exitCode, err
-}
