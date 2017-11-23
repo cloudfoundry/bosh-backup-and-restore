@@ -150,7 +150,7 @@ func (i *DeployedInstance) ID() string {
 }
 
 func (i *DeployedInstance) ConnectedUsername() string {
-	return i.remoteRunner.connection.Username()
+	return i.remoteRunner.connectedUsername()
 }
 
 func (i *DeployedInstance) handleErrs(jobName, label string, err error, exitCode int, stdout, stderr []byte) error {

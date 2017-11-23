@@ -22,6 +22,10 @@ func NewRemoteRunner(connection ssh.SSHConnection, instanceId InstanceIdentifier
 	}
 }
 
+func (r RemoteRunner) connectedUsername() string {
+	return r.connection.Username()
+}
+
 func (r RemoteRunner) directoryExists(dir string) (bool, error) {
 	_, _, exitCode, err := r.connection.Run(fmt.Sprintf("stat %s", dir))
 	return exitCode == 0, err
