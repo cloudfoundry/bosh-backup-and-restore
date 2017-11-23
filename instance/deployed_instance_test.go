@@ -866,6 +866,7 @@ var _ = Describe("DeployedInstance", func() {
 
 	Describe("ArtifactsToBackup", func() {
 		var backupArtifacts []orchestrator.BackupArtifact
+		var instanceIdentifier instance.InstanceIdentifier
 
 		var jobWithBackupScript1 = instance.NewJob(sshConnection,
 			instanceGroupName+"/"+instanceID,
@@ -904,6 +905,10 @@ var _ = Describe("DeployedInstance", func() {
 			[]instance.Script{"/var/vcap/jobs/job-with-only-lock-script/bin/bbr/pre-backup-lock"},
 			instance.Metadata{})
 
+		BeforeEach(func() {
+			instanceIdentifier = instance.InstanceIdentifier{InstanceGroupName: instanceGroupName, InstanceId: instanceID}
+		})
+
 		JustBeforeEach(func() {
 			backupArtifacts = deployedInstance.ArtifactsToBackup()
 		})
@@ -919,8 +924,8 @@ var _ = Describe("DeployedInstance", func() {
 
 			It("returns artifacts with default names", func() {
 				Expect(backupArtifacts).To(ConsistOf(
-					instance.NewBackupArtifact(jobWithBackupScript1, deployedInstance, sshConnection, boshLogger),
-					instance.NewBackupArtifact(jobWithBackupScript2, deployedInstance, sshConnection, boshLogger),
+					instance.NewBackupArtifact(jobWithBackupScript1, deployedInstance, instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger), boshLogger),
+					instance.NewBackupArtifact(jobWithBackupScript2, deployedInstance, instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger), boshLogger),
 				))
 			})
 		})
@@ -935,12 +940,12 @@ var _ = Describe("DeployedInstance", func() {
 					instance.NewBackupArtifact(
 						jobWithBackupScript1,
 						deployedInstance,
-						sshConnection,
+						instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger),
 						boshLogger),
 					instance.NewBackupArtifact(
 						jobWithBackupScriptAndMetadata,
 						deployedInstance,
-						sshConnection,
+						instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger),
 						boshLogger),
 				))
 			})
@@ -957,7 +962,7 @@ var _ = Describe("DeployedInstance", func() {
 						instance.NewBackupArtifact(
 							jobWithBackupScriptAndMetadata,
 							deployedInstance,
-							sshConnection,
+							instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger),
 							boshLogger,
 						),
 					},
@@ -976,7 +981,7 @@ var _ = Describe("DeployedInstance", func() {
 						instance.NewBackupArtifact(
 							jobWithBackupScript1,
 							deployedInstance,
-							sshConnection,
+							instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger),
 							boshLogger,
 						),
 					},
@@ -987,6 +992,7 @@ var _ = Describe("DeployedInstance", func() {
 
 	Describe("ArtifactsToRestore", func() {
 		var restoreArtifacts []orchestrator.BackupArtifact
+		var instanceIdentifier instance.InstanceIdentifier
 
 		var jobWithRestoreScript1 = instance.NewJob(sshConnection,
 			instanceGroupName+"/"+instanceID,
@@ -1029,6 +1035,10 @@ var _ = Describe("DeployedInstance", func() {
 			restoreArtifacts = deployedInstance.ArtifactsToRestore()
 		})
 
+		BeforeEach(func() {
+			instanceIdentifier = instance.InstanceIdentifier{InstanceGroupName: instanceGroupName, InstanceId: instanceID}
+		})
+
 		Context("Has no named restore artifacts", func() {
 			BeforeEach(func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{
@@ -1040,8 +1050,8 @@ var _ = Describe("DeployedInstance", func() {
 
 			It("returns the default artifacts", func() {
 				Expect(restoreArtifacts).To(ConsistOf(
-					instance.NewRestoreArtifact(jobWithRestoreScript1, deployedInstance, sshConnection, boshLogger),
-					instance.NewRestoreArtifact(jobWithRestoreScript2, deployedInstance, sshConnection, boshLogger),
+					instance.NewRestoreArtifact(jobWithRestoreScript1, deployedInstance, instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger), boshLogger),
+					instance.NewRestoreArtifact(jobWithRestoreScript2, deployedInstance, instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger), boshLogger),
 				))
 			})
 		})
@@ -1053,8 +1063,8 @@ var _ = Describe("DeployedInstance", func() {
 
 			It("returns the named artifact and the default artifact", func() {
 				Expect(restoreArtifacts).To(ConsistOf(
-					instance.NewRestoreArtifact(jobWithRestoreScript1, deployedInstance, sshConnection, boshLogger),
-					instance.NewRestoreArtifact(jobWithRestoreScriptAndMetadata, deployedInstance, sshConnection, boshLogger),
+					instance.NewRestoreArtifact(jobWithRestoreScript1, deployedInstance, instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger), boshLogger),
+					instance.NewRestoreArtifact(jobWithRestoreScriptAndMetadata, deployedInstance, instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger), boshLogger),
 				))
 			})
 		})
@@ -1067,7 +1077,7 @@ var _ = Describe("DeployedInstance", func() {
 			It("returns only the named artifact", func() {
 				Expect(restoreArtifacts).To(Equal(
 					[]orchestrator.BackupArtifact{
-						instance.NewRestoreArtifact(jobWithRestoreScriptAndMetadata, deployedInstance, sshConnection, boshLogger),
+						instance.NewRestoreArtifact(jobWithRestoreScriptAndMetadata, deployedInstance, instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger), boshLogger),
 					},
 				))
 			})
@@ -1084,7 +1094,7 @@ var _ = Describe("DeployedInstance", func() {
 						instance.NewBackupArtifact(
 							jobWithRestoreScript1,
 							deployedInstance,
-							sshConnection,
+							instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger),
 							boshLogger,
 						),
 					},

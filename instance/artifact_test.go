@@ -66,7 +66,7 @@ var _ = Describe("artifact", func() {
 
 			Describe("when there is an error tarring the backup", func() {
 				BeforeEach(func() {
-					sshConnection.StreamReturns([]byte("not relevant"), 1, nil)
+					sshConnection.StreamReturns([]byte("stderr"), 1, nil)
 				})
 
 				It("uses the ssh connection to tar the backup and stream it to the local machine", func() {
@@ -78,7 +78,7 @@ var _ = Describe("artifact", func() {
 				})
 
 				It("fails", func() {
-					Expect(err).To(MatchError(ContainSubstring("not relevant")))
+					Expect(err).To(MatchError(ContainSubstring("stderr")))
 				})
 			})
 
@@ -86,7 +86,7 @@ var _ = Describe("artifact", func() {
 				var sshError error
 
 				BeforeEach(func() {
-					sshError = fmt.Errorf("SHH causing problems here")
+					sshError = fmt.Errorf("SSH causing problems here")
 					sshConnection.StreamReturns([]byte("not relevant"), -1, sshError)
 				})
 
@@ -180,7 +180,7 @@ var _ = Describe("artifact", func() {
 				})
 
 				It("returns an error", func() {
-					Expect(actualChecksumError).To(MatchError(expectedErr))
+					Expect(actualChecksumError).To(MatchError(ContainSubstring("some error")))
 				})
 			})
 
@@ -190,7 +190,7 @@ var _ = Describe("artifact", func() {
 				})
 
 				It("returns an error", func() {
-					Expect(actualChecksumError).To(MatchError(ContainSubstring("instance checksum returned 1")))
+					Expect(actualChecksumError).To(MatchError(ContainSubstring("Unable to calculate backup checksum")))
 				})
 			})
 		})
@@ -220,7 +220,7 @@ var _ = Describe("artifact", func() {
 				})
 
 				It("fails", func() {
-					Expect(err).To(MatchError(expectedErr))
+					Expect(err).To(MatchError(ContainSubstring("nope")))
 				})
 			})
 
@@ -231,7 +231,7 @@ var _ = Describe("artifact", func() {
 
 				It("fails", func() {
 					Expect(err).To(MatchError(ContainSubstring(
-						"Error deleting artifact on instance redis/foo. Directory name " + artifactDirectory + ". Exit code 1",
+						"Unable to delete artifact directory on instance redis/foo",
 					)))
 				})
 			})
@@ -270,7 +270,7 @@ var _ = Describe("artifact", func() {
 				It("returns the size of the backup according to the root user, as a string", func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(1))
 					Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh " + artifactDirectory + " | cut -f1"))
-					Expect(err).To(MatchError(ContainSubstring("Unable to check size of backup")))
+					Expect(err).To(MatchError(ContainSubstring("Unable to check size of "+artifactDirectory)))
 				})
 			})
 
@@ -288,7 +288,7 @@ var _ = Describe("artifact", func() {
 
 				It("returns the error", func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					Expect(err).To(MatchError(actualError))
+					Expect(err).To(MatchError(ContainSubstring("oh noes, more errors")))
 				})
 			})
 
@@ -343,11 +343,11 @@ var _ = Describe("artifact", func() {
 
 			Describe("when creating the directory fails on the remote", func() {
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 1, nil)
+					sshConnection.RunReturns([]byte("stdout"), []byte("stderr"), 1, nil)
 				})
 
 				It("fails and returns the error", func() {
-					Expect(err).To(MatchError(ContainSubstring("Creating backup directory on the remote returned 1")))
+					Expect(err).To(MatchError("Creating backup directory on the remote failed: stderr - exit code 1"))
 				})
 			})
 
@@ -357,7 +357,7 @@ var _ = Describe("artifact", func() {
 				})
 
 				It("fails and returns the error", func() {
-					Expect(err).To(MatchError("I refuse to create you this directory."))
+					Expect(err).To(MatchError(ContainSubstring("I refuse to create you this directory.")))
 				})
 			})
 		})
@@ -365,7 +365,7 @@ var _ = Describe("artifact", func() {
 
 	Context("BackupArtifact", func() {
 		JustBeforeEach(func() {
-			backupArtifact = instance.NewBackupArtifact(job, testInstance, sshConnection, boshLogger)
+			backupArtifact = instance.NewBackupArtifact(job, testInstance, instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{}, boshLogger), boshLogger)
 		})
 
 		Context("Named Artifact", func() {
@@ -425,7 +425,7 @@ var _ = Describe("artifact", func() {
 
 	Context("RestoreArtifact", func() {
 		JustBeforeEach(func() {
-			backupArtifact = instance.NewRestoreArtifact(job, testInstance, sshConnection, boshLogger)
+			backupArtifact = instance.NewRestoreArtifact(job, testInstance, instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{}, boshLogger), boshLogger)
 		})
 
 		Context("Named Artifact", func() {

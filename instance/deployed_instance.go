@@ -121,7 +121,7 @@ func (i *DeployedInstance) ArtifactsToBackup() []orchestrator.BackupArtifact {
 	artifacts := []orchestrator.BackupArtifact{}
 
 	for _, job := range i.jobs.Backupable() {
-		artifacts = append(artifacts, NewBackupArtifact(job, i, i.remoteRunner.connection, i.Logger))
+		artifacts = append(artifacts, NewBackupArtifact(job, i, i.remoteRunner, i.Logger))
 	}
 
 	return artifacts
@@ -131,7 +131,7 @@ func (i *DeployedInstance) ArtifactsToRestore() []orchestrator.BackupArtifact {
 	artifacts := []orchestrator.BackupArtifact{}
 
 	for _, job := range i.jobs.Restorable() {
-		artifacts = append(artifacts, NewRestoreArtifact(job, i, i.remoteRunner.connection, i.Logger))
+		artifacts = append(artifacts, NewRestoreArtifact(job, i, i.remoteRunner, i.Logger))
 	}
 
 	return artifacts

@@ -3,11 +3,9 @@ package instance
 import (
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/pkg/errors"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 )
 
 //go:generate counterfeiter -o fakes/fake_logger.go . Logger
@@ -17,7 +15,7 @@ type Logger interface {
 	Error(tag, msg string, args ...interface{})
 }
 
-func NewBackupArtifact(job orchestrator.Job, instance orchestrator.InstanceIdentifer, sshConn ssh.SSHConnection, logger Logger) *Artifact {
+func NewBackupArtifact(job orchestrator.Job, instance orchestrator.InstanceIdentifer, remoteRunner RemoteRunner, logger Logger) *Artifact {
 	var name string
 	if job.HasNamedBackupArtifact() {
 		name = job.BackupArtifactName()
@@ -29,12 +27,12 @@ func NewBackupArtifact(job orchestrator.Job, instance orchestrator.InstanceIdent
 		artifactDirectory: job.BackupArtifactDirectory(),
 		name:              name,
 		instance:          instance,
-		SSHConnection:     sshConn,
+		remoteRunner:      remoteRunner,
 		Logger:            logger,
 	}
 }
 
-func NewRestoreArtifact(job orchestrator.Job, instance orchestrator.InstanceIdentifer, sshConn ssh.SSHConnection, logger Logger) *Artifact {
+func NewRestoreArtifact(job orchestrator.Job, instance orchestrator.InstanceIdentifer, remoteRunner RemoteRunner, logger Logger) *Artifact {
 	var name string
 	if job.HasNamedRestoreArtifact() {
 		name = job.RestoreArtifactName()
@@ -46,7 +44,7 @@ func NewRestoreArtifact(job orchestrator.Job, instance orchestrator.InstanceIden
 		artifactDirectory: job.RestoreArtifactDirectory(),
 		name:              name,
 		instance:          instance,
-		SSHConnection:     sshConn,
+		remoteRunner:      remoteRunner,
 		Logger:            logger,
 	}
 }
@@ -57,83 +55,60 @@ type Artifact struct {
 	artifactDirectory string
 	name              string
 	instance          orchestrator.InstanceIdentifer
-	ssh.SSHConnection
 	Logger
+	remoteRunner      RemoteRunner
 }
 
 func (b *Artifact) StreamFromRemote(writer io.Writer) error {
 	b.Logger.Debug("bbr", "Streaming backup from instance %s/%s", b.instance.Name(), b.instance.ID())
-	stderr, exitCode, err := b.Stream(fmt.Sprintf("sudo tar -C %s -c .", b.artifactDirectory), writer)
-
-	b.Logger.Debug("bbr", "Stderr: %s", string(stderr))
-
+	err := b.remoteRunner.compressDirectory(b.artifactDirectory, writer)
 	if err != nil {
-		b.Logger.Debug("bbr", "Error streaming backup from remote instance. Exit code %d, error %s", exitCode, err.Error())
-		return errors.Wrap(err, fmt.Sprintf("Error streaming backup from remote instance. Exit code %d, error %s, stderr %s", exitCode, err, stderr))
-	}
-
-	if exitCode != 0 {
-		return errors.Errorf("Streaming backup from remote instance returned %d. Error: %s", exitCode, stderr)
+		return errors.Wrap(err, fmt.Sprintf("Error streaming backup from remote instance. Error: %s", err.Error()))
 	}
 
 	return nil
 }
 
 func (b *Artifact) StreamToRemote(reader io.Reader) error {
-	stdout, stderr, exitCode, err := b.logAndRun("sudo mkdir -p "+b.artifactDirectory, "create backup directory on remote")
-
+	err := b.remoteRunner.createDirectory(b.artifactDirectory)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "Creating backup directory on the remote failed")
 	}
 
-	if exitCode != 0 {
-		return errors.Errorf("Creating backup directory on the remote returned %d. Error: %s", exitCode, stderr)
-	}
-
-	b.Logger.Debug("bbr", "Streaming backup to instance %s/%s", b.instance.Name(), b.instance.ID())
-	stdout, stderr, exitCode, err = b.StreamStdin(fmt.Sprintf("sudo sh -c 'tar -C %s -x'", b.artifactDirectory), reader)
-
-	b.Logger.Debug("bbr", "Stdout: %s", string(stdout))
-	b.Logger.Debug("bbr", "Stderr: %s", string(stderr))
-
-	if err != nil {
-		b.Logger.Debug("bbr", "Error streaming backup to remote instance. Exit code %d, error %s", exitCode, err.Error())
-		return errors.Wrap(err, fmt.Sprintf("Error running instance backup scripts. Exit code %d, error %s, stderr %s", exitCode, err, stderr))
-	}
-
-	if exitCode != 0 {
-		return errors.Errorf("Streaming backup to remote instance returned %d. Error: %s", exitCode, stderr)
-	}
-
-	return nil
+	return b.remoteRunner.extractArchive(reader, b.artifactDirectory)
 }
 
 func (b *Artifact) Size() (string, error) {
-	stdout, stderr, exitCode, err := b.logAndRun(fmt.Sprintf("sudo du -sh %s | cut -f1", b.artifactDirectory), "check backup size")
+	b.Logger.Debug("bbr", "Calculating size of backup on %s/%s", b.instance.Name(), b.instance.ID())
+
+	size, err := b.remoteRunner.sizeOf(b.artifactDirectory)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, fmt.Sprintf("Unable to check size of %s", b.artifactDirectory))
 	}
 
-	if exitCode != 0 {
-		return "", errors.Errorf("Unable to check size of backup: %s", stderr)
-	}
-
-	return strings.TrimSpace(string(stdout)), nil
+	return size, nil
 }
 
 func (b *Artifact) Checksum() (orchestrator.BackupChecksum, error) {
 	b.Logger.Debug("bbr", "Calculating shasum for remote files on %s/%s", b.instance.Name(), b.instance.ID())
 
-	stdout, stderr, exitCode, err := b.logAndRun(fmt.Sprintf("sudo sh -c 'cd %s && find . -type f | xargs shasum -a 256'", b.artifactDirectory), "checksum")
+	backupChecksum, err := b.remoteRunner.checksumDirectory(b.artifactDirectory)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Unable to calculate backup checksum")
 	}
 
-	if exitCode != 0 {
-		return nil, errors.Errorf("instance checksum returned %d. Error: %s", exitCode, stderr)
+	return backupChecksum, nil
+}
+
+func (b *Artifact) Delete() error {
+	b.Logger.Debug("bbr", "Deleting artifact directory on %s/%s", b.instance.Name(), b.instance.ID())
+
+	err := b.remoteRunner.removeDirectory(b.artifactDirectory)
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("Unable to delete artifact directory on instance %s/%s", b.instance.Name(), b.instance.ID()))
 	}
 
-	return convertShasToMap(string(stdout)), nil
+	return nil
 }
 
 func (b *Artifact) HasCustomName() bool {
@@ -155,7 +130,7 @@ func (b *Artifact) InstanceName() string {
 func (b *Artifact) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
 	b.Logger.Debug("bbr", "Running %s on %s/%s", label, b.instance.Name(), b.instance.ID())
 
-	stdout, stderr, exitCode, err := b.Run(cmd)
+	stdout, stderr, exitCode, err := b.remoteRunner.connection.Run(cmd)
 	b.Logger.Debug("bbr", "Stdout: %s", string(stdout))
 	b.Logger.Debug("bbr", "Stderr: %s", string(stderr))
 
@@ -164,31 +139,4 @@ func (b *Artifact) logAndRun(cmd, label string) ([]byte, []byte, int, error) {
 	}
 
 	return stdout, stderr, exitCode, err
-}
-
-func (b *Artifact) Delete() error {
-	_, _, exitCode, err := b.logAndRun(fmt.Sprintf("sudo rm -rf %s", b.artifactDirectory), "deleting named artifact")
-
-	if exitCode != 0 {
-		return errors.Errorf("Error deleting artifact on instance %s/%s. Directory name %s. Exit code %d", b.instance.Name(), b.instance.ID(), b.artifactDirectory, exitCode)
-	}
-
-	return err
-}
-
-func convertShasToMap(shas string) map[string]string {
-	mapOfSha := map[string]string{}
-	shas = strings.TrimSpace(shas)
-	if shas == "" {
-		return mapOfSha
-	}
-	for _, line := range strings.Split(shas, "\n") {
-		parts := strings.SplitN(line, " ", 2)
-		filename := strings.TrimSpace(parts[1])
-		if filename == "-" {
-			continue
-		}
-		mapOfSha[filename] = parts[0]
-	}
-	return mapOfSha
 }
