@@ -8,45 +8,57 @@ import (
 	"strings"
 )
 
-type RemoteRunner struct {
+//go:generate counterfeiter -o fakes/fake_remote_runner.go . RemoteRunner
+type RemoteRunner interface {
+	ConnectedUsername() string
+	DirectoryExists(dir string) (bool, error)
+	RemoveDirectory(dir string) error
+	CompressDirectory(directory string, writer io.Writer) error
+	CreateDirectory(directory string) error
+	ExtractArchive(reader io.Reader, directory string) error
+	SizeOf(path string) (string, error)
+	ChecksumDirectory(path string) (map[string]string, error)
+}
+
+type SshRemoteRunner struct {
 	instanceIdentifier InstanceIdentifier
 	logger             Logger
 	connection         ssh.SSHConnection
 }
 
-func NewRemoteRunner(connection ssh.SSHConnection, instanceId InstanceIdentifier, logger Logger) RemoteRunner {
-	return RemoteRunner{
-		connection:         connection,
+func NewRemoteRunner(sshConnection ssh.SSHConnection, instanceId InstanceIdentifier, logger Logger) SshRemoteRunner {
+	return SshRemoteRunner{
+		connection:         sshConnection,
 		instanceIdentifier: instanceId,
 		logger:             logger,
 	}
 }
 
-func (r RemoteRunner) connectedUsername() string {
+func (r SshRemoteRunner) ConnectedUsername() string {
 	return r.connection.Username()
 }
 
-func (r RemoteRunner) directoryExists(dir string) (bool, error) {
+func (r SshRemoteRunner) DirectoryExists(dir string) (bool, error) {
 	_, _, exitCode, err := r.connection.Run(fmt.Sprintf("stat %s", dir))
 	return exitCode == 0, err
 }
 
-func (r RemoteRunner) removeDirectory(dir string) error {
+func (r SshRemoteRunner) RemoveDirectory(dir string) error {
 	_, err := r.runOnInstance(fmt.Sprintf("sudo rm -rf %s", dir))
 	return err
 }
 
-func (r RemoteRunner) compressDirectory(directory string, writer io.Writer) error {
+func (r SshRemoteRunner) CompressDirectory(directory string, writer io.Writer) error {
 	stderr, exitCode, err := r.connection.Stream(fmt.Sprintf("sudo tar -C %s -c .", directory), writer)
 	return r.logAndCheckErrors([]byte{}, stderr, exitCode, err)
 }
 
-func (r RemoteRunner) createDirectory(directory string) error {
+func (r SshRemoteRunner) CreateDirectory(directory string) error {
 	_, err := r.runOnInstance("sudo mkdir -p "+directory)
 	return err
 }
 
-func (r RemoteRunner) extractArchive(reader io.Reader, directory string) error {
+func (r SshRemoteRunner) ExtractArchive(reader io.Reader, directory string) error {
 	r.logger.Debug("bbr", "Streaming backup to instance %s", r.instanceIdentifier)
 
 	stdout, stderr, exitCode, err := r.connection.StreamStdin(fmt.Sprintf("sudo sh -c 'tar -C %s -x'", directory), reader)
@@ -54,7 +66,7 @@ func (r RemoteRunner) extractArchive(reader io.Reader, directory string) error {
 	return r.logAndCheckErrors(stdout, stderr, exitCode, err)
 }
 
-func (r RemoteRunner) sizeOf(path string) (string, error) {
+func (r SshRemoteRunner) SizeOf(path string) (string, error) {
 	stdout, err := r.runOnInstance(fmt.Sprintf("sudo du -sh %s | cut -f1", path))
 	if err != nil {
 		return "", err
@@ -63,7 +75,7 @@ func (r RemoteRunner) sizeOf(path string) (string, error) {
 	return strings.TrimSpace(string(stdout)), nil
 }
 
-func (r RemoteRunner) checksumDirectory(path string) (map[string]string, error) {
+func (r SshRemoteRunner) ChecksumDirectory(path string) (map[string]string, error) {
 	stdout, err := r.runOnInstance(fmt.Sprintf("sudo sh -c 'cd %s && find . -type f | xargs shasum -a 256'", path))
 	if err != nil {
 		return nil, err
@@ -72,7 +84,7 @@ func (r RemoteRunner) checksumDirectory(path string) (map[string]string, error) 
 	return convertShasToMap(stdout), nil
 }
 
-func (r RemoteRunner) runOnInstance(cmd string) (string, error) {
+func (r SshRemoteRunner) runOnInstance(cmd string) (string, error) {
 	stdout, stderr, exitCode, runErr := r.connection.Run(cmd)
 
 	err := r.logAndCheckErrors(stdout, stderr, exitCode, runErr)
@@ -83,7 +95,7 @@ func (r RemoteRunner) runOnInstance(cmd string) (string, error) {
 	return string(stdout), nil
 }
 
-func (r RemoteRunner) logAndCheckErrors(stdout, stderr []byte, exitCode int, err error) error {
+func (r SshRemoteRunner) logAndCheckErrors(stdout, stderr []byte, exitCode int, err error) error {
 	r.logger.Debug("bbr", "Stdout: %s", string(stdout))
 	r.logger.Debug("bbr", "Stderr: %s", string(stderr))
 

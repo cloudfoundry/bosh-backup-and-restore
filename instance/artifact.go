@@ -61,7 +61,7 @@ type Artifact struct {
 
 func (b *Artifact) StreamFromRemote(writer io.Writer) error {
 	b.Logger.Debug("bbr", "Streaming backup from instance %s/%s", b.instance.Name(), b.instance.ID())
-	err := b.remoteRunner.compressDirectory(b.artifactDirectory, writer)
+	err := b.remoteRunner.CompressDirectory(b.artifactDirectory, writer)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Error streaming backup from remote instance. Error: %s", err.Error()))
 	}
@@ -70,18 +70,18 @@ func (b *Artifact) StreamFromRemote(writer io.Writer) error {
 }
 
 func (b *Artifact) StreamToRemote(reader io.Reader) error {
-	err := b.remoteRunner.createDirectory(b.artifactDirectory)
+	err := b.remoteRunner.CreateDirectory(b.artifactDirectory)
 	if err != nil {
 		return errors.Wrap(err, "Creating backup directory on the remote failed")
 	}
 
-	return b.remoteRunner.extractArchive(reader, b.artifactDirectory)
+	return b.remoteRunner.ExtractArchive(reader, b.artifactDirectory)
 }
 
 func (b *Artifact) Size() (string, error) {
 	b.Logger.Debug("bbr", "Calculating size of backup on %s/%s", b.instance.Name(), b.instance.ID())
 
-	size, err := b.remoteRunner.sizeOf(b.artifactDirectory)
+	size, err := b.remoteRunner.SizeOf(b.artifactDirectory)
 	if err != nil {
 		return "", errors.Wrap(err, fmt.Sprintf("Unable to check size of %s", b.artifactDirectory))
 	}
@@ -92,7 +92,7 @@ func (b *Artifact) Size() (string, error) {
 func (b *Artifact) Checksum() (orchestrator.BackupChecksum, error) {
 	b.Logger.Debug("bbr", "Calculating shasum for remote files on %s/%s", b.instance.Name(), b.instance.ID())
 
-	backupChecksum, err := b.remoteRunner.checksumDirectory(b.artifactDirectory)
+	backupChecksum, err := b.remoteRunner.ChecksumDirectory(b.artifactDirectory)
 	if err != nil {
 		return nil, errors.Wrap(err, "Unable to calculate backup checksum")
 	}
@@ -103,7 +103,7 @@ func (b *Artifact) Checksum() (orchestrator.BackupChecksum, error) {
 func (b *Artifact) Delete() error {
 	b.Logger.Debug("bbr", "Deleting artifact directory on %s/%s", b.instance.Name(), b.instance.ID())
 
-	err := b.remoteRunner.removeDirectory(b.artifactDirectory)
+	err := b.remoteRunner.RemoveDirectory(b.artifactDirectory)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Unable to delete artifact directory on instance %s/%s", b.instance.Name(), b.instance.ID()))
 	}

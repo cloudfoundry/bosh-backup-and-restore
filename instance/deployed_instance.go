@@ -30,11 +30,11 @@ func NewDeployedInstance(instanceIndex string, instanceGroupName string, instanc
 }
 
 func (i *DeployedInstance) ArtifactDirExists() (bool, error) {
-	return i.remoteRunner.directoryExists(orchestrator.ArtifactDirectory)
+	return i.remoteRunner.DirectoryExists(orchestrator.ArtifactDirectory)
 }
 
 func (i *DeployedInstance) RemoveArtifactDir() error {
-	return i.remoteRunner.removeDirectory(orchestrator.ArtifactDirectory)
+	return i.remoteRunner.RemoveDirectory(orchestrator.ArtifactDirectory)
 }
 
 func (i *DeployedInstance) IsBackupable() bool {
@@ -150,7 +150,7 @@ func (i *DeployedInstance) ID() string {
 }
 
 func (i *DeployedInstance) ConnectedUsername() string {
-	return i.remoteRunner.connectedUsername()
+	return i.remoteRunner.ConnectedUsername()
 }
 
 func (i *DeployedInstance) handleErrs(jobName, label string, err error, exitCode int, stdout, stderr []byte) error {
