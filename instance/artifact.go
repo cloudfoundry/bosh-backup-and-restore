@@ -7,14 +7,8 @@ import (
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/pkg/errors"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 )
-
-//go:generate counterfeiter -o fakes/fake_ssh_connection.go . SSHConnection
-type SSHConnection interface {
-	Stream(cmd string, writer io.Writer) ([]byte, int, error)
-	StreamStdin(cmd string, reader io.Reader) ([]byte, []byte, int, error)
-	Run(cmd string) ([]byte, []byte, int, error)
-}
 
 //go:generate counterfeiter -o fakes/fake_logger.go . Logger
 type Logger interface {
@@ -23,7 +17,7 @@ type Logger interface {
 	Error(tag, msg string, args ...interface{})
 }
 
-func NewBackupArtifact(job orchestrator.Job, instance orchestrator.InstanceIdentifer, sshConn SSHConnection, logger Logger) *Artifact {
+func NewBackupArtifact(job orchestrator.Job, instance orchestrator.InstanceIdentifer, sshConn ssh.SSHConnection, logger Logger) *Artifact {
 	var name string
 	if job.HasNamedBackupArtifact() {
 		name = job.BackupArtifactName()
@@ -40,7 +34,7 @@ func NewBackupArtifact(job orchestrator.Job, instance orchestrator.InstanceIdent
 	}
 }
 
-func NewRestoreArtifact(job orchestrator.Job, instance orchestrator.InstanceIdentifer, sshConn SSHConnection, logger Logger) *Artifact {
+func NewRestoreArtifact(job orchestrator.Job, instance orchestrator.InstanceIdentifer, sshConn ssh.SSHConnection, logger Logger) *Artifact {
 	var name string
 	if job.HasNamedRestoreArtifact() {
 		name = job.RestoreArtifactName()
@@ -63,7 +57,7 @@ type Artifact struct {
 	artifactDirectory string
 	name              string
 	instance          orchestrator.InstanceIdentifer
-	SSHConnection
+	ssh.SSHConnection
 	Logger
 }
 

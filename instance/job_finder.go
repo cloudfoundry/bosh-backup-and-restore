@@ -6,6 +6,7 @@ import (
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/pkg/errors"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 )
 
 type InstanceIdentifier struct {
@@ -20,7 +21,7 @@ func (i InstanceIdentifier) String() string {
 //go:generate counterfeiter -o fakes/fake_job_finder.go . JobFinder
 type JobFinder interface {
 	FindJobs(instanceIdentifier InstanceIdentifier,
-		connection SSHConnection, releaseMapping ReleaseMapping) (orchestrator.Jobs, error)
+		connection ssh.SSHConnection, releaseMapping ReleaseMapping) (orchestrator.Jobs, error)
 }
 
 type JobFinderFromScripts struct {
@@ -34,7 +35,7 @@ func NewJobFinder(logger Logger) *JobFinderFromScripts {
 }
 
 func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier,
-	connection SSHConnection, releaseMapping ReleaseMapping) (orchestrator.Jobs, error) {
+	connection ssh.SSHConnection, releaseMapping ReleaseMapping) (orchestrator.Jobs, error) {
 	findOutput, err := j.findBBRScripts(instanceIdentifier, connection)
 	if err != nil {
 		return nil, err
@@ -68,7 +69,7 @@ func (j *JobFinderFromScripts) logMetadata(jobMetadata *Metadata, jobName string
 }
 
 func (j *JobFinderFromScripts) findBBRScripts(instanceIdentifierForLogging InstanceIdentifier,
-	sshConnection SSHConnection) ([]string, error) {
+	sshConnection ssh.SSHConnection) ([]string, error) {
 	j.Logger.Debug("bbr", "Attempting to find scripts on %s", instanceIdentifierForLogging)
 
 	stdout, stderr, exitCode, err := sshConnection.Run("find /var/vcap/jobs/*/bin/bbr/* -type f")
@@ -114,7 +115,7 @@ func (j *JobFinderFromScripts) findBBRScripts(instanceIdentifierForLogging Insta
 }
 
 func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifier,
-	script Script, connection SSHConnection) (*Metadata, error) {
+	script Script, connection ssh.SSHConnection) (*Metadata, error) {
 	metadataContent, errorContent, exitStatus, err := connection.Run(string(script))
 
 	if err != nil {
@@ -155,7 +156,7 @@ func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifie
 	return jobMetadata, nil
 }
 
-func (j *JobFinderFromScripts) buildJobs(sshConnection SSHConnection,
+func (j *JobFinderFromScripts) buildJobs(sshConnection ssh.SSHConnection,
 	instanceIdentifier InstanceIdentifier,
 	logger Logger, scripts BackupAndRestoreScripts,
 	metadata map[string]Metadata, releaseMapping ReleaseMapping) (orchestrator.Jobs, error) {

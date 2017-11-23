@@ -6,9 +6,10 @@ import (
 	"errors"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 )
 
-func NewJob(sshConnection SSHConnection, instanceIdentifier string, logger Logger, release string, jobScripts BackupAndRestoreScripts, metadata Metadata) Job {
+func NewJob(sshConnection ssh.SSHConnection, instanceIdentifier string, logger Logger, release string, jobScripts BackupAndRestoreScripts, metadata Metadata) Job {
 	jobName := jobScripts[0].JobName()
 	return Job{
 		Logger:             logger,
@@ -37,7 +38,7 @@ type Job struct {
 	preRestoreScript   Script
 	restoreScript      Script
 	postRestoreScript  Script
-	sshConnection      SSHConnection
+	sshConnection      ssh.SSHConnection
 	instanceIdentifier string
 }
 

@@ -242,7 +242,7 @@ var _ = Describe("Director", func() {
 						instance.Metadata{},
 					),
 				}
-				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier, connection instance.SSHConnection, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
+				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier, connection ssh.SSHConnection, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
 					if strings.HasPrefix(instanceIdentifier.String(), "hostname1") {
 						return instance0Jobs, nil
 					} else {
@@ -391,7 +391,7 @@ var _ = Describe("Director", func() {
 					),
 				}
 				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier,
-					connection instance.SSHConnection, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
+					connection ssh.SSHConnection, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
 					if instanceIdentifier.InstanceGroupName == "job2" {
 						return []orchestrator.Job{
 							instance.NewJob(sshConnection, "", boshLogger, "",
