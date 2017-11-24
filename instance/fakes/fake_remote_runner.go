@@ -103,6 +103,46 @@ type FakeRemoteRunner struct {
 		result1 map[string]string
 		result2 error
 	}
+	RunScriptStub        func(path string) (string, error)
+	runScriptMutex       sync.RWMutex
+	runScriptArgsForCall []struct {
+		path string
+	}
+	runScriptReturns struct {
+		result1 string
+		result2 error
+	}
+	runScriptReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
+	RunScriptWithEnvStub        func(path string, env map[string]string) (string, error)
+	runScriptWithEnvMutex       sync.RWMutex
+	runScriptWithEnvArgsForCall []struct {
+		path string
+		env  map[string]string
+	}
+	runScriptWithEnvReturns struct {
+		result1 string
+		result2 error
+	}
+	runScriptWithEnvReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
+	FindFilesStub        func(pattern string) ([]string, error)
+	findFilesMutex       sync.RWMutex
+	findFilesArgsForCall []struct {
+		pattern string
+	}
+	findFilesReturns struct {
+		result1 []string
+		result2 error
+	}
+	findFilesReturnsOnCall map[int]struct {
+		result1 []string
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -494,6 +534,160 @@ func (fake *FakeRemoteRunner) ChecksumDirectoryReturnsOnCall(i int, result1 map[
 	}{result1, result2}
 }
 
+func (fake *FakeRemoteRunner) RunScript(path string) (string, error) {
+	fake.runScriptMutex.Lock()
+	ret, specificReturn := fake.runScriptReturnsOnCall[len(fake.runScriptArgsForCall)]
+	fake.runScriptArgsForCall = append(fake.runScriptArgsForCall, struct {
+		path string
+	}{path})
+	fake.recordInvocation("RunScript", []interface{}{path})
+	fake.runScriptMutex.Unlock()
+	if fake.RunScriptStub != nil {
+		return fake.RunScriptStub(path)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.runScriptReturns.result1, fake.runScriptReturns.result2
+}
+
+func (fake *FakeRemoteRunner) RunScriptCallCount() int {
+	fake.runScriptMutex.RLock()
+	defer fake.runScriptMutex.RUnlock()
+	return len(fake.runScriptArgsForCall)
+}
+
+func (fake *FakeRemoteRunner) RunScriptArgsForCall(i int) string {
+	fake.runScriptMutex.RLock()
+	defer fake.runScriptMutex.RUnlock()
+	return fake.runScriptArgsForCall[i].path
+}
+
+func (fake *FakeRemoteRunner) RunScriptReturns(result1 string, result2 error) {
+	fake.RunScriptStub = nil
+	fake.runScriptReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRemoteRunner) RunScriptReturnsOnCall(i int, result1 string, result2 error) {
+	fake.RunScriptStub = nil
+	if fake.runScriptReturnsOnCall == nil {
+		fake.runScriptReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.runScriptReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRemoteRunner) RunScriptWithEnv(path string, env map[string]string) (string, error) {
+	fake.runScriptWithEnvMutex.Lock()
+	ret, specificReturn := fake.runScriptWithEnvReturnsOnCall[len(fake.runScriptWithEnvArgsForCall)]
+	fake.runScriptWithEnvArgsForCall = append(fake.runScriptWithEnvArgsForCall, struct {
+		path string
+		env  map[string]string
+	}{path, env})
+	fake.recordInvocation("RunScriptWithEnv", []interface{}{path, env})
+	fake.runScriptWithEnvMutex.Unlock()
+	if fake.RunScriptWithEnvStub != nil {
+		return fake.RunScriptWithEnvStub(path, env)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.runScriptWithEnvReturns.result1, fake.runScriptWithEnvReturns.result2
+}
+
+func (fake *FakeRemoteRunner) RunScriptWithEnvCallCount() int {
+	fake.runScriptWithEnvMutex.RLock()
+	defer fake.runScriptWithEnvMutex.RUnlock()
+	return len(fake.runScriptWithEnvArgsForCall)
+}
+
+func (fake *FakeRemoteRunner) RunScriptWithEnvArgsForCall(i int) (string, map[string]string) {
+	fake.runScriptWithEnvMutex.RLock()
+	defer fake.runScriptWithEnvMutex.RUnlock()
+	return fake.runScriptWithEnvArgsForCall[i].path, fake.runScriptWithEnvArgsForCall[i].env
+}
+
+func (fake *FakeRemoteRunner) RunScriptWithEnvReturns(result1 string, result2 error) {
+	fake.RunScriptWithEnvStub = nil
+	fake.runScriptWithEnvReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRemoteRunner) RunScriptWithEnvReturnsOnCall(i int, result1 string, result2 error) {
+	fake.RunScriptWithEnvStub = nil
+	if fake.runScriptWithEnvReturnsOnCall == nil {
+		fake.runScriptWithEnvReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.runScriptWithEnvReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRemoteRunner) FindFiles(pattern string) ([]string, error) {
+	fake.findFilesMutex.Lock()
+	ret, specificReturn := fake.findFilesReturnsOnCall[len(fake.findFilesArgsForCall)]
+	fake.findFilesArgsForCall = append(fake.findFilesArgsForCall, struct {
+		pattern string
+	}{pattern})
+	fake.recordInvocation("FindFiles", []interface{}{pattern})
+	fake.findFilesMutex.Unlock()
+	if fake.FindFilesStub != nil {
+		return fake.FindFilesStub(pattern)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.findFilesReturns.result1, fake.findFilesReturns.result2
+}
+
+func (fake *FakeRemoteRunner) FindFilesCallCount() int {
+	fake.findFilesMutex.RLock()
+	defer fake.findFilesMutex.RUnlock()
+	return len(fake.findFilesArgsForCall)
+}
+
+func (fake *FakeRemoteRunner) FindFilesArgsForCall(i int) string {
+	fake.findFilesMutex.RLock()
+	defer fake.findFilesMutex.RUnlock()
+	return fake.findFilesArgsForCall[i].pattern
+}
+
+func (fake *FakeRemoteRunner) FindFilesReturns(result1 []string, result2 error) {
+	fake.FindFilesStub = nil
+	fake.findFilesReturns = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRemoteRunner) FindFilesReturnsOnCall(i int, result1 []string, result2 error) {
+	fake.FindFilesStub = nil
+	if fake.findFilesReturnsOnCall == nil {
+		fake.findFilesReturnsOnCall = make(map[int]struct {
+			result1 []string
+			result2 error
+		})
+	}
+	fake.findFilesReturnsOnCall[i] = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeRemoteRunner) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -513,6 +707,12 @@ func (fake *FakeRemoteRunner) Invocations() map[string][][]interface{} {
 	defer fake.sizeOfMutex.RUnlock()
 	fake.checksumDirectoryMutex.RLock()
 	defer fake.checksumDirectoryMutex.RUnlock()
+	fake.runScriptMutex.RLock()
+	defer fake.runScriptMutex.RUnlock()
+	fake.runScriptWithEnvMutex.RLock()
+	defer fake.runScriptWithEnvMutex.RUnlock()
+	fake.findFilesMutex.RLock()
+	defer fake.findFilesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

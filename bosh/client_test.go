@@ -6,8 +6,6 @@ import (
 	"bytes"
 	"io"
 
-	"strings"
-
 	"errors"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
@@ -69,6 +67,7 @@ var _ = Describe("Director", func() {
 		combinedErrLog := log.New(io.MultiWriter(GinkgoWriter, stderrLogStream), "[bosh-package] ", log.Lshortfile)
 		boshLogger = boshlog.New(boshlog.LevelDebug, combinedOutLog, combinedErrLog)
 	})
+
 	Describe("FindInstances", func() {
 		var (
 			stubbedSshOpts  = director.SSHOpts{Username: "user"}
@@ -100,7 +99,7 @@ var _ = Describe("Director", func() {
 
 				sshConnectionFactory.Returns(sshConnection, nil)
 				expectedJobs = []orchestrator.Job{
-					instance.NewJob(sshConnection, "", boshLogger, "", instance.BackupAndRestoreScripts{
+					instance.NewJob(instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{}, boshLogger), "", boshLogger, "", instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/consul_agent/bin/bbr/backup",
 						"/var/vcap/jobs/consul_agent/bin/bbr/restore",
 					}, instance.Metadata{}),
@@ -231,19 +230,19 @@ var _ = Describe("Director", func() {
 				sshConnectionFactory.Returns(sshConnection, nil)
 
 				instance0Jobs = []orchestrator.Job{
-					instance.NewJob(sshConnection, "", boshLogger, "",
+					instance.NewJob(instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id1"}, boshLogger), "", boshLogger, "",
 						instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
 						instance.Metadata{},
 					),
 				}
 				instance1Jobs = []orchestrator.Job{
-					instance.NewJob(sshConnection, "", boshLogger, "",
+					instance.NewJob(instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id2"}, boshLogger), "", boshLogger, "",
 						instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
 						instance.Metadata{},
 					),
 				}
-				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier, connection ssh.SSHConnection, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
-					if strings.HasPrefix(instanceIdentifier.String(), "hostname1") {
+				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier, remoteRunner instance.RemoteRunner, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
+					if instanceIdentifier.InstanceId == "id1" {
 						return instance0Jobs, nil
 					} else {
 						return instance1Jobs, nil
@@ -252,6 +251,7 @@ var _ = Describe("Director", func() {
 
 				releaseMappingFinder.Returns(releaseMapping, nil)
 			})
+
 			It("collects the instances", func() {
 				Expect(actualInstances).To(Equal([]orchestrator.Instance{
 					bosh.NewBoshDeployedInstance(
@@ -328,7 +328,6 @@ var _ = Describe("Director", func() {
 		})
 
 		Context("finds instances for the deployment, having multiple instances in multiple instance groups", func() {
-			var instanceJobs orchestrator.Jobs
 			BeforeEach(func() {
 				boshDirector.FindDeploymentReturns(boshDeployment, nil)
 				boshDeployment.VMInfosReturns([]director.VMInfo{
@@ -384,17 +383,11 @@ var _ = Describe("Director", func() {
 					}
 				}
 				sshConnectionFactory.Returns(sshConnection, nil)
-				instanceJobs = []orchestrator.Job{
-					instance.NewJob(sshConnection, "", boshLogger, "",
-						instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
-						instance.Metadata{},
-					),
-				}
 				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier,
-					connection ssh.SSHConnection, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
+					remoteRunner instance.RemoteRunner, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
 					if instanceIdentifier.InstanceGroupName == "job2" {
 						return []orchestrator.Job{
-							instance.NewJob(sshConnection, "", boshLogger, "",
+							instance.NewJob(remoteRunner, "", boshLogger, "",
 								instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
 								instance.Metadata{},
 							),
@@ -426,7 +419,12 @@ var _ = Describe("Director", func() {
 						boshDeployment,
 						false,
 						boshLogger,
-						instanceJobs,
+						[]orchestrator.Job{
+							instance.NewJob(instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id3"}, boshLogger), "", boshLogger, "",
+								instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
+								instance.Metadata{},
+							),
+						},
 					),
 					bosh.NewBoshDeployedInstance(
 						"job2",
@@ -436,7 +434,12 @@ var _ = Describe("Director", func() {
 						boshDeployment,
 						false,
 						boshLogger,
-						instanceJobs,
+						[]orchestrator.Job{
+							instance.NewJob(instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id4"}, boshLogger), "", boshLogger, "",
+								instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
+								instance.Metadata{},
+							),
+						},
 					),
 				}))
 			})
@@ -502,19 +505,19 @@ var _ = Describe("Director", func() {
 			It("for each ssh connection, it finds the jobs with the job finder", func() {
 				Expect(fakeJobFinder.FindJobsCallCount()).To(Equal(3))
 
-				actualInstanceIdentifier, actualSshConnection, actualReleaseMapping := fakeJobFinder.FindJobsArgsForCall(0)
+				actualInstanceIdentifier, actualRemoteRunner, actualReleaseMapping := fakeJobFinder.FindJobsArgsForCall(0)
 				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id1"}))
-				Expect(actualSshConnection).To(Equal(sshConnection))
+				Expect(actualRemoteRunner).To(Equal(instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id1"}, boshLogger)))
 				Expect(actualReleaseMapping).To(Equal(releaseMapping))
 
-				actualInstanceIdentifier, actualSshConnection, actualReleaseMapping = fakeJobFinder.FindJobsArgsForCall(1)
+				actualInstanceIdentifier, actualRemoteRunner, actualReleaseMapping = fakeJobFinder.FindJobsArgsForCall(1)
 				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id3"}))
-				Expect(actualSshConnection).To(Equal(sshConnection))
+				Expect(actualRemoteRunner).To(Equal(instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id3"}, boshLogger)))
 				Expect(actualReleaseMapping).To(Equal(releaseMapping))
 
-				actualInstanceIdentifier, actualSshConnection, actualReleaseMapping = fakeJobFinder.FindJobsArgsForCall(2)
+				actualInstanceIdentifier, actualRemoteRunner, actualReleaseMapping = fakeJobFinder.FindJobsArgsForCall(2)
 				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id4"}))
-				Expect(actualSshConnection).To(Equal(sshConnection))
+				Expect(actualRemoteRunner).To(Equal(instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id4"}, boshLogger)))
 				Expect(actualReleaseMapping).To(Equal(releaseMapping))
 			})
 		})

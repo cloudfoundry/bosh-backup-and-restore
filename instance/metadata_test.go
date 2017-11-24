@@ -19,9 +19,9 @@ var _ = Describe("Metadata", func() {
 	})
 
 	It("can be created with raw metadata YAML", func() {
-		rawMetadata := []byte(`---
+		rawMetadata := `---
 backup_name: foo
-restore_name: bar`)
+restore_name: bar`
 
 		m, err := ParseJobMetadata(rawMetadata)
 
@@ -31,7 +31,7 @@ restore_name: bar`)
 	})
 
 	It("fails when provided invalid YAML", func() {
-		rawMetadata := []byte(`arrrr`)
+		rawMetadata := "arrrr"
 
 		_, err := ParseJobMetadata(rawMetadata)
 
@@ -39,7 +39,7 @@ restore_name: bar`)
 	})
 
 	It("has an optional `backup_should_be_locked_before` field", func() {
-		rawMetadata := []byte(`---
+		rawMetadata := `---
 backup_name: foo
 restore_name: bar
 backup_should_be_locked_before:
@@ -47,7 +47,7 @@ backup_should_be_locked_before:
   release: release1
 - job_name: job2
   release: release2
-`)
+`
 
 		m, err := ParseJobMetadata(rawMetadata)
 
@@ -60,14 +60,14 @@ backup_should_be_locked_before:
 	})
 
 	It("errors if either the job name or release are missing from backup_should_be_locked_before", func() {
-		rawMetadata := []byte(`---
+		rawMetadata := `---
 backup_name: foo
 restore_name: bar
 backup_should_be_locked_before:
 - job_name: job1
   release: release1
 - job_name: job2
-`)
+`
 
 		_, err := ParseJobMetadata(rawMetadata)
 
@@ -75,7 +75,7 @@ backup_should_be_locked_before:
 	})
 
 	It("has an optional `restore_should_be_locked_before` field", func() {
-		rawMetadata := []byte(`---
+		rawMetadata := `---
 backup_name: foo
 restore_name: bar
 restore_should_be_locked_before:
@@ -83,7 +83,7 @@ restore_should_be_locked_before:
   release: release1
 - job_name: job2
   release: release2
-`)
+`
 
 		m, err := ParseJobMetadata(rawMetadata)
 
@@ -96,14 +96,14 @@ restore_should_be_locked_before:
 	})
 
 	It("errors if either the job name or release are missing", func() {
-		rawMetadata := []byte(`---
+		rawMetadata := `---
 backup_name: foo
 restore_name: bar
 restore_should_be_locked_before:
 - job_name: job1
   release: release1
 - job_name: job2
-`)
+`
 
 		_, err := ParseJobMetadata(rawMetadata)
 

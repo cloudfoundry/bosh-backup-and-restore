@@ -17,9 +17,9 @@ type Metadata struct {
 	RestoreShouldBeLockedBefore []LockBefore `yaml:"restore_should_be_locked_before"`
 }
 
-func ParseJobMetadata(data []byte) (*Metadata, error) {
+func ParseJobMetadata(data string) (*Metadata, error) {
 	metadata := &Metadata{}
-	err := yaml.Unmarshal(data, metadata)
+	err := yaml.Unmarshal([]byte(data), metadata)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal job metadata")
 	}

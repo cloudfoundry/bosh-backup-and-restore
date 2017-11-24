@@ -3,17 +3,15 @@ package instance
 import (
 	"fmt"
 
-	"errors"
-
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
+	"github.com/pkg/errors"
 )
 
-func NewJob(sshConnection ssh.SSHConnection, instanceIdentifier string, logger Logger, release string, jobScripts BackupAndRestoreScripts, metadata Metadata) Job {
+func NewJob(remoteRunner RemoteRunner, instanceIdentifier string, logger Logger, release string, jobScripts BackupAndRestoreScripts, metadata Metadata) Job {
 	jobName := jobScripts[0].JobName()
 	return Job{
 		Logger:             logger,
-		sshConnection:      sshConnection,
+		remoteRunner:       remoteRunner,
 		instanceIdentifier: instanceIdentifier,
 		name:               jobName,
 		release:            release,
@@ -38,7 +36,7 @@ type Job struct {
 	preRestoreScript   Script
 	restoreScript      Script
 	postRestoreScript  Script
-	sshConnection      ssh.SSHConnection
+	remoteRunner       RemoteRunner
 	instanceIdentifier string
 }
 
@@ -95,18 +93,23 @@ func (j Job) Backup() error {
 		j.Logger.Debug("bbr", "> %s", j.backupScript)
 		j.Logger.Info("bbr", "Backing up %s on %s...", j.name, j.instanceIdentifier)
 
-		stdout, stderr, exitCode, err := j.runOnInstance(
-			fmt.Sprintf(
-				"sudo mkdir -p %s && sudo %s %s",
-				j.BackupArtifactDirectory(),
-				artifactDirectoryVariables(j.BackupArtifactDirectory()),
-				j.backupScript,
-			),
-			"backup",
-		)
+		err := j.remoteRunner.CreateDirectory(j.BackupArtifactDirectory())
+		if err != nil {
+			return err
+		}
+
+		env := artifactDirectoryVariables(j.BackupArtifactDirectory())
+		_, err = j.remoteRunner.RunScriptWithEnv(string(j.backupScript), env)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf(
+				"Error attempting to run backup for job %s on %s. Error: %s",
+				j.Name(),
+				j.instanceIdentifier,
+				err.Error(),
+			))
+		}
 
 		j.Logger.Info("bbr", "Done.")
-		return j.handleErrs(j.name, "backup", err, exitCode, stdout, stderr)
 	}
 
 	return nil
@@ -117,10 +120,17 @@ func (j Job) PreBackupLock() error {
 		j.Logger.Debug("bbr", "> %s", j.preBackupScript)
 		j.Logger.Info("bbr", "Locking %s on %s for backup...", j.name, j.instanceIdentifier)
 
-		stdout, stderr, exitCode, err := j.runOnInstance(fmt.Sprintf("sudo %s", j.preBackupScript), "pre-backup-lock")
+		_, err := j.remoteRunner.RunScript(string(j.preBackupScript))
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf(
+				"Error attempting to run pre-backup-lock for job %s on %s. Error: %s",
+				j.Name(),
+				j.instanceIdentifier,
+				err.Error(),
+			))
+		}
 
 		j.Logger.Info("bbr", "Done.")
-		return j.handleErrs(j.name, "pre-backup-lock", err, exitCode, stdout, stderr)
 	}
 
 	return nil
@@ -131,10 +141,17 @@ func (j Job) PostBackupUnlock() error {
 		j.Logger.Debug("bbr", "> %s", j.postBackupScript)
 		j.Logger.Info("bbr", "Unlocking %s on %s...", j.name, j.instanceIdentifier)
 
-		stdout, stderr, exitCode, err := j.runOnInstance(fmt.Sprintf("sudo %s", j.postBackupScript), "unlock")
+		_, err := j.remoteRunner.RunScript(string(j.postBackupScript))
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf(
+				"Error attempting to run post-backup-unlock for job %s on %s. Error: %s",
+				j.Name(),
+				j.instanceIdentifier,
+				err.Error(),
+			))
+		}
 
 		j.Logger.Info("bbr", "Done.")
-		return j.handleErrs(j.name, "unlock", err, exitCode, stdout, stderr)
 	}
 
 	return nil
@@ -145,11 +162,19 @@ func (j Job) PreRestoreLock() error {
 		j.Logger.Debug("bbr", "> %s", j.preRestoreScript)
 		j.Logger.Info("bbr", "Locking %s on %s for restore...", j.name, j.instanceIdentifier)
 
-		stdout, stderr, exitCode, err := j.runOnInstance(fmt.Sprintf("sudo %s", j.preRestoreScript), "pre restore lock")
+		_, err := j.remoteRunner.RunScript(string(j.preRestoreScript))
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf(
+				"Error attempting to run pre-restore-lock for job %s on %s. Error: %s",
+				j.Name(),
+				j.instanceIdentifier,
+				err.Error(),
+			))
+		}
 
 		j.Logger.Info("bbr", "Done.")
-		return j.handleErrs(j.name, "pre-restore-lock", err, exitCode, stdout, stderr)
 	}
+
 	return nil
 }
 
@@ -158,16 +183,18 @@ func (j Job) Restore() error {
 		j.Logger.Debug("bbr", "> %s", j.restoreScript)
 		j.Logger.Info("bbr", "Restoring %s on %s...", j.name, j.instanceIdentifier)
 
-		stdout, stderr, exitCode, err := j.runOnInstance(
-			fmt.Sprintf(
-				"sudo %s %s",
-				artifactDirectoryVariables(j.RestoreArtifactDirectory()),
-				j.restoreScript,
-			),
-			"restore")
+		env := artifactDirectoryVariables(j.RestoreArtifactDirectory())
+		_, err := j.remoteRunner.RunScriptWithEnv(string(j.restoreScript), env)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf(
+				"Error attempting to run restore for job %s on %s. Error: %s",
+				j.Name(),
+				j.instanceIdentifier,
+				err.Error(),
+			))
+		}
 
 		j.Logger.Info("bbr", "Done.")
-		return j.handleErrs(j.name, "restore", err, exitCode, stdout, stderr)
 	}
 
 	return nil
@@ -178,10 +205,17 @@ func (j Job) PostRestoreUnlock() error {
 		j.Logger.Debug("bbr", "> %s", j.postRestoreScript)
 		j.Logger.Info("bbr", "Unlocking %s on %s...", j.name, j.instanceIdentifier)
 
-		stdout, stderr, exitCode, err := j.runOnInstance(fmt.Sprintf("sudo %s", j.postRestoreScript), "post restore unlock")
+		_, err := j.remoteRunner.RunScript(string(j.postRestoreScript))
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf(
+				"Error attempting to run post-restore-unlock for job %s on %s. Error: %s",
+				j.Name(),
+				j.instanceIdentifier,
+				err.Error(),
+			))
+		}
 
 		j.Logger.Info("bbr", "Done.")
-		return j.handleErrs(j.name, "post-restore-unlock", err, exitCode, stdout, stderr)
 	}
 
 	return nil
@@ -203,20 +237,6 @@ func (j Job) restoreArtifactOrJobName() string {
 	return j.name
 }
 
-func (j Job) runOnInstance(cmd, label string) ([]byte, []byte, int, error) {
-	j.Logger.Debug("bbr", "Running %s on %s", label, j.instanceIdentifier)
-
-	stdout, stderr, exitCode, err := j.sshConnection.Run(cmd)
-	j.Logger.Debug("bbr", "Stdout: %s", string(stdout))
-	j.Logger.Debug("bbr", "Stderr: %s", string(stderr))
-
-	if err != nil {
-		j.Logger.Debug("bbr", "Error running %s on instance %s. Exit code %j, error: %s", label, j.instanceIdentifier, exitCode, err.Error())
-	}
-
-	return stdout, stderr, exitCode, err
-}
-
 func (j Job) handleErrs(jobName, label string, err error, exitCode int, stdout, stderr []byte) error {
 	var foundErrors []error
 
@@ -229,9 +249,7 @@ func (j Job) handleErrs(jobName, label string, err error, exitCode int, stdout, 
 			err.Error(),
 		))
 		foundErrors = append(foundErrors, err)
-	}
-
-	if exitCode != 0 {
+	} else if exitCode != 0 {
 		errorString := fmt.Sprintf(
 			"%s script for job %s failed on %s.\nStdout: %s\nStderr: %s",
 			label,

@@ -6,6 +6,7 @@ import (
 	"github.com/pkg/errors"
 	"io"
 	"strings"
+	"sort"
 )
 
 //go:generate counterfeiter -o fakes/fake_remote_runner.go . RemoteRunner
@@ -18,6 +19,9 @@ type RemoteRunner interface {
 	ExtractArchive(reader io.Reader, directory string) error
 	SizeOf(path string) (string, error)
 	ChecksumDirectory(path string) (map[string]string, error)
+	RunScript(path string) (string, error)
+	RunScriptWithEnv(path string, env map[string]string) (string, error)
+	FindFiles(pattern string) ([]string, error)
 }
 
 type SshRemoteRunner struct {
@@ -54,7 +58,7 @@ func (r SshRemoteRunner) CompressDirectory(directory string, writer io.Writer) e
 }
 
 func (r SshRemoteRunner) CreateDirectory(directory string) error {
-	_, err := r.runOnInstance("sudo mkdir -p "+directory)
+	_, err := r.runOnInstance("sudo mkdir -p " + directory)
 	return err
 }
 
@@ -84,6 +88,47 @@ func (r SshRemoteRunner) ChecksumDirectory(path string) (map[string]string, erro
 	return convertShasToMap(stdout), nil
 }
 
+func (r SshRemoteRunner) RunScript(path string) (string, error) {
+	return r.RunScriptWithEnv(path, map[string]string{})
+}
+
+func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string) (string, error) {
+	varNames := make([]string, 0, len(env))
+	for varName := range env {
+		varNames = append(varNames, varName)
+	}
+	sort.Strings(varNames)
+
+	var varsList = ""
+	for _, varName := range varNames {
+		varsList = varsList + varName + "=" + env[varName] + " "
+	}
+
+	return r.runOnInstance("sudo " + varsList + path)
+}
+
+func (r SshRemoteRunner) FindFiles(pattern string) ([]string, error) {
+	stdout, stderr, exitCode, err := r.connection.Run(fmt.Sprintf("find %s -type f", pattern))
+
+	r.logger.Debug("bbr", "Stdout: %s", string(stdout))
+	r.logger.Debug("bbr", "Stderr: %s", string(stderr))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if exitCode != 0 {
+		if strings.Contains(string(stderr), "No such file or directory") {
+			r.logger.Debug("", "No files found for pattern '%s'", pattern)
+			return []string{}, nil
+		} else {
+			return nil, exitError(stderr, exitCode)
+		}
+	}
+
+	return strings.Split(string(stdout), "\n"), nil
+}
+
 func (r SshRemoteRunner) runOnInstance(cmd string) (string, error) {
 	stdout, stderr, exitCode, runErr := r.connection.Run(cmd)
 
@@ -100,15 +145,18 @@ func (r SshRemoteRunner) logAndCheckErrors(stdout, stderr []byte, exitCode int, 
 	r.logger.Debug("bbr", "Stderr: %s", string(stderr))
 
 	if err != nil {
-		r.logger.Debug("bbr", "Error running %s on instance %s. Exit code %d, error: %s", r.instanceIdentifier, exitCode, err.Error())
 		return err
 	}
 
 	if exitCode != 0 {
-		return errors.New(fmt.Sprintf("%s - exit code %d", string(stderr), exitCode))
+		return exitError(stderr, exitCode)
 	}
 
 	return nil
+}
+
+func exitError(stderr []byte, exitCode int) error {
+	return errors.New(fmt.Sprintf("%s - exit code %d", string(stderr), exitCode))
 }
 
 func convertShasToMap(shas string) map[string]string {

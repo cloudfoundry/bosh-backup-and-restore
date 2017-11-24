@@ -440,15 +440,11 @@ touch /tmp/post-backup-unlock-output
 
 						By("logging the error", func() {
 							Expect(session.Err.Contents()).To(ContainSubstring(
-								"pre-backup-lock script for job redis failed on redis-dedicated-node/fake-uuid."))
-						})
-
-						By("logging stdout", func() {
-							Expect(session.Err.Contents()).To(ContainSubstring("Stdout: ultra-bar"))
+								"Error attempting to run pre-backup-lock for job redis on redis-dedicated-node/fake-uuid."))
 						})
 
 						By("logging stderr", func() {
-							Expect(session.Err.Contents()).To(ContainSubstring("Stderr: ultra-baz"))
+							Expect(session.Err.Contents()).To(ContainSubstring("ultra-baz"))
 						})
 
 						By("also running the post-backup-unlock scripts", func() {
@@ -502,7 +498,7 @@ echo "Unlocking release"`)
 
 						By("logging the script action", func() {
 							assertOutput(session, []string{
-								"Running unlock on redis-dedicated-node/fake-uuid",
+								"Unlocking redis on redis-dedicated-node/fake-uuid",
 								"Done.",
 							})
 						})
@@ -523,16 +519,12 @@ exit 1`)
 							Expect(session).To(gexec.Exit(8))
 						})
 
-						By("prints stdout", func() {
-							Expect(session.Err.Contents()).To(ContainSubstring("Stdout: ultra-bar"))
-						})
-
 						By("prints stderr", func() {
-							Expect(session.Err.Contents()).To(ContainSubstring("Stderr: ultra-baz"))
+							Expect(session.Err.Contents()).To(ContainSubstring("ultra-baz"))
 						})
 
 						By("prints an error", func() {
-							Expect(session.Err.Contents()).To(ContainSubstring("unlock script for job redis failed on redis-dedicated-node/fake-uuid."))
+							Expect(session.Err.Contents()).To(ContainSubstring("Error attempting to run post-backup-unlock for job redis on redis-dedicated-node/fake-uuid."))
 						})
 
 						By("printing a recommendation to run bbr backup-cleanup", func() {
@@ -746,7 +738,7 @@ echo "Unlocking release"`)
 
 				By("printing an error", func() {
 					assertErrorOutput(session, []string{
-						"backup script for job redis failed on redis-dedicated-node/fake-uuid.",
+						"Error attempting to run backup for job redis on redis-dedicated-node/fake-uuid.",
 						"ultra-baz",
 						"ultra-foo",
 					})

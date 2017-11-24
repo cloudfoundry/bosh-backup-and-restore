@@ -76,8 +76,11 @@ func (i *DeployedInstance) Backup() error {
 	return orchestrator.ConvertErrors(backupErrors)
 }
 
-func artifactDirectoryVariables(artifactDirectory string) string {
-	return fmt.Sprintf("BBR_ARTIFACT_DIRECTORY=%s/ ARTIFACT_DIRECTORY=%[1]s/", artifactDirectory)
+func artifactDirectoryVariables(artifactDirectory string) map[string]string {
+	return map[string]string{
+		"BBR_ARTIFACT_DIRECTORY": artifactDirectory + "/",
+		"ARTIFACT_DIRECTORY":     artifactDirectory + "/",
+	}
 }
 
 func (i *DeployedInstance) PostBackupUnlock() error {

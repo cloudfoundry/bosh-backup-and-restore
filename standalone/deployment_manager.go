@@ -47,14 +47,15 @@ func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment
 		return nil, err
 	}
 
-	//TODO: change instanceIdentifier, its not always bosh
 	instanceIdentifier := instance.InstanceIdentifier{InstanceGroupName: "bosh", InstanceId: "0"}
-	jobs, err := dm.jobFinder.FindJobs(instanceIdentifier, connection, instance.NoopReleaseMapping())
+	remoteRunner := instance.NewRemoteRunner(connection, instanceIdentifier, dm.Logger)
+
+	//TODO: change instanceIdentifier, its not always bosh
+	jobs, err := dm.jobFinder.FindJobs(instanceIdentifier, remoteRunner, instance.NoopReleaseMapping())
 	if err != nil {
 		return nil, err
 	}
 
-	remoteRunner := instance.NewRemoteRunner(connection, instanceIdentifier, dm.Logger)
 	return orchestrator.NewDeployment(dm.Logger, []orchestrator.Instance{
 		NewDeployedInstance("bosh", remoteRunner, dm.Logger, jobs, false),
 	}), nil

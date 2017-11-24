@@ -117,13 +117,14 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 
 			instanceIdentifier := instance.InstanceIdentifier{InstanceGroupName: instanceGroupName, InstanceId: host.IndexOrID}
 
-			jobs, err := c.jobFinder.FindJobs(instanceIdentifier, sshConnection, releaseMapping)
+			remoteRunner := instance.NewRemoteRunner(sshConnection, instanceIdentifier, c.Logger)
+
+			jobs, err := c.jobFinder.FindJobs(instanceIdentifier, remoteRunner, releaseMapping)
 			if err != nil {
 				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
 				return nil, errors.Wrap(err, "couldn't find jobs")
 			}
 
-			remoteRunner := instance.NewRemoteRunner(sshConnection, instanceIdentifier, c.Logger)
 			instances = append(instances,
 				NewBoshDeployedInstance(
 					instanceGroupName,

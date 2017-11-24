@@ -22,6 +22,7 @@ var _ = Describe("Job", func() {
 	var stdout, stderr *gbytes.Buffer
 	var logger boshlog.Logger
 	var releaseName string
+	var remoteRunner instance.RemoteRunner
 	var instanceIdentifier = "instance/identifier"
 
 	BeforeEach(func() {
@@ -33,17 +34,17 @@ var _ = Describe("Job", func() {
 		}
 		metadata = instance.Metadata{}
 		sshConnection = new(fakes.FakeSSHConnection)
-
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
 		stdoutLog := log.New(stdout, "[instance-test] ", log.Lshortfile)
 		stderrLog := log.New(stderr, "[instance-test] ", log.Lshortfile)
 		logger = boshlog.New(boshlog.LevelDebug, stdoutLog, stderrLog)
 		releaseName = "redis"
+		remoteRunner = instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{}, logger)
 	})
 
 	JustBeforeEach(func() {
-		job = instance.NewJob(sshConnection, instanceIdentifier, logger, releaseName, jobScripts, metadata)
+		job = instance.NewJob(remoteRunner, instanceIdentifier, logger, releaseName, jobScripts, metadata)
 	})
 
 	Describe("BackupArtifactDirectory", func() {
@@ -55,7 +56,7 @@ var _ = Describe("Job", func() {
 			var jobWithName instance.Job
 
 			JustBeforeEach(func() {
-				jobWithName = instance.NewJob(sshConnection, "", logger, releaseName,
+				jobWithName = instance.NewJob(remoteRunner, "", logger, releaseName,
 					jobScripts, instance.Metadata{
 						BackupName: "a-bosh-backup",
 					})
@@ -76,7 +77,7 @@ var _ = Describe("Job", func() {
 			var jobWithName instance.Job
 
 			JustBeforeEach(func() {
-				jobWithName = instance.NewJob(sshConnection, "", logger, releaseName,
+				jobWithName = instance.NewJob(remoteRunner, "", logger, releaseName,
 					jobScripts, instance.Metadata{
 						RestoreName: "a-bosh-backup",
 					})
@@ -263,11 +264,10 @@ var _ = Describe("Job", func() {
 			})
 
 			It("uses the ssh connection to run the script", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
-					"sudo mkdir -p /var/vcap/store/bbr-backup/jobname && " +
-						"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/jobname/ " +
-						"ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/jobname/ /var/vcap/jobs/jobname/bin/bbr/backup"))
+				Expect(sshConnection.RunCallCount()).To(Equal(2))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo mkdir -p /var/vcap/store/bbr-backup/jobname"))
+				Expect(sshConnection.RunArgsForCall(1)).To(Equal("sudo ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/jobname/ " +
+					"BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/jobname/ /var/vcap/jobs/jobname/bin/bbr/backup"))
 			})
 
 			Context("backup script runs successfully", func() {
@@ -333,8 +333,8 @@ var _ = Describe("Job", func() {
 			It("uses the ssh connection to run the script", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
 				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
-					"sudo BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/jobname/ " +
-						"ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/jobname/ /var/vcap/jobs/jobname/bin/bbr/restore"))
+					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/jobname/ " +
+						"BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/jobname/ /var/vcap/jobs/jobname/bin/bbr/restore"))
 			})
 
 			Context("restore script runs successfully", func() {
@@ -441,14 +441,6 @@ var _ = Describe("Job", func() {
 					By("including the SSH connection error in the returned error", func() {
 						Expect(preBackupLockError).To(MatchError(ContainSubstring(connectionError.Error())))
 					})
-
-					By("logging about the error", func() {
-						Expect(string(stderr.Contents())).To(ContainSubstring(fmt.Sprintf(
-							"Error attempting to run pre-backup-lock script for job jobname on %s. Error: %s",
-							instanceIdentifier,
-							connectionError,
-						)))
-					})
 				})
 			})
 
@@ -458,18 +450,8 @@ var _ = Describe("Job", func() {
 				})
 
 				It("fails", func() {
-					By("including the script stdout in the returned error", func() {
-						Expect(preBackupLockError).To(MatchError(ContainSubstring("the-script-stdout")))
-					})
-
 					By("including the script stderr in the returned error", func() {
 						Expect(preBackupLockError).To(MatchError(ContainSubstring("the-script-stderr")))
-					})
-
-					By("logging about the error", func() {
-						Expect(string(stderr.Contents())).To(ContainSubstring(
-							fmt.Sprintf("lock script for job jobname failed on %s", instanceIdentifier),
-						))
 					})
 				})
 			})
@@ -618,14 +600,6 @@ var _ = Describe("Job", func() {
 					By("including the SSH connection error in the returned error", func() {
 						Expect(preRestoreLockError).To(MatchError(ContainSubstring(connectionError.Error())))
 					})
-
-					By("logging about the error", func() {
-						Expect(string(stderr.Contents())).To(ContainSubstring(fmt.Sprintf(
-							"Error attempting to run pre-restore-lock script for job jobname on %s. Error: %s",
-							instanceIdentifier,
-							connectionError,
-						)))
-					})
 				})
 			})
 
@@ -635,18 +609,8 @@ var _ = Describe("Job", func() {
 				})
 
 				It("fails", func() {
-					By("including the script stdout in the returned error", func() {
-						Expect(preRestoreLockError).To(MatchError(ContainSubstring("the-script-stdout")))
-					})
-
 					By("including the script stderr in the returned error", func() {
 						Expect(preRestoreLockError).To(MatchError(ContainSubstring("the-script-stderr")))
-					})
-
-					By("logging about the error", func() {
-						Expect(string(stderr.Contents())).To(ContainSubstring(
-							fmt.Sprintf("lock script for job jobname failed on %s", instanceIdentifier),
-						))
 					})
 				})
 			})

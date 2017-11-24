@@ -2,11 +2,8 @@ package instance
 
 import (
 	"fmt"
-	"strings"
-
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/pkg/errors"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 )
 
 type InstanceIdentifier struct {
@@ -20,8 +17,7 @@ func (i InstanceIdentifier) String() string {
 
 //go:generate counterfeiter -o fakes/fake_job_finder.go . JobFinder
 type JobFinder interface {
-	FindJobs(instanceIdentifier InstanceIdentifier,
-		connection ssh.SSHConnection, releaseMapping ReleaseMapping) (orchestrator.Jobs, error)
+	FindJobs(instanceIdentifier InstanceIdentifier, remoteRunner RemoteRunner, releaseMapping ReleaseMapping) (orchestrator.Jobs, error)
 }
 
 type JobFinderFromScripts struct {
@@ -34,9 +30,9 @@ func NewJobFinder(logger Logger) *JobFinderFromScripts {
 	}
 }
 
-func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier,
-	connection ssh.SSHConnection, releaseMapping ReleaseMapping) (orchestrator.Jobs, error) {
-	findOutput, err := j.findBBRScripts(instanceIdentifier, connection)
+func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier, remoteRunner RemoteRunner,
+	releaseMapping ReleaseMapping) (orchestrator.Jobs, error) {
+	findOutput, err := j.findBBRScripts(instanceIdentifier, remoteRunner)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +41,7 @@ func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier,
 	for _, script := range scripts {
 		j.Logger.Info("bbr", "%s/%s/%s", instanceIdentifier, script.JobName(), script.Name())
 		if script.isMetadata() {
-			jobMetadata, err := j.findMetadata(instanceIdentifier, script, connection)
+			jobMetadata, err := j.findMetadata(instanceIdentifier, script, remoteRunner)
 
 			if err != nil {
 				return nil, err
@@ -57,8 +53,9 @@ func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier,
 		}
 	}
 
-	return j.buildJobs(connection, instanceIdentifier, j.Logger, scripts, metadata, releaseMapping)
+	return j.buildJobs(remoteRunner, instanceIdentifier, j.Logger, scripts, metadata, releaseMapping)
 }
+
 func (j *JobFinderFromScripts) logMetadata(jobMetadata *Metadata, jobName string) {
 	for _, lockBefore := range jobMetadata.BackupShouldBeLockedBefore {
 		j.Logger.Info("bbr", "Detected order: %s should be locked before %s/%s during backup", jobName, lockBefore.Release, lockBefore.JobName)
@@ -69,94 +66,42 @@ func (j *JobFinderFromScripts) logMetadata(jobMetadata *Metadata, jobName string
 }
 
 func (j *JobFinderFromScripts) findBBRScripts(instanceIdentifierForLogging InstanceIdentifier,
-	sshConnection ssh.SSHConnection) ([]string, error) {
+	remoteRunner RemoteRunner) ([]string, error) {
 	j.Logger.Debug("bbr", "Attempting to find scripts on %s", instanceIdentifierForLogging)
 
-	stdout, stderr, exitCode, err := sshConnection.Run("find /var/vcap/jobs/*/bin/bbr/* -type f")
+	scripts, err := remoteRunner.FindFiles("/var/vcap/jobs/*/bin/bbr/*")
 	if err != nil {
-		j.Logger.Error(
-			"",
-			"Failed to run find on %s. Error: %s\nStdout: %s\nStderr%s",
-			instanceIdentifierForLogging,
-			err,
-			stdout,
-			stderr,
-		)
-		return nil, err
+		return nil, errors.Wrap(err, fmt.Sprintf("finding scripts failed on %s", instanceIdentifierForLogging))
 	}
 
-	if exitCode != 0 {
-		if strings.Contains(string(stderr), "No such file or directory") {
-			j.Logger.Debug(
-				"",
-				"Running find failed on %s.\nStdout: %s\nStderr: %s",
-				instanceIdentifierForLogging,
-				stdout,
-				stderr,
-			)
-		} else {
-			j.Logger.Error(
-				"",
-				"Running find failed on %s.\nStdout: %s\nStderr: %s",
-				instanceIdentifierForLogging,
-				stdout,
-				stderr,
-			)
-			return nil, errors.Errorf(
-				"Running find failed on %s.\nStdout: %s\nStderr: %s",
-				instanceIdentifierForLogging,
-				stdout,
-				stderr,
-			)
-		}
-	}
-
-	return strings.Split(string(stdout), "\n"), nil
+	return scripts, nil
 }
 
-func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifier,
-	script Script, connection ssh.SSHConnection) (*Metadata, error) {
-	metadataContent, errorContent, exitStatus, err := connection.Run(string(script))
-
+func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifier, script Script, remoteRunner RemoteRunner) (*Metadata, error) {
+	metadataContent, err := remoteRunner.RunScript(string(script))
 	if err != nil {
-		errorString := fmt.Sprintf(
+		return nil, errors.Wrap(err, fmt.Sprintf(
 			"An error occurred while running metadata script for job %s on %s: %s",
 			script.JobName(),
 			instanceIdentifier,
 			err,
-		)
-		j.Logger.Error("bbr", errorString)
-		return nil, errors.New(errorString)
-	}
-
-	if exitStatus != 0 {
-		errorString := fmt.Sprintf(
-			"An error occurred while running metadata script for job %s on %s: %s",
-			script.JobName(),
-			instanceIdentifier,
-			errorContent,
-		)
-		j.Logger.Error("bbr", errorString)
-		return nil, errors.New(errorString)
+		))
 	}
 
 	jobMetadata, err := ParseJobMetadata(metadataContent)
-
 	if err != nil {
-		errorString := fmt.Sprintf(
+		return nil, errors.New(fmt.Sprintf(
 			"Parsing metadata from job %s on %s failed: %s",
 			script.JobName(),
 			instanceIdentifier,
 			err.Error(),
-		)
-		j.Logger.Error("bbr", errorString)
-		return nil, errors.New(errorString)
+		))
 	}
 
 	return jobMetadata, nil
 }
 
-func (j *JobFinderFromScripts) buildJobs(sshConnection ssh.SSHConnection,
+func (j *JobFinderFromScripts) buildJobs(remoteRunner RemoteRunner,
 	instanceIdentifier InstanceIdentifier,
 	logger Logger, scripts BackupAndRestoreScripts,
 	metadata map[string]Metadata, releaseMapping ReleaseMapping) (orchestrator.Jobs, error) {
@@ -174,7 +119,7 @@ func (j *JobFinderFromScripts) buildJobs(sshConnection ssh.SSHConnection,
 			return nil, errors.Wrap(err, "error matching job to manifest")
 		}
 
-		jobs = append(jobs, NewJob(sshConnection, instanceIdentifier.String(), logger, releaseName, jobScripts, metadata[jobName]))
+		jobs = append(jobs, NewJob(remoteRunner, instanceIdentifier.String(), logger, releaseName, jobScripts, metadata[jobName]))
 	}
 
 	return jobs, nil
