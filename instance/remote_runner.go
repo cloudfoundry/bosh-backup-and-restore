@@ -15,9 +15,9 @@ type RemoteRunner interface {
 	ConnectedUsername() string
 	DirectoryExists(dir string) (bool, error)
 	RemoveDirectory(dir string) error
-	CompressDirectory(directory string, writer io.Writer) error
+	ArchiveAndDownload(directory string, writer io.Writer) error
 	CreateDirectory(directory string) error
-	ExtractArchive(reader io.Reader, directory string) error
+	ExtractAndUpload(reader io.Reader, directory string) error
 	SizeOf(path string) (string, error)
 	ChecksumDirectory(path string) (map[string]string, error)
 	RunScript(path string) (string, error)
@@ -51,7 +51,7 @@ func (r SshRemoteRunner) RemoveDirectory(dir string) error {
 	return err
 }
 
-func (r SshRemoteRunner) CompressDirectory(directory string, writer io.Writer) error {
+func (r SshRemoteRunner) ArchiveAndDownload(directory string, writer io.Writer) error {
 	stderr, exitCode, err := r.connection.Stream(fmt.Sprintf("sudo tar -C %s -c .", directory), writer)
 	return r.logAndCheckErrors([]byte{}, stderr, exitCode, err)
 }
@@ -61,7 +61,7 @@ func (r SshRemoteRunner) CreateDirectory(directory string) error {
 	return err
 }
 
-func (r SshRemoteRunner) ExtractArchive(reader io.Reader, directory string) error {
+func (r SshRemoteRunner) ExtractAndUpload(reader io.Reader, directory string) error {
 	stdout, stderr, exitCode, err := r.connection.StreamStdin(fmt.Sprintf("sudo sh -c 'tar -C %s -x'", directory), reader)
 	return r.logAndCheckErrors(stdout, stderr, exitCode, err)
 }

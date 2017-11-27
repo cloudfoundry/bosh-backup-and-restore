@@ -42,16 +42,16 @@ type FakeRemoteRunner struct {
 	removeDirectoryReturnsOnCall map[int]struct {
 		result1 error
 	}
-	CompressDirectoryStub        func(directory string, writer io.Writer) error
-	compressDirectoryMutex       sync.RWMutex
-	compressDirectoryArgsForCall []struct {
+	ArchiveAndDownloadStub        func(directory string, writer io.Writer) error
+	archiveAndDownloadMutex       sync.RWMutex
+	archiveAndDownloadArgsForCall []struct {
 		directory string
 		writer    io.Writer
 	}
-	compressDirectoryReturns struct {
+	archiveAndDownloadReturns struct {
 		result1 error
 	}
-	compressDirectoryReturnsOnCall map[int]struct {
+	archiveAndDownloadReturnsOnCall map[int]struct {
 		result1 error
 	}
 	CreateDirectoryStub        func(directory string) error
@@ -65,16 +65,16 @@ type FakeRemoteRunner struct {
 	createDirectoryReturnsOnCall map[int]struct {
 		result1 error
 	}
-	ExtractArchiveStub        func(reader io.Reader, directory string) error
-	extractArchiveMutex       sync.RWMutex
-	extractArchiveArgsForCall []struct {
+	ExtractAndUploadStub        func(reader io.Reader, directory string) error
+	extractAndUploadMutex       sync.RWMutex
+	extractAndUploadArgsForCall []struct {
 		reader    io.Reader
 		directory string
 	}
-	extractArchiveReturns struct {
+	extractAndUploadReturns struct {
 		result1 error
 	}
-	extractArchiveReturnsOnCall map[int]struct {
+	extractAndUploadReturnsOnCall map[int]struct {
 		result1 error
 	}
 	SizeOfStub        func(path string) (string, error)
@@ -286,51 +286,51 @@ func (fake *FakeRemoteRunner) RemoveDirectoryReturnsOnCall(i int, result1 error)
 	}{result1}
 }
 
-func (fake *FakeRemoteRunner) CompressDirectory(directory string, writer io.Writer) error {
-	fake.compressDirectoryMutex.Lock()
-	ret, specificReturn := fake.compressDirectoryReturnsOnCall[len(fake.compressDirectoryArgsForCall)]
-	fake.compressDirectoryArgsForCall = append(fake.compressDirectoryArgsForCall, struct {
+func (fake *FakeRemoteRunner) ArchiveAndDownload(directory string, writer io.Writer) error {
+	fake.archiveAndDownloadMutex.Lock()
+	ret, specificReturn := fake.archiveAndDownloadReturnsOnCall[len(fake.archiveAndDownloadArgsForCall)]
+	fake.archiveAndDownloadArgsForCall = append(fake.archiveAndDownloadArgsForCall, struct {
 		directory string
 		writer    io.Writer
 	}{directory, writer})
-	fake.recordInvocation("CompressDirectory", []interface{}{directory, writer})
-	fake.compressDirectoryMutex.Unlock()
-	if fake.CompressDirectoryStub != nil {
-		return fake.CompressDirectoryStub(directory, writer)
+	fake.recordInvocation("ArchiveAndDownload", []interface{}{directory, writer})
+	fake.archiveAndDownloadMutex.Unlock()
+	if fake.ArchiveAndDownloadStub != nil {
+		return fake.ArchiveAndDownloadStub(directory, writer)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.compressDirectoryReturns.result1
+	return fake.archiveAndDownloadReturns.result1
 }
 
-func (fake *FakeRemoteRunner) CompressDirectoryCallCount() int {
-	fake.compressDirectoryMutex.RLock()
-	defer fake.compressDirectoryMutex.RUnlock()
-	return len(fake.compressDirectoryArgsForCall)
+func (fake *FakeRemoteRunner) ArchiveAndDownloadCallCount() int {
+	fake.archiveAndDownloadMutex.RLock()
+	defer fake.archiveAndDownloadMutex.RUnlock()
+	return len(fake.archiveAndDownloadArgsForCall)
 }
 
-func (fake *FakeRemoteRunner) CompressDirectoryArgsForCall(i int) (string, io.Writer) {
-	fake.compressDirectoryMutex.RLock()
-	defer fake.compressDirectoryMutex.RUnlock()
-	return fake.compressDirectoryArgsForCall[i].directory, fake.compressDirectoryArgsForCall[i].writer
+func (fake *FakeRemoteRunner) ArchiveAndDownloadArgsForCall(i int) (string, io.Writer) {
+	fake.archiveAndDownloadMutex.RLock()
+	defer fake.archiveAndDownloadMutex.RUnlock()
+	return fake.archiveAndDownloadArgsForCall[i].directory, fake.archiveAndDownloadArgsForCall[i].writer
 }
 
-func (fake *FakeRemoteRunner) CompressDirectoryReturns(result1 error) {
-	fake.CompressDirectoryStub = nil
-	fake.compressDirectoryReturns = struct {
+func (fake *FakeRemoteRunner) ArchiveAndDownloadReturns(result1 error) {
+	fake.ArchiveAndDownloadStub = nil
+	fake.archiveAndDownloadReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeRemoteRunner) CompressDirectoryReturnsOnCall(i int, result1 error) {
-	fake.CompressDirectoryStub = nil
-	if fake.compressDirectoryReturnsOnCall == nil {
-		fake.compressDirectoryReturnsOnCall = make(map[int]struct {
+func (fake *FakeRemoteRunner) ArchiveAndDownloadReturnsOnCall(i int, result1 error) {
+	fake.ArchiveAndDownloadStub = nil
+	if fake.archiveAndDownloadReturnsOnCall == nil {
+		fake.archiveAndDownloadReturnsOnCall = make(map[int]struct {
 			result1 error
 		})
 	}
-	fake.compressDirectoryReturnsOnCall[i] = struct {
+	fake.archiveAndDownloadReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -383,51 +383,51 @@ func (fake *FakeRemoteRunner) CreateDirectoryReturnsOnCall(i int, result1 error)
 	}{result1}
 }
 
-func (fake *FakeRemoteRunner) ExtractArchive(reader io.Reader, directory string) error {
-	fake.extractArchiveMutex.Lock()
-	ret, specificReturn := fake.extractArchiveReturnsOnCall[len(fake.extractArchiveArgsForCall)]
-	fake.extractArchiveArgsForCall = append(fake.extractArchiveArgsForCall, struct {
+func (fake *FakeRemoteRunner) ExtractAndUpload(reader io.Reader, directory string) error {
+	fake.extractAndUploadMutex.Lock()
+	ret, specificReturn := fake.extractAndUploadReturnsOnCall[len(fake.extractAndUploadArgsForCall)]
+	fake.extractAndUploadArgsForCall = append(fake.extractAndUploadArgsForCall, struct {
 		reader    io.Reader
 		directory string
 	}{reader, directory})
-	fake.recordInvocation("ExtractArchive", []interface{}{reader, directory})
-	fake.extractArchiveMutex.Unlock()
-	if fake.ExtractArchiveStub != nil {
-		return fake.ExtractArchiveStub(reader, directory)
+	fake.recordInvocation("ExtractAndUpload", []interface{}{reader, directory})
+	fake.extractAndUploadMutex.Unlock()
+	if fake.ExtractAndUploadStub != nil {
+		return fake.ExtractAndUploadStub(reader, directory)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.extractArchiveReturns.result1
+	return fake.extractAndUploadReturns.result1
 }
 
-func (fake *FakeRemoteRunner) ExtractArchiveCallCount() int {
-	fake.extractArchiveMutex.RLock()
-	defer fake.extractArchiveMutex.RUnlock()
-	return len(fake.extractArchiveArgsForCall)
+func (fake *FakeRemoteRunner) ExtractAndUploadCallCount() int {
+	fake.extractAndUploadMutex.RLock()
+	defer fake.extractAndUploadMutex.RUnlock()
+	return len(fake.extractAndUploadArgsForCall)
 }
 
-func (fake *FakeRemoteRunner) ExtractArchiveArgsForCall(i int) (io.Reader, string) {
-	fake.extractArchiveMutex.RLock()
-	defer fake.extractArchiveMutex.RUnlock()
-	return fake.extractArchiveArgsForCall[i].reader, fake.extractArchiveArgsForCall[i].directory
+func (fake *FakeRemoteRunner) ExtractAndUploadArgsForCall(i int) (io.Reader, string) {
+	fake.extractAndUploadMutex.RLock()
+	defer fake.extractAndUploadMutex.RUnlock()
+	return fake.extractAndUploadArgsForCall[i].reader, fake.extractAndUploadArgsForCall[i].directory
 }
 
-func (fake *FakeRemoteRunner) ExtractArchiveReturns(result1 error) {
-	fake.ExtractArchiveStub = nil
-	fake.extractArchiveReturns = struct {
+func (fake *FakeRemoteRunner) ExtractAndUploadReturns(result1 error) {
+	fake.ExtractAndUploadStub = nil
+	fake.extractAndUploadReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeRemoteRunner) ExtractArchiveReturnsOnCall(i int, result1 error) {
-	fake.ExtractArchiveStub = nil
-	if fake.extractArchiveReturnsOnCall == nil {
-		fake.extractArchiveReturnsOnCall = make(map[int]struct {
+func (fake *FakeRemoteRunner) ExtractAndUploadReturnsOnCall(i int, result1 error) {
+	fake.ExtractAndUploadStub = nil
+	if fake.extractAndUploadReturnsOnCall == nil {
+		fake.extractAndUploadReturnsOnCall = make(map[int]struct {
 			result1 error
 		})
 	}
-	fake.extractArchiveReturnsOnCall[i] = struct {
+	fake.extractAndUploadReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -697,12 +697,12 @@ func (fake *FakeRemoteRunner) Invocations() map[string][][]interface{} {
 	defer fake.directoryExistsMutex.RUnlock()
 	fake.removeDirectoryMutex.RLock()
 	defer fake.removeDirectoryMutex.RUnlock()
-	fake.compressDirectoryMutex.RLock()
-	defer fake.compressDirectoryMutex.RUnlock()
+	fake.archiveAndDownloadMutex.RLock()
+	defer fake.archiveAndDownloadMutex.RUnlock()
 	fake.createDirectoryMutex.RLock()
 	defer fake.createDirectoryMutex.RUnlock()
-	fake.extractArchiveMutex.RLock()
-	defer fake.extractArchiveMutex.RUnlock()
+	fake.extractAndUploadMutex.RLock()
+	defer fake.extractAndUploadMutex.RUnlock()
 	fake.sizeOfMutex.RLock()
 	defer fake.sizeOfMutex.RUnlock()
 	fake.checksumDirectoryMutex.RLock()

@@ -61,7 +61,7 @@ type Artifact struct {
 
 func (b *Artifact) StreamFromRemote(writer io.Writer) error {
 	b.Logger.Debug("bbr", "Streaming backup from instance %s/%s", b.instance.Name(), b.instance.ID())
-	err := b.remoteRunner.CompressDirectory(b.artifactDirectory, writer)
+	err := b.remoteRunner.ArchiveAndDownload(b.artifactDirectory, writer)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Error streaming backup from remote instance. Error: %s", err.Error()))
 	}
@@ -76,7 +76,7 @@ func (b *Artifact) StreamToRemote(reader io.Reader) error {
 	}
 
 	b.Logger.Debug("bbr", "Streaming backup to instance %s/%s", b.instance.Name(), b.instance.ID())
-	return b.remoteRunner.ExtractArchive(reader, b.artifactDirectory)
+	return b.remoteRunner.ExtractAndUpload(reader, b.artifactDirectory)
 }
 
 func (b *Artifact) Size() (string, error) {
