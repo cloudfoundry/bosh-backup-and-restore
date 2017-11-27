@@ -46,6 +46,11 @@ func (r SshRemoteRunner) DirectoryExists(dir string) (bool, error) {
 	return exitCode == 0, err
 }
 
+func (r SshRemoteRunner) CreateDirectory(directory string) error {
+	_, err := r.runOnInstance("sudo mkdir -p " + directory)
+	return err
+}
+
 func (r SshRemoteRunner) RemoveDirectory(dir string) error {
 	_, err := r.runOnInstance(fmt.Sprintf("sudo rm -rf %s", dir))
 	return err
@@ -54,11 +59,6 @@ func (r SshRemoteRunner) RemoveDirectory(dir string) error {
 func (r SshRemoteRunner) ArchiveAndDownload(directory string, writer io.Writer) error {
 	stderr, exitCode, err := r.connection.Stream(fmt.Sprintf("sudo tar -C %s -c .", directory), writer)
 	return r.logAndCheckErrors([]byte{}, stderr, exitCode, err)
-}
-
-func (r SshRemoteRunner) CreateDirectory(directory string) error {
-	_, err := r.runOnInstance("sudo mkdir -p " + directory)
-	return err
 }
 
 func (r SshRemoteRunner) ExtractAndUpload(reader io.Reader, directory string) error {
