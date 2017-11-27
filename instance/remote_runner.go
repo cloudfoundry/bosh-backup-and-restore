@@ -1,12 +1,13 @@
 package instance
 
 import (
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"fmt"
-	"github.com/pkg/errors"
 	"io"
-	"strings"
 	"sort"
+	"strings"
+
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
+	"github.com/pkg/errors"
 )
 
 //go:generate counterfeiter -o fakes/fake_remote_runner.go . RemoteRunner
@@ -25,16 +26,14 @@ type RemoteRunner interface {
 }
 
 type SshRemoteRunner struct {
-	instanceIdentifier InstanceIdentifier
-	logger             Logger
-	connection         ssh.SSHConnection
+	logger     Logger
+	connection ssh.SSHConnection
 }
 
-func NewRemoteRunner(sshConnection ssh.SSHConnection, instanceId InstanceIdentifier, logger Logger) SshRemoteRunner {
+func NewRemoteRunner(sshConnection ssh.SSHConnection, logger Logger) SshRemoteRunner {
 	return SshRemoteRunner{
-		connection:         sshConnection,
-		instanceIdentifier: instanceId,
-		logger:             logger,
+		connection: sshConnection,
+		logger:     logger,
 	}
 }
 
@@ -63,10 +62,7 @@ func (r SshRemoteRunner) CreateDirectory(directory string) error {
 }
 
 func (r SshRemoteRunner) ExtractArchive(reader io.Reader, directory string) error {
-	r.logger.Debug("bbr", "Streaming backup to instance %s", r.instanceIdentifier)
-
 	stdout, stderr, exitCode, err := r.connection.StreamStdin(fmt.Sprintf("sudo sh -c 'tar -C %s -x'", directory), reader)
-
 	return r.logAndCheckErrors(stdout, stderr, exitCode, err)
 }
 

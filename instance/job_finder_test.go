@@ -2,8 +2,8 @@ package instance_test
 
 import (
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
-	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
+	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	"fmt"
@@ -52,7 +52,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 					"/var/vcap/jobs/consul_agent/bin/bbr/post-restore-unlock"),
 				nil, 0, nil)
 
-			remoteRunner = NewRemoteRunner(sshConnection, instanceIdentifier, logger)
+			remoteRunner = NewRemoteRunner(sshConnection, logger)
 
 			releaseMapping = new(fakes.FakeReleaseMapping)
 			releaseMapping.FindReleaseNameReturns(consulAgentReleaseName, nil)

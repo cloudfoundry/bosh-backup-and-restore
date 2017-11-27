@@ -99,7 +99,7 @@ var _ = Describe("Director", func() {
 
 				sshConnectionFactory.Returns(sshConnection, nil)
 				expectedJobs = []orchestrator.Job{
-					instance.NewJob(instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{}, boshLogger), "", boshLogger, "", instance.BackupAndRestoreScripts{
+					instance.NewJob(instance.NewRemoteRunner(sshConnection, boshLogger), "", boshLogger, "", instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/consul_agent/bin/bbr/backup",
 						"/var/vcap/jobs/consul_agent/bin/bbr/restore",
 					}, instance.Metadata{}),
@@ -114,7 +114,7 @@ var _ = Describe("Director", func() {
 					"job1",
 					"0",
 					"jobID",
-					instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "jobID"}, boshLogger),
+					instance.NewRemoteRunner(sshConnection, boshLogger),
 					boshDeployment,
 					false,
 					boshLogger,
@@ -230,13 +230,13 @@ var _ = Describe("Director", func() {
 				sshConnectionFactory.Returns(sshConnection, nil)
 
 				instance0Jobs = []orchestrator.Job{
-					instance.NewJob(instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id1"}, boshLogger), "", boshLogger, "",
+					instance.NewJob(instance.NewRemoteRunner(sshConnection, boshLogger), "", boshLogger, "",
 						instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
 						instance.Metadata{},
 					),
 				}
 				instance1Jobs = []orchestrator.Job{
-					instance.NewJob(instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id2"}, boshLogger), "", boshLogger, "",
+					instance.NewJob(instance.NewRemoteRunner(sshConnection, boshLogger), "", boshLogger, "",
 						instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
 						instance.Metadata{},
 					),
@@ -258,7 +258,7 @@ var _ = Describe("Director", func() {
 						"job1",
 						"0",
 						"id1",
-						instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id1"}, boshLogger),
+						instance.NewRemoteRunner(sshConnection, boshLogger),
 						boshDeployment,
 						false,
 						boshLogger,
@@ -268,7 +268,7 @@ var _ = Describe("Director", func() {
 						"job1",
 						"1",
 						"id2",
-						instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id2"}, boshLogger),
+						instance.NewRemoteRunner(sshConnection, boshLogger),
 						boshDeployment,
 						false,
 						boshLogger,
@@ -405,7 +405,7 @@ var _ = Describe("Director", func() {
 						"job1",
 						"0",
 						"id1",
-						instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id1"}, boshLogger),
+						instance.NewRemoteRunner(sshConnection, boshLogger),
 						boshDeployment,
 						false,
 						boshLogger,
@@ -415,12 +415,12 @@ var _ = Describe("Director", func() {
 						"job2",
 						"0",
 						"id3",
-						instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id3"}, boshLogger),
+						instance.NewRemoteRunner(sshConnection, boshLogger),
 						boshDeployment,
 						false,
 						boshLogger,
 						[]orchestrator.Job{
-							instance.NewJob(instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id3"}, boshLogger), "", boshLogger, "",
+							instance.NewJob(instance.NewRemoteRunner(sshConnection, boshLogger), "", boshLogger, "",
 								instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
 								instance.Metadata{},
 							),
@@ -430,12 +430,12 @@ var _ = Describe("Director", func() {
 						"job2",
 						"1",
 						"id4",
-						instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id4"}, boshLogger),
+						instance.NewRemoteRunner(sshConnection, boshLogger),
 						boshDeployment,
 						false,
 						boshLogger,
 						[]orchestrator.Job{
-							instance.NewJob(instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id4"}, boshLogger), "", boshLogger, "",
+							instance.NewJob(instance.NewRemoteRunner(sshConnection, boshLogger), "", boshLogger, "",
 								instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
 								instance.Metadata{},
 							),
@@ -507,17 +507,17 @@ var _ = Describe("Director", func() {
 
 				actualInstanceIdentifier, actualRemoteRunner, actualReleaseMapping := fakeJobFinder.FindJobsArgsForCall(0)
 				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id1"}))
-				Expect(actualRemoteRunner).To(Equal(instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id1"}, boshLogger)))
+				Expect(actualRemoteRunner).To(Equal(instance.NewRemoteRunner(sshConnection, boshLogger)))
 				Expect(actualReleaseMapping).To(Equal(releaseMapping))
 
 				actualInstanceIdentifier, actualRemoteRunner, actualReleaseMapping = fakeJobFinder.FindJobsArgsForCall(1)
 				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id3"}))
-				Expect(actualRemoteRunner).To(Equal(instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id3"}, boshLogger)))
+				Expect(actualRemoteRunner).To(Equal(instance.NewRemoteRunner(sshConnection, boshLogger)))
 				Expect(actualReleaseMapping).To(Equal(releaseMapping))
 
 				actualInstanceIdentifier, actualRemoteRunner, actualReleaseMapping = fakeJobFinder.FindJobsArgsForCall(2)
 				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id4"}))
-				Expect(actualRemoteRunner).To(Equal(instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id4"}, boshLogger)))
+				Expect(actualRemoteRunner).To(Equal(instance.NewRemoteRunner(sshConnection, boshLogger)))
 				Expect(actualReleaseMapping).To(Equal(releaseMapping))
 			})
 		})

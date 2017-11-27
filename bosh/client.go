@@ -117,7 +117,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 
 			instanceIdentifier := instance.InstanceIdentifier{InstanceGroupName: instanceGroupName, InstanceId: host.IndexOrID}
 
-			remoteRunner := instance.NewRemoteRunner(sshConnection, instanceIdentifier, c.Logger)
+			remoteRunner := instance.NewRemoteRunner(sshConnection, c.Logger)
 
 			jobs, err := c.jobFinder.FindJobs(instanceIdentifier, remoteRunner, releaseMapping)
 			if err != nil {

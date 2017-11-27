@@ -56,7 +56,7 @@ type Artifact struct {
 	name              string
 	instance          orchestrator.InstanceIdentifer
 	Logger
-	remoteRunner      RemoteRunner
+	remoteRunner RemoteRunner
 }
 
 func (b *Artifact) StreamFromRemote(writer io.Writer) error {
@@ -75,6 +75,7 @@ func (b *Artifact) StreamToRemote(reader io.Reader) error {
 		return errors.Wrap(err, "Creating backup directory on the remote failed")
 	}
 
+	b.Logger.Debug("bbr", "Streaming backup to instance %s/%s", b.instance.Name(), b.instance.ID())
 	return b.remoteRunner.ExtractArchive(reader, b.artifactDirectory)
 }
 

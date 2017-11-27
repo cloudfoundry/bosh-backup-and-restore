@@ -74,7 +74,7 @@ var _ = Describe("DeploymentManager", func() {
 
 			It("returns a deployment", func() {
 				Expect(actualDeployment).To(Equal(orchestrator.NewDeployment(logger, []orchestrator.Instance{
-					NewDeployedInstance("bosh", instance.NewRemoteRunner(fakeSSHConnection, instance.InstanceIdentifier{InstanceGroupName: "bosh", InstanceId: "0"}, logger), logger, fakeJobs, false),
+					NewDeployedInstance("bosh", instance.NewRemoteRunner(fakeSSHConnection, logger), logger, fakeJobs, false),
 				})))
 			})
 		})
@@ -161,7 +161,7 @@ var _ = Describe("DeployedInstance", func() {
 		var err error
 
 		JustBeforeEach(func() {
-			inst = NewDeployedInstance("group", instance.NewRemoteRunner(fakeSSHConnection, instance.InstanceIdentifier{}, logger), logger, []orchestrator.Job{}, artifactDirCreated)
+			inst = NewDeployedInstance("group", instance.NewRemoteRunner(fakeSSHConnection, logger), logger, []orchestrator.Job{}, artifactDirCreated)
 			err = inst.Cleanup()
 		})
 
@@ -215,7 +215,7 @@ var _ = Describe("DeployedInstance", func() {
 		var err error
 
 		JustBeforeEach(func() {
-			inst = NewDeployedInstance("group", instance.NewRemoteRunner(fakeSSHConnection, instance.InstanceIdentifier{}, logger), logger, []orchestrator.Job{}, artifactDirCreated)
+			inst = NewDeployedInstance("group", instance.NewRemoteRunner(fakeSSHConnection, logger), logger, []orchestrator.Job{}, artifactDirCreated)
 			err = inst.CleanupPrevious()
 		})
 

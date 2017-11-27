@@ -7,9 +7,9 @@ import (
 	"log"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
-	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	backuperfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
+	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -270,7 +270,7 @@ var _ = Describe("artifact", func() {
 				It("returns the size of the backup according to the root user, as a string", func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(1))
 					Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh " + artifactDirectory + " | cut -f1"))
-					Expect(err).To(MatchError(ContainSubstring("Unable to check size of "+artifactDirectory)))
+					Expect(err).To(MatchError(ContainSubstring("Unable to check size of " + artifactDirectory)))
 				})
 			})
 
@@ -365,7 +365,7 @@ var _ = Describe("artifact", func() {
 
 	Context("BackupArtifact", func() {
 		JustBeforeEach(func() {
-			backupArtifact = instance.NewBackupArtifact(job, testInstance, instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{}, boshLogger), boshLogger)
+			backupArtifact = instance.NewBackupArtifact(job, testInstance, instance.NewRemoteRunner(sshConnection, boshLogger), boshLogger)
 		})
 
 		Context("Named Artifact", func() {
@@ -425,7 +425,7 @@ var _ = Describe("artifact", func() {
 
 	Context("RestoreArtifact", func() {
 		JustBeforeEach(func() {
-			backupArtifact = instance.NewRestoreArtifact(job, testInstance, instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{}, boshLogger), boshLogger)
+			backupArtifact = instance.NewRestoreArtifact(job, testInstance, instance.NewRemoteRunner(sshConnection, boshLogger), boshLogger)
 		})
 
 		Context("Named Artifact", func() {

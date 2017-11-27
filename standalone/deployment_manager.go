@@ -48,7 +48,7 @@ func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment
 	}
 
 	instanceIdentifier := instance.InstanceIdentifier{InstanceGroupName: "bosh", InstanceId: "0"}
-	remoteRunner := instance.NewRemoteRunner(connection, instanceIdentifier, dm.Logger)
+	remoteRunner := instance.NewRemoteRunner(connection, dm.Logger)
 
 	//TODO: change instanceIdentifier, its not always bosh
 	jobs, err := dm.jobFinder.FindJobs(instanceIdentifier, remoteRunner, instance.NoopReleaseMapping())

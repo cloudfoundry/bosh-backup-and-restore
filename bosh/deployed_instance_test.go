@@ -51,7 +51,7 @@ var _ = Describe("BoshDeployedInstance", func() {
 			jobName,
 			jobIndex,
 			jobID,
-			instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{}, boshLogger),
+			instance.NewRemoteRunner(sshConnection, boshLogger),
 			boshDeployment,
 			artifactDirCreated,
 			boshLogger,

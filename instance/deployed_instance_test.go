@@ -34,7 +34,7 @@ var _ = Describe("DeployedInstance", func() {
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
 		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile), log.New(stderr, "[bosh-package] ", log.Lshortfile))
-		remoteRunner = instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{InstanceGroupName: instanceGroupName, InstanceId: instanceID}, boshLogger)
+		remoteRunner = instance.NewRemoteRunner(sshConnection, boshLogger)
 	})
 
 	JustBeforeEach(func() {
@@ -869,8 +869,8 @@ var _ = Describe("DeployedInstance", func() {
 
 			It("returns artifacts with default names", func() {
 				Expect(backupArtifacts).To(ConsistOf(
-					instance.NewBackupArtifact(jobWithBackupScript1, deployedInstance, instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger), boshLogger),
-					instance.NewBackupArtifact(jobWithBackupScript2, deployedInstance, instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger), boshLogger),
+					instance.NewBackupArtifact(jobWithBackupScript1, deployedInstance, instance.NewRemoteRunner(sshConnection, boshLogger), boshLogger),
+					instance.NewBackupArtifact(jobWithBackupScript2, deployedInstance, instance.NewRemoteRunner(sshConnection, boshLogger), boshLogger),
 				))
 			})
 		})
@@ -885,12 +885,12 @@ var _ = Describe("DeployedInstance", func() {
 					instance.NewBackupArtifact(
 						jobWithBackupScript1,
 						deployedInstance,
-						instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger),
+						instance.NewRemoteRunner(sshConnection, boshLogger),
 						boshLogger),
 					instance.NewBackupArtifact(
 						jobWithBackupScriptAndMetadata,
 						deployedInstance,
-						instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger),
+						instance.NewRemoteRunner(sshConnection, boshLogger),
 						boshLogger),
 				))
 			})
@@ -907,7 +907,7 @@ var _ = Describe("DeployedInstance", func() {
 						instance.NewBackupArtifact(
 							jobWithBackupScriptAndMetadata,
 							deployedInstance,
-							instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger),
+							instance.NewRemoteRunner(sshConnection, boshLogger),
 							boshLogger,
 						),
 					},
@@ -926,7 +926,7 @@ var _ = Describe("DeployedInstance", func() {
 						instance.NewBackupArtifact(
 							jobWithBackupScript1,
 							deployedInstance,
-							instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger),
+							instance.NewRemoteRunner(sshConnection, boshLogger),
 							boshLogger,
 						),
 					},
@@ -995,8 +995,8 @@ var _ = Describe("DeployedInstance", func() {
 
 			It("returns the default artifacts", func() {
 				Expect(restoreArtifacts).To(ConsistOf(
-					instance.NewRestoreArtifact(jobWithRestoreScript1, deployedInstance, instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger), boshLogger),
-					instance.NewRestoreArtifact(jobWithRestoreScript2, deployedInstance, instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger), boshLogger),
+					instance.NewRestoreArtifact(jobWithRestoreScript1, deployedInstance, instance.NewRemoteRunner(sshConnection, boshLogger), boshLogger),
+					instance.NewRestoreArtifact(jobWithRestoreScript2, deployedInstance, instance.NewRemoteRunner(sshConnection, boshLogger), boshLogger),
 				))
 			})
 		})
@@ -1008,8 +1008,8 @@ var _ = Describe("DeployedInstance", func() {
 
 			It("returns the named artifact and the default artifact", func() {
 				Expect(restoreArtifacts).To(ConsistOf(
-					instance.NewRestoreArtifact(jobWithRestoreScript1, deployedInstance, instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger), boshLogger),
-					instance.NewRestoreArtifact(jobWithRestoreScriptAndMetadata, deployedInstance, instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger), boshLogger),
+					instance.NewRestoreArtifact(jobWithRestoreScript1, deployedInstance, instance.NewRemoteRunner(sshConnection, boshLogger), boshLogger),
+					instance.NewRestoreArtifact(jobWithRestoreScriptAndMetadata, deployedInstance, instance.NewRemoteRunner(sshConnection, boshLogger), boshLogger),
 				))
 			})
 		})
@@ -1022,7 +1022,7 @@ var _ = Describe("DeployedInstance", func() {
 			It("returns only the named artifact", func() {
 				Expect(restoreArtifacts).To(Equal(
 					[]orchestrator.BackupArtifact{
-						instance.NewRestoreArtifact(jobWithRestoreScriptAndMetadata, deployedInstance, instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger), boshLogger),
+						instance.NewRestoreArtifact(jobWithRestoreScriptAndMetadata, deployedInstance, instance.NewRemoteRunner(sshConnection, boshLogger), boshLogger),
 					},
 				))
 			})
@@ -1039,7 +1039,7 @@ var _ = Describe("DeployedInstance", func() {
 						instance.NewBackupArtifact(
 							jobWithRestoreScript1,
 							deployedInstance,
-							instance.NewRemoteRunner(sshConnection, instanceIdentifier, boshLogger),
+							instance.NewRemoteRunner(sshConnection, boshLogger),
 							boshLogger,
 						),
 					},

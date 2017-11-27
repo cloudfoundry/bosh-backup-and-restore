@@ -40,7 +40,7 @@ var _ = Describe("Job", func() {
 		stderrLog := log.New(stderr, "[instance-test] ", log.Lshortfile)
 		logger = boshlog.New(boshlog.LevelDebug, stdoutLog, stderrLog)
 		releaseName = "redis"
-		remoteRunner = instance.NewRemoteRunner(sshConnection, instance.InstanceIdentifier{}, logger)
+		remoteRunner = instance.NewRemoteRunner(sshConnection, logger)
 	})
 
 	JustBeforeEach(func() {
