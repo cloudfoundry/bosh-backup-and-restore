@@ -251,7 +251,7 @@ var _ = Describe("artifact", func() {
 
 				It("returns the size of the backup according to the root user, as a string", func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh " + artifactDirectory + " | cut -f1"))
+					Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh " + artifactDirectory))
 					Expect(size).To(Equal("4.1G"))
 				})
 			})
@@ -269,7 +269,7 @@ var _ = Describe("artifact", func() {
 
 				It("returns the size of the backup according to the root user, as a string", func() {
 					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh " + artifactDirectory + " | cut -f1"))
+					Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh " + artifactDirectory))
 					Expect(err).To(MatchError(ContainSubstring("Unable to check size of " + artifactDirectory)))
 				})
 			})
