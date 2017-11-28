@@ -8,7 +8,8 @@ import (
 
 	"fmt"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
+	instancefakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -18,11 +19,10 @@ var _ = Describe("Job", func() {
 	var job instance.Job
 	var jobScripts instance.BackupAndRestoreScripts
 	var metadata instance.Metadata
-	var sshConnection *fakes.FakeSSHConnection
 	var stdout, stderr *gbytes.Buffer
 	var logger boshlog.Logger
 	var releaseName string
-	var remoteRunner instance.RemoteRunner
+	var remoteRunner *instancefakes.FakeRemoteRunner
 	var instanceIdentifier = "instance/identifier"
 
 	BeforeEach(func() {
@@ -33,14 +33,13 @@ var _ = Describe("Job", func() {
 			"/var/vcap/jobs/jobname/bin/bbr/post-backup-unlock",
 		}
 		metadata = instance.Metadata{}
-		sshConnection = new(fakes.FakeSSHConnection)
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
 		stdoutLog := log.New(stdout, "[instance-test] ", log.Lshortfile)
 		stderrLog := log.New(stderr, "[instance-test] ", log.Lshortfile)
 		logger = boshlog.New(boshlog.LevelDebug, stdoutLog, stderrLog)
 		releaseName = "redis"
-		remoteRunner = instance.NewRemoteRunner(sshConnection, logger)
+		remoteRunner = new(instancefakes.FakeRemoteRunner)
 	})
 
 	JustBeforeEach(func() {
@@ -251,8 +250,8 @@ var _ = Describe("Job", func() {
 				}
 			})
 
-			It("should not run anything on the ssh connection", func() {
-				Expect(sshConnection.RunCallCount()).To(BeZero())
+			It("should not run anything remote runner", func() {
+				Expect(remoteRunner.Invocations()).To(HaveLen(0))
 			})
 		})
 
@@ -263,16 +262,23 @@ var _ = Describe("Job", func() {
 				}
 			})
 
-			It("uses the ssh connection to run the script", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(2))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo mkdir -p /var/vcap/store/bbr-backup/jobname"))
-				Expect(sshConnection.RunArgsForCall(1)).To(Equal("sudo ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/jobname/ " +
-					"BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/jobname/ /var/vcap/jobs/jobname/bin/bbr/backup"))
+			It("uses the remote runnerto run the script", func() {
+				Expect(remoteRunner.CreateDirectoryCallCount()).To(Equal(1))
+				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(1))
+
+				Expect(remoteRunner.CreateDirectoryArgsForCall(0)).To(Equal("/var/vcap/store/bbr-backup/jobname"))
+				specifiedScriptPath, specifiedEnvVars := remoteRunner.RunScriptWithEnvArgsForCall(0)
+				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/jobname/bin/bbr/backup"))
+				Expect(specifiedEnvVars).To(SatisfyAll(
+					HaveLen(2),
+					HaveKeyWithValue("ARTIFACT_DIRECTORY", "/var/vcap/store/bbr-backup/jobname/"),
+					HaveKeyWithValue("BBR_ARTIFACT_DIRECTORY", "/var/vcap/store/bbr-backup/jobname/"),
+				))
 			})
 
 			Context("backup script runs successfully", func() {
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("stdout"), []byte("stderr"), 0, nil)
+					remoteRunner.RunScriptWithEnvReturns("stdout", nil)
 				})
 
 				It("succeeds", func() {
@@ -280,25 +286,13 @@ var _ = Describe("Job", func() {
 				})
 			})
 
-			Context("backup script run has a connection error", func() {
-				var connectionError = fmt.Errorf("wierd error")
-
+			Context("backup script fails", func() {
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("stdout"), []byte("stderr"), 0, connectionError)
+					remoteRunner.RunScriptWithEnvReturns("", fmt.Errorf("some weird error"))
 				})
 
 				It("fails", func() {
-					Expect(backupError).To(MatchError(ContainSubstring(connectionError.Error())))
-				})
-			})
-
-			Context("backup script exits with a non zero exit code", func() {
-				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("stdout"), []byte("stderr-script-errorred"), 1, nil)
-				})
-
-				It("fails", func() {
-					Expect(backupError).To(MatchError(ContainSubstring("stderr-script-errorred")))
+					Expect(backupError).To(MatchError(ContainSubstring("some weird error")))
 				})
 			})
 		})
@@ -318,8 +312,8 @@ var _ = Describe("Job", func() {
 				}
 			})
 
-			It("should not run anything on the ssh connection", func() {
-				Expect(sshConnection.RunCallCount()).To(BeZero())
+			It("should not run anything on the remote runner", func() {
+				Expect(remoteRunner.Invocations()).To(HaveLen(0))
 			})
 		})
 
@@ -330,16 +324,21 @@ var _ = Describe("Job", func() {
 				}
 			})
 
-			It("uses the ssh connection to run the script", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/jobname/ " +
-						"BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/jobname/ /var/vcap/jobs/jobname/bin/bbr/restore"))
+			It("uses the remote runner to run the script", func() {
+				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(1))
+
+				specifiedScriptPath, specifiedEnvVars := remoteRunner.RunScriptWithEnvArgsForCall(0)
+				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/jobname/bin/bbr/restore"))
+				Expect(specifiedEnvVars).To(SatisfyAll(
+					HaveLen(2),
+					HaveKeyWithValue("ARTIFACT_DIRECTORY", "/var/vcap/store/bbr-backup/jobname/"),
+					HaveKeyWithValue("BBR_ARTIFACT_DIRECTORY", "/var/vcap/store/bbr-backup/jobname/"),
+				))
 			})
 
 			Context("restore script runs successfully", func() {
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("stdout"), []byte("stderr"), 0, nil)
+					remoteRunner.RunScriptWithEnvReturns("", nil)
 				})
 
 				It("succeeds", func() {
@@ -347,27 +346,16 @@ var _ = Describe("Job", func() {
 				})
 			})
 
-			Context("restore script run has a connection error", func() {
-				var connectionError = fmt.Errorf("wierd error")
-
+			Context("restore script fails", func() {
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("stdout"), []byte("stderr"), 0, connectionError)
+					remoteRunner.RunScriptWithEnvReturns("", fmt.Errorf("it went wrong"))
 				})
 
 				It("fails", func() {
-					Expect(restoreError).To(MatchError(ContainSubstring(connectionError.Error())))
+					Expect(restoreError).To(MatchError(ContainSubstring("it went wrong")))
 				})
 			})
 
-			Context("restore script exits with a non zero exit code", func() {
-				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("stdout"), []byte("stderr-script-errorred"), 1, nil)
-				})
-
-				It("fails", func() {
-					Expect(restoreError).To(MatchError(ContainSubstring("stderr-script-errorred")))
-				})
-			})
 		})
 	})
 
@@ -385,8 +373,8 @@ var _ = Describe("Job", func() {
 				}
 			})
 
-			It("should not run anything on the ssh connection", func() {
-				Expect(sshConnection.RunCallCount()).To(BeZero())
+			It("should not call the remote runner", func() {
+				Expect(remoteRunner.Invocations()).To(HaveLen(0))
 			})
 		})
 
@@ -398,10 +386,11 @@ var _ = Describe("Job", func() {
 			})
 
 			It("runs the script", func() {
-				By("using the SSH connection", func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					Expect(sshConnection.RunArgsForCall(0)).To(Equal(
-						"sudo /var/vcap/jobs/jobname/bin/bbr/pre-backup-lock"))
+				By("calling the remote runner", func() {
+					Expect(remoteRunner.RunScriptCallCount()).To(Equal(1))
+					Expect(
+						remoteRunner.RunScriptArgsForCall(0),
+					).To(Equal("/var/vcap/jobs/jobname/bin/bbr/pre-backup-lock"))
 				})
 
 				By("logging the script path", func() {
@@ -422,7 +411,7 @@ var _ = Describe("Job", func() {
 
 			Context("pre-backup-lock script runs successfully", func() {
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("stdout"), []byte("stderr"), 0, nil)
+					remoteRunner.RunScriptReturns("stdout", nil)
 				})
 
 				It("succeeds", func() {
@@ -430,28 +419,14 @@ var _ = Describe("Job", func() {
 				})
 			})
 
-			Context("pre-backup-lock script run has a connection error", func() {
-				var connectionError = fmt.Errorf("ssh connection error")
-
+			Context("pre-backup-lock script errors", func() {
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("stdout"), []byte("stderr"), 0, connectionError)
+					remoteRunner.RunScriptReturns("", fmt.Errorf("some strange error"))
 				})
 
 				It("fails", func() {
-					By("including the SSH connection error in the returned error", func() {
-						Expect(preBackupLockError).To(MatchError(ContainSubstring(connectionError.Error())))
-					})
-				})
-			})
-
-			Context("pre-backup-lock script exits with a non zero exit code", func() {
-				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("the-script-stdout"), []byte("the-script-stderr"), 1, nil)
-				})
-
-				It("fails", func() {
-					By("including the script stderr in the returned error", func() {
-						Expect(preBackupLockError).To(MatchError(ContainSubstring("the-script-stderr")))
+					By("including the error in the returned error", func() {
+						Expect(preBackupLockError).To(MatchError(ContainSubstring("some strange error")))
 					})
 				})
 			})
@@ -472,8 +447,8 @@ var _ = Describe("Job", func() {
 				}
 			})
 
-			It("should not run anything on the ssh connection", func() {
-				Expect(sshConnection.RunCallCount()).To(BeZero())
+			It("should not run anything on the remote runner", func() {
+				Expect(remoteRunner.Invocations()).To(HaveLen(0))
 			})
 		})
 
@@ -484,15 +459,16 @@ var _ = Describe("Job", func() {
 				}
 			})
 
-			It("uses the ssh connection to run the script", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
-					"sudo /var/vcap/jobs/jobname/bin/bbr/post-backup-unlock"))
+			It("uses remote runner to run the script", func() {
+				Expect(remoteRunner.RunScriptCallCount()).To(Equal(1))
+				Expect(
+					remoteRunner.RunScriptArgsForCall(0),
+				).To(Equal("/var/vcap/jobs/jobname/bin/bbr/post-backup-unlock"))
 			})
 
 			Context("post-backup-unlock script runs successfully", func() {
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("stdout"), []byte("stderr"), 0, nil)
+					remoteRunner.RunScriptReturns("stdout", nil)
 				})
 
 				It("succeeds", func() {
@@ -500,25 +476,13 @@ var _ = Describe("Job", func() {
 				})
 			})
 
-			Context("post-backup-unlock script run has a connection error", func() {
-				var connectionError = fmt.Errorf("wierd error")
-
+			Context("post-backup-unlock script fails", func() {
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("stdout"), []byte("stderr"), 0, connectionError)
+					remoteRunner.RunScriptReturns("", fmt.Errorf("it failed"))
 				})
 
 				It("fails", func() {
-					Expect(postBackupUnlockError).To(MatchError(ContainSubstring(connectionError.Error())))
-				})
-			})
-
-			Context("post-backup-unlock script exits with a non zero exit code", func() {
-				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("stdout"), []byte("stderr-script-errorred"), 1, nil)
-				})
-
-				It("fails", func() {
-					Expect(postBackupUnlockError).To(MatchError(ContainSubstring("stderr-script-errorred")))
+					Expect(postBackupUnlockError).To(MatchError(ContainSubstring("it failed")))
 				})
 			})
 		})
@@ -544,8 +508,8 @@ var _ = Describe("Job", func() {
 				}
 			})
 
-			It("should not run anything on the ssh connection", func() {
-				Expect(sshConnection.RunCallCount()).To(BeZero())
+			It("should not run anything on the remote runner", func() {
+				Expect(remoteRunner.Invocations()).To(HaveLen(0))
 			})
 		})
 
@@ -557,10 +521,11 @@ var _ = Describe("Job", func() {
 			})
 
 			It("runs the script", func() {
-				By("using the SSH connection", func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					Expect(sshConnection.RunArgsForCall(0)).To(Equal(
-						"sudo /var/vcap/jobs/jobname/bin/bbr/pre-restore-lock"))
+				By("using the remote runner", func() {
+					Expect(remoteRunner.RunScriptCallCount()).To(Equal(1))
+					Expect(
+						remoteRunner.RunScriptArgsForCall(0),
+					).To(Equal("/var/vcap/jobs/jobname/bin/bbr/pre-restore-lock"))
 				})
 
 				By("logging the script path", func() {
@@ -581,7 +546,7 @@ var _ = Describe("Job", func() {
 
 			Context("pre-restore-lock script runs successfully", func() {
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("stdout"), []byte("stderr"), 0, nil)
+					remoteRunner.RunScriptReturns("stdout", nil)
 				})
 
 				It("succeeds", func() {
@@ -589,28 +554,14 @@ var _ = Describe("Job", func() {
 				})
 			})
 
-			Context("pre-restore-lock script run has a connection error", func() {
-				var connectionError = fmt.Errorf("ssh connection error")
-
+			Context("pre-restore-lock script fails", func() {
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("stdout"), []byte("stderr"), 0, connectionError)
+					remoteRunner.RunScriptReturns("", fmt.Errorf("some strange error"))
 				})
 
 				It("fails", func() {
-					By("including the SSH connection error in the returned error", func() {
-						Expect(preRestoreLockError).To(MatchError(ContainSubstring(connectionError.Error())))
-					})
-				})
-			})
-
-			Context("pre-restore-lock script exits with a non zero exit code", func() {
-				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("the-script-stdout"), []byte("the-script-stderr"), 1, nil)
-				})
-
-				It("fails", func() {
-					By("including the script stderr in the returned error", func() {
-						Expect(preRestoreLockError).To(MatchError(ContainSubstring("the-script-stderr")))
+					By("including the error in the returned error", func() {
+						Expect(preRestoreLockError).To(MatchError(ContainSubstring("some strange error")))
 					})
 				})
 			})
@@ -628,8 +579,8 @@ var _ = Describe("Job", func() {
 					"/var/vcap/jobs/jobname/bin/bbr/restore",
 				}
 			})
-			It("should not run anything on the ssh connection", func() {
-				Expect(sshConnection.RunCallCount()).To(BeZero())
+			It("should not run anything on the remote runner", func() {
+				Expect(remoteRunner.Invocations()).To(HaveLen(0))
 			})
 		})
 		Context("job has a post-restore-unlock script", func() {
@@ -639,36 +590,29 @@ var _ = Describe("Job", func() {
 				}
 			})
 
-			It("uses the ssh connection to run the script", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal(
-					"sudo /var/vcap/jobs/jobname/bin/bbr/post-restore-unlock"))
+			It("uses the remote runner to run the script", func() {
+				Expect(remoteRunner.RunScriptCallCount()).To(Equal(1))
+				Expect(
+					remoteRunner.RunScriptArgsForCall(0),
+				).To(Equal("/var/vcap/jobs/jobname/bin/bbr/post-restore-unlock"))
 			})
 
 			Context("post-restore-unlock script runs successfully", func() {
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("stdout"), []byte("stderr"), 0, nil)
+					remoteRunner.RunScriptReturns("stdout", nil)
 				})
 				It("succeeds", func() {
 					Expect(postRestoreUnlockError).NotTo(HaveOccurred())
 				})
 
 			})
-			Context("post-restore-unlock script run has a connection error", func() {
-				var connectionError = fmt.Errorf("wierd error")
+
+			Context("post-restore-unlock script fails", func() {
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("stdout"), []byte("stderr"), 0, connectionError)
+					remoteRunner.RunScriptReturns("", fmt.Errorf("oh no"))
 				})
 				It("fails", func() {
-					Expect(postRestoreUnlockError).To(MatchError(ContainSubstring(connectionError.Error())))
-				})
-			})
-			Context("post-restore-unlock script exits with a non zero exit code", func() {
-				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("stdout"), []byte("stderr-script-errorred"), 1, nil)
-				})
-				It("fails", func() {
-					Expect(postRestoreUnlockError).To(MatchError(ContainSubstring("stderr-script-errorred")))
+					Expect(postRestoreUnlockError).To(MatchError(ContainSubstring("oh no")))
 				})
 			})
 		})
