@@ -104,7 +104,7 @@ var _ = Describe("DeployedInstance", func() {
 		Context("when artifact directory does not exist", func() {
 			It("calls the ssh connection", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("stat /var/vcap/store/bbr-backup"))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo stat /var/vcap/store/bbr-backup"))
 			})
 
 			It("returns false", func() {
@@ -119,7 +119,7 @@ var _ = Describe("DeployedInstance", func() {
 
 			It("calls the ssh connection", func() {
 				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("stat /var/vcap/store/bbr-backup"))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo stat /var/vcap/store/bbr-backup"))
 			})
 
 			It("returns true", func() {

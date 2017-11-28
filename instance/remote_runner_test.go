@@ -18,7 +18,7 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-var privateKey string
+var userPrivateKey string
 var user string
 var testInstance *testcluster.Instance
 var sshConnection ssh.SSHConnection
@@ -28,9 +28,10 @@ var _ = Describe("SshRemoteRunner", func() {
 
 	BeforeEach(func() {
 		user = "test-user"
+		userPrivateKey = defaultPrivateKey
+
 		testInstance = testcluster.NewInstanceWithKeepAlive(2)
-		testInstance.CreateUser(user, publicKeyForDocker(defaultPrivateKey))
-		privateKey = defaultPrivateKey
+		testInstance.CreateUser(user, publicKeyForDocker(userPrivateKey))
 
 		hostPublicKey, _, _, _, err := gossh.ParseAuthorizedKey([]byte(testInstance.HostPublicKey()))
 		Expect(err).NotTo(HaveOccurred())
@@ -39,7 +40,7 @@ var _ = Describe("SshRemoteRunner", func() {
 		combinedErrLog := log.New(io.MultiWriter(GinkgoWriter, bytes.NewBufferString("")), "[bosh-package] ", log.Lshortfile)
 		logger := boshlog.New(boshlog.LevelDebug, combinedOutLog, combinedErrLog)
 
-		sshConnection, err = ssh.NewConnection(testInstance.Address(), user, privateKey, gossh.FixedHostKey(hostPublicKey),
+		sshConnection, err = ssh.NewConnection(testInstance.Address(), user, userPrivateKey, gossh.FixedHostKey(hostPublicKey),
 			[]string{hostPublicKey.Type()}, logger)
 		Expect(err).NotTo(HaveOccurred())
 
@@ -57,6 +58,10 @@ var _ = Describe("SshRemoteRunner", func() {
 		return string(stdout)
 	}
 
+	var makeAccessibleOnlyByRoot = func(path string) {
+		runCommand("sudo chown root:root " + path)
+		runCommand("sudo chmod 0700 " + path)
+	}
 	Describe("ConnectedUsername", func() {
 		It("returns the name of the connected user", func() {
 			Expect(remoteRunner.ConnectedUsername()).To(Equal(user))
@@ -73,6 +78,7 @@ var _ = Describe("SshRemoteRunner", func() {
 		Context("When the directory exists", func() {
 			BeforeEach(func() {
 				runCommand("mkdir -p /tmp/an-existing-dir")
+				makeAccessibleOnlyByRoot("/tmp")
 			})
 
 			It("returns false", func() {
@@ -94,6 +100,7 @@ var _ = Describe("SshRemoteRunner", func() {
 
 	Describe("CreateDirectory", func() {
 		It("creates a directory", func() {
+			makeAccessibleOnlyByRoot("/tmp")
 			Expect(remoteRunner.CreateDirectory("/tmp/a-new-directory")).To(Succeed())
 			Expect(remoteRunner.DirectoryExists("/tmp/a-new-directory")).To(BeTrue())
 		})
@@ -114,7 +121,7 @@ var _ = Describe("SshRemoteRunner", func() {
 		Context("When the directory exists", func() {
 			BeforeEach(func() {
 				runCommand("mkdir -p /tmp/existing-directory")
-				runCommand("sudo chown root:root /tmp/existing-directory")
+				makeAccessibleOnlyByRoot("/tmp/existing-directory")
 			})
 
 			It("removes the directory", func() {
@@ -142,6 +149,7 @@ var _ = Describe("SshRemoteRunner", func() {
 			runCommand("mkdir -p /tmp/dir-to-archive")
 			runCommand("echo 'one' > /tmp/dir-to-archive/file1")
 			runCommand("echo 'two' > /tmp/dir-to-archive/file2")
+			makeAccessibleOnlyByRoot("/tmp/dir-to-archive")
 
 			By("downloading and archiving the directory")
 			archiveFile := makeTmpFile("remote-runner-test-")
@@ -151,10 +159,11 @@ var _ = Describe("SshRemoteRunner", func() {
 
 			By("by extracting and uploading the archive to a specified directory")
 			runCommand("mkdir -p /tmp/uploaded-dir")
+			makeAccessibleOnlyByRoot("/tmp/uploaded-dir")
 			archiveFile = resetCursor(archiveFile)
 			err = remoteRunner.ExtractAndUpload(archiveFile, "/tmp/uploaded-dir")
 			Expect(err).NotTo(HaveOccurred())
-			lsOutput := runCommand("ls /tmp/uploaded-dir")
+			lsOutput := runCommand("sudo ls /tmp/uploaded-dir")
 			Expect(lsOutput).To(Equal("file1\nfile2\n"))
 		})
 
@@ -209,6 +218,7 @@ var _ = Describe("SshRemoteRunner", func() {
 				runCommand("mkdir /tmp/a-dir")
 				runCommand("dd if=/dev/zero of=/tmp/a-dir/a-file bs=1k count=1000")
 				runCommand("dd if=/dev/zero of=/tmp/a-dir/b-file bs=1k count=500")
+				makeAccessibleOnlyByRoot("/tmp/a-dir")
 			})
 
 			It("returns a string with the specified file or directory size", func() {
@@ -241,6 +251,7 @@ var _ = Describe("SshRemoteRunner", func() {
 				runCommand("mkdir /tmp/a-dir")
 				runCommand("echo 'foo' > /tmp/a-dir/file1")
 				runCommand("echo 'bar' > /tmp/a-dir/file2")
+				makeAccessibleOnlyByRoot("/tmp/a-dir")
 			})
 
 			It("calculates the SHA256 checksum for each file in the directory", func() {
@@ -266,6 +277,104 @@ var _ = Describe("SshRemoteRunner", func() {
 
 			It("returns an error", func() {
 				_, err := remoteRunner.ChecksumDirectory("whatever")
+				Expect(err).To(MatchError(ContainSubstring("ssh.Dial failed")))
+			})
+		})
+	})
+
+	Describe("RunScriptWithEnv", func() {
+		Context("When the script exists", func() {
+			It("runs the script with the specified env variables", func() {
+
+				runCommand("echo 'env' > /tmp/example-script")
+				makeAccessibleOnlyByRoot("/tmp/example-script")
+
+				stdout, err := remoteRunner.RunScriptWithEnv("/tmp/example-script", map[string]string{"env1": "foo", "env2": "bar"})
+
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(stdout).To(SatisfyAll(
+					ContainSubstring("env1=foo"),
+					ContainSubstring("env2=bar"),
+				))
+			})
+		})
+
+		Context("when the script is not there", func() {
+			It("returns a helpful error", func() {
+				_, err := remoteRunner.RunScriptWithEnv("/tmp/example-script", map[string]string{"env1": "foo", "env2": "bar"})
+
+				Expect(err).To(MatchError(ContainSubstring("command not found")))
+
+			})
+		})
+
+		Context("When the script errors", func() {
+			It("returns an error containing the script stderr", func() {
+				runCommand("echo '>&2 echo example script has errorred; exit 12' > /tmp/example-script")
+				runCommand("chmod +x /tmp/example-script")
+
+				_, err := remoteRunner.RunScriptWithEnv("/tmp/example-script", map[string]string{"env1": "foo", "env2": "bar"})
+
+				Expect(err).To(MatchError(ContainSubstring("example script has errorred - exit code 12")))
+
+			})
+		})
+		Context("When the ssh connection fails", func() {
+			BeforeEach(func() {
+				destroyInstance(testInstance)
+			})
+
+			It("returns an error", func() {
+				_, err := remoteRunner.RunScriptWithEnv("whatever", map[string]string{})
+				Expect(err).To(MatchError(ContainSubstring("ssh.Dial failed")))
+			})
+		})
+	})
+
+	Describe("FindFiles", func() {
+		Context("when there are files that match the pattern", func() {
+			It("returns exactly those files", func() {
+				runCommand("touch /tmp/script-to-find")
+				runCommand("touch /tmp/script-to-find2")
+				runCommand("touch /tmp/script-to-not-find")
+				makeAccessibleOnlyByRoot("/tmp")
+
+				files, err := remoteRunner.FindFiles("/tmp/*to-find*")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(files).To(ConsistOf(
+					"/tmp/script-to-find",
+					"/tmp/script-to-find2",
+				))
+
+			})
+		})
+
+		Context("when there are no files that match the pattern", func() {
+			It("returns exactly those files", func() {
+
+				files, err := remoteRunner.FindFiles("/tmp/this-file")
+				Expect(err).NotTo(HaveOccurred())
+				Expect(files).To(HaveLen(0))
+
+			})
+		})
+
+		Context("when the find command errors", func() {
+			It("bubbles the error up", func() {
+
+				_, err := remoteRunner.FindFiles("; cause-an-error")
+				Expect(err).To(MatchError(ContainSubstring("not found")))
+
+			})
+		})
+		Context("When the ssh connection fails", func() {
+			BeforeEach(func() {
+				destroyInstance(testInstance)
+			})
+
+			It("returns an error", func() {
+				_, err := remoteRunner.FindFiles("whatever")
 				Expect(err).To(MatchError(ContainSubstring("ssh.Dial failed")))
 			})
 		})

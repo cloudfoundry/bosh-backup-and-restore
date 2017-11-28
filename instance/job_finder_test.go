@@ -64,7 +64,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 
 		It("finds the jobs", func() {
 			By("finding the scripts", func() {
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("find /var/vcap/jobs/*/bin/bbr/* -type f"))
+				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo sh -c 'find /var/vcap/jobs/*/bin/bbr/* -type f'"))
 			})
 
 			By("logging the scripts found", func() {
@@ -106,7 +106,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 
 			It("ignores them", func() {
 				By("finding the scripts", func() {
-					Expect(sshConnection.RunArgsForCall(0)).To(Equal("find /var/vcap/jobs/*/bin/bbr/* -type f"))
+					Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo sh -c 'find /var/vcap/jobs/*/bin/bbr/* -type f'"))
 				})
 
 				By("not returning an error", func() {

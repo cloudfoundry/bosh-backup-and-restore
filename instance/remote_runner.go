@@ -42,7 +42,7 @@ func (r SshRemoteRunner) ConnectedUsername() string {
 }
 
 func (r SshRemoteRunner) DirectoryExists(dir string) (bool, error) {
-	_, _, exitCode, err := r.connection.Run(fmt.Sprintf("stat %s", dir))
+	_, _, exitCode, err := r.connection.Run(fmt.Sprintf("sudo stat %s", dir))
 	return exitCode == 0, err
 }
 
@@ -104,7 +104,7 @@ func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string) (s
 }
 
 func (r SshRemoteRunner) FindFiles(pattern string) ([]string, error) {
-	stdout, stderr, exitCode, err := r.connection.Run(fmt.Sprintf("find %s -type f", pattern))
+	stdout, stderr, exitCode, err := r.connection.Run(fmt.Sprintf("sudo sh -c 'find %s -type f'", pattern))
 
 	r.logger.Debug("bbr", "Stdout: %s", string(stdout))
 	r.logger.Debug("bbr", "Stderr: %s", string(stderr))
@@ -122,7 +122,8 @@ func (r SshRemoteRunner) FindFiles(pattern string) ([]string, error) {
 		}
 	}
 
-	return strings.Split(string(stdout), "\n"), nil
+	output := strings.TrimSpace(string(stdout))
+	return strings.Split(output, "\n"), nil
 }
 
 func (r SshRemoteRunner) runOnInstance(cmd string) (string, error) {
@@ -152,7 +153,7 @@ func (r SshRemoteRunner) logAndCheckErrors(stdout, stderr []byte, exitCode int, 
 }
 
 func exitError(stderr []byte, exitCode int) error {
-	return errors.New(fmt.Sprintf("%s - exit code %d", string(stderr), exitCode))
+	return errors.New(fmt.Sprintf("%s - exit code %d", strings.TrimSpace(string(stderr)), exitCode))
 }
 
 func convertShasToMap(shas string) map[string]string {
