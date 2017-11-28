@@ -6,12 +6,13 @@ import (
 	"strings"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	instancefakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
@@ -21,7 +22,7 @@ var _ = Describe("DeployedInstance", func() {
 	var stdout, stderr *gbytes.Buffer
 	var instanceGroupName, instanceIndex, instanceID, expectedStdout, expectedStderr string
 	var jobs orchestrator.Jobs
-	var remoteRunner instance.RemoteRunner
+	var remoteRunner *instancefakes.FakeRemoteRunner
 
 	var deployedInstance *instance.DeployedInstance
 	BeforeEach(func() {
@@ -34,11 +35,11 @@ var _ = Describe("DeployedInstance", func() {
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
 		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile), log.New(stderr, "[bosh-package] ", log.Lshortfile))
-		remoteRunner = instance.NewRemoteRunner(sshConnection, boshLogger)
+		remoteRunner = new(instancefakes.FakeRemoteRunner)
 	})
 
 	JustBeforeEach(func() {
-		sshConnection.UsernameReturns("sshUsername")
+		remoteRunner.ConnectedUsernameReturns("sshUsername")
 		deployedInstance = instance.NewDeployedInstance(
 			instanceIndex,
 			instanceGroupName,
@@ -86,25 +87,21 @@ var _ = Describe("DeployedInstance", func() {
 	})
 
 	Describe("ArtifactDirExists", func() {
-		var sshExitCode int
-		var sshError error
-
 		var dirExists bool
 		var dirError error
 
 		JustBeforeEach(func() {
-			sshConnection.RunReturns([]byte{}, []byte{}, sshExitCode, sshError)
 			dirExists, dirError = deployedInstance.ArtifactDirExists()
 		})
 
-		BeforeEach(func() {
-			sshExitCode = 1
+		It("queries whether the artifact directory is present", func() {
+			Expect(remoteRunner.DirectoryExistsCallCount()).To(Equal(1))
+			Expect(remoteRunner.DirectoryExistsArgsForCall(0)).To(Equal("/var/vcap/store/bbr-backup"))
 		})
 
 		Context("when artifact directory does not exist", func() {
-			It("calls the ssh connection", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo stat /var/vcap/store/bbr-backup"))
+			BeforeEach(func() {
+				remoteRunner.DirectoryExistsReturns(false, nil)
 			})
 
 			It("returns false", func() {
@@ -112,28 +109,13 @@ var _ = Describe("DeployedInstance", func() {
 			})
 		})
 
-		Context("when artifact directory exists", func() {
+		Context("when artifact directory does exist", func() {
 			BeforeEach(func() {
-				sshExitCode = 0
-			})
-
-			It("calls the ssh connection", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo stat /var/vcap/store/bbr-backup"))
+				remoteRunner.DirectoryExistsReturns(true, nil)
 			})
 
 			It("returns true", func() {
 				Expect(dirExists).To(BeTrue())
-			})
-		})
-
-		Context("when ssh connection error occurs", func() {
-			BeforeEach(func() {
-				sshError = fmt.Errorf("argh!")
-			})
-
-			It("returns the error", func() {
-				Expect(dirError).To(MatchError("argh!"))
 			})
 		})
 	})
@@ -249,23 +231,40 @@ var _ = Describe("DeployedInstance", func() {
 				})
 			})
 
-			It("uses the ssh connection to create each job's backup folder and run each backup script providing the correct ARTIFACT_DIRECTORY and BBR_ARTIFACT_DIRECTORY", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(6))
+			It("uses the ssh connection to create each job's backup folder and run each backup script providing the "+
+				"correct ARTIFACT_DIRECTORY and BBR_ARTIFACT_DIRECTORY", func() {
+				Expect(remoteRunner.CreateDirectoryCallCount()).To(Equal(3))
+				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(3))
 				Expect([]string{
-					sshConnection.RunArgsForCall(0),
-					sshConnection.RunArgsForCall(1),
-					sshConnection.RunArgsForCall(2),
-					sshConnection.RunArgsForCall(3),
-					sshConnection.RunArgsForCall(4),
-					sshConnection.RunArgsForCall(5),
+					remoteRunner.CreateDirectoryArgsForCall(0),
+					remoteRunner.CreateDirectoryArgsForCall(1),
+					remoteRunner.CreateDirectoryArgsForCall(2),
 				}).To(ConsistOf(
-					"sudo mkdir -p /var/vcap/store/bbr-backup/foo",
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ /var/vcap/jobs/foo/bin/bbr/backup",
-					"sudo mkdir -p /var/vcap/store/bbr-backup/bar",
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/bar/ BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/bar/ /var/vcap/jobs/bar/bin/bbr/backup",
-					"sudo mkdir -p /var/vcap/store/bbr-backup/baz",
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/baz/ BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/baz/ /var/vcap/jobs/baz/bin/bbr/backup",
+					"/var/vcap/store/bbr-backup/foo",
+					"/var/vcap/store/bbr-backup/bar",
+					"/var/vcap/store/bbr-backup/baz",
 				))
+
+				specifiedScriptPath, specifiedEnvVars := remoteRunner.RunScriptWithEnvArgsForCall(0)
+				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/foo/bin/bbr/backup"))
+				Expect(specifiedEnvVars).To(Equal(map[string]string{
+					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/foo/",
+					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/foo/",
+				}))
+
+				specifiedScriptPath, specifiedEnvVars = remoteRunner.RunScriptWithEnvArgsForCall(1)
+				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/bar/bin/bbr/backup"))
+				Expect(specifiedEnvVars).To(Equal(map[string]string{
+					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/bar/",
+					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/bar/",
+				}))
+
+				specifiedScriptPath, specifiedEnvVars = remoteRunner.RunScriptWithEnvArgsForCall(2)
+				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/baz/bin/bbr/backup"))
+				Expect(specifiedEnvVars).To(Equal(map[string]string{
+					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/baz/",
+					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/baz/",
+				}))
 			})
 
 			It("logs the paths to the scripts being run", func() {
@@ -313,31 +312,37 @@ var _ = Describe("DeployedInstance", func() {
 						"/var/vcap/jobs/foo/bin/bbr/backup",
 					}, instance.Metadata{}),
 					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/bar/bin/bbr/backup",
-					}, instance.Metadata{}),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/baz/bin/bbr/backup",
 					}, instance.Metadata{BackupName: "special-backup"}),
 				})
 			})
 
-			It("uses the ssh connection to create each job's backup folder and run each backup script providing the correct BBR_ARTIFACT_DIRECTORY and ARTIFACT_DIRECTORY", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(6))
+			It("uses the ssh connection to create each job's backup folder and run each backup script providing the "+
+				"correct BBR_ARTIFACT_DIRECTORY and ARTIFACT_DIRECTORY", func() {
+
+				Expect(remoteRunner.CreateDirectoryCallCount()).To(Equal(2))
+				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(2))
 				Expect([]string{
-					sshConnection.RunArgsForCall(0),
-					sshConnection.RunArgsForCall(1),
-					sshConnection.RunArgsForCall(2),
-					sshConnection.RunArgsForCall(3),
-					sshConnection.RunArgsForCall(4),
-					sshConnection.RunArgsForCall(5),
+					remoteRunner.CreateDirectoryArgsForCall(0),
+					remoteRunner.CreateDirectoryArgsForCall(1),
 				}).To(ConsistOf(
-					"sudo mkdir -p /var/vcap/store/bbr-backup/foo",
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ /var/vcap/jobs/foo/bin/bbr/backup",
-					"sudo mkdir -p /var/vcap/store/bbr-backup/bar",
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/bar/ BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/bar/ /var/vcap/jobs/bar/bin/bbr/backup",
-					"sudo mkdir -p /var/vcap/store/bbr-backup/special-backup",
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/special-backup/ BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/special-backup/ /var/vcap/jobs/baz/bin/bbr/backup",
+					"/var/vcap/store/bbr-backup/foo",
+					"/var/vcap/store/bbr-backup/special-backup",
 				))
+				specifiedScriptPath, specifiedEnvVars := remoteRunner.RunScriptWithEnvArgsForCall(0)
+				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/foo/bin/bbr/backup"))
+				Expect(specifiedEnvVars).To(Equal(map[string]string{
+					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/foo/",
+					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/foo/",
+				}))
+
+				specifiedScriptPath, specifiedEnvVars = remoteRunner.RunScriptWithEnvArgsForCall(1)
+				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/baz/bin/bbr/backup"))
+				Expect(specifiedEnvVars).To(Equal(map[string]string{
+					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/special-backup/",
+					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/special-backup/",
+				}))
+
 			})
 		})
 
@@ -353,7 +358,8 @@ var _ = Describe("DeployedInstance", func() {
 				})
 			})
 			It("doesn't make calls to the instance over the ssh connection", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(0))
+				Expect(remoteRunner.CreateDirectoryCallCount()).To(Equal(0))
+				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(0))
 			})
 		})
 
