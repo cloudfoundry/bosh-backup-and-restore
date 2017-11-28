@@ -67,12 +67,12 @@ func (r SshRemoteRunner) ExtractAndUpload(reader io.Reader, directory string) er
 }
 
 func (r SshRemoteRunner) SizeOf(path string) (string, error) {
-	stdout, err := r.runOnInstance(fmt.Sprintf("sudo du -sh %s", path))
+	stdout, err := r.runOnInstance(fmt.Sprintf("sudo du -sh %s | cut -f1", path))
 	if err != nil {
 		return "", err
 	}
 
-	return strings.Fields(string(stdout))[0], nil
+	return strings.TrimSpace(string(stdout)), nil
 }
 
 func (r SshRemoteRunner) ChecksumDirectory(path string) (map[string]string, error) {
