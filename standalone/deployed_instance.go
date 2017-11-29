@@ -29,7 +29,7 @@ func (i DeployedInstance) CleanupPrevious() error {
 	return i.cleanupArtifact()
 }
 
-func (i DeployedInstance) cleanupArtifact() error{
+func (i DeployedInstance) cleanupArtifact() error {
 	i.Logger.Info("", "Cleaning up...")
 
 	err := i.RemoveArtifactDir()

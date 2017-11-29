@@ -2,6 +2,7 @@ package instance
 
 import (
 	"fmt"
+
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/pkg/errors"
 )

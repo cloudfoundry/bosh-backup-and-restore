@@ -102,10 +102,9 @@ func (j Job) Backup() error {
 		_, err = j.remoteRunner.RunScriptWithEnv(string(j.backupScript), env)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf(
-				"Error attempting to run backup for job %s on %s. Error: %s",
+				"Error attempting to run backup for job %s on %s",
 				j.Name(),
 				j.instanceIdentifier,
-				err.Error(),
 			))
 		}
 
@@ -123,10 +122,9 @@ func (j Job) PreBackupLock() error {
 		_, err := j.remoteRunner.RunScript(string(j.preBackupScript))
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf(
-				"Error attempting to run pre-backup-lock for job %s on %s. Error: %s",
+				"Error attempting to run pre-backup-lock for job %s on %s",
 				j.Name(),
 				j.instanceIdentifier,
-				err.Error(),
 			))
 		}
 
@@ -144,10 +142,9 @@ func (j Job) PostBackupUnlock() error {
 		_, err := j.remoteRunner.RunScript(string(j.postBackupScript))
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf(
-				"Error attempting to run post-backup-unlock for job %s on %s. Error: %s",
+				"Error attempting to run post-backup-unlock for job %s on %s",
 				j.Name(),
 				j.instanceIdentifier,
-				err.Error(),
 			))
 		}
 
@@ -165,10 +162,9 @@ func (j Job) PreRestoreLock() error {
 		_, err := j.remoteRunner.RunScript(string(j.preRestoreScript))
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf(
-				"Error attempting to run pre-restore-lock for job %s on %s. Error: %s",
+				"Error attempting to run pre-restore-lock for job %s on %s",
 				j.Name(),
 				j.instanceIdentifier,
-				err.Error(),
 			))
 		}
 
@@ -187,10 +183,9 @@ func (j Job) Restore() error {
 		_, err := j.remoteRunner.RunScriptWithEnv(string(j.restoreScript), env)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf(
-				"Error attempting to run restore for job %s on %s. Error: %s",
+				"Error attempting to run restore for job %s on %s",
 				j.Name(),
 				j.instanceIdentifier,
-				err.Error(),
 			))
 		}
 
@@ -208,10 +203,9 @@ func (j Job) PostRestoreUnlock() error {
 		_, err := j.remoteRunner.RunScript(string(j.postRestoreScript))
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf(
-				"Error attempting to run post-restore-unlock for job %s on %s. Error: %s",
+				"Error attempting to run post-restore-unlock for job %s on %s",
 				j.Name(),
 				j.instanceIdentifier,
-				err.Error(),
 			))
 		}
 

@@ -12,12 +12,10 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
 var _ = Describe("DeployedInstance", func() {
-	var sshConnection *fakes.FakeSSHConnection
 	var boshLogger boshlog.Logger
 	var stdout, stderr *gbytes.Buffer
 	var instanceGroupName, instanceIndex, instanceID, expectedStdout, expectedStderr string
@@ -26,7 +24,6 @@ var _ = Describe("DeployedInstance", func() {
 
 	var deployedInstance *instance.DeployedInstance
 	BeforeEach(func() {
-		sshConnection = new(fakes.FakeSSHConnection)
 		instanceGroupName = "instance-group-name"
 		instanceIndex = "instance-index"
 		instanceID = "instance-id"
@@ -231,7 +228,7 @@ var _ = Describe("DeployedInstance", func() {
 				})
 			})
 
-			It("uses the ssh connection to create each job's backup folder and run each backup script providing the "+
+			It("uses the remote runner to create each job's backup folder and run each backup script providing the "+
 				"correct ARTIFACT_DIRECTORY and BBR_ARTIFACT_DIRECTORY", func() {
 				Expect(remoteRunner.CreateDirectoryCallCount()).To(Equal(3))
 				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(3))
@@ -317,7 +314,7 @@ var _ = Describe("DeployedInstance", func() {
 				})
 			})
 
-			It("uses the ssh connection to create each job's backup folder and run each backup script providing the "+
+			It("uses the remote runner to create each job's backup folder and run each backup script providing the "+
 				"correct BBR_ARTIFACT_DIRECTORY and ARTIFACT_DIRECTORY", func() {
 
 				Expect(remoteRunner.CreateDirectoryCallCount()).To(Equal(2))
@@ -357,17 +354,12 @@ var _ = Describe("DeployedInstance", func() {
 					}, instance.Metadata{}),
 				})
 			})
-			It("doesn't make calls to the instance over the ssh connection", func() {
-				Expect(remoteRunner.CreateDirectoryCallCount()).To(Equal(0))
-				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(0))
+			It("doesn't make calls to the instance over the remote runner", func() {
+				Expect(remoteRunner.Invocations()).To(HaveLen(0))
 			})
 		})
 
-		Context("when there are several scripts and one of them fails to run backup while another one causes an error", func() {
-			expectedStdout := "some stdout"
-			expectedStderr := "some stderr"
-			expectedError := fmt.Errorf("I have a problem with your code")
-
+		Context("when there are several scripts and two of them cause an error", func() {
 			BeforeEach(func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{
 					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
@@ -380,23 +372,25 @@ var _ = Describe("DeployedInstance", func() {
 						"/var/vcap/jobs/baz/bin/bbr/backup",
 					}, instance.Metadata{}),
 				})
-				sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
+
+				remoteRunner.RunScriptWithEnvStub = func(cmd string, envVars map[string]string) (string, error) {
 					if strings.Contains(cmd, "jobs/bar") {
-						return []byte(expectedStdout), []byte(expectedStderr), 1, nil
+						return "", fmt.Errorf("no space left on device")
+					} else if strings.Contains(cmd, "jobs/baz") {
+						return "", fmt.Errorf("huge failure")
+					} else {
+						return "not relevant", nil
 					}
-					if strings.Contains(cmd, "jobs/baz") {
-						return []byte("not relevant"), []byte("not relevant"), 0, expectedError
-					}
-					return []byte("not relevant"), []byte("not relevant"), 0, nil
 				}
 			})
 
 			It("fails", func() {
 				By("including all relevant information", func() {
 					Expect(err).To(MatchError(SatisfyAll(
-						ContainSubstring(fmt.Sprintf("Error attempting to run backup for job bar on %s/%s.", instanceGroupName, instanceID)),
-						ContainSubstring(expectedStderr),
-						ContainSubstring(expectedError.Error()),
+						ContainSubstring(fmt.Sprintf("Error attempting to run backup for job bar on %s/%s", instanceGroupName, instanceID)),
+						ContainSubstring(fmt.Sprintf("Error attempting to run backup for job baz on %s/%s", instanceGroupName, instanceID)),
+						ContainSubstring("no space left on device"),
+						ContainSubstring("huge failure"),
 					)))
 				})
 
@@ -405,253 +399,6 @@ var _ = Describe("DeployedInstance", func() {
 						fmt.Sprintf("backup script for job foo failed on %s/%s", instanceGroupName, instanceID),
 					))
 				})
-			})
-		})
-	})
-
-	Describe("PostBackupUnlock", func() {
-		var err error
-
-		JustBeforeEach(func() {
-			err = deployedInstance.PostBackupUnlock()
-		})
-
-		Context("when there are multiple post-backup-unlock scripts in multiple job directories", func() {
-			BeforeEach(func() {
-				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/foo/bin/bbr/post-backup-unlock",
-					}, instance.Metadata{}),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/bar/bin/bbr/post-backup-unlock",
-					}, instance.Metadata{}),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/baz/bin/bbr/post-backup-unlock",
-					}, instance.Metadata{}),
-				})
-			})
-
-			It("uses the ssh connection to run each post-backup-unlock script", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(3))
-				Expect([]string{
-					sshConnection.RunArgsForCall(0),
-					sshConnection.RunArgsForCall(1),
-					sshConnection.RunArgsForCall(2),
-				}).To(ConsistOf(
-					"sudo /var/vcap/jobs/foo/bin/bbr/post-backup-unlock",
-					"sudo /var/vcap/jobs/bar/bin/bbr/post-backup-unlock",
-					"sudo /var/vcap/jobs/baz/bin/bbr/post-backup-unlock",
-				))
-			})
-
-			It("logs the paths to the scripts being run", func() {
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/foo/bin/bbr/post-backup-unlock`))
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/bbr/post-backup-unlock`))
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/baz/bin/bbr/post-backup-unlock`))
-				Expect(string(stdout.Contents())).NotTo(ContainSubstring("> \n"))
-			})
-
-			It("logs that it is backing up the job on the instance", func() {
-				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
-					"INFO - Unlocking foo on %s/%s",
-					instanceGroupName,
-					instanceID,
-				)))
-
-				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
-					"INFO - Unlocking bar on %s/%s",
-					instanceGroupName,
-					instanceID,
-				)))
-
-				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
-					"INFO - Unlocking baz on %s/%s",
-					instanceGroupName,
-					instanceID,
-				)))
-			})
-
-			It("logs Done.", func() {
-				Expect(string(stdout.Contents())).To(ContainSubstring("Done."))
-			})
-
-			It("succeeds", func() {
-				Expect(err).NotTo(HaveOccurred())
-			})
-		})
-
-		Context("when there are several scripts and one of them fails to run post-backup-unlock while another one causes an error", func() {
-			expectedStdout := "some stdout"
-			expectedStderr := "some stderr"
-			sshConnectionError := fmt.Errorf("I still have a problem with your code")
-
-			BeforeEach(func() {
-				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/foo/bin/bbr/post-backup-unlock",
-					}, instance.Metadata{}),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/bar/bin/bbr/post-backup-unlock",
-					}, instance.Metadata{}),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/baz/bin/bbr/post-backup-unlock",
-					}, instance.Metadata{}),
-				})
-				sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
-					if strings.Contains(cmd, "jobs/bar") {
-						return []byte(expectedStdout), []byte(expectedStderr), 1, nil
-					}
-					if strings.Contains(cmd, "jobs/baz") {
-						return []byte("not relevant"), []byte("not relevant"), 0, sshConnectionError
-					}
-					return []byte("not relevant"), []byte("not relevant"), 0, nil
-				}
-			})
-
-			It("fails", func() {
-				By("including all relevant information", func() {
-					Expect(err).To(MatchError(SatisfyAll(
-						ContainSubstring(fmt.Sprintf("Error attempting to run post-backup-unlock for job baz on %s/%s", instanceGroupName, instanceID)),
-						ContainSubstring(expectedStderr),
-						ContainSubstring(sshConnectionError.Error()),
-					)))
-				})
-
-				By("not including a message related to the script which passed", func() {
-					Expect(err.Error()).NotTo(ContainSubstring(
-						fmt.Sprintf("unlock script for job foo failed on %s/%s", instanceGroupName, instanceID),
-					))
-				})
-			})
-		})
-	})
-
-	Describe("PostRestoreUnlock", func() {
-		var postRestoreUnlockError error
-
-		JustBeforeEach(func() {
-			postRestoreUnlockError = deployedInstance.PostRestoreUnlock()
-		})
-
-		Context("when there are multiple post-restore-unlock scripts in multiple job directories", func() {
-			BeforeEach(func() {
-				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/foo/bin/bbr/post-restore-unlock",
-					}, instance.Metadata{}),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/bar/bin/bbr/post-restore-unlock",
-					}, instance.Metadata{}),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/baz/bin/bbr/post-restore-unlock",
-					}, instance.Metadata{}),
-				})
-			})
-
-			It("uses the ssh connection to run each post-restore-unlock script", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(3))
-				Expect([]string{
-					sshConnection.RunArgsForCall(0),
-					sshConnection.RunArgsForCall(1),
-					sshConnection.RunArgsForCall(2),
-				}).To(ConsistOf(
-					"sudo /var/vcap/jobs/foo/bin/bbr/post-restore-unlock",
-					"sudo /var/vcap/jobs/bar/bin/bbr/post-restore-unlock",
-					"sudo /var/vcap/jobs/baz/bin/bbr/post-restore-unlock",
-				))
-			})
-
-			It("logs the paths to the scripts being run", func() {
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/foo/bin/bbr/post-restore-unlock`))
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/bbr/post-restore-unlock`))
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/baz/bin/bbr/post-restore-unlock`))
-				Expect(string(stdout.Contents())).NotTo(ContainSubstring("> \n"))
-			})
-
-			It("logs that it is unlocking the job on the instance", func() {
-				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
-					"INFO - Unlocking foo on %s/%s",
-					instanceGroupName,
-					instanceID,
-				)))
-
-				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
-					"INFO - Unlocking bar on %s/%s",
-					instanceGroupName,
-					instanceID,
-				)))
-
-				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
-					"INFO - Unlocking baz on %s/%s",
-					instanceGroupName,
-					instanceID,
-				)))
-			})
-
-			It("logs Done.", func() {
-				Expect(string(stdout.Contents())).To(ContainSubstring("Done."))
-			})
-
-			It("succeeds", func() {
-				Expect(postRestoreUnlockError).NotTo(HaveOccurred())
-			})
-		})
-
-		Context("when there are several scripts and one of them fails to run post-restore-unlock while another one causes an error", func() {
-			BeforeEach(func() {
-				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/foo/bin/bbr/post-restore-unlock",
-					}, instance.Metadata{}),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/bar/bin/bbr/post-restore-unlock",
-					}, instance.Metadata{}),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/baz/bin/bbr/post-restore-unlock",
-					}, instance.Metadata{}),
-				})
-				sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
-					if strings.Contains(cmd, "jobs/bar") {
-						return []byte("stdout_bar"), []byte("stderr_bar"), 1, nil
-					}
-
-					if strings.Contains(cmd, "jobs/baz") {
-						return []byte("not relevant"), []byte("not relevant"), 0, fmt.Errorf("connection failed, script not run on baz")
-					}
-
-					return []byte("not relevant"), []byte("not relevant"), 0, nil
-				}
-			})
-
-			It("fails", func() {
-				By("including all relevant information", func() {
-					Expect(postRestoreUnlockError).To(MatchError(SatisfyAll(
-						ContainSubstring(fmt.Sprintf("Error attempting to run post-restore-unlock for job baz on %s/%s", instanceGroupName, instanceID)),
-						ContainSubstring("stderr_bar"),
-						ContainSubstring("connection failed, script not run on baz"),
-					)))
-				})
-			})
-		})
-
-		Context("When there are some jobs without post-restore-unlock scripts", func() {
-			BeforeEach(func() {
-				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/job-has-unlock-script/bin/bbr/post-restore-unlock",
-					}, instance.Metadata{}),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/job-only-has-backup/bin/bbr/backup",
-					}, instance.Metadata{}),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/job-only-has-restore/bin/bbr/restore",
-					}, instance.Metadata{}),
-				})
-			})
-
-			It("Only invokes post-restore-unlock on those jobs which have that script", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo /var/vcap/jobs/job-has-unlock-script/bin/bbr/post-restore-unlock"))
 			})
 		})
 	})
@@ -678,17 +425,29 @@ var _ = Describe("DeployedInstance", func() {
 				})
 			})
 
-			It("uses the ssh connection to run each restore script providing the correct ARTIFACT_DIRECTORTY", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(3))
-				Expect([]string{
-					sshConnection.RunArgsForCall(0),
-					sshConnection.RunArgsForCall(1),
-					sshConnection.RunArgsForCall(2),
-				}).To(ConsistOf(
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ /var/vcap/jobs/foo/bin/bbr/restore",
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/bar/ BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/bar/ /var/vcap/jobs/bar/bin/bbr/restore",
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/baz/ BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/baz/ /var/vcap/jobs/baz/bin/bbr/restore",
-				))
+			It("uses the remote runner to run each restore script providing the correct ARTIFACT_DIRECTORY", func() {
+				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(3))
+
+				specifiedScriptPath, specifiedEnvVars := remoteRunner.RunScriptWithEnvArgsForCall(0)
+				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/foo/bin/bbr/restore"))
+				Expect(specifiedEnvVars).To(Equal(map[string]string{
+					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/foo/",
+					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/foo/",
+				}))
+
+				specifiedScriptPath, specifiedEnvVars = remoteRunner.RunScriptWithEnvArgsForCall(1)
+				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/bar/bin/bbr/restore"))
+				Expect(specifiedEnvVars).To(Equal(map[string]string{
+					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/bar/",
+					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/bar/",
+				}))
+
+				specifiedScriptPath, specifiedEnvVars = remoteRunner.RunScriptWithEnvArgsForCall(2)
+				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/baz/bin/bbr/restore"))
+				Expect(specifiedEnvVars).To(Equal(map[string]string{
+					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/baz/",
+					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/baz/",
+				}))
 			})
 
 			It("logs the paths to the scripts being run", func() {
@@ -740,28 +499,38 @@ var _ = Describe("DeployedInstance", func() {
 					}, instance.Metadata{RestoreName: "special-backup"}),
 				})
 			})
+
 			It("succeeds", func() {
 				Expect(actualError).NotTo(HaveOccurred())
 			})
-			It("uses the ssh connection to create each job's backup folder and run each backup script providing the correct BBR_ARTIFACT_DIRECTORY and ARTIFACT_DIRECTORY", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(3))
-				Expect([]string{
-					sshConnection.RunArgsForCall(0),
-					sshConnection.RunArgsForCall(1),
-					sshConnection.RunArgsForCall(2),
-				}).To(ConsistOf(
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/foo/ /var/vcap/jobs/foo/bin/bbr/restore",
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/bar/ BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/bar/ /var/vcap/jobs/bar/bin/bbr/restore",
-					"sudo ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/special-backup/ BBR_ARTIFACT_DIRECTORY=/var/vcap/store/bbr-backup/special-backup/ /var/vcap/jobs/baz/bin/bbr/restore",
-				))
+
+			It("uses the remote runner to create each job's backup folder and run each backup script providing the correct BBR_ARTIFACT_DIRECTORY and ARTIFACT_DIRECTORY", func() {
+				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(3))
+
+				specifiedScriptPath, specifiedEnvVars := remoteRunner.RunScriptWithEnvArgsForCall(0)
+				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/foo/bin/bbr/restore"))
+				Expect(specifiedEnvVars).To(Equal(map[string]string{
+					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/foo/",
+					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/foo/",
+				}))
+
+				specifiedScriptPath, specifiedEnvVars = remoteRunner.RunScriptWithEnvArgsForCall(1)
+				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/bar/bin/bbr/restore"))
+				Expect(specifiedEnvVars).To(Equal(map[string]string{
+					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/bar/",
+					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/bar/",
+				}))
+
+				specifiedScriptPath, specifiedEnvVars = remoteRunner.RunScriptWithEnvArgsForCall(2)
+				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/baz/bin/bbr/restore"))
+				Expect(specifiedEnvVars).To(Equal(map[string]string{
+					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/special-backup/",
+					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/special-backup/",
+				}))
 			})
 		})
 
-		Context("when there are several scripts and one of them fails to run restore while another one causes an error", func() {
-			expectedStdout := "some stdout"
-			expectedStderr := "some stderr"
-			expectedError := fmt.Errorf("foo bar baz error")
-
+		Context("when there are several scripts and two of them cause an error", func() {
 			BeforeEach(func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{
 					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
@@ -774,23 +543,25 @@ var _ = Describe("DeployedInstance", func() {
 						"/var/vcap/jobs/baz/bin/bbr/restore",
 					}, instance.Metadata{}),
 				})
-				sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
+
+				remoteRunner.RunScriptWithEnvStub = func(cmd string, envVars map[string]string) (string, error) {
 					if strings.Contains(cmd, "jobs/bar") {
-						return []byte(expectedStdout), []byte(expectedStderr), 1, nil
+						return "", fmt.Errorf("no space left on device")
+					} else if strings.Contains(cmd, "jobs/baz") {
+						return "", fmt.Errorf("huge failure")
+					} else {
+						return "not relevant", nil
 					}
-					if strings.Contains(cmd, "jobs/baz") {
-						return []byte("not relevant"), []byte("not relevant"), 0, expectedError
-					}
-					return []byte("not relevant"), []byte("not relevant"), 0, nil
 				}
 			})
 
 			It("fails", func() {
 				By("including all relevant information", func() {
 					Expect(actualError).To(MatchError(SatisfyAll(
+						ContainSubstring(fmt.Sprintf("Error attempting to run restore for job bar on %s/%s", instanceGroupName, instanceID)),
 						ContainSubstring(fmt.Sprintf("Error attempting to run restore for job baz on %s/%s", instanceGroupName, instanceID)),
-						ContainSubstring(expectedStderr),
-						ContainSubstring(expectedError.Error()),
+						ContainSubstring("no space left on device"),
+						ContainSubstring("huge failure"),
 					)))
 				})
 
@@ -875,8 +646,8 @@ var _ = Describe("DeployedInstance", func() {
 
 			It("returns artifacts with default names", func() {
 				Expect(backupArtifacts).To(ConsistOf(
-					instance.NewBackupArtifact(jobWithBackupScript1, deployedInstance, instance.NewRemoteRunner(sshConnection, boshLogger), boshLogger),
-					instance.NewBackupArtifact(jobWithBackupScript2, deployedInstance, instance.NewRemoteRunner(sshConnection, boshLogger), boshLogger),
+					instance.NewBackupArtifact(jobWithBackupScript1, deployedInstance, remoteRunner, boshLogger),
+					instance.NewBackupArtifact(jobWithBackupScript2, deployedInstance, remoteRunner, boshLogger),
 				))
 			})
 		})
@@ -891,12 +662,12 @@ var _ = Describe("DeployedInstance", func() {
 					instance.NewBackupArtifact(
 						jobWithBackupScript1,
 						deployedInstance,
-						instance.NewRemoteRunner(sshConnection, boshLogger),
+						remoteRunner,
 						boshLogger),
 					instance.NewBackupArtifact(
 						jobWithBackupScriptAndMetadata,
 						deployedInstance,
-						instance.NewRemoteRunner(sshConnection, boshLogger),
+						remoteRunner,
 						boshLogger),
 				))
 			})
@@ -913,7 +684,7 @@ var _ = Describe("DeployedInstance", func() {
 						instance.NewBackupArtifact(
 							jobWithBackupScriptAndMetadata,
 							deployedInstance,
-							instance.NewRemoteRunner(sshConnection, boshLogger),
+							remoteRunner,
 							boshLogger,
 						),
 					},
@@ -932,7 +703,7 @@ var _ = Describe("DeployedInstance", func() {
 						instance.NewBackupArtifact(
 							jobWithBackupScript1,
 							deployedInstance,
-							instance.NewRemoteRunner(sshConnection, boshLogger),
+							remoteRunner,
 							boshLogger,
 						),
 					},
@@ -1001,8 +772,8 @@ var _ = Describe("DeployedInstance", func() {
 
 			It("returns the default artifacts", func() {
 				Expect(restoreArtifacts).To(ConsistOf(
-					instance.NewRestoreArtifact(jobWithRestoreScript1, deployedInstance, instance.NewRemoteRunner(sshConnection, boshLogger), boshLogger),
-					instance.NewRestoreArtifact(jobWithRestoreScript2, deployedInstance, instance.NewRemoteRunner(sshConnection, boshLogger), boshLogger),
+					instance.NewRestoreArtifact(jobWithRestoreScript1, deployedInstance, remoteRunner, boshLogger),
+					instance.NewRestoreArtifact(jobWithRestoreScript2, deployedInstance, remoteRunner, boshLogger),
 				))
 			})
 		})
@@ -1014,8 +785,8 @@ var _ = Describe("DeployedInstance", func() {
 
 			It("returns the named artifact and the default artifact", func() {
 				Expect(restoreArtifacts).To(ConsistOf(
-					instance.NewRestoreArtifact(jobWithRestoreScript1, deployedInstance, instance.NewRemoteRunner(sshConnection, boshLogger), boshLogger),
-					instance.NewRestoreArtifact(jobWithRestoreScriptAndMetadata, deployedInstance, instance.NewRemoteRunner(sshConnection, boshLogger), boshLogger),
+					instance.NewRestoreArtifact(jobWithRestoreScript1, deployedInstance, remoteRunner, boshLogger),
+					instance.NewRestoreArtifact(jobWithRestoreScriptAndMetadata, deployedInstance, remoteRunner, boshLogger),
 				))
 			})
 		})
@@ -1028,7 +799,7 @@ var _ = Describe("DeployedInstance", func() {
 			It("returns only the named artifact", func() {
 				Expect(restoreArtifacts).To(Equal(
 					[]orchestrator.BackupArtifact{
-						instance.NewRestoreArtifact(jobWithRestoreScriptAndMetadata, deployedInstance, instance.NewRemoteRunner(sshConnection, boshLogger), boshLogger),
+						instance.NewRestoreArtifact(jobWithRestoreScriptAndMetadata, deployedInstance, remoteRunner, boshLogger),
 					},
 				))
 			})
@@ -1045,7 +816,7 @@ var _ = Describe("DeployedInstance", func() {
 						instance.NewBackupArtifact(
 							jobWithRestoreScript1,
 							deployedInstance,
-							instance.NewRemoteRunner(sshConnection, boshLogger),
+							remoteRunner,
 							boshLogger,
 						),
 					},

@@ -13,8 +13,8 @@ type DeployedInstance struct {
 	instanceGroupName             string
 	artifactDirCreated            bool
 	Logger
-	jobs                          orchestrator.Jobs
-	remoteRunner                  RemoteRunner
+	jobs         orchestrator.Jobs
+	remoteRunner RemoteRunner
 }
 
 func NewDeployedInstance(instanceIndex string, instanceGroupName string, instanceID string, artifactDirCreated bool, remoteRunner RemoteRunner, logger Logger, jobs orchestrator.Jobs) *DeployedInstance {
@@ -83,17 +83,6 @@ func artifactDirectoryVariables(artifactDirectory string) map[string]string {
 	}
 }
 
-func (i *DeployedInstance) PostBackupUnlock() error {
-	var unlockErrors []error
-	for _, job := range i.jobs {
-		if err := job.PostBackupUnlock(); err != nil {
-			unlockErrors = append(unlockErrors, err)
-		}
-	}
-
-	return orchestrator.ConvertErrors(unlockErrors)
-}
-
 func (i *DeployedInstance) Restore() error {
 	var restoreErrors []error
 	for _, job := range i.jobs {
@@ -103,17 +92,6 @@ func (i *DeployedInstance) Restore() error {
 	}
 
 	return orchestrator.ConvertErrors(restoreErrors)
-}
-
-func (i *DeployedInstance) PostRestoreUnlock() error {
-	var unlockErrors []error
-	for _, job := range i.jobs {
-		if err := job.PostRestoreUnlock(); err != nil {
-			unlockErrors = append(unlockErrors, err)
-		}
-	}
-
-	return orchestrator.ConvertErrors(unlockErrors)
 }
 
 func (i *DeployedInstance) IsRestorable() bool {
