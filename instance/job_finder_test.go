@@ -3,7 +3,6 @@ package instance_test
 import (
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
-	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	"fmt"
@@ -33,26 +32,23 @@ var _ = Describe("JobFinderFromScripts", func() {
 	})
 
 	Describe("FindJobs", func() {
-		var sshConnection *sshfakes.FakeSSHConnection
+		var remoteRunner *fakes.FakeRemoteRunner
 		var releaseMapping *fakes.FakeReleaseMapping
 		var jobs orchestrator.Jobs
 		var jobsError error
-		var remoteRunner RemoteRunner
 
 		consulAgentReleaseName := "consul-agent-release"
 
 		BeforeEach(func() {
-			sshConnection = new(sshfakes.FakeSSHConnection)
-			sshConnection.RunReturns([]byte(
-				"/var/vcap/jobs/consul_agent/bin/bbr/backup\n"+
-					"/var/vcap/jobs/consul_agent/bin/bbr/restore\n"+
-					"/var/vcap/jobs/consul_agent/bin/bbr/pre-backup-lock\n"+
-					"/var/vcap/jobs/consul_agent/bin/bbr/pre-restore-lock\n"+
-					"/var/vcap/jobs/consul_agent/bin/bbr/post-backup-unlock\n"+
-					"/var/vcap/jobs/consul_agent/bin/bbr/post-restore-unlock"),
-				nil, 0, nil)
-
-			remoteRunner = NewRemoteRunner(sshConnection, logger)
+			remoteRunner = new(fakes.FakeRemoteRunner)
+			remoteRunner.FindFilesReturns([]string{
+				"/var/vcap/jobs/consul_agent/bin/bbr/backup",
+				"/var/vcap/jobs/consul_agent/bin/bbr/restore",
+				"/var/vcap/jobs/consul_agent/bin/bbr/pre-backup-lock",
+				"/var/vcap/jobs/consul_agent/bin/bbr/pre-restore-lock",
+				"/var/vcap/jobs/consul_agent/bin/bbr/post-backup-unlock",
+				"/var/vcap/jobs/consul_agent/bin/bbr/post-restore-unlock"},
+				nil)
 
 			releaseMapping = new(fakes.FakeReleaseMapping)
 			releaseMapping.FindReleaseNameReturns(consulAgentReleaseName, nil)
@@ -64,7 +60,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 
 		It("finds the jobs", func() {
 			By("finding the scripts", func() {
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo sh -c 'find /var/vcap/jobs/*/bin/bbr/* -type f'"))
+				Expect(remoteRunner.FindFilesArgsForCall(0)).To(Equal("/var/vcap/jobs/*/bin/bbr/*"))
 			})
 
 			By("logging the scripts found", func() {
@@ -101,12 +97,12 @@ var _ = Describe("JobFinderFromScripts", func() {
 
 		Context("when invalid scripts are present", func() {
 			BeforeEach(func() {
-				sshConnection.RunReturns([]byte("/var/vcap/jobs/consul_agent/bin/foobar"), nil, 0, nil)
+				remoteRunner.FindFilesReturns([]string{"/var/vcap/jobs/consul_agent/bin/foobar"}, nil)
 			})
 
 			It("ignores them", func() {
 				By("finding the scripts", func() {
-					Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo sh -c 'find /var/vcap/jobs/*/bin/bbr/* -type f'"))
+					Expect(remoteRunner.FindFilesArgsForCall(0)).To(Equal("/var/vcap/jobs/*/bin/bbr/*"))
 				})
 
 				By("not returning an error", func() {
@@ -121,9 +117,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 
 		Context("when scripts are missing", func() {
 			BeforeEach(func() {
-				sshConnection.RunReturns(
-					nil, []byte("find: `/var/vcap/jobs/*/bin/bbr/*': No such file or directory"), 1, nil,
-				)
+				remoteRunner.FindFilesReturns([]string{}, nil)
 			})
 
 			It("does not return an error", func() {
@@ -137,38 +131,22 @@ var _ = Describe("JobFinderFromScripts", func() {
 			})
 		})
 
-		Context("when running `find` fails due to an unknown error", func() {
+		Context("when find fails fails due to an error", func() {
 			BeforeEach(func() {
-				sshConnection.RunReturns(
-					nil, []byte("find: `unknown error"), 1, nil,
-				)
+				remoteRunner.FindFilesReturns(nil, fmt.Errorf("no! something bad has happened"))
 			})
 
 			It("fails", func() {
-				By("running `find`", func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
+				By("calling find files", func() {
+					Expect(remoteRunner.FindFilesCallCount()).To(Equal(1))
 				})
 
 				By("returning an error", func() {
 					Expect(jobsError).To(MatchError(SatisfyAll(
 						ContainSubstring("finding scripts failed on identifier/0"),
-						ContainSubstring("find: `unknown error"),
+						ContainSubstring("no! something bad has happened"),
 					)))
 				})
-			})
-		})
-
-		Context("when running `find` fails due to an SSH connection error", func() {
-			expectedError := fmt.Errorf("no!")
-
-			BeforeEach(func() {
-				sshConnection.RunReturns(
-					nil, nil, 0, expectedError,
-				)
-			})
-
-			It("returns the SSH error", func() {
-				Expect(jobsError).To(MatchError(ContainSubstring("no!")))
 			})
 		})
 
@@ -187,19 +165,14 @@ var _ = Describe("JobFinderFromScripts", func() {
 		Context("when metadata scripts are present", func() {
 			Context("when metadata is valid", func() {
 				BeforeEach(func() {
-					sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
-						if cmd == "sudo /var/vcap/jobs/consul_agent/bin/bbr/metadata" {
-							return []byte(`---
-backup_name: consul_backup`), nil, 0, nil
-						}
-
-						return []byte("/var/vcap/jobs/consul_agent/bin/bbr/metadata"), nil, 0, nil
-					}
+					remoteRunner.FindFilesReturns([]string{"/var/vcap/jobs/consul_agent/bin/bbr/metadata"}, nil)
+					remoteRunner.RunScriptReturns(`---
+backup_name: consul_backup`, nil)
 				})
 
 				It("attaches the metadata to the corresponding jobs", func() {
 					By("executing the metadata scripts", func() {
-						Expect(sshConnection.RunArgsForCall(1)).To(Equal("sudo /var/vcap/jobs/consul_agent/bin/bbr/metadata"))
+						Expect(remoteRunner.RunScriptArgsForCall(0)).To(Equal("/var/vcap/jobs/consul_agent/bin/bbr/metadata"))
 					})
 
 					By("adding the metadata to the returned jobs", func() {
@@ -226,7 +199,7 @@ backup_name: consul_backup`), nil, 0, nil
 
 			Context("when finding the scripts fails", func() {
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte{}, []byte("ERROR"), 1, nil)
+					remoteRunner.FindFilesReturns(nil, fmt.Errorf("ERROR"))
 				})
 
 				It("fails", func() {
@@ -238,60 +211,28 @@ backup_name: consul_backup`), nil, 0, nil
 					})
 
 					By("not trying to invoke the metadata scripts", func() {
-						Expect(sshConnection.RunCallCount()).To(Equal(1))
+						Expect(remoteRunner.RunScriptCallCount()).To(Equal(0))
 					})
 				})
 			})
 
 			Context("when executing a metadata script fails", func() {
-				expectedError := fmt.Errorf("EXPECTED_ERROR")
-
 				BeforeEach(func() {
-					sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
-						if cmd == "sudo /var/vcap/jobs/consul_agent/bin/bbr/metadata" {
-							return []byte{}, []byte{}, 0, expectedError
-						}
-
-						return []byte("/var/vcap/jobs/consul_agent/bin/bbr/metadata"), nil, 0, nil
-					}
+					remoteRunner.FindFilesReturns([]string{"/var/vcap/jobs/consul_agent/bin/bbr/metadata"}, nil)
+					remoteRunner.RunScriptReturns("", fmt.Errorf("blah blah blah foo"))
 				})
 
 				It("printing the location of the error, and the original error message", func() {
 					Expect(jobsError).To(MatchError(ContainSubstring(
-						"An error occurred while running metadata script for job consul_agent on identifier/0: EXPECTED_ERROR",
+						"An error occurred while running metadata script for job consul_agent on identifier/0: blah blah blah foo",
 					)))
 				})
 			})
 
-			Context("when a metadata script returns a non-0 exis status", func() {
+			Context("when a metadata script returns invalid metadata YAML", func() {
 				BeforeEach(func() {
-					sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
-						if cmd == "sudo /var/vcap/jobs/consul_agent/bin/bbr/metadata" {
-							return []byte{}, []byte("STDERR"), 1, nil
-						}
-
-						return []byte("/var/vcap/jobs/consul_agent/bin/bbr/metadata"), nil, 0, nil
-					}
-				})
-
-				It("fails", func() {
-					By("printing the location of the error, and the stderr from the script", func() {
-						Expect(jobsError).To(MatchError(ContainSubstring(
-							"An error occurred while running metadata script for job consul_agent on identifier/0: STDERR",
-						)))
-					})
-				})
-			})
-
-			Context("when a metadata script returns invalid YAML", func() {
-				BeforeEach(func() {
-					sshConnection.RunStub = func(cmd string) ([]byte, []byte, int, error) {
-						if cmd == "sudo /var/vcap/jobs/consul_agent/bin/bbr/metadata" {
-							return []byte(`this is very disappointing`), nil, 0, nil
-						}
-
-						return []byte("/var/vcap/jobs/consul_agent/bin/bbr/metadata"), nil, 0, nil
-					}
+					remoteRunner.FindFilesReturns([]string{"/var/vcap/jobs/consul_agent/bin/bbr/metadata"}, nil)
+					remoteRunner.RunScriptReturns(`this metadata is missing all the keys`, nil)
 				})
 
 				It("prints the location of the error", func() {

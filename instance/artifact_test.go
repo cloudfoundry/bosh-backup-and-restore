@@ -2,14 +2,13 @@ package instance_test
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"log"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	backuperfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
-	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -17,7 +16,7 @@ import (
 )
 
 var _ = Describe("artifact", func() {
-	var sshConnection *sshfakes.FakeSSHConnection
+	var remoteRunner *fakes.FakeRemoteRunner
 	var boshLogger boshlog.Logger
 	var testInstance *backuperfakes.FakeInstance
 	var stdout, stderr *gbytes.Buffer
@@ -26,7 +25,7 @@ var _ = Describe("artifact", func() {
 	var backupArtifact orchestrator.BackupArtifact
 
 	BeforeEach(func() {
-		sshConnection = new(sshfakes.FakeSSHConnection)
+		remoteRunner = new(fakes.FakeRemoteRunner)
 		testInstance = new(backuperfakes.FakeInstance)
 		testInstance.NameReturns("redis")
 		testInstance.IDReturns("foo")
@@ -48,14 +47,14 @@ var _ = Describe("artifact", func() {
 
 			Describe("when successful", func() {
 				BeforeEach(func() {
-					sshConnection.StreamReturns([]byte("not relevant"), 0, nil)
+					remoteRunner.ArchiveAndDownloadReturns(nil)
 				})
 
-				It("uses the ssh connection to tar the backup and stream it to the local machine", func() {
-					Expect(sshConnection.StreamCallCount()).To(Equal(1))
+				It("uses the remote runner to tar the backup and download it to the local machine", func() {
+					Expect(remoteRunner.ArchiveAndDownloadCallCount()).To(Equal(1))
 
-					cmd, returnedWriter := sshConnection.StreamArgsForCall(0)
-					Expect(cmd).To(Equal("sudo tar -C " + artifactDirectory + " -c ."))
+					dir, returnedWriter := remoteRunner.ArchiveAndDownloadArgsForCall(0)
+					Expect(dir).To(Equal(artifactDirectory))
 					Expect(returnedWriter).To(Equal(writer))
 				})
 
@@ -64,42 +63,21 @@ var _ = Describe("artifact", func() {
 				})
 			})
 
-			Describe("when there is an error tarring the backup", func() {
+			Describe("when there is an error in archive and download", func() {
 				BeforeEach(func() {
-					sshConnection.StreamReturns([]byte("stderr"), 1, nil)
+					remoteRunner.ArchiveAndDownloadReturns(fmt.Errorf("oh no, it broke"))
 				})
 
-				It("uses the ssh connection to tar the backup and stream it to the local machine", func() {
-					Expect(sshConnection.StreamCallCount()).To(Equal(1))
+				It("uses the remote runner to tar the backup and download it to the local machine", func() {
+					Expect(remoteRunner.ArchiveAndDownloadCallCount()).To(Equal(1))
 
-					cmd, returnedWriter := sshConnection.StreamArgsForCall(0)
-					Expect(cmd).To(Equal("sudo tar -C " + artifactDirectory + " -c ."))
+					dir, returnedWriter := remoteRunner.ArchiveAndDownloadArgsForCall(0)
+					Expect(dir).To(Equal(artifactDirectory))
 					Expect(returnedWriter).To(Equal(writer))
 				})
 
 				It("fails", func() {
-					Expect(err).To(MatchError(ContainSubstring("stderr")))
-				})
-			})
-
-			Describe("when there is an SSH error", func() {
-				var sshError error
-
-				BeforeEach(func() {
-					sshError = fmt.Errorf("SSH causing problems here")
-					sshConnection.StreamReturns([]byte("not relevant"), -1, sshError)
-				})
-
-				It("uses the ssh connection to tar the backup and stream it to the local machine", func() {
-					Expect(sshConnection.StreamCallCount()).To(Equal(1))
-
-					cmd, returnedWriter := sshConnection.StreamArgsForCall(0)
-					Expect(cmd).To(Equal("sudo tar -C " + artifactDirectory + " -c ."))
-					Expect(returnedWriter).To(Equal(writer))
-				})
-
-				It("fails", func() {
-					Expect(err).To(MatchError(ContainSubstring(sshError.Error())))
+					Expect(err).To(MatchError(ContainSubstring("oh no, it broke")))
 				})
 			})
 		})
@@ -112,85 +90,34 @@ var _ = Describe("artifact", func() {
 				actualChecksum, actualChecksumError = backupArtifact.Checksum()
 			})
 
-			Context("triggers find & shasum as root", func() {
+			Context("can calculate checksum", func() {
+				checksum := map[string]string{
+					"file1":       "07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
+					"file2":       "07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
+					"file3/file4": "n87fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
+				}
+
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("not relevant"), nil, 0, nil)
+					remoteRunner.ChecksumDirectoryReturns(checksum, nil)
 				})
 
 				It("generates the correct request", func() {
-					Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo sh -c 'cd " + artifactDirectory + " && find . -type f | xargs shasum -a 256'"))
-				})
-			})
-
-			Context("can calculate checksum", func() {
-				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e  file1\n07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e  file2\nn87fc29fb3aacd99f7f7b81df9c43b13e71c56a1e file3/file4"), nil, 0, nil)
+					Expect(remoteRunner.ChecksumDirectoryArgsForCall(0)).To(Equal(artifactDirectory))
 				})
 
-				It("converts the checksum to a map", func() {
+				It("returns the checksum", func() {
 					Expect(actualChecksumError).NotTo(HaveOccurred())
-					Expect(actualChecksum).To(Equal(map[string]string{
-						"file1":       "07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
-						"file2":       "07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
-						"file3/file4": "n87fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
-					}))
-				})
-			})
-
-			Context("can calculate checksum, with trailing spaces", func() {
-				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e file1\n"), nil, 0, nil)
-				})
-
-				It("converts the checksum to a map", func() {
-					Expect(actualChecksumError).NotTo(HaveOccurred())
-					Expect(actualChecksum).To(Equal(map[string]string{
-						"file1": "07fc29fb3aacd99f7f7b81df9c43b13e71c56a1e",
-					}))
-				})
-			})
-
-			Context("sha output is empty", func() {
-				BeforeEach(func() {
-					sshConnection.RunReturns([]byte(""), nil, 0, nil)
-				})
-
-				It("converts an empty map", func() {
-					Expect(actualChecksumError).NotTo(HaveOccurred())
-					Expect(actualChecksum).To(Equal(map[string]string{}))
-				})
-			})
-
-			Context("sha for a empty directory", func() {
-				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("da39a3ee5e6b4b0d3255bfef95601890afd80709  -"), nil, 0, nil)
-				})
-
-				It("reject '-' as a filename", func() {
-					Expect(actualChecksumError).NotTo(HaveOccurred())
-					Expect(actualChecksum).To(Equal(map[string]string{}))
+					Expect(actualChecksum).To(Equal(checksum))
 				})
 			})
 
 			Context("fails to calculate checksum", func() {
-				expectedErr := fmt.Errorf("some error")
-
 				BeforeEach(func() {
-					sshConnection.RunReturns(nil, nil, 0, expectedErr)
+					remoteRunner.ChecksumDirectoryReturns(nil, fmt.Errorf("some error"))
 				})
 
 				It("returns an error", func() {
 					Expect(actualChecksumError).To(MatchError(ContainSubstring("some error")))
-				})
-			})
-
-			Context("fails to execute the command", func() {
-				BeforeEach(func() {
-					sshConnection.RunReturns(nil, nil, 1, nil)
-				})
-
-				It("returns an error", func() {
-					Expect(actualChecksumError).To(MatchError(ContainSubstring("Unable to calculate backup checksum")))
 				})
 			})
 		})
@@ -207,32 +134,20 @@ var _ = Describe("artifact", func() {
 			})
 
 			It("deletes only the named artifact directory on the remote", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo rm -rf " + artifactDirectory))
+				Expect(remoteRunner.RemoveDirectoryCallCount()).To(Equal(1))
+				Expect(remoteRunner.RemoveDirectoryArgsForCall(0)).To(Equal(artifactDirectory))
 			})
 
-			Context("when there is an error with the SSH connection", func() {
+			Context("when there is an error from the remote runner", func() {
 				var expectedErr error
 
 				BeforeEach(func() {
 					expectedErr = fmt.Errorf("nope")
-					sshConnection.RunReturns([]byte("don't matter"), []byte("don't matter"), 0, expectedErr)
+					remoteRunner.RemoveDirectoryReturns(expectedErr)
 				})
 
 				It("fails", func() {
 					Expect(err).To(MatchError(ContainSubstring("nope")))
-				})
-			})
-
-			Context("when the rm command returns an error", func() {
-				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("don't matter"), []byte("don't matter"), 1, nil)
-				})
-
-				It("fails", func() {
-					Expect(err).To(MatchError(ContainSubstring(
-						"Unable to delete artifact directory on instance redis/foo",
-					)))
 				})
 			})
 		})
@@ -242,7 +157,7 @@ var _ = Describe("artifact", func() {
 				var size string
 
 				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("4.1G\n"), nil, 0, nil)
+					remoteRunner.SizeOfReturns("4.1G", nil)
 				})
 
 				JustBeforeEach(func() {
@@ -250,17 +165,17 @@ var _ = Describe("artifact", func() {
 				})
 
 				It("returns the size of the backup according to the root user, as a string", func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh " + artifactDirectory))
+					Expect(remoteRunner.SizeOfCallCount()).To(Equal(1))
+					Expect(remoteRunner.SizeOfArgsForCall(0)).To(Equal(artifactDirectory))
 					Expect(size).To(Equal("4.1G"))
 				})
 			})
 
-			Context("when there is no backup directory", func() {
+			Context("when an error occurs", func() {
 				var err error
 
 				BeforeEach(func() {
-					sshConnection.RunReturns(nil, nil, 1, nil) // simulating file not found
+					remoteRunner.SizeOfReturns("", fmt.Errorf("no backup directory or something")) // simulating file not found
 				})
 
 				JustBeforeEach(func() {
@@ -268,30 +183,14 @@ var _ = Describe("artifact", func() {
 				})
 
 				It("returns the size of the backup according to the root user, as a string", func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					Expect(sshConnection.RunArgsForCall(0)).To(Equal("sudo du -sh " + artifactDirectory))
-					Expect(err).To(MatchError(ContainSubstring("Unable to check size of " + artifactDirectory)))
+					Expect(remoteRunner.SizeOfCallCount()).To(Equal(1))
+					Expect(remoteRunner.SizeOfArgsForCall(0)).To(Equal(artifactDirectory))
+					Expect(err).To(SatisfyAll(
+						MatchError(ContainSubstring("Unable to check size of "+artifactDirectory)),
+						MatchError(ContainSubstring("no backup directory or something")),
+					))
 				})
 			})
-
-			Context("when an error occurs", func() {
-				var err error
-				var actualError = errors.New("oh noes, more errors")
-
-				BeforeEach(func() {
-					sshConnection.RunReturns(nil, nil, 0, actualError)
-				})
-
-				JustBeforeEach(func() {
-					_, err = backupArtifact.Size()
-				})
-
-				It("returns the error", func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					Expect(err).To(MatchError(ContainSubstring("oh noes, more errors")))
-				})
-			})
-
 		})
 
 		Describe("StreamBackupToRemote", func() {
@@ -303,16 +202,16 @@ var _ = Describe("artifact", func() {
 			})
 
 			Describe("when successful", func() {
-				It("uses the ssh connection to make the backup directory on the remote machine", func() {
-					Expect(sshConnection.RunCallCount()).To(Equal(1))
-					command := sshConnection.RunArgsForCall(0)
-					Expect(command).To(Equal("sudo mkdir -p " + artifactDirectory))
+				It("uses the remote runner to make the backup directory on the remote machine", func() {
+					Expect(remoteRunner.CreateDirectoryCallCount()).To(Equal(1))
+					dir := remoteRunner.CreateDirectoryArgsForCall(0)
+					Expect(dir).To(Equal(artifactDirectory))
 				})
 
-				It("uses the ssh connection to stream files from the remote machine", func() {
-					Expect(sshConnection.StreamStdinCallCount()).To(Equal(1))
-					command, sentReader := sshConnection.StreamStdinArgsForCall(0)
-					Expect(command).To(Equal("sudo sh -c 'tar -C " + artifactDirectory + " -x'"))
+				It("uses the remote runner to stream files to the remote machine", func() {
+					Expect(remoteRunner.ExtractAndUploadCallCount()).To(Equal(1))
+					sentReader, dir := remoteRunner.ExtractAndUploadArgsForCall(0)
+					Expect(dir).To(Equal(artifactDirectory))
 					Expect(reader).To(Equal(sentReader))
 				})
 
@@ -321,43 +220,23 @@ var _ = Describe("artifact", func() {
 				})
 			})
 
-			Describe("when the remote side returns an error", func() {
+			Describe("when the remote runner returns an error for creating a directory", func() {
 				BeforeEach(func() {
-					sshConnection.StreamStdinReturns([]byte("not relevant"), []byte("All the pies"), 1, nil)
-				})
-
-				It("fails and return the error", func() {
-					Expect(err).To(MatchError(ContainSubstring("All the pies")))
-				})
-			})
-
-			Describe("when there is an error running the stream", func() {
-				BeforeEach(func() {
-					sshConnection.StreamStdinReturns([]byte("not relevant"), []byte("not relevant"), -1, fmt.Errorf("Errorerrororororororor"))
-				})
-
-				It("fails", func() {
-					Expect(err).To(MatchError(ContainSubstring("Errorerrororororororor")))
-				})
-			})
-
-			Describe("when creating the directory fails on the remote", func() {
-				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("stdout"), []byte("stderr"), 1, nil)
-				})
-
-				It("fails and returns the error", func() {
-					Expect(err).To(MatchError("Creating backup directory on the remote failed: stderr - exit code 1"))
-				})
-			})
-
-			Describe("when creating the directory fails because of a connection error", func() {
-				BeforeEach(func() {
-					sshConnection.RunReturns([]byte("not relevant"), []byte("not relevant"), 0, fmt.Errorf("I refuse to create you this directory."))
+					remoteRunner.CreateDirectoryReturns(fmt.Errorf("I refuse to create you this directory."))
 				})
 
 				It("fails and returns the error", func() {
 					Expect(err).To(MatchError(ContainSubstring("I refuse to create you this directory.")))
+				})
+			})
+
+			Describe("when the remote runner returns an error for extracting and uploading a directory", func() {
+				BeforeEach(func() {
+					remoteRunner.ExtractAndUploadReturns(fmt.Errorf("I refuse to upload this directory."))
+				})
+
+				It("fails and returns the error", func() {
+					Expect(err).To(MatchError(ContainSubstring("I refuse to upload this directory.")))
 				})
 			})
 		})
@@ -365,7 +244,7 @@ var _ = Describe("artifact", func() {
 
 	Context("BackupArtifact", func() {
 		JustBeforeEach(func() {
-			backupArtifact = instance.NewBackupArtifact(job, testInstance, instance.NewRemoteRunner(sshConnection, boshLogger), boshLogger)
+			backupArtifact = instance.NewBackupArtifact(job, testInstance, remoteRunner, boshLogger)
 		})
 
 		Context("Named Artifact", func() {
@@ -425,7 +304,7 @@ var _ = Describe("artifact", func() {
 
 	Context("RestoreArtifact", func() {
 		JustBeforeEach(func() {
-			backupArtifact = instance.NewRestoreArtifact(job, testInstance, instance.NewRemoteRunner(sshConnection, boshLogger), boshLogger)
+			backupArtifact = instance.NewRestoreArtifact(job, testInstance, remoteRunner, boshLogger)
 		})
 
 		Context("Named Artifact", func() {

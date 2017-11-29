@@ -8,7 +8,6 @@ import (
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	orchestratorFakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
-	sshFakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -16,12 +15,9 @@ import (
 
 var _ = Describe("Jobs", func() {
 	var jobs orchestrator.Jobs
-	var sshConnection *sshFakes.FakeSSHConnection
 	var logger boshlog.Logger
 
 	BeforeEach(func() {
-		sshConnection = new(sshFakes.FakeSSHConnection)
-
 		combinedLog := log.New(GinkgoWriter, "[instance-test] ", log.Lshortfile)
 		logger = boshlog.New(boshlog.LevelDebug, combinedLog, combinedLog)
 	})

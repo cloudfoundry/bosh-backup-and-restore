@@ -8,8 +8,8 @@ import (
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	instancefakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	"github.com/cloudfoundry/bosh-cli/director"
 	boshfakes "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -19,7 +19,7 @@ import (
 )
 
 var _ = Describe("BoshDeployedInstance", func() {
-	var sshConnection *fakes.FakeSSHConnection
+	var remoteRunner *instancefakes.FakeRemoteRunner
 	var boshDeployment *boshfakes.FakeDeployment
 	var boshLogger boshlog.Logger
 	var stdout, stderr *gbytes.Buffer
@@ -30,7 +30,7 @@ var _ = Describe("BoshDeployedInstance", func() {
 	var backuperInstance orchestrator.Instance
 
 	BeforeEach(func() {
-		sshConnection = new(fakes.FakeSSHConnection)
+		remoteRunner = new(instancefakes.FakeRemoteRunner)
 		boshDeployment = new(boshfakes.FakeDeployment)
 		jobName = "job-name"
 		jobIndex = "job-index"
@@ -46,12 +46,12 @@ var _ = Describe("BoshDeployedInstance", func() {
 	})
 
 	JustBeforeEach(func() {
-		sshConnection.UsernameReturns("sshUsername")
+		remoteRunner.ConnectedUsernameReturns("sshUsername")
 		backuperInstance = bosh.NewBoshDeployedInstance(
 			jobName,
 			jobIndex,
 			jobID,
-			instance.NewRemoteRunner(sshConnection, boshLogger),
+			remoteRunner,
 			boshDeployment,
 			artifactDirCreated,
 			boshLogger,
@@ -69,9 +69,9 @@ var _ = Describe("BoshDeployedInstance", func() {
 
 		Describe("cleans up successfully", func() {
 			It("deletes the backup folder", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				cmd := sshConnection.RunArgsForCall(0)
-				Expect(cmd).To(Equal("sudo rm -rf /var/vcap/store/bbr-backup"))
+				Expect(remoteRunner.RemoveDirectoryCallCount()).To(Equal(1))
+				dir := remoteRunner.RemoveDirectoryArgsForCall(0)
+				Expect(dir).To(Equal("/var/vcap/store/bbr-backup"))
 			})
 
 			It("deletes session from deployment", func() {
@@ -90,7 +90,7 @@ var _ = Describe("BoshDeployedInstance", func() {
 			})
 
 			It("does not delete the existing artifact", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(0))
+				Expect(remoteRunner.RemoveDirectoryCallCount()).To(Equal(0))
 			})
 
 			It("deletes session from deployment", func() {
@@ -106,11 +106,13 @@ var _ = Describe("BoshDeployedInstance", func() {
 		Describe("error removing the backup folder", func() {
 			BeforeEach(func() {
 				expectedError = fmt.Errorf("foo bar")
-				sshConnection.RunReturns(nil, nil, 1, expectedError)
+				remoteRunner.RemoveDirectoryReturns(expectedError)
 			})
+
 			It("tries to cleanup ssh connection", func() {
 				Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(1))
 			})
+
 			It("returns the error", func() {
 				Expect(actualError).To(MatchError(ContainSubstring(expectedError.Error())))
 			})
@@ -123,12 +125,12 @@ var _ = Describe("BoshDeployedInstance", func() {
 			BeforeEach(func() {
 				expectedErrorWhileDeleting = fmt.Errorf("error while cleaning up var/vcap/store/bbr-backup")
 				expectedErrorWhileCleaningUp = fmt.Errorf("error while cleaning the ssh tunnel")
-				sshConnection.RunReturns(nil, nil, 1, expectedErrorWhileDeleting)
+				remoteRunner.RemoveDirectoryReturns(expectedErrorWhileDeleting)
 				boshDeployment.CleanUpSSHReturns(expectedErrorWhileCleaningUp)
 			})
 
 			It("tries delete the artifact", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(remoteRunner.RemoveDirectoryCallCount()).To(Equal(1))
 			})
 
 			It("tries to cleanup ssh connection", func() {
@@ -163,9 +165,9 @@ var _ = Describe("BoshDeployedInstance", func() {
 
 		Describe("cleans up successfully", func() {
 			It("deletes the backup folder", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				cmd := sshConnection.RunArgsForCall(0)
-				Expect(cmd).To(Equal("sudo rm -rf /var/vcap/store/bbr-backup"))
+				Expect(remoteRunner.RemoveDirectoryCallCount()).To(Equal(1))
+				dir := remoteRunner.RemoveDirectoryArgsForCall(0)
+				Expect(dir).To(Equal("/var/vcap/store/bbr-backup"))
 			})
 
 			It("deletes session from deployment", func() {
@@ -184,9 +186,9 @@ var _ = Describe("BoshDeployedInstance", func() {
 			})
 
 			It("does attempt to delete the existing artifact", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
-				cmd := sshConnection.RunArgsForCall(0)
-				Expect(cmd).To(Equal("sudo rm -rf /var/vcap/store/bbr-backup"))
+				Expect(remoteRunner.RemoveDirectoryCallCount()).To(Equal(1))
+				dir := remoteRunner.RemoveDirectoryArgsForCall(0)
+				Expect(dir).To(Equal("/var/vcap/store/bbr-backup"))
 			})
 
 			It("deletes session from deployment", func() {
@@ -202,11 +204,13 @@ var _ = Describe("BoshDeployedInstance", func() {
 		Describe("error removing the backup folder", func() {
 			BeforeEach(func() {
 				expectedError = fmt.Errorf("foo bar")
-				sshConnection.RunReturns(nil, nil, 1, expectedError)
+				remoteRunner.RemoveDirectoryReturns(expectedError)
 			})
+
 			It("tries to cleanup ssh connection", func() {
 				Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(1))
 			})
+
 			It("returns the error", func() {
 				Expect(actualError).To(MatchError(ContainSubstring(expectedError.Error())))
 			})
@@ -219,12 +223,12 @@ var _ = Describe("BoshDeployedInstance", func() {
 			BeforeEach(func() {
 				expectedErrorWhileDeleting = fmt.Errorf("error while cleaning up var/vcap/store/bbr-backup")
 				expectedErrorWhileCleaningUp = fmt.Errorf("error while cleaning the ssh tunnel")
-				sshConnection.RunReturns(nil, nil, 1, expectedErrorWhileDeleting)
+				remoteRunner.RemoveDirectoryReturns(expectedErrorWhileDeleting)
 				boshDeployment.CleanUpSSHReturns(expectedErrorWhileCleaningUp)
 			})
 
 			It("tries delete the artifact", func() {
-				Expect(sshConnection.RunCallCount()).To(Equal(1))
+				Expect(remoteRunner.RemoveDirectoryCallCount()).To(Equal(1))
 			})
 
 			It("tries to cleanup ssh connection", func() {
@@ -248,5 +252,4 @@ var _ = Describe("BoshDeployedInstance", func() {
 			})
 		})
 	})
-
 })
