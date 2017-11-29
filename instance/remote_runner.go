@@ -3,7 +3,6 @@ package instance
 import (
 	"fmt"
 	"io"
-	"sort"
 	"strings"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
@@ -89,15 +88,9 @@ func (r SshRemoteRunner) RunScript(path string) (string, error) {
 }
 
 func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string) (string, error) {
-	varNames := make([]string, 0, len(env))
-	for varName := range env {
-		varNames = append(varNames, varName)
-	}
-	sort.Strings(varNames)
-
 	var varsList = ""
-	for _, varName := range varNames {
-		varsList = varsList + varName + "=" + env[varName] + " "
+	for varName, value := range env {
+		varsList = varsList + varName + "=" + value + " "
 	}
 
 	return r.runOnInstance("sudo " + varsList + path)
