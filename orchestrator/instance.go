@@ -19,7 +19,6 @@ type Instance interface {
 	MarkArtifactDirCreated()
 	IsRestorable() bool
 	Backup() error
-	PostBackupUnlock() error
 	Restore() error
 	Cleanup() error
 	CleanupPrevious() error
@@ -27,7 +26,6 @@ type Instance interface {
 	ArtifactsToRestore() []BackupArtifact
 	CustomBackupArtifactNames() []string
 	CustomRestoreArtifactNames() []string
-	PostRestoreUnlock() error
 	Jobs() []Job
 }
 
@@ -174,16 +172,6 @@ func (is instances) Backup() error {
 	return nil
 }
 
-func (is instances) PostBackupUnlock() error {
-	var unlockErrors []error
-	for _, instance := range is {
-		if err := instance.PostBackupUnlock(); err != nil {
-			unlockErrors = append(unlockErrors, err)
-		}
-	}
-	return ConvertErrors(unlockErrors)
-}
-
 func (is instances) Restore() error {
 	for _, instance := range is {
 		err := instance.Restore()
@@ -192,14 +180,4 @@ func (is instances) Restore() error {
 		}
 	}
 	return nil
-}
-
-func (is instances) PostRestoreUnlock() error {
-	var unlockErrors []error
-	for _, instance := range is {
-		if err := instance.PostRestoreUnlock(); err != nil {
-			unlockErrors = append(unlockErrors, err)
-		}
-	}
-	return ConvertErrors(unlockErrors)
 }

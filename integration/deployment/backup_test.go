@@ -440,7 +440,7 @@ touch /tmp/post-backup-unlock-output
 
 						By("logging the error", func() {
 							Expect(session.Err.Contents()).To(ContainSubstring(
-								"Error attempting to run pre-backup-lock for job redis on redis-dedicated-node/fake-uuid."))
+								"Error attempting to run pre-backup-lock for job redis on redis-dedicated-node/fake-uuid"))
 						})
 
 						By("logging stderr", func() {
