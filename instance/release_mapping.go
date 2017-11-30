@@ -10,7 +10,7 @@ type ReleaseMapping interface {
 
 type noopReleaseMapping struct{}
 
-func NoopReleaseMapping() ReleaseMapping {
+func NewNoopReleaseMapping() ReleaseMapping {
 	return noopReleaseMapping{}
 }
 
