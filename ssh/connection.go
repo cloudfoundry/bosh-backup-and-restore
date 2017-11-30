@@ -150,7 +150,7 @@ func (c Connection) startKeepAliveLoop(session *ssh.Session) chan struct{} {
 			default:
 				_, err := session.SendRequest("keepalive@bbr", true, nil)
 				if err != nil {
-					c.logger.Warn("ssh", "keepalive failed: %+v", err)
+					c.logger.Debug("ssh", "keepalive failed: %+v", err)
 				}
 				time.Sleep(time.Second * c.serverAliveInterval)
 			}
