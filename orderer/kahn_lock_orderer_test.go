@@ -103,7 +103,7 @@ var _ = Describe("KahnLockOrderer", func() {
 
 			return lockingTestCase{
 				inputJobs:                []Job{a, b, c},
-				orderedJobs:              []Job{a, b, c},
+				errorMessage:             "could not find locking dependency releasee/e",
 				orderConstraintSpecifier: orderConstraintSpecifier,
 			}
 		}),
