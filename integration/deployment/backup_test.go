@@ -333,6 +333,25 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 				})
 
+				Context("and an addon with bbr scripts is installed on the instance", func() {
+					BeforeEach(func() {
+						instance1.CreateScript("/var/vcap/jobs/an_addon_job/bin/bbr/backup", `#!/usr/bin/env sh
+
+echo "hi"
+`)
+					})
+
+					It("takes a backup successfully", func() {
+						By("not failing", func() {
+							Expect(session.ExitCode()).To(BeZero(), string(session.Err.Contents()))
+						})
+
+						By("creating an artifact file", func() {
+							Expect(artifactFile("redis-dedicated-node-0-redis.tar")).To(BeARegularFile())
+						})
+					})
+				})
+
 				Context("and there is a metadata script which produces yaml containing the custom backup_name", func() {
 					var redisCustomArtifactFile string
 					var redisDefaultArtifactFile string
