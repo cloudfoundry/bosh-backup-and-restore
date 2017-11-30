@@ -11,6 +11,8 @@ import (
 
 	"testing"
 
+	"time"
+
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 )
 
@@ -22,6 +24,8 @@ func TestSsh(t *testing.T) {
 var defaultPrivateKey string
 
 var _ = BeforeSuite(func() {
+	SetDefaultEventuallyTimeout(10 * time.Minute)
+
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	Expect(err).NotTo(HaveOccurred())
 
