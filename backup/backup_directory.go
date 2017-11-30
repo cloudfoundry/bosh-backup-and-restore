@@ -212,7 +212,8 @@ func (backupDirectory *BackupDirectory) Valid() (bool, error) {
 
 	for _, artifact := range meta.MetadataForEachArtifact {
 		actualArtifactChecksum, _ := backupDirectory.CalculateChecksum(makeCustomArtifactIdentifier(artifact))
-		if !actualArtifactChecksum.Match(artifact.Checksum) {
+		match, _ := actualArtifactChecksum.Match(artifact.Checksum)
+		if !match {
 			return false, backupDirectory.logAndReturn(err, "Can't match checksums for %s, in metadata: %v, in actual file: %v", artifact.Name, actualArtifactChecksum, artifact.Checksum)
 		}
 	}
@@ -225,7 +226,9 @@ func (backupDirectory *BackupDirectory) Valid() (bool, error) {
 				return false, backupDirectory.logAndReturn(err, "Error calculating checksum for artifact")
 			}
 
-			if !actualInstanceChecksum.Match(artifact.Checksum) {
+			match, _ := actualInstanceChecksum.Match(artifact.Checksum)
+
+			if !match {
 				return false, backupDirectory.logAndReturn(err, "Can't match checksums for %s/%s %s, in metadata: %v, in actual file: %v", inst.Name, inst.Index, artifact.Name, actualInstanceChecksum, artifact.Checksum)
 			}
 		}

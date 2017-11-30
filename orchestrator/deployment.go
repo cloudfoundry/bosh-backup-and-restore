@@ -257,8 +257,12 @@ func (bd *deployment) CopyRemoteBackupToLocal(backup Backup) error {
 				return err
 			}
 			bd.Logger.Debug("bbr", "Comparing shasums")
-			if !localChecksum.Match(remoteChecksum) {
-				return errors.Errorf("Backup is corrupted, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), backupArtifact.Name(), remoteChecksum, localChecksum)
+
+			match, mismatchedFiles := localChecksum.Match(remoteChecksum)
+			if !match {
+				bd.Logger.Debug("bbr", "Checksums didn't match for:")
+				bd.Logger.Debug("bbr", fmt.Sprintf("%v\n", mismatchedFiles))
+				return errors.Errorf("Backup is corrupted, checksum failed for %s/%s %s - checksums don't match for %v. Checksum failed for %d files in total", instance.Name(), instance.ID(), backupArtifact.Name(), getFirstTen(mismatchedFiles), len(mismatchedFiles))
 			}
 
 			backup.AddChecksum(backupArtifact, localChecksum)
@@ -300,8 +304,18 @@ func (bd *deployment) CopyLocalBackupToRemote(backup Backup) error {
 			if err != nil {
 				return err
 			}
-			if !localChecksum.Match(remoteChecksum) {
-				return errors.Errorf("Backup couldn't be transfered, checksum failed for %s/%s %s,  remote file: %s, local file: %s", instance.Name(), instance.ID(), artifact.Name(), remoteChecksum, localChecksum)
+
+			match, mismatchedFiles := localChecksum.Match(remoteChecksum)
+			if !match {
+				bd.Logger.Debug("bbr", "Checksums didn't match for:")
+				bd.Logger.Debug("bbr", fmt.Sprintf("%v\n", mismatchedFiles))
+				return errors.Errorf("Backup couldn't be transferred, checksum failed for %s/%s %s - checksums don't match for %v. Checksum failed for %d files in total",
+					instance.Name(),
+					instance.ID(),
+					artifact.Name(),
+					getFirstTen(mismatchedFiles),
+					len(mismatchedFiles),
+				)
 			}
 			bd.Logger.Info("bbr", "Done.")
 		}
@@ -311,4 +325,12 @@ func (bd *deployment) CopyLocalBackupToRemote(backup Backup) error {
 
 func (bd *deployment) Instances() []Instance {
 	return bd.instances
+}
+
+func getFirstTen(input []string) (output []string) {
+	for i := 0; i < len(input); i++ {
+	 	if i == 10 { break }
+		output = append(output, input[i])
+	}
+	return output
 }

@@ -8,17 +8,61 @@ import (
 )
 
 var _ = Describe("Backuper/Checksum", func() {
+	var match bool
+	var files []string
+
 	Describe("Match", func() {
-		It("returns false if checksums don't match", func() {
-			Expect(BackupChecksum{"foo": "bar"}.Match(BackupChecksum{"foo": "baz"})).To(BeFalse())
+		Context("if the checksums don't match", func() {
+
+
+			BeforeEach(func(){
+				match, files = BackupChecksum{
+					"/var/foo": "checksum1",
+					"/var/bar": "checksum2",
+					"/var/baz": "checksum3",
+					}.Match(BackupChecksum{
+					"/var/foo": "checksum11111111",
+					"/var/bar": "checksum22222222",
+					"/var/baz": "checksum3",
+				})
+			})
+
+			It("returns false", func() {
+				Expect(match).To(BeFalse())
+			})
+
+			It("returns a list of files whose checksums don't match", func() {
+				Expect(files).To(ConsistOf("/var/foo", "/var/bar"))
+			})
 		})
 
-		It("returns true if checksums match", func() {
-			Expect(BackupChecksum{"foo": "bar"}.Match(BackupChecksum{"foo": "bar"})).To(BeTrue())
+
+		Context("if the checksums match", func() {
+			It("returns true", func() {
+				match, _ := BackupChecksum{"/var/foo": "bar"}.Match(BackupChecksum{"/var/foo": "bar"})
+				Expect(match).To(BeTrue())
+			})
 		})
 
-		It("returns false if keys dont match", func() {
-			Expect(BackupChecksum{"foo": "bar"}.Match(BackupChecksum{"foo": "bar", "extra": "nope"})).To(BeFalse())
+		Context("if there are extra keys", func() {
+			It("returns false", func() {
+				match, _ := BackupChecksum{"/var/foo": "bar"}.Match(BackupChecksum{"/var/foo": "bar", "/tmp/some-extra-thing": "nope"})
+				Expect(match).To(BeFalse())
+			})
+
+			Context("and the checksums don't match", func() {
+				BeforeEach(func() {
+					match, files = BackupChecksum{"/var/foo": "bar"}.Match(BackupChecksum{"/var/foo": "baz", "extra": "nope"})
+				})
+
+				It("returns false", func() {
+					Expect(match).To(BeFalse())
+				})
+
+				It("returns a list of files whose checksums don't match", func() {
+					Expect(files).To(ConsistOf("/var/foo"))
+				})
+			})
 		})
 	})
 })

@@ -828,13 +828,13 @@ var _ = Describe("Deployment", func() {
 				})
 			})
 
-			Context("shas dont match after transfer", func() {
+			Context("shas don't match after transfer", func() {
 				BeforeEach(func() {
 					backupArtifact.ChecksumReturns(orchestrator.BackupChecksum{"shas": "they dont match"}, nil)
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("Backup couldn't be transfered, checksum failed")))
+					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("Backup couldn't be transferred, checksum failed")))
 				})
 			})
 
@@ -913,13 +913,13 @@ var _ = Describe("Deployment", func() {
 				})
 			})
 
-			Context("shas dont match after transfer", func() {
+			Context("shas don't match after transfer", func() {
 				BeforeEach(func() {
-					backupArtifact.ChecksumReturns(orchestrator.BackupChecksum{"shas": "they dont match"}, nil)
+					backupArtifact.ChecksumReturns(orchestrator.BackupChecksum{"shas": "they don't match"}, nil)
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("Backup couldn't be transfered, checksum failed")))
+					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("Backup couldn't be transferred, checksum failed")))
 				})
 			})
 
@@ -997,13 +997,22 @@ var _ = Describe("Deployment", func() {
 				})
 			})
 
-			Context("shas dont match after transfer", func() {
+			Context("shas don't match after transfer", func() {
 				BeforeEach(func() {
-					backupArtifact.ChecksumReturns(orchestrator.BackupChecksum{"shas": "they dont match"}, nil)
+					backupArtifact.ChecksumReturns(orchestrator.BackupChecksum{"file1": "abcd", "file2": "thisdoesnotmatch"}, nil)
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("Backup couldn't be transfered, checksum failed")))
+					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("Backup couldn't be transferred, checksum failed")))
+				})
+
+				It("lists only the files with mismatched checksums", func() {
+					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("file2")))
+					Expect(copyLocalBackupToRemoteError).NotTo(MatchError(ContainSubstring("file1")))
+				})
+
+				It("prints the number of files with mismatched checksums", func() {
+					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("Checksum failed for 1 files in total")))
 				})
 			})
 
@@ -1017,7 +1026,6 @@ var _ = Describe("Deployment", func() {
 				})
 			})
 		})
-
 	})
 
 	Context("IsRestorable", func() {
@@ -1352,7 +1360,7 @@ var _ = Describe("Deployment", func() {
 		})
 	})
 
-	Context("CopyRemoteBackupsToLocal", func() {
+	Context("CopyRemoteBackupToLocal", func() {
 		var (
 			artifact                              *fakes.FakeBackup
 			backupArtifact                        *fakes.FakeBackupArtifact
@@ -1649,9 +1657,11 @@ var _ = Describe("Deployment", func() {
 
 				It("fails the backup process", func() {
 					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(ContainSubstring("Backup is corrupted")))
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(ContainSubstring("checksums don't match for [file]")))
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(ContainSubstring("Checksum failed for 1 files in total")))
 				})
 
-				It("dosen't try to append shasum to metadata", func() {
+				It("doesn't  to append shasum to metadata", func() {
 					Expect(artifact.AddChecksumCallCount()).To(BeZero())
 				})
 			})
