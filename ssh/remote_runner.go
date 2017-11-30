@@ -1,11 +1,12 @@
-package instance
+package ssh
 
 import (
 	"fmt"
 	"io"
 	"strings"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
+	"golang.org/x/crypto/ssh"
+
 	"github.com/pkg/errors"
 )
 
@@ -26,14 +27,19 @@ type RemoteRunner interface {
 
 type SshRemoteRunner struct {
 	logger     Logger
-	connection ssh.SSHConnection
+	connection SSHConnection
 }
 
-func NewRemoteRunner(sshConnection ssh.SSHConnection, logger Logger) SshRemoteRunner {
-	return SshRemoteRunner{
-		connection: sshConnection,
-		logger:     logger,
+func NewSshRemoteRunner(host, user, privateKey string, publicKeyCallback ssh.HostKeyCallback, publicKeyAlgorithm []string, logger Logger) (RemoteRunner, error) {
+	connection, err := NewConnection(host, user, privateKey, publicKeyCallback, publicKeyAlgorithm, logger)
+	if err != nil {
+		return SshRemoteRunner{}, err
 	}
+
+	return SshRemoteRunner{
+		connection: connection,
+		logger:     logger,
+	}, nil
 }
 
 func (r SshRemoteRunner) ConnectedUsername() string {

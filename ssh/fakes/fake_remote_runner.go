@@ -5,7 +5,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 )
 
 type FakeRemoteRunner struct {
@@ -732,4 +732,4 @@ func (fake *FakeRemoteRunner) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ instance.RemoteRunner = new(FakeRemoteRunner)
+var _ ssh.RemoteRunner = new(FakeRemoteRunner)

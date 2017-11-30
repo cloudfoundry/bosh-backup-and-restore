@@ -8,7 +8,7 @@ import (
 
 	"fmt"
 
-	instancefakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
+	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -22,7 +22,7 @@ var _ = Describe("Job", func() {
 	var stdout, stderr *gbytes.Buffer
 	var logger boshlog.Logger
 	var releaseName string
-	var remoteRunner *instancefakes.FakeRemoteRunner
+	var remoteRunner *sshfakes.FakeRemoteRunner
 	var instanceIdentifier = "instance/identifier"
 
 	BeforeEach(func() {
@@ -39,7 +39,7 @@ var _ = Describe("Job", func() {
 		stderrLog := log.New(stderr, "[instance-test] ", log.Lshortfile)
 		logger = boshlog.New(boshlog.LevelDebug, stdoutLog, stderrLog)
 		releaseName = "redis"
-		remoteRunner = new(instancefakes.FakeRemoteRunner)
+		remoteRunner = new(sshfakes.FakeRemoteRunner)
 	})
 
 	JustBeforeEach(func() {

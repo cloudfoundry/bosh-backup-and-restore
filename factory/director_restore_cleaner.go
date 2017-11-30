@@ -20,7 +20,7 @@ func BuildDirectorRestoreCleaner(host,
 		username,
 		privateKeyPath,
 		instance.NewJobFinder(logger),
-		ssh.NewConnection,
+		ssh.NewSshRemoteRunner,
 	)
 
 	return orchestrator.NewRestoreCleaner(logger, deploymentManager, orderer.NewKahnRestoreLockOrderer())

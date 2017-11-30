@@ -15,7 +15,7 @@ func BuildDirectorBackupChecker(host, username, privateKeyPath string, hasDebug 
 		username,
 		privateKeyPath,
 		instance.NewJobFinder(logger),
-		ssh.NewConnection,
+		ssh.NewSshRemoteRunner,
 	)
 
 	return orchestrator.NewBackupChecker(logger, deploymentManager, orderer.NewDirectorLockOrderer())

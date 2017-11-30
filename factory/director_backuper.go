@@ -22,7 +22,7 @@ func BuildDirectorBackuper(host,
 		username,
 		privateKeyPath,
 		instance.NewJobFinder(logger),
-		ssh.NewConnection,
+		ssh.NewSshRemoteRunner,
 	)
 
 	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewDirectorLockOrderer(), time.Now)

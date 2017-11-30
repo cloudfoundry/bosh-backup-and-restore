@@ -21,14 +21,14 @@ type BoshClient interface {
 
 func NewClient(boshDirector director.Director,
 	sshOptsGenerator ssh.SSHOptsGenerator,
-	connectionFactory ssh.SSHConnectionFactory,
+	remoteRunnerFactory ssh.RemoteRunnerFactory,
 	logger Logger,
 	jobFinder instance.JobFinder,
 	releaseMappingFinder instance.ReleaseMappingFinder) Client {
 	return Client{
 		Director:             boshDirector,
 		SSHOptsGenerator:     sshOptsGenerator,
-		SSHConnectionFactory: connectionFactory,
+		RemoteRunnerFactory:  remoteRunnerFactory,
 		Logger:               logger,
 		jobFinder:            jobFinder,
 		releaseMappingFinder: releaseMappingFinder,
@@ -38,7 +38,7 @@ func NewClient(boshDirector director.Director,
 type Client struct {
 	director.Director
 	ssh.SSHOptsGenerator
-	ssh.SSHConnectionFactory
+	ssh.RemoteRunnerFactory
 	Logger
 	jobFinder            instance.JobFinder
 	releaseMappingFinder instance.ReleaseMappingFinder
@@ -99,7 +99,6 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 		slugs = append(slugs, allVmInstances)
 
 		for index, host := range sshRes.Hosts {
-			var sshConnection ssh.SSHConnection
 			var err error
 
 			c.Logger.Debug("bbr", "Attempting to SSH onto %s, %s", host.Host, host.IndexOrID)
@@ -109,15 +108,13 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 				return nil, errors.Wrap(err, "ssh.NewConnection.ParseAuthorizedKey failed")
 			}
 
-			sshConnection, err = c.SSHConnectionFactory(host.Host, host.Username, privateKey, gossh.FixedHostKey(hostPublicKey), []string{hostPublicKey.Type()}, c.Logger)
+			remoteRunner, err := c.RemoteRunnerFactory(host.Host, host.Username, privateKey, gossh.FixedHostKey(hostPublicKey), []string{hostPublicKey.Type()}, c.Logger)
 			if err != nil {
 				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
 				return nil, errors.Wrap(err, "failed to connect using ssh")
 			}
 
 			instanceIdentifier := instance.InstanceIdentifier{InstanceGroupName: instanceGroupName, InstanceId: host.IndexOrID}
-
-			remoteRunner := instance.NewRemoteRunner(sshConnection, c.Logger)
 
 			jobs, err := c.jobFinder.FindJobs(instanceIdentifier, remoteRunner, releaseMapping)
 			if err != nil {

@@ -24,11 +24,11 @@ import (
 
 var _ = Describe("Director", func() {
 	var optsGenerator *sshfakes.FakeSSHOptsGenerator
-	var sshConnectionFactory *sshfakes.FakeSSHConnectionFactory
+	var remoteRunnerFactory *sshfakes.FakeRemoteRunnerFactory
 	var boshDirector *boshfakes.FakeDirector
 	var boshLogger boshlog.Logger
 	var boshDeployment *boshfakes.FakeDeployment
-	var sshConnection *sshfakes.FakeSSHConnection
+	var remoteRunner *sshfakes.FakeRemoteRunner
 	var fakeJobFinder *instancefakes.FakeJobFinder
 	var releaseMappingFinder *instancefakes.FakeReleaseMappingFinder
 	var releaseMapping *instancefakes.FakeReleaseMapping
@@ -43,15 +43,15 @@ var _ = Describe("Director", func() {
 
 	var b bosh.BoshClient
 	JustBeforeEach(func() {
-		b = bosh.NewClient(boshDirector, optsGenerator.Spy, sshConnectionFactory.Spy, boshLogger, fakeJobFinder, releaseMappingFinder.Spy)
+		b = bosh.NewClient(boshDirector, optsGenerator.Spy, remoteRunnerFactory.Spy, boshLogger, fakeJobFinder, releaseMappingFinder.Spy)
 	})
 
 	BeforeEach(func() {
 		optsGenerator = new(sshfakes.FakeSSHOptsGenerator)
-		sshConnectionFactory = new(sshfakes.FakeSSHConnectionFactory)
+		remoteRunnerFactory = new(sshfakes.FakeRemoteRunnerFactory)
 		boshDirector = new(boshfakes.FakeDirector)
 		boshDeployment = new(boshfakes.FakeDeployment)
-		sshConnection = new(sshfakes.FakeSSHConnection)
+		remoteRunner = new(sshfakes.FakeRemoteRunner)
 		fakeJobFinder = new(instancefakes.FakeJobFinder)
 		releaseMappingFinder = new(instancefakes.FakeReleaseMappingFinder)
 		releaseMapping = new(instancefakes.FakeReleaseMapping)
@@ -97,9 +97,9 @@ var _ = Describe("Director", func() {
 					},
 				}}, nil)
 
-				sshConnectionFactory.Returns(sshConnection, nil)
+				remoteRunnerFactory.Returns(remoteRunner, nil)
 				expectedJobs = []orchestrator.Job{
-					instance.NewJob(instance.NewRemoteRunner(sshConnection, boshLogger), "", boshLogger, "", instance.BackupAndRestoreScripts{
+					instance.NewJob(remoteRunner, "", boshLogger, "", instance.BackupAndRestoreScripts{
 						"/var/vcap/jobs/consul_agent/bin/bbr/backup",
 						"/var/vcap/jobs/consul_agent/bin/bbr/restore",
 					}, instance.Metadata{}),
@@ -114,7 +114,7 @@ var _ = Describe("Director", func() {
 					"job1",
 					"0",
 					"jobID",
-					instance.NewRemoteRunner(sshConnection, boshLogger),
+					remoteRunner,
 					boshDeployment,
 					false,
 					boshLogger,
@@ -157,9 +157,9 @@ var _ = Describe("Director", func() {
 				Expect(opts).To(Equal(stubbedSshOpts))
 			})
 
-			It("creates a ssh connection to each host", func() {
-				Expect(sshConnectionFactory.CallCount()).To(Equal(1))
-				host, username, privateKey, _, hostPublicKeyAlgorithm, logger := sshConnectionFactory.ArgsForCall(0)
+			It("creates a remote runner for each host", func() {
+				Expect(remoteRunnerFactory.CallCount()).To(Equal(1))
+				host, username, privateKey, _, hostPublicKeyAlgorithm, logger := remoteRunnerFactory.ArgsForCall(0)
 				Expect(host).To(Equal("hostname"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
@@ -184,12 +184,12 @@ var _ = Describe("Director", func() {
 						HostPublicKey: hostsPublicKey,
 					},
 				}}, nil)
-				sshConnectionFactory.Returns(sshConnection, nil)
+				remoteRunnerFactory.Returns(remoteRunner, nil)
 			})
 
 			It("uses the specified port", func() {
-				Expect(sshConnectionFactory.CallCount()).To(Equal(1))
-				host, username, privateKey, _, hostPublicKeyAlgorithm, logger := sshConnectionFactory.ArgsForCall(0)
+				Expect(remoteRunnerFactory.CallCount()).To(Equal(1))
+				host, username, privateKey, _, hostPublicKeyAlgorithm, logger := remoteRunnerFactory.ArgsForCall(0)
 				Expect(host).To(Equal("hostname:3457"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
@@ -227,21 +227,21 @@ var _ = Describe("Director", func() {
 						HostPublicKey: hostsPublicKey,
 					},
 				}}, nil)
-				sshConnectionFactory.Returns(sshConnection, nil)
+				remoteRunnerFactory.Returns(remoteRunner, nil)
 
 				instance0Jobs = []orchestrator.Job{
-					instance.NewJob(instance.NewRemoteRunner(sshConnection, boshLogger), "", boshLogger, "",
+					instance.NewJob(remoteRunner, "", boshLogger, "",
 						instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
 						instance.Metadata{},
 					),
 				}
 				instance1Jobs = []orchestrator.Job{
-					instance.NewJob(instance.NewRemoteRunner(sshConnection, boshLogger), "", boshLogger, "",
+					instance.NewJob(remoteRunner, "", boshLogger, "",
 						instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
 						instance.Metadata{},
 					),
 				}
-				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier, remoteRunner instance.RemoteRunner, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
+				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
 					if instanceIdentifier.InstanceId == "id1" {
 						return instance0Jobs, nil
 					} else {
@@ -258,7 +258,7 @@ var _ = Describe("Director", func() {
 						"job1",
 						"0",
 						"id1",
-						instance.NewRemoteRunner(sshConnection, boshLogger),
+						remoteRunner,
 						boshDeployment,
 						false,
 						boshLogger,
@@ -268,7 +268,7 @@ var _ = Describe("Director", func() {
 						"job1",
 						"1",
 						"id2",
-						instance.NewRemoteRunner(sshConnection, boshLogger),
+						remoteRunner,
 						boshDeployment,
 						false,
 						boshLogger,
@@ -305,17 +305,17 @@ var _ = Describe("Director", func() {
 				Expect(opts).To(Equal(stubbedSshOpts))
 			})
 
-			It("creates a ssh connection to each host", func() {
-				Expect(sshConnectionFactory.CallCount()).To(Equal(2))
+			It("creates a remote runner for each host", func() {
+				Expect(remoteRunnerFactory.CallCount()).To(Equal(2))
 
-				host, username, privateKey, _, hostPublicKeyAlgorithm, logger := sshConnectionFactory.ArgsForCall(0)
+				host, username, privateKey, _, hostPublicKeyAlgorithm, logger := remoteRunnerFactory.ArgsForCall(0)
 				Expect(host).To(Equal("hostname1"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
 				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithm))
 				Expect(logger).To(Equal(boshLogger))
 
-				host, username, privateKey, _, hostPublicKeyAlgorithm, logger = sshConnectionFactory.ArgsForCall(1)
+				host, username, privateKey, _, hostPublicKeyAlgorithm, logger = remoteRunnerFactory.ArgsForCall(1)
 				Expect(host).To(Equal("hostname2"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
@@ -382,9 +382,9 @@ var _ = Describe("Director", func() {
 						}}, nil
 					}
 				}
-				sshConnectionFactory.Returns(sshConnection, nil)
+				remoteRunnerFactory.Returns(remoteRunner, nil)
 				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier,
-					remoteRunner instance.RemoteRunner, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
+					remoteRunner ssh.RemoteRunner, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
 					if instanceIdentifier.InstanceGroupName == "job2" {
 						return []orchestrator.Job{
 							instance.NewJob(remoteRunner, "", boshLogger, "",
@@ -405,7 +405,7 @@ var _ = Describe("Director", func() {
 						"job1",
 						"0",
 						"id1",
-						instance.NewRemoteRunner(sshConnection, boshLogger),
+						remoteRunner,
 						boshDeployment,
 						false,
 						boshLogger,
@@ -415,12 +415,12 @@ var _ = Describe("Director", func() {
 						"job2",
 						"0",
 						"id3",
-						instance.NewRemoteRunner(sshConnection, boshLogger),
+						remoteRunner,
 						boshDeployment,
 						false,
 						boshLogger,
 						[]orchestrator.Job{
-							instance.NewJob(instance.NewRemoteRunner(sshConnection, boshLogger), "", boshLogger, "",
+							instance.NewJob(remoteRunner, "", boshLogger, "",
 								instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
 								instance.Metadata{},
 							),
@@ -430,12 +430,12 @@ var _ = Describe("Director", func() {
 						"job2",
 						"1",
 						"id4",
-						instance.NewRemoteRunner(sshConnection, boshLogger),
+						remoteRunner,
 						boshDeployment,
 						false,
 						boshLogger,
 						[]orchestrator.Job{
-							instance.NewJob(instance.NewRemoteRunner(sshConnection, boshLogger), "", boshLogger, "",
+							instance.NewJob(remoteRunner, "", boshLogger, "",
 								instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
 								instance.Metadata{},
 							),
@@ -477,24 +477,24 @@ var _ = Describe("Director", func() {
 				Expect(opts).To(Equal(stubbedSshOpts))
 			})
 
-			It("creates a ssh connection to each host that has scripts, and the first instance of each group that doesn't", func() {
-				Expect(sshConnectionFactory.CallCount()).To(Equal(3))
+			It("creates a remote runner for each host that has scripts, and the first instance of each group that doesn't", func() {
+				Expect(remoteRunnerFactory.CallCount()).To(Equal(3))
 
-				host, username, privateKey, _, hostPublicKeyAlgorithm, logger := sshConnectionFactory.ArgsForCall(0)
+				host, username, privateKey, _, hostPublicKeyAlgorithm, logger := remoteRunnerFactory.ArgsForCall(0)
 				Expect(host).To(Equal("hostname1"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
 				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithm))
 				Expect(logger).To(Equal(boshLogger))
 
-				host, username, privateKey, _, hostPublicKeyAlgorithm, logger = sshConnectionFactory.ArgsForCall(1)
+				host, username, privateKey, _, hostPublicKeyAlgorithm, logger = remoteRunnerFactory.ArgsForCall(1)
 				Expect(host).To(Equal("hostname3"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
 				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithm))
 				Expect(logger).To(Equal(boshLogger))
 
-				host, username, privateKey, _, hostPublicKeyAlgorithm, logger = sshConnectionFactory.ArgsForCall(2)
+				host, username, privateKey, _, hostPublicKeyAlgorithm, logger = remoteRunnerFactory.ArgsForCall(2)
 				Expect(host).To(Equal("hostname4"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
@@ -502,22 +502,22 @@ var _ = Describe("Director", func() {
 				Expect(logger).To(Equal(boshLogger))
 			})
 
-			It("for each ssh connection, it finds the jobs with the job finder", func() {
+			It("for each remote runner, it finds the jobs with the job finder", func() {
 				Expect(fakeJobFinder.FindJobsCallCount()).To(Equal(3))
 
 				actualInstanceIdentifier, actualRemoteRunner, actualReleaseMapping := fakeJobFinder.FindJobsArgsForCall(0)
 				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id1"}))
-				Expect(actualRemoteRunner).To(Equal(instance.NewRemoteRunner(sshConnection, boshLogger)))
+				Expect(actualRemoteRunner).To(Equal(remoteRunner))
 				Expect(actualReleaseMapping).To(Equal(releaseMapping))
 
 				actualInstanceIdentifier, actualRemoteRunner, actualReleaseMapping = fakeJobFinder.FindJobsArgsForCall(1)
 				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id3"}))
-				Expect(actualRemoteRunner).To(Equal(instance.NewRemoteRunner(sshConnection, boshLogger)))
+				Expect(actualRemoteRunner).To(Equal(remoteRunner))
 				Expect(actualReleaseMapping).To(Equal(releaseMapping))
 
 				actualInstanceIdentifier, actualRemoteRunner, actualReleaseMapping = fakeJobFinder.FindJobsArgsForCall(2)
 				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id4"}))
-				Expect(actualRemoteRunner).To(Equal(instance.NewRemoteRunner(sshConnection, boshLogger)))
+				Expect(actualRemoteRunner).To(Equal(remoteRunner))
 				Expect(actualReleaseMapping).To(Equal(releaseMapping))
 			})
 		})
@@ -622,7 +622,7 @@ var _ = Describe("Director", func() {
 				})
 			})
 
-			Context("fails creating a ssh connection, to the vm", func() {
+			Context("fails creating a remote runner, to the vm", func() {
 				BeforeEach(func() {
 					boshDirector.FindDeploymentReturns(boshDeployment, nil)
 					boshDeployment.VMInfosReturns([]director.VMInfo{{
@@ -637,7 +637,7 @@ var _ = Describe("Director", func() {
 							HostPublicKey: hostsPublicKey,
 						},
 					}}, nil)
-					sshConnectionFactory.Returns(nil, errors.New(expectedError))
+					remoteRunnerFactory.Returns(nil, errors.New(expectedError))
 				})
 
 				It("does fail", func() {
@@ -645,7 +645,7 @@ var _ = Describe("Director", func() {
 				})
 
 				It("tries to connect to the vm", func() {
-					Expect(sshConnectionFactory.CallCount()).To(Equal(1))
+					Expect(remoteRunnerFactory.CallCount()).To(Equal(1))
 				})
 
 				It("fetchs vm infos", func() {
@@ -665,7 +665,7 @@ var _ = Describe("Director", func() {
 				})
 			})
 
-			Context("succeeds creating ssh connections to some vms, fails others", func() {
+			Context("succeeds creating remote runners for some vms, fails others", func() {
 				BeforeEach(func() {
 					boshDirector.FindDeploymentReturns(boshDeployment, nil)
 					boshDeployment.VMInfosReturns([]director.VMInfo{
@@ -691,7 +691,7 @@ var _ = Describe("Director", func() {
 							return director.SSHResult{}, errors.New(expectedError)
 						}
 					}
-					sshConnectionFactory.Returns(sshConnection, nil)
+					remoteRunnerFactory.Returns(remoteRunner, nil)
 				})
 
 				It("fails", func() {
@@ -703,7 +703,7 @@ var _ = Describe("Director", func() {
 				})
 			})
 
-			Context("succeeds creating ssh connections but fails to create instance group slug", func() {
+			Context("succeeds creating remote runners but fails to create instance group slug", func() {
 				BeforeEach(func() {
 					boshDirector.FindDeploymentReturns(boshDeployment, nil)
 					boshDeployment.VMInfosReturns([]director.VMInfo{
@@ -724,7 +724,7 @@ var _ = Describe("Director", func() {
 						},
 					}}, nil)
 
-					sshConnectionFactory.Returns(sshConnection, nil)
+					remoteRunnerFactory.Returns(remoteRunner, nil)
 				})
 
 				It("fails", func() {
@@ -736,7 +736,7 @@ var _ = Describe("Director", func() {
 				})
 			})
 
-			Context("succeeds creating ssh connections but ssh connection factory fails for a later connection", func() {
+			Context("succeeds creating some remote runners but remote runner factory fails for a later connection", func() {
 				BeforeEach(func() {
 					boshDirector.FindDeploymentReturns(boshDeployment, nil)
 					boshDeployment.VMInfosReturns([]director.VMInfo{
@@ -759,9 +759,9 @@ var _ = Describe("Director", func() {
 						}}, nil
 					}
 
-					sshConnectionFactory.Stub = func(host, user, privateKey string, publicKeyCallback gossh.HostKeyCallback, publicKeyAlgorithm []string, logger ssh.Logger) (ssh.SSHConnection, error) {
+					remoteRunnerFactory.Stub = func(host, user, privateKey string, publicKeyCallback gossh.HostKeyCallback, publicKeyAlgorithm []string, logger ssh.Logger) (ssh.RemoteRunner, error) {
 						if host == "hostname_job1" {
-							return sshConnection, nil
+							return remoteRunner, nil
 						}
 						return nil, errors.New(expectedError)
 					}

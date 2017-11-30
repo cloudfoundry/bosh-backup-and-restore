@@ -20,7 +20,7 @@ func BuildDirectorRestorer(
 		username,
 		privateKeyPath,
 		instance.NewJobFinder(logger),
-		ssh.NewConnection,
+		ssh.NewSshRemoteRunner,
 	)
 	return orchestrator.NewRestorer(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewDirectorLockOrderer())
 }

@@ -19,7 +19,7 @@ func BuildDirectorBackupCleaner(host,
 		username,
 		privateKeyPath,
 		instance.NewJobFinder(logger),
-		ssh.NewConnection,
+		ssh.NewSshRemoteRunner,
 	)
 
 	return orchestrator.NewBackupCleaner(logger, deploymentManager, orderer.NewDirectorLockOrderer())

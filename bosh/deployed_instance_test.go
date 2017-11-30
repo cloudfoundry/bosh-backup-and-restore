@@ -8,8 +8,8 @@ import (
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
-	instancefakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	"github.com/cloudfoundry/bosh-cli/director"
 	boshfakes "github.com/cloudfoundry/bosh-cli/director/directorfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -19,7 +19,7 @@ import (
 )
 
 var _ = Describe("BoshDeployedInstance", func() {
-	var remoteRunner *instancefakes.FakeRemoteRunner
+	var remoteRunner *sshfakes.FakeRemoteRunner
 	var boshDeployment *boshfakes.FakeDeployment
 	var boshLogger boshlog.Logger
 	var stdout, stderr *gbytes.Buffer
@@ -30,7 +30,7 @@ var _ = Describe("BoshDeployedInstance", func() {
 	var backuperInstance orchestrator.Instance
 
 	BeforeEach(func() {
-		remoteRunner = new(instancefakes.FakeRemoteRunner)
+		remoteRunner = new(sshfakes.FakeRemoteRunner)
 		boshDeployment = new(boshfakes.FakeDeployment)
 		jobName = "job-name"
 		jobIndex = "job-index"

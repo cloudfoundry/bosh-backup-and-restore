@@ -1,7 +1,6 @@
 package standalone_test
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
@@ -27,18 +26,18 @@ var _ = Describe("DeploymentManager", func() {
 	var username = "username"
 	var privateKey string
 	var fakeJobFinder *instancefakes.FakeJobFinder
-	var fakeConnFactory *sshfakes.FakeSSHConnectionFactory
-	var fakeSSHConnection *sshfakes.FakeSSHConnection
+	var remoteRunnerFactory *sshfakes.FakeRemoteRunnerFactory
+	var remoteRunner *sshfakes.FakeRemoteRunner
 
 	BeforeEach(func() {
 		privateKey = createTempFile("privateKey")
 		logger = new(fakes.FakeLogger)
 		artifact = new(fakes.FakeBackup)
-		fakeConnFactory = new(sshfakes.FakeSSHConnectionFactory)
+		remoteRunnerFactory = new(sshfakes.FakeRemoteRunnerFactory)
 		fakeJobFinder = new(instancefakes.FakeJobFinder)
-		fakeSSHConnection = new(sshfakes.FakeSSHConnection)
+		remoteRunner = new(sshfakes.FakeRemoteRunner)
 
-		deploymentManager = NewDeploymentManager(logger, hostName, username, privateKey, fakeJobFinder, fakeConnFactory.Spy)
+		deploymentManager = NewDeploymentManager(logger, hostName, username, privateKey, fakeJobFinder, remoteRunnerFactory.Spy)
 	})
 
 	AfterEach(func() {
@@ -57,7 +56,7 @@ var _ = Describe("DeploymentManager", func() {
 		Context("success", func() {
 			BeforeEach(func() {
 				fakeJobs = orchestrator.Jobs{instance.NewJob(nil, "", nil, "", instance.BackupAndRestoreScripts{"foo"}, instance.Metadata{})}
-				fakeConnFactory.Returns(fakeSSHConnection, nil)
+				remoteRunnerFactory.Returns(remoteRunner, nil)
 				fakeJobFinder.FindJobsReturns(fakeJobs, nil)
 			})
 			It("does not fail", func() {
@@ -65,7 +64,7 @@ var _ = Describe("DeploymentManager", func() {
 			})
 
 			It("invokes connection creator", func() {
-				Expect(fakeConnFactory.CallCount()).To(Equal(1))
+				Expect(remoteRunnerFactory.CallCount()).To(Equal(1))
 			})
 
 			It("invokes job finder", func() {
@@ -74,7 +73,7 @@ var _ = Describe("DeploymentManager", func() {
 
 			It("returns a deployment", func() {
 				Expect(actualDeployment).To(Equal(orchestrator.NewDeployment(logger, []orchestrator.Instance{
-					NewDeployedInstance("bosh", instance.NewRemoteRunner(fakeSSHConnection, logger), logger, fakeJobs, false),
+					NewDeployedInstance("bosh", remoteRunner, logger, fakeJobs, false),
 				})))
 			})
 		})
@@ -89,7 +88,7 @@ var _ = Describe("DeploymentManager", func() {
 			})
 
 			It("should not invoke connection creator", func() {
-				Expect(fakeConnFactory.CallCount()).To(BeZero())
+				Expect(remoteRunnerFactory.CallCount()).To(BeZero())
 			})
 		})
 
@@ -97,7 +96,7 @@ var _ = Describe("DeploymentManager", func() {
 			connError := fmt.Errorf("error")
 
 			BeforeEach(func() {
-				fakeConnFactory.Returns(nil, connError)
+				remoteRunnerFactory.Returns(nil, connError)
 			})
 
 			It("should fail", func() {
@@ -105,7 +104,7 @@ var _ = Describe("DeploymentManager", func() {
 			})
 
 			It("should invoke connection creator", func() {
-				Expect(fakeConnFactory.CallCount()).To(Equal(1))
+				Expect(remoteRunnerFactory.CallCount()).To(Equal(1))
 			})
 
 			It("should not invoke job finder", func() {
@@ -118,7 +117,7 @@ var _ = Describe("DeploymentManager", func() {
 			findJobsErr := fmt.Errorf("error")
 
 			BeforeEach(func() {
-				fakeConnFactory.Returns(fakeSSHConnection, nil)
+				remoteRunnerFactory.Returns(remoteRunner, nil)
 				fakeJobFinder.FindJobsReturns(nil, findJobsErr)
 			})
 
@@ -127,7 +126,7 @@ var _ = Describe("DeploymentManager", func() {
 			})
 
 			It("should invoke connection creator", func() {
-				Expect(fakeConnFactory.CallCount()).To(Equal(1))
+				Expect(remoteRunnerFactory.CallCount()).To(Equal(1))
 			})
 
 			It("should not invoke job finder", func() {
@@ -148,20 +147,20 @@ var _ = Describe("DeploymentManager", func() {
 
 var _ = Describe("DeployedInstance", func() {
 	var logger *fakes.FakeLogger
-	var fakeSSHConnection *sshfakes.FakeSSHConnection
+	var remoteRunner *sshfakes.FakeRemoteRunner
 	var inst DeployedInstance
 	var artifactDirCreated bool
 
 	BeforeEach(func() {
 		logger = new(fakes.FakeLogger)
-		fakeSSHConnection = new(sshfakes.FakeSSHConnection)
+		remoteRunner = new(sshfakes.FakeRemoteRunner)
 	})
 
 	Describe("Cleanup", func() {
 		var err error
 
 		JustBeforeEach(func() {
-			inst = NewDeployedInstance("group", instance.NewRemoteRunner(fakeSSHConnection, logger), logger, []orchestrator.Job{}, artifactDirCreated)
+			inst = NewDeployedInstance("group", remoteRunner, logger, []orchestrator.Job{}, artifactDirCreated)
 			err = inst.Cleanup()
 		})
 
@@ -174,10 +173,8 @@ var _ = Describe("DeployedInstance", func() {
 		})
 
 		It("removes the artifact directory", func() {
-			Expect(fakeSSHConnection.RunCallCount()).To(Equal(1))
-			Expect(fakeSSHConnection.RunArgsForCall(0)).To(Equal(
-				"sudo rm -rf /var/vcap/store/bbr-backup",
-			))
+			Expect(remoteRunner.RemoveDirectoryCallCount()).To(Equal(1))
+			Expect(remoteRunner.RemoveDirectoryArgsForCall(0)).To(Equal("/var/vcap/store/bbr-backup"))
 		})
 
 		Context("when the artifact directory was not created this time", func() {
@@ -186,27 +183,20 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("does not remove the artifact directory", func() {
-				Expect(fakeSSHConnection.RunCallCount()).To(Equal(0))
+				Expect(remoteRunner.RemoveDirectoryCallCount()).To(Equal(0))
 			})
 		})
 
 		Context("when cleanup fails", func() {
 			BeforeEach(func() {
-				fakeSSHConnection.RunReturns(nil, nil, 5, nil)
+				remoteRunner.RemoveDirectoryReturns(fmt.Errorf("fool!"))
 			})
 
 			It("returns an error", func() {
-				Expect(err).To(MatchError(ContainSubstring("Unable to clean up backup artifact")))
-			})
-		})
-
-		Context("when ssh connection fails", func() {
-			BeforeEach(func() {
-				fakeSSHConnection.RunReturns(nil, nil, 0, errors.New("fool!"))
-			})
-
-			It("returns the error", func() {
-				Expect(err).To(MatchError(ContainSubstring("fool!")))
+				Expect(err).To(SatisfyAll(
+					MatchError(ContainSubstring("Unable to clean up backup artifact")),
+					MatchError(ContainSubstring("fool!")),
+				))
 			})
 		})
 	})
@@ -215,7 +205,7 @@ var _ = Describe("DeployedInstance", func() {
 		var err error
 
 		JustBeforeEach(func() {
-			inst = NewDeployedInstance("group", instance.NewRemoteRunner(fakeSSHConnection, logger), logger, []orchestrator.Job{}, artifactDirCreated)
+			inst = NewDeployedInstance("group", remoteRunner, logger, []orchestrator.Job{}, artifactDirCreated)
 			err = inst.CleanupPrevious()
 		})
 
@@ -228,10 +218,8 @@ var _ = Describe("DeployedInstance", func() {
 		})
 
 		It("removes the artifact directory", func() {
-			Expect(fakeSSHConnection.RunCallCount()).To(Equal(1))
-			Expect(fakeSSHConnection.RunArgsForCall(0)).To(Equal(
-				"sudo rm -rf /var/vcap/store/bbr-backup",
-			))
+			Expect(remoteRunner.RemoveDirectoryCallCount()).To(Equal(1))
+			Expect(remoteRunner.RemoveDirectoryArgsForCall(0)).To(Equal("/var/vcap/store/bbr-backup"))
 		})
 
 		Context("when the artifact directory was not created this time", func() {
@@ -240,30 +228,21 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("does remove the artifact directory", func() {
-				Expect(fakeSSHConnection.RunCallCount()).To(Equal(1))
-				Expect(fakeSSHConnection.RunArgsForCall(0)).To(Equal(
-					"sudo rm -rf /var/vcap/store/bbr-backup",
-				))
+				Expect(remoteRunner.RemoveDirectoryCallCount()).To(Equal(1))
+				Expect(remoteRunner.RemoveDirectoryArgsForCall(0)).To(Equal("/var/vcap/store/bbr-backup"))
 			})
 		})
 
 		Context("when cleanup fails", func() {
 			BeforeEach(func() {
-				fakeSSHConnection.RunReturns(nil, nil, 5, nil)
+				remoteRunner.RemoveDirectoryReturns(fmt.Errorf("fool!"))
 			})
 
 			It("returns an error", func() {
-				Expect(err).To(MatchError(ContainSubstring("Unable to clean up backup artifact")))
-			})
-		})
-
-		Context("when ssh connection fails", func() {
-			BeforeEach(func() {
-				fakeSSHConnection.RunReturns(nil, nil, 0, errors.New("fool!"))
-			})
-
-			It("returns the error", func() {
-				Expect(err).To(MatchError(ContainSubstring("fool!")))
+				Expect(err).To(SatisfyAll(
+					MatchError(ContainSubstring("Unable to clean up backup artifact")),
+					MatchError(ContainSubstring("fool!")),
+				))
 			})
 		})
 	})

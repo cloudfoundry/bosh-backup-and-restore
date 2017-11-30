@@ -13,26 +13,26 @@ import (
 
 type DeploymentManager struct {
 	orchestrator.Logger
-	hostName          string
-	username          string
-	privateKeyFile    string
-	jobFinder         instance.JobFinder
-	connectionFactory ssh.SSHConnectionFactory
+	hostName            string
+	username            string
+	privateKeyFile      string
+	jobFinder           instance.JobFinder
+	remoteRunnerFactory ssh.RemoteRunnerFactory
 }
 
 func NewDeploymentManager(
 	logger orchestrator.Logger,
 	hostName, username, privateKey string,
 	jobFinder instance.JobFinder,
-	connectionFactory ssh.SSHConnectionFactory,
+	remoteRunnerFactory ssh.RemoteRunnerFactory,
 ) DeploymentManager {
 	return DeploymentManager{
-		Logger:            logger,
-		hostName:          hostName,
-		username:          username,
-		privateKeyFile:    privateKey,
-		jobFinder:         jobFinder,
-		connectionFactory: connectionFactory,
+		Logger:              logger,
+		hostName:            hostName,
+		username:            username,
+		privateKeyFile:      privateKey,
+		jobFinder:           jobFinder,
+		remoteRunnerFactory: remoteRunnerFactory,
 	}
 }
 
@@ -42,13 +42,12 @@ func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment
 		return nil, errors.Wrap(err, "failed reading private key")
 	}
 
-	connection, err := dm.connectionFactory(dm.hostName, dm.username, string(keyContents), gossh.InsecureIgnoreHostKey(), nil, dm.Logger)
+	remoteRunner, err := dm.remoteRunnerFactory(dm.hostName, dm.username, string(keyContents), gossh.InsecureIgnoreHostKey(), nil, dm.Logger)
 	if err != nil {
 		return nil, err
 	}
 
 	instanceIdentifier := instance.InstanceIdentifier{InstanceGroupName: "bosh", InstanceId: "0"}
-	remoteRunner := instance.NewRemoteRunner(connection, dm.Logger)
 
 	//TODO: change instanceIdentifier, its not always bosh
 	jobs, err := dm.jobFinder.FindJobs(instanceIdentifier, remoteRunner, instance.NoopReleaseMapping())

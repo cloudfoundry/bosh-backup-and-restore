@@ -3,6 +3,7 @@ package instance_test
 import (
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
+	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	"fmt"
@@ -32,7 +33,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 	})
 
 	Describe("FindJobs", func() {
-		var remoteRunner *fakes.FakeRemoteRunner
+		var remoteRunner *sshfakes.FakeRemoteRunner
 		var releaseMapping *fakes.FakeReleaseMapping
 		var jobs orchestrator.Jobs
 		var jobsError error
@@ -40,7 +41,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 		consulAgentReleaseName := "consul-agent-release"
 
 		BeforeEach(func() {
-			remoteRunner = new(fakes.FakeRemoteRunner)
+			remoteRunner = new(sshfakes.FakeRemoteRunner)
 			remoteRunner.FindFilesReturns([]string{
 				"/var/vcap/jobs/consul_agent/bin/bbr/backup",
 				"/var/vcap/jobs/consul_agent/bin/bbr/restore",

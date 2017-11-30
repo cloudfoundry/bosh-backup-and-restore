@@ -85,15 +85,6 @@ type FakeInstance struct {
 	backupReturnsOnCall map[int]struct {
 		result1 error
 	}
-	PostBackupUnlockStub        func() error
-	postBackupUnlockMutex       sync.RWMutex
-	postBackupUnlockArgsForCall []struct{}
-	postBackupUnlockReturns     struct {
-		result1 error
-	}
-	postBackupUnlockReturnsOnCall map[int]struct {
-		result1 error
-	}
 	RestoreStub        func() error
 	restoreMutex       sync.RWMutex
 	restoreArgsForCall []struct{}
@@ -156,15 +147,6 @@ type FakeInstance struct {
 	}
 	customRestoreArtifactNamesReturnsOnCall map[int]struct {
 		result1 []string
-	}
-	PostRestoreUnlockStub        func() error
-	postRestoreUnlockMutex       sync.RWMutex
-	postRestoreUnlockArgsForCall []struct{}
-	postRestoreUnlockReturns     struct {
-		result1 error
-	}
-	postRestoreUnlockReturnsOnCall map[int]struct {
-		result1 error
 	}
 	JobsStub        func() []orchestrator.Job
 	jobsMutex       sync.RWMutex
@@ -518,46 +500,6 @@ func (fake *FakeInstance) BackupReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeInstance) PostBackupUnlock() error {
-	fake.postBackupUnlockMutex.Lock()
-	ret, specificReturn := fake.postBackupUnlockReturnsOnCall[len(fake.postBackupUnlockArgsForCall)]
-	fake.postBackupUnlockArgsForCall = append(fake.postBackupUnlockArgsForCall, struct{}{})
-	fake.recordInvocation("PostBackupUnlock", []interface{}{})
-	fake.postBackupUnlockMutex.Unlock()
-	if fake.PostBackupUnlockStub != nil {
-		return fake.PostBackupUnlockStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.postBackupUnlockReturns.result1
-}
-
-func (fake *FakeInstance) PostBackupUnlockCallCount() int {
-	fake.postBackupUnlockMutex.RLock()
-	defer fake.postBackupUnlockMutex.RUnlock()
-	return len(fake.postBackupUnlockArgsForCall)
-}
-
-func (fake *FakeInstance) PostBackupUnlockReturns(result1 error) {
-	fake.PostBackupUnlockStub = nil
-	fake.postBackupUnlockReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeInstance) PostBackupUnlockReturnsOnCall(i int, result1 error) {
-	fake.PostBackupUnlockStub = nil
-	if fake.postBackupUnlockReturnsOnCall == nil {
-		fake.postBackupUnlockReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.postBackupUnlockReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeInstance) Restore() error {
 	fake.restoreMutex.Lock()
 	ret, specificReturn := fake.restoreReturnsOnCall[len(fake.restoreArgsForCall)]
@@ -838,46 +780,6 @@ func (fake *FakeInstance) CustomRestoreArtifactNamesReturnsOnCall(i int, result1
 	}{result1}
 }
 
-func (fake *FakeInstance) PostRestoreUnlock() error {
-	fake.postRestoreUnlockMutex.Lock()
-	ret, specificReturn := fake.postRestoreUnlockReturnsOnCall[len(fake.postRestoreUnlockArgsForCall)]
-	fake.postRestoreUnlockArgsForCall = append(fake.postRestoreUnlockArgsForCall, struct{}{})
-	fake.recordInvocation("PostRestoreUnlock", []interface{}{})
-	fake.postRestoreUnlockMutex.Unlock()
-	if fake.PostRestoreUnlockStub != nil {
-		return fake.PostRestoreUnlockStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.postRestoreUnlockReturns.result1
-}
-
-func (fake *FakeInstance) PostRestoreUnlockCallCount() int {
-	fake.postRestoreUnlockMutex.RLock()
-	defer fake.postRestoreUnlockMutex.RUnlock()
-	return len(fake.postRestoreUnlockArgsForCall)
-}
-
-func (fake *FakeInstance) PostRestoreUnlockReturns(result1 error) {
-	fake.PostRestoreUnlockStub = nil
-	fake.postRestoreUnlockReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeInstance) PostRestoreUnlockReturnsOnCall(i int, result1 error) {
-	fake.PostRestoreUnlockStub = nil
-	if fake.postRestoreUnlockReturnsOnCall == nil {
-		fake.postRestoreUnlockReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.postRestoreUnlockReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeInstance) Jobs() []orchestrator.Job {
 	fake.jobsMutex.Lock()
 	ret, specificReturn := fake.jobsReturnsOnCall[len(fake.jobsArgsForCall)]
@@ -939,8 +841,6 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.isRestorableMutex.RUnlock()
 	fake.backupMutex.RLock()
 	defer fake.backupMutex.RUnlock()
-	fake.postBackupUnlockMutex.RLock()
-	defer fake.postBackupUnlockMutex.RUnlock()
 	fake.restoreMutex.RLock()
 	defer fake.restoreMutex.RUnlock()
 	fake.cleanupMutex.RLock()
@@ -955,8 +855,6 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.customBackupArtifactNamesMutex.RUnlock()
 	fake.customRestoreArtifactNamesMutex.RLock()
 	defer fake.customRestoreArtifactNamesMutex.RUnlock()
-	fake.postRestoreUnlockMutex.RLock()
-	defer fake.postRestoreUnlockMutex.RUnlock()
 	fake.jobsMutex.RLock()
 	defer fake.jobsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

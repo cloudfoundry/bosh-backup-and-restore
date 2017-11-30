@@ -3,6 +3,7 @@ package bosh
 import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/pkg/errors"
 )
@@ -15,7 +16,7 @@ type BoshDeployedInstance struct {
 func NewBoshDeployedInstance(instanceGroupName,
 	instanceIndex,
 	instanceID string,
-	remoteRunner instance.RemoteRunner,
+	remoteRunner ssh.RemoteRunner,
 	deployment director.Deployment,
 	artifactDirectoryCreated bool,
 	logger Logger,

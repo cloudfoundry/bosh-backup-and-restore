@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
-	instancefakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -20,7 +20,7 @@ var _ = Describe("DeployedInstance", func() {
 	var stdout, stderr *gbytes.Buffer
 	var instanceGroupName, instanceIndex, instanceID, expectedStdout, expectedStderr string
 	var jobs orchestrator.Jobs
-	var remoteRunner *instancefakes.FakeRemoteRunner
+	var remoteRunner *sshfakes.FakeRemoteRunner
 
 	var deployedInstance *instance.DeployedInstance
 	BeforeEach(func() {
@@ -32,7 +32,7 @@ var _ = Describe("DeployedInstance", func() {
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
 		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile), log.New(stderr, "[bosh-package] ", log.Lshortfile))
-		remoteRunner = new(instancefakes.FakeRemoteRunner)
+		remoteRunner = new(sshfakes.FakeRemoteRunner)
 	})
 
 	JustBeforeEach(func() {

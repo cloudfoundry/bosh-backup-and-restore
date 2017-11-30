@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/pkg/errors"
 )
 
@@ -18,7 +19,7 @@ func (i InstanceIdentifier) String() string {
 
 //go:generate counterfeiter -o fakes/fake_job_finder.go . JobFinder
 type JobFinder interface {
-	FindJobs(instanceIdentifier InstanceIdentifier, remoteRunner RemoteRunner, releaseMapping ReleaseMapping) (orchestrator.Jobs, error)
+	FindJobs(instanceIdentifier InstanceIdentifier, remoteRunner ssh.RemoteRunner, releaseMapping ReleaseMapping) (orchestrator.Jobs, error)
 }
 
 type JobFinderFromScripts struct {
@@ -31,7 +32,7 @@ func NewJobFinder(logger Logger) *JobFinderFromScripts {
 	}
 }
 
-func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier, remoteRunner RemoteRunner,
+func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier, remoteRunner ssh.RemoteRunner,
 	releaseMapping ReleaseMapping) (orchestrator.Jobs, error) {
 	findOutput, err := j.findBBRScripts(instanceIdentifier, remoteRunner)
 	if err != nil {
@@ -67,7 +68,7 @@ func (j *JobFinderFromScripts) logMetadata(jobMetadata *Metadata, jobName string
 }
 
 func (j *JobFinderFromScripts) findBBRScripts(instanceIdentifierForLogging InstanceIdentifier,
-	remoteRunner RemoteRunner) ([]string, error) {
+	remoteRunner ssh.RemoteRunner) ([]string, error) {
 	j.Logger.Debug("bbr", "Attempting to find scripts on %s", instanceIdentifierForLogging)
 
 	scripts, err := remoteRunner.FindFiles("/var/vcap/jobs/*/bin/bbr/*")
@@ -78,7 +79,7 @@ func (j *JobFinderFromScripts) findBBRScripts(instanceIdentifierForLogging Insta
 	return scripts, nil
 }
 
-func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifier, script Script, remoteRunner RemoteRunner) (*Metadata, error) {
+func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifier, script Script, remoteRunner ssh.RemoteRunner) (*Metadata, error) {
 	metadataContent, err := remoteRunner.RunScript(string(script))
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf(
@@ -102,7 +103,7 @@ func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifie
 	return jobMetadata, nil
 }
 
-func (j *JobFinderFromScripts) buildJobs(remoteRunner RemoteRunner,
+func (j *JobFinderFromScripts) buildJobs(remoteRunner ssh.RemoteRunner,
 	instanceIdentifier InstanceIdentifier,
 	logger Logger, scripts BackupAndRestoreScripts,
 	metadata map[string]Metadata, releaseMapping ReleaseMapping) (orchestrator.Jobs, error) {

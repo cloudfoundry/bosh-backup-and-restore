@@ -6,9 +6,9 @@ import (
 	"log"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	backuperfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
+	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -16,7 +16,7 @@ import (
 )
 
 var _ = Describe("artifact", func() {
-	var remoteRunner *fakes.FakeRemoteRunner
+	var remoteRunner *sshfakes.FakeRemoteRunner
 	var boshLogger boshlog.Logger
 	var testInstance *backuperfakes.FakeInstance
 	var stdout, stderr *gbytes.Buffer
@@ -25,7 +25,7 @@ var _ = Describe("artifact", func() {
 	var backupArtifact orchestrator.BackupArtifact
 
 	BeforeEach(func() {
-		remoteRunner = new(fakes.FakeRemoteRunner)
+		remoteRunner = new(sshfakes.FakeRemoteRunner)
 		testInstance = new(backuperfakes.FakeInstance)
 		testInstance.NameReturns("redis")
 		testInstance.IDReturns("foo")

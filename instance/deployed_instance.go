@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/pkg/errors"
 )
 
@@ -14,10 +15,10 @@ type DeployedInstance struct {
 	artifactDirCreated            bool
 	Logger
 	jobs         orchestrator.Jobs
-	remoteRunner RemoteRunner
+	remoteRunner ssh.RemoteRunner
 }
 
-func NewDeployedInstance(instanceIndex string, instanceGroupName string, instanceID string, artifactDirCreated bool, remoteRunner RemoteRunner, logger Logger, jobs orchestrator.Jobs) *DeployedInstance {
+func NewDeployedInstance(instanceIndex string, instanceGroupName string, instanceID string, artifactDirCreated bool, remoteRunner ssh.RemoteRunner, logger Logger, jobs orchestrator.Jobs) *DeployedInstance {
 	return &DeployedInstance{
 		backupAndRestoreInstanceIndex: instanceIndex,
 		instanceGroupName:             instanceGroupName,

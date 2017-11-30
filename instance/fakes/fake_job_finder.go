@@ -6,14 +6,15 @@ import (
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 )
 
 type FakeJobFinder struct {
-	FindJobsStub        func(instanceIdentifier instance.InstanceIdentifier, remoteRunner instance.RemoteRunner, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error)
+	FindJobsStub        func(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error)
 	findJobsMutex       sync.RWMutex
 	findJobsArgsForCall []struct {
 		instanceIdentifier instance.InstanceIdentifier
-		remoteRunner       instance.RemoteRunner
+		remoteRunner       ssh.RemoteRunner
 		releaseMapping     instance.ReleaseMapping
 	}
 	findJobsReturns struct {
@@ -28,12 +29,12 @@ type FakeJobFinder struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeJobFinder) FindJobs(instanceIdentifier instance.InstanceIdentifier, remoteRunner instance.RemoteRunner, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
+func (fake *FakeJobFinder) FindJobs(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
 	fake.findJobsMutex.Lock()
 	ret, specificReturn := fake.findJobsReturnsOnCall[len(fake.findJobsArgsForCall)]
 	fake.findJobsArgsForCall = append(fake.findJobsArgsForCall, struct {
 		instanceIdentifier instance.InstanceIdentifier
-		remoteRunner       instance.RemoteRunner
+		remoteRunner       ssh.RemoteRunner
 		releaseMapping     instance.ReleaseMapping
 	}{instanceIdentifier, remoteRunner, releaseMapping})
 	fake.recordInvocation("FindJobs", []interface{}{instanceIdentifier, remoteRunner, releaseMapping})
@@ -53,7 +54,7 @@ func (fake *FakeJobFinder) FindJobsCallCount() int {
 	return len(fake.findJobsArgsForCall)
 }
 
-func (fake *FakeJobFinder) FindJobsArgsForCall(i int) (instance.InstanceIdentifier, instance.RemoteRunner, instance.ReleaseMapping) {
+func (fake *FakeJobFinder) FindJobsArgsForCall(i int) (instance.InstanceIdentifier, ssh.RemoteRunner, instance.ReleaseMapping) {
 	fake.findJobsMutex.RLock()
 	defer fake.findJobsMutex.RUnlock()
 	return fake.findJobsArgsForCall[i].instanceIdentifier, fake.findJobsArgsForCall[i].remoteRunner, fake.findJobsArgsForCall[i].releaseMapping

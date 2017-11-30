@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/pkg/errors"
 )
 
@@ -15,7 +16,7 @@ type Logger interface {
 	Error(tag, msg string, args ...interface{})
 }
 
-func NewBackupArtifact(job orchestrator.Job, instance orchestrator.InstanceIdentifer, remoteRunner RemoteRunner, logger Logger) *Artifact {
+func NewBackupArtifact(job orchestrator.Job, instance orchestrator.InstanceIdentifer, remoteRunner ssh.RemoteRunner, logger Logger) *Artifact {
 	var name string
 	if job.HasNamedBackupArtifact() {
 		name = job.BackupArtifactName()
@@ -32,7 +33,7 @@ func NewBackupArtifact(job orchestrator.Job, instance orchestrator.InstanceIdent
 	}
 }
 
-func NewRestoreArtifact(job orchestrator.Job, instance orchestrator.InstanceIdentifer, remoteRunner RemoteRunner, logger Logger) *Artifact {
+func NewRestoreArtifact(job orchestrator.Job, instance orchestrator.InstanceIdentifer, remoteRunner ssh.RemoteRunner, logger Logger) *Artifact {
 	var name string
 	if job.HasNamedRestoreArtifact() {
 		name = job.RestoreArtifactName()
@@ -56,7 +57,7 @@ type Artifact struct {
 	name              string
 	instance          orchestrator.InstanceIdentifer
 	Logger
-	remoteRunner RemoteRunner
+	remoteRunner ssh.RemoteRunner
 }
 
 func (b *Artifact) StreamFromRemote(writer io.Writer) error {
