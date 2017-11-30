@@ -118,7 +118,8 @@ func (j *JobFinderFromScripts) buildJobs(remoteRunner ssh.RemoteRunner,
 	for jobName, jobScripts := range groupedByJobName {
 		releaseName, err := releaseMapping.FindReleaseName(instanceIdentifier.InstanceGroupName, jobName)
 		if err != nil {
-			return nil, errors.Wrap(err, "error matching job to manifest")
+			logger.Warn("bbr", "could not find release name for job %s", jobName)
+			releaseName = ""
 		}
 
 		jobs = append(jobs, NewJob(remoteRunner, instanceIdentifier.String(), logger, releaseName, jobScripts, metadata[jobName]))

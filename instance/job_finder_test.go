@@ -152,14 +152,16 @@ var _ = Describe("JobFinderFromScripts", func() {
 		})
 
 		Context("when mapping jobs to releases fails", func() {
-			var actualError = fmt.Errorf("release name mapping failure")
-
 			BeforeEach(func() {
-				releaseMapping.FindReleaseNameReturns("", actualError)
+				releaseMapping.FindReleaseNameReturns("", fmt.Errorf("release name mapping failure"))
 			})
 
-			It("returns the error from the release mapper", func() {
-				Expect(jobsError).To(MatchError(ContainSubstring(actualError.Error())))
+			It("does not fail", func() {
+				By("setting an empty release name")
+				Expect(jobs[0].Release()).To(BeEmpty())
+
+				By("issuing a warning")
+				Expect(logStream.String()).To(ContainSubstring("WARN - could not find release name for job consul_agent"))
 			})
 		})
 
