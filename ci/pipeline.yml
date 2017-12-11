@@ -1,0 +1,316 @@
+---
+groups:
+- name: BUILD
+  jobs:
+  - deploy-systest-releases
+  - unit
+  - system
+  - system-uaa
+  - system-director
+  - build-rc
+  - transfer-bbr-binary-to-jumpbox
+- name: SHIPIT
+  jobs:
+  - build-final
+  - publish-release
+
+resource_types:
+- name: pivnet
+  type: docker-image
+  source:
+    repository: pivotalcf/pivnet-resource
+    tag: latest-final
+
+resources:
+- name: bosh-backup-and-restore
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/bosh-backup-and-restore.git
+    private_key: {{git-private-key}}
+    branch: master
+    disable_git_lfs: true
+- name: bosh-backup-and-restore-meta
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf/bosh-backup-and-restore-meta.git
+    private_key: {{git-private-key}}
+    branch: master
+- name: release-trigger
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf/bosh-backup-and-restore-meta.git
+    private_key: {{git-private-key}}
+    branch: master
+    paths:
+    - bbr-current-release/version
+- name: bbr-pivnet
+  type: pivnet
+  source:
+    api_token: {{pivnet-api-token}}
+    product_slug: p-bosh-backup-and-restore
+    access_key_id: {{pivnet-aws-access-key-id}}
+    secret_access_key: {{pivnet-aws-secret-access-key}}
+- name: rc
+  type: s3
+  source:
+    bucket: bosh-backup-and-restore-builds
+    region_name: eu-west-1
+    regexp: bbr-(.*)\.tar
+    access_key_id: {{aws-access-key-id}}
+    secret_access_key: {{aws-secret-access-key}}
+- name: release
+  type: s3
+  source:
+    bucket: bosh-backup-and-restore-final-builds
+    region_name: eu-west-1
+    regexp: bbr-(.*)\.tar
+    access_key_id: {{aws-access-key-id}}
+    secret_access_key: {{aws-secret-access-key}}
+- name: version
+  type: semver
+  source:
+    bucket: bosh-backup-and-restore-builds
+    region_name: eu-west-1
+    key: current-version
+    access_key_id: {{aws-access-key-id}}
+    secret_access_key: {{aws-secret-access-key}}
+- name: bbr-release
+  type: github-release
+  source:
+    user: cloudfoundry-incubator
+    repository: bosh-backup-and-restore
+    access_token: {{github-access-token}}
+    drafts: true
+- name: bbr-systest-releases
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf-experimental/bosh-backup-and-restore-test-releases.git
+    private_key: {{git-private-key}}
+    branch: master
+    paths: [redis-test-release/**, lock-ordering-release/**]
+
+
+jobs:
+- name: deploy-systest-releases
+  serial: true
+  plan:
+  - get: bosh-backup-and-restore
+    trigger: true
+    params:
+      submodules: none
+      disable_git_lfs: true
+  - get: bbr-systest-releases
+    trigger: true
+  - get: bosh-backup-and-restore-meta
+  - task: deploy-redis-test-release
+    file: bosh-backup-and-restore/ci/tasks/deploy-systest-release.yml
+    params:
+      BOSH_HOST: lite-bosh.backup-and-restore.cf-app.com
+      BOSH_CLIENT: {{garden-bosh-director-username}}
+      BOSH_CLIENT_SECRET: {{garden-bosh-director-password}}
+      BOSH_UAA_HOST: lite-bosh-uaa.backup-and-restore.cf-app.com
+      BOSH_UAA_CLIENT_SECRET: {{uaa-director-password}}
+      RELEASE_NAME: redis-test-release
+  - task: deploy-lock-ordering-release
+    file: bosh-backup-and-restore/ci/tasks/deploy-systest-release.yml
+    params:
+      BOSH_HOST: lite-bosh.backup-and-restore.cf-app.com
+      BOSH_CLIENT: {{garden-bosh-director-username}}
+      BOSH_CLIENT_SECRET: {{garden-bosh-director-password}}
+      BOSH_UAA_HOST: lite-bosh-uaa.backup-and-restore.cf-app.com
+      BOSH_UAA_CLIENT_SECRET: {{uaa-director-password}}
+      RELEASE_NAME: lock-ordering-release
+- name: unit
+  serial: true
+  plan:
+  - get: bosh-backup-and-restore
+    trigger: true
+    params:
+      submodules: none
+      disable_git_lfs: true
+  - task: unit
+    file: bosh-backup-and-restore/ci/tasks/unit.yml
+    privileged: true
+    params:
+      DOCKER_HOST: "tcp://10.0.3.12:4243"
+      GITHUB_SSH_KEY: {{github-ssh-key}}
+- name: system
+  serial: true
+  plan:
+  - get: bosh-backup-and-restore
+    passed: [unit, deploy-systest-releases]
+    trigger: true
+  - get: bosh-backup-and-restore-meta
+  - task: system
+    file: bosh-backup-and-restore/ci/tasks/system.yml
+    params:
+      BOSH_HOST: lite-bosh.backup-and-restore.cf-app.com
+      BOSH_CLIENT_SECRET: {{director-password}}
+      TEAM_GPG_KEY: {{team-gpg-key}}
+- name: system-uaa
+  serial: true
+  plan:
+  - get: bosh-backup-and-restore
+    passed: [unit, deploy-systest-releases]
+    trigger: true
+  - get: bosh-backup-and-restore-meta
+  - task: system
+    file: bosh-backup-and-restore/ci/tasks/system.yml
+    params:
+      BOSH_GATEWAY_USER: jumpbox
+      BOSH_GATEWAY_KEY: bosh-backup-and-restore-meta/garden-bosh-uaa/bosh.pem
+      BOSH_HOST: lite-bosh-uaa.backup-and-restore.cf-app.com
+      BOSH_CLIENT_SECRET: {{uaa-director-password}}
+      TEAM_GPG_KEY: {{team-gpg-key}}
+- name: system-director
+  serial: true
+  plan:
+  - get: bosh-backup-and-restore
+    passed: [unit, deploy-systest-releases]
+    trigger: true
+  - get: bosh-backup-and-restore-meta
+  - task: system-director
+    file: bosh-backup-and-restore/ci/tasks/system-director.yml
+    params:
+      BOSH_HOST: genesis-bosh.backup-and-restore.cf-app.com
+      BOSH_CLIENT_SECRET: {{genesis-bosh-director-password}}
+      TEAM_GPG_KEY: {{team-gpg-key}}
+      HOST_TO_BACKUP: 10.0.0.7
+- name: build-rc
+  serial_groups: [version]
+  plan:
+  - get: bosh-backup-and-restore
+    passed: [system, system-uaa, system-director]
+    trigger: true
+    params:
+      submodules: none
+      disable_git_lfs: true
+  - get: version
+    params: {pre: rc}
+  - get: bosh-backup-and-restore-meta
+  - task: build
+    file: bosh-backup-and-restore/ci/tasks/build.yml
+    params:
+      TEAM_GPG_KEY: {{team-gpg-key}}
+  - put: rc
+    params: {file: bbr-build/bbr-*}
+  - put: version
+    params: {file: version/number}
+- name: transfer-bbr-binary-to-jumpbox
+  serial_groups: [version]
+  plan:
+    - get: bosh-backup-and-restore
+      passed: [build-rc]
+      params:
+        submodules: none
+        disable_git_lfs: true
+    - get: bosh-backup-and-restore-meta
+    - get: rc
+      passed: [build-rc]
+      trigger: true
+    - task: transfer-bbr-binary-to-jumpbox
+      file: bosh-backup-and-restore/ci/tasks/transfer-bbr-binary-to-jumpbox.yml
+      params:
+        BOSH_CLIENT_SECRET: {{genesis-bosh-director-password}}
+        BOSH_CLIENT: {{genesis-bosh-director-username}}
+        BOSH_TARGET: https://genesis-bosh.backup-and-restore.cf-app.com
+        TEAM_GPG_KEY: {{team-gpg-key}}
+- name: build-final
+  serial_groups: [version]
+  plan:
+  - get: bosh-backup-and-restore-meta
+    resource: release-trigger
+    trigger: true
+  - get: bosh-backup-and-restore
+    passed: [build-rc]
+    params:
+      submodules: none
+      disable_git_lfs: true
+  - task: get-version
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: cloudfoundrylondon/backup-and-restore}
+      inputs:
+      - name: bosh-backup-and-restore-meta
+      outputs:
+      - name: bbr-version
+      run:
+        path: /bin/bash
+        args:
+        - -c
+        - |-
+          set -eux
+          cat bosh-backup-and-restore-meta/bbr-current-release/version > bbr-version/number
+  - task: build
+    file: bosh-backup-and-restore/ci/tasks/build.yml
+    input_mapping: {version: bbr-version}
+    params:
+      TEAM_GPG_KEY: {{team-gpg-key}}
+  - put: release
+    params: {file: bbr-build/bbr-*}
+  - put: version
+    params: {file: bbr-version/number}
+- name: publish-release
+  serial: true
+  plan:
+  - aggregate:
+    - get: bosh-backup-and-restore-meta
+      resource: release-trigger
+      passed: [build-final]
+    - get: bosh-backup-and-restore
+      passed: [build-final]
+      params:
+        submodules: none
+        disable_git_lfs: true
+    - get: release
+      passed: [build-final]
+      trigger: true
+  - task: create-that-yml
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: cloudfoundrylondon/backup-and-restore}
+      inputs:
+      - name: bosh-backup-and-restore-meta
+      - name: bosh-backup-and-restore
+      - name: release
+      outputs:
+      - name: release-metadata
+      run:
+        path: /bin/bash
+        args:
+        - -c
+        - |-
+          set -eux -o pipefail
+
+          cp release/*.tar release-metadata/
+          export RELEASE_TAR=$(ls release-metadata/*.tar)
+
+          cd bosh-backup-and-restore
+          # find latest tag
+          latest_tag=$(git describe --abbrev=0 --tags)
+          # git lg from that tag to current
+          export COMMITS=$(git log ${latest_tag}..HEAD  --format=' %n%B'  | grep -v "Signed-off-by" | grep -v '^$')
+          export STORIES=$(echo -e "$COMMITS" | grep "\[\#" | sort | uniq | awk -F'[^0-9]*' '{print $2}' | xargs -IN echo https://www.pivotaltracker.com/story/show/N)
+
+          cd ../bosh-backup-and-restore-meta
+          export VERSION=$(cat bbr-current-release/version)
+          erb -T- templates/release.yml.erb > ../release-metadata/release.yml
+          erb -T- templates/release-notes.yml.erb > ../release-metadata/release-notes.yml
+  - put: bbr-pivnet
+    params:
+      metadata_file: release-metadata/release.yml
+      s3_filepath_prefix: product-files/bosh-backup-restore
+      file_glob: release-metadata/*.tar
+  - put: bbr-release
+    params:
+      name: bosh-backup-and-restore-meta/bbr-current-release/version
+      tag: bosh-backup-and-restore-meta/bbr-current-release/version
+      tag_prefix: v
+      body: release-metadata/release-notes.yml
+      commitish: bosh-backup-and-restore/.git/HEAD
+      globs:
+      - release-metadata/*.tar
