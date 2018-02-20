@@ -24,7 +24,7 @@ var _ = Describe("DirectorLockOrderer", func() {
 		It("returns the list of input jobs, untouched", func() {
 			orderedJobs, err := directorLockOrderer.Order(jobs)
 
-			Expect(orderedJobs).To(Equal(jobs))
+			Expect(orderedJobs).To(Equal([][]Job{jobs}))
 			Expect(err).NotTo(HaveOccurred())
 		})
 	})

@@ -34,7 +34,7 @@ type lockingDependency struct {
 	After  orchestrator.Job
 }
 
-func (lo KahnLockOrderer) Order(jobs []orchestrator.Job) ([]orchestrator.Job, error) {
+func (lo KahnLockOrderer) Order(jobs []orchestrator.Job) ([][]orchestrator.Job, error) {
 	var lockingDependencies, err = findLockingDependencies(jobs, lo.orderConstraintSpecifier)
 	if err != nil {
 		return nil, err
@@ -79,8 +79,8 @@ func findJobsBySpecifier(jobs []orchestrator.Job, specifier orchestrator.JobSpec
 	return foundJobs, nil
 }
 
-func orderJobsUsingTheKahnAlgorithm(jobs []orchestrator.Job, lockingDependencies []lockingDependency) ([]orchestrator.Job, error) {
-	orderedJobs := []orchestrator.Job{}
+func orderJobsUsingTheKahnAlgorithm(jobs []orchestrator.Job, lockingDependencies []lockingDependency) ([][]orchestrator.Job, error) {
+	orderedJobs := [][]orchestrator.Job{}
 
 	for len(jobs) != 0 {
 		jobsToLock := jobsThatCanBeLocked(jobs, lockingDependencies)
@@ -91,7 +91,7 @@ func orderJobsUsingTheKahnAlgorithm(jobs []orchestrator.Job, lockingDependencies
 			return nil, errors.New("job locking dependency graph is cyclic")
 		}
 
-		orderedJobs = append(orderedJobs, jobsToLock...)
+		orderedJobs = append(orderedJobs, jobsToLock)
 	}
 
 	return orderedJobs, nil

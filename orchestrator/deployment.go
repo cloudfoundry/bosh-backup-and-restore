@@ -33,7 +33,7 @@ type Deployment interface {
 
 //go:generate counterfeiter -o fakes/fake_lock_orderer.go . LockOrderer
 type LockOrderer interface {
-	Order(jobs []Job) ([]Job, error)
+	Order(jobs []Job) ([][]Job, error)
 }
 
 type deployment struct {
@@ -117,7 +117,7 @@ func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer) error {
 	if err != nil {
 		return err
 	}
-	reversedJobs := Jobs(orderedJobs).Reverse()
+	reversedJobs := Reverse(orderedJobs)
 
 	postBackupUnlockErrors := NewSerialJobRunner().Run(JobPostBackupUnlocker, reversedJobs)
 	bd.Logger.Info("bbr", "Done.")
@@ -154,7 +154,7 @@ func (bd *deployment) PostRestoreUnlock(lockOrderer LockOrderer) error {
 	if err != nil {
 		return err
 	}
-	reversedJobs := Jobs(orderedJobs).Reverse()
+	reversedJobs := Reverse(orderedJobs)
 
 	postRestoreUnlockErrors := NewSerialJobRunner().Run(JobPostRestoreUnlocker, reversedJobs)
 

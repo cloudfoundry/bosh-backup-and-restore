@@ -76,7 +76,7 @@ var _ = Describe("Deployment", func() {
 
 			instances = []orchestrator.Instance{instance1, instance2, instance3}
 
-			lockOrderer.OrderReturns([]orchestrator.Job{job2a, job3a, job1a, job1b}, nil)
+			lockOrderer.OrderReturns([][]orchestrator.Job{{job2a, job3a, job1a, job1b}}, nil)
 		})
 
 		JustBeforeEach(func() {
@@ -217,7 +217,7 @@ var _ = Describe("Deployment", func() {
 
 			instances = []orchestrator.Instance{instance1, instance2, instance3}
 
-			lockOrderer.OrderReturns([]orchestrator.Job{job2a, job3a, job1a, job1b}, nil)
+			lockOrderer.OrderReturns([][]orchestrator.Job{{job2a}, {job3a, job1a}, {job1b}}, nil)
 
 			expectedError = fmt.Errorf("something went terribly wrong")
 		})
@@ -238,7 +238,7 @@ var _ = Describe("Deployment", func() {
 			Expect(job2a.PostBackupUnlockCallCount()).To(Equal(1))
 			Expect(job3a.PostBackupUnlockCallCount()).To(Equal(1))
 
-			Expect(orderedListOfUnlockedJobs).To(Equal([]string{"job1b", "job1a", "job3a", "job2a"}))
+			Expect(orderedListOfUnlockedJobs).To(Equal([]string{"job1b", "job3a", "job1a", "job2a"}))
 		})
 
 		Context("if the post-backup-unlock fails", func() {
@@ -622,7 +622,7 @@ var _ = Describe("Deployment", func() {
 
 			instances = []orchestrator.Instance{instance1, instance2, instance3}
 
-			lockOrderer.OrderReturns([]orchestrator.Job{job2a, job3a, job1a, job1b}, nil)
+			lockOrderer.OrderReturns([][]orchestrator.Job{{job2a, job3a, job1a, job1b}}, nil)
 		})
 
 		JustBeforeEach(func() {
@@ -691,7 +691,7 @@ var _ = Describe("Deployment", func() {
 
 			instances = []orchestrator.Instance{instance1, instance2, instance3}
 
-			lockOrderer.OrderReturns([]orchestrator.Job{job2a, job3a, job1a, job1b}, nil)
+			lockOrderer.OrderReturns([][]orchestrator.Job{{job2a}, {job3a, job1a}, {job1b}}, nil)
 		})
 
 		JustBeforeEach(func() {
@@ -706,7 +706,7 @@ var _ = Describe("Deployment", func() {
 			Expect(job2a.PostRestoreUnlockCallCount()).To(Equal(1))
 			Expect(job3a.PostRestoreUnlockCallCount()).To(Equal(1))
 
-			Expect(orderedListOfLockedJobs).To(Equal([]string{"job1b", "job1a", "job3a", "job2a"}))
+			Expect(orderedListOfLockedJobs).To(Equal([]string{"job1b", "job3a", "job1a", "job2a"}))
 		})
 
 		Context("when some jobs fail to PostRestoreUnlock", func() {
@@ -1718,4 +1718,5 @@ var _ = Describe("Deployment", func() {
 			})
 		})
 	})
+
 })

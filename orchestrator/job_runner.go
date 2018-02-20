@@ -23,11 +23,14 @@ func NewSerialJobRunner() SerialJobRunner {
 type SerialJobRunner struct {
 }
 
-func (jobRunner SerialJobRunner) Run(runMethod func(job Job) error, jobs []Job) []error {
+
+func (jobRunner SerialJobRunner) Run(runMethod func(job Job) error, jobs [][]Job) []error {
 	var errors []error
-	for _, job := range jobs {
-		if err := runMethod(job); err != nil {
-			errors = append(errors, err)
+	for _, jobList := range jobs {
+		for _, job := range jobList {
+			if err := runMethod(job); err != nil {
+				errors = append(errors, err)
+			}
 		}
 	}
 

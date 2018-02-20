@@ -8,24 +8,24 @@ import (
 )
 
 type FakeLockOrderer struct {
-	OrderStub        func(jobs []orchestrator.Job) ([]orchestrator.Job, error)
+	OrderStub        func(jobs []orchestrator.Job) ([][]orchestrator.Job, error)
 	orderMutex       sync.RWMutex
 	orderArgsForCall []struct {
 		jobs []orchestrator.Job
 	}
 	orderReturns struct {
-		result1 []orchestrator.Job
+		result1 [][]orchestrator.Job
 		result2 error
 	}
 	orderReturnsOnCall map[int]struct {
-		result1 []orchestrator.Job
+		result1 [][]orchestrator.Job
 		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeLockOrderer) Order(jobs []orchestrator.Job) ([]orchestrator.Job, error) {
+func (fake *FakeLockOrderer) Order(jobs []orchestrator.Job) ([][]orchestrator.Job, error) {
 	var jobsCopy []orchestrator.Job
 	if jobs != nil {
 		jobsCopy = make([]orchestrator.Job, len(jobs))
@@ -59,24 +59,24 @@ func (fake *FakeLockOrderer) OrderArgsForCall(i int) []orchestrator.Job {
 	return fake.orderArgsForCall[i].jobs
 }
 
-func (fake *FakeLockOrderer) OrderReturns(result1 []orchestrator.Job, result2 error) {
+func (fake *FakeLockOrderer) OrderReturns(result1 [][]orchestrator.Job, result2 error) {
 	fake.OrderStub = nil
 	fake.orderReturns = struct {
-		result1 []orchestrator.Job
+		result1 [][]orchestrator.Job
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeLockOrderer) OrderReturnsOnCall(i int, result1 []orchestrator.Job, result2 error) {
+func (fake *FakeLockOrderer) OrderReturnsOnCall(i int, result1 [][]orchestrator.Job, result2 error) {
 	fake.OrderStub = nil
 	if fake.orderReturnsOnCall == nil {
 		fake.orderReturnsOnCall = make(map[int]struct {
-			result1 []orchestrator.Job
+			result1 [][]orchestrator.Job
 			result2 error
 		})
 	}
 	fake.orderReturnsOnCall[i] = struct {
-		result1 []orchestrator.Job
+		result1 [][]orchestrator.Job
 		result2 error
 	}{result1, result2}
 }

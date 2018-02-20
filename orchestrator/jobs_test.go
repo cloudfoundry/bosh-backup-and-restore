@@ -3,9 +3,6 @@ package orchestrator_test
 import (
 	"log"
 
-	"strconv"
-	"time"
-
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	orchestratorFakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -199,38 +196,3 @@ var _ = Describe("Jobs", func() {
 	})
 
 })
-
-var _ = Describe("Reverse", func() {
-	var jobs orchestrator.Jobs
-	var job1 *orchestratorFakes.FakeJob
-	var job2 *orchestratorFakes.FakeJob
-	var job3 *orchestratorFakes.FakeJob
-	var job4 *orchestratorFakes.FakeJob
-	var incomingJobs []orchestrator.Job
-
-	BeforeEach(func() {
-		job1 = fakeJob()
-		job2 = fakeJob()
-		job3 = fakeJob()
-		job4 = fakeJob()
-
-		incomingJobs = []orchestrator.Job{
-			job1, job2, job3, job4,
-		}
-		jobs = orchestrator.Jobs(incomingJobs)
-	})
-
-	It("returns the list of jobs in reverse order", func() {
-		reversedJobs := jobs.Reverse()
-		for i := 0; i < 4; i++ {
-			Expect(incomingJobs[i].InstanceIdentifier()).To(Equal(reversedJobs[3-i].InstanceIdentifier()), "list of jobs was not reversed")
-		}
-	})
-})
-
-func fakeJob() *orchestratorFakes.FakeJob {
-	instanceIdentifier := strconv.FormatInt(time.Now().UnixNano(), 16)
-	job := new(orchestratorFakes.FakeJob)
-	job.InstanceIdentifierReturns(instanceIdentifier)
-	return job
-}

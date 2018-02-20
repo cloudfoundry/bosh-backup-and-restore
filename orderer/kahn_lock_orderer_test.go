@@ -14,7 +14,7 @@ import (
 var _ = Describe("KahnLockOrderer", func() {
 	type lockingTestCase struct {
 		inputJobs                []Job
-		orderedJobs              []Job
+		orderedJobs              [][]Job
 		errorMessage             string
 		orderConstraintSpecifier orderConstraintSpecifier
 	}
@@ -36,7 +36,7 @@ var _ = Describe("KahnLockOrderer", func() {
 		Entry("no jobs", func() lockingTestCase {
 			return lockingTestCase{
 				inputJobs:   []Job{},
-				orderedJobs: []Job{},
+				orderedJobs: [][]Job{},
 			}
 		}),
 
@@ -47,7 +47,7 @@ var _ = Describe("KahnLockOrderer", func() {
 
 			return lockingTestCase{
 				inputJobs:                []Job{job},
-				orderedJobs:              []Job{job},
+				orderedJobs:              [][]Job{{job}},
 				orderConstraintSpecifier: orderConstraintSpecifier,
 			}
 		}),
@@ -59,7 +59,7 @@ var _ = Describe("KahnLockOrderer", func() {
 
 			return lockingTestCase{
 				inputJobs:                []Job{job},
-				orderedJobs:              []Job{job},
+				orderedJobs:              [][]Job{{job}},
 				orderConstraintSpecifier: orderConstraintSpecifier,
 			}
 		}),
@@ -73,7 +73,7 @@ var _ = Describe("KahnLockOrderer", func() {
 
 			return lockingTestCase{
 				inputJobs:                []Job{a, b, c},
-				orderedJobs:              []Job{a, b, c},
+				orderedJobs:              [][]Job{{a, b, c}},
 				orderConstraintSpecifier: orderConstraintSpecifier,
 			}
 		}),
@@ -88,7 +88,7 @@ var _ = Describe("KahnLockOrderer", func() {
 
 			return lockingTestCase{
 				inputJobs:                []Job{a, c, b},
-				orderedJobs:              []Job{a, b, c},
+				orderedJobs:              [][]Job{{a, b}, {c}},
 				orderConstraintSpecifier: orderConstraintSpecifier,
 			}
 		}),
@@ -119,7 +119,7 @@ var _ = Describe("KahnLockOrderer", func() {
 
 			return lockingTestCase{
 				inputJobs:                []Job{a, c, d, b},
-				orderedJobs:              []Job{a, b, c, d},
+				orderedJobs:              [][]Job{{a, b}, {c, d}},
 				orderConstraintSpecifier: orderConstraintSpecifier,
 			}
 		}),
@@ -135,12 +135,12 @@ var _ = Describe("KahnLockOrderer", func() {
 
 			return lockingTestCase{
 				inputJobs:                []Job{c, b, a},
-				orderedJobs:              []Job{a, b, c},
+				orderedJobs:              [][]Job{{a}, {b}, {c}},
 				orderConstraintSpecifier: orderConstraintSpecifier,
 			}
 		}),
 
-		Entry("multiple jobs, multiple instances of the same dependent", func() lockingTestCase {
+		Entry("multiple instances of the same job that comes after", func() lockingTestCase {
 			var a = fakeJob("a", "releasea")
 			var b = fakeJob("b", "releaseb")
 			var c1 = fakeJobOnInstance("c", "releasec", "instance_group/0")
@@ -152,12 +152,12 @@ var _ = Describe("KahnLockOrderer", func() {
 
 			return lockingTestCase{
 				inputJobs:                []Job{c1, c2, c3, a, b},
-				orderedJobs:              []Job{a, b, c1, c2, c3},
+				orderedJobs:              [][]Job{{a, b}, {c1, c2, c3}},
 				orderConstraintSpecifier: orderConstraintSpecifier,
 			}
 		}),
 
-		Entry("multiple jobs, multiple instances of the same dependent", func() lockingTestCase {
+		Entry("multiple instances of the job that comes before", func() lockingTestCase {
 			var a = fakeJob("a", "releasea")
 			var b1 = fakeJobOnInstance("b", "releaseb", "instance_group/0")
 			var b2 = fakeJobOnInstance("b", "releaseb", "instance_group/1")
@@ -171,7 +171,7 @@ var _ = Describe("KahnLockOrderer", func() {
 
 			return lockingTestCase{
 				inputJobs:                []Job{a, c, b1, b2, b3},
-				orderedJobs:              []Job{a, b1, b2, b3, c},
+				orderedJobs:              [][]Job{{a, b1, b2, b3}, {c}},
 				orderConstraintSpecifier: orderConstraintSpecifier,
 			}
 		}),
@@ -189,7 +189,7 @@ var _ = Describe("KahnLockOrderer", func() {
 
 			return lockingTestCase{
 				inputJobs:                []Job{a, c1, b, c2},
-				orderedJobs:              []Job{a, b, c1, c2},
+				orderedJobs:              [][]Job{{a, b}, {c1}, {c2}},
 				orderConstraintSpecifier: orderConstraintSpecifier,
 			}
 		}),
