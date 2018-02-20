@@ -23,5 +23,5 @@ func BuildDirectorRestoreCleaner(host,
 		ssh.NewSshRemoteRunner,
 	)
 
-	return orchestrator.NewRestoreCleaner(logger, deploymentManager, orderer.NewKahnRestoreLockOrderer())
+	return orchestrator.NewRestoreCleaner(logger, deploymentManager, orderer.NewDirectorLockOrderer())
 }
