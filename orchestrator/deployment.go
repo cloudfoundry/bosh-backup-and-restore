@@ -97,13 +97,7 @@ func (bd *deployment) PreBackupLock(lockOrderer LockOrderer) error {
 	if err != nil {
 		return err
 	}
-
-	var preBackupLockErrors []error
-	for _, job := range orderedJobs {
-		if err := job.PreBackupLock(); err != nil {
-			preBackupLockErrors = append(preBackupLockErrors, err)
-		}
-	}
+	preBackupLockErrors := NewSerialJobRunner().Run(JobPreBackupLocker, orderedJobs)
 
 	bd.Logger.Info("bbr", "Done.")
 	return ConvertErrors(preBackupLockErrors)
@@ -125,13 +119,7 @@ func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer) error {
 	}
 	reversedJobs := Jobs(orderedJobs).Reverse()
 
-	var postBackupUnlockErrors []error
-	for _, job := range reversedJobs {
-		if err := job.PostBackupUnlock(); err != nil {
-			postBackupUnlockErrors = append(postBackupUnlockErrors, err)
-		}
-	}
-
+	postBackupUnlockErrors := NewSerialJobRunner().Run(JobPostBackupUnlocker, reversedJobs)
 	bd.Logger.Info("bbr", "Done.")
 	return ConvertErrors(postBackupUnlockErrors)
 }
@@ -146,12 +134,7 @@ func (bd *deployment) PreRestoreLock(lockOrderer LockOrderer) error {
 		return err
 	}
 
-	var preRestoreLockErrors []error
-	for _, job := range orderedJobs {
-		if err := job.PreRestoreLock(); err != nil {
-			preRestoreLockErrors = append(preRestoreLockErrors, err)
-		}
-	}
+	preRestoreLockErrors := NewSerialJobRunner().Run(JobPreRestoreLocker, orderedJobs)
 
 	bd.Logger.Info("bbr", "Done.")
 	return ConvertErrors(preRestoreLockErrors)
@@ -173,12 +156,7 @@ func (bd *deployment) PostRestoreUnlock(lockOrderer LockOrderer) error {
 	}
 	reversedJobs := Jobs(orderedJobs).Reverse()
 
-	var postRestoreUnlockErrors []error
-	for _, job := range reversedJobs {
-		if err := job.PostRestoreUnlock(); err != nil {
-			postRestoreUnlockErrors = append(postRestoreUnlockErrors, err)
-		}
-	}
+	postRestoreUnlockErrors := NewSerialJobRunner().Run(JobPostRestoreUnlocker, reversedJobs)
 
 	bd.Logger.Info("bbr", "Done.")
 	return ConvertErrors(postRestoreUnlockErrors)
@@ -329,7 +307,9 @@ func (bd *deployment) Instances() []Instance {
 
 func getFirstTen(input []string) (output []string) {
 	for i := 0; i < len(input); i++ {
-	 	if i == 10 { break }
+		if i == 10 {
+			break
+		}
 		output = append(output, input[i])
 	}
 	return output
