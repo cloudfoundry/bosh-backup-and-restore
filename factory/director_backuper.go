@@ -5,6 +5,7 @@ import (
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/jobexecutor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orderer"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
@@ -25,5 +26,6 @@ func BuildDirectorBackuper(host,
 		ssh.NewSshRemoteRunner,
 	)
 
-	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewDirectorLockOrderer(), time.Now)
+	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager,
+		orderer.NewDirectorLockOrderer(), jobexecutor.NewSerialJobExecutor(), time.Now)
 }

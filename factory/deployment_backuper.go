@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/jobexecutor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orderer"
 )
@@ -23,5 +24,6 @@ func BuildDeploymentBackuper(target, username, password, caCert string, withMani
 		return nil, err
 	}
 
-	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewKahnBackupLockOrderer(), time.Now), nil
+	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager,
+		orderer.NewKahnBackupLockOrderer(), jobexecutor.NewSerialJobExecutor(), time.Now), nil
 }

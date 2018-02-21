@@ -8,7 +8,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-func NewJob(remoteRunner ssh.RemoteRunner, instanceIdentifier string, logger Logger, release string, jobScripts BackupAndRestoreScripts, metadata Metadata) Job {
+func NewJob(remoteRunner ssh.RemoteRunner, instanceIdentifier string, logger Logger, release string,
+	jobScripts BackupAndRestoreScripts, metadata Metadata) Job {
 	jobName := jobScripts[0].JobName()
 	return Job{
 		Logger:             logger,

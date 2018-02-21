@@ -4,16 +4,17 @@ type Restorer struct {
 	workflow *Workflow
 }
 
-func NewRestorer(backupManager BackupManager, logger Logger, deploymentManager DeploymentManager, lockOrderer LockOrderer) *Restorer {
+func NewRestorer(backupManager BackupManager, logger Logger, deploymentManager DeploymentManager,
+	lockOrderer LockOrderer, jobExecutionStategy JobExecutionStrategy) *Restorer {
 	workflow := NewWorkflow()
 	validateArtifactStep := NewValidateArtifactStep(logger, backupManager)
 	findDeploymentStep := NewFindDeploymentStep(deploymentManager, logger)
 	restorableStep := NewRestorableStep(lockOrderer)
 	cleanupStep := NewCleanupStep()
 	copyToRemoteStep := NewCopyToRemoteStep()
-	preRestoreLockStep := NewPreRestoreLockStep(lockOrderer)
+	preRestoreLockStep := NewPreRestoreLockStep(lockOrderer, jobExecutionStategy)
 	restoreStep := NewRestoreStep(logger)
-	postRestoreUnlockStep := NewPostRestoreUnlockStep(lockOrderer)
+	postRestoreUnlockStep := NewPostRestoreUnlockStep(lockOrderer, jobExecutionStategy)
 
 	workflow.StartWith(validateArtifactStep).OnSuccess(findDeploymentStep)
 	workflow.Add(findDeploymentStep).OnSuccess(restorableStep)

@@ -5,6 +5,7 @@ import (
 
 	"time"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/jobexecutor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
 	. "github.com/onsi/ginkgo"
@@ -42,7 +43,7 @@ var _ = Describe("Backup", func() {
 			return now
 		}
 
-		b = orchestrator.NewBackuper(fakeBackupManager, logger, deploymentManager, lockOrderer, nowFunc)
+		b = orchestrator.NewBackuper(fakeBackupManager, logger, deploymentManager, lockOrderer, jobexecutor.NewSerialJobExecutor(), nowFunc)
 	})
 
 	JustBeforeEach(func() {

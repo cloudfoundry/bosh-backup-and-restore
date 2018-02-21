@@ -1,6 +1,7 @@
 package factory
 
 import (
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/jobexecutor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orderer"
 )
@@ -27,5 +28,5 @@ func BuildDeploymentRestoreCleanuper(target,
 		return nil, err
 	}
 
-	return orchestrator.NewRestoreCleaner(logger, deploymentManager, orderer.NewKahnRestoreLockOrderer()), nil
+	return orchestrator.NewRestoreCleaner(logger, deploymentManager, orderer.NewKahnRestoreLockOrderer(), jobexecutor.NewSerialJobExecutor()), nil
 }

@@ -16,9 +16,9 @@ type Deployment interface {
 	HasUniqueCustomArtifactNames() bool
 	CheckArtifactDir() error
 	IsRestorable() bool
-	PreBackupLock(orderer LockOrderer) error
+	PreBackupLock(orderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error
 	Backup() error
-	PostBackupUnlock(orderer LockOrderer) error
+	PostBackupUnlock(orderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error
 	Restore() error
 	CopyRemoteBackupToLocal(Backup) error
 	CopyLocalBackupToRemote(Backup) error
@@ -26,8 +26,8 @@ type Deployment interface {
 	CleanupPrevious() error
 	Instances() []Instance
 	CustomArtifactNamesMatch() error
-	PreRestoreLock(orderer LockOrderer) error
-	PostRestoreUnlock(orderer LockOrderer) error
+	PreRestoreLock(orderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error
+	PostRestoreUnlock(orderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error
 	ValidateLockingDependencies(orderer LockOrderer) error
 }
 
@@ -88,7 +88,7 @@ func (bd *deployment) ValidateLockingDependencies(lockOrderer LockOrderer) error
 	return err
 }
 
-func (bd *deployment) PreBackupLock(lockOrderer LockOrderer) error {
+func (bd *deployment) PreBackupLock(lockOrderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error {
 	bd.Logger.Info("bbr", "Running pre-backup-lock scripts...")
 
 	jobs := bd.instances.Jobs()
@@ -97,7 +97,8 @@ func (bd *deployment) PreBackupLock(lockOrderer LockOrderer) error {
 	if err != nil {
 		return err
 	}
-	preBackupLockErrors := NewSerialJobRunner().Run(JobPreBackupLocker, orderedJobs)
+
+	preBackupLockErrors := jobExecutionStategy.Run(JobPreBackupLocker, orderedJobs)
 
 	bd.Logger.Info("bbr", "Done.")
 	return ConvertErrors(preBackupLockErrors)
@@ -108,7 +109,7 @@ func (bd *deployment) Backup() error {
 	return bd.instances.AllBackupable().Backup()
 }
 
-func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer) error {
+func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error {
 	bd.Logger.Info("bbr", "Running post-backup-unlock scripts...")
 
 	jobs := bd.instances.Jobs()
@@ -119,12 +120,12 @@ func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer) error {
 	}
 	reversedJobs := Reverse(orderedJobs)
 
-	postBackupUnlockErrors := NewSerialJobRunner().Run(JobPostBackupUnlocker, reversedJobs)
+	postBackupUnlockErrors := jobExecutionStategy.Run(JobPostBackupUnlocker, reversedJobs)
 	bd.Logger.Info("bbr", "Done.")
 	return ConvertErrors(postBackupUnlockErrors)
 }
 
-func (bd *deployment) PreRestoreLock(lockOrderer LockOrderer) error {
+func (bd *deployment) PreRestoreLock(lockOrderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error {
 	bd.Logger.Info("bbr", "Running pre-restore-lock scripts...")
 
 	jobs := bd.instances.Jobs()
@@ -134,7 +135,7 @@ func (bd *deployment) PreRestoreLock(lockOrderer LockOrderer) error {
 		return err
 	}
 
-	preRestoreLockErrors := NewSerialJobRunner().Run(JobPreRestoreLocker, orderedJobs)
+	preRestoreLockErrors := jobExecutionStategy.Run(JobPreRestoreLocker, orderedJobs)
 
 	bd.Logger.Info("bbr", "Done.")
 	return ConvertErrors(preRestoreLockErrors)
@@ -145,7 +146,7 @@ func (bd *deployment) Restore() error {
 	return bd.instances.AllRestoreable().Restore()
 }
 
-func (bd *deployment) PostRestoreUnlock(lockOrderer LockOrderer) error {
+func (bd *deployment) PostRestoreUnlock(lockOrderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error {
 	bd.Logger.Info("bbr", "Running post-restore-unlock scripts...")
 
 	jobs := bd.instances.Jobs()
@@ -156,7 +157,7 @@ func (bd *deployment) PostRestoreUnlock(lockOrderer LockOrderer) error {
 	}
 	reversedJobs := Reverse(orderedJobs)
 
-	postRestoreUnlockErrors := NewSerialJobRunner().Run(JobPostRestoreUnlocker, reversedJobs)
+	postRestoreUnlockErrors := jobExecutionStategy.Run(JobPostRestoreUnlocker, reversedJobs)
 
 	bd.Logger.Info("bbr", "Done.")
 	return ConvertErrors(postRestoreUnlockErrors)

@@ -6,6 +6,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/jobexecutor"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -26,7 +27,7 @@ var _ = Describe("Cleanup", func() {
 		deploymentManager = new(fakes.FakeDeploymentManager)
 		logger = new(fakes.FakeLogger)
 		lockOrderer = new(fakes.FakeLockOrderer)
-		backupCleaner = orchestrator.NewBackupCleaner(logger, deploymentManager, lockOrderer)
+		backupCleaner = orchestrator.NewBackupCleaner(logger, deploymentManager, lockOrderer, jobexecutor.NewSerialJobExecutor())
 	})
 
 	JustBeforeEach(func() {
@@ -58,7 +59,7 @@ var _ = Describe("Cleanup", func() {
 		var currentSequenceNumber, unlockCallIndex, cleanupCallIndex int
 		BeforeEach(func() {
 			deploymentManager.FindReturns(deployment, nil)
-			deployment.PostBackupUnlockStub = func(orderer orchestrator.LockOrderer) error {
+			deployment.PostBackupUnlockStub = func(orderer orchestrator.LockOrderer, runner orchestrator.JobExecutionStrategy) error {
 				unlockCallIndex = currentSequenceNumber
 				currentSequenceNumber = currentSequenceNumber + 1
 				return nil

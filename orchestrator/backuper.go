@@ -4,14 +4,15 @@ import (
 	"time"
 )
 
-func NewBackuper(backupManager BackupManager, logger Logger, deploymentManager DeploymentManager, lockOrderer LockOrderer, nowFunc func() time.Time) *Backuper {
+func NewBackuper(backupManager BackupManager, logger Logger, deploymentManager DeploymentManager,
+	lockOrderer LockOrderer, jobExecutionStategy JobExecutionStrategy, nowFunc func() time.Time) *Backuper {
 	findDeploymentStep := NewFindDeploymentStep(deploymentManager, logger)
 	backupable := NewBackupableStep(lockOrderer, logger)
 	createArtifact := NewCreateArtifactStep(logger, backupManager, deploymentManager, nowFunc)
-	lock := NewLockStep(lockOrderer)
+	lock := NewLockStep(lockOrderer, jobExecutionStategy)
 	backup := NewBackupStep()
-	unlockAfterSuccessfulBackup := NewPostBackupUnlockStep(lockOrderer)
-	unlockAfterFailedBackup := NewPostBackupUnlockStep(lockOrderer)
+	unlockAfterSuccessfulBackup := NewPostBackupUnlockStep(lockOrderer, jobExecutionStategy)
+	unlockAfterFailedBackup := NewPostBackupUnlockStep(lockOrderer, jobExecutionStategy)
 	drain := NewDrainStep(logger)
 	cleanup := NewCleanupStep()
 	addFinishTimeStep := NewAddFinishTimeStep(nowFunc)

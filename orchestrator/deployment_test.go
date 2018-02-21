@@ -8,6 +8,7 @@ import (
 
 	"io/ioutil"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/jobexecutor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
 	. "github.com/onsi/ginkgo"
@@ -80,7 +81,7 @@ var _ = Describe("Deployment", func() {
 		})
 
 		JustBeforeEach(func() {
-			lockError = deployment.PreBackupLock(lockOrderer)
+			lockError = deployment.PreBackupLock(lockOrderer, jobexecutor.NewSerialJobExecutor())
 		})
 
 		It("does not fail", func() {
@@ -223,7 +224,7 @@ var _ = Describe("Deployment", func() {
 		})
 
 		JustBeforeEach(func() {
-			unlockError = deployment.PostBackupUnlock(lockOrderer)
+			unlockError = deployment.PostBackupUnlock(lockOrderer, jobexecutor.NewSerialJobExecutor())
 		})
 
 		It("does not fail", func() {
@@ -626,7 +627,7 @@ var _ = Describe("Deployment", func() {
 		})
 
 		JustBeforeEach(func() {
-			lockError = deployment.PreRestoreLock(lockOrderer)
+			lockError = deployment.PreRestoreLock(lockOrderer, jobexecutor.NewSerialJobExecutor())
 		})
 
 		It("locks the jobs in the order specified by the orderer", func() {
@@ -695,7 +696,7 @@ var _ = Describe("Deployment", func() {
 		})
 
 		JustBeforeEach(func() {
-			unlockError = deployment.PostRestoreUnlock(lockOrderer)
+			unlockError = deployment.PostRestoreUnlock(lockOrderer, jobexecutor.NewSerialJobExecutor())
 		})
 
 		It("unlocks the jobs in the reverse order to that specified by the orderer", func() {
