@@ -25,5 +25,5 @@ func BuildDeploymentBackuper(target, username, password, caCert string, withMani
 	}
 
 	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager,
-		orderer.NewKahnBackupLockOrderer(), jobexecutor.NewSerialJobExecutor(), time.Now), nil
+		orderer.NewKahnBackupLockOrderer(), jobexecutor.NewParallelJobExecutor(), time.Now), nil
 }
