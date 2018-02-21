@@ -100,13 +100,15 @@ func (bd *deployment) PreBackupLock(lockOrderer LockOrderer, jobExecutionStategy
 
 	preBackupLockErrors := jobExecutionStategy.Run(JobPreBackupLocker, orderedJobs)
 
-	bd.Logger.Info("bbr", "Done.")
+	bd.Logger.Info("bbr", "Finished running pre-backup-lock scripts.")
 	return ConvertErrors(preBackupLockErrors)
 }
 
 func (bd *deployment) Backup() error {
 	bd.Logger.Info("bbr", "Running backup scripts...")
-	return bd.instances.AllBackupable().Backup()
+	err := bd.instances.AllBackupable().Backup()
+	bd.Logger.Info("bbr", "Finished running backup scripts.")
+	return err
 }
 
 func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error {
@@ -121,7 +123,7 @@ func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer, jobExecutionStat
 	reversedJobs := Reverse(orderedJobs)
 
 	postBackupUnlockErrors := jobExecutionStategy.Run(JobPostBackupUnlocker, reversedJobs)
-	bd.Logger.Info("bbr", "Done.")
+	bd.Logger.Info("bbr", "Finished running post-backup-unlock scripts.")
 	return ConvertErrors(postBackupUnlockErrors)
 }
 
@@ -137,13 +139,15 @@ func (bd *deployment) PreRestoreLock(lockOrderer LockOrderer, jobExecutionStateg
 
 	preRestoreLockErrors := jobExecutionStategy.Run(JobPreRestoreLocker, orderedJobs)
 
-	bd.Logger.Info("bbr", "Done.")
+	bd.Logger.Info("bbr", "Finished running pre-restore-lock scripts.")
 	return ConvertErrors(preRestoreLockErrors)
 }
 
 func (bd *deployment) Restore() error {
 	bd.Logger.Info("bbr", "Running restore scripts...")
-	return bd.instances.AllRestoreable().Restore()
+	err := bd.instances.AllRestoreable().Restore()
+	bd.Logger.Info("bbr", "Finished running restore scripts.")
+	return err
 }
 
 func (bd *deployment) PostRestoreUnlock(lockOrderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error {
@@ -159,7 +163,7 @@ func (bd *deployment) PostRestoreUnlock(lockOrderer LockOrderer, jobExecutionSta
 
 	postRestoreUnlockErrors := jobExecutionStategy.Run(JobPostRestoreUnlocker, reversedJobs)
 
-	bd.Logger.Info("bbr", "Done.")
+	bd.Logger.Info("bbr", "Finished running post-restore-unlock scripts.")
 	return ConvertErrors(postRestoreUnlockErrors)
 }
 
@@ -296,7 +300,7 @@ func (bd *deployment) CopyLocalBackupToRemote(backup Backup) error {
 					len(mismatchedFiles),
 				)
 			}
-			bd.Logger.Info("bbr", "Done.")
+			bd.Logger.Info("bbr", "Finished copying backup to %s/%s.", instance.Name(), instance.Index())
 		}
 	}
 	return nil

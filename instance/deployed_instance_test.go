@@ -289,10 +289,6 @@ var _ = Describe("DeployedInstance", func() {
 				)))
 			})
 
-			It("logs Done.", func() {
-				Expect(string(stdout.Contents())).To(ContainSubstring("Done."))
-			})
-
 			It("marks the instance as having had its artifact directory created", func() {
 				Expect(deployedInstance.ArtifactDirCreated()).To(BeTrue())
 			})
@@ -463,21 +459,17 @@ var _ = Describe("DeployedInstance", func() {
 					instanceGroupName,
 					instanceID,
 				)))
-				Expect(string(stdout.Contents())).To(ContainSubstring("Done."))
 
 				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
 					"Restoring bar on %s/%s",
 					instanceGroupName,
 					instanceID,
 				)))
-				Expect(string(stdout.Contents())).To(ContainSubstring("Done."))
 				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
 					"Restoring baz on %s/%s",
 					instanceGroupName,
 					instanceID,
 				)))
-				Expect(string(stdout.Contents())).To(ContainSubstring("Done."))
-
 			})
 
 			It("succeeds", func() {

@@ -110,7 +110,7 @@ func (j Job) Backup() error {
 			))
 		}
 
-		j.Logger.Info("bbr", "Done.")
+		j.Logger.Info("bbr", "Finished backing up %s on %s.", j.name, j.instanceIdentifier)
 	}
 
 	return nil
@@ -130,7 +130,7 @@ func (j Job) PreBackupLock() error {
 			))
 		}
 
-		j.Logger.Info("bbr", "Done.")
+		j.Logger.Info("bbr", "Finished locking %s on %s for backup.", j.name, j.instanceIdentifier)
 	}
 
 	return nil
@@ -150,7 +150,7 @@ func (j Job) PostBackupUnlock() error {
 			))
 		}
 
-		j.Logger.Info("bbr", "Done.")
+		j.Logger.Info("bbr", "Finished unlocking %s on %s.", j.name, j.instanceIdentifier)
 	}
 
 	return nil
@@ -170,7 +170,7 @@ func (j Job) PreRestoreLock() error {
 			))
 		}
 
-		j.Logger.Info("bbr", "Done.")
+		j.Logger.Info("bbr", "Finished locking %s on %s for restore.", j.name, j.instanceIdentifier)
 	}
 
 	return nil
@@ -191,7 +191,7 @@ func (j Job) Restore() error {
 			))
 		}
 
-		j.Logger.Info("bbr", "Done.")
+		j.Logger.Info("bbr", "Finished restoring %s on %s.", j.name, j.instanceIdentifier)
 	}
 
 	return nil
@@ -211,7 +211,7 @@ func (j Job) PostRestoreUnlock() error {
 			))
 		}
 
-		j.Logger.Info("bbr", "Done.")
+		j.Logger.Info("bbr", "Finished unlocking %s on %s.", j.name, j.instanceIdentifier)
 	}
 
 	return nil

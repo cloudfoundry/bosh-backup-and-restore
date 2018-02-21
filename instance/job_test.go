@@ -402,10 +402,10 @@ var _ = Describe("Job", func() {
 						"INFO - Locking jobname on %s",
 						instanceIdentifier,
 					)))
-				})
-
-				By("logging 'Done.'", func() {
-					Expect(string(stdout.Contents())).To(ContainSubstring("Done."))
+					Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+						"INFO - Finished locking jobname on %s",
+						instanceIdentifier,
+					)))
 				})
 			})
 
@@ -537,10 +537,10 @@ var _ = Describe("Job", func() {
 						"INFO - Locking jobname on %s",
 						instanceIdentifier,
 					)))
-				})
-
-				By("logging 'Done.'", func() {
-					Expect(string(stdout.Contents())).To(ContainSubstring("Done."))
+					Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+						"INFO - Finished locking jobname on %s",
+						instanceIdentifier,
+					)))
 				})
 			})
 
@@ -570,19 +570,23 @@ var _ = Describe("Job", func() {
 
 	Describe("PostRestoreUnlock", func() {
 		var postRestoreUnlockError error
+
 		JustBeforeEach(func() {
 			postRestoreUnlockError = job.PostRestoreUnlock()
 		})
+
 		Context("job has no post-restore-unlock script", func() {
 			BeforeEach(func() {
 				jobScripts = instance.BackupAndRestoreScripts{
 					"/var/vcap/jobs/jobname/bin/bbr/restore",
 				}
 			})
+
 			It("should not run anything on the remote runner", func() {
 				Expect(remoteRunner.Invocations()).To(HaveLen(0))
 			})
 		})
+
 		Context("job has a post-restore-unlock script", func() {
 			BeforeEach(func() {
 				jobScripts = instance.BackupAndRestoreScripts{
@@ -601,16 +605,17 @@ var _ = Describe("Job", func() {
 				BeforeEach(func() {
 					remoteRunner.RunScriptReturns("stdout", nil)
 				})
+
 				It("succeeds", func() {
 					Expect(postRestoreUnlockError).NotTo(HaveOccurred())
 				})
-
 			})
 
 			Context("post-restore-unlock script fails", func() {
 				BeforeEach(func() {
 					remoteRunner.RunScriptReturns("", fmt.Errorf("oh no"))
 				})
+
 				It("fails", func() {
 					Expect(postRestoreUnlockError).To(MatchError(ContainSubstring("oh no")))
 				})

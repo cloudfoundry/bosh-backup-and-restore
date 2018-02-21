@@ -790,7 +790,7 @@ var _ = Describe("Deployment", func() {
 				Expect(logLine).To(ContainSubstring("Copying backup"))
 
 				_, logLine, _ = logger.InfoArgsForCall(1)
-				Expect(logLine).To(ContainSubstring("Done"))
+				Expect(logLine).To(ContainSubstring("Finished copying backup"))
 			})
 
 			It("streams the backup file to the restorable instance", func() {

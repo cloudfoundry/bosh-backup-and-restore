@@ -312,12 +312,12 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Running pre-checks for backup of %s...", deploymentName)))
 						Expect(session.Out).To(gbytes.Say(fmt.Sprintf("INFO - Starting backup of %s...", deploymentName)))
 						Expect(session.Out).To(gbytes.Say("INFO - Running pre-backup-lock scripts..."))
-						Expect(session.Out).To(gbytes.Say("INFO - Done."))
+						Expect(session.Out).To(gbytes.Say("INFO - Finished running pre-backup-lock scripts."))
 						Expect(session.Out).To(gbytes.Say("INFO - Running backup scripts..."))
 						Expect(session.Out).To(gbytes.Say("INFO - Backing up redis on redis-dedicated-node/fake-uuid..."))
-						Expect(session.Out).To(gbytes.Say("INFO - Done."))
+						Expect(session.Out).To(gbytes.Say("INFO - Finished running backup scripts."))
 						Expect(session.Out).To(gbytes.Say("INFO - Running post-backup-unlock scripts..."))
-						Expect(session.Out).To(gbytes.Say("INFO - Done."))
+						Expect(session.Out).To(gbytes.Say("INFO - Finished running post-backup-unlock scripts."))
 						Expect(session.Out).To(gbytes.Say("INFO - Copying backup -- [^-]*-- from redis-dedicated-node/fake-uuid..."))
 						Expect(session.Out).To(gbytes.Say("INFO - Finished copying backup -- from redis-dedicated-node/fake-uuid..."))
 						Expect(session.Out).To(gbytes.Say("INFO - Starting validity checks"))
@@ -518,7 +518,7 @@ echo "Unlocking release"`)
 						By("logging the script action", func() {
 							assertOutput(session, []string{
 								"Unlocking redis on redis-dedicated-node/fake-uuid",
-								"Done.",
+								"Finished unlocking redis on redis-dedicated-node/fake-uuid.",
 							})
 						})
 					})
@@ -1052,12 +1052,13 @@ backup_should_be_locked_before:
 					assertOutput(session, []string{
 						fmt.Sprintf("Starting backup of %s...", deploymentName),
 						"Backing up redis on redis-dedicated-node/fake-uuid...",
+						"Finished backing up redis on redis-dedicated-node/fake-uuid.",
 						"Backing up redis on redis-broker/fake-uuid-2...",
-						"Done.",
+						"Finished backing up redis on redis-broker/fake-uuid-2.",
 						"Copying backup --",
 						"from redis-dedicated-node/fake-uuid...",
 						"from redis-broker/fake-uuid-2...",
-						"Done.",
+						"Finished copying backup --",
 						fmt.Sprintf("Backup created of %s on", deploymentName),
 					})
 				})
