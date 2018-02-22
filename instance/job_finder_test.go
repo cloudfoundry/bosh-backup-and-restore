@@ -175,7 +175,8 @@ backup_name: consul_backup`, nil)
 
 				It("attaches the metadata to the corresponding jobs", func() {
 					By("executing the metadata scripts", func() {
-						Expect(remoteRunner.RunScriptArgsForCall(0)).To(Equal("/var/vcap/jobs/consul_agent/bin/bbr/metadata"))
+						cmd, _ := remoteRunner.RunScriptArgsForCall(0)
+						Expect(cmd).To(Equal("/var/vcap/jobs/consul_agent/bin/bbr/metadata"))
 					})
 
 					By("adding the metadata to the returned jobs", func() {

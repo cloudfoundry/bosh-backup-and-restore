@@ -267,7 +267,7 @@ var _ = Describe("Job", func() {
 				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(1))
 
 				Expect(remoteRunner.CreateDirectoryArgsForCall(0)).To(Equal("/var/vcap/store/bbr-backup/jobname"))
-				specifiedScriptPath, specifiedEnvVars := remoteRunner.RunScriptWithEnvArgsForCall(0)
+				specifiedScriptPath, specifiedEnvVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/jobname/bin/bbr/backup"))
 				Expect(specifiedEnvVars).To(SatisfyAll(
 					HaveLen(2),
@@ -327,7 +327,7 @@ var _ = Describe("Job", func() {
 			It("uses the remote runner to run the script", func() {
 				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(1))
 
-				specifiedScriptPath, specifiedEnvVars := remoteRunner.RunScriptWithEnvArgsForCall(0)
+				specifiedScriptPath, specifiedEnvVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/jobname/bin/bbr/restore"))
 				Expect(specifiedEnvVars).To(SatisfyAll(
 					HaveLen(2),
@@ -388,9 +388,8 @@ var _ = Describe("Job", func() {
 			It("runs the script", func() {
 				By("calling the remote runner", func() {
 					Expect(remoteRunner.RunScriptCallCount()).To(Equal(1))
-					Expect(
-						remoteRunner.RunScriptArgsForCall(0),
-					).To(Equal("/var/vcap/jobs/jobname/bin/bbr/pre-backup-lock"))
+					cmd, _ := remoteRunner.RunScriptArgsForCall(0)
+					Expect(cmd).To(Equal("/var/vcap/jobs/jobname/bin/bbr/pre-backup-lock"))
 				})
 
 				By("logging the script path", func() {
@@ -461,9 +460,8 @@ var _ = Describe("Job", func() {
 
 			It("uses remote runner to run the script", func() {
 				Expect(remoteRunner.RunScriptCallCount()).To(Equal(1))
-				Expect(
-					remoteRunner.RunScriptArgsForCall(0),
-				).To(Equal("/var/vcap/jobs/jobname/bin/bbr/post-backup-unlock"))
+				cmd, _ := remoteRunner.RunScriptArgsForCall(0)
+				Expect(cmd).To(Equal("/var/vcap/jobs/jobname/bin/bbr/post-backup-unlock"))
 			})
 
 			Context("post-backup-unlock script runs successfully", func() {
@@ -523,9 +521,8 @@ var _ = Describe("Job", func() {
 			It("runs the script", func() {
 				By("using the remote runner", func() {
 					Expect(remoteRunner.RunScriptCallCount()).To(Equal(1))
-					Expect(
-						remoteRunner.RunScriptArgsForCall(0),
-					).To(Equal("/var/vcap/jobs/jobname/bin/bbr/pre-restore-lock"))
+					cmd, _ := remoteRunner.RunScriptArgsForCall(0)
+					Expect(cmd).To(Equal("/var/vcap/jobs/jobname/bin/bbr/pre-restore-lock"))
 				})
 
 				By("logging the script path", func() {
@@ -596,9 +593,8 @@ var _ = Describe("Job", func() {
 
 			It("uses the remote runner to run the script", func() {
 				Expect(remoteRunner.RunScriptCallCount()).To(Equal(1))
-				Expect(
-					remoteRunner.RunScriptArgsForCall(0),
-				).To(Equal("/var/vcap/jobs/jobname/bin/bbr/post-restore-unlock"))
+				cmd, _ := remoteRunner.RunScriptArgsForCall(0)
+				Expect(cmd).To(Equal("/var/vcap/jobs/jobname/bin/bbr/post-restore-unlock"))
 			})
 
 			Context("post-restore-unlock script runs successfully", func() {

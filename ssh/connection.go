@@ -110,7 +110,7 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 	if err != nil {
 		return -1, errors.Wrap(err, "ssh.NewSession failed")
 	}
-	c.logger.Debug("ssh", "Trying to execute '%s' on remote", cmd)
+	c.logger.Debug("bbr", "Trying to execute '%s' on remote", cmd)
 
 	stopKeepAliveLoop := c.startKeepAliveLoop(session)
 	defer close(stopKeepAliveLoop)

@@ -101,7 +101,12 @@ func (j Job) Backup() error {
 		}
 
 		env := artifactDirectoryVariables(j.BackupArtifactDirectory())
-		_, err = j.remoteRunner.RunScriptWithEnv(string(j.backupScript), env)
+		_, err = j.remoteRunner.RunScriptWithEnv(
+			string(j.backupScript),
+			env,
+			fmt.Sprintf("backup %s on %s", j.name, j.instanceIdentifier),
+		)
+
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf(
 				"Error attempting to run backup for job %s on %s",
@@ -121,7 +126,10 @@ func (j Job) PreBackupLock() error {
 		j.Logger.Debug("bbr", "> %s", j.preBackupScript)
 		j.Logger.Info("bbr", "Locking %s on %s for backup...", j.name, j.instanceIdentifier)
 
-		_, err := j.remoteRunner.RunScript(string(j.preBackupScript))
+		_, err := j.remoteRunner.RunScript(
+			string(j.preBackupScript),
+			fmt.Sprintf("pre-backup lock %s on %s", j.name, j.instanceIdentifier),
+		)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf(
 				"Error attempting to run pre-backup-lock for job %s on %s",
@@ -141,7 +149,10 @@ func (j Job) PostBackupUnlock() error {
 		j.Logger.Debug("bbr", "> %s", j.postBackupScript)
 		j.Logger.Info("bbr", "Unlocking %s on %s...", j.name, j.instanceIdentifier)
 
-		_, err := j.remoteRunner.RunScript(string(j.postBackupScript))
+		_, err := j.remoteRunner.RunScript(
+			string(j.postBackupScript),
+			fmt.Sprintf("post-backup unlock %s on %s", j.name, j.instanceIdentifier),
+		)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf(
 				"Error attempting to run post-backup-unlock for job %s on %s",
@@ -161,7 +172,10 @@ func (j Job) PreRestoreLock() error {
 		j.Logger.Debug("bbr", "> %s", j.preRestoreScript)
 		j.Logger.Info("bbr", "Locking %s on %s for restore...", j.name, j.instanceIdentifier)
 
-		_, err := j.remoteRunner.RunScript(string(j.preRestoreScript))
+		_, err := j.remoteRunner.RunScript(
+			string(j.preRestoreScript),
+			fmt.Sprintf("pre-restore lock %s on %s", j.name, j.instanceIdentifier),
+		)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf(
 				"Error attempting to run pre-restore-lock for job %s on %s",
@@ -182,7 +196,10 @@ func (j Job) Restore() error {
 		j.Logger.Info("bbr", "Restoring %s on %s...", j.name, j.instanceIdentifier)
 
 		env := artifactDirectoryVariables(j.RestoreArtifactDirectory())
-		_, err := j.remoteRunner.RunScriptWithEnv(string(j.restoreScript), env)
+		_, err := j.remoteRunner.RunScriptWithEnv(
+			string(j.restoreScript), env,
+			fmt.Sprintf("restore %s on %s", j.name, j.instanceIdentifier),
+		)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf(
 				"Error attempting to run restore for job %s on %s",
@@ -202,7 +219,10 @@ func (j Job) PostRestoreUnlock() error {
 		j.Logger.Debug("bbr", "> %s", j.postRestoreScript)
 		j.Logger.Info("bbr", "Unlocking %s on %s...", j.name, j.instanceIdentifier)
 
-		_, err := j.remoteRunner.RunScript(string(j.postRestoreScript))
+		_, err := j.remoteRunner.RunScript(
+			string(j.postRestoreScript),
+			fmt.Sprintf("post-restore unlock %s on %s", j.name, j.instanceIdentifier),
+		)
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf(
 				"Error attempting to run post-restore-unlock for job %s on %s",

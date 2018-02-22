@@ -290,7 +290,7 @@ var _ = Describe("SshRemoteRunner", func() {
 				runCommand("echo 'env' > /tmp/example-script")
 				makeAccessibleOnlyByRoot("/tmp/example-script")
 
-				stdout, err := sshRemoteRunner.RunScriptWithEnv("/tmp/example-script", map[string]string{"env1": "foo", "env2": "bar"})
+				stdout, err := sshRemoteRunner.RunScriptWithEnv("/tmp/example-script", map[string]string{"env1": "foo", "env2": "bar"}, "")
 
 				Expect(err).NotTo(HaveOccurred())
 
@@ -303,7 +303,7 @@ var _ = Describe("SshRemoteRunner", func() {
 
 		Context("when the script is not there", func() {
 			It("returns a helpful error", func() {
-				_, err := sshRemoteRunner.RunScriptWithEnv("/tmp/example-script", map[string]string{"env1": "foo", "env2": "bar"})
+				_, err := sshRemoteRunner.RunScriptWithEnv("/tmp/example-script", map[string]string{"env1": "foo", "env2": "bar"}, "")
 
 				Expect(err).To(MatchError(ContainSubstring("command not found")))
 
@@ -315,7 +315,7 @@ var _ = Describe("SshRemoteRunner", func() {
 				runCommand("echo '>&2 echo example script has errorred; exit 12' > /tmp/example-script")
 				runCommand("chmod +x /tmp/example-script")
 
-				_, err := sshRemoteRunner.RunScriptWithEnv("/tmp/example-script", map[string]string{"env1": "foo", "env2": "bar"})
+				_, err := sshRemoteRunner.RunScriptWithEnv("/tmp/example-script", map[string]string{"env1": "foo", "env2": "bar"}, "")
 
 				Expect(err).To(MatchError(ContainSubstring("example script has errorred - exit code 12")))
 
@@ -327,7 +327,7 @@ var _ = Describe("SshRemoteRunner", func() {
 			})
 
 			It("returns an error", func() {
-				_, err := sshRemoteRunner.RunScriptWithEnv("whatever", map[string]string{})
+				_, err := sshRemoteRunner.RunScriptWithEnv("whatever", map[string]string{}, "")
 				Expect(err).To(MatchError(ContainSubstring("ssh.Dial failed")))
 			})
 		})

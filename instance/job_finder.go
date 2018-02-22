@@ -80,7 +80,10 @@ func (j *JobFinderFromScripts) findBBRScripts(instanceIdentifierForLogging Insta
 }
 
 func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifier, script Script, remoteRunner ssh.RemoteRunner) (*Metadata, error) {
-	metadataContent, err := remoteRunner.RunScript(string(script))
+	metadataContent, err := remoteRunner.RunScript(
+		string(script),
+		fmt.Sprintf("find metadata for %s on %s", script.JobName(), instanceIdentifier),
+	)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf(
 			"An error occurred while running metadata script for job %s on %s: %s",

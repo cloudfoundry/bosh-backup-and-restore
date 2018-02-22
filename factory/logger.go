@@ -11,8 +11,8 @@ func BuildLogger(debug bool) boshlog.Logger {
 	return BuildBoshLogger(debug)
 }
 
-var ApplicationLoggerStdout *writer.PausableWriter = writer.NewPausableWriter(os.Stdout)
-var ApplicationLoggerStderr *writer.PausableWriter = writer.NewPausableWriter(os.Stderr)
+var ApplicationLoggerStdout = writer.NewPausableWriter(os.Stdout)
+var ApplicationLoggerStderr = writer.NewPausableWriter(os.Stderr)
 
 func BuildBoshLogger(debug bool) boshlog.Logger {
 	if debug {

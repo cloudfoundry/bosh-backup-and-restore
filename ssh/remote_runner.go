@@ -20,8 +20,8 @@ type RemoteRunner interface {
 	ExtractAndUpload(reader io.Reader, directory string) error
 	SizeOf(path string) (string, error)
 	ChecksumDirectory(path string) (map[string]string, error)
-	RunScript(path string) (string, error)
-	RunScriptWithEnv(path string, env map[string]string) (string, error)
+	RunScript(path, label string) (string, error)
+	RunScriptWithEnv(path string, env map[string]string, label string) (string, error)
 	FindFiles(pattern string) ([]string, error)
 }
 
@@ -63,12 +63,12 @@ func (r SshRemoteRunner) RemoveDirectory(dir string) error {
 
 func (r SshRemoteRunner) ArchiveAndDownload(directory string, writer io.Writer) error {
 	stderr, exitCode, err := r.connection.Stream(fmt.Sprintf("sudo tar -C %s -c .", directory), writer)
-	return r.logAndCheckErrors([]byte{}, stderr, exitCode, err)
+	return r.logAndCheckErrors([]byte{}, stderr, exitCode, err, "")
 }
 
 func (r SshRemoteRunner) ExtractAndUpload(reader io.Reader, directory string) error {
 	stdout, stderr, exitCode, err := r.connection.StreamStdin(fmt.Sprintf("sudo sh -c 'tar -C %s -x'", directory), reader)
-	return r.logAndCheckErrors(stdout, stderr, exitCode, err)
+	return r.logAndCheckErrors(stdout, stderr, exitCode, err, "")
 }
 
 func (r SshRemoteRunner) SizeOf(path string) (string, error) {
@@ -89,24 +89,23 @@ func (r SshRemoteRunner) ChecksumDirectory(path string) (map[string]string, erro
 	return convertShasToMap(stdout), nil
 }
 
-func (r SshRemoteRunner) RunScript(path string) (string, error) {
-	return r.RunScriptWithEnv(path, map[string]string{})
+func (r SshRemoteRunner) RunScript(path, label string) (string, error) {
+	return r.RunScriptWithEnv(path, map[string]string{}, label)
 }
 
-func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string) (string, error) {
+func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, label string) (string, error) {
 	var varsList = ""
 	for varName, value := range env {
 		varsList = varsList + varName + "=" + value + " "
 	}
 
-	return r.runOnInstance("sudo " + varsList + path)
+	return r.runOnInstanceWithLabel("sudo "+varsList+path, label)
 }
 
 func (r SshRemoteRunner) FindFiles(pattern string) ([]string, error) {
 	stdout, stderr, exitCode, err := r.connection.Run(fmt.Sprintf("sudo sh -c 'find %s -type f'", pattern))
 
-	r.logger.Debug("bbr", "Stdout: %s", string(stdout))
-	r.logger.Debug("bbr", "Stderr: %s", string(stderr))
+	r.logOutput(stdout, stderr, "find files")
 
 	if err != nil {
 		return nil, err
@@ -114,7 +113,7 @@ func (r SshRemoteRunner) FindFiles(pattern string) ([]string, error) {
 
 	if exitCode != 0 {
 		if strings.Contains(string(stderr), "No such file or directory") {
-			r.logger.Debug("", "No files found for pattern '%s'", pattern)
+			r.logger.Debug("bbr", "No files found for pattern '%s'", pattern)
 			return []string{}, nil
 		} else {
 			return nil, exitError(stderr, exitCode)
@@ -126,9 +125,13 @@ func (r SshRemoteRunner) FindFiles(pattern string) ([]string, error) {
 }
 
 func (r SshRemoteRunner) runOnInstance(cmd string) (string, error) {
+	return r.runOnInstanceWithLabel(cmd, "")
+}
+
+func (r SshRemoteRunner) runOnInstanceWithLabel(cmd, label string) (string, error) {
 	stdout, stderr, exitCode, runErr := r.connection.Run(cmd)
 
-	err := r.logAndCheckErrors(stdout, stderr, exitCode, runErr)
+	err := r.logAndCheckErrors(stdout, stderr, exitCode, runErr, label)
 	if err != nil {
 		return "", err
 	}
@@ -136,9 +139,8 @@ func (r SshRemoteRunner) runOnInstance(cmd string) (string, error) {
 	return string(stdout), nil
 }
 
-func (r SshRemoteRunner) logAndCheckErrors(stdout, stderr []byte, exitCode int, err error) error {
-	r.logger.Debug("bbr", "Stdout: %s", string(stdout))
-	r.logger.Debug("bbr", "Stderr: %s", string(stderr))
+func (r SshRemoteRunner) logAndCheckErrors(stdout, stderr []byte, exitCode int, err error, label string) error {
+	r.logOutput(stdout, stderr, label)
 
 	if err != nil {
 		return err
@@ -149,6 +151,17 @@ func (r SshRemoteRunner) logAndCheckErrors(stdout, stderr []byte, exitCode int, 
 	}
 
 	return nil
+}
+
+func (r SshRemoteRunner) logOutput(stdout []byte, stderr []byte, label string) {
+	if label != "" {
+		r.logger.Debug("bbr", "[%s] stdout: %s", label, string(stdout))
+		r.logger.Debug("bbr", "[%s] stderr: %s", label, string(stderr))
+
+	} else {
+		r.logger.Debug("bbr", "stdout: %s", string(stdout))
+		r.logger.Debug("bbr", "stderr: %s", string(stderr))
+	}
 }
 
 func exitError(stderr []byte, exitCode int) error {

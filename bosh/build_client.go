@@ -30,7 +30,7 @@ func BuildClient(targetUrl, username, password, caCertFileName string, logger bo
 
 	directorFactory := director.NewFactory(logger)
 
-	info, err := getDirectorInfo(directorFactory, config, logger)
+	info, err := getDirectorInfo(directorFactory, config)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func BuildClient(targetUrl, username, password, caCertFileName string, logger bo
 	return NewClient(boshDirector, director.NewSSHOpts, ssh.NewSshRemoteRunner, logger, instance.NewJobFinder(logger), NewBoshManifestReleaseMapping), nil
 }
 
-func getDirectorInfo(directorFactory director.Factory, config director.Config, logger boshlog.Logger) (director.Info, error) {
+func getDirectorInfo(directorFactory director.Factory, config director.Config) (director.Info, error) {
 	infoDirector, err := directorFactory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
 	if err != nil {
 		return director.Info{}, errors.Wrap(err, "error building bosh director client")

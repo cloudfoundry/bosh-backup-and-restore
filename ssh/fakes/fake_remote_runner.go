@@ -103,10 +103,11 @@ type FakeRemoteRunner struct {
 		result1 map[string]string
 		result2 error
 	}
-	RunScriptStub        func(path string) (string, error)
+	RunScriptStub        func(path, label string) (string, error)
 	runScriptMutex       sync.RWMutex
 	runScriptArgsForCall []struct {
-		path string
+		path  string
+		label string
 	}
 	runScriptReturns struct {
 		result1 string
@@ -116,11 +117,12 @@ type FakeRemoteRunner struct {
 		result1 string
 		result2 error
 	}
-	RunScriptWithEnvStub        func(path string, env map[string]string) (string, error)
+	RunScriptWithEnvStub        func(path string, env map[string]string, label string) (string, error)
 	runScriptWithEnvMutex       sync.RWMutex
 	runScriptWithEnvArgsForCall []struct {
-		path string
-		env  map[string]string
+		path  string
+		env   map[string]string
+		label string
 	}
 	runScriptWithEnvReturns struct {
 		result1 string
@@ -534,16 +536,17 @@ func (fake *FakeRemoteRunner) ChecksumDirectoryReturnsOnCall(i int, result1 map[
 	}{result1, result2}
 }
 
-func (fake *FakeRemoteRunner) RunScript(path string) (string, error) {
+func (fake *FakeRemoteRunner) RunScript(path string, label string) (string, error) {
 	fake.runScriptMutex.Lock()
 	ret, specificReturn := fake.runScriptReturnsOnCall[len(fake.runScriptArgsForCall)]
 	fake.runScriptArgsForCall = append(fake.runScriptArgsForCall, struct {
-		path string
-	}{path})
-	fake.recordInvocation("RunScript", []interface{}{path})
+		path  string
+		label string
+	}{path, label})
+	fake.recordInvocation("RunScript", []interface{}{path, label})
 	fake.runScriptMutex.Unlock()
 	if fake.RunScriptStub != nil {
-		return fake.RunScriptStub(path)
+		return fake.RunScriptStub(path, label)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -557,10 +560,10 @@ func (fake *FakeRemoteRunner) RunScriptCallCount() int {
 	return len(fake.runScriptArgsForCall)
 }
 
-func (fake *FakeRemoteRunner) RunScriptArgsForCall(i int) string {
+func (fake *FakeRemoteRunner) RunScriptArgsForCall(i int) (string, string) {
 	fake.runScriptMutex.RLock()
 	defer fake.runScriptMutex.RUnlock()
-	return fake.runScriptArgsForCall[i].path
+	return fake.runScriptArgsForCall[i].path, fake.runScriptArgsForCall[i].label
 }
 
 func (fake *FakeRemoteRunner) RunScriptReturns(result1 string, result2 error) {
@@ -585,17 +588,18 @@ func (fake *FakeRemoteRunner) RunScriptReturnsOnCall(i int, result1 string, resu
 	}{result1, result2}
 }
 
-func (fake *FakeRemoteRunner) RunScriptWithEnv(path string, env map[string]string) (string, error) {
+func (fake *FakeRemoteRunner) RunScriptWithEnv(path string, env map[string]string, label string) (string, error) {
 	fake.runScriptWithEnvMutex.Lock()
 	ret, specificReturn := fake.runScriptWithEnvReturnsOnCall[len(fake.runScriptWithEnvArgsForCall)]
 	fake.runScriptWithEnvArgsForCall = append(fake.runScriptWithEnvArgsForCall, struct {
-		path string
-		env  map[string]string
-	}{path, env})
-	fake.recordInvocation("RunScriptWithEnv", []interface{}{path, env})
+		path  string
+		env   map[string]string
+		label string
+	}{path, env, label})
+	fake.recordInvocation("RunScriptWithEnv", []interface{}{path, env, label})
 	fake.runScriptWithEnvMutex.Unlock()
 	if fake.RunScriptWithEnvStub != nil {
-		return fake.RunScriptWithEnvStub(path, env)
+		return fake.RunScriptWithEnvStub(path, env, label)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -609,10 +613,10 @@ func (fake *FakeRemoteRunner) RunScriptWithEnvCallCount() int {
 	return len(fake.runScriptWithEnvArgsForCall)
 }
 
-func (fake *FakeRemoteRunner) RunScriptWithEnvArgsForCall(i int) (string, map[string]string) {
+func (fake *FakeRemoteRunner) RunScriptWithEnvArgsForCall(i int) (string, map[string]string, string) {
 	fake.runScriptWithEnvMutex.RLock()
 	defer fake.runScriptWithEnvMutex.RUnlock()
-	return fake.runScriptWithEnvArgsForCall[i].path, fake.runScriptWithEnvArgsForCall[i].env
+	return fake.runScriptWithEnvArgsForCall[i].path, fake.runScriptWithEnvArgsForCall[i].env, fake.runScriptWithEnvArgsForCall[i].label
 }
 
 func (fake *FakeRemoteRunner) RunScriptWithEnvReturns(result1 string, result2 error) {
