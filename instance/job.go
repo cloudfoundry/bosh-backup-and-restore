@@ -108,6 +108,8 @@ func (j Job) Backup() error {
 		)
 
 		if err != nil {
+			j.Logger.Error("bbr", "Error backing up %s on %s.", j.name, j.instanceIdentifier)
+
 			return errors.Wrap(err, fmt.Sprintf(
 				"Error attempting to run backup for job %s on %s",
 				j.Name(),
@@ -131,6 +133,8 @@ func (j Job) PreBackupLock() error {
 			fmt.Sprintf("pre-backup lock %s on %s", j.name, j.instanceIdentifier),
 		)
 		if err != nil {
+			j.Logger.Error("bbr", "Error locking %s on %s.", j.name, j.instanceIdentifier)
+
 			return errors.Wrap(err, fmt.Sprintf(
 				"Error attempting to run pre-backup-lock for job %s on %s",
 				j.Name(),
@@ -154,6 +158,8 @@ func (j Job) PostBackupUnlock() error {
 			fmt.Sprintf("post-backup unlock %s on %s", j.name, j.instanceIdentifier),
 		)
 		if err != nil {
+			j.Logger.Error("bbr", "Error unlocking %s on %s.", j.name, j.instanceIdentifier)
+
 			return errors.Wrap(err, fmt.Sprintf(
 				"Error attempting to run post-backup-unlock for job %s on %s",
 				j.Name(),
@@ -177,6 +183,8 @@ func (j Job) PreRestoreLock() error {
 			fmt.Sprintf("pre-restore lock %s on %s", j.name, j.instanceIdentifier),
 		)
 		if err != nil {
+			j.Logger.Error("bbr", "Error locking %s on %s.", j.name, j.instanceIdentifier)
+
 			return errors.Wrap(err, fmt.Sprintf(
 				"Error attempting to run pre-restore-lock for job %s on %s",
 				j.Name(),
@@ -201,6 +209,8 @@ func (j Job) Restore() error {
 			fmt.Sprintf("restore %s on %s", j.name, j.instanceIdentifier),
 		)
 		if err != nil {
+			j.Logger.Error("bbr", "Error restoring %s on %s.", j.name, j.instanceIdentifier)
+
 			return errors.Wrap(err, fmt.Sprintf(
 				"Error attempting to run restore for job %s on %s",
 				j.Name(),
@@ -224,6 +234,8 @@ func (j Job) PostRestoreUnlock() error {
 			fmt.Sprintf("post-restore unlock %s on %s", j.name, j.instanceIdentifier),
 		)
 		if err != nil {
+			j.Logger.Error("bbr", "Error unlocking %s on %s.", j.name, j.instanceIdentifier)
+
 			return errors.Wrap(err, fmt.Sprintf(
 				"Error attempting to run post-restore-unlock for job %s on %s",
 				j.Name(),
