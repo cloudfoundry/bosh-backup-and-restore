@@ -8,14 +8,13 @@ import (
 	"os"
 	"path"
 
-	sha256 "crypto/sha256"
+	"crypto/sha256"
 	"time"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/pkg/errors"
 )
 
-const tag = "[artifact]"
 const timestampFormat = "2006/01/02 15:04:05 MST"
 
 type BackupDirectory struct {
@@ -25,7 +24,7 @@ type BackupDirectory struct {
 
 func (backupDirectory *BackupDirectory) logAndReturn(err error, message string, args ...interface{}) error {
 	message = fmt.Sprintf(message, args...)
-	backupDirectory.Debug(tag, "%s: %v", message, err)
+	backupDirectory.Debug("bbr", "%s: %v", message, err)
 	return errors.Wrap(err, message)
 }
 
@@ -42,7 +41,7 @@ func (backupDirectory *BackupDirectory) DeploymentMatches(deployment string, ins
 	for _, inst := range meta.MetadataForEachInstance {
 		present := backupDirectory.backupInstanceIsPresent(inst, instances)
 		if present != true {
-			backupDirectory.Debug(tag, "Instance %v/%v not found in %v", inst.Name, inst.Index, instances)
+			backupDirectory.Debug("bbr", "Instance %v/%v not found in %v", inst.Name, inst.Index, instances)
 			return false, nil
 		}
 	}
@@ -51,7 +50,7 @@ func (backupDirectory *BackupDirectory) DeploymentMatches(deployment string, ins
 }
 
 func (backupDirectory *BackupDirectory) CreateArtifact(artifactIdentifier orchestrator.ArtifactIdentifier) (io.WriteCloser, error) {
-	backupDirectory.Debug(tag, "Trying to create file %s", fileName(artifactIdentifier))
+	backupDirectory.Debug("bbr", "Trying to create file %s", fileName(artifactIdentifier))
 
 	file, err := os.Create(path.Join(backupDirectory.baseDirName, fileName(artifactIdentifier)))
 	if err != nil {
@@ -64,10 +63,10 @@ func (backupDirectory *BackupDirectory) CreateArtifact(artifactIdentifier orches
 
 func (backupDirectory *BackupDirectory) ReadArtifact(artifactIdentifier orchestrator.ArtifactIdentifier) (io.ReadCloser, error) {
 	filename := backupDirectory.instanceFilename(artifactIdentifier)
-	backupDirectory.Debug(tag, "Trying to open %s", filename)
+	backupDirectory.Debug("bbr", "Trying to open %s", filename)
 	file, err := os.Open(filename)
 	if err != nil {
-		backupDirectory.Debug(tag, "Error reading artifact file %s", filename)
+		backupDirectory.Debug("bbr", "Error reading artifact file %s", filename)
 		return nil, backupDirectory.logAndReturn(err, "Error reading artifact file %s", filename)
 	}
 
@@ -99,7 +98,7 @@ func (backupDirectory *BackupDirectory) FetchChecksum(artifactIdentifier orchest
 		}
 	}
 
-	backupDirectory.Warn(tag, "Checksum for %s not found in artifact", logName(artifactIdentifier))
+	backupDirectory.Warn("bbr", "Checksum for %s not found in artifact", logName(artifactIdentifier))
 	return nil, nil
 }
 
@@ -135,7 +134,7 @@ func (backupDirectory *BackupDirectory) CalculateChecksum(artifactIdentifier orc
 		if _, err := io.Copy(fileShasum, tarReader); err != nil {
 			return nil, backupDirectory.logAndReturn(err, "Error calculating sha for %s", logName(artifactIdentifier))
 		}
-		backupDirectory.Logger.Debug(tag, "Calculating shasum for local file %s", tarHeader.Name)
+		backupDirectory.Logger.Debug("bbr", "Calculating shasum for local file %s", tarHeader.Name)
 		checksum[tarHeader.Name] = fmt.Sprintf("%x", fileShasum.Sum(nil))
 	}
 
@@ -172,7 +171,7 @@ func (backupDirectory *BackupDirectory) CreateMetadataFileWithStartTime(startTim
 	exists, _ := backupDirectory.metadataExistsAndIsReadable()
 	if exists {
 		message := "metadata file already exists"
-		backupDirectory.Debug(tag, "%s: %v", message, nil)
+		backupDirectory.Debug("bbr", "%s: %v", message, nil)
 		return errors.New(message)
 	}
 
@@ -190,7 +189,7 @@ func (backupDirectory *BackupDirectory) AddFinishTime(finishTime time.Time) erro
 	metadata, err := readMetadata(backupDirectory.metadataFilename())
 	if err != nil {
 		message := "unable to load metadata"
-		backupDirectory.Debug(tag, "%s: %v", message, nil)
+		backupDirectory.Debug("bbr", "%s: %v", message, nil)
 		return backupDirectory.logAndReturn(err, message)
 	}
 
