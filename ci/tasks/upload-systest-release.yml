@@ -20,4 +20,4 @@ params:
   RELEASE_NAME:
 
 run:
-  path: src/github.com/cloudfoundry-incubator/bosh-backup-and-restore/ci/scripts/deploy-systest-release.sh
+  path: src/github.com/cloudfoundry-incubator/bosh-backup-and-restore/ci/scripts/upload-systest-release.sh
