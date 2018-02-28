@@ -299,7 +299,7 @@ backup_should_be_locked_before:
 
 					stdin.Write([]byte("yes\n"))
 
-					By("waiting for the backup to finish successfully", func() {
+					By("waiting for the backup to exit", func() {
 						Eventually(session, 10).Should(gexec.Exit(1))
 					})
 
@@ -308,8 +308,7 @@ backup_should_be_locked_before:
 					})
 
 					By("not completing the backup", func() {
-						boshBackupFilePath := path.Join(backupDirectory(), "/bosh-0-bosh.tar")
-						Expect(boshBackupFilePath).NotTo(BeAnExistingFile())
+						Expect(possibleBackupDirectories()).To(HaveLen(0))
 					})
 				})
 			})
