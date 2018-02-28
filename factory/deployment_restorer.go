@@ -2,9 +2,9 @@ package factory
 
 import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/jobexecutor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orderer"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/jobexecutor"
 )
 
 func BuildDeploymentRestorer(target,
@@ -27,5 +27,5 @@ func BuildDeploymentRestorer(target,
 		return nil, err
 	}
 
-	return orchestrator.NewRestorer(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewKahnRestoreLockOrderer(), jobexecutor.NewSerialJobExecutor()), nil
+	return orchestrator.NewRestorer(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewKahnRestoreLockOrderer(), jobexecutor.NewParallelJobExecutor()), nil
 }
