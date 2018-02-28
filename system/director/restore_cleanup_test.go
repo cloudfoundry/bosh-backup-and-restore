@@ -28,7 +28,8 @@ var _ = Describe("Director restore cleanup", func() {
 
 			JumpboxInstance.Copy(MustHaveEnv("SSH_KEY"), workspaceDir+"/key.pem")
 			Eventually(JumpboxInstance.RunCommandAs("vcap",
-				fmt.Sprintf("sudo chmod 400 %s", workspaceDir+"/key.pem"),
+				fmt.Sprintf("sudo chmod 400 %s && sudo chown vcap:vcap %s",
+					workspaceDir+"/key.pem", workspaceDir+"/key.pem"),
 			)).Should(gexec.Exit(0))
 			JumpboxInstance.Copy(commandPath, workspaceDir)
 		})
@@ -71,6 +72,12 @@ var _ = Describe("Director restore cleanup", func() {
 					workspaceDir,
 					directorIP,
 				))).Should(gexec.Exit(0))
+		})
+
+		By("removing the restore cleanup workspace", func() {
+			Eventually(JumpboxInstance.RunCommandAs("vcap",
+				fmt.Sprintf("sudo rm -rf %s", workspaceDir),
+			)).Should(gexec.Exit(0))
 		})
 	})
 
