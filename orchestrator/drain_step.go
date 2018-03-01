@@ -14,6 +14,6 @@ func NewDrainStep(logger Logger) Step {
 
 func (s *DrainStep) Run(session *Session) error {
 	defer s.logger.Info("bbr", "Backup created of %s on %v\n", session.DeploymentName(), time.Now())
-	return session.CurrentDeployment().CopyRemoteBackupToLocal(session.CurrentArtifact())
+	return session.CurrentDeployment().CopyRemoteBackupToLocalParallel(session.CurrentArtifact())
 
 }

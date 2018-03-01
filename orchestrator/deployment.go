@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"io"
 )
 
 const ArtifactDirectory = "/var/vcap/store/bbr-backup"
@@ -21,6 +22,7 @@ type Deployment interface {
 	PostBackupUnlock(orderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error
 	Restore() error
 	CopyRemoteBackupToLocal(Backup) error
+	CopyRemoteBackupToLocalParallel(Backup) error
 	CopyLocalBackupToRemote(Backup) error
 	Cleanup() error
 	CleanupPrevious() error
@@ -202,6 +204,97 @@ func (bd *deployment) CustomArtifactNamesMatch() error {
 		}
 	}
 	return nil
+}
+
+func (bd *deployment) CopyRemoteBackupToLocalParallel(backup Backup) error {
+	var errs []error
+	instances := bd.instances.AllBackupable()
+	for _, instance := range instances {
+		copies := make(chan ArtifactCopy, len(instance.ArtifactsToBackup()))
+
+		for _, backupArtifact := range instance.ArtifactsToBackup() {
+			go func(b BackupArtifact) {
+				var (
+					artifactCopy                  ArtifactCopy
+					size                          string
+					w                             io.WriteCloser
+					localChecksum, remoteChecksum BackupChecksum
+				)
+
+				w, artifactCopy.err = backup.CreateArtifact(b)
+				if artifactCopy.err != nil {
+					copies <- artifactCopy
+					return
+				}
+
+				size, artifactCopy.err = b.Size()
+				if artifactCopy.err != nil {
+					copies <- artifactCopy
+					return
+				}
+
+				bd.Logger.Info("bbr", "Copying backup -- %s uncompressed -- from %s/%s...", size, instance.Name(), instance.ID())
+				artifactCopy.err = b.StreamFromRemote(w)
+				if artifactCopy.err != nil {
+					copies <- artifactCopy
+					return
+				}
+
+				artifactCopy.err = w.Close()
+				if artifactCopy.err != nil {
+					copies <- artifactCopy
+					return
+				}
+				bd.Logger.Info("bbr", "Finished copying backup -- from %s/%s...", instance.Name(), instance.ID())
+
+				bd.Logger.Info("bbr", "Starting validity checks")
+				localChecksum, artifactCopy.err = backup.CalculateChecksum(b)
+				if artifactCopy.err != nil {
+					copies <- artifactCopy
+					return
+				}
+
+				remoteChecksum, artifactCopy.err = b.Checksum()
+				if artifactCopy.err != nil {
+					copies <- artifactCopy
+					return
+				}
+				bd.Logger.Debug("bbr", "Comparing shasums")
+
+				match, mismatchedFiles := localChecksum.Match(remoteChecksum)
+				if !match {
+					bd.Logger.Debug("bbr", "Checksums didn't match for:")
+					bd.Logger.Debug("bbr", fmt.Sprintf("%v\n", mismatchedFiles))
+					artifactCopy.err = errors.Errorf("Backup is corrupted, checksum failed for %s/%s %s - checksums don't match for %v. Checksum failed for %d files in total", instance.Name(), instance.ID(), b.Name(), getFirstTen(mismatchedFiles), len(mismatchedFiles))
+					copies <- artifactCopy
+					return
+				}
+
+				artifactCopy.backupArtifact = b
+				artifactCopy.checksum = localChecksum
+				artifactCopy.err = nil
+				copies <- artifactCopy
+				bd.Logger.Info("bbr", "Finished validity checks")
+
+			}(backupArtifact)
+
+		}
+
+		for range instance.ArtifactsToBackup() {
+			artifactCopy := <-copies
+			if artifactCopy.err != nil {
+				errs = append(errs, artifactCopy.err)
+			} else {
+				backup.AddChecksum(artifactCopy.backupArtifact, artifactCopy.checksum)
+				err := artifactCopy.backupArtifact.Delete()
+				if err != nil {
+					errs = append(errs, err)
+				}
+			}
+		}
+	}
+
+	return ConvertErrors(errs)
 }
 
 func (bd *deployment) CopyRemoteBackupToLocal(backup Backup) error {
