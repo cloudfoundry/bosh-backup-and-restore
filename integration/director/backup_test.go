@@ -286,20 +286,18 @@ backup_should_be_locked_before:
 
 			Context("and the user decides to cancel the backup", func() {
 				It("terminates", func() {
+					time.Sleep(time.Second * 4)
 					session.Interrupt()
 
-					By("not terminating", func() {
+					By("printing a helpful message and waiting for user input", func() {
 						time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
 						Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
-					})
-
-					By("outputting a helpful message", func() {
 						Eventually(session).Should(gbytes.Say(`Stopping a backup can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
 					})
 
 					stdin.Write([]byte("yes\n"))
 
-					By("waiting for the backup to exit", func() {
+					By("then exiting with a failure", func() {
 						Eventually(session, 10).Should(gexec.Exit(1))
 					})
 
@@ -307,23 +305,22 @@ backup_should_be_locked_before:
 						Eventually(session).Should(gbytes.Say("It is recommended that you run `bbr backup-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."))
 					})
 
-					By("not completing the backup", func() {
-						Expect(possibleBackupDirectories()).To(HaveLen(0))
+					By("not creating an artifact tar from the interrupted director backup script", func() {
+						boshBackupFilePath := path.Join(backupDirectory(), "/bosh-0-bosh.tar")
+						Expect(boshBackupFilePath).NotTo(BeAnExistingFile())
 					})
 				})
 			})
 
-			Context("and the user decides not to to cancel the backup", func() {
+			Context("and the user decides to continue backup", func() {
 				It("continues to run", func() {
 					session.Interrupt()
 
-					By("not terminating", func() {
+					By("printing a helpful message and waiting for user input", func() {
 						time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
 						Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
-					})
-
-					By("outputting a helpful message", func() {
 						Eventually(session).Should(gbytes.Say(`Stopping a backup can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
+						Expect(string(session.Out.Contents())).To(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
 					})
 
 					stdin.Write([]byte("no\n"))

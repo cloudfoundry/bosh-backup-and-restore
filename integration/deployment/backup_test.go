@@ -172,7 +172,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 						set -u
 
-						sleep 2
+						sleep 5
 
 						printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
 					`)
@@ -184,24 +184,19 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 
 					It("terminates", func() {
+						time.Sleep(time.Second * 4)
 						session.Interrupt()
 
-						By("not terminating", func() {
+						By("printing a helpful message and waiting for user input", func() {
 							time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
 							Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
-						})
-
-						By("outputting a helpful message", func() {
 							Eventually(session).Should(gbytes.Say(`Stopping a backup can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
-						})
-
-						By("buffering the logs", func() {
 							Expect(string(session.Out.Contents())).To(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
 						})
 
 						stdin.Write([]byte("yes\n"))
 
-						By("waiting for the backup to finish successfully", func() {
+						By("then exiting with a failure", func() {
 							Eventually(session, 10).Should(gexec.Exit(1))
 						})
 
@@ -209,26 +204,21 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 							Eventually(session).Should(gbytes.Say("It is recommended that you run `bbr backup-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."))
 						})
 
-						By("not completing the backup", func() {
-							Expect(possibleBackupDirectories()).To(HaveLen(0))
+						By("not creating an artifact tar from the interrupted backup script", func() {
+							boshBackupFilePath := path.Join(backupDirectory(), "/redis-dedicated-node-0-redis.tar")
+							Expect(boshBackupFilePath).NotTo(BeAnExistingFile())
 						})
 					})
 				})
 
-				Context("and the user decides not to to cancel the backup", func() {
+				Context("and the user decides to continue backup", func() {
 					It("continues to run", func() {
 						session.Interrupt()
 
-						By("not terminating", func() {
+						By("printing a helpful message and waiting for user input", func() {
 							time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
 							Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
-						})
-
-						By("outputting a helpful message", func() {
 							Eventually(session).Should(gbytes.Say(`Stopping a backup can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
-						})
-
-						By("buffering the logs", func() {
 							Expect(string(session.Out.Contents())).To(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
 						})
 
@@ -244,11 +234,6 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 							Expect(archive.Files()).To(ConsistOf("backupdump1"))
 							Expect(archive.FileContents("backupdump1")).To(Equal("backupcontent1"))
 						})
-
-						By("should output buffered logs", func() {
-							Expect(string(session.Out.Contents())).NotTo(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
-						})
-
 					})
 				})
 			})
