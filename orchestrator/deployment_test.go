@@ -84,19 +84,19 @@ var _ = Describe("Deployment", func() {
 			lockError = deployment.PreBackupLock(lockOrderer, jobexecutor.NewSerialJobExecutor())
 		})
 
-		It("does not fail", func() {
+		It("succeeds", func() {
 			Expect(lockError).NotTo(HaveOccurred())
-		})
 
-		It("locks the jobs in the order specified by the orderer", func() {
-			Expect(lockOrderer.OrderArgsForCall(0)).To(ConsistOf(job1a, job1b, job2a, job3a))
+			By("locking the jobs in the order specified by the orderer", func() {
+				Expect(lockOrderer.OrderArgsForCall(0)).To(ConsistOf(job1a, job1b, job2a, job3a))
 
-			Expect(job1a.PreBackupLockCallCount()).To(Equal(1))
-			Expect(job1b.PreBackupLockCallCount()).To(Equal(1))
-			Expect(job2a.PreBackupLockCallCount()).To(Equal(1))
-			Expect(job3a.PreBackupLockCallCount()).To(Equal(1))
+				Expect(job1a.PreBackupLockCallCount()).To(Equal(1))
+				Expect(job1b.PreBackupLockCallCount()).To(Equal(1))
+				Expect(job2a.PreBackupLockCallCount()).To(Equal(1))
+				Expect(job3a.PreBackupLockCallCount()).To(Equal(1))
 
-			Expect(orderedListOfLockedJobs).To(Equal([]string{"job2a", "job3a", "job1a", "job1b"}))
+				Expect(orderedListOfLockedJobs).To(Equal([]string{"job2a", "job3a", "job1a", "job1b"}))
+			})
 		})
 
 		Context("if the pre-backup-lock fails", func() {
@@ -137,10 +137,8 @@ var _ = Describe("Deployment", func() {
 				instance1.IsBackupableReturns(true)
 				instances = []orchestrator.Instance{instance1}
 			})
-			It("does not fail", func() {
+			It("succeeds and backs up the instance", func() {
 				Expect(backupError).NotTo(HaveOccurred())
-			})
-			It("backs up the instance", func() {
 				Expect(instance1.BackupCallCount()).To(Equal(1))
 			})
 		})
@@ -151,10 +149,9 @@ var _ = Describe("Deployment", func() {
 				instance2.IsBackupableReturns(true)
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
-			It("does not fail", func() {
+			It("succeeds and backs up all the instances", func() {
 				Expect(backupError).NotTo(HaveOccurred())
-			})
-			It("backs up the only the backupable instance", func() {
+
 				Expect(instance1.BackupCallCount()).To(Equal(1))
 				Expect(instance2.BackupCallCount()).To(Equal(1))
 			})
@@ -165,14 +162,15 @@ var _ = Describe("Deployment", func() {
 				instance2.IsBackupableReturns(false)
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
-			It("does not fail", func() {
+			It("succeeds", func() {
 				Expect(backupError).NotTo(HaveOccurred())
-			})
-			It("backs up the only the backupable instance", func() {
-				Expect(instance1.BackupCallCount()).To(Equal(1))
-			})
-			It("does not back up the non backupable instance", func() {
-				Expect(instance2.BackupCallCount()).To(Equal(0))
+
+				By("backing up the only the backupable instance", func() {
+					Expect(instance1.BackupCallCount()).To(Equal(1))
+				})
+				By("not backing up the non backupable instance", func() {
+					Expect(instance2.BackupCallCount()).To(Equal(0))
+				})
 			})
 		})
 
@@ -184,11 +182,9 @@ var _ = Describe("Deployment", func() {
 				instance1.BackupReturns(backupError)
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
-			It("does not fail", func() {
+			It("fails and stops the backup", func() {
 				Expect(backupError).To(MatchError("very clever sandwich"))
-			})
 
-			It("stops invoking backup, after the error", func() {
 				Expect(instance1.BackupCallCount()).To(Equal(1))
 				Expect(instance2.BackupCallCount()).To(Equal(0))
 			})
@@ -227,19 +223,19 @@ var _ = Describe("Deployment", func() {
 			unlockError = deployment.PostBackupUnlock(lockOrderer, jobexecutor.NewSerialJobExecutor())
 		})
 
-		It("does not fail", func() {
+		It("succeeds", func() {
 			Expect(unlockError).NotTo(HaveOccurred())
-		})
 
-		It("unlocks the jobs in the reverse order to that specified by the orderer", func() {
-			Expect(lockOrderer.OrderArgsForCall(0)).To(ConsistOf(job1a, job1b, job2a, job3a))
+			By("unlocking the jobs in the reverse order to that specified by the orderer", func() {
+				Expect(lockOrderer.OrderArgsForCall(0)).To(ConsistOf(job1a, job1b, job2a, job3a))
 
-			Expect(job1a.PostBackupUnlockCallCount()).To(Equal(1))
-			Expect(job1b.PostBackupUnlockCallCount()).To(Equal(1))
-			Expect(job2a.PostBackupUnlockCallCount()).To(Equal(1))
-			Expect(job3a.PostBackupUnlockCallCount()).To(Equal(1))
+				Expect(job1a.PostBackupUnlockCallCount()).To(Equal(1))
+				Expect(job1b.PostBackupUnlockCallCount()).To(Equal(1))
+				Expect(job2a.PostBackupUnlockCallCount()).To(Equal(1))
+				Expect(job3a.PostBackupUnlockCallCount()).To(Equal(1))
 
-			Expect(orderedListOfUnlockedJobs).To(Equal([]string{"job1b", "job3a", "job1a", "job2a"}))
+				Expect(orderedListOfUnlockedJobs).To(Equal([]string{"job1b", "job3a", "job1a", "job2a"}))
+			})
 		})
 
 		Context("if the post-backup-unlock fails", func() {
@@ -280,11 +276,8 @@ var _ = Describe("Deployment", func() {
 				instances = []orchestrator.Instance{instance1}
 			})
 
-			It("checks if the instance has a backup script", func() {
+			It("checks for backup scripts and returns true", func() {
 				Expect(instance1.IsBackupableCallCount()).To(Equal(1))
-			})
-
-			It("returns true", func() {
 				Expect(IsBackupable).To(BeTrue())
 			})
 		})
@@ -512,17 +505,17 @@ var _ = Describe("Deployment", func() {
 				instances = []orchestrator.Instance{instance1}
 			})
 
-			It("does not fail", func() {
+			It("succeeds", func() {
 				Expect(restoreError).NotTo(HaveOccurred())
-			})
 
-			It("restores the instance", func() {
-				Expect(instance1.RestoreCallCount()).To(Equal(1))
-			})
+				By("restoring the instance", func() {
+					Expect(instance1.RestoreCallCount()).To(Equal(1))
+				})
 
-			It("logs before restoring", func() {
-				_, message, _ := logger.InfoArgsForCall(0)
-				Expect(message).To(Equal("Running restore scripts..."))
+				By("logging before restoring", func() {
+					_, message, _ := logger.InfoArgsForCall(0)
+					Expect(message).To(Equal("Running restore scripts..."))
+				})
 			})
 		})
 
@@ -532,11 +525,8 @@ var _ = Describe("Deployment", func() {
 				instances = []orchestrator.Instance{instance1}
 			})
 
-			It("does not fail", func() {
+			It("succeeds and does not restore the instance", func() {
 				Expect(restoreError).NotTo(HaveOccurred())
-			})
-
-			It("restores the instance", func() {
 				Expect(instance1.RestoreCallCount()).To(Equal(0))
 			})
 		})
@@ -548,11 +538,8 @@ var _ = Describe("Deployment", func() {
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
-			It("does not fail", func() {
+			It("succeeds and restores all instances", func() {
 				Expect(restoreError).NotTo(HaveOccurred())
-			})
-
-			It("backs up the only the restoreable instance", func() {
 				Expect(instance1.RestoreCallCount()).To(Equal(1))
 				Expect(instance2.RestoreCallCount()).To(Equal(1))
 			})
@@ -565,16 +552,16 @@ var _ = Describe("Deployment", func() {
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
-			It("does not fail", func() {
+			It("succeeds", func() {
 				Expect(restoreError).NotTo(HaveOccurred())
-			})
 
-			It("backs up the only the restorable instance", func() {
-				Expect(instance1.RestoreCallCount()).To(Equal(1))
-			})
+				By("restoring only the restorable instance", func() {
+					Expect(instance1.RestoreCallCount()).To(Equal(1))
+				})
 
-			It("does not back up the non restorable instance", func() {
-				Expect(instance2.RestoreCallCount()).To(Equal(0))
+				By("not restoring the non restorable instance", func() {
+					Expect(instance2.RestoreCallCount()).To(Equal(0))
+				})
 			})
 		})
 
@@ -1044,15 +1031,9 @@ var _ = Describe("Deployment", func() {
 				instances = []orchestrator.Instance{instance1}
 			})
 
-			It("does not fail", func() {
+			It("succeeds and returns true", func() {
 				Expect(isRestorableError).NotTo(HaveOccurred())
-			})
-
-			It("checks if the instance is restorable", func() {
 				Expect(instance1.IsRestorableCallCount()).To(Equal(1))
-			})
-
-			It("returns true if the instance is restorable", func() {
 				Expect(isRestorable).To(BeTrue())
 			})
 		})
@@ -1062,15 +1043,9 @@ var _ = Describe("Deployment", func() {
 				instances = []orchestrator.Instance{instance1}
 			})
 
-			It("does not fail", func() {
+			It("succeeds and returns false", func() {
 				Expect(isRestorableError).NotTo(HaveOccurred())
-			})
-
-			It("checks if the instance is restorable", func() {
 				Expect(instance1.IsRestorableCallCount()).To(Equal(1))
-			})
-
-			It("returns true if any instance is restorable", func() {
 				Expect(isRestorable).To(BeFalse())
 			})
 		})
@@ -1081,27 +1056,22 @@ var _ = Describe("Deployment", func() {
 				instance2.IsRestorableReturns(true)
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
-			It("does not fail", func() {
+			It("succeeds and returns true", func() {
 				Expect(isRestorableError).NotTo(HaveOccurred())
-			})
-
-			It("returns true if any instance is restorable", func() {
 				Expect(instance1.IsRestorableCallCount()).To(Equal(1))
 				Expect(instance2.IsRestorableCallCount()).To(Equal(1))
 				Expect(isRestorable).To(BeTrue())
 			})
 		})
+
 		Context("Multiple instances, none restorable", func() {
 			BeforeEach(func() {
 				instance1.IsRestorableReturns(false)
 				instance2.IsRestorableReturns(false)
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
-			It("does not fail", func() {
+			It("succeeds and returns false", func() {
 				Expect(isRestorableError).NotTo(HaveOccurred())
-			})
-
-			It("returns true if any instance is restorable", func() {
 				Expect(instance1.IsRestorableCallCount()).To(Equal(1))
 				Expect(instance2.IsRestorableCallCount()).To(Equal(1))
 				Expect(isRestorable).To(BeFalse())
@@ -1121,10 +1091,8 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instances = []orchestrator.Instance{instance1}
 			})
-			It("does not fail", func() {
+			It("succeeds and runs cleanup", func() {
 				Expect(actualCleanupError).NotTo(HaveOccurred())
-			})
-			It("cleans up the instance", func() {
 				Expect(instance1.CleanupCallCount()).To(Equal(1))
 			})
 		})
@@ -1133,10 +1101,8 @@ var _ = Describe("Deployment", func() {
 			BeforeEach(func() {
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
-			It("does not fail", func() {
+			It("succeeds and runs cleanup", func() {
 				Expect(actualCleanupError).NotTo(HaveOccurred())
-			})
-			It("cleanup all the instances", func() {
 				Expect(instance1.CleanupCallCount()).To(Equal(1))
 				Expect(instance2.CleanupCallCount()).To(Equal(1))
 			})
@@ -1150,11 +1116,8 @@ var _ = Describe("Deployment", func() {
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
-			It("fails", func() {
+			It("fails and continues cleanup of instances", func() {
 				Expect(actualCleanupError).To(MatchError(ContainSubstring(cleanupError1.Error())))
-			})
-
-			It("continues cleanup of instances", func() {
 				Expect(instance1.CleanupCallCount()).To(Equal(1))
 				Expect(instance2.CleanupCallCount()).To(Equal(1))
 			})
@@ -1169,14 +1132,16 @@ var _ = Describe("Deployment", func() {
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
-			It("fails with both error messages", func() {
-				Expect(actualCleanupError).To(MatchError(ContainSubstring(cleanupError1.Error())))
-				Expect(actualCleanupError).To(MatchError(ContainSubstring(cleanupError2.Error())))
-			})
+			It("fails", func() {
+				By("returning both error messages", func() {
+					Expect(actualCleanupError).To(MatchError(ContainSubstring(cleanupError1.Error())))
+					Expect(actualCleanupError).To(MatchError(ContainSubstring(cleanupError2.Error())))
+				})
 
-			It("continues cleanup of instances", func() {
-				Expect(instance1.CleanupCallCount()).To(Equal(1))
-				Expect(instance2.CleanupCallCount()).To(Equal(1))
+				By("continuing cleanup of instances", func() {
+					Expect(instance1.CleanupCallCount()).To(Equal(1))
+					Expect(instance2.CleanupCallCount()).To(Equal(1))
+				})
 			})
 		})
 	})
@@ -1195,36 +1160,32 @@ var _ = Describe("Deployment", func() {
 				instance1.IsRestorableReturns(false)
 				instances = []orchestrator.Instance{instance1}
 			})
-			It("does not fail", func() {
+			It("succeeds and cleans up the instance", func() {
 				Expect(actualCleanupError).NotTo(HaveOccurred())
-			})
-			It("cleans up the instance", func() {
 				Expect(instance1.CleanupPreviousCallCount()).To(Equal(1))
 			})
 		})
+
 		Context("Single instance is restorable", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(false)
 				instance1.IsRestorableReturns(true)
 				instances = []orchestrator.Instance{instance1}
 			})
-			It("does not fail", func() {
+			It("succeeds and cleans up the instance", func() {
 				Expect(actualCleanupError).NotTo(HaveOccurred())
-			})
-			It("cleans up the instance", func() {
 				Expect(instance1.CleanupPreviousCallCount()).To(Equal(1))
 			})
 		})
+
 		Context("Single instance is neither backupable nor restorable", func() {
 			BeforeEach(func() {
 				instance1.IsBackupableReturns(false)
 				instance1.IsRestorableReturns(false)
 				instances = []orchestrator.Instance{instance1}
 			})
-			It("does not fail", func() {
+			It("succeeds and does not run cleanup", func() {
 				Expect(actualCleanupError).NotTo(HaveOccurred())
-			})
-			It("does not clean up the instance", func() {
 				Expect(instance1.CleanupPreviousCallCount()).To(Equal(0))
 			})
 		})
@@ -1239,10 +1200,8 @@ var _ = Describe("Deployment", func() {
 
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
-			It("does not fail", func() {
+			It("succeeds and cleanup all the instances", func() {
 				Expect(actualCleanupError).NotTo(HaveOccurred())
-			})
-			It("cleanup all the instances", func() {
 				Expect(instance1.CleanupPreviousCallCount()).To(Equal(1))
 				Expect(instance2.CleanupPreviousCallCount()).To(Equal(1))
 			})
@@ -1258,10 +1217,8 @@ var _ = Describe("Deployment", func() {
 
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
-			It("does not fail", func() {
+			It("succeeds and cleanup all the instances", func() {
 				Expect(actualCleanupError).NotTo(HaveOccurred())
-			})
-			It("cleanup all the instances", func() {
 				Expect(instance1.CleanupPreviousCallCount()).To(Equal(1))
 				Expect(instance2.CleanupPreviousCallCount()).To(Equal(1))
 			})
@@ -1277,10 +1234,8 @@ var _ = Describe("Deployment", func() {
 
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
-			It("does not fail", func() {
+			It("succeeds and does not run cleanup", func() {
 				Expect(actualCleanupError).NotTo(HaveOccurred())
-			})
-			It("cleanup none of the instances", func() {
 				Expect(instance1.CleanupPreviousCallCount()).To(Equal(0))
 				Expect(instance2.CleanupPreviousCallCount()).To(Equal(0))
 			})
@@ -1299,10 +1254,8 @@ var _ = Describe("Deployment", func() {
 
 				instances = []orchestrator.Instance{instance1, instance2, instance3}
 			})
-			It("does not fail", func() {
+			It("succeeds and calls cleanup on the instances", func() {
 				Expect(actualCleanupError).NotTo(HaveOccurred())
-			})
-			It("cleanup backupable or restoreable the instances", func() {
 				Expect(instance1.CleanupPreviousCallCount()).To(Equal(1))
 				Expect(instance2.CleanupPreviousCallCount()).To(Equal(1))
 				Expect(instance3.CleanupPreviousCallCount()).To(Equal(0))
@@ -1319,11 +1272,8 @@ var _ = Describe("Deployment", func() {
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
-			It("fails", func() {
+			It("fails and continues cleanup of instances", func() {
 				Expect(actualCleanupError).To(MatchError(ContainSubstring(cleanupError1.Error())))
-			})
-
-			It("continues cleanup of instances", func() {
 				Expect(instance1.CleanupPreviousCallCount()).To(Equal(1))
 				Expect(instance2.CleanupPreviousCallCount()).To(Equal(1))
 			})
@@ -1340,14 +1290,16 @@ var _ = Describe("Deployment", func() {
 				instances = []orchestrator.Instance{instance1, instance2}
 			})
 
-			It("fails with both error messages", func() {
-				Expect(actualCleanupError).To(MatchError(ContainSubstring(cleanupError1.Error())))
-				Expect(actualCleanupError).To(MatchError(ContainSubstring(cleanupError2.Error())))
-			})
+			It("fails", func() {
+				By("accumulating both error messages", func() {
+					Expect(actualCleanupError).To(MatchError(ContainSubstring(cleanupError1.Error())))
+					Expect(actualCleanupError).To(MatchError(ContainSubstring(cleanupError2.Error())))
+				})
 
-			It("continues cleanup of instances", func() {
-				Expect(instance1.CleanupPreviousCallCount()).To(Equal(1))
-				Expect(instance2.CleanupPreviousCallCount()).To(Equal(1))
+				By("continuing cleanup of instances", func() {
+					Expect(instance1.CleanupPreviousCallCount()).To(Equal(1))
+					Expect(instance2.CleanupPreviousCallCount()).To(Equal(1))
+				})
 			})
 		})
 	})
