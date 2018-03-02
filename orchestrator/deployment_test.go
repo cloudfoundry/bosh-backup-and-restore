@@ -1576,7 +1576,7 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails the transfer process", func() {
-					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(drainError))
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(ContainSubstring("please make it stop")))
 				})
 			})
 
@@ -1590,7 +1590,7 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails the backup process", func() {
-					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(fileError))
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(ContainSubstring("not a good file")))
 				})
 			})
 
@@ -1610,7 +1610,7 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails the backup process", func() {
-					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(shasumError))
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(ContainSubstring("yuuuge")))
 				})
 			})
 
@@ -1631,7 +1631,7 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails the backup process", func() {
-					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(remoteShasumError))
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(ContainSubstring("this shasum is not happy")))
 				})
 
 				It("dosen't try to append shasum to metadata", func() {
@@ -1695,7 +1695,7 @@ var _ = Describe("Deployment", func() {
 			Context("fails if unable to delete artifacts", func() {
 				var writeCloser1 *fakes.FakeWriteCloser
 				var instanceChecksum = orchestrator.BackupChecksum{"file1": "abcd", "file2": "efgh"}
-				var expectedError = fmt.Errorf("brr")
+				var expectedError = fmt.Errorf("unable to delete file error")
 
 				BeforeEach(func() {
 					writeCloser1 = new(fakes.FakeWriteCloser)
@@ -1714,12 +1714,12 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails the backup process", func() {
-					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(expectedError))
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(ContainSubstring("unable to delete file error")))
 				})
 			})
 		})
 
-		FContext("Many instances, failed checksum in one backable instance", func() {
+		Context("Many instances, failed checksum in one backable instance", func() {
 			var instanceChecksum = orchestrator.BackupChecksum{"file1": "abcd", "file2": "efgh"}
 			var writer1 *fakes.FakeWriteCloser
 			var writer2 *fakes.FakeWriteCloser
