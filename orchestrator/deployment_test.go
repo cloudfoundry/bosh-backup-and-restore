@@ -1372,7 +1372,7 @@ var _ = Describe("Deployment", func() {
 			backupArtifact = new(fakes.FakeBackupArtifact)
 		})
 		JustBeforeEach(func() {
-			copyRemoteBackupsToLocalArtifactError = deployment.CopyRemoteBackupToLocal(artifact)
+			copyRemoteBackupsToLocalArtifactError = deployment.CopyRemoteBackupToLocalParallel(artifact)
 		})
 
 		Context("One instance, backupable", func() {
@@ -1428,28 +1428,28 @@ var _ = Describe("Deployment", func() {
 
 		Context("Many instances, backupable", func() {
 			var instanceChecksum = orchestrator.BackupChecksum{"file1": "abcd", "file2": "efgh"}
-			var writeCloser1 *fakes.FakeWriteCloser
-			var writeCloser2 *fakes.FakeWriteCloser
+			var writer1 *fakes.FakeWriteCloser
+			var writer2 *fakes.FakeWriteCloser
 
-			var artifact1 *fakes.FakeBackupArtifact
-			var artifact2 *fakes.FakeBackupArtifact
+			var remoteArtifact1 *fakes.FakeBackupArtifact
+			var remoteArtifact2 *fakes.FakeBackupArtifact
 
 			BeforeEach(func() {
-				writeCloser1 = new(fakes.FakeWriteCloser)
-				writeCloser2 = new(fakes.FakeWriteCloser)
-				artifact1 = new(fakes.FakeBackupArtifact)
-				artifact2 = new(fakes.FakeBackupArtifact)
+				writer1 = new(fakes.FakeWriteCloser)
+				writer2 = new(fakes.FakeWriteCloser)
+				remoteArtifact1 = new(fakes.FakeBackupArtifact)
+				remoteArtifact2 = new(fakes.FakeBackupArtifact)
 
 				artifact.CreateArtifactStub = func(i orchestrator.ArtifactIdentifier) (io.WriteCloser, error) {
-					if i == artifact1 {
-						return writeCloser1, nil
+					if i == remoteArtifact1 {
+						return writer1, nil
 					} else {
-						return writeCloser2, nil
+						return writer2, nil
 					}
 				}
 
-				instance1.ArtifactsToBackupReturns([]orchestrator.BackupArtifact{artifact1})
-				instance2.ArtifactsToBackupReturns([]orchestrator.BackupArtifact{artifact2})
+				instance1.ArtifactsToBackupReturns([]orchestrator.BackupArtifact{remoteArtifact1})
+				instance2.ArtifactsToBackupReturns([]orchestrator.BackupArtifact{remoteArtifact2})
 
 				instance1.IsBackupableReturns(true)
 				instance2.IsBackupableReturns(true)
@@ -1457,52 +1457,52 @@ var _ = Describe("Deployment", func() {
 				artifact.CalculateChecksumReturns(instanceChecksum, nil)
 
 				instances = []orchestrator.Instance{instance1, instance2}
-				artifact1.ChecksumReturns(instanceChecksum, nil)
-				artifact2.ChecksumReturns(instanceChecksum, nil)
+				remoteArtifact1.ChecksumReturns(instanceChecksum, nil)
+				remoteArtifact2.ChecksumReturns(instanceChecksum, nil)
 			})
 			It("creates an artifact file with the instance", func() {
 				Expect(artifact.CreateArtifactCallCount()).To(Equal(2))
-				Expect(artifact.CreateArtifactArgsForCall(0)).To(Equal(artifact1))
-				Expect(artifact.CreateArtifactArgsForCall(1)).To(Equal(artifact2))
+				Expect(artifact.CreateArtifactArgsForCall(0)).To(Equal(remoteArtifact1))
+				Expect(artifact.CreateArtifactArgsForCall(1)).To(Equal(remoteArtifact2))
 			})
 
 			It("streams the backup to the writer for the artifact file", func() {
-				Expect(artifact1.StreamFromRemoteCallCount()).To(Equal(1))
-				Expect(artifact1.StreamFromRemoteArgsForCall(0)).To(Equal(writeCloser1))
+				Expect(remoteArtifact1.StreamFromRemoteCallCount()).To(Equal(1))
+				Expect(remoteArtifact1.StreamFromRemoteArgsForCall(0)).To(Equal(writer1))
 
-				Expect(artifact2.StreamFromRemoteCallCount()).To(Equal(1))
-				Expect(artifact2.StreamFromRemoteArgsForCall(0)).To(Equal(writeCloser2))
+				Expect(remoteArtifact2.StreamFromRemoteCallCount()).To(Equal(1))
+				Expect(remoteArtifact2.StreamFromRemoteArgsForCall(0)).To(Equal(writer2))
 			})
 
 			It("closes the writer after its been streamed", func() {
-				Expect(writeCloser1.CloseCallCount()).To(Equal(1))
-				Expect(writeCloser2.CloseCallCount()).To(Equal(1))
+				Expect(writer1.CloseCallCount()).To(Equal(1))
+				Expect(writer2.CloseCallCount()).To(Equal(1))
 			})
 
 			It("calculates checksum for the instance on the artifact", func() {
 				Expect(artifact.CalculateChecksumCallCount()).To(Equal(2))
-				Expect(artifact.CalculateChecksumArgsForCall(0)).To(Equal(artifact1))
-				Expect(artifact.CalculateChecksumArgsForCall(1)).To(Equal(artifact2))
+				Expect(artifact.CalculateChecksumArgsForCall(0)).To(Equal(remoteArtifact1))
+				Expect(artifact.CalculateChecksumArgsForCall(1)).To(Equal(remoteArtifact2))
 			})
 
 			It("calculates checksum for the instance on remote", func() {
-				Expect(artifact1.ChecksumCallCount()).To(Equal(1))
-				Expect(artifact2.ChecksumCallCount()).To(Equal(1))
+				Expect(remoteArtifact1.ChecksumCallCount()).To(Equal(1))
+				Expect(remoteArtifact2.ChecksumCallCount()).To(Equal(1))
 			})
 
 			It("deletes both the artifacts", func() {
-				Expect(artifact1.DeleteCallCount()).To(Equal(1))
-				Expect(artifact2.DeleteCallCount()).To(Equal(1))
+				Expect(remoteArtifact1.DeleteCallCount()).To(Equal(1))
+				Expect(remoteArtifact2.DeleteCallCount()).To(Equal(1))
 			})
 
 			It("appends the checksum for the instance on the artifact", func() {
 				Expect(artifact.AddChecksumCallCount()).To(Equal(2))
 				actualRemoteArtifact, acutalChecksum := artifact.AddChecksumArgsForCall(0)
-				Expect(actualRemoteArtifact).To(Equal(artifact1))
+				Expect(actualRemoteArtifact).To(Equal(remoteArtifact1))
 				Expect(acutalChecksum).To(Equal(instanceChecksum))
 
 				actualRemoteArtifact, acutalChecksum = artifact.AddChecksumArgsForCall(1)
-				Expect(actualRemoteArtifact).To(Equal(artifact2))
+				Expect(actualRemoteArtifact).To(Equal(remoteArtifact2))
 				Expect(acutalChecksum).To(Equal(instanceChecksum))
 			})
 		})
@@ -1717,6 +1717,104 @@ var _ = Describe("Deployment", func() {
 					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(expectedError))
 				})
 			})
+		})
+
+		FContext("Many instances, failed checksum in one backable instance", func() {
+			var instanceChecksum = orchestrator.BackupChecksum{"file1": "abcd", "file2": "efgh"}
+			var writer1 *fakes.FakeWriteCloser
+			var writer2 *fakes.FakeWriteCloser
+
+			var artifact1 *fakes.FakeBackupArtifact
+			var artifact2 *fakes.FakeBackupArtifact
+
+			BeforeEach(func() {
+				writer1 = new(fakes.FakeWriteCloser)
+				writer2 = new(fakes.FakeWriteCloser)
+				artifact1 = new(fakes.FakeBackupArtifact)
+				artifact2 = new(fakes.FakeBackupArtifact)
+
+				artifact.CreateArtifactStub = func(i orchestrator.ArtifactIdentifier) (io.WriteCloser, error) {
+					if i == artifact1 {
+						return writer1, nil
+					} else {
+						return writer2, nil
+					}
+				}
+
+				instance1.ArtifactsToBackupReturns([]orchestrator.BackupArtifact{artifact1})
+				instance2.ArtifactsToBackupReturns([]orchestrator.BackupArtifact{artifact2})
+
+				instance1.IsBackupableReturns(true)
+				instance2.IsBackupableReturns(true)
+
+				instance1.NameReturns("instance1")
+				instance2.NameReturns("instance2")
+
+				instance1.IDReturns("0")
+				instance2.IDReturns("0")
+
+				artifact.CalculateChecksumReturns(instanceChecksum, nil)
+
+				artifact2.NameReturns("fixture_backup_artifact")
+
+				instances = []orchestrator.Instance{instance2, instance1}
+				artifact1.ChecksumReturns(instanceChecksum, nil)
+				artifact2.ChecksumReturns(orchestrator.BackupChecksum{"file1": "abcd", "file2": "DOES_NOT_MATCH"}, nil)
+			})
+
+			It("fails", func() {
+				By("creating artifact files on each instance", func() {
+					Expect(artifact.CreateArtifactCallCount()).To(Equal(2))
+					Expect(artifact.CreateArtifactArgsForCall(0)).To(Equal(artifact1))
+					Expect(artifact.CreateArtifactArgsForCall(1)).To(Equal(artifact2))
+				})
+
+				By("streaming the artifact files from each instance using the writers", func() {
+					Expect(artifact1.StreamFromRemoteCallCount()).To(Equal(1))
+					Expect(artifact1.StreamFromRemoteArgsForCall(0)).To(Equal(writer1))
+
+					Expect(artifact2.StreamFromRemoteCallCount()).To(Equal(1))
+					Expect(artifact2.StreamFromRemoteArgsForCall(0)).To(Equal(writer2))
+				})
+
+				By("closing each writer after it has been streamed", func() {
+					Expect(writer1.CloseCallCount()).To(Equal(1))
+					Expect(writer2.CloseCallCount()).To(Equal(1))
+				})
+
+				By("calculating checksum for the artifact on each instance", func() {
+					Expect(artifact.CalculateChecksumCallCount()).To(Equal(2))
+					Expect(artifact.CalculateChecksumArgsForCall(0)).To(Equal(artifact1))
+					Expect(artifact.CalculateChecksumArgsForCall(1)).To(Equal(artifact2))
+				})
+
+				By("calculating checksum for the instance on remote", func() {
+					Expect(artifact1.ChecksumCallCount()).To(Equal(1))
+					Expect(artifact2.ChecksumCallCount()).To(Equal(1))
+				})
+
+				By("only deleting the artifact when the checksum matches", func() {
+					Expect(artifact1.DeleteCallCount()).To(Equal(1))
+					Expect(artifact2.DeleteCallCount()).To(Equal(0))
+				})
+
+				By("only appending the checksum for the instance when the checksum matches", func() {
+					Expect(artifact.AddChecksumCallCount()).To(Equal(1))
+					actualRemoteArtifact, acutalChecksum := artifact.AddChecksumArgsForCall(0)
+					Expect(actualRemoteArtifact).To(Equal(artifact1))
+					Expect(acutalChecksum).To(Equal(instanceChecksum))
+				})
+
+				By("failing the backup process", func() {
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(ContainSubstring(
+						"Backup is corrupted")))
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(ContainSubstring(
+						"instance2/0 fixture_backup_artifact - checksums don't match for [file2]")))
+					Expect(copyRemoteBackupsToLocalArtifactError).To(MatchError(Not(ContainSubstring("file1"))))
+				})
+
+			})
+
 		})
 	})
 
