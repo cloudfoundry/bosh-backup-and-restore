@@ -11,6 +11,8 @@ import (
 	"crypto/sha256"
 	"time"
 
+	"sync"
+
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/pkg/errors"
 )
@@ -20,6 +22,7 @@ const timestampFormat = "2006/01/02 15:04:05 MST"
 type BackupDirectory struct {
 	orchestrator.Logger
 	baseDirName string
+	*sync.Mutex
 }
 
 func (backupDirectory *BackupDirectory) logAndReturn(err error, message string, args ...interface{}) error {
@@ -142,6 +145,9 @@ func (backupDirectory *BackupDirectory) CalculateChecksum(artifactIdentifier orc
 }
 
 func (backupDirectory *BackupDirectory) AddChecksum(artifactIdentifier orchestrator.ArtifactIdentifier, shasum orchestrator.BackupChecksum) error {
+	defer backupDirectory.Unlock()
+	backupDirectory.Lock()
+
 	if exists, err := backupDirectory.metadataExistsAndIsReadable(); !exists {
 		return backupDirectory.logAndReturn(err, "unable to load metadata")
 	}
