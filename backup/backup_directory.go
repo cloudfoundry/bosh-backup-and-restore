@@ -22,7 +22,7 @@ const timestampFormat = "2006/01/02 15:04:05 MST"
 type BackupDirectory struct {
 	orchestrator.Logger
 	baseDirName string
-	*sync.Mutex
+	sync.Mutex
 }
 
 func (backupDirectory *BackupDirectory) logAndReturn(err error, message string, args ...interface{}) error {

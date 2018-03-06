@@ -10,6 +10,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/artifactexecutor"
 )
 
 var _ = Describe("Backup", func() {
@@ -43,7 +44,7 @@ var _ = Describe("Backup", func() {
 			return now
 		}
 
-		b = orchestrator.NewBackuper(fakeBackupManager, logger, deploymentManager, lockOrderer, jobexecutor.NewSerialJobExecutor(), nowFunc)
+		b = orchestrator.NewBackuper(fakeBackupManager, logger, deploymentManager, lockOrderer, jobexecutor.NewParallelJobExecutor(), artifactexecutor.NewParallelExecutionStrategy(), nowFunc)
 	})
 
 	JustBeforeEach(func() {
@@ -57,7 +58,7 @@ var _ = Describe("Backup", func() {
 			deployment.IsBackupableReturns(true)
 			deployment.HasUniqueCustomArtifactNamesReturns(true)
 			deployment.CleanupReturns(nil)
-			deployment.CopyRemoteBackupToLocalParallelReturns(nil)
+			deployment.CopyRemoteBackupToLocalReturns(nil)
 		})
 
 		It("does not fail", func() {
@@ -107,8 +108,8 @@ var _ = Describe("Backup", func() {
 		})
 
 		It("drains the backup to the artifact", func() {
-			Expect(deployment.CopyRemoteBackupToLocalParallelCallCount()).To(Equal(1))
-			Expect(deployment.CopyRemoteBackupToLocalParallelArgsForCall(0)).To(Equal(fakeBackup))
+			Expect(deployment.CopyRemoteBackupToLocalCallCount()).To(Equal(1))
+			Expect(deployment.CopyRemoteBackupToLocalArgsForCall(0)).To(Equal(fakeBackup))
 		})
 
 		It("saves start and finish timestamps in the metadata file", func() {
@@ -237,14 +238,14 @@ var _ = Describe("Backup", func() {
 			})
 
 			It("continues with drain artifact", func() {
-				Expect(deployment.CopyRemoteBackupToLocalParallelCallCount()).To(Equal(1))
+				Expect(deployment.CopyRemoteBackupToLocalCallCount()).To(Equal(1))
 			})
 
 			Context("when the drain artifact fails as well", func() {
 				var drainError = fmt.Errorf("just weird")
 
 				BeforeEach(func() {
-					deployment.CopyRemoteBackupToLocalParallelReturns(drainError)
+					deployment.CopyRemoteBackupToLocalReturns(drainError)
 				})
 
 				It("returns an error of type UnlockError and "+
@@ -286,7 +287,7 @@ var _ = Describe("Backup", func() {
 				deployment.IsBackupableReturns(true)
 				deployment.HasUniqueCustomArtifactNamesReturns(true)
 				fakeBackupManager.CreateReturns(fakeBackup, nil)
-				deployment.CopyRemoteBackupToLocalParallelReturns(drainError)
+				deployment.CopyRemoteBackupToLocalReturns(drainError)
 			})
 
 			It("check if the deployment is backupable", func() {

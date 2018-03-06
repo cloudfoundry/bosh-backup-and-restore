@@ -86,26 +86,16 @@ type FakeDeployment struct {
 	restoreReturnsOnCall map[int]struct {
 		result1 error
 	}
-	CopyRemoteBackupToLocalStub        func(orchestrator.Backup) error
+	CopyRemoteBackupToLocalStub        func(backup orchestrator.Backup, executionStrategy orchestrator.ArtifactExecutionStrategy) error
 	copyRemoteBackupToLocalMutex       sync.RWMutex
 	copyRemoteBackupToLocalArgsForCall []struct {
-		arg1 orchestrator.Backup
+		backup            orchestrator.Backup
+		executionStrategy orchestrator.ArtifactExecutionStrategy
 	}
 	copyRemoteBackupToLocalReturns struct {
 		result1 error
 	}
 	copyRemoteBackupToLocalReturnsOnCall map[int]struct {
-		result1 error
-	}
-	CopyRemoteBackupToLocalParallelStub        func(orchestrator.Backup) error
-	copyRemoteBackupToLocalParallelMutex       sync.RWMutex
-	copyRemoteBackupToLocalParallelArgsForCall []struct {
-		arg1 orchestrator.Backup
-	}
-	copyRemoteBackupToLocalParallelReturns struct {
-		result1 error
-	}
-	copyRemoteBackupToLocalParallelReturnsOnCall map[int]struct {
 		result1 error
 	}
 	CopyLocalBackupToRemoteStub        func(orchestrator.Backup) error
@@ -532,16 +522,17 @@ func (fake *FakeDeployment) RestoreReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) CopyRemoteBackupToLocal(arg1 orchestrator.Backup) error {
+func (fake *FakeDeployment) CopyRemoteBackupToLocal(backup orchestrator.Backup, executionStrategy orchestrator.ArtifactExecutionStrategy) error {
 	fake.copyRemoteBackupToLocalMutex.Lock()
 	ret, specificReturn := fake.copyRemoteBackupToLocalReturnsOnCall[len(fake.copyRemoteBackupToLocalArgsForCall)]
 	fake.copyRemoteBackupToLocalArgsForCall = append(fake.copyRemoteBackupToLocalArgsForCall, struct {
-		arg1 orchestrator.Backup
-	}{arg1})
-	fake.recordInvocation("CopyRemoteBackupToLocal", []interface{}{arg1})
+		backup            orchestrator.Backup
+		executionStrategy orchestrator.ArtifactExecutionStrategy
+	}{backup, executionStrategy})
+	fake.recordInvocation("CopyRemoteBackupToLocal", []interface{}{backup, executionStrategy})
 	fake.copyRemoteBackupToLocalMutex.Unlock()
 	if fake.CopyRemoteBackupToLocalStub != nil {
-		return fake.CopyRemoteBackupToLocalStub(arg1)
+		return fake.CopyRemoteBackupToLocalStub(backup, executionStrategy)
 	}
 	if specificReturn {
 		return ret.result1
@@ -555,10 +546,10 @@ func (fake *FakeDeployment) CopyRemoteBackupToLocalCallCount() int {
 	return len(fake.copyRemoteBackupToLocalArgsForCall)
 }
 
-func (fake *FakeDeployment) CopyRemoteBackupToLocalArgsForCall(i int) orchestrator.Backup {
+func (fake *FakeDeployment) CopyRemoteBackupToLocalArgsForCall(i int) (orchestrator.Backup, orchestrator.ArtifactExecutionStrategy) {
 	fake.copyRemoteBackupToLocalMutex.RLock()
 	defer fake.copyRemoteBackupToLocalMutex.RUnlock()
-	return fake.copyRemoteBackupToLocalArgsForCall[i].arg1
+	return fake.copyRemoteBackupToLocalArgsForCall[i].backup, fake.copyRemoteBackupToLocalArgsForCall[i].executionStrategy
 }
 
 func (fake *FakeDeployment) CopyRemoteBackupToLocalReturns(result1 error) {
@@ -576,54 +567,6 @@ func (fake *FakeDeployment) CopyRemoteBackupToLocalReturnsOnCall(i int, result1 
 		})
 	}
 	fake.copyRemoteBackupToLocalReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeDeployment) CopyRemoteBackupToLocalParallel(arg1 orchestrator.Backup) error {
-	fake.copyRemoteBackupToLocalParallelMutex.Lock()
-	ret, specificReturn := fake.copyRemoteBackupToLocalParallelReturnsOnCall[len(fake.copyRemoteBackupToLocalParallelArgsForCall)]
-	fake.copyRemoteBackupToLocalParallelArgsForCall = append(fake.copyRemoteBackupToLocalParallelArgsForCall, struct {
-		arg1 orchestrator.Backup
-	}{arg1})
-	fake.recordInvocation("CopyRemoteBackupToLocalParallel", []interface{}{arg1})
-	fake.copyRemoteBackupToLocalParallelMutex.Unlock()
-	if fake.CopyRemoteBackupToLocalParallelStub != nil {
-		return fake.CopyRemoteBackupToLocalParallelStub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.copyRemoteBackupToLocalParallelReturns.result1
-}
-
-func (fake *FakeDeployment) CopyRemoteBackupToLocalParallelCallCount() int {
-	fake.copyRemoteBackupToLocalParallelMutex.RLock()
-	defer fake.copyRemoteBackupToLocalParallelMutex.RUnlock()
-	return len(fake.copyRemoteBackupToLocalParallelArgsForCall)
-}
-
-func (fake *FakeDeployment) CopyRemoteBackupToLocalParallelArgsForCall(i int) orchestrator.Backup {
-	fake.copyRemoteBackupToLocalParallelMutex.RLock()
-	defer fake.copyRemoteBackupToLocalParallelMutex.RUnlock()
-	return fake.copyRemoteBackupToLocalParallelArgsForCall[i].arg1
-}
-
-func (fake *FakeDeployment) CopyRemoteBackupToLocalParallelReturns(result1 error) {
-	fake.CopyRemoteBackupToLocalParallelStub = nil
-	fake.copyRemoteBackupToLocalParallelReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeDeployment) CopyRemoteBackupToLocalParallelReturnsOnCall(i int, result1 error) {
-	fake.CopyRemoteBackupToLocalParallelStub = nil
-	if fake.copyRemoteBackupToLocalParallelReturnsOnCall == nil {
-		fake.copyRemoteBackupToLocalParallelReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.copyRemoteBackupToLocalParallelReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -1003,8 +946,6 @@ func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	defer fake.restoreMutex.RUnlock()
 	fake.copyRemoteBackupToLocalMutex.RLock()
 	defer fake.copyRemoteBackupToLocalMutex.RUnlock()
-	fake.copyRemoteBackupToLocalParallelMutex.RLock()
-	defer fake.copyRemoteBackupToLocalParallelMutex.RUnlock()
 	fake.copyLocalBackupToRemoteMutex.RLock()
 	defer fake.copyLocalBackupToRemoteMutex.RUnlock()
 	fake.cleanupMutex.RLock()

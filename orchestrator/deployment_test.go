@@ -14,6 +14,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/artifactexecutor"
 )
 
 var _ = Describe("Deployment", func() {
@@ -1324,7 +1325,7 @@ var _ = Describe("Deployment", func() {
 			backupArtifact = new(fakes.FakeBackupArtifact)
 		})
 		JustBeforeEach(func() {
-			copyRemoteBackupsToLocalArtifactError = deployment.CopyRemoteBackupToLocalParallel(artifact)
+			copyRemoteBackupsToLocalArtifactError = deployment.CopyRemoteBackupToLocal(artifact, artifactexecutor.NewParallelExecutionStrategy())
 		})
 
 		Context("One instance, backupable", func() {
@@ -1338,6 +1339,7 @@ var _ = Describe("Deployment", func() {
 				instance1.ArtifactsToBackupReturns([]orchestrator.BackupArtifact{backupArtifact})
 				instance1.IsBackupableReturns(true)
 				artifact.CalculateChecksumReturns(remoteArtifactChecksum, nil)
+
 				backupArtifact.ChecksumReturns(remoteArtifactChecksum, nil)
 
 				instances = []orchestrator.Instance{instance1}

@@ -7,7 +7,6 @@ import (
 
 	"io"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/artifactexecutor"
 	"github.com/pkg/errors"
 )
 
@@ -23,8 +22,7 @@ type Deployment interface {
 	Backup() error
 	PostBackupUnlock(orderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error
 	Restore() error
-	CopyRemoteBackupToLocal(Backup) error
-	CopyRemoteBackupToLocalParallel(Backup) error
+	CopyRemoteBackupToLocal(backup Backup, executionStrategy ArtifactExecutionStrategy) error
 	CopyLocalBackupToRemote(Backup) error
 	Cleanup() error
 	CleanupPrevious() error
@@ -216,7 +214,7 @@ func (bd *deployment) countArtifactsToStream() int {
 	return count
 }
 
-func (bd *deployment) CopyRemoteBackupToLocalParallel(backup Backup) error {
+func (bd *deployment) CopyRemoteBackupToLocal(backup Backup, executionStrategy ArtifactExecutionStrategy) error {
 	instances := bd.instances.AllBackupable()
 
 	var backupArtifacts []BackupArtifact
@@ -224,7 +222,7 @@ func (bd *deployment) CopyRemoteBackupToLocalParallel(backup Backup) error {
 		backupArtifacts = append(backupArtifacts, instance.ArtifactsToBackup()...)
 	}
 
-	errs := artifactexecutor.NewParallelExecutionStrategy().Run(backupArtifacts, func(backupArtifact BackupArtifact) error {
+	errs := executionStrategy.Run(backupArtifacts, func(backupArtifact BackupArtifact) error {
 		var (
 			size                          string
 			w                             io.WriteCloser
@@ -292,62 +290,6 @@ func (bd *deployment) CopyRemoteBackupToLocalParallel(backup Backup) error {
 	})
 
 	return ConvertErrors(errs)
-}
-
-func (bd *deployment) CopyRemoteBackupToLocal(backup Backup) error {
-	instances := bd.instances.AllBackupable()
-	for _, instance := range instances {
-		for _, backupArtifact := range instance.ArtifactsToBackup() {
-			writer, err := backup.CreateArtifact(backupArtifact)
-
-			if err != nil {
-				return err
-			}
-
-			size, err := backupArtifact.Size()
-			if err != nil {
-				return err
-			}
-
-			bd.Logger.Info("bbr", "Copying backup -- %s uncompressed -- from %s/%s...", size, instance.Name(), instance.ID())
-			if err := backupArtifact.StreamFromRemote(writer); err != nil {
-				return err
-			}
-
-			if err := writer.Close(); err != nil {
-				return err
-			}
-			bd.Logger.Info("bbr", "Finished copying backup -- from %s/%s...", instance.Name(), instance.ID())
-
-			bd.Logger.Info("bbr", "Starting validity checks")
-			localChecksum, err := backup.CalculateChecksum(backupArtifact)
-			if err != nil {
-				return err
-			}
-
-			remoteChecksum, err := backupArtifact.Checksum()
-			if err != nil {
-				return err
-			}
-			bd.Logger.Debug("bbr", "Comparing shasums")
-
-			match, mismatchedFiles := localChecksum.Match(remoteChecksum)
-			if !match {
-				bd.Logger.Debug("bbr", "Checksums didn't match for:")
-				bd.Logger.Debug("bbr", fmt.Sprintf("%v\n", mismatchedFiles))
-				return errors.Errorf("Backup is corrupted, checksum failed for %s/%s %s - checksums don't match for %v. Checksum failed for %d files in total", instance.Name(), instance.ID(), backupArtifact.Name(), getFirstTen(mismatchedFiles), len(mismatchedFiles))
-			}
-
-			backup.AddChecksum(backupArtifact, localChecksum)
-
-			err = backupArtifact.Delete()
-			if err != nil {
-				return err
-			}
-			bd.Logger.Info("bbr", "Finished validity checks")
-		}
-	}
-	return nil
 }
 
 func (bd *deployment) CopyLocalBackupToRemote(backup Backup) error {
