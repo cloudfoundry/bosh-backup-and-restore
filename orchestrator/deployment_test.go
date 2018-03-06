@@ -1699,11 +1699,8 @@ var _ = Describe("Deployment", func() {
 				instance1.IsBackupableReturns(true)
 				instance2.IsBackupableReturns(true)
 
-				instance1.NameReturns("instance1")
-				instance2.NameReturns("instance2")
-
-				instance1.IDReturns("0")
-				instance2.IDReturns("0")
+				artifact2.InstanceNameReturns("instance2")
+				artifact2.InstanceIDReturns("0")
 
 				artifact.CalculateChecksumReturns(instanceChecksum, nil)
 

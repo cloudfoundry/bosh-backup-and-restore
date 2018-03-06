@@ -4,6 +4,7 @@ type artifactIdentifier struct {
 	name          string
 	instanceName  string
 	instanceIndex string
+	instanceID string
 	hasCustomName bool
 }
 
@@ -17,6 +18,10 @@ func (ai artifactIdentifier) InstanceName() string {
 
 func (ai artifactIdentifier) InstanceIndex() string {
 	return ai.instanceIndex
+}
+
+func (ai artifactIdentifier) InstanceID() string {
+	return ai.instanceID
 }
 
 func (ai artifactIdentifier) HasCustomName() bool {

@@ -241,7 +241,7 @@ func (bd *deployment) CopyRemoteBackupToLocalParallel(backup Backup) error {
 			return err
 		}
 
-		bd.Logger.Info("bbr", "Copying backup -- %s uncompressed -- from %s/%s...", size, backupArtifact.InstanceName(), backupArtifact.InstanceIndex())
+		bd.Logger.Info("bbr", "Copying backup -- %s uncompressed -- from %s/%s...", size, backupArtifact.InstanceName(), backupArtifact.InstanceID())
 		err = backupArtifact.StreamFromRemote(w)
 		if err != nil {
 			return err
@@ -251,7 +251,7 @@ func (bd *deployment) CopyRemoteBackupToLocalParallel(backup Backup) error {
 		if err != nil {
 			return err
 		}
-		bd.Logger.Info("bbr", "Finished copying backup -- from %s/%s...", backupArtifact.InstanceName(), backupArtifact.InstanceIndex())
+		bd.Logger.Info("bbr", "Finished copying backup -- from %s/%s...", backupArtifact.InstanceName(), backupArtifact.InstanceID())
 
 		bd.Logger.Info("bbr", "Starting validity checks")
 		localChecksum, err = backup.CalculateChecksum(backupArtifact)
@@ -273,7 +273,7 @@ func (bd *deployment) CopyRemoteBackupToLocalParallel(backup Backup) error {
 			err = errors.Errorf(
 				"Backup is corrupted, checksum failed for %s/%s %s - checksums don't match for %v. "+
 					"Checksum failed for %d files in total",
-				backupArtifact.InstanceName(), backupArtifact.InstanceIndex(), backupArtifact.Name(), getFirstTen(mismatchedFiles), len(mismatchedFiles))
+				backupArtifact.InstanceName(), backupArtifact.InstanceID(), backupArtifact.Name(), getFirstTen(mismatchedFiles), len(mismatchedFiles))
 			return err
 		}
 

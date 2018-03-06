@@ -60,6 +60,7 @@ type JobSpecifier struct {
 type ArtifactIdentifier interface {
 	InstanceName() string
 	InstanceIndex() string
+	InstanceID() string
 	Name() string
 	HasCustomName() bool
 }

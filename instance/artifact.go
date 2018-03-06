@@ -126,6 +126,10 @@ func (b *Artifact) InstanceIndex() string {
 	return b.instance.Index()
 }
 
+func (b *Artifact) InstanceID() string {
+	return b.instance.ID()
+}
+
 func (b *Artifact) InstanceName() string {
 	return b.instance.Name()
 }

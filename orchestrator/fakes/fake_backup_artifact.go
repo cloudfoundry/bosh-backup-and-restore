@@ -27,6 +27,15 @@ type FakeBackupArtifact struct {
 	instanceIndexReturnsOnCall map[int]struct {
 		result1 string
 	}
+	InstanceIDStub        func() string
+	instanceIDMutex       sync.RWMutex
+	instanceIDArgsForCall []struct{}
+	instanceIDReturns     struct {
+		result1 string
+	}
+	instanceIDReturnsOnCall map[int]struct {
+		result1 string
+	}
 	NameStub        func() string
 	nameMutex       sync.RWMutex
 	nameArgsForCall []struct{}
@@ -178,6 +187,46 @@ func (fake *FakeBackupArtifact) InstanceIndexReturnsOnCall(i int, result1 string
 		})
 	}
 	fake.instanceIndexReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeBackupArtifact) InstanceID() string {
+	fake.instanceIDMutex.Lock()
+	ret, specificReturn := fake.instanceIDReturnsOnCall[len(fake.instanceIDArgsForCall)]
+	fake.instanceIDArgsForCall = append(fake.instanceIDArgsForCall, struct{}{})
+	fake.recordInvocation("InstanceID", []interface{}{})
+	fake.instanceIDMutex.Unlock()
+	if fake.InstanceIDStub != nil {
+		return fake.InstanceIDStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.instanceIDReturns.result1
+}
+
+func (fake *FakeBackupArtifact) InstanceIDCallCount() int {
+	fake.instanceIDMutex.RLock()
+	defer fake.instanceIDMutex.RUnlock()
+	return len(fake.instanceIDArgsForCall)
+}
+
+func (fake *FakeBackupArtifact) InstanceIDReturns(result1 string) {
+	fake.InstanceIDStub = nil
+	fake.instanceIDReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeBackupArtifact) InstanceIDReturnsOnCall(i int, result1 string) {
+	fake.InstanceIDStub = nil
+	if fake.instanceIDReturnsOnCall == nil {
+		fake.instanceIDReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.instanceIDReturnsOnCall[i] = struct {
 		result1 string
 	}{result1}
 }
@@ -491,6 +540,8 @@ func (fake *FakeBackupArtifact) Invocations() map[string][][]interface{} {
 	defer fake.instanceNameMutex.RUnlock()
 	fake.instanceIndexMutex.RLock()
 	defer fake.instanceIndexMutex.RUnlock()
+	fake.instanceIDMutex.RLock()
+	defer fake.instanceIDMutex.RUnlock()
 	fake.nameMutex.RLock()
 	defer fake.nameMutex.RUnlock()
 	fake.hasCustomNameMutex.RLock()
