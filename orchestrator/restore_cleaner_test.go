@@ -6,7 +6,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/jobexecutor"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -26,7 +26,7 @@ var _ = Describe("Restore Cleanup", func() {
 		deployment = new(fakes.FakeDeployment)
 		deploymentManager = new(fakes.FakeDeploymentManager)
 		logger = new(fakes.FakeLogger)
-		restoreCleaner = orchestrator.NewRestoreCleaner(logger, deploymentManager, fakeLockOrderer, jobexecutor.NewSerialJobExecutor())
+		restoreCleaner = orchestrator.NewRestoreCleaner(logger, deploymentManager, fakeLockOrderer, executor.NewSerialJobExecutor())
 	})
 
 	JustBeforeEach(func() {

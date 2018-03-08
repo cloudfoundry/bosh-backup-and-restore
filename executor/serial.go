@@ -1,4 +1,4 @@
-package jobexecutor
+package executor
 
 import "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 

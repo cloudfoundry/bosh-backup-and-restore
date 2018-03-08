@@ -7,7 +7,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/jobexecutor"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -44,7 +44,7 @@ var _ = Describe("restorer", func() {
 			artifact.DeploymentMatchesReturns(true, nil)
 			artifact.ValidReturns(true, nil)
 
-			b = orchestrator.NewRestorer(artifactManager, logger, deploymentManager, lockOrderer, jobexecutor.NewSerialJobExecutor())
+			b = orchestrator.NewRestorer(artifactManager, logger, deploymentManager, lockOrderer, executor.NewSerialJobExecutor())
 
 			deploymentName = "deployment-to-restore"
 			artifactPath = "/some/path"

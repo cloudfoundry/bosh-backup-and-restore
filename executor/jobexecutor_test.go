@@ -1,4 +1,4 @@
-package jobexecutor
+package executor
 
 import (
 	"errors"

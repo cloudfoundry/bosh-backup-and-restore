@@ -2,7 +2,7 @@ package factory
 
 import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/jobexecutor"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orderer"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
@@ -23,5 +23,5 @@ func BuildDirectorBackupCleaner(host,
 		ssh.NewSshRemoteRunner,
 	)
 
-	return orchestrator.NewBackupCleaner(logger, deploymentManager, orderer.NewDirectorLockOrderer(), jobexecutor.NewParallelJobExecutor())
+	return orchestrator.NewBackupCleaner(logger, deploymentManager, orderer.NewDirectorLockOrderer(), executor.NewParallelJobExecutor())
 }

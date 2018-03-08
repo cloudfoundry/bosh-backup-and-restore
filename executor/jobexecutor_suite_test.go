@@ -1,4 +1,4 @@
-package jobexecutor_test
+package executor_test
 
 import (
 	. "github.com/onsi/ginkgo"
