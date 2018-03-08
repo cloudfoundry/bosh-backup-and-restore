@@ -2,18 +2,18 @@ package executor
 
 import "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 
-func NewSerialJobExecutor() SerialJobExecutor {
-	return SerialJobExecutor{}
+func NewSerialExecutor() SerialExecutor {
+	return SerialExecutor{}
 }
 
-type SerialJobExecutor struct {
+type SerialExecutor struct {
 }
 
-func (s SerialJobExecutor) Run(runMethod func(job orchestrator.Job) error, jobs [][]orchestrator.Job) []error {
+func (s SerialExecutor) Run(executablesList [][]orchestrator.Executable) []error {
 	var errors []error
-	for _, jobList := range jobs {
-		for _, job := range jobList {
-			if err := runMethod(job); err != nil {
+	for _, executables := range executablesList {
+		for _, executable := range executables {
+			if err := executable.Execute(); err != nil {
 				errors = append(errors, err)
 			}
 		}

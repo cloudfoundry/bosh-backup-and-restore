@@ -16,9 +16,9 @@ type Deployment interface {
 	HasUniqueCustomArtifactNames() bool
 	CheckArtifactDir() error
 	IsRestorable() bool
-	PreBackupLock(orderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error
+	PreBackupLock(LockOrderer, Executor) error
 	Backup() error
-	PostBackupUnlock(orderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error
+	PostBackupUnlock(LockOrderer, Executor) error
 	Restore() error
 	CopyRemoteBackupToLocal(backup Backup, executionStrategy ArtifactExecutionStrategy) error
 	CopyLocalBackupToRemote(Backup) error
@@ -26,8 +26,8 @@ type Deployment interface {
 	CleanupPrevious() error
 	Instances() []Instance
 	CustomArtifactNamesMatch() error
-	PreRestoreLock(orderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error
-	PostRestoreUnlock(orderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error
+	PreRestoreLock(LockOrderer, Executor) error
+	PostRestoreUnlock(LockOrderer, Executor) error
 	ValidateLockingDependencies(orderer LockOrderer) error
 }
 
@@ -88,7 +88,7 @@ func (bd *deployment) ValidateLockingDependencies(lockOrderer LockOrderer) error
 	return err
 }
 
-func (bd *deployment) PreBackupLock(lockOrderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error {
+func (bd *deployment) PreBackupLock(lockOrderer LockOrderer, executor Executor) error {
 	bd.Logger.Info("bbr", "Running pre-backup-lock scripts...")
 
 	jobs := bd.instances.Jobs()
@@ -98,7 +98,7 @@ func (bd *deployment) PreBackupLock(lockOrderer LockOrderer, jobExecutionStategy
 		return err
 	}
 
-	preBackupLockErrors := jobExecutionStategy.Run(JobPreBackupLocker, orderedJobs)
+	preBackupLockErrors := executor.Run(newJobExecutables(orderedJobs, NewJobPreBackupLockExecutable))
 
 	bd.Logger.Info("bbr", "Finished running pre-backup-lock scripts.")
 	return ConvertErrors(preBackupLockErrors)
@@ -111,7 +111,7 @@ func (bd *deployment) Backup() error {
 	return err
 }
 
-func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error {
+func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer, executor Executor) error {
 	bd.Logger.Info("bbr", "Running post-backup-unlock scripts...")
 
 	jobs := bd.instances.Jobs()
@@ -122,12 +122,12 @@ func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer, jobExecutionStat
 	}
 	reversedJobs := Reverse(orderedJobs)
 
-	postBackupUnlockErrors := jobExecutionStategy.Run(JobPostBackupUnlocker, reversedJobs)
+	postBackupUnlockErrors := executor.Run(newJobExecutables(reversedJobs, NewJobPostBackupUnlockExecutable))
 	bd.Logger.Info("bbr", "Finished running post-backup-unlock scripts.")
 	return ConvertErrors(postBackupUnlockErrors)
 }
 
-func (bd *deployment) PreRestoreLock(lockOrderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error {
+func (bd *deployment) PreRestoreLock(lockOrderer LockOrderer, executor Executor) error {
 	bd.Logger.Info("bbr", "Running pre-restore-lock scripts...")
 
 	jobs := bd.instances.Jobs()
@@ -137,7 +137,7 @@ func (bd *deployment) PreRestoreLock(lockOrderer LockOrderer, jobExecutionStateg
 		return err
 	}
 
-	preRestoreLockErrors := jobExecutionStategy.Run(JobPreRestoreLocker, orderedJobs)
+	preRestoreLockErrors := executor.Run(newJobExecutables(orderedJobs, NewJobPreRestoreLockExecutable))
 
 	bd.Logger.Info("bbr", "Finished running pre-restore-lock scripts.")
 	return ConvertErrors(preRestoreLockErrors)
@@ -150,7 +150,7 @@ func (bd *deployment) Restore() error {
 	return err
 }
 
-func (bd *deployment) PostRestoreUnlock(lockOrderer LockOrderer, jobExecutionStategy JobExecutionStrategy) error {
+func (bd *deployment) PostRestoreUnlock(lockOrderer LockOrderer, executor Executor) error {
 	bd.Logger.Info("bbr", "Running post-restore-unlock scripts...")
 
 	jobs := bd.instances.Jobs()
@@ -161,10 +161,22 @@ func (bd *deployment) PostRestoreUnlock(lockOrderer LockOrderer, jobExecutionSta
 	}
 	reversedJobs := Reverse(orderedJobs)
 
-	postRestoreUnlockErrors := jobExecutionStategy.Run(JobPostRestoreUnlocker, reversedJobs)
+	postRestoreUnlockErrors := executor.Run(newJobExecutables(reversedJobs, NewJobPostRestoreUnlockExecutable))
 
 	bd.Logger.Info("bbr", "Finished running post-restore-unlock scripts.")
 	return ConvertErrors(postRestoreUnlockErrors)
+}
+
+func newJobExecutables(jobsList [][]Job, newJobExecutable func(Job) Executable) [][]Executable {
+	var executablesList [][]Executable
+	for _, jobs := range jobsList {
+		var executables []Executable
+		for _, job := range jobs {
+			executables = append(executables, newJobExecutable(job))
+		}
+		executablesList = append(executablesList, executables)
+	}
+	return executablesList
 }
 
 func (bd *deployment) Cleanup() error {

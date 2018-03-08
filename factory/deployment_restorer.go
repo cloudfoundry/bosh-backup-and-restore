@@ -27,5 +27,5 @@ func BuildDeploymentRestorer(target,
 		return nil, err
 	}
 
-	return orchestrator.NewRestorer(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewKahnRestoreLockOrderer(), executor.NewParallelJobExecutor()), nil
+	return orchestrator.NewRestorer(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewKahnRestoreLockOrderer(), executor.NewParallelExecutor()), nil
 }

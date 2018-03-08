@@ -3,11 +3,11 @@ package factory
 import (
 	"time"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/artifactexecutor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orderer"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/artifactexecutor"
 )
 
 func BuildDeploymentBackuper(target, username, password, caCert string, withManifest, hasDebug bool) (*orchestrator.Backuper, error) {
@@ -26,5 +26,5 @@ func BuildDeploymentBackuper(target, username, password, caCert string, withMani
 	}
 
 	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager,
-		orderer.NewKahnBackupLockOrderer(), executor.NewParallelJobExecutor(), artifactexecutor.NewParallelExecutionStrategy(), time.Now), nil
+		orderer.NewKahnBackupLockOrderer(), artifactexecutor.NewParallelExecutionStrategy(), executor.NewParallelExecutor(), time.Now), nil
 }

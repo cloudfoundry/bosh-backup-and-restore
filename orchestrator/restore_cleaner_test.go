@@ -26,7 +26,7 @@ var _ = Describe("Restore Cleanup", func() {
 		deployment = new(fakes.FakeDeployment)
 		deploymentManager = new(fakes.FakeDeploymentManager)
 		logger = new(fakes.FakeLogger)
-		restoreCleaner = orchestrator.NewRestoreCleaner(logger, deploymentManager, fakeLockOrderer, executor.NewSerialJobExecutor())
+		restoreCleaner = orchestrator.NewRestoreCleaner(logger, deploymentManager, fakeLockOrderer, executor.NewSerialExecutor())
 	})
 
 	JustBeforeEach(func() {
@@ -57,7 +57,7 @@ var _ = Describe("Restore Cleanup", func() {
 		var currentSequenceNumber, unlockCallIndex, cleanupCallIndex int
 		BeforeEach(func() {
 			deploymentManager.FindReturns(deployment, nil)
-			deployment.PostRestoreUnlockStub = func(orderer orchestrator.LockOrderer, _ orchestrator.JobExecutionStrategy) error {
+			deployment.PostRestoreUnlockStub = func(orderer orchestrator.LockOrderer, _ orchestrator.Executor) error {
 				unlockCallIndex = currentSequenceNumber
 				currentSequenceNumber = currentSequenceNumber + 1
 				return nil

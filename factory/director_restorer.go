@@ -23,5 +23,5 @@ func BuildDirectorRestorer(
 		instance.NewJobFinder(logger),
 		ssh.NewSshRemoteRunner,
 	)
-	return orchestrator.NewRestorer(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewDirectorLockOrderer(), executor.NewParallelJobExecutor())
+	return orchestrator.NewRestorer(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewDirectorLockOrderer(), executor.NewParallelExecutor())
 }

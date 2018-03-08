@@ -1,29 +1,27 @@
 package executor
 
-import (
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-)
+import "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 
-func NewParallelJobExecutor() ParallelJobExecutor {
-	return ParallelJobExecutor{}
+func NewParallelExecutor() ParallelExecutor {
+	return ParallelExecutor{}
 }
 
-type ParallelJobExecutor struct {
+type ParallelExecutor struct {
 }
 
-func (s ParallelJobExecutor) Run(runMethod func(orchestrator.Job) error, jobs [][]orchestrator.Job) []error {
+func (s ParallelExecutor) Run(executablesList [][]orchestrator.Executable) []error {
 	var errors []error
-	for _, jobList := range jobs {
-		errs := make(chan error, len(jobList))
+	for _, executables := range executablesList {
+		errs := make(chan error, len(executables))
 
-		for _, job := range jobList {
-			go func(j orchestrator.Job) {
-				errs <- runMethod(j)
-			}(job)
+		for _, executable := range executables {
+			go func(executable orchestrator.Executable) {
+				errs <- executable.Execute()
+			}(executable)
 		}
 
-		for range jobList {
-			err := <- errs
+		for range executables {
+			err := <-errs
 			if err != nil {
 				errors = append(errors, err)
 			}

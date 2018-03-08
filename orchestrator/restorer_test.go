@@ -44,7 +44,7 @@ var _ = Describe("restorer", func() {
 			artifact.DeploymentMatchesReturns(true, nil)
 			artifact.ValidReturns(true, nil)
 
-			b = orchestrator.NewRestorer(artifactManager, logger, deploymentManager, lockOrderer, executor.NewSerialJobExecutor())
+			b = orchestrator.NewRestorer(artifactManager, logger, deploymentManager, lockOrderer, executor.NewSerialExecutor())
 
 			deploymentName = "deployment-to-restore"
 			artifactPath = "/some/path"

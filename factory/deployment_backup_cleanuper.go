@@ -28,5 +28,5 @@ func BuildDeploymentBackupCleanuper(target,
 	}
 
 	return orchestrator.NewBackupCleaner(logger, deploymentManager, orderer.NewKahnBackupLockOrderer(),
-		executor.NewParallelJobExecutor()), nil
+		executor.NewParallelExecutor()), nil
 }

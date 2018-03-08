@@ -28,5 +28,5 @@ func BuildDirectorBackuper(host,
 	)
 
 	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager,
-		orderer.NewDirectorLockOrderer(), executor.NewParallelJobExecutor(), artifactexecutor.NewParallelExecutionStrategy(), time.Now)
+		orderer.NewDirectorLockOrderer(), artifactexecutor.NewParallelExecutionStrategy(), executor.NewParallelExecutor(), time.Now)
 }

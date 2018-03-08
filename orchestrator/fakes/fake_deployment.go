@@ -44,11 +44,11 @@ type FakeDeployment struct {
 	isRestorableReturnsOnCall map[int]struct {
 		result1 bool
 	}
-	PreBackupLockStub        func(orderer orchestrator.LockOrderer, jobExecutionStategy orchestrator.JobExecutionStrategy) error
+	PreBackupLockStub        func(orchestrator.LockOrderer, orchestrator.Executor) error
 	preBackupLockMutex       sync.RWMutex
 	preBackupLockArgsForCall []struct {
-		orderer             orchestrator.LockOrderer
-		jobExecutionStategy orchestrator.JobExecutionStrategy
+		arg1 orchestrator.LockOrderer
+		arg2 orchestrator.Executor
 	}
 	preBackupLockReturns struct {
 		result1 error
@@ -65,11 +65,11 @@ type FakeDeployment struct {
 	backupReturnsOnCall map[int]struct {
 		result1 error
 	}
-	PostBackupUnlockStub        func(orderer orchestrator.LockOrderer, jobExecutionStategy orchestrator.JobExecutionStrategy) error
+	PostBackupUnlockStub        func(orchestrator.LockOrderer, orchestrator.Executor) error
 	postBackupUnlockMutex       sync.RWMutex
 	postBackupUnlockArgsForCall []struct {
-		orderer             orchestrator.LockOrderer
-		jobExecutionStategy orchestrator.JobExecutionStrategy
+		arg1 orchestrator.LockOrderer
+		arg2 orchestrator.Executor
 	}
 	postBackupUnlockReturns struct {
 		result1 error
@@ -145,11 +145,11 @@ type FakeDeployment struct {
 	customArtifactNamesMatchReturnsOnCall map[int]struct {
 		result1 error
 	}
-	PreRestoreLockStub        func(orderer orchestrator.LockOrderer, jobExecutionStategy orchestrator.JobExecutionStrategy) error
+	PreRestoreLockStub        func(orchestrator.LockOrderer, orchestrator.Executor) error
 	preRestoreLockMutex       sync.RWMutex
 	preRestoreLockArgsForCall []struct {
-		orderer             orchestrator.LockOrderer
-		jobExecutionStategy orchestrator.JobExecutionStrategy
+		arg1 orchestrator.LockOrderer
+		arg2 orchestrator.Executor
 	}
 	preRestoreLockReturns struct {
 		result1 error
@@ -157,11 +157,11 @@ type FakeDeployment struct {
 	preRestoreLockReturnsOnCall map[int]struct {
 		result1 error
 	}
-	PostRestoreUnlockStub        func(orderer orchestrator.LockOrderer, jobExecutionStategy orchestrator.JobExecutionStrategy) error
+	PostRestoreUnlockStub        func(orchestrator.LockOrderer, orchestrator.Executor) error
 	postRestoreUnlockMutex       sync.RWMutex
 	postRestoreUnlockArgsForCall []struct {
-		orderer             orchestrator.LockOrderer
-		jobExecutionStategy orchestrator.JobExecutionStrategy
+		arg1 orchestrator.LockOrderer
+		arg2 orchestrator.Executor
 	}
 	postRestoreUnlockReturns struct {
 		result1 error
@@ -344,17 +344,17 @@ func (fake *FakeDeployment) IsRestorableReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) PreBackupLock(orderer orchestrator.LockOrderer, jobExecutionStategy orchestrator.JobExecutionStrategy) error {
+func (fake *FakeDeployment) PreBackupLock(arg1 orchestrator.LockOrderer, arg2 orchestrator.Executor) error {
 	fake.preBackupLockMutex.Lock()
 	ret, specificReturn := fake.preBackupLockReturnsOnCall[len(fake.preBackupLockArgsForCall)]
 	fake.preBackupLockArgsForCall = append(fake.preBackupLockArgsForCall, struct {
-		orderer             orchestrator.LockOrderer
-		jobExecutionStategy orchestrator.JobExecutionStrategy
-	}{orderer, jobExecutionStategy})
-	fake.recordInvocation("PreBackupLock", []interface{}{orderer, jobExecutionStategy})
+		arg1 orchestrator.LockOrderer
+		arg2 orchestrator.Executor
+	}{arg1, arg2})
+	fake.recordInvocation("PreBackupLock", []interface{}{arg1, arg2})
 	fake.preBackupLockMutex.Unlock()
 	if fake.PreBackupLockStub != nil {
-		return fake.PreBackupLockStub(orderer, jobExecutionStategy)
+		return fake.PreBackupLockStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
@@ -368,10 +368,10 @@ func (fake *FakeDeployment) PreBackupLockCallCount() int {
 	return len(fake.preBackupLockArgsForCall)
 }
 
-func (fake *FakeDeployment) PreBackupLockArgsForCall(i int) (orchestrator.LockOrderer, orchestrator.JobExecutionStrategy) {
+func (fake *FakeDeployment) PreBackupLockArgsForCall(i int) (orchestrator.LockOrderer, orchestrator.Executor) {
 	fake.preBackupLockMutex.RLock()
 	defer fake.preBackupLockMutex.RUnlock()
-	return fake.preBackupLockArgsForCall[i].orderer, fake.preBackupLockArgsForCall[i].jobExecutionStategy
+	return fake.preBackupLockArgsForCall[i].arg1, fake.preBackupLockArgsForCall[i].arg2
 }
 
 func (fake *FakeDeployment) PreBackupLockReturns(result1 error) {
@@ -433,17 +433,17 @@ func (fake *FakeDeployment) BackupReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) PostBackupUnlock(orderer orchestrator.LockOrderer, jobExecutionStategy orchestrator.JobExecutionStrategy) error {
+func (fake *FakeDeployment) PostBackupUnlock(arg1 orchestrator.LockOrderer, arg2 orchestrator.Executor) error {
 	fake.postBackupUnlockMutex.Lock()
 	ret, specificReturn := fake.postBackupUnlockReturnsOnCall[len(fake.postBackupUnlockArgsForCall)]
 	fake.postBackupUnlockArgsForCall = append(fake.postBackupUnlockArgsForCall, struct {
-		orderer             orchestrator.LockOrderer
-		jobExecutionStategy orchestrator.JobExecutionStrategy
-	}{orderer, jobExecutionStategy})
-	fake.recordInvocation("PostBackupUnlock", []interface{}{orderer, jobExecutionStategy})
+		arg1 orchestrator.LockOrderer
+		arg2 orchestrator.Executor
+	}{arg1, arg2})
+	fake.recordInvocation("PostBackupUnlock", []interface{}{arg1, arg2})
 	fake.postBackupUnlockMutex.Unlock()
 	if fake.PostBackupUnlockStub != nil {
-		return fake.PostBackupUnlockStub(orderer, jobExecutionStategy)
+		return fake.PostBackupUnlockStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
@@ -457,10 +457,10 @@ func (fake *FakeDeployment) PostBackupUnlockCallCount() int {
 	return len(fake.postBackupUnlockArgsForCall)
 }
 
-func (fake *FakeDeployment) PostBackupUnlockArgsForCall(i int) (orchestrator.LockOrderer, orchestrator.JobExecutionStrategy) {
+func (fake *FakeDeployment) PostBackupUnlockArgsForCall(i int) (orchestrator.LockOrderer, orchestrator.Executor) {
 	fake.postBackupUnlockMutex.RLock()
 	defer fake.postBackupUnlockMutex.RUnlock()
-	return fake.postBackupUnlockArgsForCall[i].orderer, fake.postBackupUnlockArgsForCall[i].jobExecutionStategy
+	return fake.postBackupUnlockArgsForCall[i].arg1, fake.postBackupUnlockArgsForCall[i].arg2
 }
 
 func (fake *FakeDeployment) PostBackupUnlockReturns(result1 error) {
@@ -779,17 +779,17 @@ func (fake *FakeDeployment) CustomArtifactNamesMatchReturnsOnCall(i int, result1
 	}{result1}
 }
 
-func (fake *FakeDeployment) PreRestoreLock(orderer orchestrator.LockOrderer, jobExecutionStategy orchestrator.JobExecutionStrategy) error {
+func (fake *FakeDeployment) PreRestoreLock(arg1 orchestrator.LockOrderer, arg2 orchestrator.Executor) error {
 	fake.preRestoreLockMutex.Lock()
 	ret, specificReturn := fake.preRestoreLockReturnsOnCall[len(fake.preRestoreLockArgsForCall)]
 	fake.preRestoreLockArgsForCall = append(fake.preRestoreLockArgsForCall, struct {
-		orderer             orchestrator.LockOrderer
-		jobExecutionStategy orchestrator.JobExecutionStrategy
-	}{orderer, jobExecutionStategy})
-	fake.recordInvocation("PreRestoreLock", []interface{}{orderer, jobExecutionStategy})
+		arg1 orchestrator.LockOrderer
+		arg2 orchestrator.Executor
+	}{arg1, arg2})
+	fake.recordInvocation("PreRestoreLock", []interface{}{arg1, arg2})
 	fake.preRestoreLockMutex.Unlock()
 	if fake.PreRestoreLockStub != nil {
-		return fake.PreRestoreLockStub(orderer, jobExecutionStategy)
+		return fake.PreRestoreLockStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
@@ -803,10 +803,10 @@ func (fake *FakeDeployment) PreRestoreLockCallCount() int {
 	return len(fake.preRestoreLockArgsForCall)
 }
 
-func (fake *FakeDeployment) PreRestoreLockArgsForCall(i int) (orchestrator.LockOrderer, orchestrator.JobExecutionStrategy) {
+func (fake *FakeDeployment) PreRestoreLockArgsForCall(i int) (orchestrator.LockOrderer, orchestrator.Executor) {
 	fake.preRestoreLockMutex.RLock()
 	defer fake.preRestoreLockMutex.RUnlock()
-	return fake.preRestoreLockArgsForCall[i].orderer, fake.preRestoreLockArgsForCall[i].jobExecutionStategy
+	return fake.preRestoreLockArgsForCall[i].arg1, fake.preRestoreLockArgsForCall[i].arg2
 }
 
 func (fake *FakeDeployment) PreRestoreLockReturns(result1 error) {
@@ -828,17 +828,17 @@ func (fake *FakeDeployment) PreRestoreLockReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) PostRestoreUnlock(orderer orchestrator.LockOrderer, jobExecutionStategy orchestrator.JobExecutionStrategy) error {
+func (fake *FakeDeployment) PostRestoreUnlock(arg1 orchestrator.LockOrderer, arg2 orchestrator.Executor) error {
 	fake.postRestoreUnlockMutex.Lock()
 	ret, specificReturn := fake.postRestoreUnlockReturnsOnCall[len(fake.postRestoreUnlockArgsForCall)]
 	fake.postRestoreUnlockArgsForCall = append(fake.postRestoreUnlockArgsForCall, struct {
-		orderer             orchestrator.LockOrderer
-		jobExecutionStategy orchestrator.JobExecutionStrategy
-	}{orderer, jobExecutionStategy})
-	fake.recordInvocation("PostRestoreUnlock", []interface{}{orderer, jobExecutionStategy})
+		arg1 orchestrator.LockOrderer
+		arg2 orchestrator.Executor
+	}{arg1, arg2})
+	fake.recordInvocation("PostRestoreUnlock", []interface{}{arg1, arg2})
 	fake.postRestoreUnlockMutex.Unlock()
 	if fake.PostRestoreUnlockStub != nil {
-		return fake.PostRestoreUnlockStub(orderer, jobExecutionStategy)
+		return fake.PostRestoreUnlockStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
@@ -852,10 +852,10 @@ func (fake *FakeDeployment) PostRestoreUnlockCallCount() int {
 	return len(fake.postRestoreUnlockArgsForCall)
 }
 
-func (fake *FakeDeployment) PostRestoreUnlockArgsForCall(i int) (orchestrator.LockOrderer, orchestrator.JobExecutionStrategy) {
+func (fake *FakeDeployment) PostRestoreUnlockArgsForCall(i int) (orchestrator.LockOrderer, orchestrator.Executor) {
 	fake.postRestoreUnlockMutex.RLock()
 	defer fake.postRestoreUnlockMutex.RUnlock()
-	return fake.postRestoreUnlockArgsForCall[i].orderer, fake.postRestoreUnlockArgsForCall[i].jobExecutionStategy
+	return fake.postRestoreUnlockArgsForCall[i].arg1, fake.postRestoreUnlockArgsForCall[i].arg2
 }
 
 func (fake *FakeDeployment) PostRestoreUnlockReturns(result1 error) {

@@ -2,18 +2,18 @@ package orchestrator
 
 type PostRestoreUnlockStep struct {
 	lockOrderer LockOrderer
-	jobExecutionStategy   JobExecutionStrategy
+	executor    Executor
 }
 
-func NewPostRestoreUnlockStep(lockOrderer LockOrderer, jobExecutionStategy JobExecutionStrategy) Step {
+func NewPostRestoreUnlockStep(lockOrderer LockOrderer, executor Executor) Step {
 	return &PostRestoreUnlockStep{
 		lockOrderer: lockOrderer,
-		jobExecutionStategy:   jobExecutionStategy,
+		executor:    executor,
 	}
 }
 
 func (s *PostRestoreUnlockStep) Run(session *Session) error {
-	err := session.CurrentDeployment().PostRestoreUnlock(s.lockOrderer, s.jobExecutionStategy)
+	err := session.CurrentDeployment().PostRestoreUnlock(s.lockOrderer, s.executor)
 
 	if err != nil {
 		return NewPostUnlockError(err.Error())

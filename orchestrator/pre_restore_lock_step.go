@@ -4,16 +4,18 @@ import "github.com/pkg/errors"
 
 type PreRestoreLockStep struct {
 	lockOrderer LockOrderer
-	jobExecutionStategy   JobExecutionStrategy
+	executor    Executor
 }
 
-func NewPreRestoreLockStep(lockOrderer LockOrderer, jobExecutionStategy JobExecutionStrategy) Step {
-	return &PreRestoreLockStep{lockOrderer: lockOrderer,
-		jobExecutionStategy: jobExecutionStategy}
+func NewPreRestoreLockStep(lockOrderer LockOrderer, executor Executor) Step {
+	return &PreRestoreLockStep{
+		lockOrderer: lockOrderer,
+		executor:    executor,
+	}
 }
 
 func (s *PreRestoreLockStep) Run(session *Session) error {
-	err := session.CurrentDeployment().PreRestoreLock(s.lockOrderer, s.jobExecutionStategy)
+	err := session.CurrentDeployment().PreRestoreLock(s.lockOrderer, s.executor)
 
 	if err != nil {
 		return errors.Wrap(err, "pre-restore-lock failed")

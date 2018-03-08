@@ -44,7 +44,7 @@ var _ = Describe("Backup", func() {
 			return now
 		}
 
-		b = orchestrator.NewBackuper(fakeBackupManager, logger, deploymentManager, lockOrderer, executor.NewParallelJobExecutor(), artifactexecutor.NewParallelExecutionStrategy(), nowFunc)
+		b = orchestrator.NewBackuper(fakeBackupManager, logger, deploymentManager, lockOrderer, artifactexecutor.NewParallelExecutionStrategy(), executor.NewParallelExecutor(), nowFunc)
 	})
 
 	JustBeforeEach(func() {

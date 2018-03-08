@@ -1,9 +1,9 @@
 package orchestrator
 
-func NewRestoreCleaner(logger Logger, deploymentManager DeploymentManager, lockOrderer LockOrderer, jobExecutionStategy JobExecutionStrategy) *RestoreCleaner {
+func NewRestoreCleaner(logger Logger, deploymentManager DeploymentManager, lockOrderer LockOrderer, executor Executor) *RestoreCleaner {
 	workflow := NewWorkflow()
 	findDeploymentStep := NewFindDeploymentStep(deploymentManager, logger)
-	postRestoreUnlockStep := NewPostRestoreUnlockStep(lockOrderer, jobExecutionStategy)
+	postRestoreUnlockStep := NewPostRestoreUnlockStep(lockOrderer, executor)
 	cleanupPreviousStep := NewCleanupPreviousStep()
 
 	workflow.StartWith(findDeploymentStep).OnSuccess(postRestoreUnlockStep)
