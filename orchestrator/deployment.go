@@ -204,14 +204,6 @@ func (bd *deployment) CustomArtifactNamesMatch() error {
 	return nil
 }
 
-func (bd *deployment) countArtifactsToStream() int {
-	count := 0
-	for _, instance := range bd.instances {
-		count += len(instance.ArtifactsToBackup())
-	}
-	return count
-}
-
 func (bd *deployment) CopyRemoteBackupToLocal(localBackup Backup, executionStrategy ArtifactExecutionStrategy) error {
 	instances := bd.instances.AllBackupable()
 
