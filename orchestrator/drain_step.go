@@ -1,13 +1,16 @@
 package orchestrator
 
-import "time"
+import (
+	"time"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
+)
 
 type DrainStep struct {
 	logger   Logger
-	executor Executor
+	executor executor.Executor
 }
 
-func NewDrainStep(logger Logger, executor Executor) Step {
+func NewDrainStep(logger Logger, executor executor.Executor) Step {
 	return &DrainStep{
 		logger:   logger,
 		executor: executor,

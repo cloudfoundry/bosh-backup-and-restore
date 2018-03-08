@@ -2,10 +2,11 @@ package orchestrator
 
 import (
 	"time"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 )
 
 func NewBackuper(backupManager BackupManager, logger Logger, deploymentManager DeploymentManager,
-	lockOrderer LockOrderer, executor Executor, nowFunc func() time.Time) *Backuper {
+	lockOrderer LockOrderer, executor executor.Executor, nowFunc func() time.Time) *Backuper {
 	findDeploymentStep := NewFindDeploymentStep(deploymentManager, logger)
 	backupable := NewBackupableStep(lockOrderer, logger)
 	createArtifact := NewCreateArtifactStep(logger, backupManager, deploymentManager, nowFunc)

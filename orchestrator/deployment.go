@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 )
 
 const ArtifactDirectory = "/var/vcap/store/bbr-backup"
@@ -16,18 +17,18 @@ type Deployment interface {
 	HasUniqueCustomArtifactNames() bool
 	CheckArtifactDir() error
 	IsRestorable() bool
-	PreBackupLock(LockOrderer, Executor) error
+	PreBackupLock(LockOrderer, executor.Executor) error
 	Backup() error
-	PostBackupUnlock(LockOrderer, Executor) error
+	PostBackupUnlock(LockOrderer, executor.Executor) error
 	Restore() error
-	CopyRemoteBackupToLocal(Backup, Executor) error
+	CopyRemoteBackupToLocal(Backup, executor.Executor) error
 	CopyLocalBackupToRemote(Backup) error
 	Cleanup() error
 	CleanupPrevious() error
 	Instances() []Instance
 	CustomArtifactNamesMatch() error
-	PreRestoreLock(LockOrderer, Executor) error
-	PostRestoreUnlock(LockOrderer, Executor) error
+	PreRestoreLock(LockOrderer, executor.Executor) error
+	PostRestoreUnlock(LockOrderer, executor.Executor) error
 	ValidateLockingDependencies(orderer LockOrderer) error
 }
 
@@ -88,7 +89,7 @@ func (bd *deployment) ValidateLockingDependencies(lockOrderer LockOrderer) error
 	return err
 }
 
-func (bd *deployment) PreBackupLock(lockOrderer LockOrderer, executor Executor) error {
+func (bd *deployment) PreBackupLock(lockOrderer LockOrderer, executor executor.Executor) error {
 	bd.Logger.Info("bbr", "Running pre-backup-lock scripts...")
 
 	jobs := bd.instances.Jobs()
@@ -111,7 +112,7 @@ func (bd *deployment) Backup() error {
 	return err
 }
 
-func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer, executor Executor) error {
+func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer, executor executor.Executor) error {
 	bd.Logger.Info("bbr", "Running post-backup-unlock scripts...")
 
 	jobs := bd.instances.Jobs()
@@ -127,7 +128,7 @@ func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer, executor Executo
 	return ConvertErrors(postBackupUnlockErrors)
 }
 
-func (bd *deployment) PreRestoreLock(lockOrderer LockOrderer, executor Executor) error {
+func (bd *deployment) PreRestoreLock(lockOrderer LockOrderer, executor executor.Executor) error {
 	bd.Logger.Info("bbr", "Running pre-restore-lock scripts...")
 
 	jobs := bd.instances.Jobs()
@@ -150,7 +151,7 @@ func (bd *deployment) Restore() error {
 	return err
 }
 
-func (bd *deployment) PostRestoreUnlock(lockOrderer LockOrderer, executor Executor) error {
+func (bd *deployment) PostRestoreUnlock(lockOrderer LockOrderer, executor executor.Executor) error {
 	bd.Logger.Info("bbr", "Running post-restore-unlock scripts...")
 
 	jobs := bd.instances.Jobs()
@@ -167,10 +168,10 @@ func (bd *deployment) PostRestoreUnlock(lockOrderer LockOrderer, executor Execut
 	return ConvertErrors(postRestoreUnlockErrors)
 }
 
-func newJobExecutables(jobsList [][]Job, newJobExecutable func(Job) Executable) [][]Executable {
-	var executablesList [][]Executable
+func newJobExecutables(jobsList [][]Job, newJobExecutable func(Job) executor.Executable) [][]executor.Executable {
+	var executablesList [][]executor.Executable
 	for _, jobs := range jobsList {
-		var executables []Executable
+		var executables []executor.Executable
 		for _, job := range jobs {
 			executables = append(executables, newJobExecutable(job))
 		}
@@ -216,7 +217,7 @@ func (bd *deployment) CustomArtifactNamesMatch() error {
 	return nil
 }
 
-func (bd *deployment) CopyRemoteBackupToLocal(localBackup Backup, executor Executor) error {
+func (bd *deployment) CopyRemoteBackupToLocal(localBackup Backup, executor executor.Executor) error {
 	instances := bd.instances.AllBackupable()
 
 	var remoteBackupArtifacts []BackupArtifact
@@ -229,12 +230,12 @@ func (bd *deployment) CopyRemoteBackupToLocal(localBackup Backup, executor Execu
 	return ConvertErrors(errs)
 }
 
-func newArtifactExecutables(artifacts []BackupArtifact, backup Backup, logger Logger, newExecutable func(Backup, BackupArtifact, Logger) BackupDownloadExecutable) [][]Executable {
-	var executables []Executable
+func newArtifactExecutables(artifacts []BackupArtifact, backup Backup, logger Logger, newExecutable func(Backup, BackupArtifact, Logger) BackupDownloadExecutable) [][]executor.Executable {
+	var executables []executor.Executable
 	for _, artifact := range artifacts {
 		executables = append(executables, newExecutable(backup, artifact, logger))
 	}
-	return [][]Executable{executables}
+	return [][]executor.Executable{executables}
 }
 
 type BackupDownloadExecutable struct {

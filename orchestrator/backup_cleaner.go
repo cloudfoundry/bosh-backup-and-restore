@@ -1,7 +1,9 @@
 package orchestrator
 
+import "github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
+
 func NewBackupCleaner(logger Logger, deploymentManager DeploymentManager, lockOrderer LockOrderer,
-	executor Executor) *BackupCleaner {
+	executor executor.Executor) *BackupCleaner {
 
 	workflow := NewWorkflow()
 	findDeploymentStep := NewFindDeploymentStep(deploymentManager, logger)

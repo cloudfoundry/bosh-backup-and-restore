@@ -1,6 +1,8 @@
 package orchestrator
 
-func NewRestoreCleaner(logger Logger, deploymentManager DeploymentManager, lockOrderer LockOrderer, executor Executor) *RestoreCleaner {
+import "github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
+
+func NewRestoreCleaner(logger Logger, deploymentManager DeploymentManager, lockOrderer LockOrderer, executor executor.Executor) *RestoreCleaner {
 	workflow := NewWorkflow()
 	findDeploymentStep := NewFindDeploymentStep(deploymentManager, logger)
 	postRestoreUnlockStep := NewPostRestoreUnlockStep(lockOrderer, executor)

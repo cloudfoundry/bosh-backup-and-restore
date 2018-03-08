@@ -1,22 +1,12 @@
 package orchestrator
 
-type Executor interface {
-	Run([][]Executable) []error
-}
-
-type Executable interface {
-	Execute() error
-}
-
-func JobPreBackupLocker(job Job) error {
-	return job.PreBackupLock()
-}
+import "github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 
 type JobPreBackupLockExecutor struct {
 	Job
 }
 
-func NewJobPreBackupLockExecutable(job Job) Executable {
+func NewJobPreBackupLockExecutable(job Job) executor.Executable {
 	return JobPreBackupLockExecutor{job}
 }
 
@@ -28,7 +18,7 @@ type JobPostBackupUnlockExecutor struct {
 	Job
 }
 
-func NewJobPostBackupUnlockExecutable(job Job) Executable {
+func NewJobPostBackupUnlockExecutable(job Job) executor.Executable {
 	return JobPostBackupUnlockExecutor{job}
 }
 
@@ -40,7 +30,7 @@ type JobPreRestoreLockExecutor struct {
 	Job
 }
 
-func NewJobPreRestoreLockExecutable(job Job) Executable {
+func NewJobPreRestoreLockExecutable(job Job) executor.Executable {
 	return JobPreRestoreLockExecutor{job}
 }
 
@@ -52,7 +42,7 @@ type JobPostRestoreUnlockExecutor struct {
 	Job
 }
 
-func NewJobPostRestoreUnlockExecutable(job Job) Executable {
+func NewJobPostRestoreUnlockExecutable(job Job) executor.Executable {
 	return JobPostRestoreUnlockExecutor{job}
 }
 

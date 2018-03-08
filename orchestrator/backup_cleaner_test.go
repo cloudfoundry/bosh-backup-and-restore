@@ -59,7 +59,7 @@ var _ = Describe("Cleanup", func() {
 		var currentSequenceNumber, unlockCallIndex, cleanupCallIndex int
 		BeforeEach(func() {
 			deploymentManager.FindReturns(deployment, nil)
-			deployment.PostBackupUnlockStub = func(orderer orchestrator.LockOrderer, runner orchestrator.Executor) error {
+			deployment.PostBackupUnlockStub = func(orderer orchestrator.LockOrderer, runner executor.Executor) error {
 				unlockCallIndex = currentSequenceNumber
 				currentSequenceNumber = currentSequenceNumber + 1
 				return nil

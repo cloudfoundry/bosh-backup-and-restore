@@ -1,11 +1,13 @@
 package orchestrator
 
+import "github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
+
 type PostBackupUnlockStep struct {
 	lockOrderer LockOrderer
-	executor    Executor
+	executor    executor.Executor
 }
 
-func NewPostBackupUnlockStep(lockOrderer LockOrderer, executor Executor) Step {
+func NewPostBackupUnlockStep(lockOrderer LockOrderer, executor executor.Executor) Step {
 	return &PostBackupUnlockStep{
 		lockOrderer: lockOrderer,
 		executor:    executor,

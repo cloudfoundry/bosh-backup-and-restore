@@ -1,11 +1,13 @@
 package orchestrator
 
+import "github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
+
 type Restorer struct {
 	workflow *Workflow
 }
 
 func NewRestorer(backupManager BackupManager, logger Logger, deploymentManager DeploymentManager,
-	lockOrderer LockOrderer, executor Executor) *Restorer {
+	lockOrderer LockOrderer, executor executor.Executor) *Restorer {
 	workflow := NewWorkflow()
 	validateArtifactStep := NewValidateArtifactStep(logger, backupManager)
 	findDeploymentStep := NewFindDeploymentStep(deploymentManager, logger)

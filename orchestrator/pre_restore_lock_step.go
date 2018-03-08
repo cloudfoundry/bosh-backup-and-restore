@@ -1,13 +1,16 @@
 package orchestrator
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
+)
 
 type PreRestoreLockStep struct {
 	lockOrderer LockOrderer
-	executor    Executor
+	executor    executor.Executor
 }
 
-func NewPreRestoreLockStep(lockOrderer LockOrderer, executor Executor) Step {
+func NewPreRestoreLockStep(lockOrderer LockOrderer, executor executor.Executor) Step {
 	return &PreRestoreLockStep{
 		lockOrderer: lockOrderer,
 		executor:    executor,

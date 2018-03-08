@@ -4,6 +4,7 @@ package fakes
 import (
 	"sync"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 )
 
@@ -44,11 +45,11 @@ type FakeDeployment struct {
 	isRestorableReturnsOnCall map[int]struct {
 		result1 bool
 	}
-	PreBackupLockStub        func(orchestrator.LockOrderer, orchestrator.Executor) error
+	PreBackupLockStub        func(orchestrator.LockOrderer, executor.Executor) error
 	preBackupLockMutex       sync.RWMutex
 	preBackupLockArgsForCall []struct {
 		arg1 orchestrator.LockOrderer
-		arg2 orchestrator.Executor
+		arg2 executor.Executor
 	}
 	preBackupLockReturns struct {
 		result1 error
@@ -65,11 +66,11 @@ type FakeDeployment struct {
 	backupReturnsOnCall map[int]struct {
 		result1 error
 	}
-	PostBackupUnlockStub        func(orchestrator.LockOrderer, orchestrator.Executor) error
+	PostBackupUnlockStub        func(orchestrator.LockOrderer, executor.Executor) error
 	postBackupUnlockMutex       sync.RWMutex
 	postBackupUnlockArgsForCall []struct {
 		arg1 orchestrator.LockOrderer
-		arg2 orchestrator.Executor
+		arg2 executor.Executor
 	}
 	postBackupUnlockReturns struct {
 		result1 error
@@ -86,11 +87,11 @@ type FakeDeployment struct {
 	restoreReturnsOnCall map[int]struct {
 		result1 error
 	}
-	CopyRemoteBackupToLocalStub        func(orchestrator.Backup, orchestrator.Executor) error
+	CopyRemoteBackupToLocalStub        func(orchestrator.Backup, executor.Executor) error
 	copyRemoteBackupToLocalMutex       sync.RWMutex
 	copyRemoteBackupToLocalArgsForCall []struct {
 		arg1 orchestrator.Backup
-		arg2 orchestrator.Executor
+		arg2 executor.Executor
 	}
 	copyRemoteBackupToLocalReturns struct {
 		result1 error
@@ -145,11 +146,11 @@ type FakeDeployment struct {
 	customArtifactNamesMatchReturnsOnCall map[int]struct {
 		result1 error
 	}
-	PreRestoreLockStub        func(orchestrator.LockOrderer, orchestrator.Executor) error
+	PreRestoreLockStub        func(orchestrator.LockOrderer, executor.Executor) error
 	preRestoreLockMutex       sync.RWMutex
 	preRestoreLockArgsForCall []struct {
 		arg1 orchestrator.LockOrderer
-		arg2 orchestrator.Executor
+		arg2 executor.Executor
 	}
 	preRestoreLockReturns struct {
 		result1 error
@@ -157,11 +158,11 @@ type FakeDeployment struct {
 	preRestoreLockReturnsOnCall map[int]struct {
 		result1 error
 	}
-	PostRestoreUnlockStub        func(orchestrator.LockOrderer, orchestrator.Executor) error
+	PostRestoreUnlockStub        func(orchestrator.LockOrderer, executor.Executor) error
 	postRestoreUnlockMutex       sync.RWMutex
 	postRestoreUnlockArgsForCall []struct {
 		arg1 orchestrator.LockOrderer
-		arg2 orchestrator.Executor
+		arg2 executor.Executor
 	}
 	postRestoreUnlockReturns struct {
 		result1 error
@@ -344,12 +345,12 @@ func (fake *FakeDeployment) IsRestorableReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) PreBackupLock(arg1 orchestrator.LockOrderer, arg2 orchestrator.Executor) error {
+func (fake *FakeDeployment) PreBackupLock(arg1 orchestrator.LockOrderer, arg2 executor.Executor) error {
 	fake.preBackupLockMutex.Lock()
 	ret, specificReturn := fake.preBackupLockReturnsOnCall[len(fake.preBackupLockArgsForCall)]
 	fake.preBackupLockArgsForCall = append(fake.preBackupLockArgsForCall, struct {
 		arg1 orchestrator.LockOrderer
-		arg2 orchestrator.Executor
+		arg2 executor.Executor
 	}{arg1, arg2})
 	fake.recordInvocation("PreBackupLock", []interface{}{arg1, arg2})
 	fake.preBackupLockMutex.Unlock()
@@ -368,7 +369,7 @@ func (fake *FakeDeployment) PreBackupLockCallCount() int {
 	return len(fake.preBackupLockArgsForCall)
 }
 
-func (fake *FakeDeployment) PreBackupLockArgsForCall(i int) (orchestrator.LockOrderer, orchestrator.Executor) {
+func (fake *FakeDeployment) PreBackupLockArgsForCall(i int) (orchestrator.LockOrderer, executor.Executor) {
 	fake.preBackupLockMutex.RLock()
 	defer fake.preBackupLockMutex.RUnlock()
 	return fake.preBackupLockArgsForCall[i].arg1, fake.preBackupLockArgsForCall[i].arg2
@@ -433,12 +434,12 @@ func (fake *FakeDeployment) BackupReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) PostBackupUnlock(arg1 orchestrator.LockOrderer, arg2 orchestrator.Executor) error {
+func (fake *FakeDeployment) PostBackupUnlock(arg1 orchestrator.LockOrderer, arg2 executor.Executor) error {
 	fake.postBackupUnlockMutex.Lock()
 	ret, specificReturn := fake.postBackupUnlockReturnsOnCall[len(fake.postBackupUnlockArgsForCall)]
 	fake.postBackupUnlockArgsForCall = append(fake.postBackupUnlockArgsForCall, struct {
 		arg1 orchestrator.LockOrderer
-		arg2 orchestrator.Executor
+		arg2 executor.Executor
 	}{arg1, arg2})
 	fake.recordInvocation("PostBackupUnlock", []interface{}{arg1, arg2})
 	fake.postBackupUnlockMutex.Unlock()
@@ -457,7 +458,7 @@ func (fake *FakeDeployment) PostBackupUnlockCallCount() int {
 	return len(fake.postBackupUnlockArgsForCall)
 }
 
-func (fake *FakeDeployment) PostBackupUnlockArgsForCall(i int) (orchestrator.LockOrderer, orchestrator.Executor) {
+func (fake *FakeDeployment) PostBackupUnlockArgsForCall(i int) (orchestrator.LockOrderer, executor.Executor) {
 	fake.postBackupUnlockMutex.RLock()
 	defer fake.postBackupUnlockMutex.RUnlock()
 	return fake.postBackupUnlockArgsForCall[i].arg1, fake.postBackupUnlockArgsForCall[i].arg2
@@ -522,12 +523,12 @@ func (fake *FakeDeployment) RestoreReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) CopyRemoteBackupToLocal(arg1 orchestrator.Backup, arg2 orchestrator.Executor) error {
+func (fake *FakeDeployment) CopyRemoteBackupToLocal(arg1 orchestrator.Backup, arg2 executor.Executor) error {
 	fake.copyRemoteBackupToLocalMutex.Lock()
 	ret, specificReturn := fake.copyRemoteBackupToLocalReturnsOnCall[len(fake.copyRemoteBackupToLocalArgsForCall)]
 	fake.copyRemoteBackupToLocalArgsForCall = append(fake.copyRemoteBackupToLocalArgsForCall, struct {
 		arg1 orchestrator.Backup
-		arg2 orchestrator.Executor
+		arg2 executor.Executor
 	}{arg1, arg2})
 	fake.recordInvocation("CopyRemoteBackupToLocal", []interface{}{arg1, arg2})
 	fake.copyRemoteBackupToLocalMutex.Unlock()
@@ -546,7 +547,7 @@ func (fake *FakeDeployment) CopyRemoteBackupToLocalCallCount() int {
 	return len(fake.copyRemoteBackupToLocalArgsForCall)
 }
 
-func (fake *FakeDeployment) CopyRemoteBackupToLocalArgsForCall(i int) (orchestrator.Backup, orchestrator.Executor) {
+func (fake *FakeDeployment) CopyRemoteBackupToLocalArgsForCall(i int) (orchestrator.Backup, executor.Executor) {
 	fake.copyRemoteBackupToLocalMutex.RLock()
 	defer fake.copyRemoteBackupToLocalMutex.RUnlock()
 	return fake.copyRemoteBackupToLocalArgsForCall[i].arg1, fake.copyRemoteBackupToLocalArgsForCall[i].arg2
@@ -779,12 +780,12 @@ func (fake *FakeDeployment) CustomArtifactNamesMatchReturnsOnCall(i int, result1
 	}{result1}
 }
 
-func (fake *FakeDeployment) PreRestoreLock(arg1 orchestrator.LockOrderer, arg2 orchestrator.Executor) error {
+func (fake *FakeDeployment) PreRestoreLock(arg1 orchestrator.LockOrderer, arg2 executor.Executor) error {
 	fake.preRestoreLockMutex.Lock()
 	ret, specificReturn := fake.preRestoreLockReturnsOnCall[len(fake.preRestoreLockArgsForCall)]
 	fake.preRestoreLockArgsForCall = append(fake.preRestoreLockArgsForCall, struct {
 		arg1 orchestrator.LockOrderer
-		arg2 orchestrator.Executor
+		arg2 executor.Executor
 	}{arg1, arg2})
 	fake.recordInvocation("PreRestoreLock", []interface{}{arg1, arg2})
 	fake.preRestoreLockMutex.Unlock()
@@ -803,7 +804,7 @@ func (fake *FakeDeployment) PreRestoreLockCallCount() int {
 	return len(fake.preRestoreLockArgsForCall)
 }
 
-func (fake *FakeDeployment) PreRestoreLockArgsForCall(i int) (orchestrator.LockOrderer, orchestrator.Executor) {
+func (fake *FakeDeployment) PreRestoreLockArgsForCall(i int) (orchestrator.LockOrderer, executor.Executor) {
 	fake.preRestoreLockMutex.RLock()
 	defer fake.preRestoreLockMutex.RUnlock()
 	return fake.preRestoreLockArgsForCall[i].arg1, fake.preRestoreLockArgsForCall[i].arg2
@@ -828,12 +829,12 @@ func (fake *FakeDeployment) PreRestoreLockReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) PostRestoreUnlock(arg1 orchestrator.LockOrderer, arg2 orchestrator.Executor) error {
+func (fake *FakeDeployment) PostRestoreUnlock(arg1 orchestrator.LockOrderer, arg2 executor.Executor) error {
 	fake.postRestoreUnlockMutex.Lock()
 	ret, specificReturn := fake.postRestoreUnlockReturnsOnCall[len(fake.postRestoreUnlockArgsForCall)]
 	fake.postRestoreUnlockArgsForCall = append(fake.postRestoreUnlockArgsForCall, struct {
 		arg1 orchestrator.LockOrderer
-		arg2 orchestrator.Executor
+		arg2 executor.Executor
 	}{arg1, arg2})
 	fake.recordInvocation("PostRestoreUnlock", []interface{}{arg1, arg2})
 	fake.postRestoreUnlockMutex.Unlock()
@@ -852,7 +853,7 @@ func (fake *FakeDeployment) PostRestoreUnlockCallCount() int {
 	return len(fake.postRestoreUnlockArgsForCall)
 }
 
-func (fake *FakeDeployment) PostRestoreUnlockArgsForCall(i int) (orchestrator.LockOrderer, orchestrator.Executor) {
+func (fake *FakeDeployment) PostRestoreUnlockArgsForCall(i int) (orchestrator.LockOrderer, executor.Executor) {
 	fake.postRestoreUnlockMutex.RLock()
 	defer fake.postRestoreUnlockMutex.RUnlock()
 	return fake.postRestoreUnlockArgsForCall[i].arg1, fake.postRestoreUnlockArgsForCall[i].arg2

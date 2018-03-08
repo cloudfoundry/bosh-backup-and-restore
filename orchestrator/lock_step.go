@@ -1,8 +1,10 @@
 package orchestrator
 
+import "github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
+
 type LockStep struct {
 	lockOrderer LockOrderer
-	executor    Executor
+	executor    executor.Executor
 }
 
 func (s *LockStep) Run(session *Session) error {
@@ -13,6 +15,6 @@ func (s *LockStep) Run(session *Session) error {
 	return nil
 }
 
-func NewLockStep(lockOrderer LockOrderer, executor Executor) Step {
+func NewLockStep(lockOrderer LockOrderer, executor executor.Executor) Step {
 	return &LockStep{lockOrderer: lockOrderer, executor: executor}
 }
