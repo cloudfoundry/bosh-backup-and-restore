@@ -20,7 +20,7 @@ type Deployment interface {
 	Backup() error
 	PostBackupUnlock(LockOrderer, Executor) error
 	Restore() error
-	CopyRemoteBackupToLocal(backup Backup, executionStrategy ArtifactExecutionStrategy) error
+	CopyRemoteBackupToLocal(Backup, Executor) error
 	CopyLocalBackupToRemote(Backup) error
 	Cleanup() error
 	CleanupPrevious() error
@@ -216,7 +216,7 @@ func (bd *deployment) CustomArtifactNamesMatch() error {
 	return nil
 }
 
-func (bd *deployment) CopyRemoteBackupToLocal(localBackup Backup, executionStrategy ArtifactExecutionStrategy) error {
+func (bd *deployment) CopyRemoteBackupToLocal(localBackup Backup, executor Executor) error {
 	instances := bd.instances.AllBackupable()
 
 	var remoteBackupArtifacts []BackupArtifact
@@ -224,35 +224,59 @@ func (bd *deployment) CopyRemoteBackupToLocal(localBackup Backup, executionStrat
 		remoteBackupArtifacts = append(remoteBackupArtifacts, instance.ArtifactsToBackup()...)
 	}
 
-	errs := executionStrategy.Run(remoteBackupArtifacts, func(remoteBackupArtifact BackupArtifact) error {
-		err := bd.downloadBackupArtifact(localBackup, remoteBackupArtifact)
-		if err != nil {
-			return err
-		}
-
-		checksum, err := bd.compareChecksums(localBackup, remoteBackupArtifact)
-		if err != nil {
-			return err
-		}
-
-		err = localBackup.AddChecksum(remoteBackupArtifact, checksum)
-		if err != nil {
-			return err
-		}
-
-		err = remoteBackupArtifact.Delete()
-		if err != nil {
-			return err
-		}
-
-		bd.Logger.Info("bbr", "Finished validity checks")
-		return nil
-	})
+	errs := executor.Run(newArtifactExecutables(remoteBackupArtifacts, localBackup, bd.Logger, newBackupDownloadExecutable))
 
 	return ConvertErrors(errs)
 }
 
-func (bd *deployment) downloadBackupArtifact(localBackup Backup, remoteBackupArtifact BackupArtifact) error {
+func newArtifactExecutables(artifacts []BackupArtifact, backup Backup, logger Logger, newExecutable func(Backup, BackupArtifact, Logger) BackupDownloadExecutable) [][]Executable {
+	var executables []Executable
+	for _, artifact := range artifacts {
+		executables = append(executables, newExecutable(backup, artifact, logger))
+	}
+	return [][]Executable{executables}
+}
+
+type BackupDownloadExecutable struct {
+	localBackup    Backup
+	remoteArtifact BackupArtifact
+	Logger
+}
+
+func newBackupDownloadExecutable(localBackup Backup, remoteArtifact BackupArtifact, logger Logger) BackupDownloadExecutable {
+	return BackupDownloadExecutable{
+		localBackup:    localBackup,
+		remoteArtifact: remoteArtifact,
+		Logger:         logger,
+	}
+}
+
+func (e BackupDownloadExecutable) Execute() error {
+	err := e.downloadBackupArtifact(e.localBackup, e.remoteArtifact)
+	if err != nil {
+		return err
+	}
+
+	checksum, err := e.compareChecksums(e.localBackup, e.remoteArtifact)
+	if err != nil {
+		return err
+	}
+
+	err = e.localBackup.AddChecksum(e.remoteArtifact, checksum)
+	if err != nil {
+		return err
+	}
+
+	err = e.remoteArtifact.Delete()
+	if err != nil {
+		return err
+	}
+
+	e.Logger.Info("bbr", "Finished validity checks")
+	return nil
+}
+
+func (e BackupDownloadExecutable) downloadBackupArtifact(localBackup Backup, remoteBackupArtifact BackupArtifact) error {
 	localBackupArtifactWriter, err := localBackup.CreateArtifact(remoteBackupArtifact)
 	if err != nil {
 		return err
@@ -263,7 +287,7 @@ func (bd *deployment) downloadBackupArtifact(localBackup Backup, remoteBackupArt
 		return err
 	}
 
-	bd.Logger.Info("bbr", "Copying backup -- %s uncompressed -- from %s/%s...", size, remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
+	e.Logger.Info("bbr", "Copying backup -- %s uncompressed -- from %s/%s...", size, remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
 	err = remoteBackupArtifact.StreamFromRemote(localBackupArtifactWriter)
 	if err != nil {
 		return err
@@ -274,12 +298,12 @@ func (bd *deployment) downloadBackupArtifact(localBackup Backup, remoteBackupArt
 		return err
 	}
 
-	bd.Logger.Info("bbr", "Finished copying backup -- from %s/%s...", remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
+	e.Logger.Info("bbr", "Finished copying backup -- from %s/%s...", remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
 	return nil
 }
 
-func (bd *deployment) compareChecksums(localBackup Backup, remoteBackupArtifact BackupArtifact) (BackupChecksum, error) {
-	bd.Logger.Info("bbr", "Starting validity checks")
+func (e BackupDownloadExecutable) compareChecksums(localBackup Backup, remoteBackupArtifact BackupArtifact) (BackupChecksum, error) {
+	e.Logger.Info("bbr", "Starting validity checks")
 
 	localChecksum, err := localBackup.CalculateChecksum(remoteBackupArtifact)
 	if err != nil {
@@ -291,12 +315,12 @@ func (bd *deployment) compareChecksums(localBackup Backup, remoteBackupArtifact 
 		return nil, err
 	}
 
-	bd.Logger.Debug("bbr", "Comparing shasums")
+	e.Logger.Debug("bbr", "Comparing shasums")
 
 	match, mismatchedFiles := localChecksum.Match(remoteChecksum)
 	if !match {
-		bd.Logger.Debug("bbr", "Checksums didn't match for:")
-		bd.Logger.Debug("bbr", fmt.Sprintf("%v\n", mismatchedFiles))
+		e.Logger.Debug("bbr", "Checksums didn't match for:")
+		e.Logger.Debug("bbr", fmt.Sprintf("%v\n", mismatchedFiles))
 
 		err = errors.Errorf(
 			"Backup is corrupted, checksum failed for %s/%s %s - checksums don't match for %v. "+

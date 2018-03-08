@@ -10,7 +10,6 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/artifactexecutor"
 )
 
 var _ = Describe("Backup", func() {
@@ -44,7 +43,7 @@ var _ = Describe("Backup", func() {
 			return now
 		}
 
-		b = orchestrator.NewBackuper(fakeBackupManager, logger, deploymentManager, lockOrderer, artifactexecutor.NewParallelExecutionStrategy(), executor.NewParallelExecutor(), nowFunc)
+		b = orchestrator.NewBackuper(fakeBackupManager, logger, deploymentManager, lockOrderer, executor.NewParallelExecutor(), nowFunc)
 	})
 
 	JustBeforeEach(func() {

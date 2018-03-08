@@ -8,7 +8,6 @@ import (
 
 	"io/ioutil"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/artifactexecutor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
@@ -1325,7 +1324,7 @@ var _ = Describe("Deployment", func() {
 			backupArtifact = new(fakes.FakeBackupArtifact)
 		})
 		JustBeforeEach(func() {
-			copyRemoteBackupsToLocalArtifactError = deployment.CopyRemoteBackupToLocal(artifact, artifactexecutor.NewParallelExecutionStrategy())
+			copyRemoteBackupsToLocalArtifactError = deployment.CopyRemoteBackupToLocal(artifact, executor.NewParallelExecutor())
 		})
 
 		Context("One instance, backupable", func() {

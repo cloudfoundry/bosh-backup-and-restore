@@ -10,7 +10,6 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orderer"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/standalone"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/artifactexecutor"
 )
 
 func BuildDirectorBackuper(host,
@@ -28,5 +27,5 @@ func BuildDirectorBackuper(host,
 	)
 
 	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager,
-		orderer.NewDirectorLockOrderer(), artifactexecutor.NewParallelExecutionStrategy(), executor.NewParallelExecutor(), time.Now)
+		orderer.NewDirectorLockOrderer(), executor.NewParallelExecutor(), time.Now)
 }

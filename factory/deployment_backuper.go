@@ -3,7 +3,6 @@ package factory
 import (
 	"time"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/artifactexecutor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
@@ -26,5 +25,5 @@ func BuildDeploymentBackuper(target, username, password, caCert string, withMani
 	}
 
 	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager,
-		orderer.NewKahnBackupLockOrderer(), artifactexecutor.NewParallelExecutionStrategy(), executor.NewParallelExecutor(), time.Now), nil
+		orderer.NewKahnBackupLockOrderer(), executor.NewParallelExecutor(), time.Now), nil
 }

@@ -86,11 +86,11 @@ type FakeDeployment struct {
 	restoreReturnsOnCall map[int]struct {
 		result1 error
 	}
-	CopyRemoteBackupToLocalStub        func(backup orchestrator.Backup, executionStrategy orchestrator.ArtifactExecutionStrategy) error
+	CopyRemoteBackupToLocalStub        func(orchestrator.Backup, orchestrator.Executor) error
 	copyRemoteBackupToLocalMutex       sync.RWMutex
 	copyRemoteBackupToLocalArgsForCall []struct {
-		backup            orchestrator.Backup
-		executionStrategy orchestrator.ArtifactExecutionStrategy
+		arg1 orchestrator.Backup
+		arg2 orchestrator.Executor
 	}
 	copyRemoteBackupToLocalReturns struct {
 		result1 error
@@ -522,17 +522,17 @@ func (fake *FakeDeployment) RestoreReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) CopyRemoteBackupToLocal(backup orchestrator.Backup, executionStrategy orchestrator.ArtifactExecutionStrategy) error {
+func (fake *FakeDeployment) CopyRemoteBackupToLocal(arg1 orchestrator.Backup, arg2 orchestrator.Executor) error {
 	fake.copyRemoteBackupToLocalMutex.Lock()
 	ret, specificReturn := fake.copyRemoteBackupToLocalReturnsOnCall[len(fake.copyRemoteBackupToLocalArgsForCall)]
 	fake.copyRemoteBackupToLocalArgsForCall = append(fake.copyRemoteBackupToLocalArgsForCall, struct {
-		backup            orchestrator.Backup
-		executionStrategy orchestrator.ArtifactExecutionStrategy
-	}{backup, executionStrategy})
-	fake.recordInvocation("CopyRemoteBackupToLocal", []interface{}{backup, executionStrategy})
+		arg1 orchestrator.Backup
+		arg2 orchestrator.Executor
+	}{arg1, arg2})
+	fake.recordInvocation("CopyRemoteBackupToLocal", []interface{}{arg1, arg2})
 	fake.copyRemoteBackupToLocalMutex.Unlock()
 	if fake.CopyRemoteBackupToLocalStub != nil {
-		return fake.CopyRemoteBackupToLocalStub(backup, executionStrategy)
+		return fake.CopyRemoteBackupToLocalStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
@@ -546,10 +546,10 @@ func (fake *FakeDeployment) CopyRemoteBackupToLocalCallCount() int {
 	return len(fake.copyRemoteBackupToLocalArgsForCall)
 }
 
-func (fake *FakeDeployment) CopyRemoteBackupToLocalArgsForCall(i int) (orchestrator.Backup, orchestrator.ArtifactExecutionStrategy) {
+func (fake *FakeDeployment) CopyRemoteBackupToLocalArgsForCall(i int) (orchestrator.Backup, orchestrator.Executor) {
 	fake.copyRemoteBackupToLocalMutex.RLock()
 	defer fake.copyRemoteBackupToLocalMutex.RUnlock()
-	return fake.copyRemoteBackupToLocalArgsForCall[i].backup, fake.copyRemoteBackupToLocalArgsForCall[i].executionStrategy
+	return fake.copyRemoteBackupToLocalArgsForCall[i].arg1, fake.copyRemoteBackupToLocalArgsForCall[i].arg2
 }
 
 func (fake *FakeDeployment) CopyRemoteBackupToLocalReturns(result1 error) {
