@@ -286,19 +286,18 @@ backup_should_be_locked_before:
 
 			Context("and the user decides to cancel the backup", func() {
 				It("terminates", func() {
-					time.Sleep(time.Second * 4)
+					Eventually(session).Should(gbytes.Say("Backing up"))
 					session.Interrupt()
 
 					By("printing a helpful message and waiting for user input", func() {
-						time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
-						Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
+						Consistently(session.Exited).ShouldNot(BeClosed(), "bbr exited without user confirmation")
 						Eventually(session).Should(gbytes.Say(`Stopping a backup can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
 					})
 
 					stdin.Write([]byte("yes\n"))
 
 					By("then exiting with a failure", func() {
-						Eventually(session, 10).Should(gexec.Exit(1))
+						Eventually(session, 10*time.Second).Should(gexec.Exit(1))
 					})
 
 					By("outputting a warning about cleanup", func() {
@@ -317,8 +316,7 @@ backup_should_be_locked_before:
 					session.Interrupt()
 
 					By("printing a helpful message and waiting for user input", func() {
-						time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
-						Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
+						Consistently(session.Exited).ShouldNot(BeClosed(), "bbr process terminated in response to signal")
 						Eventually(session).Should(gbytes.Say(`Stopping a backup can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
 						Expect(string(session.Out.Contents())).To(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
 					})

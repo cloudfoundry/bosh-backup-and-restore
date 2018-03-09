@@ -15,8 +15,6 @@ import (
 
 	"path/filepath"
 
-	"time"
-
 	"io"
 
 	. "github.com/onsi/ginkgo"
@@ -156,8 +154,7 @@ cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 							session.Interrupt()
 
 							By("not terminating", func() {
-								time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
-								Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
+								Consistently(session.Exited).ShouldNot(BeClosed(), "bbr exited without user confirmation")
 							})
 
 							By("outputting a helpful message", func() {
@@ -185,8 +182,7 @@ cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 							session.Interrupt()
 
 							By("not terminating", func() {
-								time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
-								Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
+								Consistently(session.Exited).ShouldNot(BeClosed(), "bbr exited without user confirmation")
 							})
 
 							By("outputting a helpful message", func() {

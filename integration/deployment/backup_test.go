@@ -184,12 +184,11 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 
 					It("terminates", func() {
-						time.Sleep(time.Second * 4)
+						Eventually(session).Should(gbytes.Say("Backing up"))
 						session.Interrupt()
 
 						By("printing a helpful message and waiting for user input", func() {
-							time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
-							Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
+							Consistently(session.Exited).ShouldNot(BeClosed(), "bbr exited without user confirmation")
 							Eventually(session).Should(gbytes.Say(`Stopping a backup can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
 							Expect(string(session.Out.Contents())).To(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
 						})
@@ -216,8 +215,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						session.Interrupt()
 
 						By("printing a helpful message and waiting for user input", func() {
-							time.Sleep(time.Millisecond * 100) // without this sleep, the following assertion won't ever fail, even if the session does exit
-							Expect(session.Exited).NotTo(BeClosed(), "bbr process terminated in response to signal")
+							Consistently(session.Exited).ShouldNot(BeClosed(), "bbr exited without user confirmation")
 							Eventually(session).Should(gbytes.Say(`Stopping a backup can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
 							Expect(string(session.Out.Contents())).To(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
 						})
