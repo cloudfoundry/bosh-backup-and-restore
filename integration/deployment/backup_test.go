@@ -303,12 +303,12 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						Expect(session.Out).To(gbytes.Say("INFO - Finished running post-backup-unlock scripts."))
 						Expect(session.Out).To(gbytes.Say("INFO - Copying backup -- [^-]*-- from redis-dedicated-node/fake-uuid..."))
 						Expect(session.Out).To(gbytes.Say("INFO - Finished copying backup -- from redis-dedicated-node/fake-uuid..."))
-						Expect(session.Out).To(gbytes.Say("INFO - Starting validity checks"))
+						Expect(session.Out).To(gbytes.Say("INFO - Starting validity checks -- from redis-dedicated-node/fake-uuid..."))
 						Expect(session.Out).To(gbytes.Say(`DEBUG - Calculating shasum for local file ./backupdump[12]`))
 						Expect(session.Out).To(gbytes.Say(`DEBUG - Calculating shasum for local file ./backupdump[12]`))
 						Expect(session.Out).To(gbytes.Say("DEBUG - Calculating shasum for remote files"))
 						Expect(session.Out).To(gbytes.Say("DEBUG - Comparing shasums"))
-						Expect(session.Out).To(gbytes.Say("INFO - Finished validity checks"))
+						Expect(session.Out).To(gbytes.Say("INFO - Finished validity checks -- from redis-dedicated-node/fake-uuid..."))
 					})
 
 					By("cleaning up backup artifacts from the remote", func() {
