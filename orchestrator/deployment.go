@@ -273,7 +273,7 @@ func (e BackupDownloadExecutable) Execute() error {
 		return err
 	}
 
-	e.Logger.Info("bbr", "Finished validity checks")
+	e.Logger.Info("bbr", "Finished validity checks -- from %s/%s...", e.remoteArtifact.InstanceName(), e.remoteArtifact.InstanceID())
 	return nil
 }
 
@@ -304,7 +304,7 @@ func (e BackupDownloadExecutable) downloadBackupArtifact(localBackup Backup, rem
 }
 
 func (e BackupDownloadExecutable) compareChecksums(localBackup Backup, remoteBackupArtifact BackupArtifact) (BackupChecksum, error) {
-	e.Logger.Info("bbr", "Starting validity checks")
+	e.Logger.Info("bbr", "Starting validity checks -- from %s/%s...", remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
 
 	localChecksum, err := localBackup.CalculateChecksum(remoteBackupArtifact)
 	if err != nil {
