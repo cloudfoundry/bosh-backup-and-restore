@@ -10,14 +10,15 @@ import (
 	"os"
 	"time"
 
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
-
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
+	"gopkg.in/yaml.v1"
+	"sync"
 )
 
 var _ = Describe("BackupDirectory", func() {
@@ -716,6 +717,40 @@ custom_artifacts:
 					Expect(ioutil.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
 				})
 			})
+
+			Context("when many named artifact are added concurrently", func() {
+				BeforeEach(func() {
+					var wg sync.WaitGroup
+
+					wg.Add(20)
+					for i := 0; i < 20; i++ {
+						go func(i int) {
+							defer wg.Done()
+							anotherFakeBackupArtifact := new(fakes.FakeBackupArtifact)
+							anotherFakeBackupArtifact.HasCustomNameReturns(true)
+							anotherFakeBackupArtifact.NameReturns(fmt.Sprintf("foo-%d", i))
+
+							addChecksumError = artifact.AddChecksum(anotherFakeBackupArtifact, checksum)
+							Expect(addChecksumError).NotTo(HaveOccurred())
+						}(i)
+					}
+
+					wg.Wait()
+
+				})
+				It("appends all the named artifacts", func() {
+					Expect(backupName + "/metadata").To(BeARegularFile())
+
+					data, err := ioutil.ReadFile(backupName + "/metadata")
+					Expect(err).NotTo(HaveOccurred())
+
+					var metadata generatedMetadata
+					err = yaml.Unmarshal(data, &metadata)
+					Expect(err).NotTo(HaveOccurred())
+
+					Expect(metadata.CustomArtifacts).To(HaveLen(21))
+				})
+			})
 		})
 
 		Context("when the metadata file is invalid", func() {
@@ -947,6 +982,10 @@ backup_activity:
 		})
 	})
 })
+
+type generatedMetadata struct {
+	CustomArtifacts   []interface{}     `yaml:"custom_artifacts"`
+}
 
 func createTestMetadata(backupDirectory string, metadata string) {
 	Expect(os.MkdirAll(backupDirectory, 0777)).To(Succeed())
