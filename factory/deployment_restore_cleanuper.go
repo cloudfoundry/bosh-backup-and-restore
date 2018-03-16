@@ -28,5 +28,5 @@ func BuildDeploymentRestoreCleanuper(target,
 		return nil, err
 	}
 
-	return orchestrator.NewRestoreCleaner(logger, deploymentManager, orderer.NewKahnRestoreLockOrderer(), executor.NewParallelExecutor()), nil
+	return orchestrator.NewRestoreCleaner(logger, deploymentManager, orderer.NewKahnRestoreLockOrderer(), executor.NewSerialExecutor()), nil
 }
