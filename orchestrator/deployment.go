@@ -217,25 +217,19 @@ func (bd *deployment) CustomArtifactNamesMatch() error {
 	return nil
 }
 
-func (bd *deployment) CopyRemoteBackupToLocal(localBackup Backup, executor executor.Executor) error {
+func (bd *deployment) CopyRemoteBackupToLocal(localBackup Backup, execr executor.Executor) error {
 	instances := bd.instances.AllBackupable()
 
-	var remoteBackupArtifacts []BackupArtifact
+	var executables []executor.Executable
 	for _, instance := range instances {
-		remoteBackupArtifacts = append(remoteBackupArtifacts, instance.ArtifactsToBackup()...)
+		for _, remoteBackupArtifact := range instance.ArtifactsToBackup() {
+			executables = append(executables, newBackupDownloadExecutable(localBackup, remoteBackupArtifact, bd.Logger))
+		}
 	}
 
-	errs := executor.Run(newArtifactExecutables(remoteBackupArtifacts, localBackup, bd.Logger, newBackupDownloadExecutable))
+	errs := execr.Run([][]executor.Executable{executables})
 
 	return ConvertErrors(errs)
-}
-
-func newArtifactExecutables(artifacts []BackupArtifact, backup Backup, logger Logger, newExecutable func(Backup, BackupArtifact, Logger) BackupDownloadExecutable) [][]executor.Executable {
-	var executables []executor.Executable
-	for _, artifact := range artifacts {
-		executables = append(executables, newExecutable(backup, artifact, logger))
-	}
-	return [][]executor.Executable{executables}
 }
 
 type BackupDownloadExecutable struct {
