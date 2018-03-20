@@ -742,7 +742,7 @@ var _ = Describe("Deployment", func() {
 		})
 
 		JustBeforeEach(func() {
-			copyLocalBackupToRemoteError = deployment.CopyLocalBackupToRemote(artifact)
+			copyLocalBackupToRemoteError = deployment.CopyLocalBackupToRemote(artifact, executor.NewParallelExecutor())
 		})
 
 		Context("Single instance, restorable", func() {
@@ -792,27 +792,27 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(MatchError("streaming had a problem"))
+					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("streaming had a problem")))
 				})
 			})
+
 			Context("problem calculating shasum on local", func() {
-				var checksumError = fmt.Errorf("I am so clever")
 				BeforeEach(func() {
-					artifact.FetchChecksumReturns(nil, checksumError)
+					artifact.FetchChecksumReturns(nil, fmt.Errorf("I am so clever"))
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(MatchError(checksumError))
+					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("I am so clever")))
 				})
 			})
+
 			Context("problem calculating shasum on remote", func() {
-				var checksumError = fmt.Errorf("grr")
 				BeforeEach(func() {
-					backupArtifact.ChecksumReturns(nil, checksumError)
+					backupArtifact.ChecksumReturns(nil, fmt.Errorf("grr"))
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(MatchError(checksumError))
+					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("grr")))
 				})
 			})
 
@@ -832,7 +832,7 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(MatchError("leave me alone"))
+					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("leave me alone")))
 				})
 			})
 		})
@@ -877,27 +877,26 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(MatchError("I'm still here"))
+					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("I'm still here")))
 				})
 			})
 			Context("problem calculating shasum on local", func() {
-				var checksumError = fmt.Errorf("oh well")
 				BeforeEach(func() {
-					artifact.FetchChecksumReturns(nil, checksumError)
+					artifact.FetchChecksumReturns(nil, fmt.Errorf("oh well"))
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(MatchError(checksumError))
+					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("oh well")))
 				})
 			})
+
 			Context("problem calculating shasum on remote", func() {
-				var checksumError = fmt.Errorf("grr")
 				BeforeEach(func() {
-					backupArtifact.ChecksumReturns(nil, checksumError)
+					backupArtifact.ChecksumReturns(nil, fmt.Errorf("grr"))
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(MatchError(checksumError))
+					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("grr")))
 				})
 			})
 
@@ -917,7 +916,7 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(MatchError("foo bar baz read error"))
+					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("foo bar baz read error")))
 				})
 			})
 		})
@@ -961,27 +960,27 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(MatchError("this is a problem"))
+					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("this is a problem")))
 				})
 			})
+
 			Context("problem calculating shasum on local", func() {
-				var checksumError = fmt.Errorf("checksum error occurred")
 				BeforeEach(func() {
-					artifact.FetchChecksumReturns(nil, checksumError)
+					artifact.FetchChecksumReturns(nil, fmt.Errorf("checksum error occurred"))
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(MatchError(checksumError))
+					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("checksum error occurred")))
 				})
 			})
+
 			Context("problem calculating shasum on remote", func() {
-				var checksumError = fmt.Errorf("grr")
 				BeforeEach(func() {
-					backupArtifact.ChecksumReturns(nil, checksumError)
+					backupArtifact.ChecksumReturns(nil, fmt.Errorf("grr"))
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(MatchError(checksumError))
+					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("grr")))
 				})
 			})
 
@@ -1010,7 +1009,7 @@ var _ = Describe("Deployment", func() {
 				})
 
 				It("fails", func() {
-					Expect(copyLocalBackupToRemoteError).To(MatchError("a huge problem"))
+					Expect(copyLocalBackupToRemoteError).To(MatchError(ContainSubstring("a huge problem")))
 				})
 			})
 		})
@@ -1734,8 +1733,13 @@ var _ = Describe("Deployment", func() {
 
 				By("calculating checksum for the artifact on each instance", func() {
 					Expect(artifact.CalculateChecksumCallCount()).To(Equal(2))
-					Expect(artifact.CalculateChecksumArgsForCall(0)).To(Equal(artifact1))
-					Expect(artifact.CalculateChecksumArgsForCall(1)).To(Equal(artifact2))
+
+					checksummedArtifacts := []orchestrator.ArtifactIdentifier{
+						artifact.CalculateChecksumArgsForCall(0),
+						artifact.CalculateChecksumArgsForCall(1),
+					}
+
+					Expect(checksummedArtifacts).To(ConsistOf(artifact1, artifact2))
 				})
 
 				By("calculating checksum for the instance on remote", func() {

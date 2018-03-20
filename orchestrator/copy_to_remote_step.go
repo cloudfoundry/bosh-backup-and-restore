@@ -1,15 +1,22 @@
 package orchestrator
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
+)
 
-type CopyToRemoteStep struct{}
+type CopyToRemoteStep struct {
+	executor executor.Executor
+}
 
-func NewCopyToRemoteStep() Step {
-	return &CopyToRemoteStep{}
+func NewCopyToRemoteStep(executor executor.Executor) Step {
+	return &CopyToRemoteStep{
+		executor: executor,
+	}
 }
 
 func (s *CopyToRemoteStep) Run(session *Session) error {
-	if err := session.CurrentDeployment().CopyLocalBackupToRemote(session.CurrentArtifact()); err != nil {
+	if err := session.CurrentDeployment().CopyLocalBackupToRemote(session.CurrentArtifact(), s.executor); err != nil {
 		return errors.Errorf("Unable to send backup to remote machine. Got error: %s", err)
 	}
 	return nil

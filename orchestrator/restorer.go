@@ -13,7 +13,7 @@ func NewRestorer(backupManager BackupManager, logger Logger, deploymentManager D
 	findDeploymentStep := NewFindDeploymentStep(deploymentManager, logger)
 	restorableStep := NewRestorableStep(lockOrderer)
 	cleanupStep := NewCleanupStep()
-	copyToRemoteStep := NewCopyToRemoteStep()
+	copyToRemoteStep := NewCopyToRemoteStep(executor)
 	preRestoreLockStep := NewPreRestoreLockStep(lockOrderer, executor)
 	restoreStep := NewRestoreStep(logger)
 	postRestoreUnlockStep := NewPostRestoreUnlockStep(lockOrderer, executor)

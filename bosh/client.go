@@ -69,8 +69,8 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 	}
 	c.Logger.Debug("bbr", "SSH user generated: %s", sshOpts.Username)
 
-	instances := []orchestrator.Instance{}
-	slugs := []director.AllOrInstanceGroupOrInstanceSlug{}
+	var instances []orchestrator.Instance
+	var slugs []director.AllOrInstanceGroupOrInstanceSlug
 
 	manifest, err := deployment.Manifest()
 	if err != nil {

@@ -99,10 +99,11 @@ type FakeDeployment struct {
 	copyRemoteBackupToLocalReturnsOnCall map[int]struct {
 		result1 error
 	}
-	CopyLocalBackupToRemoteStub        func(orchestrator.Backup) error
+	CopyLocalBackupToRemoteStub        func(orchestrator.Backup, executor.Executor) error
 	copyLocalBackupToRemoteMutex       sync.RWMutex
 	copyLocalBackupToRemoteArgsForCall []struct {
 		arg1 orchestrator.Backup
+		arg2 executor.Executor
 	}
 	copyLocalBackupToRemoteReturns struct {
 		result1 error
@@ -572,16 +573,17 @@ func (fake *FakeDeployment) CopyRemoteBackupToLocalReturnsOnCall(i int, result1 
 	}{result1}
 }
 
-func (fake *FakeDeployment) CopyLocalBackupToRemote(arg1 orchestrator.Backup) error {
+func (fake *FakeDeployment) CopyLocalBackupToRemote(arg1 orchestrator.Backup, arg2 executor.Executor) error {
 	fake.copyLocalBackupToRemoteMutex.Lock()
 	ret, specificReturn := fake.copyLocalBackupToRemoteReturnsOnCall[len(fake.copyLocalBackupToRemoteArgsForCall)]
 	fake.copyLocalBackupToRemoteArgsForCall = append(fake.copyLocalBackupToRemoteArgsForCall, struct {
 		arg1 orchestrator.Backup
-	}{arg1})
-	fake.recordInvocation("CopyLocalBackupToRemote", []interface{}{arg1})
+		arg2 executor.Executor
+	}{arg1, arg2})
+	fake.recordInvocation("CopyLocalBackupToRemote", []interface{}{arg1, arg2})
 	fake.copyLocalBackupToRemoteMutex.Unlock()
 	if fake.CopyLocalBackupToRemoteStub != nil {
-		return fake.CopyLocalBackupToRemoteStub(arg1)
+		return fake.CopyLocalBackupToRemoteStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
@@ -595,10 +597,10 @@ func (fake *FakeDeployment) CopyLocalBackupToRemoteCallCount() int {
 	return len(fake.copyLocalBackupToRemoteArgsForCall)
 }
 
-func (fake *FakeDeployment) CopyLocalBackupToRemoteArgsForCall(i int) orchestrator.Backup {
+func (fake *FakeDeployment) CopyLocalBackupToRemoteArgsForCall(i int) (orchestrator.Backup, executor.Executor) {
 	fake.copyLocalBackupToRemoteMutex.RLock()
 	defer fake.copyLocalBackupToRemoteMutex.RUnlock()
-	return fake.copyLocalBackupToRemoteArgsForCall[i].arg1
+	return fake.copyLocalBackupToRemoteArgsForCall[i].arg1, fake.copyLocalBackupToRemoteArgsForCall[i].arg2
 }
 
 func (fake *FakeDeployment) CopyLocalBackupToRemoteReturns(result1 error) {

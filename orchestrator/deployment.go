@@ -22,7 +22,7 @@ type Deployment interface {
 	PostBackupUnlock(LockOrderer, executor.Executor) error
 	Restore() error
 	CopyRemoteBackupToLocal(Backup, executor.Executor) error
-	CopyLocalBackupToRemote(Backup) error
+	CopyLocalBackupToRemote(Backup, executor.Executor) error
 	Cleanup() error
 	CleanupPrevious() error
 	Instances() []Instance
@@ -333,49 +333,75 @@ func (e BackupDownloadExecutable) compareChecksums(localBackup Backup, remoteBac
 	return localChecksum, nil
 }
 
-func (bd *deployment) CopyLocalBackupToRemote(backup Backup) error {
+func (bd *deployment) CopyLocalBackupToRemote(localBackup Backup, execr executor.Executor) error {
 	instances := bd.instances.AllRestoreable()
 
+	var executables []executor.Executable
 	for _, instance := range instances {
-		for _, artifact := range instance.ArtifactsToRestore() {
-			reader, err := backup.ReadArtifact(artifact)
-
-			if err != nil {
-				return err
-			}
-
-			bd.Logger.Info("bbr", "Copying backup to %s/%s...", instance.Name(), instance.Index())
-			if err := artifact.StreamToRemote(reader); err != nil {
-				return err
-			} else {
-				instance.MarkArtifactDirCreated()
-			}
-
-			localChecksum, err := backup.FetchChecksum(artifact)
-			if err != nil {
-				return err
-			}
-
-			remoteChecksum, err := artifact.Checksum()
-			if err != nil {
-				return err
-			}
-
-			match, mismatchedFiles := localChecksum.Match(remoteChecksum)
-			if !match {
-				bd.Logger.Debug("bbr", "Checksums didn't match for:")
-				bd.Logger.Debug("bbr", fmt.Sprintf("%v\n", mismatchedFiles))
-				return errors.Errorf("Backup couldn't be transferred, checksum failed for %s/%s %s - checksums don't match for %v. Checksum failed for %d files in total",
-					instance.Name(),
-					instance.ID(),
-					artifact.Name(),
-					getFirstTen(mismatchedFiles),
-					len(mismatchedFiles),
-				)
-			}
-			bd.Logger.Info("bbr", "Finished copying backup to %s/%s.", instance.Name(), instance.Index())
+		for _, remoteBackupArtifact := range instance.ArtifactsToRestore() {
+			executables = append(executables, newBackupUploadExecutable(localBackup, remoteBackupArtifact, instance, bd.Logger))
 		}
 	}
+
+	errs := execr.Run([][]executor.Executable{executables})
+
+	return ConvertErrors(errs)
+}
+
+type BackupUploadExecutable struct {
+	localBackup    Backup
+	remoteArtifact BackupArtifact
+	instance       Instance
+	Logger
+}
+
+func newBackupUploadExecutable(localBackup Backup, remoteArtifact BackupArtifact, instance Instance, logger Logger) BackupUploadExecutable {
+	return BackupUploadExecutable{
+		localBackup:    localBackup,
+		remoteArtifact: remoteArtifact,
+		instance:       instance,
+		Logger:         logger,
+	}
+}
+
+func (e BackupUploadExecutable) Execute() error {
+	localBackupArtifactReader, err := e.localBackup.ReadArtifact(e.remoteArtifact)
+	if err != nil {
+		return err
+	}
+
+	e.Logger.Info("bbr", "Copying backup to %s/%s...", e.instance.Name(), e.instance.Index())
+	err = e.remoteArtifact.StreamToRemote(localBackupArtifactReader)
+	if err != nil {
+		return err
+	}
+
+	e.instance.MarkArtifactDirCreated()
+
+	localChecksum, err := e.localBackup.FetchChecksum(e.remoteArtifact)
+	if err != nil {
+		return err
+	}
+
+	remoteChecksum, err := e.remoteArtifact.Checksum()
+	if err != nil {
+		return err
+	}
+
+	match, mismatchedFiles := localChecksum.Match(remoteChecksum)
+	if !match {
+		e.Logger.Debug("bbr", "Checksums didn't match for:")
+		e.Logger.Debug("bbr", fmt.Sprintf("%v\n", mismatchedFiles))
+		return errors.Errorf("Backup couldn't be transferred, checksum failed for %s/%s %s - checksums don't match for %v. Checksum failed for %d files in total",
+			e.instance.Name(),
+			e.instance.ID(),
+			e.remoteArtifact.Name(),
+			getFirstTen(mismatchedFiles),
+			len(mismatchedFiles),
+		)
+	}
+	e.Logger.Info("bbr", "Finished copying backup to %s/%s.", e.instance.Name(), e.instance.Index())
+
 	return nil
 }
 
