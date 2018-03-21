@@ -320,6 +320,19 @@ var _ = Describe("Deployment", func() {
 		})
 	})
 
+	Context("BackupableInstances", func() {
+		BeforeEach(func() {
+			instance1.IsBackupableReturns(true)
+			instance2.IsBackupableReturns(false)
+			instance3.IsBackupableReturns(true)
+			instances = []orchestrator.Instance{instance1, instance2, instance3}
+		})
+
+		It("returns a list of all backupable instances", func() {
+			Expect(deployment.BackupableInstances()).To(ConsistOf(instance1, instance3))
+		})
+	})
+
 	Context("CheckArtifactDir", func() {
 		var artifactDirError error
 
@@ -778,6 +791,19 @@ var _ = Describe("Deployment", func() {
 				Expect(instance2.IsRestorableCallCount()).To(Equal(1))
 				Expect(isRestorable).To(BeFalse())
 			})
+		})
+	})
+
+	Context("RestorableInstances", func() {
+		BeforeEach(func() {
+			instance1.IsRestorableReturns(true)
+			instance2.IsRestorableReturns(false)
+			instance3.IsRestorableReturns(true)
+			instances = []orchestrator.Instance{instance1, instance2, instance3}
+		})
+
+		It("returns a list of all backupable instances", func() {
+			Expect(deployment.RestorableInstances()).To(ConsistOf(instance1, instance3))
 		})
 	})
 
