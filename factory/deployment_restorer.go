@@ -7,12 +7,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orderer"
 )
 
-func BuildDeploymentRestorer(target,
-	username,
-	password,
-	caCert string,
-	debug bool) (*orchestrator.Restorer, error) {
-
+func BuildDeploymentRestorer(target, username, password, caCert string, debug bool) (*orchestrator.Restorer, error) {
 	logger := BuildLogger(debug)
 	deploymentManager, err := BuildBoshDeploymentManager(
 		target,
@@ -22,10 +17,17 @@ func BuildDeploymentRestorer(target,
 		logger,
 		false,
 	)
-
 	if err != nil {
 		return nil, err
 	}
+	execr := executor.NewSerialExecutor()
 
-	return orchestrator.NewRestorer(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewKahnRestoreLockOrderer(), executor.NewSerialExecutor()), nil
+	return orchestrator.NewRestorer(
+		backup.BackupDirectoryManager{},
+		logger,
+		deploymentManager,
+		orderer.NewKahnRestoreLockOrderer(),
+		execr,
+		orchestrator.NewArtifactCopier(execr, logger),
+	), nil
 }

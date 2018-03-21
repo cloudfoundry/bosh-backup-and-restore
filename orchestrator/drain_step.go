@@ -2,22 +2,21 @@ package orchestrator
 
 import (
 	"time"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 )
 
 type DrainStep struct {
-	logger   Logger
-	executor executor.Executor
+	logger         Logger
+	artifactCopier ArtifactCopier
 }
 
-func NewDrainStep(logger Logger, executor executor.Executor) Step {
+func NewDrainStep(logger Logger, artifactCopier ArtifactCopier) Step {
 	return &DrainStep{
-		logger:   logger,
-		executor: executor,
+		logger:         logger,
+		artifactCopier: artifactCopier,
 	}
 }
 
 func (s *DrainStep) Run(session *Session) error {
 	defer s.logger.Info("bbr", "Backup created of %s on %v\n", session.DeploymentName(), time.Now())
-	return session.CurrentDeployment().CopyRemoteBackupToLocal(session.CurrentArtifact(), s.executor)
+	return s.artifactCopier.DownloadBackupFromDeployment(session.CurrentArtifact(), session.CurrentDeployment())
 }

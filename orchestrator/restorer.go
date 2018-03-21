@@ -7,13 +7,13 @@ type Restorer struct {
 }
 
 func NewRestorer(backupManager BackupManager, logger Logger, deploymentManager DeploymentManager,
-	lockOrderer LockOrderer, executor executor.Executor) *Restorer {
+	lockOrderer LockOrderer, executor executor.Executor, artifactCopier ArtifactCopier) *Restorer {
 	workflow := NewWorkflow()
 	validateArtifactStep := NewValidateArtifactStep(logger, backupManager)
 	findDeploymentStep := NewFindDeploymentStep(deploymentManager, logger)
 	restorableStep := NewRestorableStep(lockOrderer)
 	cleanupStep := NewCleanupStep()
-	copyToRemoteStep := NewCopyToRemoteStep(executor)
+	copyToRemoteStep := NewCopyToRemoteStep(artifactCopier)
 	preRestoreLockStep := NewPreRestoreLockStep(lockOrderer, executor)
 	restoreStep := NewRestoreStep(logger)
 	postRestoreUnlockStep := NewPostRestoreUnlockStep(lockOrderer, executor)

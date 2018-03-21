@@ -19,11 +19,18 @@ func BuildDeploymentBackuper(target, username, password, caCert string, withMani
 		logger,
 		withManifest,
 	)
-
 	if err != nil {
 		return nil, err
 	}
+	execr := executor.NewParallelExecutor()
 
-	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager,
-		orderer.NewKahnBackupLockOrderer(), executor.NewParallelExecutor(), time.Now), nil
+	return orchestrator.NewBackuper(
+		backup.BackupDirectoryManager{},
+		logger,
+		deploymentManager,
+		orderer.NewKahnBackupLockOrderer(),
+		execr,
+		time.Now,
+		orchestrator.NewArtifactCopier(execr, logger),
+	), nil
 }

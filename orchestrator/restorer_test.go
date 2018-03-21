@@ -26,6 +26,7 @@ var _ = Describe("restorer", func() {
 			deployment        *fakes.FakeDeployment
 			artifactPath      string
 			lockOrderer       *fakes.FakeLockOrderer
+			artifactCopier    *fakes.FakeArtifactCopier
 		)
 
 		BeforeEach(func() {
@@ -36,6 +37,7 @@ var _ = Describe("restorer", func() {
 			deploymentManager = new(fakes.FakeDeploymentManager)
 			deployment = new(fakes.FakeDeployment)
 			lockOrderer = new(fakes.FakeLockOrderer)
+			artifactCopier = new(fakes.FakeArtifactCopier)
 
 			artifactManager.OpenReturns(artifact, nil)
 			deploymentManager.FindReturns(deployment, nil)
@@ -44,7 +46,7 @@ var _ = Describe("restorer", func() {
 			artifact.DeploymentMatchesReturns(true, nil)
 			artifact.ValidReturns(true, nil)
 
-			b = orchestrator.NewRestorer(artifactManager, logger, deploymentManager, lockOrderer, executor.NewSerialExecutor())
+			b = orchestrator.NewRestorer(artifactManager, logger, deploymentManager, lockOrderer, executor.NewSerialExecutor(), artifactCopier)
 
 			deploymentName = "deployment-to-restore"
 			artifactPath = "/some/path"
@@ -91,8 +93,11 @@ var _ = Describe("restorer", func() {
 		})
 
 		It("streams the local backup to the deployment", func() {
-			Expect(deployment.CopyLocalBackupToRemoteCallCount()).To(Equal(1))
-			Expect(deployment.CopyLocalBackupToRemoteArgsForCall(0)).To(Equal(artifact))
+			Expect(artifactCopier.UploadBackupToDeploymentCallCount()).To(Equal(1))
+
+			uploadedArtifact, uploadedToDeployment := artifactCopier.UploadBackupToDeploymentArgsForCall(0)
+			Expect(uploadedArtifact).To(Equal(artifact))
+			Expect(uploadedToDeployment).To(Equal(deployment))
 		})
 
 		It("calls pre-restore-lock on the deployment", func() {
@@ -251,7 +256,7 @@ var _ = Describe("restorer", func() {
 
 			Context("if streaming the backup to the remote fails", func() {
 				BeforeEach(func() {
-					deployment.CopyLocalBackupToRemoteReturns(fmt.Errorf("Broken pipe"))
+					artifactCopier.UploadBackupToDeploymentReturns(fmt.Errorf("Broken pipe"))
 				})
 
 				It("returns an error", func() {

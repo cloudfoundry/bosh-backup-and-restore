@@ -6,7 +6,8 @@ import (
 )
 
 func NewBackuper(backupManager BackupManager, logger Logger, deploymentManager DeploymentManager,
-	lockOrderer LockOrderer, executor executor.Executor, nowFunc func() time.Time) *Backuper {
+	lockOrderer LockOrderer, executor executor.Executor, nowFunc func() time.Time, artifactCopier ArtifactCopier) *Backuper {
+
 	findDeploymentStep := NewFindDeploymentStep(deploymentManager, logger)
 	backupable := NewBackupableStep(lockOrderer, logger)
 	createArtifact := NewCreateArtifactStep(logger, backupManager, deploymentManager, nowFunc)
@@ -14,7 +15,7 @@ func NewBackuper(backupManager BackupManager, logger Logger, deploymentManager D
 	backup := NewBackupStep()
 	unlockAfterSuccessfulBackup := NewPostBackupUnlockStep(lockOrderer, executor)
 	unlockAfterFailedBackup := NewPostBackupUnlockStep(lockOrderer, executor)
-	drain := NewDrainStep(logger, executor)
+	drain := NewDrainStep(logger, artifactCopier)
 	cleanup := NewCleanupStep()
 	addFinishTimeStep := NewAddFinishTimeStep(nowFunc)
 
