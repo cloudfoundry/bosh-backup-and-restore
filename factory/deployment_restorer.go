@@ -20,14 +20,13 @@ func BuildDeploymentRestorer(target, username, password, caCert string, debug bo
 	if err != nil {
 		return nil, err
 	}
-	execr := executor.NewSerialExecutor()
 
 	return orchestrator.NewRestorer(
 		backup.BackupDirectoryManager{},
 		logger,
 		deploymentManager,
 		orderer.NewKahnRestoreLockOrderer(),
-		execr,
-		orchestrator.NewArtifactCopier(execr, logger),
+		executor.NewSerialExecutor(),
+		orchestrator.NewArtifactCopier(executor.NewParallelExecutor(), logger),
 	), nil
 }

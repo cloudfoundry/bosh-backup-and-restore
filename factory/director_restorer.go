@@ -19,14 +19,13 @@ func BuildDirectorRestorer(host, username, privateKeyPath string, hasDebug bool)
 		instance.NewJobFinder(logger),
 		ssh.NewSshRemoteRunner,
 	)
-	execr := executor.NewSerialExecutor()
 
 	return orchestrator.NewRestorer(
 		backup.BackupDirectoryManager{},
 		logger,
 		deploymentManager,
 		orderer.NewDirectorLockOrderer(),
-		execr,
-		orchestrator.NewArtifactCopier(execr, logger),
+		executor.NewSerialExecutor(),
+		orchestrator.NewArtifactCopier(executor.NewParallelExecutor(), logger),
 	)
 }
