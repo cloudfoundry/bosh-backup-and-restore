@@ -49,26 +49,26 @@ var _ = Describe("Deployment", func() {
 
 	Context("PreBackupLock", func() {
 		var (
-			lockError   error
-			lockOrderer *fakes.FakeLockOrderer
-			execr       *executorFakes.FakeExecutor
+			lockError    error
+			lockOrderer  *fakes.FakeLockOrderer
+			fakeExecutor *executorFakes.FakeExecutor
 		)
 
 		BeforeEach(func() {
 			lockOrderer = new(fakes.FakeLockOrderer)
-			execr = new(executorFakes.FakeExecutor)
+			fakeExecutor = new(executorFakes.FakeExecutor)
 			instances = []orchestrator.Instance{instance1, instance2, instance3}
 			lockOrderer.OrderReturns([][]orchestrator.Job{{job2a}, {job3a, job1a}, {job1b}}, nil)
 		})
 
 		JustBeforeEach(func() {
-			lockError = deployment.PreBackupLock(lockOrderer, execr)
+			lockError = deployment.PreBackupLock(lockOrderer, fakeExecutor)
 		})
 
 		It("delegates the execution to the executor", func() {
 			Expect(lockError).NotTo(HaveOccurred())
 			Expect(lockOrderer.OrderArgsForCall(0)).To(ConsistOf(job1a, job1b, job2a, job3a))
-			Expect(execr.RunArgsForCall(0)).To(Equal([][]executor.Executable{
+			Expect(fakeExecutor.RunArgsForCall(0)).To(Equal([][]executor.Executable{
 				{orchestrator.NewJobPreBackupLockExecutable(job2a)},
 				{orchestrator.NewJobPreBackupLockExecutable(job3a), orchestrator.NewJobPreBackupLockExecutable(job1a)},
 				{orchestrator.NewJobPreBackupLockExecutable(job1b)},
@@ -77,7 +77,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("if the pre-backup-lock fails", func() {
 			BeforeEach(func() {
-				execr.RunReturns([]error{
+				fakeExecutor.RunReturns([]error{
 					fmt.Errorf("job1b failed"),
 					fmt.Errorf("job2a failed"),
 				})
@@ -141,26 +141,26 @@ var _ = Describe("Deployment", func() {
 
 	Context("PostBackupUnlock", func() {
 		var (
-			lockError   error
-			lockOrderer *fakes.FakeLockOrderer
-			execr       *executorFakes.FakeExecutor
+			lockError    error
+			lockOrderer  *fakes.FakeLockOrderer
+			fakeExecutor *executorFakes.FakeExecutor
 		)
 
 		BeforeEach(func() {
 			lockOrderer = new(fakes.FakeLockOrderer)
-			execr = new(executorFakes.FakeExecutor)
+			fakeExecutor = new(executorFakes.FakeExecutor)
 			instances = []orchestrator.Instance{instance1, instance2, instance3}
 			lockOrderer.OrderReturns([][]orchestrator.Job{{job2a}, {job3a, job1a}, {job1b}}, nil)
 		})
 
 		JustBeforeEach(func() {
-			lockError = deployment.PostBackupUnlock(lockOrderer, execr)
+			lockError = deployment.PostBackupUnlock(lockOrderer, fakeExecutor)
 		})
 
 		It("delegates the execution to the executor", func() {
 			Expect(lockError).NotTo(HaveOccurred())
 			Expect(lockOrderer.OrderArgsForCall(0)).To(ConsistOf(job1a, job1b, job2a, job3a))
-			Expect(execr.RunArgsForCall(0)).To(Equal([][]executor.Executable{
+			Expect(fakeExecutor.RunArgsForCall(0)).To(Equal([][]executor.Executable{
 				{orchestrator.NewJobPostBackupUnlockExecutable(job2a)},
 				{orchestrator.NewJobPostBackupUnlockExecutable(job3a), orchestrator.NewJobPostBackupUnlockExecutable(job1a)},
 				{orchestrator.NewJobPostBackupUnlockExecutable(job1b)},
@@ -169,7 +169,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("if the post-backup-unlock fails", func() {
 			BeforeEach(func() {
-				execr.RunReturns([]error{
+				fakeExecutor.RunReturns([]error{
 					fmt.Errorf("job1b failed"),
 					fmt.Errorf("job2a failed"),
 				})
@@ -430,26 +430,26 @@ var _ = Describe("Deployment", func() {
 
 	Context("PreRestoreLock", func() {
 		var (
-			lockError   error
-			lockOrderer *fakes.FakeLockOrderer
-			execr       *executorFakes.FakeExecutor
+			lockError    error
+			lockOrderer  *fakes.FakeLockOrderer
+			fakeExecutor *executorFakes.FakeExecutor
 		)
 
 		BeforeEach(func() {
 			lockOrderer = new(fakes.FakeLockOrderer)
-			execr = new(executorFakes.FakeExecutor)
+			fakeExecutor = new(executorFakes.FakeExecutor)
 			instances = []orchestrator.Instance{instance1, instance2, instance3}
 			lockOrderer.OrderReturns([][]orchestrator.Job{{job2a}, {job3a, job1a}, {job1b}}, nil)
 		})
 
 		JustBeforeEach(func() {
-			lockError = deployment.PreRestoreLock(lockOrderer, execr)
+			lockError = deployment.PreRestoreLock(lockOrderer, fakeExecutor)
 		})
 
 		It("delegates the execution to the executor", func() {
 			Expect(lockError).NotTo(HaveOccurred())
 			Expect(lockOrderer.OrderArgsForCall(0)).To(ConsistOf(job1a, job1b, job2a, job3a))
-			Expect(execr.RunArgsForCall(0)).To(Equal([][]executor.Executable{
+			Expect(fakeExecutor.RunArgsForCall(0)).To(Equal([][]executor.Executable{
 				{orchestrator.NewJobPreRestoreLockExecutable(job2a)},
 				{orchestrator.NewJobPreRestoreLockExecutable(job3a), orchestrator.NewJobPreRestoreLockExecutable(job1a)},
 				{orchestrator.NewJobPreRestoreLockExecutable(job1b)},
@@ -458,7 +458,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("if the pre-restore-lock fails", func() {
 			BeforeEach(func() {
-				execr.RunReturns([]error{
+				fakeExecutor.RunReturns([]error{
 					fmt.Errorf("job1b failed"),
 					fmt.Errorf("job2a failed"),
 				})
@@ -485,26 +485,26 @@ var _ = Describe("Deployment", func() {
 
 	Context("PostRestoreUnlock", func() {
 		var (
-			lockError   error
-			lockOrderer *fakes.FakeLockOrderer
-			execr       *executorFakes.FakeExecutor
+			lockError    error
+			lockOrderer  *fakes.FakeLockOrderer
+			fakeExecutor *executorFakes.FakeExecutor
 		)
 
 		BeforeEach(func() {
 			lockOrderer = new(fakes.FakeLockOrderer)
-			execr = new(executorFakes.FakeExecutor)
+			fakeExecutor = new(executorFakes.FakeExecutor)
 			instances = []orchestrator.Instance{instance1, instance2, instance3}
 			lockOrderer.OrderReturns([][]orchestrator.Job{{job2a}, {job3a, job1a}, {job1b}}, nil)
 		})
 
 		JustBeforeEach(func() {
-			lockError = deployment.PostRestoreUnlock(lockOrderer, execr)
+			lockError = deployment.PostRestoreUnlock(lockOrderer, fakeExecutor)
 		})
 
 		It("delegates the execution to the executor", func() {
 			Expect(lockError).NotTo(HaveOccurred())
 			Expect(lockOrderer.OrderArgsForCall(0)).To(ConsistOf(job1a, job1b, job2a, job3a))
-			Expect(execr.RunArgsForCall(0)).To(Equal([][]executor.Executable{
+			Expect(fakeExecutor.RunArgsForCall(0)).To(Equal([][]executor.Executable{
 				{orchestrator.NewJobPostRestoreUnlockExecutable(job2a)},
 				{orchestrator.NewJobPostRestoreUnlockExecutable(job3a), orchestrator.NewJobPostRestoreUnlockExecutable(job1a)},
 				{orchestrator.NewJobPostRestoreUnlockExecutable(job1b)},
@@ -513,7 +513,7 @@ var _ = Describe("Deployment", func() {
 
 		Context("if the post-restore-unlock fails", func() {
 			BeforeEach(func() {
-				execr.RunReturns([]error{
+				fakeExecutor.RunReturns([]error{
 					fmt.Errorf("job1b failed"),
 					fmt.Errorf("job2a failed"),
 				})

@@ -5,8 +5,8 @@ import (
 
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
+	"github.com/pkg/errors"
 )
 
 const ArtifactDirectory = "/var/vcap/store/bbr-backup"
