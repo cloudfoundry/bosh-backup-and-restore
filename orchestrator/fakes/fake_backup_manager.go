@@ -9,12 +9,13 @@ import (
 )
 
 type FakeBackupManager struct {
-	CreateStub        func(string, orchestrator.Logger, func() time.Time) (orchestrator.Backup, error)
+	CreateStub        func(string, string, orchestrator.Logger, func() time.Time) (orchestrator.Backup, error)
 	createMutex       sync.RWMutex
 	createArgsForCall []struct {
 		arg1 string
-		arg2 orchestrator.Logger
-		arg3 func() time.Time
+		arg2 string
+		arg3 orchestrator.Logger
+		arg4 func() time.Time
 	}
 	createReturns struct {
 		result1 orchestrator.Backup
@@ -42,18 +43,19 @@ type FakeBackupManager struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeBackupManager) Create(arg1 string, arg2 orchestrator.Logger, arg3 func() time.Time) (orchestrator.Backup, error) {
+func (fake *FakeBackupManager) Create(arg1 string, arg2 string, arg3 orchestrator.Logger, arg4 func() time.Time) (orchestrator.Backup, error) {
 	fake.createMutex.Lock()
 	ret, specificReturn := fake.createReturnsOnCall[len(fake.createArgsForCall)]
 	fake.createArgsForCall = append(fake.createArgsForCall, struct {
 		arg1 string
-		arg2 orchestrator.Logger
-		arg3 func() time.Time
-	}{arg1, arg2, arg3})
-	fake.recordInvocation("Create", []interface{}{arg1, arg2, arg3})
+		arg2 string
+		arg3 orchestrator.Logger
+		arg4 func() time.Time
+	}{arg1, arg2, arg3, arg4})
+	fake.recordInvocation("Create", []interface{}{arg1, arg2, arg3, arg4})
 	fake.createMutex.Unlock()
 	if fake.CreateStub != nil {
-		return fake.CreateStub(arg1, arg2, arg3)
+		return fake.CreateStub(arg1, arg2, arg3, arg4)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -67,10 +69,10 @@ func (fake *FakeBackupManager) CreateCallCount() int {
 	return len(fake.createArgsForCall)
 }
 
-func (fake *FakeBackupManager) CreateArgsForCall(i int) (string, orchestrator.Logger, func() time.Time) {
+func (fake *FakeBackupManager) CreateArgsForCall(i int) (string, string, orchestrator.Logger, func() time.Time) {
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
-	return fake.createArgsForCall[i].arg1, fake.createArgsForCall[i].arg2, fake.createArgsForCall[i].arg3
+	return fake.createArgsForCall[i].arg1, fake.createArgsForCall[i].arg2, fake.createArgsForCall[i].arg3, fake.createArgsForCall[i].arg4
 }
 
 func (fake *FakeBackupManager) CreateReturns(result1 orchestrator.Backup, result2 error) {

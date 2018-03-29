@@ -1,8 +1,8 @@
 package orchestrator
 
 import (
-	"time"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
+	"time"
 )
 
 func NewBackuper(backupManager BackupManager, logger Logger, deploymentManager DeploymentManager,
@@ -46,8 +46,9 @@ type AuthInfo struct {
 }
 
 //Backup checks if a deployment has backupable instances and backs them up.
-func (b Backuper) Backup(deploymentName string) Error {
+func (b Backuper) Backup(deploymentName, artifactPath string) Error {
 	session := NewSession(deploymentName)
+	session.SetCurrentArtifactPath(artifactPath)
 
 	err := b.workflow.Run(session)
 

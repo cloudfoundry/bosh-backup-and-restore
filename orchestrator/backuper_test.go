@@ -49,7 +49,7 @@ var _ = Describe("Backup", func() {
 	})
 
 	JustBeforeEach(func() {
-		actualBackupError = b.Backup(deploymentName)
+		actualBackupError = b.Backup(deploymentName, "")
 	})
 
 	Context("backs up a deployment", func() {
@@ -103,7 +103,8 @@ var _ = Describe("Backup", func() {
 		})
 
 		It("names the artifact after the deployment", func() {
-			actualDeploymentName, actualLogger, _ := fakeBackupManager.CreateArgsForCall(0)
+			actualPath, actualDeploymentName, actualLogger, _ := fakeBackupManager.CreateArgsForCall(0)
+			Expect(actualPath).To(Equal(""))
 			Expect(actualDeploymentName).To(Equal(deploymentName))
 			Expect(actualLogger).To(Equal(logger))
 		})

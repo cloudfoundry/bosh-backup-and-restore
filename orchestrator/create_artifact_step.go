@@ -11,7 +11,7 @@ type CreateArtifactStep struct {
 
 func (s *CreateArtifactStep) Run(session *Session) error {
 	s.logger.Info("bbr", "Starting backup of %s...\n", session.DeploymentName())
-	artifact, err := s.backupManager.Create(session.DeploymentName(), s.logger, time.Now)
+	artifact, err := s.backupManager.Create(session.CurrentArtifactPath(), session.DeploymentName(), s.logger, time.Now)
 	if err != nil {
 		return err
 	}

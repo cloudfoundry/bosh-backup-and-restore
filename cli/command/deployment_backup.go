@@ -42,7 +42,7 @@ func (d DeploymentBackupCommand) Action(c *cli.Context) error {
 	}
 
 	deployment := c.Parent().String("deployment")
-	backupErr := backuper.Backup(deployment)
+	backupErr := backuper.Backup(deployment, c.String("artifact-path"))
 
 	if backupErr.ContainsUnlockOrCleanup() {
 		return processErrorWithFooter(backupErr, backupCleanupAdvisedNotice)

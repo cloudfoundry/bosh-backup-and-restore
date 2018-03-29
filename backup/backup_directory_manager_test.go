@@ -6,13 +6,15 @@ import (
 
 	"time"
 
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
+	"io/ioutil"
 )
 
 var _ = Context("BackupManager", func() {
+	var artifactPath string
 	var deploymentName string
 	var backupName string
 	var backupManager = BackupDirectoryManager{}
@@ -22,6 +24,9 @@ var _ = Context("BackupManager", func() {
 	}
 
 	BeforeEach(func() {
+		artifactPath, err = ioutil.TempDir(os.TempDir(), "test-backup-artifact-dir")
+		Expect(err).NotTo(HaveOccurred())
+
 		deploymentName = fmt.Sprintf("my-cool-redis-%d", config.GinkgoConfig.ParallelNode)
 		backupName = deploymentName + "_20151021T010203Z"
 	})
@@ -32,12 +37,12 @@ var _ = Context("BackupManager", func() {
 
 	Describe("Create", func() {
 		JustBeforeEach(func() {
-			_, err = backupManager.Create(deploymentName, nil, fakeClock)
+			_, err = backupManager.Create(artifactPath, deploymentName, nil, fakeClock)
 		})
 
 		Context("when the directory exists", func() {
 			BeforeEach(func() {
-				Expect(os.MkdirAll(backupName, 0777)).To(Succeed())
+				Expect(os.MkdirAll(fmt.Sprintf("%s/%s", artifactPath, backupName), 0777)).To(Succeed())
 			})
 
 			It("returns an error", func() {
@@ -48,7 +53,27 @@ var _ = Context("BackupManager", func() {
 		Context("when the directory doesnt exist", func() {
 			It("creates a directory with the given name", func() {
 				Expect(err).NotTo(HaveOccurred())
-				Expect(backupName).To(BeADirectory())
+				Expect(fmt.Sprintf("%s/%s", artifactPath, backupName)).To(BeADirectory())
+			})
+		})
+
+		Context("when the artifactPath does not exist", func() {
+			BeforeEach(func() {
+				artifactPath = "/myawesomedir"
+			})
+			It("returns an error", func() {
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Context("when the artifactPath is not a directory", func() {
+			BeforeEach(func() {
+				file, err := ioutil.TempFile(os.TempDir(), "test-backup-artifact-not-a-dir")
+				Expect(err).NotTo(HaveOccurred())
+				artifactPath = file.Name()
+			})
+			It("returns an error", func() {
+				Expect(err).To(MatchError(fmt.Sprintf("artifact directory %s is not a directory", artifactPath)))
 			})
 		})
 	})

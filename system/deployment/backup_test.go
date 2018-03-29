@@ -3,40 +3,78 @@ package deployment
 import (
 	"fmt"
 
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 )
 
 var workspaceDir = "/var/vcap/store/bbr-backup_workspace"
+var artifactDir = workspaceDir
 
 var _ = Describe("backup", func() {
-	var instanceCollection = map[string][]string{
-		"redis":       {"0", "1"},
-		"other-redis": {"0"},
-	}
+	var (
+		instanceCollection = map[string][]string{
+			"redis":       {"0", "1"},
+			"other-redis": {"0"},
+		}
+		bbrCommand string
+	)
 
+	Context("when the operator does not specify an artifact directory", func() {
+		bbrCommand = fmt.Sprintf(
+			`cd %s; BOSH_CLIENT_SECRET=%s ./bbr deployment --ca-cert bosh.crt --username %s --target %s --deployment %s backup`,
+			workspaceDir,
+			MustHaveEnv("BOSH_CLIENT_SECRET"),
+			MustHaveEnv("BOSH_CLIENT"),
+			MustHaveEnv("BOSH_URL"),
+			RedisDeployment.Name,
+		)
+		runBBRBackupAndSucceed(bbrCommand, instanceCollection)
+	})
+
+	Context("when the operator specifies an artifact directory", func() {
+		BeforeEach(func() {
+			artifactDir = workspaceDir + "/artifact-dir"
+			Eventually(JumpboxInstance.RunCommandAs("vcap", fmt.Sprintf("mkdir %s", artifactDir))).Should(gexec.Exit(0))
+
+			bbrCommand = fmt.Sprintf(
+				`cd %s; BOSH_CLIENT_SECRET=%s ./bbr deployment --ca-cert bosh.crt --username %s --target %s --deployment %s backup --artifact-dir %s`,
+				workspaceDir,
+				MustHaveEnv("BOSH_CLIENT_SECRET"),
+				MustHaveEnv("BOSH_CLIENT"),
+				MustHaveEnv("BOSH_URL"),
+				RedisDeployment.Name,
+				artifactDir,
+			)
+		})
+
+		runBBRBackupAndSucceed(bbrCommand, instanceCollection)
+
+		Context("when the artifact directory does not exist", func() {
+			BeforeEach(func() {
+				Eventually(JumpboxInstance.RunCommandAs("vcap", fmt.Sprintf("rmdir %s", artifactDir))).Should(gexec.Exit(0))
+
+			})
+
+			It("should fail with an artifact directory does not exist error", func() {
+				session := JumpboxInstance.RunCommandAs("vcap", bbrCommand)
+				Eventually(session).Should(gexec.Exit(1))
+				Expect(session.Err).To(MatchError("artifact directory does not exist"))
+			})
+
+		})
+	})
+})
+
+func runBBRBackupAndSucceed(bbrCommand string, instanceCollection map[string][]string) {
 	It("backs up, and cleans up the backup on the remote", func() {
 		By("populating data in redis")
 		populateRedisFixtureOnInstances(instanceCollection)
 
 		By("running the backup command")
-		Eventually(JumpboxInstance.RunCommandAs("vcap",
-			fmt.Sprintf(`cd %s; \
-			    BOSH_CLIENT_SECRET=%s ./bbr deployment \
-			       --ca-cert bosh.crt \
-			       --username %s \
-			       --target %s \
-			       --deployment %s \
-			       backup`,
-				workspaceDir,
-				MustHaveEnv("BOSH_CLIENT_SECRET"),
-				MustHaveEnv("BOSH_CLIENT"),
-				MustHaveEnv("BOSH_URL"),
-				RedisDeployment.Name),
-		)).Should(gexec.Exit(0))
+		Eventually(JumpboxInstance.RunCommandAs("vcap", bbrCommand)).Should(gexec.Exit(0))
 
 		By("running the pre-backup lock script")
 		runOnInstances(instanceCollection, func(instName, instIndex string) {
@@ -59,16 +97,16 @@ var _ = Describe("backup", func() {
 		})
 
 		By("creating a timestamped directory for holding the artifacts locally", func() {
-			session := JumpboxInstance.RunCommandAs("vcap", "ls "+workspaceDir)
+			session := JumpboxInstance.RunCommandAs("vcap", "ls "+artifactDir)
 			Eventually(session).Should(gexec.Exit(0))
 			Expect(string(session.Out.Contents())).To(MatchRegexp(`\b` + RedisDeployment.Name + `_(\d){8}T(\d){6}Z\b`))
 		})
 
 		By("creating the backup artifacts locally")
 		JumpboxInstance.AssertFilesExist([]string{
-			fmt.Sprintf("%s/%s/redis-0-redis-server.tar", workspaceDir, BackupDirWithTimestamp(RedisDeployment.Name)),
-			fmt.Sprintf("%s/%s/redis-1-redis-server.tar", workspaceDir, BackupDirWithTimestamp(RedisDeployment.Name)),
-			fmt.Sprintf("%s/%s/other-redis-0-redis-server.tar", workspaceDir, BackupDirWithTimestamp(RedisDeployment.Name)),
+			fmt.Sprintf("%s/%s/redis-0-redis-server.tar", artifactDir, BackupDirWithTimestamp(RedisDeployment.Name)),
+			fmt.Sprintf("%s/%s/redis-1-redis-server.tar", artifactDir, BackupDirWithTimestamp(RedisDeployment.Name)),
+			fmt.Sprintf("%s/%s/other-redis-0-redis-server.tar", artifactDir, BackupDirWithTimestamp(RedisDeployment.Name)),
 		})
 
 		By("cleaning up artifacts from the remote instances")
@@ -81,7 +119,7 @@ var _ = Describe("backup", func() {
 			Expect(session.Out).To(gbytes.Say("No such file or directory"))
 		})
 	})
-})
+}
 
 func populateRedisFixtureOnInstances(instanceCollection map[string][]string) {
 	dataFixture := "../../fixtures/redis_test_commands"

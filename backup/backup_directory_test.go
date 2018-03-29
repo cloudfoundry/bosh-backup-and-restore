@@ -302,7 +302,7 @@ instances:
 		var fakeBackupArtifact *fakes.FakeBackupArtifact
 
 		BeforeEach(func() {
-			artifact, _ = backupDirectoryManager.Create(deploymentName, logger, nowFunc)
+			artifact, _ = backupDirectoryManager.Create("", deploymentName, logger, nowFunc)
 			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
 			fakeBackupArtifact.InstanceNameReturns("redis-server")
 			fakeBackupArtifact.InstanceIndexReturns("0")
@@ -366,7 +366,7 @@ instances:
 		var saveManifestError error
 
 		BeforeEach(func() {
-			artifact, _ = backupDirectoryManager.Create(deploymentName, logger, nowFunc)
+			artifact, _ = backupDirectoryManager.Create("", deploymentName, logger, nowFunc)
 		})
 
 		AfterEach(func() {
@@ -474,7 +474,7 @@ instances:
 			fakeBackupArtifact.InstanceIndexReturns("0")
 		})
 		JustBeforeEach(func() {
-			artifact, _ = backupDirectoryManager.Create(deploymentName, logger, nowFunc)
+			artifact, _ = backupDirectoryManager.Create("", deploymentName, logger, nowFunc)
 		})
 		Context("file exists", func() {
 			Context("default artifact", func() {
@@ -569,7 +569,7 @@ instances:
 		var startTime time.Time
 
 		BeforeEach(func() {
-			artifact, _ = backupDirectoryManager.Create(deploymentName, logger, nowFunc)
+			artifact, _ = backupDirectoryManager.Create("", deploymentName, logger, nowFunc)
 			startTime = time.Date(2015, 10, 21, 1, 2, 3, 0, time.UTC)
 			Expect(artifact.CreateMetadataFileWithStartTime(startTime)).To(Succeed())
 			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
@@ -925,7 +925,7 @@ instances:
 
 		BeforeEach(func() {
 			var err error
-			artifact, err = backupDirectoryManager.Create(deploymentName, logger, nowFunc)
+			artifact, err = backupDirectoryManager.Create("", deploymentName, logger, nowFunc)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -955,7 +955,7 @@ backup_activity:
 
 		BeforeEach(func() {
 			var err error
-			artifact, err = backupDirectoryManager.Create(deploymentName, logger, nowFunc)
+			artifact, err = backupDirectoryManager.Create("", deploymentName, logger, nowFunc)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -984,7 +984,7 @@ backup_activity:
 })
 
 type generatedMetadata struct {
-	CustomArtifacts   []interface{}     `yaml:"custom_artifacts"`
+	CustomArtifacts []interface{} `yaml:"custom_artifacts"`
 }
 
 func createTestMetadata(backupDirectory string, metadata string) {

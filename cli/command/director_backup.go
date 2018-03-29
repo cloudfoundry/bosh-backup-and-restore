@@ -33,7 +33,7 @@ func (checkCommand DirectorBackupCommand) Action(c *cli.Context) error {
 		c.Parent().String("private-key-path"),
 		c.GlobalBool("debug"))
 
-	backupErr := backuper.Backup(directorName)
+	backupErr := backuper.Backup(directorName, c.String("artifact-path"))
 
 	if backupErr.ContainsUnlockOrCleanup() {
 		return processErrorWithFooter(backupErr, backupCleanupAdvisedNotice)
