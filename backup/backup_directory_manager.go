@@ -34,7 +34,7 @@ func (BackupDirectoryManager) Create(path, name string, logger orchestrator.Logg
 	}
 
 	err = os.Mkdir(backupPath, 0700)
-	return &BackupDirectory{baseDirName: directoryName, Logger: logger}, errors.Wrap(err, "failed creating directory")
+	return &BackupDirectory{baseDirName: backupPath, Logger: logger}, errors.Wrap(err, "failed creating directory")
 }
 
 func (BackupDirectoryManager) Open(name string, logger orchestrator.Logger) (orchestrator.Backup, error) {

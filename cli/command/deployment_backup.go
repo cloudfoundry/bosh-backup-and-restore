@@ -19,10 +19,16 @@ func (d DeploymentBackupCommand) Cli() cli.Command {
 		Aliases: []string{"b"},
 		Usage:   "Backup a deployment",
 		Action:  d.Action,
-		Flags: []cli.Flag{cli.BoolFlag{
-			Name:  "with-manifest",
-			Usage: "Download the deployment manifest",
-		}},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "with-manifest",
+				Usage: "Download the deployment manifest",
+			},
+			cli.StringFlag{
+				Name: "artifact-path",
+				Usage: "Specify an optional path to save the backup artifacts",
+			},
+		},
 	}
 }
 

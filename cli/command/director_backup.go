@@ -18,6 +18,12 @@ func (checkCommand DirectorBackupCommand) Cli() cli.Command {
 		Aliases: []string{"b"},
 		Usage:   "Backup a BOSH Director",
 		Action:  checkCommand.Action,
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name: "artifact-path",
+				Usage: "Specify an optional path to save the backup artifacts",
+			},
+		},
 	}
 
 }
