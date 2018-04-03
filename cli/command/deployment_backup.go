@@ -26,7 +26,7 @@ func (d DeploymentBackupCommand) Cli() cli.Command {
 			},
 			cli.StringFlag{
 				Name: "artifact-path",
-				Usage: "Specify an optional path to save the backup artifacts",
+				Usage: "Specify an optional path to save the backup artifacts to",
 			},
 		},
 	}
