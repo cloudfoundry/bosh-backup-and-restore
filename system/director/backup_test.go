@@ -74,7 +74,7 @@ var _ = Describe("Backup", func() {
 	Context("when the operator specifies an artifact path that does not exist", func() {
 		BeforeEach(func() {
 			artifactDir = workspaceDir+"/invalid-artifact-dir"
-			
+
 			bbrCommand = fmt.Sprintf(
 				`cd %s; ./bbr director --username vcap --private-key-path ./key.pem --host %s backup --artifact-path %s`,
 				workspaceDir,
