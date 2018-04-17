@@ -12,6 +12,7 @@ var JumpboxDeployment = DeploymentWithName("jumpbox")
 var JumpboxInstance = JumpboxDeployment.Instance("jumpbox", "0")
 var RedisSlowBackupDeployment = DeploymentWithName("redis-with-slow-backup")
 var RedisWithLockingOrderDeployment = DeploymentWithName("redis-with-locking-order")
+var ManyBbrJobsDeployment = DeploymentWithName("many-bbr-jobs")
 
 func MustHaveEnv(keyname string) string {
 	val := os.Getenv(keyname)

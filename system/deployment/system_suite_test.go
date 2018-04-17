@@ -63,6 +63,9 @@ var _ = BeforeSuite(func() {
 
 		By("deploying the jump box")
 		JumpboxDeployment.Deploy()
+
+		By("deploying the many-bbr-jobs deployment")
+		ManyBbrJobsDeployment.Deploy()
 	}()
 
 	wg.Wait()
@@ -115,6 +118,9 @@ var _ = AfterSuite(func() {
 
 		By("tearing down the jump box")
 		JumpboxDeployment.Delete()
+
+		By("tearing down the many-bbr-jobs deployment")
+		ManyBbrJobsDeployment.Delete()
 	}()
 
 	wg.Wait()

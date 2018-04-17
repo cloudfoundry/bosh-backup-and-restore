@@ -137,6 +137,21 @@ var _ = Describe("backup", func() {
 			Expect(string(session.Out.Contents())).Should(ContainSubstring(fmt.Sprintf("%s: no such file or directory", artifactDir)))
 		})
 	})
+
+	Context("when an instance has many backup scripts", func() {
+		It("does not fail draining the artifacts in parallel", func() {
+			session := JumpboxInstance.RunCommandAs("vcap", fmt.Sprintf(
+				`cd %s; BOSH_CLIENT_SECRET=%s ./bbr deployment --ca-cert bosh.crt --username %s --target %s --deployment %s backup`,
+				workspaceDir,
+				MustHaveEnv("BOSH_CLIENT_SECRET"),
+				MustHaveEnv("BOSH_CLIENT"),
+				MustHaveEnv("BOSH_URL"),
+				ManyBbrJobsDeployment.Name,
+			))
+
+			Eventually(session).Should(gexec.Exit(0))
+		})
+	})
 })
 
 func populateRedisFixtureOnInstances(instanceCollection map[string][]string) {
