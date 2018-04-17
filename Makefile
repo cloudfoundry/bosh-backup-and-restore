@@ -88,7 +88,8 @@ sys-test-ci: setup
 	ginkgo -r -v -trace system/deployment
 
 upload-test-releases:
-	cd fixtures/releases/redis-test-release && bosh -n create release --force && bosh -t $(BOSH_URL) upload release --rebase
+	fixtures/releases/upload-release redis-test-release && \
+	fixtures/releases/upload-release many-bbr-jobs-release
 
 release: setup
 	mkdir releases

@@ -1,0 +1,67 @@
+name: ((deployment-name))
+
+releases:
+- name: many-bbr-jobs
+  version: latest
+
+stemcells:
+- alias: trusty
+  os: ubuntu-trusty
+  version: latest
+
+instance_groups:
+- name: backup-node
+  azs:
+  - lite
+  instances: 1
+  jobs:
+  - name: backup-and-restore-1
+    release: many-bbr-jobs
+  - name: backup-and-restore-2
+    release: many-bbr-jobs
+  - name: backup-and-restore-3
+    release: many-bbr-jobs
+  - name: backup-and-restore-4
+    release: many-bbr-jobs
+  - name: backup-and-restore-5
+    release: many-bbr-jobs
+  - name: backup-and-restore-6
+    release: many-bbr-jobs
+  - name: backup-and-restore-7
+    release: many-bbr-jobs
+  - name: backup-and-restore-8
+    release: many-bbr-jobs
+  - name: backup-and-restore-9
+    release: many-bbr-jobs
+  - name: backup-and-restore-10
+    release: many-bbr-jobs
+  - name: backup-and-restore-11
+    release: many-bbr-jobs
+  - name: backup-and-restore-12
+    release: many-bbr-jobs
+  - name: backup-and-restore-13
+    release: many-bbr-jobs
+  - name: backup-and-restore-14
+    release: many-bbr-jobs
+  - name: backup-and-restore-15
+    release: many-bbr-jobs
+  - name: backup-and-restore-16
+    release: many-bbr-jobs
+  - name: backup-and-restore-17
+    release: many-bbr-jobs
+  - name: backup-and-restore-18
+    release: many-bbr-jobs
+  - name: backup-and-restore-19
+    release: many-bbr-jobs
+  - name: backup-and-restore-20
+    release: many-bbr-jobs
+  networks:
+  - name: services
+  stemcell: trusty
+  vm_type: small
+
+update:
+  canaries: 1
+  canary_watch_time: 2000
+  max_in_flight: 1
+  update_watch_time: 2000
