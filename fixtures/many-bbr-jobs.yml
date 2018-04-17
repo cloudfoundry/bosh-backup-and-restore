@@ -58,7 +58,7 @@ instance_groups:
   networks:
   - name: services
   stemcell: trusty
-  vm_type: small
+  vm_type: container
 
 update:
   canaries: 1
