@@ -184,7 +184,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 
 					It("terminates", func() {
-						Eventually(session).Should(gbytes.Say("Backing up"))
+						Eventually(session, "30s").Should(gbytes.Say("Backing up"))
 						session.Interrupt()
 
 						By("printing a helpful message and waiting for user input", func() {
