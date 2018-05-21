@@ -1,17 +1,16 @@
 package ssh_test
 
 import (
-	"crypto/rand"
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
 	"testing"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
+	"crypto/rsa"
+	"crypto/rand"
+	"encoding/pem"
+	"crypto/x509"
 )
 
 func TestSsh(t *testing.T) {
@@ -21,7 +20,10 @@ func TestSsh(t *testing.T) {
 
 var defaultPrivateKey string
 
-var _ = BeforeSuite(func() {
+var _ = SynchronizedBeforeSuite(func() []byte {
+	testcluster.PullDockerImage()
+	return []byte{}
+}, func(data []byte) {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	Expect(err).NotTo(HaveOccurred())
 

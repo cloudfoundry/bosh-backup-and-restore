@@ -24,14 +24,15 @@ type Instance struct {
 
 const timeout = 10 * time.Second
 
-var pulled = false
+func PullDockerImage() {
+	startTime := time.Now()
+	args := []string{"pull", "cloudfoundrylondon/backup-and-restore-node-with-ssh"}
+	session := dockerRun(args...)
+	Eventually(session, 60*time.Second).Should(gexec.Exit(0))
+	fmt.Fprintf(GinkgoWriter, "Completed docker run in %v, cmd: %v\n", time.Now().Sub(startTime), args)
+}
 
 func NewInstance() *Instance {
-	if !pulled {
-		dockerRunAndWaitForSuccess("pull", "cloudfoundrylondon/backup-and-restore-node-with-ssh")
-		pulled = true
-	}
-
 	contents := dockerRunAndWaitForSuccess("run", "--publish", "22", "--detach", "cloudfoundrylondon/backup-and-restore-node-with-ssh")
 
 	dockerID := strings.TrimSpace(contents)
