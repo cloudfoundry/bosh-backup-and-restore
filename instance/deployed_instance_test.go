@@ -31,7 +31,7 @@ var _ = Describe("DeployedInstance", func() {
 		expectedStderr = "i'm a stderr"
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
-		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile), log.New(stderr, "[bosh-package] ", log.Lshortfile))
+		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile))
 		remoteRunner = new(sshfakes.FakeRemoteRunner)
 	})
 

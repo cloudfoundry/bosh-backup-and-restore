@@ -38,8 +38,7 @@ var _ = Describe("Connection", func() {
 		user = "test-user"
 
 		combinedOutLog := log.New(io.MultiWriter(GinkgoWriter, bytes.NewBufferString("")), "[bosh-package] ", log.Lshortfile)
-		combinedErrLog := log.New(io.MultiWriter(GinkgoWriter, bytes.NewBufferString("")), "[bosh-package] ", log.Lshortfile)
-		logger = boshlog.New(boshlog.LevelDebug, combinedOutLog, combinedErrLog)
+		logger = boshlog.New(boshlog.LevelDebug, combinedOutLog)
 	})
 
 	AfterEach(func() {

@@ -36,8 +36,7 @@ var _ = Describe("Job", func() {
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
 		stdoutLog := log.New(stdout, "[instance-test] ", log.Lshortfile)
-		stderrLog := log.New(stderr, "[instance-test] ", log.Lshortfile)
-		logger = boshlog.New(boshlog.LevelDebug, stdoutLog, stderrLog)
+		logger = boshlog.New(boshlog.LevelDebug, stdoutLog)
 		releaseName = "redis"
 		remoteRunner = new(sshfakes.FakeRemoteRunner)
 	})
