@@ -33,7 +33,7 @@ var _ = Describe("artifact", func() {
 
 		stdout = gbytes.NewBuffer()
 		stderr = gbytes.NewBuffer()
-		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile))
+		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile), log.New(stderr, "[bosh-package] ", log.Lshortfile))
 	})
 
 	var ArtifactBehaviourForDirectory = func(artifactDirectory string) {

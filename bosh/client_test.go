@@ -64,7 +64,8 @@ var _ = Describe("Director", func() {
 		hostKeyAlgorithm = []string{hostPublicKey.Type()}
 
 		combinedOutLog := log.New(io.MultiWriter(GinkgoWriter, stdoutLogStream), "[bosh-package] ", log.Lshortfile)
-		boshLogger = boshlog.New(boshlog.LevelDebug, combinedOutLog)
+		combinedErrLog := log.New(io.MultiWriter(GinkgoWriter, stderrLogStream), "[bosh-package] ", log.Lshortfile)
+		boshLogger = boshlog.New(boshlog.LevelDebug, combinedOutLog, combinedErrLog)
 	})
 
 	Describe("FindInstances", func() {

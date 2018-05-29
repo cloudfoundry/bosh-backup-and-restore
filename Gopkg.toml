@@ -1,15 +1,10 @@
 
 [[constraint]]
   name = "github.com/cloudfoundry/bosh-cli"
-  version = "3.0.1"
+  version = "2.0.22"
 
 [[constraint]]
   name = "github.com/cloudfoundry/bosh-utils"
-  revision = "fad7a5ad622c066cf1b36eb44b9612cec680e48c"
-  packages = [
-    "logger",
-    "uuid"
-  ]
 
 [[constraint]]
   name = "github.com/cppforlife/go-patch"
@@ -42,7 +37,3 @@
 
 [[constraint]]
   name = "gopkg.in/yaml.v2"
-
-[prune]
-  go-tests = true
-  unused-packages = true

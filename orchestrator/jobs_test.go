@@ -16,7 +16,7 @@ var _ = Describe("Jobs", func() {
 
 	BeforeEach(func() {
 		combinedLog := log.New(GinkgoWriter, "[instance-test] ", log.Lshortfile)
-		logger = boshlog.New(boshlog.LevelDebug, combinedLog)
+		logger = boshlog.New(boshlog.LevelDebug, combinedLog, combinedLog)
 	})
 
 	Context("contains jobs with backup script", func() {

@@ -10,8 +10,6 @@ import (
 	"os"
 	"time"
 
-	"sync"
-
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
@@ -20,13 +18,14 @@ import (
 	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
 	"gopkg.in/yaml.v1"
+	"sync"
 )
 
 var _ = Describe("BackupDirectory", func() {
 	var backupName string
 	var deploymentName string
 	var backupDirectoryManager = BackupDirectoryManager{}
-	var logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter)
+	var logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter, GinkgoWriter)
 	var nowFunc = func() time.Time {
 		return time.Date(2015, 10, 21, 02, 2, 3, 0, time.FixedZone("UTC+1", 3600))
 	}
