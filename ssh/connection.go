@@ -8,12 +8,6 @@ import (
 
 	"strings"
 
-	"log"
-	"net"
-	"os"
-
-	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
-	"github.com/cloudfoundry/socks5-proxy"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
 )
@@ -105,29 +99,8 @@ func (w *sessionClosingOnErrorWriter) Write(data []byte) (int, error) {
 	return n, err
 }
 
-func (c Connection) getConnection() (*ssh.Client, error) {
-	dialFunc := net.Dial
-
-	if os.Getenv("BOSH_ALL_PROXY") != "" {
-		socksProxy := proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(os.Stdout, "sock5-proxy", log.LstdFlags))
-		dialFunc = boshhttp.SOCKS5DialFuncFromEnvironment(net.Dial, socksProxy)
-	}
-
-	conn, err := dialFunc("tcp", c.host)
-	if err != nil {
-		return nil, err
-	}
-
-	client, chans, reqs, err := ssh.NewClientConn(conn, c.host, c.sshConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	return ssh.NewClient(client, chans, reqs), nil
-}
-
 func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.Reader) (int, error) {
-	connection, err := c.getConnection()
+	connection, err := ssh.Dial("tcp", c.host, c.sshConfig)
 	if err != nil {
 		return -1, errors.Wrap(err, "ssh.Dial failed")
 	}
