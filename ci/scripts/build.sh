@@ -3,7 +3,6 @@
 set -ex
 
 eval "$(ssh-agent)"
-./bosh-backup-and-restore-meta/unlock-ci.sh
 chmod 400 bosh-backup-and-restore-meta/keys/github
 ssh-add bosh-backup-and-restore-meta/keys/github
 export GOPATH=$PWD

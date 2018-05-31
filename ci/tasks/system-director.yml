@@ -13,7 +13,6 @@ inputs:
 params:
   BOSH_CLIENT_SECRET:
   BOSH_HOST:
-  TEAM_GPG_KEY:
   HOST_TO_BACKUP:
 
 run:

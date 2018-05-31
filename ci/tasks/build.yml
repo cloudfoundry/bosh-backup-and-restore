@@ -11,9 +11,6 @@ inputs:
   path: src/github.com/cloudfoundry-incubator/bosh-backup-and-restore
 - name: bosh-backup-and-restore-meta
 
-params:
-  TEAM_GPG_KEY:
-
 outputs:
 - name: bbr-build
 

@@ -3,7 +3,6 @@
 set -ex
 
 eval "$(ssh-agent)"
-./bosh-backup-and-restore-meta/unlock-ci.sh
 chmod 400 bosh-backup-and-restore-meta/keys/github
 chmod 400 ${BOSH_GATEWAY_KEY:-bosh-backup-and-restore-meta/genesis-bosh/bosh.pem}
 ssh-add bosh-backup-and-restore-meta/keys/github

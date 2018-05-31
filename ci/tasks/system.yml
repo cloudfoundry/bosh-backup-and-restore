@@ -15,7 +15,6 @@ params:
   BOSH_GATEWAY_USER:
   BOSH_GATEWAY_KEY:
   BOSH_HOST:
-  TEAM_GPG_KEY:
 
 run:
   path: src/github.com/cloudfoundry-incubator/bosh-backup-and-restore/ci/scripts/system.sh

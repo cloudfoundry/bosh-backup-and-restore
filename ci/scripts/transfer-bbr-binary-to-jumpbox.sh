@@ -2,7 +2,6 @@
 
 set -eux
 
-./bosh-backup-and-restore-meta/unlock-ci.sh
 chmod 400 bosh-backup-and-restore-meta/genesis-bosh/bosh.pem
 
 bosh -n -t ${BOSH_TARGET} -u ${BOSH_CLIENT} -p ${BOSH_CLIENT_SECRET} \
