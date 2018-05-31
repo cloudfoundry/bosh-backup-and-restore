@@ -52,18 +52,6 @@ var _ = Describe("KahnLockOrderer", func() {
 			}
 		}),
 
-		Entry("one job, dependency on non-existent job", func() lockingTestCase {
-			var job = fakeJob("test", "releasetest")
-
-			orderConstraintSpecifier := NewFakeOrderConstraintSpecifier()
-
-			return lockingTestCase{
-				inputJobs:                []Job{job},
-				orderedJobs:              [][]Job{{job}},
-				orderConstraintSpecifier: orderConstraintSpecifier,
-			}
-		}),
-
 		Entry("multiple jobs, no dependencies", func() lockingTestCase {
 			var a = fakeJob("a", "releasea")
 			var b = fakeJob("b", "releaseb")
@@ -103,7 +91,7 @@ var _ = Describe("KahnLockOrderer", func() {
 
 			return lockingTestCase{
 				inputJobs:                []Job{a, b, c},
-				errorMessage:             "could not find locking dependency releasee/e",
+				orderedJobs:              [][]Job{{a, b, c}},
 				orderConstraintSpecifier: orderConstraintSpecifier,
 			}
 		}),

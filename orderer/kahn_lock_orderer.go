@@ -3,7 +3,6 @@ package orderer
 import (
 	"errors"
 
-	"fmt"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 )
 
@@ -50,10 +49,7 @@ func findLockingDependencies(jobs []orchestrator.Job, orderConstraintSpecifier o
 		jobSpecifiersThatShouldBeLockedAfter := orderConstraintSpecifier.Before(job)
 
 		for _, jobSpecifierThatShouldBeLockedAfter := range jobSpecifiersThatShouldBeLockedAfter {
-			jobsThatShouldBeLockedAfter, err := findJobsBySpecifier(jobs, jobSpecifierThatShouldBeLockedAfter)
-			if err != nil {
-				return nil, err
-			}
+			jobsThatShouldBeLockedAfter := findJobsBySpecifier(jobs, jobSpecifierThatShouldBeLockedAfter)
 
 			for _, afterJob := range jobsThatShouldBeLockedAfter {
 				lockingDependencies = append(lockingDependencies, lockingDependency{Before: job, After: afterJob})
@@ -64,7 +60,7 @@ func findLockingDependencies(jobs []orchestrator.Job, orderConstraintSpecifier o
 	return lockingDependencies, nil
 }
 
-func findJobsBySpecifier(jobs []orchestrator.Job, specifier orchestrator.JobSpecifier) ([]orchestrator.Job, error) {
+func findJobsBySpecifier(jobs []orchestrator.Job, specifier orchestrator.JobSpecifier) []orchestrator.Job {
 	var foundJobs []orchestrator.Job
 	for _, job := range jobs {
 		if job.Name() == specifier.Name && job.Release() == specifier.Release {
@@ -72,11 +68,7 @@ func findJobsBySpecifier(jobs []orchestrator.Job, specifier orchestrator.JobSpec
 		}
 	}
 
-	if len(foundJobs) == 0 {
-		return nil, fmt.Errorf("could not find locking dependency %s/%s", specifier.Release, specifier.Name)
-	}
-
-	return foundJobs, nil
+	return foundJobs
 }
 
 func orderJobsUsingTheKahnAlgorithm(jobs []orchestrator.Job, lockingDependencies []lockingDependency) ([][]orchestrator.Job, error) {
