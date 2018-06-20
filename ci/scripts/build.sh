@@ -1,13 +1,15 @@
 #!/bin/bash
 
-set -ex
+set -eu
 
 eval "$(ssh-agent)"
 chmod 400 bosh-backup-and-restore-meta/keys/github
 ssh-add bosh-backup-and-restore-meta/keys/github
+
 export GOPATH=$PWD
 export PATH=$PATH:$GOPATH/bin
-export VERSION=$(cat version/number)
+VERSION=$(cat version/number)
+export VERSION
 
 pushd src/github.com/cloudfoundry-incubator/bosh-backup-and-restore
   make release
