@@ -20,7 +20,7 @@ instance_groups:
   instances: 1
   networks:
   - name: default
-  stemcell: windows2016
+  stemcell: default
   vm_extensions:
   - 100GB_ephemeral_disk
   vm_type: g1-small
