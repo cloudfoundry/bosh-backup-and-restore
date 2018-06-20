@@ -1,0 +1,29 @@
+---
+name: windows-vm
+releases:
+- name: windows-utilities
+  sha1: 2bf15743be48e696a72236c05e8e3e137474cedd
+  url: https://bosh.io/d/github.com/cloudfoundry-incubator/windows-utilities-release?v=0.10.0
+  version: 0.10.0
+stemcells:
+- alias: default
+  os: windows2016
+  version: '1709.8'
+update:
+  canaries: 1
+  canary_watch_time: 2000
+  max_in_flight: 1
+  update_watch_time: 2000
+instance_groups:
+- name: windows-vm
+  azs: [z1]
+  instances: 1
+  networks:
+  - name: default
+  stemcell: windows2016
+  vm_extensions:
+  - 100GB_ephemeral_disk
+  vm_type: g1-small
+  jobs:
+  - name: enable_ssh
+    release: windows-utilities
