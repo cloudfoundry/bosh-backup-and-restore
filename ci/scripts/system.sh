@@ -21,6 +21,9 @@ fi
 
 if [[ -z "$BOSH_CA_CERT" ]]; then
   export BOSH_CERT_PATH=$PWD/bosh-backup-and-restore-meta/certs/$BOSH_HOST.crt
+else
+  echo -e "${BOSH_CA_CERT}" > "${PWD}/bosh-ca.crt"
+  export BOSH_CERT_PATH=$PWD/bosh-ca.crt
 fi
 
 export GOPATH=$PWD
