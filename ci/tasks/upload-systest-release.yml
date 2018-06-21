@@ -15,7 +15,7 @@ params:
   BOSH_ENVIRONMENT:
   BOSH_CLIENT:
   BOSH_CLIENT_SECRET:
-  BOSH_CA_CERT: # path to ca cert in bosh-backup-and-restore-meta
+  BOSH_CA_CERT_PATH: # path to bosh director ca cert
   BOSH_GW_HOST: # optional, gateway host to establish BOSH_ALL_PROXY; needs to include port
   BOSH_GW_PRIVATE_KEY: # optional
   BOSH_GW_USER: # optional
