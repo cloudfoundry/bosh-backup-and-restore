@@ -11,14 +11,15 @@ inputs:
 - name: bosh-backup-and-restore-meta
 
 params:
+  RELEASE_NAME:
   BOSH_ENVIRONMENT:
   BOSH_CLIENT:
   BOSH_CLIENT_SECRET:
-  BOSH_GW_HOST: #gateway host to establish BOSH_ALL_PROXY; needs to include port
-  BOSH_GW_PRIVATE_KEY:
-  BOSH_GW_USER:
+  BOSH_CA_CERT: # path to ca cert in bosh-backup-and-restore-meta
+  BOSH_GW_HOST: # optional, gateway host to establish BOSH_ALL_PROXY; needs to include port
+  BOSH_GW_PRIVATE_KEY: # optional
+  BOSH_GW_USER: # optional
   USE_BOSH_ALL_PROXY: false
-  RELEASE_NAME:
 
 run:
   path: bosh-backup-and-restore/ci/scripts/upload-systest-release.sh
