@@ -9,8 +9,9 @@ if [[ "$USE_BOSH_ALL_PROXY" = true ]]; then
   export BOSH_ALL_PROXY="ssh+socks5://${BOSH_GW_USER}@${BOSH_GW_HOST}?private-key=${BOSH_GW_PRIVATE_KEY}"
 fi
 
-export BOSH_CA_CERT="$PWD/$BOSH_CA_CERT_PATH"
-
+if [[ ! -z "$BOSH_CA_CERT_PATH" ]]; then
+  export BOSH_CA_CERT="$PWD/$BOSH_CA_CERT_PATH"
+fi
 cd "bbr-systest-releases/${RELEASE_NAME}"
 
 bosh-cli -n create-release --force
