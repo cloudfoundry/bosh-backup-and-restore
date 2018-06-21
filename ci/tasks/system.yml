@@ -11,10 +11,17 @@ inputs:
 - name: bosh-backup-and-restore-meta
 
 params:
-  BOSH_CLIENT_SECRET:
   BOSH_GATEWAY_USER:
   BOSH_GATEWAY_KEY:
   BOSH_HOST:
+  BOSH_ENVIRONMENT:
+  BOSH_CLIENT:
+  BOSH_CLIENT_SECRET:
+  BOSH_CA_CERT:
+  BOSH_GW_HOST: # optional, gateway host to establish BOSH_ALL_PROXY; needs to include port
+  BOSH_GW_PRIVATE_KEY: # optional
+  BOSH_GW_USER: # optional
+  USE_BOSH_ALL_PROXY: false
 
 run:
   path: src/github.com/cloudfoundry-incubator/bosh-backup-and-restore/ci/scripts/system.sh
