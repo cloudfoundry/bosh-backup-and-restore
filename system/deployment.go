@@ -65,12 +65,11 @@ func run(cmd string, args ...string) *gexec.Session {
 }
 
 func (i Instance) RunCommand(command string) *gexec.Session {
-	return i.deployment.runBosh("ssh",
-		"--gw-user="+MustHaveEnv("BOSH_GATEWAY_USER"),
-		"--gw-host="+MustHaveEnv("BOSH_GATEWAY_HOST"),
-		"--gw-private-key="+MustHaveEnv("BOSH_GATEWAY_KEY"),
-		i.Group+"/"+i.Index,
-		command)
+	MustHaveEnv("BOSH_GW_HOST")
+	MustHaveEnv("BOSH_GW_USER")
+	MustHaveEnv("BOSH_GW_PRIVATE_KEY")
+
+	return i.deployment.runBosh("ssh", i.Group+"/"+i.Index, command)
 }
 
 func (i Instance) RunCommandAs(user, command string) *gexec.Session {
@@ -78,13 +77,11 @@ func (i Instance) RunCommandAs(user, command string) *gexec.Session {
 }
 
 func (i Instance) Copy(sourcePath, destinationPath string) {
-	session := i.deployment.runBosh("scp",
-		"--gw-user="+MustHaveEnv("BOSH_GATEWAY_USER"),
-		"--gw-host="+MustHaveEnv("BOSH_GATEWAY_HOST"),
-		"--gw-private-key="+MustHaveEnv("BOSH_GATEWAY_KEY"),
-		sourcePath,
-		i.Group+"/"+i.Index+":"+destinationPath,
-	)
+	MustHaveEnv("BOSH_GW_HOST")
+	MustHaveEnv("BOSH_GW_USER")
+	MustHaveEnv("BOSH_GW_PRIVATE_KEY")
+
+	session := i.deployment.runBosh("scp", sourcePath, i.Group+"/"+i.Index+":"+destinationPath)
 	Eventually(session).Should(gexec.Exit(0))
 }
 
