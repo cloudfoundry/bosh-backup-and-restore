@@ -38,7 +38,7 @@ var _ = Describe("backup with specified locking order", func() {
 				workspaceDir,
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
-				MustHaveEnv("BOSH_URL"),
+				MustHaveEnv("BOSH_ENVIRONMENT"),
 				RedisWithLockingOrderDeployment.Name),
 		)
 		Eventually(backupSession).Should(gexec.Exit(0))
@@ -84,7 +84,7 @@ var _ = Describe("backup with specified locking order", func() {
 				workspaceDir,
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
-				MustHaveEnv("BOSH_URL"),
+				MustHaveEnv("BOSH_ENVIRONMENT"),
 				RedisWithLockingOrderDeployment.Name,
 				BackupDirWithTimestamp(RedisWithLockingOrderDeployment.Name)),
 		)

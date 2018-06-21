@@ -42,7 +42,7 @@ func (d Deployment) Instance(group, index string) Instance {
 
 func (d Deployment) runBosh(args ...string) *gexec.Session {
 	boshCommand := fmt.Sprintf("bosh-cli --non-interactive --environment=%s --deployment=%s --ca-cert=%s --client=%s --client-secret=%s",
-		MustHaveEnv("BOSH_URL"),
+		MustHaveEnv("BOSH_ENVIRONMENT"),
 		d.Name,
 		MustHaveEnv("BOSH_CERT_PATH"),
 		MustHaveEnv("BOSH_CLIENT"),

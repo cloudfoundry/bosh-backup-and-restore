@@ -14,7 +14,7 @@ if [[ "$USE_BOSH_ALL_PROXY" = true ]]; then
 else
   chmod 400 "${BOSH_GATEWAY_KEY:-bosh-backup-and-restore-meta/genesis-bosh/bosh.pem}"
   export BOSH_GATEWAY_HOST=$BOSH_HOST
-  export BOSH_URL=https://$BOSH_HOST
+  export BOSH_ENVIRONMENT=https://$BOSH_HOST
   export BOSH_GATEWAY_USER=${BOSH_GATEWAY_USER:-vcap}
   export BOSH_GATEWAY_KEY=$PWD/${BOSH_GATEWAY_KEY:-bosh-backup-and-restore-meta/genesis-bosh/bosh.pem}
 fi

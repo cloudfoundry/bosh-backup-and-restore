@@ -39,7 +39,7 @@ setup:
 sys-test-local: sys-test-local-deployment sys-test-local-director
 
 sys-test-local-deployment:
-	BOSH_URL=https://lite-bosh.backup-and-restore.cf-app.com \
+	BOSH_ENVIRONMENT=https://lite-bosh.backup-and-restore.cf-app.com \
 	BOSH_GATEWAY_HOST=lite-bosh.backup-and-restore.cf-app.com \
 	BOSH_CLIENT_SECRET=`lpass show LiteBoshDirector --password` \
 	BOSH_CERT_PATH=~/workspace/bosh-backup-and-restore-meta/certs/lite-bosh.backup-and-restore.cf-app.com.crt \
@@ -49,7 +49,7 @@ sys-test-local-deployment:
 	ginkgo -r -v -trace system/deployment
 
 sys-test-local-director:
-	BOSH_URL=https://genesis-bosh.backup-and-restore.cf-app.com \
+	BOSH_ENVIRONMENT=https://genesis-bosh.backup-and-restore.cf-app.com \
 	BOSH_GATEWAY_HOST=genesis-bosh.backup-and-restore.cf-app.com \
 	BOSH_CLIENT_SECRET=`lpass show GenesisBoshDirectorGCP --password` \
 	BOSH_CERT_PATH=~/workspace/bosh-backup-and-restore-meta/certs/genesis-bosh.backup-and-restore.cf-app.com.crt \
@@ -65,7 +65,7 @@ sys-test-director-ci: setup
 	ginkgo -r -v -trace system/director
 
 sys-test-local-with-uaa:
-	BOSH_URL=https://lite-bosh-uaa.backup-and-restore.cf-app.com \
+	BOSH_ENVIRONMENT=https://lite-bosh-uaa.backup-and-restore.cf-app.com \
 	BOSH_GATEWAY_HOST=lite-bosh-uaa.backup-and-restore.cf-app.com \
 	BOSH_CLIENT_SECRET=`lpass show GardenBoshUAADirectorGCP --password` \
 	BOSH_CERT_PATH=~/workspace/bosh-backup-and-restore-meta/certs/lite-bosh-uaa.backup-and-restore.cf-app.com.crt \
@@ -75,7 +75,7 @@ sys-test-local-with-uaa:
 	ginkgo -r -v -trace system/deployment
 
 sys-test-local-260:
-	BOSH_URL=https://35.187.10.144 \
+	BOSH_ENVIRONMENT=https://35.187.10.144 \
 	BOSH_GATEWAY_HOST=35.187.10.144 \
 	BOSH_CLIENT_SECRET=`lpass show Lite260BoshDirector --password` \
 	BOSH_CERT_PATH=~/workspace/bosh-backup-and-restore-meta/garden-bosh-260/certs/rootCA.pem \

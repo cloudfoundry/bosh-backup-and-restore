@@ -44,7 +44,7 @@ var _ = Describe("Deployment restore cleanup", func() {
 				workspaceDir,
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
-				MustHaveEnv("BOSH_URL"),
+				MustHaveEnv("BOSH_ENVIRONMENT"),
 				deploymentNameToRestore,
 				backupArtifactName),
 		)
@@ -66,7 +66,7 @@ var _ = Describe("Deployment restore cleanup", func() {
 					workspaceDir,
 					MustHaveEnv("BOSH_CLIENT_SECRET"),
 					MustHaveEnv("BOSH_CLIENT"),
-					MustHaveEnv("BOSH_URL"),
+					MustHaveEnv("BOSH_ENVIRONMENT"),
 					deploymentNameToRestore),
 			)).Should(gexec.Exit(0))
 		})
@@ -86,7 +86,7 @@ var _ = Describe("Deployment restore cleanup", func() {
 						workspaceDir,
 						MustHaveEnv("BOSH_CLIENT_SECRET"),
 						MustHaveEnv("BOSH_CLIENT"),
-						MustHaveEnv("BOSH_URL"),
+						MustHaveEnv("BOSH_ENVIRONMENT"),
 						deploymentNameToRestore),
 				)
 
@@ -107,7 +107,7 @@ var _ = Describe("Deployment restore cleanup", func() {
 						workspaceDir,
 						MustHaveEnv("BOSH_CLIENT_SECRET"),
 						MustHaveEnv("BOSH_CLIENT"),
-						MustHaveEnv("BOSH_URL"),
+						MustHaveEnv("BOSH_ENVIRONMENT"),
 						deploymentNameToRestore,
 						backupArtifactName),
 				)
@@ -131,7 +131,7 @@ var _ = Describe("Deployment restore cleanup", func() {
 					workspaceDir,
 					MustHaveEnv("BOSH_CLIENT_SECRET"),
 					MustHaveEnv("BOSH_CLIENT"),
-					MustHaveEnv("BOSH_URL"),
+					MustHaveEnv("BOSH_ENVIRONMENT"),
 					deploymentNameToRestore,
 					backupArtifactName),
 			)

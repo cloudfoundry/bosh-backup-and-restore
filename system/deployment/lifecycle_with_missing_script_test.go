@@ -3,11 +3,11 @@ package deployment
 import (
 	"fmt"
 
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 )
 
 var _ = Describe("backup with a missing script", func() {
@@ -19,7 +19,7 @@ var _ = Describe("backup with a missing script", func() {
 				workspaceDir,
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
-				MustHaveEnv("BOSH_URL"),
+				MustHaveEnv("BOSH_ENVIRONMENT"),
 				RedisWithMissingScriptDeployment.Name,
 			),
 		)

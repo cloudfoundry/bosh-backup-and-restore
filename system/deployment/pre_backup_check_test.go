@@ -3,10 +3,10 @@ package deployment
 import (
 	"fmt"
 
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 )
 
 var _ = Describe("pre-backup-check", func() {
@@ -22,7 +22,7 @@ var _ = Describe("pre-backup-check", func() {
 				workspaceDir,
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
-				MustHaveEnv("BOSH_URL"),
+				MustHaveEnv("BOSH_ENVIRONMENT"),
 				RedisDeployment.Name),
 		)
 

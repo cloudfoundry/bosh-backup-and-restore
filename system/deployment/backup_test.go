@@ -88,7 +88,7 @@ var _ = Describe("backup", func() {
 				workspaceDir,
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
-				MustHaveEnv("BOSH_URL"),
+				MustHaveEnv("BOSH_ENVIRONMENT"),
 				RedisDeployment.Name,
 			)
 		})
@@ -106,7 +106,7 @@ var _ = Describe("backup", func() {
 				workspaceDir,
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
-				MustHaveEnv("BOSH_URL"),
+				MustHaveEnv("BOSH_ENVIRONMENT"),
 				RedisDeployment.Name,
 				artifactDir,
 			)
@@ -124,7 +124,7 @@ var _ = Describe("backup", func() {
 				workspaceDir,
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
-				MustHaveEnv("BOSH_URL"),
+				MustHaveEnv("BOSH_ENVIRONMENT"),
 				RedisDeployment.Name,
 				artifactDir,
 			)
@@ -145,7 +145,7 @@ var _ = Describe("backup", func() {
 				workspaceDir,
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
-				MustHaveEnv("BOSH_URL"),
+				MustHaveEnv("BOSH_ENVIRONMENT"),
 				ManyBbrJobsDeployment.Name,
 			))
 

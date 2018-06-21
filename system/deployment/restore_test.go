@@ -52,7 +52,7 @@ var _ = Describe("Restores a deployment", func() {
 				workspaceDir,
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
-				MustHaveEnv("BOSH_URL"),
+				MustHaveEnv("BOSH_ENVIRONMENT"),
 				RedisDeployment.Name,
 				backupName,
 			),
