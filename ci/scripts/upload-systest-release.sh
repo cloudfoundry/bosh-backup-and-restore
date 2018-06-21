@@ -2,18 +2,13 @@
 
 set -eu
 
+if [[ "$USE_BOSH_ALL_PROXY" = true ]]; then
+  echo -e "${BOSH_GW_PRIVATE_KEY}" > "${PWD}/ssh.key"
+  chmod 0600 "${PWD}/ssh.key"
+  export BOSH_GW_PRIVATE_KEY="${PWD}/ssh.key"
+  export BOSH_ALL_PROXY="ssh+socks5://${BOSH_GW_USER}@${BOSH_GW_HOST}?private-key=${BOSH_GW_PRIVATE_KEY}"
+fi
+
 cd "bbr-systest-releases/${RELEASE_NAME}"
-bosh -n create release --force
-
-bosh -n target "$BOSH_HOST"
-bosh login "$BOSH_CLIENT" "$BOSH_CLIENT_SECRET"
-bosh upload release --rebase
-
-bosh \
-  -n \
-  --ca-cert=../../bosh-backup-and-restore-meta/certs/lite-bosh-uaa.backup-and-restore.cf-app.com.crt \
-  target "$BOSH_UAA_HOST"
-
-export BOSH_CLIENT_SECRET=$BOSH_UAA_CLIENT_SECRET
-bosh login
-bosh upload release --rebase
+bosh-cli -n create-release --force
+bosh-cli upload-release --rebase

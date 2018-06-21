@@ -8,16 +8,17 @@ image_resource:
 inputs:
 - name: bbr-systest-releases
 - name: bosh-backup-and-restore
-  path: src/github.com/cloudfoundry-incubator/bosh-backup-and-restore
 - name: bosh-backup-and-restore-meta
 
 params:
-  BOSH_HOST:
+  BOSH_ENVIRONMENT:
   BOSH_CLIENT:
   BOSH_CLIENT_SECRET:
-  BOSH_UAA_HOST:
-  BOSH_UAA_CLIENT_SECRET:
+  BOSH_GW_HOST: #gateway host to establish BOSH_ALL_PROXY; needs to include port
+  BOSH_GW_PRIVATE_KEY:
+  BOSH_GW_USER:
+  USE_BOSH_ALL_PROXY: false
   RELEASE_NAME:
 
 run:
-  path: src/github.com/cloudfoundry-incubator/bosh-backup-and-restore/ci/scripts/upload-systest-release.sh
+  path: bosh-backup-and-restore/ci/scripts/upload-systest-release.sh
