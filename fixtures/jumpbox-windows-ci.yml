@@ -1,5 +1,5 @@
 ---
-name: jumpbox-windows
+name: jumpbox-windows-ci
 releases: []
 stemcells:
 - alias: default
