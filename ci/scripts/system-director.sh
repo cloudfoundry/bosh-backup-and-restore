@@ -8,7 +8,6 @@ chmod 400 bosh-backup-and-restore-meta/genesis-bosh/bosh.pem
 ssh-add bosh-backup-and-restore-meta/keys/github
 
 export BOSH_GW_HOST=$BOSH_ENVIRONMENT
-export BOSH_ENVIRONMENT=https://$BOSH_ENVIRONMENT
 export GOPATH=$PWD
 export PATH=$PATH:$GOPATH/bin
 export BOSH_GW_USER=${BOSH_GW_USER:-vcap}
