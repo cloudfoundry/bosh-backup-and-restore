@@ -1,0 +1,23 @@
+---
+name: jumpbox-windows
+releases: []
+stemcells:
+- alias: default
+  os: ubuntu-trusty
+  version: latest
+jobs:
+- name: jumpbox
+  instances: 1
+  vm_type: g1-small
+  persistent_disk_type: 1GB
+  stemcell: default
+  azs: [z1]
+  networks:
+  - name: default
+  stemcell: default
+  jobs: []
+update:
+  canaries: 1
+  canary_watch_time: 1000
+  update_watch_time: 1000
+  max_in_flight: 4
