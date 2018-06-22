@@ -13,14 +13,14 @@ if [[ "$USE_BOSH_ALL_PROXY" = true ]]; then
   export BOSH_ALL_PROXY="ssh+socks5://${BOSH_GW_USER}@${BOSH_GW_HOST}?private-key=${BOSH_GW_PRIVATE_KEY}"
 else
   chmod 400 "${BOSH_GW_PRIVATE_KEY:-bosh-backup-and-restore-meta/genesis-bosh/bosh.pem}"
-  export BOSH_GW_HOST=$BOSH_HOST
-  export BOSH_ENVIRONMENT=https://$BOSH_HOST
+  export BOSH_GW_HOST=$BOSH_ENVIRONMENT
+  export BOSH_ENVIRONMENT=https://$BOSH_ENVIRONMENT
   export BOSH_GW_USER=${BOSH_GW_USER:-vcap}
   export BOSH_GW_PRIVATE_KEY=$PWD/${BOSH_GW_PRIVATE_KEY:-bosh-backup-and-restore-meta/genesis-bosh/bosh.pem}
 fi
 
 if [[ -z "$BOSH_CA_CERT" ]]; then
-  export BOSH_CERT_PATH=$PWD/bosh-backup-and-restore-meta/certs/$BOSH_HOST.crt
+  export BOSH_CERT_PATH=$PWD/bosh-backup-and-restore-meta/certs/$BOSH_ENVIRONMENT.crt
 else
   echo -e "${BOSH_CA_CERT}" > "${PWD}/bosh-ca.crt"
   export BOSH_CERT_PATH=$PWD/bosh-ca.crt

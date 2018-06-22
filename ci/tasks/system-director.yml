@@ -12,7 +12,7 @@ inputs:
 
 params:
   BOSH_CLIENT_SECRET:
-  BOSH_HOST:
+  BOSH_ENVIRONMENT:
   HOST_TO_BACKUP:
 
 run:
