@@ -33,7 +33,7 @@ instance_groups:
   - name: enable_ssh
     release: windows-utilities
 - name: redis
-  zs: [z1]
+  azs: [z1]
   instances: 1
   networks:
   - name: default
