@@ -27,6 +27,8 @@ var _ = Describe("Restores a deployment", func() {
 				workspaceDir+"/"+backupName, workspaceDir, workspaceDir),
 		)).Should(gexec.Exit(0))
 
+		JumpboxInstance.Copy(commandPath, workspaceDir)
+		JumpboxInstance.Copy(boshCaCertPath, workspaceDir+"/bosh.crt")
 		JumpboxInstance.Copy(backupMetadata, workspaceDir+"/"+backupName+"/metadata")
 		runOnInstances(instanceCollection, func(in, ii string) {
 			fileName := fmt.Sprintf("%s-%s-redis-server.tar", in, ii)

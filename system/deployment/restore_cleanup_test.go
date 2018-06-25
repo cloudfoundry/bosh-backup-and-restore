@@ -23,6 +23,8 @@ var _ = Describe("Deployment restore cleanup", func() {
 					workspaceDir, workspaceDir, workspaceDir),
 			)).Should(gexec.Exit(0))
 
+			JumpboxInstance.Copy(commandPath, workspaceDir)
+			JumpboxInstance.Copy(boshCaCertPath, workspaceDir+"/bosh.crt")
 			JumpboxInstance.Copy(backupArtifactPath, workspaceDir)
 			Eventually(JumpboxInstance.RunCommandAs("vcap",
 				fmt.Sprintf("cd %s; tar xvf redis-with-slow-backup.tar", workspaceDir),

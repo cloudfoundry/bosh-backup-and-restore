@@ -19,8 +19,9 @@ func TestSystem(t *testing.T) {
 }
 
 var (
-	commandPath string
-	err         error
+	commandPath    string
+	boshCaCertPath string
+	err            error
 )
 
 var fixturesPath = "../../fixtures/redis-backup/"
@@ -79,7 +80,7 @@ var _ = BeforeSuite(func() {
 		fmt.Sprintf("sudo mkdir %s && sudo chown vcap:vcap %s && sudo chmod 0777 %s", workspaceDir, workspaceDir, workspaceDir))).Should(gexec.Exit(0))
 
 	By("writing $BOSH_CA_CERT to a temp file")
-	boshCaCertPath, err := WriteEnvVarToTempFile("BOSH_CA_CERT")
+	boshCaCertPath, err = WriteEnvVarToTempFile("BOSH_CA_CERT")
 	Expect(err).NotTo(HaveOccurred())
 
 	By("copying bbr and bosh.crt to the jumpbox")
