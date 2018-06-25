@@ -9,7 +9,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 
-	"io/ioutil"
 	"sync"
 	"testing"
 )
@@ -80,14 +79,12 @@ var _ = BeforeSuite(func() {
 		fmt.Sprintf("sudo mkdir %s && sudo chown vcap:vcap %s && sudo chmod 0777 %s", workspaceDir, workspaceDir, workspaceDir))).Should(gexec.Exit(0))
 
 	By("writing $BOSH_CA_CERT to a temp file")
-	boshCaCertPath, err := ioutil.TempFile("", "bbr-system-deployment")
-	Expect(err).NotTo(HaveOccurred())
-	_, err = boshCaCertPath.WriteString(MustHaveEnv("BOSH_CA_CERT"))
+	boshCaCertPath, err := WriteEnvVarToTempFile("BOSH_CA_CERT")
 	Expect(err).NotTo(HaveOccurred())
 
 	By("copying bbr and bosh.crt to the jumpbox")
 	JumpboxInstance.Copy(commandPath, workspaceDir)
-	JumpboxInstance.Copy(boshCaCertPath.Name(), workspaceDir+"/bosh.crt")
+	JumpboxInstance.Copy(boshCaCertPath, workspaceDir+"/bosh.crt")
 })
 
 var _ = AfterSuite(func() {

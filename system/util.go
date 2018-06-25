@@ -2,6 +2,7 @@ package system
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 )
 
@@ -30,4 +31,25 @@ func BackupDirWithTimestamp(deploymentName string) string {
 
 func DeploymentWithName(name string) Deployment {
 	return NewDeployment(name+"-"+MustHaveEnv("TEST_ENV"), "../../fixtures/"+name+".yml")
+}
+
+func WriteEnvVarToTempFile(key string) (string, error) {
+	contents := MustHaveEnv(key)
+
+	file, err := ioutil.TempFile("", "bbr-system-test")
+	if err != nil {
+		return "", err
+	}
+
+	err = file.Chmod(0644)
+	if err != nil {
+		return "", err
+	}
+
+	_, err = file.WriteString(contents)
+	if err != nil {
+		return "", err
+	}
+
+	return file.Name(), nil
 }
