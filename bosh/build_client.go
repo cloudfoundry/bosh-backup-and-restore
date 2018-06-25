@@ -52,7 +52,7 @@ func BuildClient(targetUrl, username, password, caCertFileName string, logger bo
 		return nil, errors.Wrap(err, "error building bosh director client")
 	}
 
-	return NewClient(boshDirector, director.NewSSHOpts, ssh.NewSshRemoteRunner, logger, instance.NewJobFinder(logger), NewBoshManifestReleaseMapping), nil
+	return NewClient(boshDirector, director.NewSSHOpts, ssh.NewSshRemoteRunner, logger, instance.NewJobFinder(logger), NewBoshManifestReleaseMapping, nil), nil
 }
 
 func getDirectorInfo(directorFactory director.Factory, config director.Config) (director.Info, error) {

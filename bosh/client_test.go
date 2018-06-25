@@ -30,6 +30,7 @@ var _ = Describe("Director", func() {
 	var boshDeployment *boshfakes.FakeDeployment
 	var remoteRunner *sshfakes.FakeRemoteRunner
 	var fakeJobFinder *instancefakes.FakeJobFinder
+	var fakeOSChecker *instancefakes.FakeOSChecker
 	var releaseMappingFinder *instancefakes.FakeReleaseMappingFinder
 	var releaseMapping *instancefakes.FakeReleaseMapping
 
@@ -42,8 +43,9 @@ var _ = Describe("Director", func() {
 	var hostKeyAlgorithm []string
 
 	var b bosh.BoshClient
+
 	JustBeforeEach(func() {
-		b = bosh.NewClient(boshDirector, optsGenerator.Spy, remoteRunnerFactory.Spy, boshLogger, fakeJobFinder, releaseMappingFinder.Spy)
+		b = bosh.NewClient(boshDirector, optsGenerator.Spy, remoteRunnerFactory.Spy, boshLogger, fakeJobFinder, releaseMappingFinder.Spy, fakeOSChecker)
 	})
 
 	BeforeEach(func() {
@@ -53,6 +55,7 @@ var _ = Describe("Director", func() {
 		boshDeployment = new(boshfakes.FakeDeployment)
 		remoteRunner = new(sshfakes.FakeRemoteRunner)
 		fakeJobFinder = new(instancefakes.FakeJobFinder)
+		fakeOSChecker = new(instancefakes.FakeOSChecker)
 		releaseMappingFinder = new(instancefakes.FakeReleaseMappingFinder)
 		releaseMapping = new(instancefakes.FakeReleaseMapping)
 
@@ -322,8 +325,95 @@ var _ = Describe("Director", func() {
 				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithm))
 				Expect(logger).To(Equal(boshLogger))
 			})
+
 			It("finds the jobs with the job finder", func() {
 				Expect(fakeJobFinder.FindJobsCallCount()).To(Equal(2))
+			})
+		})
+
+		Context("finds instances for the deployment, having multiple instances, including a windows vm, in an instance group", func() {
+			var instance0Jobs orchestrator.Jobs
+
+			BeforeEach(func() {
+				boshDirector.FindDeploymentReturns(boshDeployment, nil)
+				boshDeployment.VMInfosReturns([]director.VMInfo{
+					{
+						JobName: "job1",
+						ID:      "linux1",
+					},
+					{
+						JobName: "job1",
+						ID:      "windows2",
+					},
+				}, nil)
+				optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
+				boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
+					{
+						Username:      "username",
+						Host:          "hostname1",
+						IndexOrID:     "linux1",
+						HostPublicKey: hostsPublicKey,
+					},
+					{
+						Username:      "username",
+						Host:          "hostname2",
+						IndexOrID:     "windows2",
+						HostPublicKey: hostsPublicKey,
+					},
+				}}, nil)
+				remoteRunnerFactory.Returns(remoteRunner, nil)
+
+				instance0Jobs = []orchestrator.Job{
+					instance.NewJob(remoteRunner, "", boshLogger, "",
+						instance.BackupAndRestoreScripts{"/var/vcap/jobs/consul_agent/bin/bbr/backup"},
+						instance.Metadata{},
+					),
+				}
+
+				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
+					if instanceIdentifier.InstanceId == "linux1" {
+						return instance0Jobs, nil
+					} else {
+						return nil, errors.New("should not call FindJobs on non-Linux VMs")
+					}
+				}
+
+				fakeOSChecker.IsLinuxStub = func(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner) (bool, error) {
+					if instanceIdentifier.InstanceId == "linux1" {
+						return true, nil
+					} else {
+						return false, nil
+					}
+				}
+
+				releaseMappingFinder.Returns(releaseMapping, nil)
+			})
+
+			It("collects the instances", func() {
+				Expect(actualInstances).To(Equal([]orchestrator.Instance{
+					bosh.NewBoshDeployedInstance(
+						"job1",
+						"0",
+						"linux1",
+						remoteRunner,
+						boshDeployment,
+						false,
+						boshLogger,
+						instance0Jobs,
+					),
+				}))
+			})
+
+			It("does not fail", func() {
+				Expect(actualError).NotTo(HaveOccurred())
+			})
+
+			It("checks the os is linux", func() {
+				Expect(fakeOSChecker.IsLinuxCallCount()).To(Equal(2))
+			})
+
+			It("only finds the jobs with the job finder on the linux instance", func() {
+				Expect(fakeJobFinder.FindJobsCallCount()).To(Equal(1))
 			})
 		})
 

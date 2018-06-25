@@ -34,6 +34,7 @@ func NewJobFinder(logger Logger) *JobFinderFromScripts {
 
 func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier, remoteRunner ssh.RemoteRunner,
 	releaseMapping ReleaseMapping) (orchestrator.Jobs, error) {
+
 	findOutput, err := j.findBBRScripts(instanceIdentifier, remoteRunner)
 	if err != nil {
 		return nil, err

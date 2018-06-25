@@ -24,7 +24,8 @@ func NewClient(boshDirector director.Director,
 	remoteRunnerFactory ssh.RemoteRunnerFactory,
 	logger Logger,
 	jobFinder instance.JobFinder,
-	releaseMappingFinder instance.ReleaseMappingFinder) Client {
+	releaseMappingFinder instance.ReleaseMappingFinder,
+	osChecker instance.OSChecker) Client {
 	return Client{
 		Director:             boshDirector,
 		SSHOptsGenerator:     sshOptsGenerator,
@@ -32,6 +33,7 @@ func NewClient(boshDirector director.Director,
 		Logger:               logger,
 		jobFinder:            jobFinder,
 		releaseMappingFinder: releaseMappingFinder,
+		osChecker:            osChecker,
 	}
 }
 
@@ -42,6 +44,7 @@ type Client struct {
 	Logger
 	jobFinder            instance.JobFinder
 	releaseMappingFinder instance.ReleaseMappingFinder
+	osChecker            instance.OSChecker
 }
 
 //go:generate counterfeiter -o fakes/fake_logger.go . Logger
