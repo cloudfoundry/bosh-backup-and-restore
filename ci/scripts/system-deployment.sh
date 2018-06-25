@@ -20,6 +20,7 @@ fi
 
 if [[ -z "$BOSH_CA_CERT" ]]; then
   export BOSH_CA_CERT=$PWD/bosh-backup-and-restore-meta/certs/$BOSH_ENVIRONMENT.crt
+fi
 
 export GOPATH=$PWD
 export PATH=$PATH:$GOPATH/bin
