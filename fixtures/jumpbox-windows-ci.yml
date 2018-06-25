@@ -9,6 +9,8 @@ jobs:
 - name: jumpbox
   instances: 1
   vm_type: g1-small
+  vm_extensions:
+  - bosh-director-access
   persistent_disk_type: 1GB
   stemcell: default
   azs: [z1]

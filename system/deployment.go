@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+	"os"
 )
 
 type Deployment struct {
@@ -41,13 +42,12 @@ func (d Deployment) Instance(group, index string) Instance {
 }
 
 func (d Deployment) runBosh(args ...string) *gexec.Session {
-	boshCommand := fmt.Sprintf("bosh-cli --non-interactive --environment=%s --deployment=%s --ca-cert=%s --client=%s --client-secret=%s",
-		MustHaveEnv("BOSH_ENVIRONMENT"),
-		d.Name,
-		MustHaveEnv("BOSH_CERT_PATH"),
-		MustHaveEnv("BOSH_CLIENT"),
-		MustHaveEnv("BOSH_CLIENT_SECRET"),
-	)
+	MustHaveEnv("BOSH_ENVIRONMENT")
+	MustHaveEnv("BOSH_CLIENT")
+	MustHaveEnv("BOSH_CLIENT_SECRET")
+	MustHaveEnv("BOSH_CA_CERT")
+
+	boshCommand := fmt.Sprintf("bosh-cli --non-interactive --deployment=%s", d.Name)
 
 	return run(boshCommand, args...)
 }
@@ -65,9 +65,11 @@ func run(cmd string, args ...string) *gexec.Session {
 }
 
 func (i Instance) RunCommand(command string) *gexec.Session {
-	MustHaveEnv("BOSH_GW_HOST")
-	MustHaveEnv("BOSH_GW_USER")
-	MustHaveEnv("BOSH_GW_PRIVATE_KEY")
+	if os.Getenv("BOSH_ALL_PROXY") == "" {
+		MustHaveEnv("BOSH_GW_HOST")
+		MustHaveEnv("BOSH_GW_USER")
+		MustHaveEnv("BOSH_GW_PRIVATE_KEY")
+	}
 
 	return i.deployment.runBosh("ssh", i.Group+"/"+i.Index, command)
 }
@@ -77,9 +79,11 @@ func (i Instance) RunCommandAs(user, command string) *gexec.Session {
 }
 
 func (i Instance) Copy(sourcePath, destinationPath string) {
-	MustHaveEnv("BOSH_GW_HOST")
-	MustHaveEnv("BOSH_GW_USER")
-	MustHaveEnv("BOSH_GW_PRIVATE_KEY")
+	if os.Getenv("BOSH_ALL_PROXY") == "" {
+		MustHaveEnv("BOSH_GW_HOST")
+		MustHaveEnv("BOSH_GW_USER")
+		MustHaveEnv("BOSH_GW_PRIVATE_KEY")
+	}
 
 	session := i.deployment.runBosh("scp", sourcePath, i.Group+"/"+i.Index+":"+destinationPath)
 	Eventually(session).Should(gexec.Exit(0))

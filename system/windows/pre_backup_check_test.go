@@ -14,17 +14,18 @@ var _ = Describe("pre-backup-check", func() {
 		It("confirms the deployment can be backed up", func() {
 			preBackupCheckCommand := JumpboxWindowsInstance.RunCommandAs("vcap",
 				fmt.Sprintf(`cd %s; \
-			    BOSH_CLIENT_SECRET=%s ./bbr deployment \
-			       --ca-cert bosh.crt \
-			       --username %s \
-			       --target %s \
-			       --deployment %s \
-			       pre-backup-check`,
+					BOSH_CLIENT_SECRET=%s ./bbr deployment \
+					--ca-cert bosh.crt \
+					--username %s \
+					--target %s \
+					--deployment %s \
+					pre-backup-check`,
 					workspaceDir,
 					MustHaveEnv("BOSH_CLIENT_SECRET"),
 					MustHaveEnv("BOSH_CLIENT"),
 					MustHaveEnv("BOSH_ENVIRONMENT"),
-					RedisWindowsDeployment.Name),
+					RedisWindowsDeployment.Name,
+				),
 			)
 
 			Eventually(preBackupCheckCommand).Should(gexec.Exit(0))

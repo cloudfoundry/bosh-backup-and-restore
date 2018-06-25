@@ -13,7 +13,7 @@ export PATH=$PATH:$GOPATH/bin
 export BOSH_GW_USER=${BOSH_GW_USER:-vcap}
 export BOSH_GW_PRIVATE_KEY=$PWD/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem
 export SSH_KEY=$PWD/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem
-export BOSH_CERT_PATH=$PWD/bosh-backup-and-restore-meta/certs/$BOSH_ENVIRONMENT.crt
+export BOSH_CA_CERT=$PWD/bosh-backup-and-restore-meta/certs/$BOSH_ENVIRONMENT.crt
 
 cd src/github.com/cloudfoundry-incubator/bosh-backup-and-restore
 make sys-test-director-ci
