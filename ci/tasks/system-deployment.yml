@@ -23,4 +23,4 @@ params:
   USE_BOSH_ALL_PROXY: false
 
 run:
-  path: src/github.com/cloudfoundry-incubator/bosh-backup-and-restore/ci/scripts/system.sh
+  path: src/github.com/cloudfoundry-incubator/bosh-backup-and-restore/ci/scripts/system-deployment.sh

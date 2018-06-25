@@ -83,7 +83,7 @@ sys-test-local-260:
 	TEST_ENV=`echo $(DEV_ENV)` \
 	ginkgo -r -v -trace system/deployment
 
-sys-test-ci: setup
+sys-test-deployment-ci: setup
 	TEST_ENV=ci \
 	ginkgo -r -v -trace system/deployment
 

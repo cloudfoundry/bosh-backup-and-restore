@@ -28,4 +28,4 @@ fi
 export GOPATH=$PWD
 export PATH=$PATH:$GOPATH/bin
 cd src/github.com/cloudfoundry-incubator/bosh-backup-and-restore
-make sys-test-ci
+make sys-test-deployment-ci
