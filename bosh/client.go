@@ -123,7 +123,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 			}
 
 			if !isLinux {
-				c.Logger.Debug("bbr", "skipping non-Linux instance %s/%s", instanceGroupName, host.IndexOrID)
+				c.Logger.Warn("bbr", "skipping non-Linux instance %s/%s", instanceGroupName, host.IndexOrID)
 				continue
 			}
 

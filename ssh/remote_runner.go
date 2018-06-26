@@ -126,7 +126,12 @@ func (r SshRemoteRunner) FindFiles(pattern string) ([]string, error) {
 }
 
 func (r SshRemoteRunner) IsLinux() (bool, error) {
-	return true, nil
+	stdout, _, _, err := r.connection.Run(`echo %OS%`)
+	if err != nil {
+		return false, err
+	}
+
+	return strings.TrimSpace(string(stdout)) != "Windows_NT", nil
 }
 
 func (r SshRemoteRunner) runOnInstance(cmd string) (string, error) {

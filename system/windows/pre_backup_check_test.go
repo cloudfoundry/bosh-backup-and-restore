@@ -29,7 +29,12 @@ var _ = Describe("pre-backup-check", func() {
 			)
 
 			Eventually(preBackupCheckCommand).Should(gexec.Exit(0))
-			Expect(preBackupCheckCommand.Out.Contents()).To(ContainSubstring(fmt.Sprintf("Deployment '%s' can be backed up", RedisDeployment.Name)))
+
+			backupableMessage := fmt.Sprintf("Deployment '%s' can be backed up", RedisWindowsDeployment.Name)
+			Expect(preBackupCheckCommand.Out.Contents()).To(ContainSubstring(backupableMessage))
+
+			skippingMessage := "skipping non-Linux instance windows-vm/"
+			Expect(preBackupCheckCommand.Out.Contents()).To(ContainSubstring(skippingMessage))
 		})
 	})
 })
