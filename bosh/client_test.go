@@ -59,6 +59,8 @@ var _ = Describe("Director", func() {
 		releaseMappingFinder = new(instancefakes.FakeReleaseMappingFinder)
 		releaseMapping = new(instancefakes.FakeReleaseMapping)
 
+		fakeOSChecker.IsLinuxReturns(true, nil)
+
 		stdoutLogStream = bytes.NewBufferString("")
 		stderrLogStream = bytes.NewBufferString("")
 
@@ -863,6 +865,43 @@ var _ = Describe("Director", func() {
 
 				It("cleans up the successful SSH connection", func() {
 					Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(2))
+				})
+			})
+
+			Context("fails when os checker returns an error", func() {
+				var expectedErrorMessage = "failed to check os"
+
+				BeforeEach(func() {
+					boshDirector.FindDeploymentReturns(boshDeployment, nil)
+					boshDeployment.VMInfosReturns([]director.VMInfo{
+						{
+							JobName: "job1",
+						},
+					}, nil)
+					optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
+
+					boshDeployment.SetUpSSHStub = func(slug director.AllOrInstanceGroupOrInstanceSlug, opts director.SSHOpts) (director.SSHResult, error) {
+						return director.SSHResult{Hosts: []director.Host{
+							{
+								Username:      "username",
+								Host:          "hostname_" + slug.Name(),
+								IndexOrID:     "index",
+								HostPublicKey: hostsPublicKey,
+							},
+						}}, nil
+					}
+
+					remoteRunnerFactory.Returns(remoteRunner, nil)
+
+					fakeOSChecker.IsLinuxReturns(false, errors.New(expectedErrorMessage))
+				})
+
+				It("fails", func() {
+					Expect(actualError).To(MatchError(ContainSubstring(expectedErrorMessage)))
+				})
+
+				It("cleans up the successful SSH connection", func() {
+					Expect(boshDeployment.CleanUpSSHCallCount()).To(Equal(1))
 				})
 			})
 		})
