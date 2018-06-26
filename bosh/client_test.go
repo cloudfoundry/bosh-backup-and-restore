@@ -30,7 +30,6 @@ var _ = Describe("Director", func() {
 	var boshDeployment *boshfakes.FakeDeployment
 	var remoteRunner *sshfakes.FakeRemoteRunner
 	var fakeJobFinder *instancefakes.FakeJobFinder
-	var fakeOSChecker *instancefakes.FakeOSChecker
 	var releaseMappingFinder *instancefakes.FakeReleaseMappingFinder
 	var releaseMapping *instancefakes.FakeReleaseMapping
 
@@ -45,7 +44,7 @@ var _ = Describe("Director", func() {
 	var b bosh.BoshClient
 
 	JustBeforeEach(func() {
-		b = bosh.NewClient(boshDirector, optsGenerator.Spy, remoteRunnerFactory.Spy, boshLogger, fakeJobFinder, releaseMappingFinder.Spy, fakeOSChecker)
+		b = bosh.NewClient(boshDirector, optsGenerator.Spy, remoteRunnerFactory.Spy, boshLogger, fakeJobFinder, releaseMappingFinder.Spy)
 	})
 
 	BeforeEach(func() {
@@ -55,11 +54,10 @@ var _ = Describe("Director", func() {
 		boshDeployment = new(boshfakes.FakeDeployment)
 		remoteRunner = new(sshfakes.FakeRemoteRunner)
 		fakeJobFinder = new(instancefakes.FakeJobFinder)
-		fakeOSChecker = new(instancefakes.FakeOSChecker)
 		releaseMappingFinder = new(instancefakes.FakeReleaseMappingFinder)
 		releaseMapping = new(instancefakes.FakeReleaseMapping)
 
-		fakeOSChecker.IsLinuxReturns(true, nil)
+		remoteRunner.IsLinuxReturns(true, nil)
 
 		stdoutLogStream = bytes.NewBufferString("")
 		stderrLogStream = bytes.NewBufferString("")
@@ -363,6 +361,10 @@ var _ = Describe("Director", func() {
 						HostPublicKey: hostsPublicKey,
 					},
 				}}, nil)
+
+				remoteRunner.IsLinuxReturnsOnCall(0, true, nil)
+				remoteRunner.IsLinuxReturnsOnCall(1, false, nil)
+
 				remoteRunnerFactory.Returns(remoteRunner, nil)
 
 				instance0Jobs = []orchestrator.Job{
@@ -377,14 +379,6 @@ var _ = Describe("Director", func() {
 						return instance0Jobs, nil
 					} else {
 						return nil, errors.New("should not call FindJobs on non-Linux VMs")
-					}
-				}
-
-				fakeOSChecker.IsLinuxStub = func(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner) (bool, error) {
-					if instanceIdentifier.InstanceId == "linux1" {
-						return true, nil
-					} else {
-						return false, nil
 					}
 				}
 
@@ -411,7 +405,7 @@ var _ = Describe("Director", func() {
 			})
 
 			It("checks the os is linux", func() {
-				Expect(fakeOSChecker.IsLinuxCallCount()).To(Equal(2))
+				Expect(remoteRunner.IsLinuxCallCount()).To(Equal(2))
 			})
 
 			It("only finds the jobs with the job finder on the linux instance", func() {
@@ -891,9 +885,9 @@ var _ = Describe("Director", func() {
 						}}, nil
 					}
 
-					remoteRunnerFactory.Returns(remoteRunner, nil)
+					remoteRunner.IsLinuxReturns(false, errors.New(expectedErrorMessage))
 
-					fakeOSChecker.IsLinuxReturns(false, errors.New(expectedErrorMessage))
+					remoteRunnerFactory.Returns(remoteRunner, nil)
 				})
 
 				It("fails", func() {

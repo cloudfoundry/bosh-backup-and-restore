@@ -145,6 +145,17 @@ type FakeRemoteRunner struct {
 		result1 []string
 		result2 error
 	}
+	IsLinuxStub        func() (bool, error)
+	isLinuxMutex       sync.RWMutex
+	isLinuxArgsForCall []struct{}
+	isLinuxReturns     struct {
+		result1 bool
+		result2 error
+	}
+	isLinuxReturnsOnCall map[int]struct {
+		result1 bool
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -692,6 +703,49 @@ func (fake *FakeRemoteRunner) FindFilesReturnsOnCall(i int, result1 []string, re
 	}{result1, result2}
 }
 
+func (fake *FakeRemoteRunner) IsLinux() (bool, error) {
+	fake.isLinuxMutex.Lock()
+	ret, specificReturn := fake.isLinuxReturnsOnCall[len(fake.isLinuxArgsForCall)]
+	fake.isLinuxArgsForCall = append(fake.isLinuxArgsForCall, struct{}{})
+	fake.recordInvocation("IsLinux", []interface{}{})
+	fake.isLinuxMutex.Unlock()
+	if fake.IsLinuxStub != nil {
+		return fake.IsLinuxStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.isLinuxReturns.result1, fake.isLinuxReturns.result2
+}
+
+func (fake *FakeRemoteRunner) IsLinuxCallCount() int {
+	fake.isLinuxMutex.RLock()
+	defer fake.isLinuxMutex.RUnlock()
+	return len(fake.isLinuxArgsForCall)
+}
+
+func (fake *FakeRemoteRunner) IsLinuxReturns(result1 bool, result2 error) {
+	fake.IsLinuxStub = nil
+	fake.isLinuxReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRemoteRunner) IsLinuxReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.IsLinuxStub = nil
+	if fake.isLinuxReturnsOnCall == nil {
+		fake.isLinuxReturnsOnCall = make(map[int]struct {
+			result1 bool
+			result2 error
+		})
+	}
+	fake.isLinuxReturnsOnCall[i] = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeRemoteRunner) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -717,6 +771,8 @@ func (fake *FakeRemoteRunner) Invocations() map[string][][]interface{} {
 	defer fake.runScriptWithEnvMutex.RUnlock()
 	fake.findFilesMutex.RLock()
 	defer fake.findFilesMutex.RUnlock()
+	fake.isLinuxMutex.RLock()
+	defer fake.isLinuxMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

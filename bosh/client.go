@@ -24,8 +24,7 @@ func NewClient(boshDirector director.Director,
 	remoteRunnerFactory ssh.RemoteRunnerFactory,
 	logger Logger,
 	jobFinder instance.JobFinder,
-	releaseMappingFinder instance.ReleaseMappingFinder,
-	osChecker instance.OSChecker) Client {
+	releaseMappingFinder instance.ReleaseMappingFinder) Client {
 	return Client{
 		Director:             boshDirector,
 		SSHOptsGenerator:     sshOptsGenerator,
@@ -33,7 +32,6 @@ func NewClient(boshDirector director.Director,
 		Logger:               logger,
 		jobFinder:            jobFinder,
 		releaseMappingFinder: releaseMappingFinder,
-		osChecker:            osChecker,
 	}
 }
 
@@ -44,7 +42,6 @@ type Client struct {
 	Logger
 	jobFinder            instance.JobFinder
 	releaseMappingFinder instance.ReleaseMappingFinder
-	osChecker            instance.OSChecker
 }
 
 //go:generate counterfeiter -o fakes/fake_logger.go . Logger
@@ -119,7 +116,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 
 			instanceIdentifier := instance.InstanceIdentifier{InstanceGroupName: instanceGroupName, InstanceId: host.IndexOrID}
 
-			isLinux, err := c.osChecker.IsLinux(instanceIdentifier, remoteRunner)
+			isLinux, err := remoteRunner.IsLinux()
 			if err != nil {
 				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
 				return nil, errors.Wrap(err, "failed to check os")

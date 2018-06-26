@@ -23,6 +23,7 @@ type RemoteRunner interface {
 	RunScript(path, label string) (string, error)
 	RunScriptWithEnv(path string, env map[string]string, label string) (string, error)
 	FindFiles(pattern string) ([]string, error)
+	IsLinux() (bool, error)
 }
 
 type SshRemoteRunner struct {
@@ -122,6 +123,10 @@ func (r SshRemoteRunner) FindFiles(pattern string) ([]string, error) {
 
 	output := strings.TrimSpace(string(stdout))
 	return strings.Split(output, "\n"), nil
+}
+
+func (r SshRemoteRunner) IsLinux() (bool, error) {
+	return true, nil
 }
 
 func (r SshRemoteRunner) runOnInstance(cmd string) (string, error) {
