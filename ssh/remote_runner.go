@@ -23,7 +23,7 @@ type RemoteRunner interface {
 	RunScript(path, label string) (string, error)
 	RunScriptWithEnv(path string, env map[string]string, label string) (string, error)
 	FindFiles(pattern string) ([]string, error)
-	IsLinux() (bool, error)
+	IsWindows() (bool, error)
 }
 
 type SshRemoteRunner struct {
@@ -125,13 +125,13 @@ func (r SshRemoteRunner) FindFiles(pattern string) ([]string, error) {
 	return strings.Split(output, "\n"), nil
 }
 
-func (r SshRemoteRunner) IsLinux() (bool, error) {
+func (r SshRemoteRunner) IsWindows() (bool, error) {
 	stdout, _, _, err := r.connection.Run(`echo %OS%`)
 	if err != nil {
 		return false, err
 	}
 
-	return strings.TrimSpace(string(stdout)) != "Windows_NT", nil
+	return strings.TrimSpace(string(stdout)) == "Windows_NT", nil
 }
 
 func (r SshRemoteRunner) runOnInstance(cmd string) (string, error) {

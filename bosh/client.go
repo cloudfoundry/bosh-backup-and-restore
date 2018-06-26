@@ -116,14 +116,14 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 
 			instanceIdentifier := instance.InstanceIdentifier{InstanceGroupName: instanceGroupName, InstanceId: host.IndexOrID}
 
-			isLinux, err := remoteRunner.IsLinux()
+			isWindows, err := remoteRunner.IsWindows()
 			if err != nil {
 				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
 				return nil, errors.Wrap(err, "failed to check os")
 			}
 
-			if !isLinux {
-				c.Logger.Warn("bbr", "skipping non-Linux instance %s/%s", instanceGroupName, host.IndexOrID)
+			if isWindows {
+				c.Logger.Warn("bbr", "skipping Windows instance %s/%s", instanceGroupName, host.IndexOrID)
 				continue
 			}
 

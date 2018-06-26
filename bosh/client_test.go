@@ -57,7 +57,7 @@ var _ = Describe("Director", func() {
 		releaseMappingFinder = new(instancefakes.FakeReleaseMappingFinder)
 		releaseMapping = new(instancefakes.FakeReleaseMapping)
 
-		remoteRunner.IsLinuxReturns(true, nil)
+		remoteRunner.IsWindowsReturns(false, nil)
 
 		stdoutLogStream = bytes.NewBufferString("")
 		stderrLogStream = bytes.NewBufferString("")
@@ -362,8 +362,8 @@ var _ = Describe("Director", func() {
 					},
 				}}, nil)
 
-				remoteRunner.IsLinuxReturnsOnCall(0, true, nil)
-				remoteRunner.IsLinuxReturnsOnCall(1, false, nil)
+				remoteRunner.IsWindowsReturnsOnCall(0, false, nil)
+				remoteRunner.IsWindowsReturnsOnCall(1, true, nil)
 
 				remoteRunnerFactory.Returns(remoteRunner, nil)
 
@@ -405,7 +405,7 @@ var _ = Describe("Director", func() {
 			})
 
 			It("checks the os is linux", func() {
-				Expect(remoteRunner.IsLinuxCallCount()).To(Equal(2))
+				Expect(remoteRunner.IsWindowsCallCount()).To(Equal(2))
 			})
 
 			It("only finds the jobs with the job finder on the linux instance", func() {
@@ -885,7 +885,7 @@ var _ = Describe("Director", func() {
 						}}, nil
 					}
 
-					remoteRunner.IsLinuxReturns(false, errors.New(expectedErrorMessage))
+					remoteRunner.IsWindowsReturns(false, errors.New(expectedErrorMessage))
 
 					remoteRunnerFactory.Returns(remoteRunner, nil)
 				})
@@ -903,9 +903,10 @@ var _ = Describe("Director", func() {
 
 	Describe("GetManifest", func() {
 		var actualManifest string
-		var acutalError error
+		var actualError error
+
 		JustBeforeEach(func() {
-			actualManifest, acutalError = b.GetManifest(deploymentName)
+			actualManifest, actualError = b.GetManifest(deploymentName)
 		})
 
 		Context("gets the manifest", func() {
@@ -924,7 +925,7 @@ var _ = Describe("Director", func() {
 					boshDirector.FindDeploymentReturns(nil, errors.New(findDeploymentError))
 				})
 				It("returns an error", func() {
-					Expect(acutalError).To(MatchError(ContainSubstring(findDeploymentError)))
+					Expect(actualError).To(MatchError(ContainSubstring(findDeploymentError)))
 				})
 			})
 			Context("to download manifest", func() {
@@ -934,7 +935,7 @@ var _ = Describe("Director", func() {
 					boshDeployment.ManifestReturns("", downloadManifestError)
 				})
 				It("returns an error", func() {
-					Expect(acutalError).To(MatchError(downloadManifestError))
+					Expect(actualError).To(MatchError(downloadManifestError))
 				})
 			})
 		})
