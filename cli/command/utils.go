@@ -14,7 +14,6 @@ import (
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	"github.com/mgutz/ansi"
 	"github.com/urfave/cli"
 )
 
@@ -87,8 +86,4 @@ func extractNameFromAddress(address string) string {
 		address = url.Hostname()
 	}
 	return strings.Split(address, ":")[0]
-}
-
-func redCliError(err error) *cli.ExitError {
-	return cli.NewExitError(ansi.Color(err.Error(), "red"), 1)
 }
