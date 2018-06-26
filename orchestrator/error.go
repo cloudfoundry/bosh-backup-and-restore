@@ -49,18 +49,18 @@ func NewError(errs ...error) Error {
 
 type Error []error
 
-func (e Error) Error() string {
-	return e.PrettyError(false)
+func (err Error) Error() string {
+	return err.PrettyError(false)
 }
 
-func (e Error) PrettyError(includeStacktrace bool) string {
-	if e.IsNil() {
+func (err Error) PrettyError(includeStacktrace bool) string {
+	if err.IsNil() {
 		return ""
 	}
 	var buffer = bytes.NewBufferString("")
 
-	fmt.Fprintf(buffer, "%d error%s occurred:\n", len(e), e.getPostFix())
-	for index, err := range e {
+	fmt.Fprintf(buffer, "%d error%s occurred:\n", len(err), err.getPostFix())
+	for index, err := range err {
 		fmt.Fprintf(buffer, "error %d:\n", index+1)
 		if includeStacktrace {
 			fmt.Fprintf(buffer, "%+v\n", err)
@@ -71,9 +71,9 @@ func (e Error) PrettyError(includeStacktrace bool) string {
 	return buffer.String()
 }
 
-func (e Error) getPostFix() string {
+func (err Error) getPostFix() string {
 	errorPostfix := ""
-	if len(e) > 1 {
+	if len(err) > 1 {
 		errorPostfix = "s"
 	}
 	return errorPostfix
@@ -94,9 +94,9 @@ func (err Error) ContainsUnlockOrCleanup() bool {
 	return false
 }
 
-func (e Error) IsCleanup() bool {
-	if len(e) == 1 {
-		_, ok := e[0].(CleanupError)
+func (err Error) IsCleanup() bool {
+	if len(err) == 1 {
+		_, ok := err[0].(CleanupError)
 		return ok
 	}
 
@@ -120,16 +120,12 @@ func (err Error) IsPostBackup() bool {
 	return foundPostBackupError
 }
 
-func (e Error) IsFatal() bool {
-	return !e.IsNil() && !e.IsCleanup() && !e.IsPostBackup()
+func (err Error) IsFatal() bool {
+	return !err.IsNil() && !err.IsCleanup() && !err.IsPostBackup()
 }
 
-func (e Error) IsNil() bool {
-	return len(e) == 0
-}
-
-func (e Error) Join(otherError Error) Error {
-	return append(e, otherError...)
+func (err Error) IsNil() bool {
+	return len(err) == 0
 }
 
 func BuildExitCode(errs Error) int {
