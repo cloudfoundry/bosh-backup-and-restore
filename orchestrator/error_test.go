@@ -157,4 +157,45 @@ var _ = Describe("Error", func() {
 			})
 		})
 	})
+
+	Describe("ConvertErrors", func() {
+		var errorOne = errors.New("error one")
+		var errorTwo = errors.New("error two")
+		var errorThree = errors.New("error three")
+		var errs = []error{errorOne, errorTwo, errorThree}
+
+		It("converts a list of errors into an Error", func() {
+			Expect(orchestrator.ConvertErrors(errs)).To(Equal(orchestrator.Error(errs)))
+		})
+
+		Context("when the errors list is empty", func() {
+			It("returns nil", func() {
+				Expect(orchestrator.ConvertErrors([]error{}) == nil).To(BeTrue())
+			})
+		})
+
+		Context("when the errors list is nil", func() {
+			It("returns nil", func() {
+				Expect(orchestrator.ConvertErrors(nil) == nil).To(BeTrue())
+			})
+		})
+
+		Context("when the errors list contains Errors", func() {
+			It("flattens them", func() {
+				Expect(orchestrator.ConvertErrors([]error{orchestrator.Error(errs)})).To(Equal(orchestrator.Error(errs)))
+			})
+		})
+
+		Context("when the errors list contains nested Errors", func() {
+			It("flattens them", func() {
+				Expect(orchestrator.ConvertErrors([]error{orchestrator.Error([]error{orchestrator.Error(errs)})})).To(Equal(orchestrator.Error(errs)))
+			})
+
+			Context("when the resulting list is empty", func() {
+				It("returns nil", func() {
+					Expect(orchestrator.ConvertErrors([]error{orchestrator.Error([]error{orchestrator.Error([]error{})})}) == nil).To(BeTrue())
+				})
+			})
+		})
+	})
 })

@@ -34,10 +34,28 @@ func NewCleanupError(errorMessage string) CleanupError {
 }
 
 func ConvertErrors(errs []error) error {
-	if len(errs) == 0 {
+	flattenedErrors := flattenErrors(errs)
+
+	if len(flattenedErrors) == 0 {
 		return nil
 	}
-	return Error(errs)
+
+	return Error(flattenedErrors)
+}
+
+func flattenErrors(errs []error) []error {
+	var flattenedErrs []error
+
+	for _, err := range errs {
+		compositeError, isCompositeError := err.(Error)
+		if isCompositeError {
+			flattenedErrs = append(flattenedErrs, flattenErrors(compositeError)...)
+		} else {
+			flattenedErrs = append(flattenedErrs, err)
+		}
+	}
+
+	return flattenedErrs
 }
 
 func NewError(errs ...error) Error {
