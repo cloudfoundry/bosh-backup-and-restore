@@ -41,9 +41,6 @@ func ConvertErrors(errs []error) error {
 }
 
 func NewError(errs ...error) Error {
-	if len(errs) == 0 {
-		return nil
-	}
 	return Error(errs)
 }
 
