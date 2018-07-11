@@ -20,10 +20,13 @@ You're good to go. Run tests locally with `make test`.
 
 ## Additional information
 
-**Docs**: http://docs.cloudfoundry.org/bbr/index.html
+**Docs:** http://docs.cloudfoundry.org/bbr/index.html
 
-**Slack**: #bbr on https://slack.cloudfoundry.org
+**Slack:** `#bbr` on https://slack.cloudfoundry.org
 
-Cloud Foundry Summit talk on BBR https://www.youtube.com/watch?v=rQSLNHAHgA8
+**Talks:**
+- [_Burning Down the House: How to Plan for and Deal with Disaster Recovery in CF_](https://www.youtube.com/watch?v=rQSLNHAHgA8) at Cloud Foundry Summit Europe 2017
+- [_Extending the BOSH Backup and Restore Framework_](https://www.youtube.com/watch?v=LiXXqrdlXSQ) at Cloud Foundry Summit 2018
 
-Blog posts about BBR https://content.pivotal.io/blog/cloud-native-recovery-tool-bosh-backup-restore-now-available-in-public-beta
+**Blog posts:**
+- [Cloud-Native Recovery Tool, BOSH Backup & Restore, Now Available in Public Beta](https://content.pivotal.io/blog/cloud-native-recovery-tool-bosh-backup-restore-now-available-in-public-beta) on the Pivotal Blog
