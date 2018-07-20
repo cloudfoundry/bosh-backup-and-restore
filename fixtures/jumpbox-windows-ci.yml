@@ -3,7 +3,7 @@ name: jumpbox-windows-ci
 releases: []
 stemcells:
 - alias: default
-  os: ubuntu-xenial
+  os: ubuntu-trusty
   version: latest
 jobs:
 - name: jumpbox

@@ -12,7 +12,7 @@ stemcells:
   os: windows2016
   version: '1709.8'
 - alias: ubuntu
-  os: ubuntu-xenial
+  os: ubuntu-trusty
   version: latest
 update:
   canaries: 1
