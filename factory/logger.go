@@ -16,7 +16,7 @@ var ApplicationLoggerStderr = writer.NewPausableWriter(os.Stderr)
 
 func BuildBoshLogger(debug bool) boshlog.Logger {
 	if debug {
-		return boshlog.NewWriterLogger(boshlog.LevelDebug, ApplicationLoggerStdout, ApplicationLoggerStderr)
+		return boshlog.NewWriterLogger(boshlog.LevelDebug, ApplicationLoggerStdout)
 	}
-	return boshlog.NewWriterLogger(boshlog.LevelInfo, ApplicationLoggerStdout, ApplicationLoggerStderr)
+	return boshlog.NewWriterLogger(boshlog.LevelInfo, ApplicationLoggerStdout)
 }

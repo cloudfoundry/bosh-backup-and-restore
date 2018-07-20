@@ -27,7 +27,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 	BeforeEach(func() {
 		logStream = bytes.NewBufferString("")
 		combinedLog := log.New(io.MultiWriter(GinkgoWriter, logStream), "[instance-test] ", log.Lshortfile)
-		logger = boshlog.New(boshlog.LevelDebug, combinedLog, combinedLog)
+		logger = boshlog.New(boshlog.LevelDebug, combinedLog)
 
 		jobFinder = NewJobFinder(logger)
 	})

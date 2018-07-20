@@ -19,7 +19,7 @@ var _ = Describe("artifact", func() {
 	var remoteRunner *sshfakes.FakeRemoteRunner
 	var boshLogger boshlog.Logger
 	var testInstance *backuperfakes.FakeInstance
-	var stdout, stderr *gbytes.Buffer
+	var logOutput *gbytes.Buffer
 	var job instance.Job
 
 	var backupArtifact orchestrator.BackupArtifact
@@ -31,9 +31,8 @@ var _ = Describe("artifact", func() {
 		testInstance.IDReturns("foo")
 		testInstance.IndexReturns("redis-index-1")
 
-		stdout = gbytes.NewBuffer()
-		stderr = gbytes.NewBuffer()
-		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile), log.New(stderr, "[bosh-package] ", log.Lshortfile))
+		logOutput = gbytes.NewBuffer()
+		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(logOutput, "[bosh-package] ", log.Lshortfile))
 	})
 
 	var ArtifactBehaviourForDirectory = func(artifactDirectory string) {

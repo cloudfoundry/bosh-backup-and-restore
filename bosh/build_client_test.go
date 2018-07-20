@@ -14,7 +14,7 @@ import (
 )
 
 var _ = Describe("BuildClient", func() {
-	var logger = boshlog.New(boshlog.LevelDebug, log.New(gbytes.NewBuffer(), "[bosh-package] ", log.Lshortfile), log.New(gbytes.NewBuffer(), "[bosh-package] ", log.Lshortfile))
+	var logger = boshlog.New(boshlog.LevelDebug, log.New(gbytes.NewBuffer(), "[bosh-package] ", log.Lshortfile))
 
 	var director *mockhttp.Server
 	var deploymentName = "my-little-deployment"

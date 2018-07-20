@@ -19,7 +19,7 @@ var _ = Describe("Job", func() {
 	var job instance.Job
 	var jobScripts instance.BackupAndRestoreScripts
 	var metadata instance.Metadata
-	var stdout, stderr *gbytes.Buffer
+	var logOutput *gbytes.Buffer
 	var logger boshlog.Logger
 	var releaseName string
 	var remoteRunner *sshfakes.FakeRemoteRunner
@@ -33,11 +33,9 @@ var _ = Describe("Job", func() {
 			"/var/vcap/jobs/jobname/bin/bbr/post-backup-unlock",
 		}
 		metadata = instance.Metadata{}
-		stdout = gbytes.NewBuffer()
-		stderr = gbytes.NewBuffer()
-		stdoutLog := log.New(stdout, "[instance-test] ", log.Lshortfile)
-		stderrLog := log.New(stderr, "[instance-test] ", log.Lshortfile)
-		logger = boshlog.New(boshlog.LevelDebug, stdoutLog, stderrLog)
+		logOutput = gbytes.NewBuffer()
+		stdoutLog := log.New(logOutput, "[instance-test] ", log.Lshortfile)
+		logger = boshlog.New(boshlog.LevelDebug, stdoutLog)
 		releaseName = "redis"
 		remoteRunner = new(sshfakes.FakeRemoteRunner)
 	})
@@ -393,15 +391,15 @@ var _ = Describe("Job", func() {
 				})
 
 				By("logging the script path", func() {
-					Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/jobname/bin/bbr/pre-backup-lock`))
+					Expect(string(logOutput.Contents())).To(ContainSubstring(`> /var/vcap/jobs/jobname/bin/bbr/pre-backup-lock`))
 				})
 
 				By("logging the job name that it has locked", func() {
-					Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					Expect(string(logOutput.Contents())).To(ContainSubstring(fmt.Sprintf(
 						"INFO - Locking jobname on %s",
 						instanceIdentifier,
 					)))
-					Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					Expect(string(logOutput.Contents())).To(ContainSubstring(fmt.Sprintf(
 						"INFO - Finished locking jobname on %s",
 						instanceIdentifier,
 					)))
@@ -526,15 +524,15 @@ var _ = Describe("Job", func() {
 				})
 
 				By("logging the script path", func() {
-					Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/jobname/bin/bbr/pre-restore-lock`))
+					Expect(string(logOutput.Contents())).To(ContainSubstring(`> /var/vcap/jobs/jobname/bin/bbr/pre-restore-lock`))
 				})
 
 				By("logging the job name that it has locked", func() {
-					Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					Expect(string(logOutput.Contents())).To(ContainSubstring(fmt.Sprintf(
 						"INFO - Locking jobname on %s",
 						instanceIdentifier,
 					)))
-					Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+					Expect(string(logOutput.Contents())).To(ContainSubstring(fmt.Sprintf(
 						"INFO - Finished locking jobname on %s",
 						instanceIdentifier,
 					)))

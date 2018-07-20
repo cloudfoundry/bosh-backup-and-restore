@@ -25,7 +25,7 @@ var _ = Describe("BackupDirectory", func() {
 	var backupName string
 	var deploymentName string
 	var backupDirectoryManager = BackupDirectoryManager{}
-	var logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter, GinkgoWriter)
+	var logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter)
 	var nowFunc = func() time.Time {
 		return time.Date(2015, 10, 21, 02, 2, 3, 0, time.FixedZone("UTC+1", 3600))
 	}

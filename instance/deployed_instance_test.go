@@ -17,7 +17,7 @@ import (
 
 var _ = Describe("DeployedInstance", func() {
 	var boshLogger boshlog.Logger
-	var stdout, stderr *gbytes.Buffer
+	var logOutput *gbytes.Buffer
 	var instanceGroupName, instanceIndex, instanceID, expectedStdout, expectedStderr string
 	var jobs orchestrator.Jobs
 	var remoteRunner *sshfakes.FakeRemoteRunner
@@ -29,9 +29,8 @@ var _ = Describe("DeployedInstance", func() {
 		instanceID = "instance-id"
 		expectedStdout = "i'm a stdout"
 		expectedStderr = "i'm a stderr"
-		stdout = gbytes.NewBuffer()
-		stderr = gbytes.NewBuffer()
-		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile), log.New(stderr, "[bosh-package] ", log.Lshortfile))
+		logOutput = gbytes.NewBuffer()
+		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(logOutput, "[bosh-package] ", log.Lshortfile))
 		remoteRunner = new(sshfakes.FakeRemoteRunner)
 	})
 
@@ -265,24 +264,24 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("logs the paths to the scripts being run", func() {
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/foo/bin/bbr/backup`))
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/bbr/backup`))
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/baz/bin/bbr/backup`))
-				Expect(string(stdout.Contents())).NotTo(ContainSubstring("> \n"))
+				Expect(string(logOutput.Contents())).To(ContainSubstring(`> /var/vcap/jobs/foo/bin/bbr/backup`))
+				Expect(string(logOutput.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/bbr/backup`))
+				Expect(string(logOutput.Contents())).To(ContainSubstring(`> /var/vcap/jobs/baz/bin/bbr/backup`))
+				Expect(string(logOutput.Contents())).NotTo(ContainSubstring("> \n"))
 			})
 
 			It("logs that it is backing up the job on the instance", func() {
-				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+				Expect(string(logOutput.Contents())).To(ContainSubstring(fmt.Sprintf(
 					"INFO - Backing up foo on %s/%s",
 					instanceGroupName,
 					instanceID,
 				)))
-				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+				Expect(string(logOutput.Contents())).To(ContainSubstring(fmt.Sprintf(
 					"INFO - Backing up bar on %s/%s",
 					instanceGroupName,
 					instanceID,
 				)))
-				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+				Expect(string(logOutput.Contents())).To(ContainSubstring(fmt.Sprintf(
 					"INFO - Backing up baz on %s/%s",
 					instanceGroupName,
 					instanceID,
@@ -447,25 +446,25 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("logs the paths to the scripts being run", func() {
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/foo/bin/bbr/restore`))
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/bbr/restore`))
-				Expect(string(stdout.Contents())).To(ContainSubstring(`> /var/vcap/jobs/baz/bin/bbr/restore`))
-				Expect(string(stdout.Contents())).NotTo(ContainSubstring("> \n"))
+				Expect(string(logOutput.Contents())).To(ContainSubstring(`> /var/vcap/jobs/foo/bin/bbr/restore`))
+				Expect(string(logOutput.Contents())).To(ContainSubstring(`> /var/vcap/jobs/bar/bin/bbr/restore`))
+				Expect(string(logOutput.Contents())).To(ContainSubstring(`> /var/vcap/jobs/baz/bin/bbr/restore`))
+				Expect(string(logOutput.Contents())).NotTo(ContainSubstring("> \n"))
 			})
 
 			It("logs that it is restoring a job on the instance", func() {
-				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+				Expect(string(logOutput.Contents())).To(ContainSubstring(fmt.Sprintf(
 					"Restoring foo on %s/%s",
 					instanceGroupName,
 					instanceID,
 				)))
 
-				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+				Expect(string(logOutput.Contents())).To(ContainSubstring(fmt.Sprintf(
 					"Restoring bar on %s/%s",
 					instanceGroupName,
 					instanceID,
 				)))
-				Expect(string(stdout.Contents())).To(ContainSubstring(fmt.Sprintf(
+				Expect(string(logOutput.Contents())).To(ContainSubstring(fmt.Sprintf(
 					"Restoring baz on %s/%s",
 					instanceGroupName,
 					instanceID,

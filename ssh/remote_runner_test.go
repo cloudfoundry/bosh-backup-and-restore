@@ -35,9 +35,8 @@ var _ = Describe("SshRemoteRunner", func() {
 		hostPublicKey, _, _, _, err := gossh.ParseAuthorizedKey([]byte(testInstance.HostPublicKey()))
 		Expect(err).NotTo(HaveOccurred())
 
-		combinedOutLog := log.New(io.MultiWriter(GinkgoWriter, bytes.NewBufferString("")), "[bosh-package] ", log.Lshortfile)
-		combinedErrLog := log.New(io.MultiWriter(GinkgoWriter, bytes.NewBufferString("")), "[bosh-package] ", log.Lshortfile)
-		logger := boshlog.New(boshlog.LevelDebug, combinedOutLog, combinedErrLog)
+		combinedLog := log.New(io.MultiWriter(GinkgoWriter, bytes.NewBufferString("")), "[bosh-package] ", log.Lshortfile)
+		logger := boshlog.New(boshlog.LevelDebug, combinedLog)
 
 		sshConnection, err = ssh.NewConnection(testInstance.Address(), user, userPrivateKey, gossh.FixedHostKey(hostPublicKey),
 			[]string{hostPublicKey.Type()}, logger)
