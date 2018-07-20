@@ -268,8 +268,7 @@ var _ = Describe("Job", func() {
 				specifiedScriptPath, specifiedEnvVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/jobname/bin/bbr/backup"))
 				Expect(specifiedEnvVars).To(SatisfyAll(
-					HaveLen(2),
-					HaveKeyWithValue("ARTIFACT_DIRECTORY", "/var/vcap/store/bbr-backup/jobname/"),
+					HaveLen(1),
 					HaveKeyWithValue("BBR_ARTIFACT_DIRECTORY", "/var/vcap/store/bbr-backup/jobname/"),
 				))
 			})
@@ -328,8 +327,7 @@ var _ = Describe("Job", func() {
 				specifiedScriptPath, specifiedEnvVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/jobname/bin/bbr/restore"))
 				Expect(specifiedEnvVars).To(SatisfyAll(
-					HaveLen(2),
-					HaveKeyWithValue("ARTIFACT_DIRECTORY", "/var/vcap/store/bbr-backup/jobname/"),
+					HaveLen(1),
 					HaveKeyWithValue("BBR_ARTIFACT_DIRECTORY", "/var/vcap/store/bbr-backup/jobname/"),
 				))
 			})

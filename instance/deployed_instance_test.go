@@ -228,7 +228,7 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("uses the remote runner to create each job's backup folder and run each backup script providing the "+
-				"correct ARTIFACT_DIRECTORY and BBR_ARTIFACT_DIRECTORY", func() {
+				"correct BBR_ARTIFACT_DIRECTORY", func() {
 				Expect(remoteRunner.CreateDirectoryCallCount()).To(Equal(3))
 				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(3))
 				Expect([]string{
@@ -244,21 +244,18 @@ var _ = Describe("DeployedInstance", func() {
 				specifiedScriptPath, specifiedEnvVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/foo/bin/bbr/backup"))
 				Expect(specifiedEnvVars).To(Equal(map[string]string{
-					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/foo/",
 					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/foo/",
 				}))
 
 				specifiedScriptPath, specifiedEnvVars, _ = remoteRunner.RunScriptWithEnvArgsForCall(1)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/bar/bin/bbr/backup"))
 				Expect(specifiedEnvVars).To(Equal(map[string]string{
-					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/bar/",
 					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/bar/",
 				}))
 
 				specifiedScriptPath, specifiedEnvVars, _ = remoteRunner.RunScriptWithEnvArgsForCall(2)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/baz/bin/bbr/backup"))
 				Expect(specifiedEnvVars).To(Equal(map[string]string{
-					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/baz/",
 					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/baz/",
 				}))
 			})
@@ -310,7 +307,7 @@ var _ = Describe("DeployedInstance", func() {
 			})
 
 			It("uses the remote runner to create each job's backup folder and run each backup script providing the "+
-				"correct BBR_ARTIFACT_DIRECTORY and ARTIFACT_DIRECTORY", func() {
+				"correct BBR_ARTIFACT_DIRECTORY", func() {
 
 				Expect(remoteRunner.CreateDirectoryCallCount()).To(Equal(2))
 				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(2))
@@ -324,14 +321,12 @@ var _ = Describe("DeployedInstance", func() {
 				specifiedScriptPath, specifiedEnvVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/foo/bin/bbr/backup"))
 				Expect(specifiedEnvVars).To(Equal(map[string]string{
-					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/foo/",
 					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/foo/",
 				}))
 
 				specifiedScriptPath, specifiedEnvVars, _ = remoteRunner.RunScriptWithEnvArgsForCall(1)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/baz/bin/bbr/backup"))
 				Expect(specifiedEnvVars).To(Equal(map[string]string{
-					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/special-backup/",
 					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/special-backup/",
 				}))
 
@@ -420,27 +415,24 @@ var _ = Describe("DeployedInstance", func() {
 				})
 			})
 
-			It("uses the remote runner to run each restore script providing the correct ARTIFACT_DIRECTORY", func() {
+			It("uses the remote runner to run each restore script providing the correct BBR_ARTIFACT_DIRECTORY", func() {
 				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(3))
 
 				specifiedScriptPath, specifiedEnvVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/foo/bin/bbr/restore"))
 				Expect(specifiedEnvVars).To(Equal(map[string]string{
-					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/foo/",
 					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/foo/",
 				}))
 
 				specifiedScriptPath, specifiedEnvVars, _ = remoteRunner.RunScriptWithEnvArgsForCall(1)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/bar/bin/bbr/restore"))
 				Expect(specifiedEnvVars).To(Equal(map[string]string{
-					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/bar/",
 					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/bar/",
 				}))
 
 				specifiedScriptPath, specifiedEnvVars, _ = remoteRunner.RunScriptWithEnvArgsForCall(2)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/baz/bin/bbr/restore"))
 				Expect(specifiedEnvVars).To(Equal(map[string]string{
-					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/baz/",
 					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/baz/",
 				}))
 			})
@@ -495,27 +487,24 @@ var _ = Describe("DeployedInstance", func() {
 				Expect(actualError).NotTo(HaveOccurred())
 			})
 
-			It("uses the remote runner to create each job's backup folder and run each backup script providing the correct BBR_ARTIFACT_DIRECTORY and ARTIFACT_DIRECTORY", func() {
+			It("uses the remote runner to create each job's backup folder and run each backup script providing the correct BBR_ARTIFACT_DIRECTORY", func() {
 				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(3))
 
 				specifiedScriptPath, specifiedEnvVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/foo/bin/bbr/restore"))
 				Expect(specifiedEnvVars).To(Equal(map[string]string{
-					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/foo/",
 					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/foo/",
 				}))
 
 				specifiedScriptPath, specifiedEnvVars, _ = remoteRunner.RunScriptWithEnvArgsForCall(1)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/bar/bin/bbr/restore"))
 				Expect(specifiedEnvVars).To(Equal(map[string]string{
-					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/bar/",
 					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/bar/",
 				}))
 
 				specifiedScriptPath, specifiedEnvVars, _ = remoteRunner.RunScriptWithEnvArgsForCall(2)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/baz/bin/bbr/restore"))
 				Expect(specifiedEnvVars).To(Equal(map[string]string{
-					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/special-backup/",
 					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/special-backup/",
 				}))
 			})
