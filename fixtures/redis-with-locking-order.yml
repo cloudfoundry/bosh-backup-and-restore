@@ -9,8 +9,8 @@ releases:
   version: latest
 
 stemcells:
-- alias: trusty
-  os: ubuntu-trusty
+- alias: xenial
+  os: ubuntu-xenial
   version: latest
 
 jobs:
@@ -21,7 +21,7 @@ jobs:
     release: redis-test
   vm_type: container
   persistent_disk_type: five
-  stemcell: trusty
+  stemcell: xenial
   azs:
   - lite
   networks:
@@ -39,7 +39,7 @@ jobs:
     release: lock-ordering
   vm_type: container
   persistent_disk_type: five
-  stemcell: trusty
+  stemcell: xenial
   azs:
   - lite
   networks:
@@ -52,7 +52,7 @@ jobs:
     release: lock-ordering
   vm_type: container
   persistent_disk_type: five
-  stemcell: trusty
+  stemcell: xenial
   azs:
   - lite
   networks:
@@ -65,7 +65,7 @@ jobs:
     release: lock-ordering
   vm_type: container
   persistent_disk_type: five
-  stemcell: trusty
+  stemcell: xenial
   azs:
   - lite
   networks:
@@ -78,7 +78,7 @@ jobs:
     release: lock-ordering
   vm_type: container
   persistent_disk_type: five
-  stemcell: trusty
+  stemcell: xenial
   azs:
   - lite
   networks:

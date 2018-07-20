@@ -13,7 +13,7 @@ jobs:
       maxclients: 1000
       password: redis
       persistence: 'yes'
-  stemcell: trusty
+  stemcell: xenial
   templates:
   - name: redis-server
     release: redis-test
@@ -30,7 +30,7 @@ jobs:
       maxclients: 1000
       password: redis
       persistence: 'yes'
-  stemcell: trusty
+  stemcell: xenial
   templates:
   - name: redis-server
     release: redis-test
@@ -40,8 +40,8 @@ releases:
 - name: redis-test
   version: 0+dev.43
 stemcells:
-- alias: trusty
-  os: ubuntu-trusty
+- alias: xenial
+  os: ubuntu-xenial
   version: '3312'
 update:
   canaries: 2
