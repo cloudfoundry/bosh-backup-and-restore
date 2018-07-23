@@ -1,5 +1,5 @@
 ---
-director_uuid: e1727199-11df-4cc2-97c7-bd92f7cec2bf
+name: redis-dev-2
 jobs:
 - azs:
   - lite
@@ -35,7 +35,6 @@ jobs:
   - name: redis-server
     release: redis-test
   vm_type: container
-name: redis-dev-2
 releases:
 - name: redis-test
   version: 0+dev.43

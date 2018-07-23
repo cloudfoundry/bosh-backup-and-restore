@@ -1,6 +1,5 @@
 ---
 name: ((deployment-name))
-director_uuid: e1727199-11df-4cc2-97c7-bd92f7cec2bf
 releases:
 - name: redis-test
   version: latest
