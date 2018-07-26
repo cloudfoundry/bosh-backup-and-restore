@@ -13,7 +13,7 @@ func Validate(requiredFlags []string, c *cli.Context) error {
 
 	for _, flag := range requiredFlags {
 		if c.String(flag) == "" {
-			cli.ShowCommandHelp(c, c.Parent().Command.Name)
+			cli.ShowSubcommandHelp(c)
 			return redCliError(errors.Errorf("--%v flag is required.", flag))
 		}
 	}
