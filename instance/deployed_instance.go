@@ -80,6 +80,7 @@ func (i *DeployedInstance) Backup() error {
 func artifactDirectoryVariables(artifactDirectory string) map[string]string {
 	return map[string]string{
 		"BBR_ARTIFACT_DIRECTORY": artifactDirectory + "/",
+		"ARTIFACT_DIRECTORY":     artifactDirectory + "/",
 	}
 }
 
