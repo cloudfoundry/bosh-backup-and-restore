@@ -25,15 +25,3 @@ func ShowsTheDeploymentHelpText(helpText *helpText) {
 	Expect(helpText.outputString()).To(ContainSubstring("--deployment"))
 	Expect(helpText.outputString()).To(ContainSubstring("Name of BOSH deployment"))
 }
-
-func ShowsTheMainHelpText(helpText *helpText) {
-	Expect(helpText.outputString()).To(ContainSubstring(`SUBCOMMANDS:
-   backup
-   backup-cleanup
-   restore
-   restore-cleanup
-   pre-backup-check`))
-
-	Expect(helpText.outputString()).To(ContainSubstring(`USAGE:
-   bbr command [command options] [subcommand] [subcommand options]`))
-}

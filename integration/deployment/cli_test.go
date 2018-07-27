@@ -343,17 +343,4 @@ instances: []`))
 		})
 
 	})
-
-	Context("bbr with no arguments", func() {
-		var output helpText
-
-		BeforeEach(func() {
-			output.output = binary.Run(backupWorkspace, []string{""}).Out.Contents()
-		})
-
-		It("displays the usable flags", func() {
-			ShowsTheMainHelpText(&output)
-		})
-	})
-
 })

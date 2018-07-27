@@ -5,6 +5,8 @@ import (
 
 	"github.com/urfave/cli"
 
+	"fmt"
+
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/cli/command"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/cli/flags"
 )
@@ -22,6 +24,7 @@ func main() {
 	app.Name = "bbr"
 	app.Usage = "BOSH Backup and Restore"
 	app.HideHelp = true
+	app.CommandNotFound = commandNotFoundFunc
 
 	app.Commands = []cli.Command{
 		{
@@ -70,6 +73,11 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		os.Exit(1)
 	}
+}
+
+func commandNotFoundFunc(c *cli.Context, msg string) {
+	fmt.Printf("Error command '%s' not found\n\n", msg)
+	cli.ShowAppHelp(c)
 }
 
 func versionAction(c *cli.Context) error {
