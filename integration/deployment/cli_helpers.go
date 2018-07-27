@@ -35,5 +35,5 @@ func ShowsTheMainHelpText(helpText *helpText) {
    pre-backup-check`))
 
 	Expect(helpText.outputString()).To(ContainSubstring(`USAGE:
-   bbr command [arguments...] [subcommand]`))
+   bbr command [command options] [subcommand] [subcommand options]`))
 }

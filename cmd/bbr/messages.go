@@ -4,7 +4,7 @@ const helpTextTemplate = `NAME:
    {{.Name}}{{if .Usage}} - {{.Usage}}{{end}}
 
 USAGE:
-   bbr command [subcommand]{{if .Version}}{{if not .HideVersion}}
+   bbr command [command options] [subcommand] [subcommand options]{{if .Version}}{{if not .HideVersion}}
 
 VERSION:
    {{.Version}}{{end}}{{end}}{{if .Description}}
@@ -35,11 +35,11 @@ const subCommandTextTemplate = `NAME:
    {{.HelpName}} - {{if .Description}}{{.Description}}{{else}}{{.Usage}}{{end}}
 
 USAGE:
-   {{if .UsageText}}{{.UsageText}}{{else}}{{.HelpName}} {{if .VisibleFlags}}[options]{{end}} command {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}
+   {{if .UsageText}}{{.UsageText}}{{else}}{{.HelpName}} {{if .VisibleFlags}}[options]{{end}} subcommand {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[subcommand options]{{end}}{{end}}
 
-COMMANDS:{{range .VisibleCategories}}{{if .Name}}
+SUBCOMMANDS:{{range .VisibleCategories}}{{if .Name}}
    {{.Name}}:{{end}}{{range .VisibleCommands}}
-     {{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}
+   {{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}
 {{end}}{{if .VisibleFlags}}
 OPTIONS:
    {{range .VisibleFlags}}{{.}}
