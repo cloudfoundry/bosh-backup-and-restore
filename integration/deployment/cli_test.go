@@ -87,9 +87,30 @@ var _ = Describe("CLI Interface", func() {
 							"BOSH_CLIENT=admin",
 							"BOSH_CLIENT_SECRET=admin",
 							"BOSH_DEPLOYMENT=my-new-deployment",
-							fmt.Sprintf("CA_CERT=%s", sslCertPath),
+							fmt.Sprintf("BOSH_CA_CERT=%s", sslCertPath),
 						},
 						append([]string{"deployment", cmd}, extraArgs...)...)
+
+					director.VerifyMocks()
+				})
+
+				It("can invoke command with the CA_CERT environment variable", func() {
+					director.VerifyAndMock(
+						mockbosh.Info().WithAuthTypeBasic(),
+						mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
+					)
+
+					binary.Run(backupWorkspace,
+						[]string{fmt.Sprintf("CA_CERT=%s", sslCertPath)},
+						append([]string{
+							"deployment",
+							"--ca-cert", sslCertPath,
+							"--username", "admin",
+							"--password", "admin",
+							"--target", director.URL,
+							"--deployment", "my-new-deployment",
+							cmd,
+						}, extraArgs...)...)
 
 					director.VerifyMocks()
 				})
@@ -355,7 +376,7 @@ func assertDeploymentHelpText(session *gexec.Session) {
 		gbytes.Say("--username"), gbytes.Say("BOSH Director username"), gbytes.Say("BOSH_CLIENT"),
 		gbytes.Say("--password"), gbytes.Say("BOSH Director password"), gbytes.Say("BOSH_CLIENT_SECRET"),
 		gbytes.Say("--deployment"), gbytes.Say("Name of BOSH deployment"), gbytes.Say("BOSH_DEPLOYMENT"),
-		gbytes.Say("--ca-cert"), gbytes.Say("Path to BOSH Director custom CA certificate"), gbytes.Say("CA_CERT"),
+		gbytes.Say("--ca-cert"), gbytes.Say("Path to BOSH Director custom CA certificate"), gbytes.Say("BOSH_CA_CERT"), gbytes.Say("CA_CERT"),
 		gbytes.Say("--debug"), gbytes.Say("Enable debug logs"),
 	))
 }
