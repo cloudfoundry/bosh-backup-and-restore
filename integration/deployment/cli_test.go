@@ -50,7 +50,8 @@ var _ = Describe("CLI Interface", func() {
 							"-p", "admin",
 							"-t", director.URL,
 							"-d", "my-new-deployment",
-							cmd}, extraArgs...)...)
+							cmd,
+						}, extraArgs...)...)
 
 					director.VerifyMocks()
 				})
@@ -70,7 +71,8 @@ var _ = Describe("CLI Interface", func() {
 							"--password", "admin",
 							"--target", director.URL,
 							"--deployment", "my-new-deployment",
-							cmd}, extraArgs...)...)
+							cmd,
+						}, extraArgs...)...)
 
 					director.VerifyMocks()
 				})
@@ -131,7 +133,8 @@ var _ = Describe("CLI Interface", func() {
 							"--username", "admin",
 							"--target", director.URL,
 							"--deployment", "my-new-deployment",
-							cmd}, extraArgs...)...)
+							cmd,
+						}, extraArgs...)...)
 
 					director.VerifyMocks()
 				})
@@ -149,7 +152,8 @@ var _ = Describe("CLI Interface", func() {
 							"--password", "admin",
 							"--target", badDirectorURL,
 							"--deployment", "my-new-deployment",
-							cmd}, extraArgs...)...)
+							cmd,
+						}, extraArgs...)...)
 				})
 
 				It("Exits with non zero", func() {
@@ -173,7 +177,8 @@ var _ = Describe("CLI Interface", func() {
 							"--password", "admin",
 							"--target", director.URL,
 							"--deployment", "my-new-deployment",
-							cmd}, extraArgs...)...)
+							cmd,
+						}, extraArgs...)...)
 				})
 
 				It("Exits with non zero", func() {
@@ -195,7 +200,8 @@ var _ = Describe("CLI Interface", func() {
 							"--password", "admin",
 							"--target", director.URL,
 							"--deployment", "my-new-deployment",
-							cmd}, extraArgs...)...)
+							cmd,
+						}, extraArgs...)...)
 				})
 
 				It("Exits with non zero", func() {
@@ -224,7 +230,13 @@ var _ = Describe("CLI Interface", func() {
 
 				Context("Missing target", func() {
 					BeforeEach(func() {
-						command = append([]string{"deployment", "--username", "admin", "--password", "admin", "--deployment", "my-new-deployment", cmd}, extraArgs...)
+						command = append([]string{
+							"deployment",
+							"--username", "admin",
+							"--password", "admin",
+							"--deployment", "my-new-deployment",
+							cmd,
+						}, extraArgs...)
 					})
 					It("Exits with non zero", func() {
 						Expect(session.ExitCode()).NotTo(BeZero())
@@ -241,7 +253,13 @@ var _ = Describe("CLI Interface", func() {
 
 				Context("Missing username", func() {
 					BeforeEach(func() {
-						command = append([]string{"deployment", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd}, extraArgs...)
+						command = append([]string{
+							"deployment",
+							"--password", "admin",
+							"--target", director.URL,
+							"--deployment", "my-new-deployment",
+							cmd,
+						}, extraArgs...)
 					})
 
 					It("Exits with non zero", func() {
@@ -260,8 +278,15 @@ var _ = Describe("CLI Interface", func() {
 				Context("Missing password in args", func() {
 					BeforeEach(func() {
 						env = []string{}
-						command = append([]string{"deployment", "--username", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd}, extraArgs...)
+						command = append([]string{
+							"deployment",
+							"--username", "admin",
+							"--target", director.URL,
+							"--deployment", "my-new-deployment",
+							cmd,
+						}, extraArgs...)
 					})
+
 					It("Exits with non zero", func() {
 						Expect(session.ExitCode()).NotTo(BeZero())
 					})
@@ -277,8 +302,15 @@ var _ = Describe("CLI Interface", func() {
 
 				Context("Missing deployment", func() {
 					BeforeEach(func() {
-						command = append([]string{"deployment", "--username", "admin", "--password", "admin", "--target", director.URL, cmd}, extraArgs...)
+						command = append([]string{
+							"deployment",
+							"--username", "admin",
+							"--password", "admin",
+							"--target", director.URL,
+							cmd,
+						}, extraArgs...)
 					})
+
 					It("Exits with non zero", func() {
 						Expect(session.ExitCode()).NotTo(BeZero())
 					})
@@ -303,11 +335,13 @@ var _ = Describe("CLI Interface", func() {
 					session := binary.Run(backupWorkspace, []string{},
 						append([]string{
 							"deployment",
-							"--debug", "--ca-cert",
-							sslCertPath, "--username",
-							"admin", "--password",
-							"admin", "--target",
-							director.URL, "--deployment", "my-new-deployment", cmd}, extraArgs...)...)
+							"--debug",
+							"--ca-cert", sslCertPath,
+							"--username", "admin",
+							"--password", "admin",
+							"--target", director.URL,
+							"--deployment", "my-new-deployment",
+							cmd}, extraArgs...)...)
 
 					Expect(session.Out).To(gbytes.Say("Sending GET request to endpoint"))
 
