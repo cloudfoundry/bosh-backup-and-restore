@@ -116,15 +116,15 @@ func availableDeploymentFlags() []cli.Flag {
 			Value: "",
 			Usage: "Name of BOSH deployment",
 		},
-		cli.BoolFlag{
-			Name:  "debug",
-			Usage: "Enable debug logs",
-		},
 		cli.StringFlag{
 			Name:   "ca-cert",
 			Value:  "",
 			EnvVar: "CA_CERT",
 			Usage:  "Custom CA certificate",
+		},
+		cli.BoolFlag{
+			Name:  "debug",
+			Usage: "Enable debug logs",
 		},
 	}
 }
