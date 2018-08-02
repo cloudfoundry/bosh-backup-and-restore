@@ -96,14 +96,16 @@ func validateDirectorFlags(c *cli.Context) error {
 func availableDeploymentFlags() []cli.Flag {
 	return []cli.Flag{
 		cli.StringFlag{
-			Name:  "target, t",
-			Value: "",
-			Usage: "BOSH Director URL",
+			Name:   "target, t",
+			Value:  "",
+			EnvVar: "BOSH_ENVIRONMENT",
+			Usage:  "BOSH Director URL",
 		},
 		cli.StringFlag{
-			Name:  "username, u",
-			Value: "",
-			Usage: "BOSH Director username",
+			Name:   "username, u",
+			Value:  "",
+			EnvVar: "BOSH_CLIENT",
+			Usage:  "BOSH Director username",
 		},
 		cli.StringFlag{
 			Name:   "password, p",
@@ -112,9 +114,10 @@ func availableDeploymentFlags() []cli.Flag {
 			Usage:  "BOSH Director password",
 		},
 		cli.StringFlag{
-			Name:  "deployment, d",
-			Value: "",
-			Usage: "Name of BOSH deployment",
+			Name:   "deployment, d",
+			Value:  "",
+			EnvVar: "BOSH_DEPLOYMENT",
+			Usage:  "Name of BOSH deployment",
 		},
 		cli.StringFlag{
 			Name:   "ca-cert",

@@ -4,6 +4,8 @@ import (
 	"io/ioutil"
 	"os"
 
+	"fmt"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -69,6 +71,25 @@ var _ = Describe("CLI Interface", func() {
 							"--target", director.URL,
 							"--deployment", "my-new-deployment",
 							cmd}, extraArgs...)...)
+
+					director.VerifyMocks()
+				})
+
+				It("can invoke command with environment variables", func() {
+					director.VerifyAndMock(
+						mockbosh.Info().WithAuthTypeBasic(),
+						mockbosh.VMsForDeployment("my-new-deployment").NotFound(),
+					)
+
+					binary.Run(backupWorkspace,
+						[]string{
+							fmt.Sprintf("BOSH_ENVIRONMENT=%s", director.URL),
+							"BOSH_CLIENT=admin",
+							"BOSH_CLIENT_SECRET=admin",
+							"BOSH_DEPLOYMENT=my-new-deployment",
+							fmt.Sprintf("CA_CERT=%s", sslCertPath),
+						},
+						append([]string{"deployment", cmd}, extraArgs...)...)
 
 					director.VerifyMocks()
 				})
@@ -330,17 +351,11 @@ instances: []`))
 
 func assertDeploymentHelpText(session *gexec.Session) {
 	Expect(session.Out).To(SatisfyAll(
-		gbytes.Say("--target"),
-		gbytes.Say("BOSH Director URL"),
-		gbytes.Say("--username"),
-		gbytes.Say("BOSH Director username"),
-		gbytes.Say("--password"),
-		gbytes.Say("BOSH Director password"),
-		gbytes.Say("--deployment"),
-		gbytes.Say("Name of BOSH deployment"),
-		gbytes.Say("--ca-cert"),
-		gbytes.Say("Path to BOSH Director custom CA certificate"),
-		gbytes.Say("--debug"),
-		gbytes.Say("Enable debug logs"),
+		gbytes.Say("--target"), gbytes.Say("BOSH Director URL"), gbytes.Say("BOSH_ENVIRONMENT"),
+		gbytes.Say("--username"), gbytes.Say("BOSH Director username"), gbytes.Say("BOSH_CLIENT"),
+		gbytes.Say("--password"), gbytes.Say("BOSH Director password"), gbytes.Say("BOSH_CLIENT_SECRET"),
+		gbytes.Say("--deployment"), gbytes.Say("Name of BOSH deployment"), gbytes.Say("BOSH_DEPLOYMENT"),
+		gbytes.Say("--ca-cert"), gbytes.Say("Path to BOSH Director custom CA certificate"), gbytes.Say("CA_CERT"),
+		gbytes.Say("--debug"), gbytes.Say("Enable debug logs"),
 	))
 }
