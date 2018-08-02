@@ -212,7 +212,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					})
 
 					By("printing a log message saying the director instance cannot be backed up", func() {
-						Expect(string(session.Err.Contents())).To(ContainSubstring("Directory /var/vcap/store/bbr-backup already exists on instance bosh/0"))
+						Expect(session.Err).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance bosh/0"))
 					})
 
 					By("not deleting the existing artifact directory", func() {
@@ -238,7 +238,7 @@ backup_should_be_locked_before:
 					})
 
 					By("printing an helpful error", func() {
-						Expect(string(session.Err.Contents())).To(ContainSubstring(
+						Expect(session.Err).To(gbytes.Say(
 							fmt.Sprintf("director job 'bosh' specifies locking dependencies, which are not allowed for director jobs")))
 					})
 
@@ -260,7 +260,7 @@ backup_should_be_locked_before:
 				})
 
 				By("printing an error", func() {
-					Expect(string(session.Err.Contents())).To(ContainSubstring(fmt.Sprintf("Deployment '%s' has no backup scripts", directorIP)))
+					Expect(session.Err).To(gbytes.Say(fmt.Sprintf("Deployment '%s' has no backup scripts", directorIP)))
 				})
 
 				By("not printing a recommendation to run bbr backup-cleanup", func() {
@@ -318,7 +318,7 @@ backup_should_be_locked_before:
 					By("printing a helpful message and waiting for user input", func() {
 						Consistently(session.Exited).ShouldNot(BeClosed(), "bbr process terminated in response to signal")
 						Eventually(session).Should(gbytes.Say(`Stopping a backup can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
-						Expect(string(session.Out.Contents())).To(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
+						Expect(string(session.Out.Contents())).To(HaveSuffix("[yes/no]\n"))
 					})
 
 					stdin.Write([]byte("no\n"))
@@ -350,7 +350,7 @@ backup_should_be_locked_before:
 			})
 
 			By("printing an error", func() {
-				Expect(string(session.Err.Contents())).To(ContainSubstring("no such host"))
+				Expect(session.Err).To(gbytes.Say("no such host"))
 			})
 
 			By("not printing a recommendation to run bbr backup-cleanup", func() {

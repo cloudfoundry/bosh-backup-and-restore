@@ -239,7 +239,7 @@ exit 1
 					It("fails the command", func() {
 						By("exiting non-zero", func() {
 							Expect(session.ExitCode()).NotTo(BeZero())
-							Expect(session.Out.Contents()).To(ContainSubstring("pre-restore-lock errored"))
+							Expect(session.Out).To(gbytes.Say("pre-restore-lock errored"))
 						})
 
 						By("not running the restore script", func() {
@@ -262,7 +262,7 @@ touch /tmp/post-restore-unlock-script-was-run
 						It("fails the command", func() {
 							By("exiting non-zero", func() {
 								Expect(session.ExitCode()).NotTo(BeZero())
-								Expect(session.Out.Contents()).To(ContainSubstring("pre-restore-lock errored"))
+								Expect(session.Out).To(gbytes.Say("pre-restore-lock errored"))
 							})
 
 							By("not running the restore script", func() {
@@ -327,7 +327,7 @@ exit 1
 						})
 
 						By("error is displayed", func() {
-							Expect(session.Out.Contents()).To(ContainSubstring("post-restore-unlock errored"))
+							Expect(session.Out).To(gbytes.Say("post-restore-unlock errored"))
 						})
 					})
 
@@ -342,7 +342,7 @@ exit 1
 				It("fails to restore the director", func() {
 					By("returning exit code 1", func() {
 						Expect(session.ExitCode()).To(Equal(1))
-						Expect(session.Out.Contents()).To(ContainSubstring("NOPE!"))
+						Expect(session.Out).To(gbytes.Say("NOPE!"))
 					})
 				})
 
@@ -370,8 +370,8 @@ exit 1
 						})
 
 						By("error is displayed", func() {
-							Expect(session.Out.Contents()).To(ContainSubstring("post-restore-unlock errored"))
-							Expect(session.Out.Contents()).To(ContainSubstring("NOPE!"))
+							Expect(session.Out).To(gbytes.Say("NOPE!"))
+							Expect(session.Out).To(gbytes.Say("post-restore-unlock errored"))
 						})
 					})
 
@@ -389,7 +389,7 @@ exit 1
 					})
 
 					By("printing a log message saying the director instance cannot be backed up", func() {
-						Expect(string(session.Err.Contents())).To(ContainSubstring("Directory /var/vcap/store/bbr-backup already exists on instance bosh/0"))
+						Expect(session.Err).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance bosh/0"))
 					})
 
 					By("not deleting the existing artifact directory", func() {
@@ -411,7 +411,7 @@ exit 1
 				})
 
 				By("printing an error", func() {
-					Expect(string(session.Err.Contents())).To(ContainSubstring(fmt.Sprintf("Deployment '%s' has no restore scripts", directorIP)))
+					Expect(session.Err).To(gbytes.Say(fmt.Sprintf("Deployment '%s' has no restore scripts", directorIP)))
 				})
 
 				By("saving the stack trace into a file", func() {
@@ -439,7 +439,7 @@ exit 1
 			})
 
 			By("printing an error", func() {
-				Expect(string(session.Err.Contents())).To(ContainSubstring("no such host"))
+				Expect(session.Err).To(gbytes.Say("no such host"))
 			})
 		})
 	})

@@ -6,6 +6,7 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
@@ -95,7 +96,6 @@ var _ = Describe("CLI Interface", func() {
 			})
 
 			Context("Hostname is malformed", func() {
-				var output helpText
 				var session *gexec.Session
 				BeforeEach(func() {
 					badDirectorURL := "https://:25555"
@@ -108,7 +108,6 @@ var _ = Describe("CLI Interface", func() {
 							"--target", badDirectorURL,
 							"--deployment", "my-new-deployment",
 							cmd}, extraArgs...)...)
-					output.output = session.Err.Contents()
 				})
 
 				It("Exits with non zero", func() {
@@ -116,12 +115,11 @@ var _ = Describe("CLI Interface", func() {
 				})
 
 				It("displays a failure message", func() {
-					Expect(output.outputString()).To(ContainSubstring("invalid bosh URL"))
+					Expect(session.Err).To(gbytes.Say("invalid bosh URL"))
 				})
 			})
 
 			Context("Custom CA cert cannot be read", func() {
-				var output helpText
 				var session *gexec.Session
 				BeforeEach(func() {
 					session = binary.Run(backupWorkspace,
@@ -134,7 +132,6 @@ var _ = Describe("CLI Interface", func() {
 							"--target", director.URL,
 							"--deployment", "my-new-deployment",
 							cmd}, extraArgs...)...)
-					output.output = session.Err.Contents()
 				})
 
 				It("Exits with non zero", func() {
@@ -142,12 +139,11 @@ var _ = Describe("CLI Interface", func() {
 				})
 
 				It("displays a failure message", func() {
-					Expect(output.outputString()).To(ContainSubstring("open /tmp/whatever: no such file or directory"))
+					Expect(session.Err).To(gbytes.Say("open /tmp/whatever: no such file or directory"))
 				})
 			})
 
 			Context("Wrong global args", func() {
-				var output helpText
 				var session *gexec.Session
 				BeforeEach(func() {
 					session = binary.Run(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"},
@@ -158,7 +154,6 @@ var _ = Describe("CLI Interface", func() {
 							"--target", director.URL,
 							"--deployment", "my-new-deployment",
 							cmd}, extraArgs...)...)
-					output.output = session.Out.Contents()
 				})
 
 				It("Exits with non zero", func() {
@@ -166,16 +161,15 @@ var _ = Describe("CLI Interface", func() {
 				})
 
 				It("displays a failure message", func() {
-					Expect(output.outputString()).To(ContainSubstring("Incorrect Usage"))
+					Expect(session.Out).To(gbytes.Say("Incorrect Usage"))
 				})
 
 				It("displays the usable flags", func() {
-					ShowsTheDeploymentHelpText(&output)
+					assertDeploymentHelpText(session)
 				})
 			})
 
 			Context("when any required flags are missing", func() {
-				var output helpText
 				var session *gexec.Session
 				var command []string
 				var env []string
@@ -184,7 +178,6 @@ var _ = Describe("CLI Interface", func() {
 				})
 				JustBeforeEach(func() {
 					session = binary.Run(backupWorkspace, env, command...)
-					output.output = session.Out.Contents()
 				})
 
 				Context("Missing target", func() {
@@ -196,11 +189,11 @@ var _ = Describe("CLI Interface", func() {
 					})
 
 					It("displays a failure message", func() {
-						Expect(session.Err.Contents()).To(ContainSubstring("--target flag is required."))
+						Expect(session.Err).To(gbytes.Say("--target flag is required."))
 					})
 
 					It("displays the usable flags", func() {
-						ShowsTheDeploymentHelpText(&output)
+						assertDeploymentHelpText(session)
 					})
 				})
 
@@ -208,16 +201,17 @@ var _ = Describe("CLI Interface", func() {
 					BeforeEach(func() {
 						command = append([]string{"deployment", "--password", "admin", "--target", director.URL, "--deployment", "my-new-deployment", cmd}, extraArgs...)
 					})
+
 					It("Exits with non zero", func() {
 						Expect(session.ExitCode()).NotTo(BeZero())
 					})
 
 					It("displays a failure message", func() {
-						Expect(session.Err.Contents()).To(ContainSubstring("--username flag is required."))
+						Expect(session.Err).To(gbytes.Say("--username flag is required."))
 					})
 
 					It("displays the usable flags", func() {
-						ShowsTheDeploymentHelpText(&output)
+						assertDeploymentHelpText(session)
 					})
 				})
 
@@ -231,11 +225,11 @@ var _ = Describe("CLI Interface", func() {
 					})
 
 					It("displays a failure message", func() {
-						Expect(session.Err.Contents()).To(ContainSubstring("--password flag is required."))
+						Expect(session.Err).To(gbytes.Say("--password flag is required."))
 					})
 
 					It("displays the usable flags", func() {
-						ShowsTheDeploymentHelpText(&output)
+						assertDeploymentHelpText(session)
 					})
 				})
 
@@ -248,11 +242,11 @@ var _ = Describe("CLI Interface", func() {
 					})
 
 					It("displays a failure message", func() {
-						Expect(session.Err.Contents()).To(ContainSubstring("--deployment flag is required."))
+						Expect(session.Err).To(gbytes.Say("--deployment flag is required."))
 					})
 
 					It("displays the usable flags", func() {
-						ShowsTheDeploymentHelpText(&output)
+						assertDeploymentHelpText(session)
 					})
 				})
 			})
@@ -273,7 +267,7 @@ var _ = Describe("CLI Interface", func() {
 							"admin", "--target",
 							director.URL, "--deployment", "my-new-deployment", cmd}, extraArgs...)...)
 
-					Expect(string(session.Out.Contents())).To(ContainSubstring("Sending GET request to endpoint"))
+					Expect(session.Out).To(gbytes.Say("Sending GET request to endpoint"))
 
 					director.VerifyMocks()
 				})
@@ -313,34 +307,40 @@ instances: []`))
 				})
 
 				It("displays a failure message", func() {
-					Expect(session.Err.Contents()).To(ContainSubstring("--artifact-path flag is required"))
+					Expect(session.Err).To(gbytes.Say("--artifact-path flag is required"))
 				})
 			})
 		})
 
 		Context("--help", func() {
-			var output helpText
-
-			BeforeEach(func() {
-				output.output = binary.Run(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--help").Out.Contents()
-			})
-
 			It("displays the usable flags", func() {
-				ShowsTheDeploymentHelpText(&output)
+				session := binary.Run(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment", "--help")
+				assertDeploymentHelpText(session)
 			})
 		})
 
 		Context("no arguments", func() {
-			var output helpText
-
-			BeforeEach(func() {
-				output.output = binary.Run(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment").Out.Contents()
-			})
-
 			It("displays the usable flags", func() {
-				ShowsTheDeploymentHelpText(&output)
+				session := binary.Run(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment")
+				assertDeploymentHelpText(session)
 			})
 		})
-
 	})
 })
+
+func assertDeploymentHelpText(session *gexec.Session) {
+	Expect(session.Out).To(SatisfyAll(
+		gbytes.Say("--target"),
+		gbytes.Say("BOSH Director URL"),
+		gbytes.Say("--username"),
+		gbytes.Say("BOSH Director username"),
+		gbytes.Say("--password"),
+		gbytes.Say("BOSH Director password"),
+		gbytes.Say("--deployment"),
+		gbytes.Say("Name of BOSH deployment"),
+		gbytes.Say("--debug"),
+		gbytes.Say("Enable debug logs"),
+		gbytes.Say("--ca-cert"),
+		gbytes.Say("Custom CA certificate"),
+	))
+}

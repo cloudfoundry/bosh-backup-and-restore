@@ -40,10 +40,9 @@ var _ = Describe("CLI Interface", func() {
 		Describe("backup with invalid command line arguments", func() {
 			Context("private-key-path flag", func() {
 				var (
-					keyFile       *os.File
-					err           error
-					session       *gexec.Session
-					sessionOutput string
+					keyFile *os.File
+					err     error
+					session *gexec.Session
 				)
 
 				BeforeEach(func() {
@@ -59,16 +58,15 @@ var _ = Describe("CLI Interface", func() {
 						"--private-key-path", keyFile.Name(),
 						"backup")
 					Eventually(session).Should(gexec.Exit())
-					sessionOutput = string(session.Err.Contents())
 				})
 
 				It("fails", func() {
 					By("printing a meaningful message when the key is invalid", func() {
-						Expect(sessionOutput).To(ContainSubstring("ssh.NewConnection.ParsePrivateKey failed"))
+						Expect(session.Err).To(gbytes.Say("ssh.NewConnection.ParsePrivateKey failed"))
 					})
 
 					By("not printing a stack trace", func() {
-						Expect(sessionOutput).NotTo(ContainSubstring("main.go"))
+						Expect(session.Err).NotTo(gbytes.Say("main.go"))
 					})
 
 					By("saving the stack trace into a file", func() {
@@ -87,10 +85,7 @@ var _ = Describe("CLI Interface", func() {
 
 		Describe("restore with incorrect artifact-path", func() {
 			Context("restore command with missing artifact-path", func() {
-				var (
-					session       *gexec.Session
-					sessionOutput string
-				)
+				var session *gexec.Session
 
 				BeforeEach(func() {
 					session = binary.Run(backupWorkspace,
@@ -101,7 +96,6 @@ var _ = Describe("CLI Interface", func() {
 						"--private-key-path", "doesn't matter",
 						"restore")
 					Eventually(session).Should(gexec.Exit())
-					sessionOutput = string(session.Err.Contents())
 				})
 
 				It("fails", func() {
@@ -109,15 +103,13 @@ var _ = Describe("CLI Interface", func() {
 						Expect(session.ExitCode()).NotTo(BeZero())
 					})
 					By("printing a meaningful message about the missing parameter", func() {
-						Expect(sessionOutput).To(ContainSubstring("--artifact-path flag is required"))
+						Expect(session.Err).To(gbytes.Say("--artifact-path flag is required"))
 					})
 				})
 			})
+
 			Context("restore command with artifact-path pointing to non-existent file", func() {
-				var (
-					session       *gexec.Session
-					sessionOutput string
-				)
+				var session *gexec.Session
 
 				BeforeEach(func() {
 					session = binary.Run(backupWorkspace,
@@ -129,7 +121,6 @@ var _ = Describe("CLI Interface", func() {
 						"restore",
 						"--artifact-path", "non-existent-file")
 					Eventually(session).Should(gexec.Exit())
-					sessionOutput = string(session.Err.Contents())
 				})
 
 				It("fails", func() {
@@ -137,7 +128,7 @@ var _ = Describe("CLI Interface", func() {
 						Expect(session.ExitCode()).NotTo(BeZero())
 					})
 					By("printing a meaningful message about the missing parameter", func() {
-						Expect(sessionOutput).To(ContainSubstring("non-existent-file: no such file or directory"))
+						Expect(session.Err).To(gbytes.Say("non-existent-file: no such file or directory"))
 					})
 				})
 			})

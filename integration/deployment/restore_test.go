@@ -103,7 +103,7 @@ instances: []`))
 			})
 
 			By("printing an error", func() {
-				Expect(string(session.Err.Contents())).To(ContainSubstring("Director responded with non-successful status code"))
+				Expect(session.Err).To(gbytes.Say("Director responded with non-successful status code"))
 			})
 
 			By("not printing the stack trace", func() {
@@ -147,7 +147,7 @@ instances: []`))
 			})
 
 			By("printing an error", func() {
-				Expect(string(session.Err.Contents())).To(ContainSubstring("i-am-not-here: no such file or directory"))
+				Expect(session.Err).To(gbytes.Say("i-am-not-here: no such file or directory"))
 			})
 
 			By("not printing the stack trace", func() {
@@ -212,7 +212,7 @@ instances:
 			})
 
 			By("printing an error", func() {
-				Expect(string(session.Err.Contents())).To(ContainSubstring("Backup is corrupted"))
+				Expect(session.Err).To(gbytes.Say("Backup is corrupted"))
 			})
 
 			By("not printing the stack trace", func() {
@@ -382,7 +382,7 @@ touch /tmp/restore-script-was-run`)
 						})
 
 						By("buffering the logs", func() {
-							Expect(string(session.Out.Contents())).To(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
+							Expect(string(session.Out.Contents())).To(HaveSuffix("[yes/no]\n"))
 						})
 
 						stdin.Write([]byte("yes\n"))
@@ -414,7 +414,7 @@ touch /tmp/restore-script-was-run`)
 						})
 
 						By("buffering the logs", func() {
-							Expect(string(session.Out.Contents())).To(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
+							Expect(string(session.Out.Contents())).To(HaveSuffix("[yes/no]\n"))
 						})
 
 						stdin.Write([]byte("no\n"))
@@ -465,7 +465,7 @@ touch /tmp/restore-script-was-run`)
 				})
 
 				By("returning the failure", func() {
-					Expect(session.Err.Contents()).To(ContainSubstring("dear lord"))
+					Expect(session.Err).To(gbytes.Say("dear lord"))
 				})
 				By("not printing the stack trace", func() {
 					Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
@@ -503,7 +503,7 @@ touch /tmp/restore-script-was-run`)
 				})
 
 				By("returning the correct error", func() {
-					Expect(session.Err.Contents()).To(ContainSubstring(
+					Expect(session.Err).To(gbytes.Say(
 						"Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid",
 					))
 				})
@@ -651,7 +651,7 @@ restore_should_be_locked_before:
 				redisLockTime := instance1.GetCreatedTime("/tmp/redis-pre-restore-lock-called")
 				redisWriterLockTime := instance2.GetCreatedTime("/tmp/redis-writer-pre-restore-lock-called")
 
-				Expect(string(session.Out.Contents())).To(ContainSubstring("Detected order: redis-writer should be locked before redis/redis during restore"))
+				Expect(session.Out).To(gbytes.Say("Detected order: redis-writer should be locked before redis/redis during restore"))
 
 				Expect(redisWriterLockTime < redisLockTime).To(BeTrue(), fmt.Sprintf(
 					"Writer locked at %s, which is after the server locked (%s)",
@@ -733,7 +733,7 @@ restore_should_be_locked_before:
 				})
 
 				By("printing a helpful error message", func() {
-					Expect(string(session.Err.Contents())).To(ContainSubstring("job locking dependency graph is cyclic"))
+					Expect(session.Err).To(gbytes.Say("job locking dependency graph is cyclic"))
 				})
 			})
 		})
@@ -1046,7 +1046,7 @@ instances:
 			})
 
 			By("returning the failure", func() {
-				Expect(session.Err.Contents()).To(ContainSubstring("cleanup err"))
+				Expect(session.Err).To(gbytes.Say("cleanup err"))
 			})
 
 			By("not printing the stack trace", func() {

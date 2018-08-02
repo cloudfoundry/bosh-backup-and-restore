@@ -65,7 +65,7 @@ var _ = Describe("Restores a deployment", func() {
 			)
 
 			Eventually(session).Should(gexec.Exit(0))
-			Expect(session.Out.Contents()).Should(ContainSubstring("output from pre-restore-lock"))
+			Expect(session.Out).To(gbytes.Say("output from pre-restore-lock"))
 		})
 
 		By("running the post-restore-unlock script")
@@ -75,7 +75,7 @@ var _ = Describe("Restores a deployment", func() {
 			)
 
 			Eventually(session).Should(gexec.Exit(0))
-			Expect(session.Out.Contents()).Should(ContainSubstring("output from post-restore-unlock"))
+			Expect(session.Out).To(gbytes.Say("output from post-restore-unlock"))
 		})
 
 		By("cleaning up artifacts from the remote instances")

@@ -39,7 +39,7 @@ var _ = Describe("backup", func() {
 					)
 
 					Eventually(session).Should(gexec.Exit(0))
-					Expect(session.Out.Contents()).Should(ContainSubstring("output from pre-backup-lock"))
+					Expect(session.Out).To(gbytes.Say("output from pre-backup-lock"))
 				})
 			})
 
@@ -50,14 +50,14 @@ var _ = Describe("backup", func() {
 					)
 					Eventually(session).Should(gexec.Exit(0))
 
-					Expect(session.Out.Contents()).Should(ContainSubstring("output from post-backup-unlock"))
+					Expect(session.Out).To(gbytes.Say("output from post-backup-unlock"))
 				})
 			})
 
 			By("creating a timestamped directory for holding the artifacts locally", func() {
 				session := JumpboxInstance.RunCommandAs("vcap", "ls "+artifactDir)
 				Eventually(session).Should(gexec.Exit(0))
-				Expect(string(session.Out.Contents())).To(MatchRegexp(`\b` + RedisDeployment.Name + `_(\d){8}T(\d){6}Z\b`))
+				Expect(session.Out).To(gbytes.Say(`\b` + RedisDeployment.Name + `_(\d){8}T(\d){6}Z\b`))
 			})
 
 			By("creating the backup artifacts locally", func() {
@@ -134,7 +134,7 @@ var _ = Describe("backup", func() {
 			session := JumpboxInstance.RunCommandAs("vcap", bbrCommand)
 			Eventually(session).Should(gexec.Exit())
 			Expect(session.ExitCode()).To(Equal(1))
-			Expect(string(session.Out.Contents())).Should(ContainSubstring(fmt.Sprintf("%s: no such file or directory", artifactDir)))
+			Expect(session.Out).To(gbytes.Say(fmt.Sprintf("%s: no such file or directory", artifactDir)))
 		})
 	})
 

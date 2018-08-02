@@ -8,6 +8,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
+	"github.com/onsi/gomega/gbytes"
 )
 
 var _ = Describe("Backup", func() {
@@ -57,7 +58,7 @@ var _ = Describe("Backup", func() {
 
 	Context("when the operator specifies a valid artifact path", func() {
 		BeforeEach(func() {
-			artifactDir = workspaceDir+"/artifact-dir"
+			artifactDir = workspaceDir + "/artifact-dir"
 			Eventually(JumpboxInstance.RunCommandAs("vcap", fmt.Sprintf("mkdir %s", artifactDir))).Should(gexec.Exit(0))
 
 			bbrCommand = fmt.Sprintf(
@@ -73,7 +74,7 @@ var _ = Describe("Backup", func() {
 
 	Context("when the operator specifies an artifact path that does not exist", func() {
 		BeforeEach(func() {
-			artifactDir = workspaceDir+"/invalid-artifact-dir"
+			artifactDir = workspaceDir + "/invalid-artifact-dir"
 
 			bbrCommand = fmt.Sprintf(
 				`cd %s; ./bbr director --username vcap --private-key-path ./key.pem --host %s backup --artifact-path %s`,
@@ -87,7 +88,7 @@ var _ = Describe("Backup", func() {
 			session := JumpboxInstance.RunCommandAs("vcap", bbrCommand)
 			Eventually(session).Should(gexec.Exit())
 			Expect(session.ExitCode()).To(Equal(1))
-			Expect(string(session.Out.Contents())).Should(ContainSubstring(fmt.Sprintf("%s: no such file or directory", artifactDir)))
+			Expect(session.Out).To(gbytes.Say(fmt.Sprintf("%s: no such file or directory", artifactDir)))
 		})
 	})
 

@@ -190,7 +190,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						By("printing a helpful message and waiting for user input", func() {
 							Consistently(session.Exited).ShouldNot(BeClosed(), "bbr exited without user confirmation")
 							Eventually(session).Should(gbytes.Say(`Stopping a backup can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
-							Expect(string(session.Out.Contents())).To(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
+							Expect(string(session.Out.Contents())).To(HaveSuffix("[yes/no]\n"))
 						})
 
 						stdin.Write([]byte("yes\n"))
@@ -217,7 +217,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						By("printing a helpful message and waiting for user input", func() {
 							Consistently(session.Exited).ShouldNot(BeClosed(), "bbr exited without user confirmation")
 							Eventually(session).Should(gbytes.Say(`Stopping a backup can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
-							Expect(string(session.Out.Contents())).To(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
+							Expect(string(session.Out.Contents())).To(HaveSuffix("[yes/no]\n"))
 						})
 
 						stdin.Write([]byte("no\n"))
@@ -403,14 +403,13 @@ touch /tmp/pre-backup-lock-script-was-run
 						})
 
 						By("logging that it is locking the instance, and listing the scripts", func() {
-							assertOutput(session, []string{
-								`Locking redis on redis-dedicated-node/fake-uuid for backup`,
-								"> /var/vcap/jobs/redis/bin/bbr/pre-backup-lock",
+							assertOutput(session.Out, []string{
 								"> /var/vcap/jobs/redis-broker/bin/bbr/pre-backup-lock",
+								"> /var/vcap/jobs/redis/bin/bbr/pre-backup-lock",
+								`Locking redis on redis-dedicated-node/fake-uuid for backup`,
 							})
 						})
 					})
-
 				})
 
 				Context("when the pre-backup-lock script fails", func() {
@@ -441,12 +440,12 @@ touch /tmp/post-backup-unlock-output
 						})
 
 						By("logging the error", func() {
-							Expect(session.Err.Contents()).To(ContainSubstring(
+							Expect(session.Err).To(gbytes.Say(
 								"Error attempting to run pre-backup-lock for job redis on redis-dedicated-node/fake-uuid"))
 						})
 
 						By("logging stderr", func() {
-							Expect(session.Err.Contents()).To(ContainSubstring("ultra-baz"))
+							Expect(session.Err).To(gbytes.Say("ultra-baz"))
 						})
 
 						By("also running the post-backup-unlock scripts", func() {
@@ -499,13 +498,12 @@ echo "Unlocking release"`)
 						})
 
 						By("logging the script action", func() {
-							assertOutput(session, []string{
+							assertOutput(session.Out, []string{
 								"Unlocking redis on redis-dedicated-node/fake-uuid",
 								"Finished unlocking redis on redis-dedicated-node/fake-uuid.",
 							})
 						})
 					})
-
 				})
 
 				Context("when the post backup unlock script fails", func() {
@@ -521,16 +519,16 @@ exit 1`)
 							Expect(session).To(gexec.Exit(8))
 						})
 
-						By("prints stderr", func() {
-							Expect(session.Err.Contents()).To(ContainSubstring("ultra-baz"))
+						By("prints an error", func() {
+							Expect(session.Err).To(gbytes.Say("Error attempting to run post-backup-unlock for job redis on redis-dedicated-node/fake-uuid"))
 						})
 
-						By("prints an error", func() {
-							Expect(session.Err.Contents()).To(ContainSubstring("Error attempting to run post-backup-unlock for job redis on redis-dedicated-node/fake-uuid"))
+						By("prints stderr", func() {
+							Expect(session.Err).To(gbytes.Say("ultra-baz"))
 						})
 
 						By("printing a recommendation to run bbr backup-cleanup", func() {
-							Expect(string(session.Err.Contents())).To(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
+							Expect(session.Err).To(gbytes.Say("It is recommended that you run `bbr backup-cleanup`"))
 						})
 					})
 				})
@@ -670,9 +668,10 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					"/var/vcap/jobs/redis/bin/ctl",
 				)
 			})
+
 			It("exits and displays a message", func() {
 				Expect(session.ExitCode()).NotTo(BeZero(), "returns a non-zero exit code")
-				Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment '"+deploymentName+"' has no backup scripts"),
+				Expect(session.Err).To(gbytes.Say("Deployment '"+deploymentName+"' has no backup scripts"),
 					"prints an error")
 				Expect(possibleBackupDirectories()).To(HaveLen(0), "does not create a backup on disk")
 
@@ -714,7 +713,6 @@ echo "Unlocking release"`)
 					Expect(string(session.Err.Contents())).NotTo(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
 				})
 			})
-
 		})
 
 		Context("when both the instance backup script and cleanup fail", func() {
@@ -739,7 +737,7 @@ echo "Unlocking release"`)
 				})
 
 				By("printing an error", func() {
-					assertErrorOutput(session, []string{
+					assertOutput(session.Err, []string{
 						"Error attempting to run backup for job redis on redis-dedicated-node/fake-uuid",
 						"ultra-baz",
 						"ultra-foo",
@@ -747,10 +745,9 @@ echo "Unlocking release"`)
 				})
 
 				By("printing a recommendation to run bbr backup-cleanup", func() {
-					Expect(string(session.Err.Contents())).To(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
+					Expect(session.Err).To(gbytes.Say("It is recommended that you run `bbr backup-cleanup`"))
 				})
 			})
-
 		})
 
 		Context("when backup succeeds but cleanup fails", func() {
@@ -775,11 +772,11 @@ echo "Unlocking release"`)
 				})
 
 				By("printing an error", func() {
-					Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' failed while cleaning up with error: "))
+					Expect(session.Err).To(gbytes.Say("Deployment '" + deploymentName + "' failed while cleaning up with error: "))
 				})
 
 				By("including the failure message in error output", func() {
-					Expect(string(session.Err.Contents())).To(ContainSubstring("Can't do it mate"))
+					Expect(session.Err).To(gbytes.Say("Can't do it mate"))
 				})
 
 				By("creating a backup on disk", func() {
@@ -787,10 +784,9 @@ echo "Unlocking release"`)
 				})
 
 				By("printing a recommendation to run bbr backup-cleanup", func() {
-					Expect(string(session.Err.Contents())).To(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
+					Expect(session.Err).To(gbytes.Say("It is recommended that you run `bbr backup-cleanup`"))
 				})
 			})
-
 		})
 
 		Context("when running the metadata script does not give valid yml", func() {
@@ -823,7 +819,6 @@ echo "not valid yaml
 					Expect(string(session.Err.Contents())).NotTo(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
 				})
 			})
-
 		})
 	})
 
@@ -898,7 +893,7 @@ backup_should_be_locked_before:
 					redisLockTime := firstReturnedInstance.GetCreatedTime("/tmp/redis-pre-backup-lock-called")
 					redisWriterLockTime := secondReturnedInstance.GetCreatedTime("/tmp/redis-writer-pre-backup-lock-called")
 
-					Expect(string(session.Out.Contents())).To(ContainSubstring("Detected order: redis-writer should be locked before redis/redis during backup"))
+					Expect(session.Out).To(gbytes.Say("Detected order: redis-writer should be locked before redis/redis during backup"))
 
 					Expect(redisWriterLockTime < redisLockTime).To(BeTrue(), fmt.Sprintf(
 						"Writer locked at %s, which is after the server locked (%s)",
@@ -980,7 +975,7 @@ backup_should_be_locked_before:
 					})
 
 					By("printing a helpful error message", func() {
-						Expect(string(session.Err.Contents())).To(ContainSubstring("job locking dependency graph is cyclic"))
+						Expect(session.Err).To(gbytes.Say("job locking dependency graph is cyclic"))
 					})
 
 					By("not creating a local backup artifact", func() {
@@ -1032,7 +1027,7 @@ backup_should_be_locked_before:
 				})
 
 				By("printing the backup progress to the screen", func() {
-					assertOutput(session, []string{
+					assertOutput(session.Out, []string{
 						fmt.Sprintf("Starting backup of %s...", deploymentName),
 						"Backing up redis on redis-dedicated-node/fake-uuid...",
 						"Finished backing up redis on redis-dedicated-node/fake-uuid.",
@@ -1114,7 +1109,7 @@ backup_name: duplicate_name
 				})
 
 				By("refusing to perform backup", func() {
-					Expect(session.Err.Contents()).To(ContainSubstring(
+					Expect(session.Err).To(gbytes.Say(
 						"Multiple jobs in deployment 'my-two-instance-deployment' specified the same backup name",
 					))
 				})
@@ -1123,7 +1118,6 @@ backup_name: duplicate_name
 					Expect(session.ExitCode()).To(Equal(1))
 				})
 			})
-
 		})
 
 		Context("and one instance consumes restore custom name, which no instance provides", func() {
@@ -1168,7 +1162,7 @@ backup_name: name_2
 
 			It("doesn't perform a backup", func() {
 				By("refusing to perform backup", func() {
-					Expect(string(session.Err.Contents())).To(ContainSubstring(
+					Expect(session.Err).To(gbytes.Say(
 						"The redis-dedicated-node restore script expects a backup script which produces name_1 artifact which is not present in the deployment",
 					))
 				})
@@ -1176,7 +1170,6 @@ backup_name: name_2
 					Expect(session.ExitCode()).To(Equal(1))
 				})
 			})
-
 		})
 	})
 
@@ -1195,25 +1188,18 @@ backup_name: name_2
 			})
 
 			By("printing an error", func() {
-				Expect(string(session.Err.Contents())).To(ContainSubstring("Director responded with non-successful status code"))
+				Expect(session.Err).To(gbytes.Say("Director responded with non-successful status code"))
 			})
 
 			By("not printing a recommendation to run bbr backup-cleanup", func() {
-				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
+				Expect(session.Err).NotTo(gbytes.Say("It is recommended that you run `bbr backup-cleanup`"))
 			})
 		})
-
 	})
 })
 
-func assertOutput(session *gexec.Session, strings []string) {
+func assertOutput(b *gbytes.Buffer, strings []string) {
 	for _, str := range strings {
-		Expect(string(session.Out.Contents())).To(ContainSubstring(str))
-	}
-}
-
-func assertErrorOutput(session *gexec.Session, strings []string) {
-	for _, str := range strings {
-		Expect(string(session.Err.Contents())).To(ContainSubstring(str))
+		Expect(string(b.Contents())).To(ContainSubstring(str))
 	}
 }

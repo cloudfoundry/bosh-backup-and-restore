@@ -67,7 +67,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 			})
 
 			It("outputs a log message saying the director instance can be backed up", func() {
-				Expect(string(session.Out.Contents())).To(ContainSubstring("Director can be backed up."))
+				Expect(session.Out).To(gbytes.Say("Director can be backed up."))
 			})
 
 			Context("but the backup artifact directory already exists", func() {
@@ -80,8 +80,8 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				})
 
 				It("outputs a log message saying the director instance cannot be backed up", func() {
-					Expect(string(session.Out.Contents())).To(ContainSubstring("Director cannot be backed up."))
-					Expect(string(session.Err.Contents())).To(ContainSubstring("Directory /var/vcap/store/bbr-backup already exists on instance bosh/0"))
+					Expect(session.Out).To(gbytes.Say("Director cannot be backed up."))
+					Expect(session.Err).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance bosh/0"))
 				})
 
 				It("does not delete the existing artifact directory", func() {
@@ -111,8 +111,8 @@ backup_should_be_locked_before:
 					})
 
 					By("printing an helpful error", func() {
-						Expect(string(session.Out.Contents())).To(ContainSubstring("Director cannot be backed up."))
-						Expect(string(session.Err.Contents())).To(ContainSubstring(
+						Expect(session.Out).To(gbytes.Say("Director cannot be backed up."))
+						Expect(session.Err).To(gbytes.Say(
 							fmt.Sprintf("director job 'uaa' specifies locking dependencies, which are not allowed for director jobs")))
 					})
 
@@ -146,9 +146,9 @@ backup_should_be_locked_before:
 				})
 
 				By("printing an error", func() {
-					Expect(string(session.Out.Contents())).To(ContainSubstring("Director cannot be backed up."))
+					Expect(session.Out).To(gbytes.Say("Director cannot be backed up."))
 					directorHost := directorInstance.IP()
-					Expect(string(session.Err.Contents())).To(ContainSubstring(fmt.Sprintf("Deployment '%s' has no backup scripts", directorHost)))
+					Expect(session.Err).To(gbytes.Say(fmt.Sprintf("Deployment '%s' has no backup scripts", directorHost)))
 					Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
 				})
 
@@ -176,7 +176,7 @@ backup_should_be_locked_before:
 		})
 
 		It("prints an error", func() {
-			Expect(string(session.Err.Contents())).To(ContainSubstring("no such host"))
+			Expect(session.Err).To(gbytes.Say("no such host"))
 			Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
 		})
 

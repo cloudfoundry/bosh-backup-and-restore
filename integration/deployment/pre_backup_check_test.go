@@ -107,7 +107,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 			})
 
 			It("outputs a log message saying the deployment can be backed up", func() {
-				Expect(string(session.Out.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' can be backed up."))
+				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName + "' can be backed up."))
 			})
 
 			Context("but the pre-backup-lock ordering is cyclic", func() {
@@ -142,7 +142,7 @@ backup_should_be_locked_before:
 					})
 
 					By("printing a helpful error message", func() {
-						Expect(string(session.Err.Contents())).To(ContainSubstring("job locking dependency graph is cyclic"))
+						Expect(session.Err).To(gbytes.Say("job locking dependency graph is cyclic"))
 					})
 				})
 			})
@@ -157,8 +157,8 @@ backup_should_be_locked_before:
 				})
 
 				It("prints an error", func() {
-					Expect(string(session.Out.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' cannot be backed up."))
-					Expect(string(session.Err.Contents())).To(ContainSubstring("Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid"))
+					Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName + "' cannot be backed up."))
+					Expect(session.Err).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid"))
 					Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
 				})
 
@@ -195,8 +195,8 @@ backup_should_be_locked_before:
 			})
 
 			It("prints an error", func() {
-				Expect(string(session.Out.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' cannot be backed up."))
-				Expect(string(session.Err.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' has no backup scripts"))
+				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName + "' cannot be backed up."))
+				Expect(session.Err).To(gbytes.Say("Deployment '" + deploymentName + "' has no backup scripts"))
 				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
 			})
 
@@ -228,8 +228,8 @@ backup_should_be_locked_before:
 		})
 
 		It("prints an error", func() {
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' cannot be backed up."))
-			Expect(string(session.Err.Contents())).To(ContainSubstring("Director responded with non-successful status code"))
+			Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName + "' cannot be backed up."))
+			Expect(session.Err).To(gbytes.Say("Director responded with non-successful status code"))
 		})
 	})
 
@@ -249,8 +249,8 @@ backup_should_be_locked_before:
 		})
 
 		It("prints an error", func() {
-			Expect(string(session.Out.Contents())).To(ContainSubstring("Deployment '" + deploymentName + "' cannot be backed up."))
-			Expect(string(session.Err.Contents())).To(ContainSubstring("Director responded with non-successful status code"))
+			Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName + "' cannot be backed up."))
+			Expect(session.Err).To(gbytes.Say("Director responded with non-successful status code"))
 		})
 	})
 })
