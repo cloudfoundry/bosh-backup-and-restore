@@ -98,7 +98,7 @@ func availableDeploymentFlags() []cli.Flag {
 		cli.StringFlag{
 			Name:  "target, t",
 			Value: "",
-			Usage: "Target BOSH Director URL",
+			Usage: "BOSH Director URL",
 		},
 		cli.StringFlag{
 			Name:  "username, u",
@@ -120,7 +120,7 @@ func availableDeploymentFlags() []cli.Flag {
 			Name:   "ca-cert",
 			Value:  "",
 			EnvVar: "CA_CERT",
-			Usage:  "Custom CA certificate",
+			Usage:  "Path to BOSH Director custom CA certificate",
 		},
 		cli.BoolFlag{
 			Name:  "debug",

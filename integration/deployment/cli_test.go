@@ -339,7 +339,7 @@ func assertDeploymentHelpText(session *gexec.Session) {
 		gbytes.Say("--deployment"),
 		gbytes.Say("Name of BOSH deployment"),
 		gbytes.Say("--ca-cert"),
-		gbytes.Say("Custom CA certificate"),
+		gbytes.Say("Path to BOSH Director custom CA certificate"),
 		gbytes.Say("--debug"),
 		gbytes.Say("Enable debug logs"),
 	))
