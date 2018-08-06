@@ -103,7 +103,7 @@ var _ = Describe("CLI Interface", func() {
 					)
 
 					binary.Run(backupWorkspace,
-						[]string{fmt.Sprintf("CA_CERT=%s", sslCertPath)},
+						[]string{fmt.Sprintf("CA_CERT=%s", sslCertValue)},
 						append([]string{
 							"deployment",
 							"--username", "admin",
@@ -170,6 +170,7 @@ var _ = Describe("CLI Interface", func() {
 						[]string{"BOSH_CLIENT_SECRET=admin"},
 						append([]string{
 							"deployment",
+							"--ca-cert", sslCertPath,
 							"--username", "admin",
 							"--password", "admin",
 							"--target", badDirectorURL,
@@ -209,6 +210,31 @@ var _ = Describe("CLI Interface", func() {
 
 				It("displays a failure message", func() {
 					Expect(session.Err).To(gbytes.Say("open /tmp/whatever: no such file or directory"))
+				})
+			})
+
+			Context("Custom CA cert value is invalid", func() {
+				var session *gexec.Session
+				BeforeEach(func() {
+					session = binary.Run(backupWorkspace,
+						[]string{"BOSH_CLIENT_SECRET=admin"},
+						append([]string{
+							"deployment",
+							"--ca-cert", "-----BEGIN",
+							"--username", "admin",
+							"--password", "admin",
+							"--target", director.URL,
+							"--deployment", "my-new-deployment",
+							cmd,
+						}, extraArgs...)...)
+				})
+
+				It("Exits with non zero", func() {
+					Expect(session.ExitCode()).NotTo(BeZero())
+				})
+
+				It("displays a failure message", func() {
+					Expect(session.Err).To(gbytes.Say("Missing PEM block"))
 				})
 			})
 
@@ -432,7 +458,7 @@ func assertDeploymentHelpText(session *gexec.Session) {
 		gbytes.Say("--username"), gbytes.Say("BOSH Director username"), gbytes.Say("BOSH_CLIENT"),
 		gbytes.Say("--password"), gbytes.Say("BOSH Director password"), gbytes.Say("BOSH_CLIENT_SECRET"),
 		gbytes.Say("--deployment"), gbytes.Say("Name of BOSH deployment"), gbytes.Say("BOSH_DEPLOYMENT"),
-		gbytes.Say("--ca-cert"), gbytes.Say("Path to BOSH Director custom CA certificate"), gbytes.Say("CA_CERT"), gbytes.Say("BOSH_CA_CERT"),
+		gbytes.Say("--ca-cert"), gbytes.Say("Path or value of BOSH Director custom CA certificate"), gbytes.Say("CA_CERT"), gbytes.Say("BOSH_CA_CERT"),
 		gbytes.Say("--debug"), gbytes.Say("Enable debug logs"),
 	))
 }

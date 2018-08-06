@@ -1,8 +1,6 @@
 package bosh
 
 import (
-	"io/ioutil"
-
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/cloudfoundry/bosh-cli/director"
@@ -12,21 +10,13 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-func BuildClient(targetUrl, username, password, caCertFileName string, logger boshlog.Logger) (BoshClient, error) {
+func BuildClient(targetUrl, username, password, caCert string, logger boshlog.Logger) (BoshClient, error) {
 	config, err := director.NewConfigFromURL(targetUrl)
 	if err != nil {
 		return nil, errors.Errorf("invalid bosh URL - %s", err.Error())
 	}
 
-	var cert string
-	if caCertFileName != "" {
-		certBytes, err := ioutil.ReadFile(caCertFileName)
-		if err != nil {
-			return nil, errors.Wrap(err, "CA-CERT can't be read")
-		}
-		cert = string(certBytes)
-	}
-	config.CACert = cert
+	config.CACert = caCert
 
 	directorFactory := director.NewFactory(logger)
 
@@ -36,7 +26,7 @@ func BuildClient(targetUrl, username, password, caCertFileName string, logger bo
 	}
 
 	if info.Auth.Type == "uaa" {
-		uaa, err := buildUaa(info, username, password, cert, logger)
+		uaa, err := buildUaa(info, username, password, caCert, logger)
 		if err != nil {
 			return nil, err
 		}

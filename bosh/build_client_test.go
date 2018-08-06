@@ -6,6 +6,8 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
 
+	"io/ioutil"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -18,11 +20,16 @@ var _ = Describe("BuildClient", func() {
 
 	var director *mockhttp.Server
 	var deploymentName = "my-little-deployment"
-	var sslCertPath = "../fixtures/test.crt"
+	var caCert string
 
 	BeforeEach(func() {
 		director = mockbosh.NewTLS()
+
+		content, err := ioutil.ReadFile("../fixtures/test.crt")
+		Expect(err).NotTo(HaveOccurred())
+		caCert = string(content)
 	})
+
 	AfterEach(func() {
 		director.VerifyMocks()
 	})
@@ -38,7 +45,7 @@ var _ = Describe("BuildClient", func() {
 				mockbosh.Manifest(deploymentName).RespondsWith([]byte("manifest contents")),
 			)
 
-			client, err := BuildClient(director.URL, username, password, sslCertPath, logger)
+			client, err := BuildClient(director.URL, username, password, caCert, logger)
 
 			Expect(err).NotTo(HaveOccurred())
 			manifest, err := client.GetManifest(deploymentName)
@@ -63,7 +70,7 @@ var _ = Describe("BuildClient", func() {
 				mockbosh.Manifest(deploymentName).RespondsWith([]byte("manifest contents")),
 			)
 
-			client, err := BuildClient(director.URL, username, password, sslCertPath, logger)
+			client, err := BuildClient(director.URL, username, password, caCert, logger)
 
 			Expect(err).NotTo(HaveOccurred())
 			manifest, err := client.GetManifest(deploymentName)
@@ -78,21 +85,21 @@ var _ = Describe("BuildClient", func() {
 			director.VerifyAndMock(
 				mockbosh.Info().WithAuthTypeUAA(""),
 			)
-			_, err := BuildClient(director.URL, username, password, sslCertPath, logger)
+			_, err := BuildClient(director.URL, username, password, caCert, logger)
 
 			Expect(err).To(MatchError(ContainSubstring("invalid UAA URL")))
 
 		})
 	})
 
-	It("fails if CA-Cert cant be read", func() {
+	It("fails if CA cert value is invalid", func() {
 		username := "no-relevant"
 		password := "no-relevant"
-		caCertPath := "/invalid/path"
+		caCertPath := "-----BEGIN"
 		basicAuthDirectorUrl := director.URL
 
 		_, err := BuildClient(basicAuthDirectorUrl, username, password, caCertPath, logger)
-		Expect(err).To(MatchError(ContainSubstring("CA-CERT can't be read")))
+		Expect(err).To(MatchError(ContainSubstring("Missing PEM block")))
 	})
 
 	It("fails if invalid bosh url", func() {
@@ -113,7 +120,7 @@ var _ = Describe("BuildClient", func() {
 			mockbosh.Info().Fails("fooo!"),
 		)
 
-		_, err := BuildClient(director.URL, username, password, sslCertPath, logger)
+		_, err := BuildClient(director.URL, username, password, caCert, logger)
 		Expect(err).To(MatchError(ContainSubstring("bosh director unreachable or unhealthy")))
 	})
 

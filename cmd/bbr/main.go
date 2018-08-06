@@ -123,7 +123,7 @@ func availableDeploymentFlags() []cli.Flag {
 			Name:   "ca-cert",
 			Value:  "",
 			EnvVar: "CA_CERT,BOSH_CA_CERT",
-			Usage:  "Path to BOSH Director custom CA certificate",
+			Usage:  "Path or value of BOSH Director custom CA certificate",
 		},
 		cli.BoolFlag{
 			Name:  "debug",
