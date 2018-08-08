@@ -43,9 +43,9 @@ sys-test-local-deployment:
 	BOSH_GW_HOST=lite-bosh.backup-and-restore.cf-app.com \
 	BOSH_CLIENT_SECRET=`lpass show LiteBoshDirector --password` \
 	BOSH_CA_CERT=~/workspace/bosh-backup-and-restore-meta/certs/lite-bosh.backup-and-restore.cf-app.com.crt \
-	BOSH_GW_PRIVATE_KEY=vcap \
+	BOSH_GW_USER=vcap \
 	BOSH_GW_PRIVATE_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
-	TEST_ENV=`echo $(DEV_ENV)` \
+	TEST_ENV=dev \
 	ginkgo -r -v -trace system/deployment
 
 sys-test-local-director:
@@ -79,7 +79,7 @@ sys-test-local-with-uaa:
 	BOSH_CA_CERT=~/workspace/bosh-backup-and-restore-meta/certs/lite-bosh-uaa.backup-and-restore.cf-app.com.crt \
     BOSH_GW_USER=jumpbox \
 	BOSH_GW_PRIVATE_KEY=~/workspace/bosh-backup-and-restore-meta/garden-bosh-uaa/bosh.pem \
-	TEST_ENV=`echo $(DEV_ENV)` \
+	TEST_ENV=dev \
 	ginkgo -r -v -trace system/deployment
 
 sys-test-local-260:
@@ -88,7 +88,7 @@ sys-test-local-260:
 	BOSH_CLIENT_SECRET=`lpass show Lite260BoshDirector --password` \
 	BOSH_CA_CERT=~/workspace/bosh-backup-and-restore-meta/garden-bosh-260/certs/rootCA.pem \
 	BOSH_GW_PRIVATE_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
-	TEST_ENV=`echo $(DEV_ENV)` \
+	TEST_ENV=dev \
 	ginkgo -r -v -trace system/deployment
 
 
