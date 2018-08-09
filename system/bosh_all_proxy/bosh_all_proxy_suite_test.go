@@ -5,23 +5,21 @@ import (
 
 	"time"
 
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 )
 
 var (
-	commandPath              string
-	err                      error
-	ManyBbrScriptsDeployment = DeploymentWithName("many-bbr-scripts")
+	commandPath string
+	err         error
 )
 
 var _ = BeforeSuite(func() {
 	SetDefaultEventuallyTimeout(15 * time.Minute)
 
 	By("building bbr")
-	commandPath, err = gexec.BuildWithEnvironment("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr", []string{"GOOS=linux", "GOARCH=amd64"})
+	commandPath, err = gexec.Build("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr")
 	Expect(err).NotTo(HaveOccurred())
 
 })

@@ -28,7 +28,7 @@ var _ = Describe("BoshAllProxy", func() {
 			"--username", MustHaveEnv("BOSH_CLIENT"),
 			"--password", MustHaveEnv("BOSH_CLIENT_SECRET"),
 			"--target", MustHaveEnv("BOSH_ENVIRONMENT"),
-			"--deployment", ManyScriptsDeployment.Name,
+			"--deployment", "many-bbr-scripts",
 			"backup",
 		)
 		cmd.Env = append(cmd.Env, fmt.Sprintf("BOSH_ALL_PROXY=%s", boshAllProxy))
