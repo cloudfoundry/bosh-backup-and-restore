@@ -72,6 +72,10 @@ sys-test-windows-ci: setup
 	TEST_ENV=ci \
 	ginkgo -r -v -trace system/windows
 
+sys-test-bosh-all-proxy-ci: setup
+	TEST_ENV=ci \
+	ginkgo -r -v -trace system/bosh_all_proxy
+
 sys-test-local-with-uaa:
 	BOSH_ENVIRONMENT=https://lite-bosh-uaa.backup-and-restore.cf-app.com \
 	BOSH_GW_HOST=lite-bosh-uaa.backup-and-restore.cf-app.com \
