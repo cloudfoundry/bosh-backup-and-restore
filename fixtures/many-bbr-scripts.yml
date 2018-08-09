@@ -1,4 +1,4 @@
-name: ((deployment-name))
+name: many-bbr-scripts
 
 releases:
 - name: many-bbr-jobs
@@ -12,7 +12,7 @@ stemcells:
 instance_groups:
 - name: backup-node
   azs:
-  - lite
+  - z1
   instances: 20
   jobs:
   - name: backup-and-restore-1
@@ -56,9 +56,9 @@ instance_groups:
   - name: backup-and-restore-20
     release: many-bbr-jobs
   networks:
-  - name: services
+  - name: default
   stemcell: xenial
-  vm_type: container
+  vm_type: minimal
 
 update:
   canaries: 1

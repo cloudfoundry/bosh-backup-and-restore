@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	commandPath           string
-	err                   error
-	ManyScriptsDeployment = DeploymentWithName("many-bbr-jobs")
+	commandPath              string
+	err                      error
+	ManyBbrScriptsDeployment = DeploymentWithName("many-bbr-scripts")
 )
 
 var _ = BeforeSuite(func() {
@@ -24,14 +24,6 @@ var _ = BeforeSuite(func() {
 	commandPath, err = gexec.BuildWithEnvironment("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr", []string{"GOOS=linux", "GOARCH=amd64"})
 	Expect(err).NotTo(HaveOccurred())
 
-	By("deploying the many-bbr-jobs deployment")
-	ManyScriptsDeployment.Deploy()
-
-})
-
-var _ = AfterSuite(func() {
-	By("tearing down the many-bbr-jobs deployment")
-	ManyScriptsDeployment.Delete()
 })
 
 func TestBoshAllProxy(t *testing.T) {
