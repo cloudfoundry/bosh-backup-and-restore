@@ -11,9 +11,8 @@ stemcells:
 
 instance_groups:
 - name: backup-node
-  azs:
-  - lite
-  instances: 1
+  azs: [((az))]
+  instances: 20
   jobs:
   - name: backup-and-restore-1
     release: many-bbr-jobs
@@ -56,9 +55,9 @@ instance_groups:
   - name: backup-and-restore-20
     release: many-bbr-jobs
   networks:
-  - name: services
+  - name: ((network_name))
   stemcell: xenial
-  vm_type: container
+  vm_type: ((vm_type))
 
 update:
   canaries: 1
