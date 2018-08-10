@@ -15,7 +15,7 @@ var _ = Describe("BoshAllProxy", func() {
 
 	It("does not fail using BOSH_ALL_PROXY", func() {
 		boshAllProxy := fmt.Sprintf(
-			"ssh+socks5://%s@%s:22?private-key=%s",
+			"ssh+socks5://%s@%s?private-key=%s",
 			MustHaveEnv("BOSH_GW_USER"),
 			MustHaveEnv("BOSH_GW_HOST"),
 			MustHaveEnv("BOSH_GW_PRIVATE_KEY"),
