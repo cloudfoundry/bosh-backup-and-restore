@@ -53,6 +53,7 @@ func NewConnectionWithServerAliveInterval(hostName, userName, privateKey string,
 		},
 		logger:              logger,
 		serverAliveInterval: serverAliveInterval,
+		dailFunc:            createDialFunc(),
 	}
 
 	return conn, nil
@@ -63,6 +64,7 @@ type Connection struct {
 	sshConfig           *ssh.ClientConfig
 	logger              Logger
 	serverAliveInterval time.Duration
+	dailFunc            boshhttp.DialFunc
 }
 
 func (c Connection) Run(cmd string) (stdout, stderr []byte, exitCode int, err error) {
@@ -106,14 +108,7 @@ func (w *sessionClosingOnErrorWriter) Write(data []byte) (int, error) {
 }
 
 func (c Connection) getConnection() (*ssh.Client, error) {
-	dialFunc := net.Dial
-
-	if os.Getenv("BOSH_ALL_PROXY") != "" {
-		socksProxy := proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(os.Stdout, "sock5-proxy", log.LstdFlags))
-		dialFunc = boshhttp.SOCKS5DialFuncFromEnvironment(net.Dial, socksProxy)
-	}
-
-	conn, err := dialFunc("tcp", c.host)
+	conn, err := c.dailFunc("tcp", c.host)
 	if err != nil {
 		return nil, err
 	}
@@ -124,6 +119,15 @@ func (c Connection) getConnection() (*ssh.Client, error) {
 	}
 
 	return ssh.NewClient(client, chans, reqs), nil
+}
+
+func createDialFunc() boshhttp.DialFunc {
+	dialFunc := net.Dial
+	if os.Getenv("BOSH_ALL_PROXY") != "" {
+		socksProxy := proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(os.Stdout, "sock5-proxy", log.LstdFlags))
+		dialFunc = boshhttp.SOCKS5DialFuncFromEnvironment(net.Dial, socksProxy)
+	}
+	return dialFunc
 }
 
 func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.Reader) (int, error) {
