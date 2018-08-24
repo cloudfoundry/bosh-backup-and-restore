@@ -173,14 +173,14 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						Expect(session.Out).To(gbytes.Say("INFO - Finished running backup scripts."))
 						Expect(session.Out).To(gbytes.Say("INFO - Running post-backup-unlock scripts..."))
 						Expect(session.Out).To(gbytes.Say("INFO - Finished running post-backup-unlock scripts."))
-						Expect(session.Out).To(gbytes.Say("INFO - Copying backup -- [^-]*-- from bosh/0..."))
-						Expect(session.Out).To(gbytes.Say("INFO - Finished copying backup -- from bosh/0..."))
-						Expect(session.Out).To(gbytes.Say("INFO - Starting validity checks -- from bosh/0..."))
+						Expect(session.Out).To(gbytes.Say("INFO - Copying backup -- [^-]*-- for job bosh on bosh/0..."))
+						Expect(session.Out).To(gbytes.Say("INFO - Finished copying backup -- for job bosh on bosh/0..."))
+						Expect(session.Out).To(gbytes.Say("INFO - Starting validity checks -- for job bosh on bosh/0..."))
 						Expect(session.Out).To(gbytes.Say(`DEBUG - Calculating shasum for local file ./backupdump[12]`))
 						Expect(session.Out).To(gbytes.Say(`DEBUG - Calculating shasum for local file ./backupdump[12]`))
 						Expect(session.Out).To(gbytes.Say("DEBUG - Calculating shasum for remote files"))
 						Expect(session.Out).To(gbytes.Say("DEBUG - Comparing shasums"))
-						Expect(session.Out).To(gbytes.Say("INFO - Finished validity checks -- from bosh/0..."))
+						Expect(session.Out).To(gbytes.Say("INFO - Finished validity checks -- for job bosh on bosh/0..."))
 					})
 
 					By("cleaning up backup artifacts from the remote", func() {

@@ -40,7 +40,7 @@ func (e BackupDownloadExecutable) Execute() error {
 		return err
 	}
 
-	e.Logger.Info("bbr", "Finished validity checks -- from %s/%s...", e.remoteArtifact.InstanceName(), e.remoteArtifact.InstanceID())
+	e.Logger.Info("bbr", "Finished validity checks -- for job %s on %s/%s...", e.remoteArtifact.Name(), e.remoteArtifact.InstanceName(), e.remoteArtifact.InstanceID())
 	return nil
 }
 
@@ -55,7 +55,7 @@ func (e BackupDownloadExecutable) downloadBackupArtifact(localBackup Backup, rem
 		return err
 	}
 
-	e.Logger.Info("bbr", "Copying backup -- %s uncompressed -- from %s/%s...", size, remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
+	e.Logger.Info("bbr", "Copying backup -- %s uncompressed -- for job %s on %s/%s...", size, remoteBackupArtifact.Name(), remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
 	err = remoteBackupArtifact.StreamFromRemote(localBackupArtifactWriter)
 	if err != nil {
 		return err
@@ -66,12 +66,12 @@ func (e BackupDownloadExecutable) downloadBackupArtifact(localBackup Backup, rem
 		return err
 	}
 
-	e.Logger.Info("bbr", "Finished copying backup -- from %s/%s...", remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
+	e.Logger.Info("bbr", "Finished copying backup -- for job %s on %s/%s...", remoteBackupArtifact.Name(), remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
 	return nil
 }
 
 func (e BackupDownloadExecutable) compareChecksums(localBackup Backup, remoteBackupArtifact BackupArtifact) (BackupChecksum, error) {
-	e.Logger.Info("bbr", "Starting validity checks -- from %s/%s...", remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
+	e.Logger.Info("bbr", "Starting validity checks -- for job %s on %s/%s...", remoteBackupArtifact.Name(), remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
 
 	localChecksum, err := localBackup.CalculateChecksum(remoteBackupArtifact)
 	if err != nil {

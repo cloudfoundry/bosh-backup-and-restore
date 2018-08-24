@@ -301,14 +301,14 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						Expect(session.Out).To(gbytes.Say("INFO - Finished running backup scripts."))
 						Expect(session.Out).To(gbytes.Say("INFO - Running post-backup-unlock scripts..."))
 						Expect(session.Out).To(gbytes.Say("INFO - Finished running post-backup-unlock scripts."))
-						Expect(session.Out).To(gbytes.Say("INFO - Copying backup -- [^-]*-- from redis-dedicated-node/fake-uuid..."))
-						Expect(session.Out).To(gbytes.Say("INFO - Finished copying backup -- from redis-dedicated-node/fake-uuid..."))
-						Expect(session.Out).To(gbytes.Say("INFO - Starting validity checks -- from redis-dedicated-node/fake-uuid..."))
+						Expect(session.Out).To(gbytes.Say("INFO - Copying backup -- [^-]*-- for job redis on redis-dedicated-node/fake-uuid..."))
+						Expect(session.Out).To(gbytes.Say("INFO - Finished copying backup -- for job redis on redis-dedicated-node/fake-uuid..."))
+						Expect(session.Out).To(gbytes.Say("INFO - Starting validity checks -- for job redis on redis-dedicated-node/fake-uuid..."))
 						Expect(session.Out).To(gbytes.Say(`DEBUG - Calculating shasum for local file ./backupdump[12]`))
 						Expect(session.Out).To(gbytes.Say(`DEBUG - Calculating shasum for local file ./backupdump[12]`))
 						Expect(session.Out).To(gbytes.Say("DEBUG - Calculating shasum for remote files"))
 						Expect(session.Out).To(gbytes.Say("DEBUG - Comparing shasums"))
-						Expect(session.Out).To(gbytes.Say("INFO - Finished validity checks -- from redis-dedicated-node/fake-uuid..."))
+						Expect(session.Out).To(gbytes.Say("INFO - Finished validity checks -- for job redis on redis-dedicated-node/fake-uuid..."))
 					})
 
 					By("cleaning up backup artifacts from the remote", func() {
@@ -480,7 +480,7 @@ chmod 0700 $BBR_ARTIFACT_DIRECTORY/backupdump3`)
 						})
 
 						By("prints the artifact size with the files from the other users", func() {
-							Eventually(session).Should(gbytes.Say("Copying backup -- 3.0M uncompressed -- from redis-dedicated-node/fake-uuid..."))
+							Eventually(session).Should(gbytes.Say("Copying backup -- 3.0M uncompressed -- for job redis on redis-dedicated-node/fake-uuid..."))
 						})
 					})
 				})
@@ -1034,8 +1034,8 @@ backup_should_be_locked_before:
 						"Backing up redis on redis-broker/fake-uuid-2...",
 						"Finished backing up redis on redis-broker/fake-uuid-2.",
 						"Copying backup --",
-						"from redis-dedicated-node/fake-uuid...",
-						"from redis-broker/fake-uuid-2...",
+						"for job redis on redis-dedicated-node/fake-uuid...",
+						"for job redis on redis-broker/fake-uuid-2...",
 						"Finished copying backup --",
 						fmt.Sprintf("Backup created of %s on", deploymentName),
 					})
