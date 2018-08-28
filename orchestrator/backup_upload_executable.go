@@ -27,7 +27,7 @@ func (e BackupUploadExecutable) Execute() error {
 		return err
 	}
 
-	e.Logger.Info("bbr", "Copying backup to %s/%s...", e.instance.Name(), e.instance.Index())
+	e.Logger.Info("bbr", "Copying backup for job %s on %s/%s...", e.remoteArtifact.Name(), e.instance.Name(), e.instance.Index())
 	err = e.remoteArtifact.StreamToRemote(localBackupArtifactReader)
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func (e BackupUploadExecutable) Execute() error {
 			len(mismatchedFiles),
 		)
 	}
-	e.Logger.Info("bbr", "Finished copying backup to %s/%s.", e.instance.Name(), e.instance.Index())
+	e.Logger.Info("bbr", "Finished copying backup for job %s on %s/%s.", e.remoteArtifact.Name(), e.instance.Name(), e.instance.Index())
 
 	return nil
 }

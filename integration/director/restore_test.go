@@ -115,6 +115,8 @@ cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 						Expect(session.Out).To(gbytes.Say("INFO - Starting restore of"))
 						Expect(session.Out).To(gbytes.Say("INFO - Validating backup artifact for"))
 						Expect(session.Out).To(gbytes.Say("INFO - Looking for scripts"))
+						Expect(session.Out).To(gbytes.Say("INFO - Copying backup for job bosh on bosh/0..."))
+						Expect(session.Out).To(gbytes.Say("INFO - Finished copying backup for job bosh on bosh/0."))
 						Expect(session.Out).To(gbytes.Say("INFO - Completed restore of"))
 					})
 

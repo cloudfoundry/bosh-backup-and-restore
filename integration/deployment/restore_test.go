@@ -330,6 +330,8 @@ touch /tmp/restore-script-was-run`)
 					Expect(session.Out).To(gbytes.Say("INFO - Starting restore of my-new-deployment"))
 					Expect(session.Out).To(gbytes.Say("INFO - Validating backup artifact for my-new-deployment"))
 					Expect(session.Out).To(gbytes.Say("INFO - Looking for scripts"))
+					Expect(session.Out).To(gbytes.Say("INFO - Copying backup for job redis on redis-dedicated-node/0..."))
+					Expect(session.Out).To(gbytes.Say("INFO - Finished copying backup for job redis on redis-dedicated-node/0."))
 					Expect(session.Out).To(gbytes.Say("INFO - Completed restore of my-new-deployment"))
 				})
 
