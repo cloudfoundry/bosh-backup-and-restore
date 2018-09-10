@@ -86,6 +86,7 @@ var _ = Describe("Director", func() {
 				boshDeployment.VMInfosReturns([]director.VMInfo{{
 					JobName: "job1",
 					ID:      "jobID",
+					Index:   newIndex(0),
 				}}, nil)
 				optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
 				boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
@@ -206,10 +207,12 @@ var _ = Describe("Director", func() {
 					{
 						JobName: "job1",
 						ID:      "id1",
+						Index:   newIndex(1),
 					},
 					{
 						JobName: "job1",
 						ID:      "id2",
+						Index:   newIndex(0),
 					},
 				}, nil)
 				optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
@@ -256,7 +259,7 @@ var _ = Describe("Director", func() {
 				Expect(actualInstances).To(Equal([]orchestrator.Instance{
 					bosh.NewBoshDeployedInstance(
 						"job1",
-						"0",
+						"1",
 						"id1",
 						remoteRunner,
 						boshDeployment,
@@ -266,7 +269,7 @@ var _ = Describe("Director", func() {
 					),
 					bosh.NewBoshDeployedInstance(
 						"job1",
-						"1",
+						"0",
 						"id2",
 						remoteRunner,
 						boshDeployment,
@@ -337,10 +340,12 @@ var _ = Describe("Director", func() {
 					{
 						JobName: "job1",
 						ID:      "linux1",
+						Index:   newIndex(0),
 					},
 					{
 						JobName: "job1",
 						ID:      "windows2",
+						Index:   newIndex(1),
 					},
 				}, nil)
 				optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
@@ -417,18 +422,22 @@ var _ = Describe("Director", func() {
 					{
 						JobName: "job1",
 						ID:      "id1",
+						Index:   newIndex(0),
 					},
 					{
 						JobName: "job1",
 						ID:      "id2",
+						Index:   newIndex(1),
 					},
 					{
 						JobName: "job2",
 						ID:      "id3",
+						Index:   newIndex(0),
 					},
 					{
 						JobName: "job2",
 						ID:      "id4",
+						Index:   newIndex(1),
 					},
 				}, nil)
 				optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
@@ -642,6 +651,57 @@ var _ = Describe("Director", func() {
 				})
 			})
 
+			Context("fails when vm info does not have an index", func() {
+				BeforeEach(func() {
+					boshDirector.FindDeploymentReturns(boshDeployment, nil)
+					boshDeployment.VMInfosReturns([]director.VMInfo{{
+						JobName: "job1",
+						ID:      "jobID",
+					}}, nil)
+					optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
+					boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
+						{
+							Username:      "username",
+							Host:          "hostname",
+							IndexOrID:     "jobID",
+							HostPublicKey: hostsPublicKey,
+						},
+					}}, nil)
+					remoteRunnerFactory.Returns(remoteRunner, nil)
+				})
+				It("does fail", func() {
+					Expect(actualError).To(HaveOccurred())
+					Expect(actualError.Error()).To(ContainSubstring("couldn't find instance index"))
+					Expect(actualError.Error()).To(ContainSubstring("vmInfo index is nil"))
+				})
+			})
+
+			Context("fails when vm info does not match the instances in the ssh results", func() {
+				BeforeEach(func() {
+					boshDirector.FindDeploymentReturns(boshDeployment, nil)
+					boshDeployment.VMInfosReturns([]director.VMInfo{{
+						JobName: "job1",
+						ID:      "jobID",
+						Index:   newIndex(0),
+					}}, nil)
+					optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
+					boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
+						{
+							Username:      "username",
+							Host:          "hostname",
+							IndexOrID:     "otherJobID",
+							HostPublicKey: hostsPublicKey,
+						},
+					}}, nil)
+					remoteRunnerFactory.Returns(remoteRunner, nil)
+				})
+				It("does fail", func() {
+					Expect(actualError).To(HaveOccurred())
+					Expect(actualError.Error()).To(ContainSubstring("couldn't find instance index"))
+					Expect(actualError.Error()).To(ContainSubstring("vmInfo does not contain given vmID"))
+				})
+			})
+
 			Context("fails to generate ssh opts", func() {
 				BeforeEach(func() {
 					boshDirector.FindDeploymentReturns(boshDeployment, nil)
@@ -754,9 +814,13 @@ var _ = Describe("Director", func() {
 					boshDeployment.VMInfosReturns([]director.VMInfo{
 						{
 							JobName: "job1",
+							ID:      "jobID",
+							Index:   newIndex(0),
 						},
 						{
 							JobName: "job2",
+							ID:      "jobID2",
+							Index:   newIndex(0),
 						}}, nil)
 					optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
 
@@ -766,7 +830,7 @@ var _ = Describe("Director", func() {
 								{
 									Username:      "username",
 									Host:          "hostname",
-									IndexOrID:     "index",
+									IndexOrID:     "jobID",
 									HostPublicKey: hostsPublicKey,
 								},
 							}}, nil
@@ -792,9 +856,13 @@ var _ = Describe("Director", func() {
 					boshDeployment.VMInfosReturns([]director.VMInfo{
 						{
 							JobName: "job1",
+							ID:      "jobID",
+							Index:   newIndex(0),
 						},
 						{
 							JobName: "job2/a/a/a",
+							ID:      "jobID2",
+							Index:   newIndex(0),
 						}}, nil)
 					optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
 
@@ -802,7 +870,7 @@ var _ = Describe("Director", func() {
 						{
 							Username:      "username",
 							Host:          "hostname",
-							IndexOrID:     "index",
+							IndexOrID:     "jobID",
 							HostPublicKey: hostsPublicKey,
 						},
 					}}, nil)
@@ -825,9 +893,13 @@ var _ = Describe("Director", func() {
 					boshDeployment.VMInfosReturns([]director.VMInfo{
 						{
 							JobName: "job1",
+							ID:      "jobID",
+							Index:   newIndex(0),
 						},
 						{
 							JobName: "job2",
+							ID:      "jobID2",
+							Index:   newIndex(0),
 						}}, nil)
 					optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
 
@@ -836,7 +908,7 @@ var _ = Describe("Director", func() {
 							{
 								Username:      "username",
 								Host:          "hostname_" + slug.Name(),
-								IndexOrID:     "index",
+								IndexOrID:     "jobID",
 								HostPublicKey: hostsPublicKey,
 							},
 						}}, nil
@@ -938,3 +1010,7 @@ var _ = Describe("Director", func() {
 		})
 	})
 })
+
+func newIndex(index int) *int {
+	return &index
+}

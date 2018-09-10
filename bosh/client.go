@@ -9,6 +9,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/cloudfoundry/bosh-utils/uuid"
 
+	"fmt"
 	"github.com/pkg/errors"
 	gossh "golang.org/x/crypto/ssh"
 )
@@ -98,7 +99,8 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 		}
 		slugs = append(slugs, allVmInstances)
 
-		for index, host := range sshRes.Hosts {
+		for _, host := range sshRes.Hosts {
+
 			var err error
 
 			c.Logger.Debug("bbr", "Attempting to SSH onto %s, %s", host.Host, host.IndexOrID)
@@ -133,10 +135,16 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 				return nil, errors.Wrap(err, "couldn't find jobs")
 			}
 
+			vmIndex, err := findInstanceIndexById(vms, host.IndexOrID)
+			if err != nil {
+				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
+				return nil, errors.Wrap(err, "couldn't find instance index")
+			}
+
 			instances = append(instances,
 				NewBoshDeployedInstance(
 					instanceGroupName,
-					strconv.Itoa(index),
+					vmIndex,
 					host.IndexOrID,
 					remoteRunner,
 					deployment,
@@ -172,6 +180,18 @@ func uniqueInstanceGroupNamesFromVMs(vms []director.VMInfo) []string {
 		}
 	}
 	return jobs
+}
+
+func findInstanceIndexById(vmInfos []director.VMInfo, vmID string) (string, error) {
+	for _, vmInfo := range vmInfos {
+		if vmID == vmInfo.ID {
+			if vmInfo.Index == nil {
+				return "", fmt.Errorf("vmInfo index is nil, given vmID %s", vmID)
+			}
+			return strconv.Itoa(*vmInfo.Index), nil
+		}
+	}
+	return "", fmt.Errorf("vmInfo does not contain given vmID %s", vmID)
 }
 
 func contains(s []string, e string) bool {
