@@ -43,7 +43,6 @@ instance_groups:
 				{
 					IPs:     []string{"10.0.0.1"},
 					JobName: "redis-dedicated-node",
-					JobID:   "fake-uuid",
 					ID:      "fake-uuid",
 					Index:   newIndex(0),
 				}}),

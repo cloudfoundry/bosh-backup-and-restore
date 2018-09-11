@@ -248,7 +248,6 @@ instances:
 					{
 						IPs:     []string{"10.0.0.1"},
 						JobName: "redis-dedicated-node",
-						JobID:   "fake-uuid",
 						ID:      "fake-uuid",
 						Index:   newIndex(0),
 					}}),
@@ -550,14 +549,12 @@ touch /tmp/restore-script-was-run`)
 					{
 						IPs:     []string{"10.0.0.1"},
 						JobName: "redis-dedicated-node",
-						JobID:   "fake-uuid",
 						Index:   newIndex(0),
 						ID:      "fake-uuid",
 					},
 					{
 						IPs:     []string{"10.0.0.10"},
 						JobName: "redis-server",
-						JobID:   "fake-uuid",
 						Index:   newIndex(0),
 						ID:      "fake-uuid",
 					}}),
@@ -761,7 +758,6 @@ restore_should_be_locked_before:
 					{
 						IPs:     []string{"10.0.0.1"},
 						JobName: "redis-dedicated-node",
-						JobID:   "fake-uuid",
 						ID:      "fake-uuid",
 						Index:   newIndex(0),
 					}}),
@@ -846,14 +842,12 @@ custom_artifacts:
 					{
 						IPs:     []string{"10.0.0.1"},
 						JobName: "redis-restore-node",
-						JobID:   "fake-uuid",
 						ID:      "fake-uuid",
 						Index:   newIndex(0),
 					},
 					{
 						IPs:     []string{"10.0.0.2"},
 						JobName: "redis-backup-node",
-						JobID:   "fake-uuid",
 						ID:      "fake-uuid",
 						Index:   newIndex(0),
 					}}),

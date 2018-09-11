@@ -457,7 +457,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:38973c162b1e6ac056e8e00eb86b7bb03b064ef62680ff88be9527d00a726495"
+  digest = "1:7e26b33d097f741574c7d1ca0e1066c6cc62477555d09069a332e816b2ce2387"
   name = "github.com/pivotal-cf-experimental/cf-webmock"
   packages = [
     "mockbosh",
@@ -465,7 +465,7 @@
     "mockuaa",
   ]
   pruneopts = ""
-  revision = "c8bd07173b4b1ad7516ea285bfba2582d81a2720"
+  revision = "f3bdadf3463cd9806454b7634a9aa82629c803bf"
 
 [[projects]]
   branch = "master"
