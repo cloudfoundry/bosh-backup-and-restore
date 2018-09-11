@@ -19,9 +19,6 @@
   name = "github.com/onsi/gomega"
 
 [[constraint]]
-  name = "github.com/pivotal-cf-experimental/cf-webmock"
-
-[[constraint]]
   name = "github.com/pkg/errors"
   version = "0.8.0"
 
