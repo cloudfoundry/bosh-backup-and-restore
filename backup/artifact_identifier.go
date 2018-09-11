@@ -4,7 +4,7 @@ type artifactIdentifier struct {
 	name          string
 	instanceName  string
 	instanceIndex string
-	instanceID string
+	instanceID    string
 	hasCustomName bool
 }
 

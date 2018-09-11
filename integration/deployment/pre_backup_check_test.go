@@ -70,6 +70,8 @@ instance_groups:
 				{
 					IPs:     []string{"10.0.0.1"},
 					JobName: instanceGroupName,
+					ID:      "fake-uuid",
+					Index:   newIndex(0),
 				},
 			}
 		}

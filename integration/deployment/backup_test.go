@@ -139,6 +139,8 @@ instance_groups:
 				{
 					IPs:     []string{"10.0.0.1"},
 					JobName: instanceGroupName,
+					Index:   newIndex(0),
+					ID:      "fake-uuid",
 				},
 			}
 		}
@@ -829,10 +831,14 @@ echo "not valid yaml
 				{
 					IPs:     []string{"10.0.0.1"},
 					JobName: firstInstanceGroupName,
+					Index:   newIndex(0),
+					ID:      "fake-uuid",
 				},
 				{
 					IPs:     []string{"10.0.0.2"},
 					JobName: secondInstanceGroupName,
+					Index:   newIndex(0),
+					ID:      "fake-uuid-2",
 				},
 			}
 		}

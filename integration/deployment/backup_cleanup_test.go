@@ -45,6 +45,8 @@ instance_groups:
 						IPs:     []string{"10.0.0.1"},
 						JobName: "redis-dedicated-node",
 						JobID:   "fake-uuid",
+						ID:      "fake-uuid",
+						Index:   newIndex(0),
 					}}),
 				DownloadManifest(deploymentName, manifest),
 				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),

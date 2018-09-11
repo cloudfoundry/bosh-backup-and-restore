@@ -38,3 +38,7 @@ var _ = AfterSuite(func() {
 	gexec.CleanupBuildArtifacts()
 	testcluster.WaitForContainersToDie()
 })
+
+func newIndex(index int) *int {
+	return &index
+}
