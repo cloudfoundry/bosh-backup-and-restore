@@ -10,7 +10,7 @@ releases:
 stemcells:
 - alias: default
   os: windows2016
-  version: '1709.8'
+  version: latest
 - alias: ubuntu
   os: ubuntu-trusty
   version: latest
