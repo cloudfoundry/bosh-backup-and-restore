@@ -5,8 +5,8 @@ releases:
   version: latest
 
 stemcells:
-- alias: xenial
-  os: ubuntu-xenial
+- alias: default
+  os: ubuntu-trusty
   version: latest
 
 instance_groups:
@@ -57,7 +57,7 @@ instance_groups:
     release: many-bbr-jobs
   networks:
   - name: services
-  stemcell: xenial
+  stemcell: default
   vm_type: container
 
 update:
