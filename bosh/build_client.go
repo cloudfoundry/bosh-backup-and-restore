@@ -10,10 +10,11 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-func BuildClient(targetUrl, username, password, caCert string, logger boshlog.Logger) (BoshClient, error) {
+func BuildClient(targetUrl, username, password, caCert string, logger boshlog.Logger) (Client, error) {
+	var client Client
 	config, err := director.NewConfigFromURL(targetUrl)
 	if err != nil {
-		return nil, errors.Errorf("invalid bosh URL - %s", err.Error())
+		return client, errors.Errorf("invalid bosh URL - %s", err.Error())
 	}
 
 	config.CACert = caCert
@@ -22,13 +23,13 @@ func BuildClient(targetUrl, username, password, caCert string, logger boshlog.Lo
 
 	info, err := getDirectorInfo(directorFactory, config)
 	if err != nil {
-		return nil, err
+		return client, err
 	}
 
 	if info.Auth.Type == "uaa" {
 		uaa, err := buildUaa(info, username, password, caCert, logger)
 		if err != nil {
-			return nil, err
+			return client, err
 		}
 
 		config.TokenFunc = boshuaa.NewClientTokenSession(uaa).TokenFunc
@@ -39,7 +40,7 @@ func BuildClient(targetUrl, username, password, caCert string, logger boshlog.Lo
 
 	boshDirector, err := directorFactory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
 	if err != nil {
-		return nil, errors.Wrap(err, "error building bosh director client")
+		return client, errors.Wrap(err, "error building bosh director client")
 	}
 
 	return NewClient(boshDirector, director.NewSSHOpts, ssh.NewSshRemoteRunner, logger, instance.NewJobFinder(logger), NewBoshManifestReleaseMapping), nil

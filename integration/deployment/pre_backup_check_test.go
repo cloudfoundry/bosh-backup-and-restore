@@ -21,6 +21,7 @@ var _ = Describe("Pre-backup checks", func() {
 	var director *mockhttp.Server
 	var backupWorkspace string
 	var session *gexec.Session
+	var optionalFlags string
 	var deploymentName string
 	manifest := `---
 instance_groups:
@@ -59,6 +60,7 @@ instance_groups:
 			"--target", director.URL,
 			"--deployment", deploymentName,
 			"pre-backup-check",
+			optionalFlags,
 		)
 	})
 
@@ -96,11 +98,7 @@ instance_groups:
 					CleanupSSH(deploymentName, "redis-dedicated-node"),
 				)
 
-				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
-set -u
-printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
-printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
-`)
+				makeBackupable(instance1)
 
 			})
 
@@ -255,4 +253,132 @@ backup_should_be_locked_before:
 			Expect(session.Err).To(gbytes.Say("Director responded with non-successful status code"))
 		})
 	})
+
+	Context("When run with the --all-deployments flag", func() {
+		var instance *testcluster.Instance
+		var instance2 *testcluster.Instance
+
+		singleInstanceResponse := func(instanceGroupName string) []mockbosh.VMsOutput {
+			return []mockbosh.VMsOutput{
+				{
+					IPs:     []string{"10.0.0.1"},
+					JobName: instanceGroupName,
+					ID:      "fake-uuid",
+					Index:   newIndex(0),
+				},
+			}
+		}
+
+		Context("And multiple deployments have backup scripts", func() {
+			deploymentName1 := "deployment1"
+			deploymentName2 := "deployment2"
+
+			BeforeEach(func() {
+				instance = testcluster.NewInstance()
+
+				optionalFlags = "--all-deployments"
+
+				director.VerifyAndMock(AppendBuilders(
+					InfoWithBasicAuth(),
+					Deployments([]string{deploymentName1, deploymentName2}),
+					VmsForDeployment(deploymentName1, singleInstanceResponse("redis-dedicated-node")),
+					DownloadManifest(deploymentName1, manifest),
+					SetupSSH(deploymentName1, "redis-dedicated-node", "fake-uuid", 0, instance),
+					CleanupSSH(deploymentName1, "redis-dedicated-node"),
+
+					VmsForDeployment(deploymentName2, singleInstanceResponse("redis-dedicated-node")),
+					DownloadManifest(deploymentName2, manifest),
+					SetupSSH(deploymentName2, "redis-dedicated-node", "fake-uuid", 0, instance),
+					CleanupSSH(deploymentName2, "redis-dedicated-node"),
+				)...)
+
+				makeBackupable(instance)
+			})
+
+			AfterEach(func() {
+				instance.DieInBackground()
+			})
+
+			It("exits zero", func() {
+				Expect(session.ExitCode()).To(BeZero())
+			})
+
+			It("outputs a log message saying the deployments can be backed up", func() {
+				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName1 + "' can be backed up."))
+				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName2 + "' can be backed up."))
+				Expect(session.Out).To(gbytes.Say("Found 2 Deployments that can be backed up"))
+			})
+		})
+
+		Context("And one deployment does not have backup scripts", func() {
+			deploymentName1 := "deployment1"
+			deploymentName2 := "deployment2"
+
+			BeforeEach(func() {
+				instance = testcluster.NewInstance()
+				instance2 = testcluster.NewInstance()
+
+				optionalFlags = "--all-deployments"
+
+				director.VerifyAndMock(AppendBuilders(
+					InfoWithBasicAuth(),
+					Deployments([]string{deploymentName1, deploymentName2}),
+					VmsForDeployment(deploymentName1, singleInstanceResponse("redis-dedicated-node")),
+					DownloadManifest(deploymentName1, manifest),
+					SetupSSH(deploymentName1, "redis-dedicated-node", "fake-uuid", 0, instance),
+					CleanupSSH(deploymentName1, "redis-dedicated-node"),
+
+					VmsForDeployment(deploymentName2, singleInstanceResponse("redis-dedicated-node")),
+					DownloadManifest(deploymentName2, manifest),
+					SetupSSH(deploymentName2, "redis-dedicated-node", "fake-uuid", 0, instance2),
+					CleanupSSH(deploymentName2, "redis-dedicated-node"),
+				)...)
+
+				makeBackupable(instance)
+			})
+
+			AfterEach(func() {
+				instance.DieInBackground()
+				instance2.DieInBackground()
+			})
+
+			It("exits non-zero with the correct output", func() {
+				Expect(session.ExitCode()).NotTo(BeZero())
+				Expect(session.Out).To(gbytes.Say("Not all deployments can be backed up"))
+				Expect(session.Err).To(gbytes.Say("Deployment '%s' has no backup scripts", deploymentName2))
+			})
+
+			It("outputs a log message saying the deployments can be backed up", func() {
+				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName1 + "' can be backed up."))
+				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName2 + "' cannot be backed up."))
+				Expect(session.Out).To(gbytes.Say("Found 1 Deployments that can be backed up"))
+
+			})
+		})
+
+		Context("And fails to get deployments", func() {
+			BeforeEach(func() {
+				optionalFlags = "--all-deployments"
+
+				director.VerifyAndMock(AppendBuilders(
+					InfoWithBasicAuth(),
+					DeploymentsFails("oups"),
+				)...)
+
+			})
+
+			It("exits non-zero", func() {
+				Expect(session.ExitCode()).NotTo(BeZero())
+				Expect(session.Err).To(gbytes.Say("oups"))
+			})
+		})
+	})
 })
+
+func makeBackupable(instance *testcluster.Instance) {
+	instance.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
+set -u
+printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
+printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
+`)
+}

@@ -25,6 +25,18 @@ func InfoWithBasicAuth() []mockhttp.MockedResponseBuilder {
 	}
 }
 
+func Deployments(deployments []string) []mockhttp.MockedResponseBuilder {
+	return []mockhttp.MockedResponseBuilder{
+		mockbosh.GetDeployments().RespondsWithListOfDeployments(deployments),
+	}
+}
+
+func DeploymentsFails(errorMessage string) []mockhttp.MockedResponseBuilder {
+	return []mockhttp.MockedResponseBuilder{
+		mockbosh.GetDeployments().Fails(errorMessage),
+	}
+}
+
 func VmsForDeployment(deploymentName string, responseInstances []mockbosh.VMsOutput) []mockhttp.MockedResponseBuilder {
 	randomTaskID := generateTaskId()
 	return []mockhttp.MockedResponseBuilder{

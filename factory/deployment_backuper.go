@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orderer"
@@ -11,13 +12,12 @@ import (
 
 func BuildDeploymentBackuper(target, username, password, caCert string, withManifest, hasDebug bool) (*orchestrator.Backuper, error) {
 	logger := BuildLogger(hasDebug)
-	deploymentManager, err := BuildBoshDeploymentManager(
+	boshClient, err := BuildBoshClient(
 		target,
 		username,
 		password,
 		caCert,
 		logger,
-		withManifest,
 	)
 	if err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func BuildDeploymentBackuper(target, username, password, caCert string, withMani
 	return orchestrator.NewBackuper(
 		backup.BackupDirectoryManager{},
 		logger,
-		deploymentManager,
+		bosh.NewDeploymentManager(boshClient, logger, withManifest),
 		orderer.NewKahnBackupLockOrderer(),
 		execr,
 		time.Now,
