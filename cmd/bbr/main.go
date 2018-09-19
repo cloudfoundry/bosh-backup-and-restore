@@ -86,7 +86,19 @@ func versionAction(c *cli.Context) error {
 }
 
 func validateDeploymentFlags(c *cli.Context) error {
-	return flags.Validate([]string{"target", "username", "password", "deployment"}, c)
+	err := flags.Validate([]string{"target", "username", "password"}, c)
+	if err != nil {
+		return err
+	}
+
+	err = flags.ValidateDeployment(c)
+	if err != nil {
+		return err
+	}
+
+	//has deployment, or --all-deployment, not both
+
+	return nil
 }
 
 func validateDirectorFlags(c *cli.Context) error {
@@ -117,7 +129,7 @@ func availableDeploymentFlags() []cli.Flag {
 			Name:   "deployment, d",
 			Value:  "",
 			EnvVar: "BOSH_DEPLOYMENT",
-			Usage:  "Name of BOSH deployment",
+			Usage:  "Name of BOSH deployment. Omit if '--all-deployments' is provided",
 		},
 		cli.StringFlag{
 			Name:   "ca-cert",
@@ -128,6 +140,10 @@ func availableDeploymentFlags() []cli.Flag {
 		cli.BoolFlag{
 			Name:  "debug",
 			Usage: "Enable debug logs",
+		},
+		cli.BoolFlag{
+			Name:  "all-deployments",
+			Usage: "Run command for all deployments. Omit if '--deployment' is provided. Currently only supported for: pre-backup-check",
 		},
 	}
 }

@@ -21,8 +21,8 @@ var _ = Describe("Pre-backup checks", func() {
 	var director *mockhttp.Server
 	var backupWorkspace string
 	var session *gexec.Session
-	var optionalFlags string
 	var deploymentName string
+	var allDeployments bool
 	manifest := `---
 instance_groups:
 - name: redis-dedicated-node
@@ -37,6 +37,7 @@ instance_groups:
 `
 
 	BeforeEach(func() {
+		allDeployments = false
 		deploymentName = "my-little-deployment"
 		director = mockbosh.NewTLS()
 		director.ExpectedBasicAuth("admin", "admin")
@@ -51,17 +52,29 @@ instance_groups:
 	})
 
 	JustBeforeEach(func() {
-		session = binary.Run(
-			backupWorkspace,
-			[]string{"BOSH_CLIENT_SECRET=admin"},
-			"deployment",
-			"--ca-cert", sslCertPath,
-			"--username", "admin",
-			"--target", director.URL,
-			"--deployment", deploymentName,
-			"pre-backup-check",
-			optionalFlags,
-		)
+		if allDeployments {
+			session = binary.Run(
+				backupWorkspace,
+				[]string{"BOSH_CLIENT_SECRET=admin"},
+				"deployment",
+				"--ca-cert", sslCertPath,
+				"--username", "admin",
+				"--target", director.URL,
+				"--all-deployments",
+				"pre-backup-check",
+			)
+		} else {
+			session = binary.Run(
+				backupWorkspace,
+				[]string{"BOSH_CLIENT_SECRET=admin"},
+				"deployment",
+				"--ca-cert", sslCertPath,
+				"--username", "admin",
+				"--target", director.URL,
+				"--deployment", deploymentName,
+				"pre-backup-check",
+			)
+		}
 	})
 
 	Context("When there is a deployment which has one instance", func() {
@@ -276,7 +289,7 @@ backup_should_be_locked_before:
 			BeforeEach(func() {
 				instance = testcluster.NewInstance()
 
-				optionalFlags = "--all-deployments"
+				allDeployments = true
 
 				director.VerifyAndMock(AppendBuilders(
 					InfoWithBasicAuth(),
@@ -318,7 +331,7 @@ backup_should_be_locked_before:
 				instance = testcluster.NewInstance()
 				instance2 = testcluster.NewInstance()
 
-				optionalFlags = "--all-deployments"
+				allDeployments = true
 
 				director.VerifyAndMock(AppendBuilders(
 					InfoWithBasicAuth(),
@@ -358,7 +371,7 @@ backup_should_be_locked_before:
 
 		Context("And fails to get deployments", func() {
 			BeforeEach(func() {
-				optionalFlags = "--all-deployments"
+				allDeployments = true
 
 				director.VerifyAndMock(AppendBuilders(
 					InfoWithBasicAuth(),
@@ -382,7 +395,7 @@ backup_should_be_locked_before:
 				instance = testcluster.NewInstance()
 				instance2 = testcluster.NewInstance()
 
-				optionalFlags = "--all-deployments"
+				allDeployments = true
 
 				director.VerifyAndMock(AppendBuilders(
 					InfoWithBasicAuth(),

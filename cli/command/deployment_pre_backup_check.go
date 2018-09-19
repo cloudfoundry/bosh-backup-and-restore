@@ -20,12 +20,7 @@ func (d DeploymentPreBackupCheck) Cli() cli.Command {
 		Aliases: []string{"c"},
 		Usage:   "Check a deployment can be backed up",
 		Action:  d.Action,
-		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "all-deployments",
-				Usage: "To check if all deployments are backupable",
-			},
-		},
+		Flags:   []cli.Flag{},
 	}
 }
 
@@ -60,9 +55,9 @@ func getParams(c *cli.Context) (string, string, string, string, bool, bool, bool
 	password := c.Parent().String("password")
 	target := c.Parent().String("target")
 	caCert := c.Parent().String("ca-cert")
+	allDeployments := c.Parent().Bool("all-deployments")
 	debug := c.GlobalBool("debug")
 	withManifest := c.Bool("with-manifest")
-	allDeployments := c.Bool("all-deployments")
 
 	return username, password, target, caCert, debug, withManifest, allDeployments
 }

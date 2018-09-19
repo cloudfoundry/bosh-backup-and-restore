@@ -347,30 +347,6 @@ var _ = Describe("CLI Interface", func() {
 						assertDeploymentHelpText(session)
 					})
 				})
-
-				Context("Missing deployment", func() {
-					BeforeEach(func() {
-						command = append([]string{
-							"deployment",
-							"--username", "admin",
-							"--password", "admin",
-							"--target", director.URL,
-							cmd,
-						}, extraArgs...)
-					})
-
-					It("Exits with non zero", func() {
-						Expect(session.ExitCode()).NotTo(BeZero())
-					})
-
-					It("displays a failure message", func() {
-						Expect(session.Err).To(gbytes.Say("--deployment flag is required."))
-					})
-
-					It("displays the usable flags", func() {
-						assertDeploymentHelpText(session)
-					})
-				})
 			})
 
 			Context("with debug flag set", func() {
@@ -443,6 +419,53 @@ instances: []`))
 			})
 		})
 
+		Context("given both --deployment and --all-deployments are provided", func() {
+			var session *gexec.Session
+
+			BeforeEach(func() {
+				session = binary.Run(backupWorkspace, []string{},
+					"deployment",
+					"--ca-cert", sslCertPath,
+					"--username", "admin",
+					"--password", "admin",
+					"--target", director.URL,
+					"--deployment", "my-new-deployment",
+					"--all-deployments",
+					"backup")
+				Eventually(session).Should(gexec.Exit())
+			})
+			It("exits non-zero", func() {
+				Expect(session.ExitCode()).NotTo(BeZero())
+			})
+
+			It("displays a failure message", func() {
+				Expect(session.Err).To(gbytes.Say("provide one of '--deployment' or '--all-deployments' flags."))
+			})
+		})
+
+		Context("given neither --deployment and --all-deployments are provided", func() {
+			var session *gexec.Session
+
+			BeforeEach(func() {
+				session = binary.Run(backupWorkspace, []string{},
+					"deployment",
+					"--ca-cert", sslCertPath,
+					"--username", "admin",
+					"--password", "admin",
+					"--target", director.URL,
+					"backup")
+				Eventually(session).Should(gexec.Exit())
+			})
+
+			It("exits non-zero", func() {
+				Expect(session.ExitCode()).NotTo(BeZero())
+			})
+
+			It("displays a failure message", func() {
+				Expect(session.Err).To(gbytes.Say("provide one of '--deployment' or '--all-deployments' flags."))
+			})
+		})
+
 		Context("no arguments", func() {
 			It("displays the usable flags", func() {
 				session := binary.Run(backupWorkspace, []string{"BOSH_CLIENT_SECRET=admin"}, "deployment")
@@ -457,8 +480,9 @@ func assertDeploymentHelpText(session *gexec.Session) {
 		gbytes.Say("--target"), gbytes.Say("BOSH Director URL"), gbytes.Say("BOSH_ENVIRONMENT"),
 		gbytes.Say("--username"), gbytes.Say("BOSH Director username"), gbytes.Say("BOSH_CLIENT"),
 		gbytes.Say("--password"), gbytes.Say("BOSH Director password"), gbytes.Say("BOSH_CLIENT_SECRET"),
-		gbytes.Say("--deployment"), gbytes.Say("Name of BOSH deployment"), gbytes.Say("BOSH_DEPLOYMENT"),
+		gbytes.Say("--deployment"), gbytes.Say("Name of BOSH deployment. Omit if '--all-deployments' is provided"), gbytes.Say("BOSH_DEPLOYMENT"),
 		gbytes.Say("--ca-cert"), gbytes.Say("Path or value of BOSH Director custom CA certificate"), gbytes.Say("CA_CERT"), gbytes.Say("BOSH_CA_CERT"),
 		gbytes.Say("--debug"), gbytes.Say("Enable debug logs"),
+		gbytes.Say("--all-deployments"), gbytes.Say("Run command for all deployments. Omit if '--deployment' is provided. Currently only supported for: pre-backup-check"),
 	))
 }
