@@ -372,6 +372,70 @@ backup_should_be_locked_before:
 				Expect(session.Err).To(gbytes.Say("oups"))
 			})
 		})
+
+		Context("And the backup directory already exists on one of the deployments", func() {
+
+			deploymentName1 := "deployment1"
+			deploymentName2 := "deployment2"
+
+			BeforeEach(func() {
+				instance = testcluster.NewInstance()
+				instance2 = testcluster.NewInstance()
+
+				optionalFlags = "--all-deployments"
+
+				director.VerifyAndMock(AppendBuilders(
+					InfoWithBasicAuth(),
+					Deployments([]string{deploymentName1, deploymentName2}),
+					VmsForDeployment(deploymentName1, singleInstanceResponse("redis-dedicated-node")),
+					DownloadManifest(deploymentName1, manifest),
+					SetupSSH(deploymentName1, "redis-dedicated-node", "fake-uuid", 0, instance),
+					CleanupSSH(deploymentName1, "redis-dedicated-node"),
+
+					VmsForDeployment(deploymentName2, singleInstanceResponse("redis-dedicated-node")),
+					DownloadManifest(deploymentName2, manifest),
+					SetupSSH(deploymentName2, "redis-dedicated-node", "fake-uuid", 0, instance2),
+					CleanupSSH(deploymentName2, "redis-dedicated-node"),
+				)...)
+
+				makeBackupable(instance)
+				makeBackupable(instance2)
+
+				instance2.CreateDir("/var/vcap/store/bbr-backup")
+			})
+
+			AfterEach(func() {
+				instance.DieInBackground()
+				instance2.DieInBackground()
+			})
+
+			It("returns exit code 1", func() {
+				Expect(session.ExitCode()).To(Equal(1))
+			})
+
+			It("prints an error", func() {
+				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName2 + "' cannot be backed up."))
+				Expect(session.Err).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid"))
+				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
+			})
+
+			It("writes the stack trace", func() {
+				files, err := filepath.Glob(filepath.Join(backupWorkspace, "bbr-*.err.log"))
+				Expect(err).NotTo(HaveOccurred())
+				logFilePath := files[0]
+				_, err = os.Stat(logFilePath)
+				Expect(os.IsNotExist(err)).To(BeFalse())
+				stackTrace, err := ioutil.ReadFile(logFilePath)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
+			})
+
+			It("outputs a log message saying the deployments can be backed up", func() {
+				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName1 + "' can be backed up."))
+				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName2 + "' cannot be backed up."))
+				Expect(session.Out).To(gbytes.Say("Found 1 Deployments that can be backed up"))
+			})
+		})
 	})
 })
 
