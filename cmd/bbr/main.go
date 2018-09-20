@@ -96,8 +96,6 @@ func validateDeploymentFlags(c *cli.Context) error {
 		return err
 	}
 
-	//has deployment, or --all-deployment, not both
-
 	return nil
 }
 

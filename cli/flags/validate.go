@@ -23,15 +23,11 @@ func Validate(requiredFlags []string, c *cli.Context) error {
 func ValidateDeployment(c *cli.Context) error {
 	deploymentError := redCliError(errors.New("provide one of '--deployment' or '--all-deployments' flags."))
 
-	if c.String("deployment") != "" && c.Bool("all-deployments") {
+	if (c.String("deployment") != "" && c.Bool("all-deployments")) || (c.String("deployment") == "" && !c.Bool("all-deployments")) {
 		cli.ShowSubcommandHelp(c)
 		return deploymentError
 	}
 
-	if c.String("deployment") == "" && !c.Bool("all-deployments") {
-		cli.ShowSubcommandHelp(c)
-		return deploymentError
-	}
 	return nil
 }
 
