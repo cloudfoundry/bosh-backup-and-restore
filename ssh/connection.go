@@ -31,6 +31,8 @@ type Logger interface {
 	Debug(tag, msg string, args ...interface{})
 }
 
+var dialFunc boshhttp.DialFunc
+
 func NewConnection(hostName, userName, privateKey string, publicKeyCallback ssh.HostKeyCallback, publicKeyAlgorithm []string, logger Logger) (SSHConnection, error) {
 	return NewConnectionWithServerAliveInterval(hostName, userName, privateKey, publicKeyCallback, publicKeyAlgorithm, 60, logger)
 }
@@ -122,8 +124,14 @@ func (c Connection) newClient() (*ssh.Client, error) {
 }
 
 func createDialFunc() boshhttp.DialFunc {
+	if dialFunc != nil {
+		return dialFunc
+	}
+
 	socksProxy := proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(os.Stdout, "sock5-proxy", log.LstdFlags))
-	return boshhttp.SOCKS5DialFuncFromEnvironment(net.Dial, socksProxy)
+	dialFunc = boshhttp.SOCKS5DialFuncFromEnvironment(net.Dial, socksProxy)
+
+	return dialFunc
 }
 
 func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.Reader) (int, error) {
