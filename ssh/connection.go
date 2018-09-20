@@ -53,7 +53,7 @@ func NewConnectionWithServerAliveInterval(hostName, userName, privateKey string,
 		},
 		logger:              logger,
 		serverAliveInterval: serverAliveInterval,
-		dailFunc:            createDialFunc(),
+		dialFunc:            createDialFunc(),
 	}
 
 	return conn, nil
@@ -64,7 +64,7 @@ type Connection struct {
 	sshConfig           *ssh.ClientConfig
 	logger              Logger
 	serverAliveInterval time.Duration
-	dailFunc            boshhttp.DialFunc
+	dialFunc            boshhttp.DialFunc
 }
 
 func (c Connection) Run(cmd string) (stdout, stderr []byte, exitCode int, err error) {
@@ -107,8 +107,8 @@ func (w *sessionClosingOnErrorWriter) Write(data []byte) (int, error) {
 	return n, err
 }
 
-func (c Connection) getConnection() (*ssh.Client, error) {
-	conn, err := c.dailFunc("tcp", c.host)
+func (c Connection) newClient() (*ssh.Client, error) {
+	conn, err := c.dialFunc("tcp", c.host)
 	if err != nil {
 		return nil, err
 	}
@@ -131,13 +131,13 @@ func createDialFunc() boshhttp.DialFunc {
 }
 
 func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.Reader) (int, error) {
-	connection, err := c.getConnection()
+	client, err := c.newClient()
 	if err != nil {
 		return -1, errors.Wrap(err, "ssh.Dial failed")
 	}
-	defer connection.Close()
+	defer client.Close()
 
-	session, err := connection.NewSession()
+	session, err := client.NewSession()
 	if err != nil {
 		return -1, errors.Wrap(err, "ssh.NewSession failed")
 	}
