@@ -22,7 +22,6 @@ var _ = Describe("Pre-backup checks", func() {
 	var backupWorkspace string
 	var session *gexec.Session
 	var deploymentName string
-	var allDeployments bool
 	manifest := `---
 instance_groups:
 - name: redis-dedicated-node
@@ -37,7 +36,6 @@ instance_groups:
 `
 
 	BeforeEach(func() {
-		allDeployments = false
 		deploymentName = "my-little-deployment"
 		director = mockbosh.NewTLS()
 		director.ExpectedBasicAuth("admin", "admin")
@@ -51,19 +49,8 @@ instance_groups:
 		director.VerifyMocks()
 	})
 
-	JustBeforeEach(func() {
-		if allDeployments {
-			session = binary.Run(
-				backupWorkspace,
-				[]string{"BOSH_CLIENT_SECRET=admin"},
-				"deployment",
-				"--ca-cert", sslCertPath,
-				"--username", "admin",
-				"--target", director.URL,
-				"--all-deployments",
-				"pre-backup-check",
-			)
-		} else {
+	Context("When run with --deployment flag", func() {
+		JustBeforeEach(func() {
 			session = binary.Run(
 				backupWorkspace,
 				[]string{"BOSH_CLIENT_SECRET=admin"},
@@ -74,95 +61,132 @@ instance_groups:
 				"--deployment", deploymentName,
 				"pre-backup-check",
 			)
-		}
-	})
+		})
 
-	Context("When there is a deployment which has one instance", func() {
-		var instance1 *testcluster.Instance
+		Context("and there is a deployment which has one instance", func() {
+			var instance1 *testcluster.Instance
 
-		singleInstanceResponse := func(instanceGroupName string) []mockbosh.VMsOutput {
-			return []mockbosh.VMsOutput{
-				{
-					IPs:     []string{"10.0.0.1"},
-					JobName: instanceGroupName,
-					ID:      "fake-uuid",
-					Index:   newIndex(0),
-				},
+			singleInstanceResponse := func(instanceGroupName string) []mockbosh.VMsOutput {
+				return []mockbosh.VMsOutput{
+					{
+						IPs:     []string{"10.0.0.1"},
+						JobName: instanceGroupName,
+						ID:      "fake-uuid",
+						Index:   newIndex(0),
+					},
+				}
 			}
-		}
 
-		BeforeEach(func() {
-			instance1 = testcluster.NewInstance()
-		})
-
-		AfterEach(func() {
-			instance1.DieInBackground()
-		})
-
-		Context("and there is a backup script", func() {
 			BeforeEach(func() {
-				By("creating a dummy backup script")
-
-				MockDirectorWith(director,
-					mockbosh.Info().WithAuthTypeBasic(),
-					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
-					DownloadManifest(deploymentName, manifest),
-					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
-					CleanupSSH(deploymentName, "redis-dedicated-node"),
-				)
-
-				makeBackupable(instance1)
-
+				instance1 = testcluster.NewInstance()
 			})
 
-			It("exits zero", func() {
-				Expect(session.ExitCode()).To(BeZero())
+			AfterEach(func() {
+				instance1.DieInBackground()
 			})
 
-			It("outputs a log message saying the deployment can be backed up", func() {
-				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName + "' can be backed up."))
-			})
-
-			Context("but the pre-backup-lock ordering is cyclic", func() {
+			Context("and there is a backup script", func() {
 				BeforeEach(func() {
-					instance1.CreateScript(
-						"/var/vcap/jobs/redis/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
+					By("creating a dummy backup script")
+
+					MockDirectorWith(director,
+						mockbosh.Info().WithAuthTypeBasic(),
+						VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
+						DownloadManifest(deploymentName, manifest),
+						SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
+						CleanupSSH(deploymentName, "redis-dedicated-node"),
+					)
+
+					makeBackupable(instance1)
+
+				})
+
+				It("exits zero", func() {
+					Expect(session.ExitCode()).To(BeZero())
+				})
+
+				It("outputs a log message saying the deployment can be backed up", func() {
+					Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName + "' can be backed up."))
+				})
+
+				Context("but the pre-backup-lock ordering is cyclic", func() {
+					BeforeEach(func() {
+						instance1.CreateScript(
+							"/var/vcap/jobs/redis/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
 touch /tmp/redis-pre-backup-lock-called
 exit 0`)
-					instance1.CreateScript(
-						"/var/vcap/jobs/redis-writer/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
+						instance1.CreateScript(
+							"/var/vcap/jobs/redis-writer/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
 touch /tmp/redis-writer-pre-backup-lock-called
 exit 0`)
-					instance1.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata",
-						`#!/usr/bin/env sh
+						instance1.CreateScript("/var/vcap/jobs/redis-writer/bin/bbr/metadata",
+							`#!/usr/bin/env sh
 echo "---
 backup_should_be_locked_before:
 - job_name: redis
   release: redis
 "`)
-					instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata",
-						`#!/usr/bin/env sh
+						instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata",
+							`#!/usr/bin/env sh
 echo "---
 backup_should_be_locked_before:
 - job_name: redis-writer
   release: redis
 "`)
-				})
-
-				It("Should fail", func() {
-					By("exiting with an error", func() {
-						Expect(session).To(gexec.Exit(1))
 					})
 
-					By("printing a helpful error message", func() {
-						Expect(session.Err).To(gbytes.Say("job locking dependency graph is cyclic"))
+					It("Should fail", func() {
+						By("exiting with an error", func() {
+							Expect(session).To(gexec.Exit(1))
+						})
+
+						By("printing a helpful error message", func() {
+							Expect(session.Err).To(gbytes.Say("job locking dependency graph is cyclic"))
+						})
+					})
+				})
+
+				Context("but the backup artifact directory already exists", func() {
+					BeforeEach(func() {
+						instance1.CreateDir("/var/vcap/store/bbr-backup")
+					})
+
+					It("returns exit code 1", func() {
+						Expect(session.ExitCode()).To(Equal(1))
+					})
+
+					It("prints an error", func() {
+						Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName + "' cannot be backed up."))
+						Expect(session.Err).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid"))
+						Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
+					})
+
+					It("writes the stack trace", func() {
+						files, err := filepath.Glob(filepath.Join(backupWorkspace, "bbr-*.err.log"))
+						Expect(err).NotTo(HaveOccurred())
+						logFilePath := files[0]
+						_, err = os.Stat(logFilePath)
+						Expect(os.IsNotExist(err)).To(BeFalse())
+						stackTrace, err := ioutil.ReadFile(logFilePath)
+						Expect(err).ToNot(HaveOccurred())
+						Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 					})
 				})
 			})
 
-			Context("but the backup artifact directory already exists", func() {
+			Context("if there are no backup scripts", func() {
 				BeforeEach(func() {
-					instance1.CreateDir("/var/vcap/store/bbr-backup")
+					MockDirectorWith(director,
+						mockbosh.Info().WithAuthTypeBasic(),
+						VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
+						DownloadManifest(deploymentName, manifest),
+						SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
+						CleanupSSH(deploymentName, "redis-dedicated-node"),
+					)
+
+					instance1.CreateExecutableFiles(
+						"/var/vcap/jobs/redis/bin/not-a-backup-script",
+					)
 				})
 
 				It("returns exit code 1", func() {
@@ -171,7 +195,7 @@ backup_should_be_locked_before:
 
 				It("prints an error", func() {
 					Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName + "' cannot be backed up."))
-					Expect(session.Err).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid"))
+					Expect(session.Err).To(gbytes.Say("Deployment '" + deploymentName + "' has no backup scripts"))
 					Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
 				})
 
@@ -185,21 +209,16 @@ backup_should_be_locked_before:
 					Expect(err).ToNot(HaveOccurred())
 					Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 				})
+
 			})
 		})
 
-		Context("if there are no backup scripts", func() {
+		Context("and the deployment does not exist", func() {
 			BeforeEach(func() {
-				MockDirectorWith(director,
+				deploymentName = "my-non-existent-deployment"
+				director.VerifyAndMock(
 					mockbosh.Info().WithAuthTypeBasic(),
-					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
-					DownloadManifest(deploymentName, manifest),
-					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
-					CleanupSSH(deploymentName, "redis-dedicated-node"),
-				)
-
-				instance1.CreateExecutableFiles(
-					"/var/vcap/jobs/redis/bin/not-a-backup-script",
+					mockbosh.VMsForDeployment(deploymentName).NotFound(),
 				)
 			})
 
@@ -209,65 +228,46 @@ backup_should_be_locked_before:
 
 			It("prints an error", func() {
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName + "' cannot be backed up."))
-				Expect(session.Err).To(gbytes.Say("Deployment '" + deploymentName + "' has no backup scripts"))
-				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
+				Expect(session.Err).To(gbytes.Say("Director responded with non-successful status code"))
+			})
+		})
+
+		Context("and the director is unreachable", func() {
+			BeforeEach(func() {
+				deploymentName = "my-director-is-broken"
+				director.VerifyAndMock(
+					AppendBuilders(
+						InfoWithBasicAuth(),
+						VmsForDeploymentFails(deploymentName),
+					)...,
+				)
 			})
 
-			It("writes the stack trace", func() {
-				files, err := filepath.Glob(filepath.Join(backupWorkspace, "bbr-*.err.log"))
-				Expect(err).NotTo(HaveOccurred())
-				logFilePath := files[0]
-				_, err = os.Stat(logFilePath)
-				Expect(os.IsNotExist(err)).To(BeFalse())
-				stackTrace, err := ioutil.ReadFile(logFilePath)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
+			It("returns exit code 1", func() {
+				Expect(session.ExitCode()).To(Equal(1))
 			})
 
-		})
-	})
-
-	Context("When deployment does not exist", func() {
-		BeforeEach(func() {
-			deploymentName = "my-non-existent-deployment"
-			director.VerifyAndMock(
-				mockbosh.Info().WithAuthTypeBasic(),
-				mockbosh.VMsForDeployment(deploymentName).NotFound(),
-			)
-		})
-
-		It("returns exit code 1", func() {
-			Expect(session.ExitCode()).To(Equal(1))
-		})
-
-		It("prints an error", func() {
-			Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName + "' cannot be backed up."))
-			Expect(session.Err).To(gbytes.Say("Director responded with non-successful status code"))
-		})
-	})
-
-	Context("When the director is unreachable", func() {
-		BeforeEach(func() {
-			deploymentName = "my-director-is-broken"
-			director.VerifyAndMock(
-				AppendBuilders(
-					InfoWithBasicAuth(),
-					VmsForDeploymentFails(deploymentName),
-				)...,
-			)
-		})
-
-		It("returns exit code 1", func() {
-			Expect(session.ExitCode()).To(Equal(1))
-		})
-
-		It("prints an error", func() {
-			Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName + "' cannot be backed up."))
-			Expect(session.Err).To(gbytes.Say("Director responded with non-successful status code"))
+			It("prints an error", func() {
+				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName + "' cannot be backed up."))
+				Expect(session.Err).To(gbytes.Say("Director responded with non-successful status code"))
+			})
 		})
 	})
 
 	Context("When run with the --all-deployments flag", func() {
+		JustBeforeEach(func() {
+			session = binary.Run(
+				backupWorkspace,
+				[]string{"BOSH_CLIENT_SECRET=admin"},
+				"deployment",
+				"--ca-cert", sslCertPath,
+				"--username", "admin",
+				"--target", director.URL,
+				"--all-deployments",
+				"pre-backup-check",
+			)
+		})
+
 		var instance *testcluster.Instance
 		var instance2 *testcluster.Instance
 
@@ -282,14 +282,12 @@ backup_should_be_locked_before:
 			}
 		}
 
-		Context("And multiple deployments have backup scripts", func() {
+		Context("and all deployments have backup scripts", func() {
 			deploymentName1 := "deployment1"
 			deploymentName2 := "deployment2"
 
 			BeforeEach(func() {
 				instance = testcluster.NewInstance()
-
-				allDeployments = true
 
 				director.VerifyAndMock(AppendBuilders(
 					InfoWithBasicAuth(),
@@ -323,15 +321,13 @@ backup_should_be_locked_before:
 			})
 		})
 
-		Context("And one deployment does not have backup scripts", func() {
+		Context("and one deployment does not have backup scripts", func() {
 			deploymentName1 := "deployment1"
 			deploymentName2 := "deployment2"
 
 			BeforeEach(func() {
 				instance = testcluster.NewInstance()
 				instance2 = testcluster.NewInstance()
-
-				allDeployments = true
 
 				director.VerifyAndMock(AppendBuilders(
 					InfoWithBasicAuth(),
@@ -355,24 +351,25 @@ backup_should_be_locked_before:
 				instance2.DieInBackground()
 			})
 
-			It("exits non-zero with the correct output", func() {
+			It("exits non-zero", func() {
 				Expect(session.ExitCode()).NotTo(BeZero())
-				Expect(session.Out).To(gbytes.Say("Not all deployments can be backed up"))
+			})
+
+			It("prints an error", func() {
 				Expect(session.Err).To(gbytes.Say("Deployment '%s' has no backup scripts", deploymentName2))
 			})
 
-			It("outputs a log message saying the deployments can be backed up", func() {
+			It("outputs a log about which deployments can be backed up", func() {
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName1 + "' can be backed up."))
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName2 + "' cannot be backed up."))
 				Expect(session.Out).To(gbytes.Say("Found 1 Deployments that can be backed up"))
+				Expect(session.Out).To(gbytes.Say("Not all deployments can be backed up"))
 
 			})
 		})
 
-		Context("And fails to get deployments", func() {
+		Context("and fails to get deployments", func() {
 			BeforeEach(func() {
-				allDeployments = true
-
 				director.VerifyAndMock(AppendBuilders(
 					InfoWithBasicAuth(),
 					DeploymentsFails("oups"),
@@ -382,11 +379,14 @@ backup_should_be_locked_before:
 
 			It("exits non-zero", func() {
 				Expect(session.ExitCode()).NotTo(BeZero())
+			})
+
+			It("prints an error", func() {
 				Expect(session.Err).To(gbytes.Say("oups"))
 			})
 		})
 
-		Context("And the backup directory already exists on one of the deployments", func() {
+		Context("and the backup directory already exists on one of the deployments", func() {
 
 			deploymentName1 := "deployment1"
 			deploymentName2 := "deployment2"
@@ -394,8 +394,6 @@ backup_should_be_locked_before:
 			BeforeEach(func() {
 				instance = testcluster.NewInstance()
 				instance2 = testcluster.NewInstance()
-
-				allDeployments = true
 
 				director.VerifyAndMock(AppendBuilders(
 					InfoWithBasicAuth(),
@@ -427,7 +425,6 @@ backup_should_be_locked_before:
 			})
 
 			It("prints an error", func() {
-				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName2 + "' cannot be backed up."))
 				Expect(session.Err).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid"))
 				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
 			})
@@ -443,7 +440,7 @@ backup_should_be_locked_before:
 				Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 			})
 
-			It("outputs a log message saying the deployments can be backed up", func() {
+			It("outputs a log message saying which deployments can be backed up", func() {
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName1 + "' can be backed up."))
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName2 + "' cannot be backed up."))
 				Expect(session.Out).To(gbytes.Say("Found 1 Deployments that can be backed up"))
