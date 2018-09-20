@@ -122,12 +122,8 @@ func (c Connection) newClient() (*ssh.Client, error) {
 }
 
 func createDialFunc() boshhttp.DialFunc {
-	dialFunc := net.Dial
-	if os.Getenv("BOSH_ALL_PROXY") != "" {
-		socksProxy := proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(os.Stdout, "sock5-proxy", log.LstdFlags))
-		dialFunc = boshhttp.SOCKS5DialFuncFromEnvironment(net.Dial, socksProxy)
-	}
-	return dialFunc
+	socksProxy := proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(os.Stdout, "sock5-proxy", log.LstdFlags))
+	return boshhttp.SOCKS5DialFuncFromEnvironment(net.Dial, socksProxy)
 }
 
 func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.Reader) (int, error) {
