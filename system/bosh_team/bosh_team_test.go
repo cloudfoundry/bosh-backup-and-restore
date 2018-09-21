@@ -28,9 +28,9 @@ var _ = Describe("BoshTeam", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Eventually(session).Should(gexec.Exit(0))
 
-		Expect(session.Out).To(gbytes.Say("Deployment redis-1 can be backed up."))
-		Expect(session.Out).To(gbytes.Say("Deployment redis-2 can be backed up."))
-		Expect(session.Out).To(gbytes.Say("Deployment redis-3 can be backed up."))
+		Expect(session.Out).To(gbytes.Say("Deployment 'redis-1' can be backed up."))
+		Expect(session.Out).To(gbytes.Say("Deployment 'redis-2' can be backed up."))
+		Expect(session.Out).To(gbytes.Say("Deployment 'redis-3' can be backed up."))
 		Expect(session.Out).To(gbytes.Say("Found 3 Deployments that can be backed up"))
 	})
 })
