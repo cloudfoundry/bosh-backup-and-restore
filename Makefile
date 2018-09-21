@@ -1,5 +1,3 @@
-export BOSH_CLIENT=admin
-
 test: test-unit test-integration
 
 push: test sys-test-local
@@ -41,6 +39,7 @@ sys-test-local: sys-test-local-deployment sys-test-local-director
 sys-test-local-deployment:
 	BOSH_ENVIRONMENT=https://lite-bosh.backup-and-restore.cf-app.com \
 	BOSH_GW_HOST=lite-bosh.backup-and-restore.cf-app.com \
+	BOSH_CLIENT=admin \
 	BOSH_CLIENT_SECRET=`lpass show LiteBoshDirector --password` \
 	BOSH_CA_CERT=~/workspace/bosh-backup-and-restore-meta/certs/lite-bosh.backup-and-restore.cf-app.com.crt \
 	BOSH_GW_USER=vcap \
@@ -52,6 +51,7 @@ sys-test-local-director:
 	BOSH_ENVIRONMENT=https://genesis-bosh.backup-and-restore.cf-app.com \
 	BOSH_GW_HOST=genesis-bosh.backup-and-restore.cf-app.com \
 	BOSH_CLIENT_SECRET=`lpass show GenesisBoshDirectorGCP --password` \
+	BOSH_CLIENT=admin \
 	BOSH_CA_CERT=~/workspace/bosh-backup-and-restore-meta/certs/genesis-bosh.backup-and-restore.cf-app.com.crt \
 	BOSH_GW_PRIVATE_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
 	BOSH_GW_USER=vcap \
@@ -84,21 +84,12 @@ sys-test-local-with-uaa:
 	BOSH_ENVIRONMENT=https://lite-bosh-uaa.backup-and-restore.cf-app.com \
 	BOSH_GW_HOST=lite-bosh-uaa.backup-and-restore.cf-app.com \
 	BOSH_CLIENT_SECRET=`lpass show GardenBoshUAADirectorGCP --password` \
+	BOSH_CLIENT=admin \
 	BOSH_CA_CERT=~/workspace/bosh-backup-and-restore-meta/certs/lite-bosh-uaa.backup-and-restore.cf-app.com.crt \
     BOSH_GW_USER=jumpbox \
 	BOSH_GW_PRIVATE_KEY=~/workspace/bosh-backup-and-restore-meta/garden-bosh-uaa/bosh.pem \
 	TEST_ENV=dev \
 	ginkgo -r -v -trace system/deployment
-
-sys-test-local-260:
-	BOSH_ENVIRONMENT=https://35.187.10.144 \
-	BOSH_GW_HOST=35.187.10.144 \
-	BOSH_CLIENT_SECRET=`lpass show Lite260BoshDirector --password` \
-	BOSH_CA_CERT=~/workspace/bosh-backup-and-restore-meta/garden-bosh-260/certs/rootCA.pem \
-	BOSH_GW_PRIVATE_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
-	TEST_ENV=dev \
-	ginkgo -r -v -trace system/deployment
-
 
 upload-test-releases:
 	fixtures/releases/upload-release redis-test-release && \
