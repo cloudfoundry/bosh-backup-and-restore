@@ -3,6 +3,7 @@ package ssh
 import (
 	"bytes"
 	"io"
+	"sync"
 
 	"time"
 
@@ -32,6 +33,7 @@ type Logger interface {
 }
 
 var dialFunc boshhttp.DialFunc
+var dialFuncMutex sync.RWMutex
 
 func NewConnection(hostName, userName, privateKey string, publicKeyCallback ssh.HostKeyCallback, publicKeyAlgorithm []string, logger Logger) (SSHConnection, error) {
 	return NewConnectionWithServerAliveInterval(hostName, userName, privateKey, publicKeyCallback, publicKeyAlgorithm, 60, logger)
@@ -124,13 +126,19 @@ func (c Connection) newClient() (*ssh.Client, error) {
 }
 
 func createDialFunc() boshhttp.DialFunc {
-	if dialFunc != nil {
+	dialFuncMutex.RLock()
+	haveDialer := dialFunc != nil
+	dialFuncMutex.RUnlock()
+
+	if haveDialer {
 		return dialFunc
 	}
 
+	dialFuncMutex.Lock()
+	defer dialFuncMutex.Unlock()
+
 	socksProxy := proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(os.Stdout, "sock5-proxy", log.LstdFlags))
 	dialFunc = boshhttp.SOCKS5DialFuncFromEnvironment(net.Dial, socksProxy)
-
 	return dialFunc
 }
 
