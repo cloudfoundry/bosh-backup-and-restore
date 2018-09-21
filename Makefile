@@ -72,6 +72,10 @@ sys-test-windows-ci: setup
 	TEST_ENV=ci \
 	ginkgo -r -v -trace system/windows
 
+sys-test-bosh-team-ci: setup
+	TEST_ENV=ci \
+	ginkgo -r -v -trace system/bosh_team
+
 sys-test-bosh-all-proxy-ci: setup
 	TEST_ENV=ci \
 	ginkgo -r -v -trace system/bosh_all_proxy
