@@ -1,0 +1,32 @@
+---
+name: ((deployment-name))
+releases:
+- name: redis-test
+  version: latest
+stemcells:
+- alias: xenial
+  os: ubuntu-xenial
+  version: latest
+instance_groups:
+- name: redis
+  instances: 1
+  jobs:
+  - name: redis-server
+    release: redis-test
+  vm_type: minimal
+  persistent_disk_type: 5GB
+  stemcell: xenial
+  azs:
+  - z1
+  networks:
+  - name: default
+  properties:
+    redis:
+      password: redis
+      persistence: 'yes'
+      maxclients: 1000
+update:
+  canaries: 1
+  canary_watch_time: 30000-180000
+  update_watch_time: 30000-180000
+  max_in_flight: 4

@@ -1,0 +1,35 @@
+package bosh_team_test
+
+import (
+	"os/exec"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
+	"github.com/onsi/gomega/gexec"
+
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
+)
+
+var _ = Describe("BoshTeam", func() {
+
+	It("Can run pre-backup-check on all deployments", func() {
+		cmd := exec.Command(
+			commandPath,
+			"deployment",
+			"--ca-cert", MustHaveEnv("BOSH_CA_CERT"),
+			"--username", MustHaveEnv("BOSH_CLIENT"),
+			"--password", MustHaveEnv("BOSH_CLIENT_SECRET"),
+			"--target", MustHaveEnv("BOSH_ENVIRONMENT"),
+			"--all-deployments",
+			"pre-backup-check",
+		)
+		session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+		Expect(err).NotTo(HaveOccurred())
+		Eventually(session).Should(gexec.Exit(0))
+
+		Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName1 + "' can be backed up."))
+		Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName2 + "' can be backed up."))
+		Expect(session.Out).To(gbytes.Say("Found 2 Deployments that can be backed up"))
+	})
+})
