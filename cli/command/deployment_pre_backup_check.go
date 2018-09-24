@@ -3,6 +3,8 @@ package command
 import (
 	"fmt"
 
+	"github.com/cloudfoundry/bosh-cli/director"
+
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
@@ -25,7 +27,7 @@ func (d DeploymentPreBackupCheck) Cli() cli.Command {
 }
 
 func (d DeploymentPreBackupCheck) Action(c *cli.Context) error {
-	username, password, target, caCert, debug, withManifest, allDeployments := getParams(c)
+	username, password, target, caCert, debug, deployment, allDeployments := getDeploymentParams(c)
 
 	logger := factory.BuildLogger(debug)
 	boshClient, err := factory.BuildBoshClient(target, username, password, caCert, logger)
@@ -33,14 +35,14 @@ func (d DeploymentPreBackupCheck) Action(c *cli.Context) error {
 		return processError(orchestrator.NewError(err))
 	}
 
-	backupChecker := factory.BuildDeploymentBackupChecker(boshClient, logger, withManifest)
+	backupChecker := factory.BuildDeploymentBackupChecker(boshClient, logger, false)
 
 	var errs orchestrator.Error
 
 	if allDeployments {
 		errs = allDeploymentsBackupCheck(boshClient, backupChecker)
 	} else {
-		errs = backupableCheck(backupChecker, c.Parent().String("deployment"))
+		errs = backupableCheck(backupChecker, deployment)
 	}
 
 	if errs != nil {
@@ -50,16 +52,16 @@ func (d DeploymentPreBackupCheck) Action(c *cli.Context) error {
 	return cli.NewExitError("", 0)
 }
 
-func getParams(c *cli.Context) (string, string, string, string, bool, bool, bool) {
+func getDeploymentParams(c *cli.Context) (string, string, string, string, bool, string, bool) {
 	username := c.Parent().String("username")
 	password := c.Parent().String("password")
 	target := c.Parent().String("target")
 	caCert := c.Parent().String("ca-cert")
-	allDeployments := c.Parent().Bool("all-deployments")
 	debug := c.GlobalBool("debug")
-	withManifest := c.Bool("with-manifest")
+	deployment := c.Parent().String("deployment")
+	allDeployments := c.Parent().Bool("all-deployments")
 
-	return username, password, target, caCert, debug, withManifest, allDeployments
+	return username, password, target, caCert, debug, deployment, allDeployments
 }
 
 func backupableCheck(backupChecker *orchestrator.BackupChecker, deployment string) orchestrator.Error {
@@ -73,13 +75,10 @@ func backupableCheck(backupChecker *orchestrator.BackupChecker, deployment strin
 	}
 }
 
-func allDeploymentsBackupCheck(boshClient bosh.Client, backupChecker *orchestrator.BackupChecker) orchestrator.Error {
-	var unbackupableDeploymentsErrors []error
-	var unbackupableDeploymentNames []string
-
+func getAllDeployments(boshClient bosh.Client) ([]director.Deployment, error) {
 	allDeployments, err := boshClient.Director.Deployments()
 	if err != nil {
-		return orchestrator.NewError(err)
+		return nil, orchestrator.NewError(err)
 	}
 
 	fmt.Printf("Found %d deployments:\n", len(allDeployments))
@@ -87,6 +86,18 @@ func allDeploymentsBackupCheck(boshClient bosh.Client, backupChecker *orchestrat
 		fmt.Printf("%s\n", deployment.Name())
 	}
 	fmt.Println("-------------------------")
+
+	return allDeployments, nil
+}
+
+func allDeploymentsBackupCheck(boshClient bosh.Client, backupChecker *orchestrator.BackupChecker) orchestrator.Error {
+	var unbackupableDeploymentsErrors []error
+	var unbackupableDeploymentNames []string
+
+	allDeployments, err := getAllDeployments(boshClient)
+	if err != nil {
+		return orchestrator.NewError(err)
+	}
 
 	for _, deployment := range allDeployments {
 		errs := backupableCheck(backupChecker, deployment.Name())

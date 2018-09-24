@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"regexp"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
@@ -15,8 +16,6 @@ import (
 	"github.com/onsi/gomega/gexec"
 
 	"time"
-
-	"regexp"
 
 	"strings"
 
@@ -57,23 +56,8 @@ instance_groups:
     release: redis
 `
 
-	possibleBackupDirectories := func() []string {
-		dirs, err := ioutil.ReadDir(backupWorkspace)
-		Expect(err).NotTo(HaveOccurred())
-		backupDirectoryPattern := regexp.MustCompile(`\b` + deploymentName + `_(\d){8}T(\d){6}Z\b`)
-
-		matches := []string{}
-		for _, dir := range dirs {
-			dirName := dir.Name()
-			if backupDirectoryPattern.MatchString(dirName) {
-				matches = append(matches, dirName)
-			}
-		}
-		return matches
-	}
-
 	backupDirectory := func() string {
-		matches := possibleBackupDirectories()
+		matches := possibleBackupDirectories(deploymentName, backupWorkspace)
 
 		Expect(matches).To(HaveLen(1), "backup directory not found")
 		return path.Join(backupWorkspace, matches[0])
@@ -675,7 +659,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				Expect(session.ExitCode()).NotTo(BeZero(), "returns a non-zero exit code")
 				Expect(session.Err).To(gbytes.Say("Deployment '"+deploymentName+"' has no backup scripts"),
 					"prints an error")
-				Expect(possibleBackupDirectories()).To(HaveLen(0), "does not create a backup on disk")
+				Expect(possibleBackupDirectories(deploymentName, backupWorkspace)).To(HaveLen(0), "does not create a backup on disk")
 
 				By("not printing a recommendation to run bbr backup-cleanup", func() {
 					Expect(string(session.Err.Contents())).NotTo(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
@@ -985,7 +969,7 @@ backup_should_be_locked_before:
 					})
 
 					By("not creating a local backup artifact", func() {
-						Expect(possibleBackupDirectories()).To(BeEmpty(),
+						Expect(possibleBackupDirectories(deploymentName, backupWorkspace)).To(BeEmpty(),
 							"Should quit before creating any local backup artifact.")
 					})
 				})
@@ -1111,7 +1095,7 @@ backup_name: duplicate_name
 
 			It("fails correctly, and doesn't create artifacts", func() {
 				By("not creating a file with the duplicated backup name", func() {
-					Expect(len(possibleBackupDirectories())).To(Equal(0))
+					Expect(len(possibleBackupDirectories(deploymentName, backupWorkspace))).To(Equal(0))
 				})
 
 				By("refusing to perform backup", func() {
@@ -1204,8 +1188,150 @@ backup_name: name_2
 	})
 })
 
+var _ = Describe("backup --all-deployments", func() {
+	const deploymentName1 = "little-deployment-1"
+	const deploymentName2 = "little-deployment-2"
+
+	var director *mockhttp.Server
+	var backupWorkspace string
+	var session *gexec.Session
+	var instance1 *testcluster.Instance
+	var instance2 *testcluster.Instance
+	manifest := `---
+instance_groups:
+- name: redis
+  instances: 1
+  jobs:
+  - name: redis
+    release: redis
+`
+
+	backupDirectory := func(deploymentName, backupWorkspace string) string {
+		matches := possibleBackupDirectories(deploymentName, backupWorkspace)
+
+		Expect(matches).To(HaveLen(1), "backup directory not found")
+		return path.Join(backupWorkspace, matches[0])
+	}
+
+	BeforeEach(func() {
+		director = mockbosh.NewTLS()
+		director.ExpectedBasicAuth("admin", "admin")
+		var err error
+		backupWorkspace, err = ioutil.TempDir(".", "backup-workspace-")
+		Expect(err).NotTo(HaveOccurred())
+
+		instance1 = testcluster.NewInstance()
+		instance2 = testcluster.NewInstance()
+	})
+
+	AfterEach(func() {
+		director.VerifyMocks()
+		director.Close()
+
+		instance1.DieInBackground()
+		instance2.DieInBackground()
+		Expect(os.RemoveAll(backupWorkspace)).To(Succeed())
+	})
+
+	JustBeforeEach(func() {
+		params := []string{
+			"deployment",
+			"--ca-cert", sslCertPath,
+			"--username", "admin",
+			"--password", "admin",
+			"--target", director.URL,
+			"--all-deployments",
+			"--debug",
+			"backup"}
+
+		session = binary.Run(backupWorkspace, []string{}, params...)
+	})
+
+	Context("when both deployments are backupable", func() {
+		const instanceGroupName = "redis"
+
+		BeforeEach(func() {
+			deploymentVMs := func(instanceGroupName string) []mockbosh.VMsOutput {
+				return []mockbosh.VMsOutput{
+					{
+						IPs:     []string{"10.0.0.1"},
+						JobName: instanceGroupName,
+						Index:   newIndex(0),
+						ID:      "fake-uuid",
+					},
+				}
+			}
+
+			director.VerifyAndMock(AppendBuilders(
+				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
+				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
+				Deployments([]string{deploymentName1, deploymentName2}),
+				VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
+				DownloadManifest(deploymentName1, manifest),
+				SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
+				CleanupSSH(deploymentName1, instanceGroupName),
+				VmsForDeployment(deploymentName2, deploymentVMs(instanceGroupName)),
+				DownloadManifest(deploymentName2, manifest),
+				SetupSSH(deploymentName2, instanceGroupName, "fake-uuid", 0, instance1),
+				CleanupSSH(deploymentName2, instanceGroupName),
+			)...)
+
+			instance1.CreateExecutableFiles(
+				"/var/vcap/jobs/redis/bin/bbr/backup",
+			)
+
+			instance2.CreateExecutableFiles(
+				"/var/vcap/jobs/redis/bin/bbr/backup",
+			)
+		})
+
+		It("backs up both deployments and prints process to the screen", func() {
+			By("backing up both deployments successfully", func() {
+				Expect(session.ExitCode()).To(BeZero())
+
+				deployment1Artifact := backupDirectory(deploymentName1, backupWorkspace)
+				Expect(deployment1Artifact).To(BeADirectory())
+				Expect(path.Join(deployment1Artifact, "/redis-0-redis.tar")).To(BeARegularFile())
+
+				deployment2Artifact := backupDirectory(deploymentName2, backupWorkspace)
+				Expect(deployment2Artifact).To(BeADirectory())
+				Expect(path.Join(deployment2Artifact, "/redis-0-redis.tar")).To(BeARegularFile())
+			})
+
+			By("printing the backup progress to the screen", func() {
+				assertOutput(session.Out, []string{
+					fmt.Sprintf("Found 2 deployments:"),
+					fmt.Sprintf(deploymentName1),
+					fmt.Sprintf(deploymentName2),
+					fmt.Sprintf("Starting backup of %s...", deploymentName1),
+					fmt.Sprintf("Backup created of %s on", deploymentName1),
+					fmt.Sprintf("Starting backup of %s...", deploymentName2),
+					fmt.Sprintf("Backup created of %s on", deploymentName2),
+					fmt.Sprintf("All 2 deployments backed up."),
+				})
+			})
+		})
+
+	})
+})
+
 func assertOutput(b *gbytes.Buffer, strings []string) {
 	for _, str := range strings {
 		Expect(string(b.Contents())).To(ContainSubstring(str))
 	}
+}
+
+func possibleBackupDirectories(deploymentName, backupWorkspace string) []string {
+	dirs, err := ioutil.ReadDir(backupWorkspace)
+	Expect(err).NotTo(HaveOccurred())
+	backupDirectoryPattern := regexp.MustCompile(`\b` + deploymentName + `_(\d){8}T(\d){6}Z\b`)
+
+	matches := []string{}
+	for _, dir := range dirs {
+		dirName := dir.Name()
+		if backupDirectoryPattern.MatchString(dirName) {
+			matches = append(matches, dirName)
+		}
+	}
+	return matches
 }
