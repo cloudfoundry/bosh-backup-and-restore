@@ -14,6 +14,9 @@ We use [dep](https://github.com/golang/dep) to manage our dependencies, so run:
 
 1. `go get github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr`
 1. `cd $GOPATH/src/github.com/cloudfoundry-incubator/bosh-backup-and-restore`
+1. `go get -u github.com/cloudfoundry/bosh-cli`
+1. `go get -u github.com/maxbrunsfeld/counterfeiter`
+1. `go get -u github.com/onsi/ginkgo/ginkgo`
 1. `make setup`
 
 You're good to go. Run tests locally with `make test`.

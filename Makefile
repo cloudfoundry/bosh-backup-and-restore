@@ -30,9 +30,6 @@ generate:
 
 setup:
 	dep ensure
-	go get -u github.com/cloudfoundry/bosh-cli
-	go get -u github.com/maxbrunsfeld/counterfeiter
-	go get -u github.com/onsi/ginkgo/ginkgo
 
 sys-test-local: sys-test-local-deployment sys-test-local-director
 
