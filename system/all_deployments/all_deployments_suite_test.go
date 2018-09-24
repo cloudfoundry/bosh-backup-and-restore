@@ -1,4 +1,4 @@
-package bosh_team_test
+package all_deployments_tests
 
 import (
 	"testing"
@@ -26,5 +26,5 @@ var _ = BeforeSuite(func() {
 
 func TestBoshTeam(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "BoshTeam Suite")
+	RunSpecs(t, "All Deployments Suite")
 }

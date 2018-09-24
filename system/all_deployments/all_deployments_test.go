@@ -1,4 +1,4 @@
-package bosh_team_test
+package all_deployments_tests
 
 import (
 	"os/exec"
@@ -11,8 +11,7 @@ import (
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 )
 
-var _ = Describe("BoshTeam", func() {
-
+var _ = Describe("All deployments", func() {
 	It("Can run pre-backup-check on all deployments", func() {
 		cmd := exec.Command(
 			commandPath,
@@ -31,6 +30,6 @@ var _ = Describe("BoshTeam", func() {
 		Expect(session.Out).To(gbytes.Say("Deployment 'redis-1' can be backed up."))
 		Expect(session.Out).To(gbytes.Say("Deployment 'redis-2' can be backed up."))
 		Expect(session.Out).To(gbytes.Say("Deployment 'redis-3' can be backed up."))
-		Expect(session.Out).To(gbytes.Say("Found 3 Deployments that can be backed up"))
+		Expect(session.Out).To(gbytes.Say("All 3 deployments can be backed up"))
 	})
 })
