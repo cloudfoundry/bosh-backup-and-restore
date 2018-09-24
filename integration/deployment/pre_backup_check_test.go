@@ -363,8 +363,6 @@ backup_should_be_locked_before:
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName1 + "' can be backed up."))
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName2 + "' cannot be backed up."))
 				Expect(session.Out).To(gbytes.Say("1 out of 2 deployments cannot be backed up"))
-				Expect(session.Out).To(gbytes.Say("The following deployments cannot be backed up:\n%s", deploymentName2))
-
 			})
 		})
 
@@ -444,7 +442,6 @@ backup_should_be_locked_before:
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName1 + "' can be backed up."))
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName2 + "' cannot be backed up."))
 				Expect(session.Out).To(gbytes.Say("1 out of 2 deployments cannot be backed up"))
-				Expect(session.Out).To(gbytes.Say("The following deployments cannot be backed up:\n%s", deploymentName2))
 			})
 		})
 	})
