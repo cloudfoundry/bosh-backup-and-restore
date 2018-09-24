@@ -75,7 +75,7 @@ func backupableCheck(backupChecker *orchestrator.BackupChecker, deployment strin
 
 func allDeploymentsBackupCheck(boshClient bosh.Client, backupChecker *orchestrator.BackupChecker) orchestrator.Error {
 	var unbackupableDeploymentsErrors []error
-	var unbackupableDeploymentsCount int
+	var unbackupableDeploymentNames []string
 
 	allDeployments, err := boshClient.Director.Deployments()
 	if err != nil {
@@ -86,15 +86,19 @@ func allDeploymentsBackupCheck(boshClient bosh.Client, backupChecker *orchestrat
 		errs := backupableCheck(backupChecker, deployment.Name())
 		if errs != nil {
 			unbackupableDeploymentsErrors = append(unbackupableDeploymentsErrors, errs...)
-			unbackupableDeploymentsCount++
+			unbackupableDeploymentNames = append(unbackupableDeploymentNames, deployment.Name())
 		}
 	}
 
-	fmt.Printf("Found %d Deployments that can be backed up\n", len(allDeployments)-unbackupableDeploymentsCount)
 	if unbackupableDeploymentsErrors != nil {
-		fmt.Println("Not all deployments can be backed up")
+		fmt.Printf("%d out of %d deployments cannot be backed up.\n", len(unbackupableDeploymentNames), len(allDeployments))
+		fmt.Println("The following deployments cannot be backed up:")
+		for _, deploymentName := range unbackupableDeploymentNames {
+			fmt.Println(deploymentName)
+		}
 		return unbackupableDeploymentsErrors
 	}
 
+	fmt.Printf("All %d deployments can be backed up.\n", len(allDeployments))
 	return nil
 }

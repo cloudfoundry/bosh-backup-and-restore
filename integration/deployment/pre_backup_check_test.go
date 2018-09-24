@@ -317,7 +317,7 @@ backup_should_be_locked_before:
 			It("outputs a log message saying the deployments can be backed up", func() {
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName1 + "' can be backed up."))
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName2 + "' can be backed up."))
-				Expect(session.Out).To(gbytes.Say("Found 2 Deployments that can be backed up"))
+				Expect(session.Out).To(gbytes.Say("All 2 deployments can be backed up"))
 			})
 		})
 
@@ -362,8 +362,8 @@ backup_should_be_locked_before:
 			It("outputs a log about which deployments can be backed up", func() {
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName1 + "' can be backed up."))
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName2 + "' cannot be backed up."))
-				Expect(session.Out).To(gbytes.Say("Found 1 Deployments that can be backed up"))
-				Expect(session.Out).To(gbytes.Say("Not all deployments can be backed up"))
+				Expect(session.Out).To(gbytes.Say("1 out of 2 deployments cannot be backed up"))
+				Expect(session.Out).To(gbytes.Say("The following deployments cannot be backed up:\n%s", deploymentName2))
 
 			})
 		})
@@ -443,7 +443,8 @@ backup_should_be_locked_before:
 			It("outputs a log message saying which deployments can be backed up", func() {
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName1 + "' can be backed up."))
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName2 + "' cannot be backed up."))
-				Expect(session.Out).To(gbytes.Say("Found 1 Deployments that can be backed up"))
+				Expect(session.Out).To(gbytes.Say("1 out of 2 deployments cannot be backed up"))
+				Expect(session.Out).To(gbytes.Say("The following deployments cannot be backed up:\n%s", deploymentName2))
 			})
 		})
 	})
