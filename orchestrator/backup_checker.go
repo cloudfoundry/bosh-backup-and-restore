@@ -19,10 +19,10 @@ func NewBackupChecker(logger Logger, deploymentManager DeploymentManager, lockOr
 	}
 }
 
-func (b BackupChecker) CanBeBackedUp(deploymentName string) (bool, Error) {
+func (b BackupChecker) Check(deploymentName string) Error {
 	session := NewSession(deploymentName)
 
 	err := b.Workflow.Run(session)
 
-	return err == nil, err
+	return err
 }

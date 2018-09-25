@@ -65,14 +65,14 @@ func getDeploymentParams(c *cli.Context) (string, string, string, string, bool, 
 }
 
 func backupableCheck(backupChecker *orchestrator.BackupChecker, deployment string) orchestrator.Error {
-	backupable, checkErr := backupChecker.CanBeBackedUp(deployment)
-	if backupable {
-		fmt.Printf("Deployment '%s' can be backed up.\n", deployment)
-		return nil
-	} else {
+	err := backupChecker.Check(deployment)
+	if err != nil {
 		fmt.Printf("Deployment '%s' cannot be backed up.\n", deployment)
-		return checkErr
+		return err
 	}
+
+	fmt.Printf("Deployment '%s' can be backed up.\n", deployment)
+	return nil
 }
 
 func getAllDeployments(boshClient bosh.Client) ([]director.Deployment, error) {

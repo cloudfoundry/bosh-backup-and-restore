@@ -33,13 +33,13 @@ func (checkCommand DirectorPreBackupCheckCommand) Action(c *cli.Context) error {
 		c.GlobalBool("debug"),
 	)
 
-	backupable, checkErr := backupChecker.CanBeBackedUp(directorName)
+	err := backupChecker.Check(directorName)
 
-	if backupable {
-		fmt.Printf("Director can be backed up.\n")
-		return cli.NewExitError("", 0)
-	} else {
+	if err != nil {
 		fmt.Printf("Director cannot be backed up.\n")
-		return processError(checkErr)
+		return processError(err)
 	}
+
+	fmt.Printf("Director can be backed up.\n")
+	return cli.NewExitError("", 0)
 }

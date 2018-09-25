@@ -10,7 +10,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
 )
 
-var _ = Describe("CanBeBackedUp", func() {
+var _ = Describe("Check", func() {
 	var (
 		b                        *orchestrator.BackupChecker
 		deployment               *fakes.FakeDeployment
@@ -18,7 +18,6 @@ var _ = Describe("CanBeBackedUp", func() {
 		logger                   *fakes.FakeLogger
 		lockOrderer              *fakes.FakeLockOrderer
 		deploymentName           = "foobarbaz"
-		isDeploymentBackupable   bool
 		actualCanBeBackedUpError error
 	)
 
@@ -30,7 +29,7 @@ var _ = Describe("CanBeBackedUp", func() {
 	})
 
 	JustBeforeEach(func() {
-		isDeploymentBackupable, actualCanBeBackedUpError = b.CanBeBackedUp(deploymentName)
+		actualCanBeBackedUpError = b.Check(deploymentName)
 	})
 
 	Context("when the deployment can be backed up", func() {
@@ -41,8 +40,8 @@ var _ = Describe("CanBeBackedUp", func() {
 			deployment.CleanupReturns(nil)
 		})
 
-		It("returns true", func() {
-			Expect(isDeploymentBackupable).To(BeTrue())
+		It("succeeds", func() {
+			Expect(actualCanBeBackedUpError).NotTo(HaveOccurred())
 		})
 
 		It("finds the deployment", func() {
@@ -71,8 +70,8 @@ var _ = Describe("CanBeBackedUp", func() {
 			deployment.CleanupReturns(nil)
 		})
 
-		It("returns false", func() {
-			Expect(isDeploymentBackupable).To(BeFalse())
+		It("returns an error", func() {
+			Expect(actualCanBeBackedUpError).To(HaveOccurred())
 		})
 
 		It("attempts to find the deployment", func() {
