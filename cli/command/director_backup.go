@@ -20,7 +20,7 @@ func (checkCommand DirectorBackupCommand) Cli() cli.Command {
 		Action:  checkCommand.Action,
 		Flags: []cli.Flag{
 			cli.StringFlag{
-				Name: "artifact-path",
+				Name:  "artifact-path",
 				Usage: "Specify an optional path to save the backup artifacts to",
 			},
 		},

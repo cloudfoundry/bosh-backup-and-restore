@@ -321,51 +321,6 @@ backup_should_be_locked_before:
 			})
 		})
 
-		Context("and one deployment does not have backup scripts", func() {
-			deploymentName1 := "deployment1"
-			deploymentName2 := "deployment2"
-
-			BeforeEach(func() {
-				instance = testcluster.NewInstance()
-				instance2 = testcluster.NewInstance()
-
-				director.VerifyAndMock(AppendBuilders(
-					InfoWithBasicAuth(),
-					Deployments([]string{deploymentName1, deploymentName2}),
-					VmsForDeployment(deploymentName1, singleInstanceResponse("redis-dedicated-node")),
-					DownloadManifest(deploymentName1, manifest),
-					SetupSSH(deploymentName1, "redis-dedicated-node", "fake-uuid", 0, instance),
-					CleanupSSH(deploymentName1, "redis-dedicated-node"),
-
-					VmsForDeployment(deploymentName2, singleInstanceResponse("redis-dedicated-node")),
-					DownloadManifest(deploymentName2, manifest),
-					SetupSSH(deploymentName2, "redis-dedicated-node", "fake-uuid", 0, instance2),
-					CleanupSSH(deploymentName2, "redis-dedicated-node"),
-				)...)
-
-				makeBackupable(instance)
-			})
-
-			AfterEach(func() {
-				instance.DieInBackground()
-				instance2.DieInBackground()
-			})
-
-			It("exits non-zero", func() {
-				Expect(session.ExitCode()).NotTo(BeZero())
-			})
-
-			It("prints an error", func() {
-				Expect(session.Err).To(gbytes.Say("Deployment '%s' has no backup scripts", deploymentName2))
-			})
-
-			It("outputs a log about which deployments can be backed up", func() {
-				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName1 + "' can be backed up."))
-				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName2 + "' cannot be backed up."))
-				Expect(session.Out).To(gbytes.Say("1 out of 2 deployments cannot be backed up"))
-			})
-		})
-
 		Context("and fails to get deployments", func() {
 			BeforeEach(func() {
 				director.VerifyAndMock(AppendBuilders(
@@ -385,7 +340,6 @@ backup_should_be_locked_before:
 		})
 
 		Context("and the backup directory already exists on one of the deployments", func() {
-
 			deploymentName1 := "deployment1"
 			deploymentName2 := "deployment2"
 
@@ -422,11 +376,6 @@ backup_should_be_locked_before:
 				Expect(session.ExitCode()).To(Equal(1))
 			})
 
-			It("prints an error", func() {
-				Expect(session.Err).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid"))
-				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
-			})
-
 			It("writes the stack trace", func() {
 				files, err := filepath.Glob(filepath.Join(backupWorkspace, "bbr-*.err.log"))
 				Expect(err).NotTo(HaveOccurred())
@@ -436,12 +385,16 @@ backup_should_be_locked_before:
 				stackTrace, err := ioutil.ReadFile(logFilePath)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
+				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"), "output should not include stacktrace")
 			})
 
 			It("outputs a log message saying which deployments can be backed up", func() {
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName1 + "' can be backed up."))
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName2 + "' cannot be backed up."))
-				Expect(session.Out).To(gbytes.Say("1 out of 2 deployments cannot be backed up"))
+				Expect(session.Out).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid"))
+				Expect(session.Err).To(gbytes.Say("1 out of 2 deployments cannot be backed up:\n%s", deploymentName2))
+				Expect(session.Err).To(gbytes.Say("Deployment '%s':", deploymentName2))
+				Expect(session.Err).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid"))
 			})
 		})
 	})
