@@ -1264,7 +1264,6 @@ instance_groups:
 
 			director.VerifyAndMock(AppendBuilders(
 				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
-				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
 				Deployments([]string{deploymentName1, deploymentName2}),
 				VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
 				DownloadManifest(deploymentName1, manifest),
@@ -1312,6 +1311,127 @@ instance_groups:
 			})
 		})
 
+	})
+
+	Context("When the backuper fails to get the deployments", func() {
+		const instanceGroupName = "redis"
+
+		BeforeEach(func() {
+			director.VerifyAndMock(AppendBuilders(
+				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
+				DeploymentsFails("oups"),
+			)...)
+		})
+
+		It("returns an error", func() {
+			Expect(session.ExitCode()).NotTo(BeZero())
+			Expect(session.Out).To(gbytes.Say("oups"))
+		})
+	})
+
+	Context("when one of the deployments fails to backup", func() {
+		const instanceGroupName = "redis"
+
+		BeforeEach(func() {
+			deploymentVMs := func(instanceGroupName string) []mockbosh.VMsOutput {
+				return []mockbosh.VMsOutput{
+					{
+						IPs:     []string{"10.0.0.1"},
+						JobName: instanceGroupName,
+						Index:   newIndex(0),
+						ID:      "fake-uuid",
+					},
+				}
+			}
+
+			director.VerifyAndMock(AppendBuilders(
+				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
+				Deployments([]string{deploymentName1, deploymentName2}),
+				VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
+				DownloadManifest(deploymentName1, manifest),
+				SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
+				CleanupSSH(deploymentName1, instanceGroupName),
+				VmsForDeployment(deploymentName2, deploymentVMs(instanceGroupName)),
+				DownloadManifest(deploymentName2, manifest),
+				SetupSSH(deploymentName2, instanceGroupName, "fake-uuid", 0, instance2),
+				CleanupSSH(deploymentName2, instanceGroupName),
+			)...)
+
+			instance1.CreateScript(
+				"/var/vcap/jobs/redis/bin/bbr/backup", "echo 'ultra-bar'; (>&2 echo 'ultra-baz'); exit 1",
+			)
+
+			instance2.CreateExecutableFiles(
+				"/var/vcap/jobs/redis/bin/bbr/backup",
+			)
+		})
+
+		It("backups 1 deployment and alerts me to the failure on the second deployment", func() {
+			Expect(session.ExitCode()).NotTo(BeZero())
+			assertOutput(session.Out, []string{
+				fmt.Sprintf("Found 2 deployments:"),
+				fmt.Sprintf(deploymentName1),
+				fmt.Sprintf(deploymentName2),
+				fmt.Sprintf("Starting backup of %s...", deploymentName1),
+				"Error backing up redis on redis/fake-uuid",
+				fmt.Sprintf("Starting backup of %s...", deploymentName2),
+				fmt.Sprintf("Backup created of %s on", deploymentName2),
+			})
+
+			assertOutput(session.Err, []string{
+				"1 out of 2 deployments cannot be backed up",
+				fmt.Sprintf("%s", deploymentName1),
+				"Error attempting to run backup for job redis on redis/fake-uuid: ultra-baz - exit code 1",
+			})
+		})
+
+	})
+
+	Context("when one of the deployments fails to unlock", func() {
+		const instanceGroupName = "redis"
+
+		BeforeEach(func() {
+			deploymentVMs := func(instanceGroupName string) []mockbosh.VMsOutput {
+				return []mockbosh.VMsOutput{
+					{
+						IPs:     []string{"10.0.0.1"},
+						JobName: instanceGroupName,
+						Index:   newIndex(0),
+						ID:      "fake-uuid",
+					},
+				}
+			}
+
+			director.VerifyAndMock(AppendBuilders(
+				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
+				Deployments([]string{deploymentName1, deploymentName2}),
+				VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
+				DownloadManifest(deploymentName1, manifest),
+				SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
+				CleanupSSH(deploymentName1, instanceGroupName),
+				VmsForDeployment(deploymentName2, deploymentVMs(instanceGroupName)),
+				DownloadManifest(deploymentName2, manifest),
+				SetupSSH(deploymentName2, instanceGroupName, "fake-uuid", 0, instance2),
+				CleanupSSH(deploymentName2, instanceGroupName),
+			)...)
+
+			instance1.CreateExecutableFiles(
+				"/var/vcap/jobs/redis/bin/bbr/backup",
+			)
+
+			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
+>&2 echo 'I failed'
+exit 1`)
+
+			instance2.CreateExecutableFiles(
+				"/var/vcap/jobs/redis/bin/bbr/backup",
+			)
+		})
+
+		It("fails and prints a backup cleanup advice", func() {
+			Expect(session.ExitCode()).NotTo(BeZero())
+			Expect(session.Err).To(gbytes.Say("It is recommended that you run `bbr deployment --all-deployments backup-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."))
+		})
 	})
 })
 

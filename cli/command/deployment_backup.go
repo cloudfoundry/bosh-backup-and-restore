@@ -3,6 +3,8 @@ package command
 import (
 	"fmt"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
+
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
@@ -35,23 +37,18 @@ func (d DeploymentBackupCommand) Cli() cli.Command {
 }
 
 func (d DeploymentBackupCommand) Action(c *cli.Context) error {
-
 	trapSigint(true)
 
 	username, password, target, caCert, debug, deployment, allDeployments := getDeploymentParams(c)
 	withManifest := c.Bool("with-manifest")
 	artifactPath := c.String("artifact-path")
 
-	backuper, err := factory.BuildDeploymentBackuper(target,
-		username,
-		password,
-		caCert,
-		withManifest,
-		debug,
-	)
+	logger := factory.BuildLogger(debug)
+	boshClient, err := factory.BuildBoshClient(target, username, password, caCert, logger)
 	if err != nil {
 		return processError(orchestrator.NewError(err))
 	}
+	backuper := factory.BuildDeploymentBackuper(withManifest, boshClient, logger)
 
 	if !allDeployments {
 		backupErr := backuper.Backup(deployment, artifactPath)
@@ -63,33 +60,30 @@ func (d DeploymentBackupCommand) Action(c *cli.Context) error {
 		}
 	}
 
-	return backupAll(backuper, target, username, password, caCert, artifactPath, debug)
+	return backupAll(backuper, boshClient, artifactPath)
 }
 
-func backupAll(backuper *orchestrator.Backuper, target, username, password, caCert, artifactPath string, debug bool) error {
-	logger := factory.BuildLogger(debug)
-	boshClient, err := factory.BuildBoshClient(target, username, password, caCert, logger)
-	if err != nil {
-		return processError(orchestrator.NewError(err))
-	}
-
+func backupAll(backuper *orchestrator.Backuper, boshClient bosh.Client, artifactPath string) error {
 	deployments, err := getAllDeployments(boshClient)
 	if err != nil {
 		return processError(orchestrator.NewError(err))
 	}
 
-	var errors orchestrator.Error
+	var unbackupableDeploymentsErrors []deploymentError
 	for _, deployment := range deployments {
-		err := backuper.Backup(deployment.Name(), artifactPath)
-		if err != nil {
-			errors = append(errors, err)
+		errs := backuper.Backup(deployment.Name(), artifactPath)
+		if errs != nil {
+			unbackupableDeploymentsErrors = append(unbackupableDeploymentsErrors, deploymentError{deployment: deployment.Name(), errs: errs})
 		}
+		fmt.Println("-------------------------")
 	}
-	if errors != nil {
-		if errors.ContainsUnlockOrCleanup() {
-			return processErrorWithFooter(errors, backupCleanupAdvisedNotice)
-		}
-		return processError(errors)
+	if unbackupableDeploymentsErrors != nil {
+		errMsg := fmt.Sprintf("%d out of %d deployments cannot be backed up:\n", len(unbackupableDeploymentsErrors), len(deployments))
+
+		//if errors.ContainsUnlockOrCleanup() {
+		//return processErrorWithFooter(errors, backupCleanupAdvisedNotice)
+		//}
+		return allDeploymentsError{summary: errMsg, deploymentErrs: unbackupableDeploymentsErrors}.Process()
 	}
 
 	fmt.Printf("All %d deployments backed up.\n", len(deployments))

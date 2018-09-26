@@ -8,20 +8,11 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orderer"
+	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-func BuildDeploymentBackuper(target, username, password, caCert string, withManifest, hasDebug bool) (*orchestrator.Backuper, error) {
-	logger := BuildLogger(hasDebug)
-	boshClient, err := BuildBoshClient(
-		target,
-		username,
-		password,
-		caCert,
-		logger,
-	)
-	if err != nil {
-		return nil, err
-	}
+func BuildDeploymentBackuper(withManifest bool, boshClient bosh.Client, logger boshlog.Logger) *orchestrator.Backuper {
+
 	execr := executor.NewParallelExecutor()
 
 	return orchestrator.NewBackuper(
