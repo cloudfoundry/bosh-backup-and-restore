@@ -19,21 +19,38 @@ type allDeploymentsError struct {
 	deploymentErrs []deploymentError
 }
 
+func ContainsUnlockOrCleanup(deploymentErrs []deploymentError) bool {
+	for _, errs := range deploymentErrs {
+		if errs.errs.ContainsUnlockOrCleanup() {
+			return true
+		}
+	}
+	return false
+}
+
 func (a allDeploymentsError) Error() string {
 	return ""
 }
 
 func (a allDeploymentsError) Process() error {
+	return a.ProcessWithFooter("")
+}
+
+func (a allDeploymentsError) ProcessWithFooter(footer string) error {
 	msg := fmt.Sprintln(a.summary)
 	msgWithStackTrace := msg
 
 	for _, err := range a.deploymentErrs {
 		msg = msg + fmt.Sprintf("Deployment '%s': %s\n", err.deployment, err.errs.Error())
-		msgWithStackTrace = msgWithStackTrace + fmt.Sprintf("%s: %s\n", err.deployment, err.errs.PrettyError(true))
+		msgWithStackTrace = msgWithStackTrace + fmt.Sprintf("Deployment %s: %s\n", err.deployment, err.errs.PrettyError(true))
 	}
 
 	if writeStackTrace(msgWithStackTrace) != nil {
-		return cli.NewExitError(msgWithStackTrace, 1)
+		msg = msgWithStackTrace
+	}
+
+	if footer != "" {
+		msg = msg + "\n" + footer
 	}
 
 	return cli.NewExitError(msg, 1)

@@ -1314,8 +1314,6 @@ instance_groups:
 	})
 
 	Context("When the backuper fails to get the deployments", func() {
-		const instanceGroupName = "redis"
-
 		BeforeEach(func() {
 			director.VerifyAndMock(AppendBuilders(
 				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},

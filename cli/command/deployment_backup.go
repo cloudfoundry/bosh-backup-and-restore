@@ -80,9 +80,9 @@ func backupAll(backuper *orchestrator.Backuper, boshClient bosh.Client, artifact
 	if unbackupableDeploymentsErrors != nil {
 		errMsg := fmt.Sprintf("%d out of %d deployments cannot be backed up:\n", len(unbackupableDeploymentsErrors), len(deployments))
 
-		//if errors.ContainsUnlockOrCleanup() {
-		//return processErrorWithFooter(errors, backupCleanupAdvisedNotice)
-		//}
+		if ContainsUnlockOrCleanup(unbackupableDeploymentsErrors) {
+			return allDeploymentsError{summary: errMsg, deploymentErrs: unbackupableDeploymentsErrors}.ProcessWithFooter(backupCleanupAllDeploymentsAdvisedNotice)
+		}
 		return allDeploymentsError{summary: errMsg, deploymentErrs: unbackupableDeploymentsErrors}.Process()
 	}
 
