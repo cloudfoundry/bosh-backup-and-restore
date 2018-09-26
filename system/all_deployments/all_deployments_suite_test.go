@@ -1,6 +1,8 @@
 package all_deployments_tests
 
 import (
+	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -13,6 +15,7 @@ import (
 var (
 	commandPath string
 	err         error
+	tempDirPath string
 )
 
 var _ = BeforeSuite(func() {
@@ -22,6 +25,11 @@ var _ = BeforeSuite(func() {
 	commandPath, err = gexec.Build("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr")
 	Expect(err).NotTo(HaveOccurred())
 
+	tempDirPath, err = ioutil.TempDir("", "all_deployments")
+})
+
+var _ = AfterSuite(func() {
+	os.RemoveAll(tempDirPath)
 })
 
 func TestBoshTeam(t *testing.T) {

@@ -6,10 +6,11 @@ import (
 
 	"fmt"
 
+	"os"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	"os"
 )
 
 type Deployment struct {
@@ -48,7 +49,6 @@ func (d Deployment) runBosh(args ...string) *gexec.Session {
 	MustHaveEnv("BOSH_CA_CERT")
 
 	boshCommand := fmt.Sprintf("bosh-cli --non-interactive --deployment=%s", d.Name)
-
 	return run(boshCommand, args...)
 }
 
@@ -57,7 +57,6 @@ func run(cmd string, args ...string) *gexec.Session {
 	commandPath := cmdParts[0]
 	combinedArgs := append(cmdParts[1:], args...)
 	command := exec.Command(commandPath, combinedArgs...)
-
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 
 	Expect(err).ToNot(HaveOccurred())
@@ -70,7 +69,6 @@ func (i Instance) RunCommand(command string) *gexec.Session {
 		MustHaveEnv("BOSH_GW_USER")
 		MustHaveEnv("BOSH_GW_PRIVATE_KEY")
 	}
-
 	return i.deployment.runBosh("ssh", i.Group+"/"+i.Index, command)
 }
 
