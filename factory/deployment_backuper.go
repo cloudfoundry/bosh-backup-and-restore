@@ -23,5 +23,5 @@ func BuildDeploymentBackuper(withManifest bool, boshClient bosh.Client, logger b
 		execr,
 		time.Now,
 		orchestrator.NewArtifactCopier(execr, logger),
-	), nil
+	)
 }
