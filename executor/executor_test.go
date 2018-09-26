@@ -3,9 +3,9 @@ package executor_test
 import (
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor/fakes"
 	"github.com/pkg/errors"
 )
 

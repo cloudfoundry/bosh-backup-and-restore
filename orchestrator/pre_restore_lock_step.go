@@ -1,8 +1,8 @@
 package orchestrator
 
 import (
-	"github.com/pkg/errors"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
+	"github.com/pkg/errors"
 )
 
 type PreRestoreLockStep struct {

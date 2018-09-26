@@ -15,12 +15,12 @@ import (
 
 var _ = Describe("BackupUploadExecutable", func() {
 	var (
-		executable     executor.Executable
-		backup         *fakes.FakeBackup
-		remoteArtifact *fakes.FakeBackupArtifact
-		instance       *fakes.FakeInstance
-		logger         *fakes.FakeLogger
-		actualError    error
+		executable                executor.Executable
+		backup                    *fakes.FakeBackup
+		remoteArtifact            *fakes.FakeBackupArtifact
+		instance                  *fakes.FakeInstance
+		logger                    *fakes.FakeLogger
+		actualError               error
 		localBackupArtifactReader io.ReadCloser
 	)
 	BeforeEach(func() {
@@ -28,7 +28,6 @@ var _ = Describe("BackupUploadExecutable", func() {
 		remoteArtifact = new(fakes.FakeBackupArtifact)
 		instance = new(fakes.FakeInstance)
 		logger = new(fakes.FakeLogger)
-
 
 		localBackupArtifactReader = ioutil.NopCloser(bytes.NewBufferString("this-is-some-backup-data"))
 		backup.ReadArtifactReturns(localBackupArtifactReader, nil)

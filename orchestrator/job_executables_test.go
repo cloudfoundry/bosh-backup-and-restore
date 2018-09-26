@@ -11,8 +11,8 @@ import (
 
 var _ = Describe("JobExecutables", func() {
 	var (
-		fakeJob *fakes.FakeJob
-		err     error
+		fakeJob    *fakes.FakeJob
+		err        error
 		executable executor.Executable
 	)
 

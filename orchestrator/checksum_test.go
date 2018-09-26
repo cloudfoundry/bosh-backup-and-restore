@@ -14,13 +14,12 @@ var _ = Describe("Backuper/Checksum", func() {
 	Describe("Match", func() {
 		Context("if the checksums don't match", func() {
 
-
-			BeforeEach(func(){
+			BeforeEach(func() {
 				match, files = BackupChecksum{
 					"/var/foo": "checksum1",
 					"/var/bar": "checksum2",
 					"/var/baz": "checksum3",
-					}.Match(BackupChecksum{
+				}.Match(BackupChecksum{
 					"/var/foo": "checksum11111111",
 					"/var/bar": "checksum22222222",
 					"/var/baz": "checksum3",
@@ -35,7 +34,6 @@ var _ = Describe("Backuper/Checksum", func() {
 				Expect(files).To(ConsistOf("/var/foo", "/var/bar"))
 			})
 		})
-
 
 		Context("if the checksums match", func() {
 			It("returns true", func() {

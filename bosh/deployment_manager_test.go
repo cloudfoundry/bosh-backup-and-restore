@@ -5,11 +5,11 @@ import (
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh/fakes"
 	orchestrator_fakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("DeploymentManager", func() {

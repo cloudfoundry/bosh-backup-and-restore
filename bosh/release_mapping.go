@@ -5,8 +5,8 @@ import (
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cppforlife/go-patch/patch"
-	"gopkg.in/yaml.v1"
 	"github.com/pkg/errors"
+	"gopkg.in/yaml.v1"
 )
 
 type ManifestReleaseMapping struct {

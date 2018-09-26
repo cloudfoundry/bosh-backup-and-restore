@@ -6,11 +6,11 @@ import (
 
 	"testing"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
-	"crypto/rsa"
 	"crypto/rand"
-	"encoding/pem"
+	"crypto/rsa"
 	"crypto/x509"
+	"encoding/pem"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 )
 
 func TestSsh(t *testing.T) {

@@ -72,4 +72,3 @@ func (jobs Jobs) CustomRestoreArtifactNames() []string {
 func (jobs Jobs) empty() bool {
 	return len(jobs) == 0
 }
-

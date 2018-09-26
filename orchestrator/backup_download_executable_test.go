@@ -1,22 +1,22 @@
 package orchestrator_test
 
 import (
+	"fmt"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"fmt"
 )
 
 var _ = Describe("BackupDownloadExecutable", func() {
 	var (
-		executable     executor.Executable
-		localBackup    *fakes.FakeBackup
-		remoteArtifact *fakes.FakeBackupArtifact
-		logger         *fakes.FakeLogger
+		executable                executor.Executable
+		localBackup               *fakes.FakeBackup
+		remoteArtifact            *fakes.FakeBackupArtifact
+		logger                    *fakes.FakeLogger
 		localBackupArtifactWriter *fakes.FakeWriteCloser
-		actualError    error
+		actualError               error
 	)
 	BeforeEach(func() {
 		localBackup = new(fakes.FakeBackup)
