@@ -1431,6 +1431,20 @@ exit 1`)
 			Expect(session.Err).To(gbytes.Say("It is recommended that you run `bbr deployment --all-deployments backup-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."))
 		})
 	})
+
+	Context("when there are no deployments", func() {
+		BeforeEach(func() {
+			director.VerifyAndMock(AppendBuilders(
+				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
+				Deployments([]string{}),
+			)...)
+		})
+
+		It("fails", func() {
+			Expect(session.ExitCode()).NotTo(BeZero())
+			Expect(session.Err).To(gbytes.Say("Failed to find any deployments"))
+		})
+	})
 })
 
 func assertOutput(b *gbytes.Buffer, strings []string) {

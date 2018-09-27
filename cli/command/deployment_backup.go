@@ -3,6 +3,8 @@ package command
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
+
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
@@ -67,6 +69,9 @@ func backupAll(backuper *orchestrator.Backuper, boshClient bosh.Client, artifact
 	deployments, err := getAllDeployments(boshClient)
 	if err != nil {
 		return processError(orchestrator.NewError(err))
+	}
+	if len(deployments) == 0 {
+		return processError(orchestrator.NewError(errors.New("Failed to find any deployments")))
 	}
 
 	var unbackupableDeploymentsErrors []deploymentError
