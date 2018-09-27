@@ -3,7 +3,7 @@ package command
 import (
 	"fmt"
 
-	"github.com/cloudfoundry/bosh-cli/director"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
@@ -38,12 +38,7 @@ func (d DeploymentPreBackupCheck) Action(c *cli.Context) error {
 	backupChecker := factory.BuildDeploymentBackupChecker(boshClient, logger, false)
 
 	if allDeployments {
-		allDeployments, err := getAllDeployments(boshClient)
-		if err != nil {
-			return processError(orchestrator.NewError(err))
-		}
-
-		errs := allDeploymentsBackupCheck(allDeployments, backupChecker)
+		errs := allDeploymentsBackupCheck(boshClient, backupChecker)
 		if errs != nil {
 			return errs
 		}
@@ -69,24 +64,18 @@ func backupableCheck(backupChecker *orchestrator.BackupChecker, deployment strin
 	return nil
 }
 
-func allDeploymentsBackupCheck(deployments []director.Deployment, backupChecker *orchestrator.BackupChecker) error {
-	var unbackupableDeploymentsErrors []deploymentError
-	for _, deployment := range deployments {
-		errs := backupableCheck(backupChecker, deployment.Name())
-		if errs != nil {
-			unbackupableDeploymentsErrors = append(unbackupableDeploymentsErrors, deploymentError{deployment: deployment.Name(), errs: errs})
-		}
-		fmt.Println("-------------------------")
+func allDeploymentsBackupCheck(boshClient bosh.Client, backupChecker *orchestrator.BackupChecker) error {
+	backupCheckerAction := func(deploymentName string) orchestrator.Error {
+		return backupableCheck(backupChecker, deploymentName)
 	}
 
-	if len(unbackupableDeploymentsErrors) != 0 {
-		errMsg := fmt.Sprintf("%d out of %d deployments cannot be backed up:\n", len(unbackupableDeploymentsErrors), len(deployments))
-		for _, deploymentErr := range unbackupableDeploymentsErrors {
-			errMsg = errMsg + fmt.Sprintln(deploymentErr.deployment)
-		}
-		return allDeploymentsError{summary: errMsg, deploymentErrs: unbackupableDeploymentsErrors}.Process()
+	errorHandler := func(deploymentError allDeploymentsError) error {
+		return deploymentError.Process()
 	}
 
-	fmt.Printf("All %d deployments can be backed up.\n", len(deployments))
-	return nil
+	return runForAllDeployments(backupCheckerAction,
+		boshClient,
+		"cannot be backed up",
+		"can be backed up",
+		errorHandler)
 }

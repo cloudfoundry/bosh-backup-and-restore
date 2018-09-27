@@ -1,7 +1,6 @@
 package command
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
@@ -50,36 +49,19 @@ func (d DeploymentBackupCleanupCommand) Action(c *cli.Context) error {
 
 }
 func cleanupAllDeployments(cleaner *orchestrator.BackupCleaner, boshClient bosh.Client) error {
-	deployments, err := getAllDeployments(boshClient)
-	if err != nil {
-		return processError(orchestrator.NewError(err))
+	cleanupAction := func(deploymentName string) orchestrator.Error {
+		return cleanup(cleaner, deploymentName)
 	}
 
-	if len(deployments) == 0 {
-		return processError(orchestrator.NewError(errors.New("Failed to find any deployments")))
+	errorHandler := func(deploymentError allDeploymentsError) error {
+		return deploymentError.Process()
 	}
-
-	var cleanupErrors []deploymentError
-
-	for _, deployment := range deployments {
-		err := cleanup(cleaner, deployment.Name())
-		if err != nil {
-			cleanupErrors = append(cleanupErrors, deploymentError{deployment: deployment.Name(), errs: err})
-		}
-		fmt.Println("-------------------------")
-	}
-
-	if len(cleanupErrors) != 0 {
-		errMsg := fmt.Sprintf("%d out of %d deployments could not be cleaned up:\n", len(cleanupErrors), len(deployments))
-		for _, cleanupErr := range cleanupErrors {
-			errMsg = errMsg + cleanupErr.deployment + "\n"
-		}
-		return allDeploymentsError{summary: errMsg, deploymentErrs: cleanupErrors}.Process()
-	}
-
-	fmt.Printf("All %d deployments were cleaned up.\n", len(deployments))
-	return cli.NewExitError("", 0)
-
+	return runForAllDeployments(
+		cleanupAction,
+		boshClient,
+		"could not be cleaned up",
+		"were cleaned up",
+		errorHandler)
 }
 
 func cleanup(cleaner *orchestrator.BackupCleaner, deployment string) orchestrator.Error {

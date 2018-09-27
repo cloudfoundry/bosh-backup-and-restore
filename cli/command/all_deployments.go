@@ -1,6 +1,7 @@
 package command
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
@@ -81,4 +82,41 @@ func getAllDeployments(boshClient bosh.Client) ([]director.Deployment, error) {
 	fmt.Println("-------------------------")
 
 	return allDeployments, nil
+}
+
+type actionFunc func(string) orchestrator.Error
+type errorHandleFunc func(deploymentsError allDeploymentsError) error
+
+func runForAllDeployments(action actionFunc, boshClient bosh.Client, summaryErrorMsg, summarySuccessMsg string, errorHandler errorHandleFunc) error {
+	deployments, err := getAllDeployments(boshClient)
+	if err != nil {
+		return processError(orchestrator.NewError(err))
+	}
+
+	if len(deployments) == 0 {
+		return processError(orchestrator.NewError(errors.New("Failed to find any deployments")))
+	}
+
+	var errs []deploymentError
+
+	for _, deployment := range deployments {
+		err := action(deployment.Name())
+		if err != nil {
+			errs = append(errs, deploymentError{deployment: deployment.Name(), errs: err})
+		}
+		fmt.Println("-------------------------")
+	}
+
+	if len(errs) != 0 {
+		errMsg := fmt.Sprintf("%d out of %d deployments %s:\n", len(errs), len(deployments), summaryErrorMsg)
+		for _, cleanupErr := range errs {
+			errMsg = errMsg + cleanupErr.deployment + "\n"
+		}
+
+		return errorHandler(allDeploymentsError{summary: errMsg, deploymentErrs: errs})
+	}
+
+	fmt.Printf("All %d deployments %s.\n", len(deployments), summarySuccessMsg)
+	return cli.NewExitError("", 0)
+
 }

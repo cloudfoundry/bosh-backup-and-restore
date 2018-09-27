@@ -84,7 +84,7 @@ instance_groups:
 		})
 	})
 
-	FContext("when running with --all-deployments", func() {
+	Context("when running with --all-deployments", func() {
 		Context("with multiple deployments", func() {
 			var session *gexec.Session
 			var instance1 *testcluster.Instance

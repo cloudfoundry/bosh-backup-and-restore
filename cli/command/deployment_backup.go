@@ -1,10 +1,6 @@
 package command
 
 import (
-	"fmt"
-
-	"github.com/pkg/errors"
-
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
@@ -66,33 +62,20 @@ func (d DeploymentBackupCommand) Action(c *cli.Context) error {
 }
 
 func backupAll(backuper *orchestrator.Backuper, boshClient bosh.Client, artifactPath string) error {
-	deployments, err := getAllDeployments(boshClient)
-	if err != nil {
-		return processError(orchestrator.NewError(err))
-	}
-	if len(deployments) == 0 {
-		return processError(orchestrator.NewError(errors.New("Failed to find any deployments")))
+	backupAction := func(deploymentName string) orchestrator.Error {
+		return backuper.Backup(deploymentName, artifactPath)
 	}
 
-	var unbackupableDeploymentsErrors []deploymentError
-
-	for _, deployment := range deployments {
-		errs := backuper.Backup(deployment.Name(), artifactPath)
-		if errs != nil {
-			unbackupableDeploymentsErrors = append(unbackupableDeploymentsErrors, deploymentError{deployment: deployment.Name(), errs: errs})
+	errorHandler := func(deploymentError allDeploymentsError) error {
+		if ContainsUnlockOrCleanup(deploymentError.deploymentErrs) {
+			return deploymentError.ProcessWithFooter(backupCleanupAllDeploymentsAdvisedNotice)
 		}
-		fmt.Println("-------------------------")
-	}
-	if unbackupableDeploymentsErrors != nil {
-		errMsg := fmt.Sprintf("%d out of %d deployments cannot be backed up:\n", len(unbackupableDeploymentsErrors), len(deployments))
-
-		if ContainsUnlockOrCleanup(unbackupableDeploymentsErrors) {
-			return allDeploymentsError{summary: errMsg, deploymentErrs: unbackupableDeploymentsErrors}.ProcessWithFooter(backupCleanupAllDeploymentsAdvisedNotice)
-		}
-		return allDeploymentsError{summary: errMsg, deploymentErrs: unbackupableDeploymentsErrors}.Process()
+		return deploymentError.Process()
 	}
 
-	fmt.Printf("All %d deployments backed up.\n", len(deployments))
-
-	return cli.NewExitError("", 0)
+	return runForAllDeployments(backupAction,
+		boshClient,
+		"cannot be backed up",
+		"backed up",
+		errorHandler)
 }

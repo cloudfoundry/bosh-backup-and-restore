@@ -321,6 +321,21 @@ backup_should_be_locked_before:
 			})
 		})
 
+		Context("and there are no deployments", func() {
+			BeforeEach(func() {
+				director.VerifyAndMock(AppendBuilders(
+					InfoWithBasicAuth(),
+					Deployments([]string{}),
+				)...)
+
+			})
+
+			It("fails", func() {
+				Expect(session.ExitCode()).NotTo(BeZero())
+				Expect(session.Err).To(gbytes.Say("Failed to find any deployments"))
+			})
+		})
+
 		Context("and fails to get deployments", func() {
 			BeforeEach(func() {
 				director.VerifyAndMock(AppendBuilders(
