@@ -483,6 +483,6 @@ func assertDeploymentHelpText(session *gexec.Session) {
 		gbytes.Say("--deployment"), gbytes.Say("Name of BOSH deployment. Omit if '--all-deployments' is provided"), gbytes.Say("BOSH_DEPLOYMENT"),
 		gbytes.Say("--ca-cert"), gbytes.Say("Path or value of BOSH Director custom CA certificate"), gbytes.Say("CA_CERT"), gbytes.Say("BOSH_CA_CERT"),
 		gbytes.Say("--debug"), gbytes.Say("Enable debug logs"),
-		gbytes.Say("--all-deployments"), gbytes.Say("Run command for all deployments. Omit if '--deployment' is provided. Currently only supported for: pre-backup-check"),
+		gbytes.Say("--all-deployments"), gbytes.Say("Run command for all deployments. Omit if '--deployment' is provided. Currently only supported for: pre-backup-check, backup and backup-cleanup"),
 	))
 }

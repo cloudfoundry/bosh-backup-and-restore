@@ -141,7 +141,7 @@ func availableDeploymentFlags() []cli.Flag {
 		},
 		cli.BoolFlag{
 			Name:  "all-deployments",
-			Usage: "Run command for all deployments. Omit if '--deployment' is provided. Currently only supported for: pre-backup-check",
+			Usage: "Run command for all deployments. Omit if '--deployment' is provided. Currently only supported for: pre-backup-check, backup and backup-cleanup",
 		},
 	}
 }
