@@ -75,6 +75,7 @@ func backupAll(backuper *orchestrator.Backuper, boshClient bosh.Client, artifact
 	}
 
 	var unbackupableDeploymentsErrors []deploymentError
+
 	for _, deployment := range deployments {
 		errs := backuper.Backup(deployment.Name(), artifactPath)
 		if errs != nil {
