@@ -160,13 +160,11 @@ var _ = Describe("All deployments", func() {
 			Eventually(session).Should(gexec.Exit(0))
 
 			By("providing debug output", func() {
-				//Expect(session.Out).To(gbytes.Say("Starting backup of redis-1"))
-				//Expect(session.Out).To(gbytes.Say("Backup created of redis-1"))
-				//Expect(session.Out).To(gbytes.Say("Starting backup of redis-2"))
-				//Expect(session.Out).To(gbytes.Say("Backup created of redis-2"))
-				//Expect(session.Out).To(gbytes.Say("Starting backup of redis-3"))
-				//Expect(session.Out).To(gbytes.Say("Backup created of redis-3"))
-				//Expect(session.Out).To(gbytes.Say("All 3 deployments backed up."))
+				Expect(session.Out).To(gbytes.Say("Found 3 deployments"))
+				Expect(session.Out).To(gbytes.Say("Cleaned up deployment 'redis-1'"))
+				Expect(session.Out).To(gbytes.Say("Cleaned up deployment 'redis-2'"))
+				Expect(session.Out).To(gbytes.Say("Cleaned up deployment 'redis-3'"))
+				Expect(session.Out).To(gbytes.Say("All 3 deployments were cleaned up"))
 			})
 
 			By("running the post backup unlock script", func() {
