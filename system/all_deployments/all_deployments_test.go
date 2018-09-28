@@ -14,8 +14,8 @@ import (
 )
 
 var _ = Describe("All deployments", func() {
-	Context("pre-backup-check", func() {
-		It("Can run pre-backup-check on all deployments", func() {
+	Context("when running pre-backup-check", func() {
+		It("runs pre-backup-check on all deployments", func() {
 			cmd := exec.Command(
 				commandPath,
 				"deployment",
@@ -38,7 +38,7 @@ var _ = Describe("All deployments", func() {
 		})
 	})
 
-	Context("backup", func() {
+	Context("when running backup", func() {
 		var redisInstance1 Instance
 		var redisInstance2 Instance
 		var redisInstance3 Instance
@@ -64,7 +64,7 @@ var _ = Describe("All deployments", func() {
 			cleanupLockScriptOutput(redisInstance3)
 		})
 
-		It("Can run backup on all deployments", func() {
+		It("backs up all deployments", func() {
 			cmd := exec.Command(
 				commandPath,
 				"deployment",
@@ -122,7 +122,7 @@ var _ = Describe("All deployments", func() {
 
 	})
 
-	Context("backup-cleanup", func() {
+	Context("when running backup-cleanup", func() {
 		var redisInstance1 Instance
 		var redisInstance2 Instance
 		var redisInstance3 Instance
@@ -142,7 +142,7 @@ var _ = Describe("All deployments", func() {
 			cleanupLockScriptOutput(redisInstance3)
 		})
 
-		It("Can run backup-cleanup on all deployments", func() {
+		It("cleans up all deployments", func() {
 			cmd := exec.Command(
 				commandPath,
 				"deployment",
