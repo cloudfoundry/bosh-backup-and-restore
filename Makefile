@@ -77,6 +77,19 @@ sys-test-bosh-all-proxy-ci: setup
 	TEST_ENV=ci \
 	ginkgo -r -v -trace system/bosh_all_proxy
 
+sys-test-bosh-all-proxy-local:
+    BOSH_ENVIRONMENT=https://genesis-bosh.backup-and-restore.cf-app.com \
+    BOSH_GW_HOST=genesis-bosh.backup-and-restore.cf-app.com:22 \
+    BOSH_CLIENT_SECRET=`lpass show GenesisBoshDirectorGCP --password` \
+    BOSH_CLIENT=admin \
+    BOSH_CA_CERT=~/workspace/bosh-backup-and-restore-meta/certs/genesis-bosh.backup-and-restore.cf-app.com.crt \
+    BOSH_GW_PRIVATE_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
+    BOSH_GW_USER=vcap \
+    SSH_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
+    HOST_TO_BACKUP=10.0.0.8 \
+    TEST_ENV=ci \
+    ginkgo -r -v -trace system/bosh_all_proxy
+
 sys-test-local-with-uaa:
 	BOSH_ENVIRONMENT=https://lite-bosh-uaa.backup-and-restore.cf-app.com \
 	BOSH_GW_HOST=lite-bosh-uaa.backup-and-restore.cf-app.com \

@@ -13,7 +13,7 @@ import (
 
 var _ = Describe("BoshAllProxy", func() {
 
-	It("does not fail using BOSH_ALL_PROXY", func() {
+	It("backs up the deployment using BOSH_ALL_PROXY", func() {
 		boshAllProxy := fmt.Sprintf(
 			"ssh+socks5://%s@%s?private-key=%s",
 			MustHaveEnv("BOSH_GW_USER"),
@@ -29,6 +29,32 @@ var _ = Describe("BoshAllProxy", func() {
 			"--password", MustHaveEnv("BOSH_CLIENT_SECRET"),
 			"--target", MustHaveEnv("BOSH_ENVIRONMENT"),
 			"--deployment", "many-bbr-scripts",
+			"backup",
+		)
+		cmd.Env = append(cmd.Env, fmt.Sprintf("BOSH_ALL_PROXY=%s", boshAllProxy))
+
+		fmt.Println("BOSH_ALL_PROXY=", boshAllProxy, " bbr ", cmd.Args)
+
+		session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+		Expect(err).NotTo(HaveOccurred())
+
+		Eventually(session).Should(gexec.Exit(0))
+	})
+
+	It("backs up the director using BOSH_ALL_PROXY", func() {
+		boshAllProxy := fmt.Sprintf(
+			"ssh+socks5://%s@%s?private-key=%s",
+			MustHaveEnv("BOSH_GW_USER"),
+			MustHaveEnv("BOSH_GW_HOST"),
+			MustHaveEnv("BOSH_GW_PRIVATE_KEY"),
+		)
+
+		cmd := exec.Command(
+			commandPath,
+			"director",
+			"--username", "vcap",
+			"--private-key-path", MustHaveEnv("SSH_KEY"),
+			"--host", MustHaveEnv("HOST_TO_BACKUP"),
 			"backup",
 		)
 		cmd.Env = append(cmd.Env, fmt.Sprintf("BOSH_ALL_PROXY=%s", boshAllProxy))
