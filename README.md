@@ -12,7 +12,7 @@ BBR build status [![BBR Build Status Badge](https://backup-and-restore.ci.cf-app
 
 We use [dep](https://github.com/golang/dep) to manage our dependencies, so run:
 
-1. `go get github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr`
+1. `git clone git@github.com:cloudfoundry-incubator/bosh-backup-and-restore.git $GOPATH/src/github.com/cloudfoundry-incubator/bosh-backup-and-restore`
 1. `cd $GOPATH/src/github.com/cloudfoundry-incubator/bosh-backup-and-restore`
 1. `go get -u github.com/cloudfoundry/bosh-cli`
 1. `go get -u github.com/maxbrunsfeld/counterfeiter`
