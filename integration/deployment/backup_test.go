@@ -32,6 +32,7 @@ var _ = Describe("Backup", func() {
 	var deploymentName string
 	var downloadManifest bool
 	var waitForBackupToFinish bool
+	var artifactPath string
 	var verifyMocks bool
 	var instance1 *testcluster.Instance
 	manifest := `---
@@ -81,6 +82,7 @@ instance_groups:
 		var err error
 		backupWorkspace, err = ioutil.TempDir(".", "backup-workspace-")
 		Expect(err).NotTo(HaveOccurred())
+		artifactPath = ""
 	})
 
 	AfterEach(func() {
@@ -107,6 +109,10 @@ instance_groups:
 
 		if downloadManifest {
 			params = append(params, "--with-manifest")
+		}
+
+		if artifactPath != "" {
+			params = append(params, "--artifact-path", artifactPath)
 		}
 
 		if waitForBackupToFinish {
@@ -299,6 +305,50 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 					By("cleaning up backup artifacts from the remote", func() {
 						Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
+					})
+				})
+
+				Context("and the operator specifies an artifact path", func() {
+					Context("and the artifact path is an existing directory", func() {
+						BeforeEach(func() {
+							var err error
+							artifactPath, err = ioutil.TempDir("", "artifact-path-")
+							Expect(err).NotTo(HaveOccurred())
+						})
+
+						AfterEach(func() {
+							Expect(os.RemoveAll(artifactPath)).To(Succeed())
+						})
+
+						backupDirectoryWithArtifactPath := func() string {
+							matches := possibleBackupDirectories(deploymentName, artifactPath)
+
+							Expect(matches).To(HaveLen(1), "backup directory not found")
+							return path.Join(artifactPath, matches[0])
+						}
+
+						It("should succeed and put the artifact into the artifact path", func() {
+							By("exiting with exit code zero", func() {
+								Expect(session.ExitCode()).To(BeZero())
+							})
+
+							By("placing the backup in a subdirectory of the artifact path", func() {
+								Expect(backupDirectoryWithArtifactPath()).To(BeADirectory())
+								Expect(path.Join(backupDirectoryWithArtifactPath(), "redis-dedicated-node-0-redis.tar")).To(BeARegularFile())
+								Expect(path.Join(backupDirectoryWithArtifactPath(), "metadata")).To(BeARegularFile())
+							})
+						})
+					})
+
+					Context("and the artifact path does not exist", func() {
+						BeforeEach(func() {
+							artifactPath = "/not/a/valid/path"
+						})
+
+						It("should fail with an artifact directory does not exist error", func() {
+							Expect(session.ExitCode()).NotTo(BeZero())
+							Expect(session.Err).To(gbytes.Say(fmt.Sprintf("%s: no such file or directory", artifactPath)))
+						})
 					})
 				})
 

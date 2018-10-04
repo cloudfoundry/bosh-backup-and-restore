@@ -96,48 +96,6 @@ var _ = Describe("backup", func() {
 		runBBRBackupAndSucceed()
 	})
 
-	Context("when the operator specifies a valid artifact directory", func() {
-		BeforeEach(func() {
-			artifactDir = workspaceDir + "/artifact-dir"
-			Eventually(JumpboxInstance.RunCommandAs("vcap", fmt.Sprintf("mkdir %s", artifactDir))).Should(gexec.Exit(0))
-
-			bbrCommand = fmt.Sprintf(
-				`cd %s; BOSH_CLIENT_SECRET=%s ./bbr deployment --ca-cert bosh.crt --username %s --target %s --deployment %s backup --artifact-path %s`,
-				workspaceDir,
-				MustHaveEnv("BOSH_CLIENT_SECRET"),
-				MustHaveEnv("BOSH_CLIENT"),
-				MustHaveEnv("BOSH_ENVIRONMENT"),
-				RedisDeployment.Name,
-				artifactDir,
-			)
-		})
-
-		runBBRBackupAndSucceed()
-	})
-
-	Context("when the operator specifies an artifact directory that does not exist", func() {
-		BeforeEach(func() {
-			artifactDir = workspaceDir + "/wrong-artifact-dir"
-
-			bbrCommand = fmt.Sprintf(
-				`cd %s; BOSH_CLIENT_SECRET=%s ./bbr deployment --ca-cert bosh.crt --username %s --target %s --deployment %s backup --artifact-path %s`,
-				workspaceDir,
-				MustHaveEnv("BOSH_CLIENT_SECRET"),
-				MustHaveEnv("BOSH_CLIENT"),
-				MustHaveEnv("BOSH_ENVIRONMENT"),
-				RedisDeployment.Name,
-				artifactDir,
-			)
-		})
-
-		It("should fail with an artifact directory does not exist error", func() {
-			session := JumpboxInstance.RunCommandAs("vcap", bbrCommand)
-			Eventually(session).Should(gexec.Exit())
-			Expect(session.ExitCode()).To(Equal(1))
-			Expect(session.Out).To(gbytes.Say(fmt.Sprintf("%s: no such file or directory", artifactDir)))
-		})
-	})
-
 	Context("when an instance has many backup scripts", func() {
 		It("does not fail draining the artifacts in parallel", func() {
 			session := JumpboxInstance.RunCommandAs("vcap", fmt.Sprintf(
