@@ -54,7 +54,7 @@ var _ = Describe("BoshAllProxy", func() {
 			"director",
 			"--username", "vcap",
 			"--private-key-path", MustHaveEnv("DIRECTOR_SSH_KEY_PATH"),
-			"--host", MustHaveEnv("BOSH_ENVIRONMENT"),
+			"--host", MustHaveEnv("DIRECTOR_ADDRESS"),
 			"backup",
 		)
 		cmd.Env = append(cmd.Env, fmt.Sprintf("BOSH_ALL_PROXY=%s", boshAllProxy))
