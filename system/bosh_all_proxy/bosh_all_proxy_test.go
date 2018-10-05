@@ -12,15 +12,14 @@ import (
 )
 
 var _ = Describe("BoshAllProxy", func() {
+	boshAllProxy := fmt.Sprintf(
+		"ssh+socks5://%s@%s?private-key=%s",
+		MustHaveEnv("BOSH_GW_USER"),
+		MustHaveEnv("BOSH_GW_HOST"),
+		MustHaveEnv("BOSH_GW_PRIVATE_KEY"),
+	)
 
 	It("backs up the deployment using BOSH_ALL_PROXY", func() {
-		boshAllProxy := fmt.Sprintf(
-			"ssh+socks5://%s@%s?private-key=%s",
-			MustHaveEnv("BOSH_GW_USER"),
-			MustHaveEnv("BOSH_GW_HOST"),
-			MustHaveEnv("BOSH_GW_PRIVATE_KEY"),
-		)
-
 		cmd := exec.Command(
 			commandPath,
 			"deployment",
@@ -42,17 +41,10 @@ var _ = Describe("BoshAllProxy", func() {
 	})
 
 	It("backs up the director using BOSH_ALL_PROXY", func() {
-		boshAllProxy := fmt.Sprintf(
-			"ssh+socks5://%s@%s?private-key=%s",
-			MustHaveEnv("BOSH_GW_USER"),
-			MustHaveEnv("BOSH_GW_HOST"),
-			MustHaveEnv("BOSH_GW_PRIVATE_KEY"),
-		)
-
 		cmd := exec.Command(
 			commandPath,
 			"director",
-			"--username", "vcap",
+			"--username", MustHaveEnv("DIRECTOR_SSH_USERNAME"),
 			"--private-key-path", MustHaveEnv("DIRECTOR_SSH_KEY_PATH"),
 			"--host", MustHaveEnv("DIRECTOR_ADDRESS"),
 			"backup",
