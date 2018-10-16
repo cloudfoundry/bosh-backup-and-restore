@@ -37,6 +37,11 @@ func (checkCommand DirectorPreBackupCheckCommand) Action(c *cli.Context) error {
 
 	if err != nil {
 		fmt.Printf("Director cannot be backed up.\n")
+
+		if err.ContainsArtifactDirError() {
+			return processErrorWithFooter(err, backupCleanupAdvisedNotice)
+		}
+
 		return processError(err)
 	}
 
