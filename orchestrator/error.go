@@ -16,6 +16,7 @@ type LockError customError
 type BackupError customError
 type UnlockError customError
 type CleanupError customError
+type ArtifactDirError customError
 
 func NewLockError(errorMessage string) LockError {
 	return LockError{errors.New(errorMessage)}
@@ -31,6 +32,10 @@ func NewPostUnlockError(errorMessage string) UnlockError {
 
 func NewCleanupError(errorMessage string) CleanupError {
 	return CleanupError{errors.New(errorMessage)}
+}
+
+func NewArtifactDirError(errorMessage string) ArtifactDirError {
+	return ArtifactDirError{errors.New(errorMessage)}
 }
 
 func ConvertErrors(errs []error) error {
@@ -106,6 +111,14 @@ func (err Error) ContainsUnlockOrCleanup() bool {
 		}
 	}
 
+	return false
+}
+
+func (err Error) ContainsArtifactDirError() bool {
+	for _, e := range err {
+		_, ok := e.(ArtifactDirError)
+		return ok
+	}
 	return false
 }
 

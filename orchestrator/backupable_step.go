@@ -1,6 +1,8 @@
 package orchestrator
 
-import "github.com/pkg/errors"
+import (
+	"github.com/pkg/errors"
+)
 
 type BackupableStep struct {
 	lockOrderer LockOrderer
@@ -21,7 +23,7 @@ func (s *BackupableStep) Run(session *Session) error {
 
 	err := deployment.CheckArtifactDir()
 	if err != nil {
-		return err
+		return NewArtifactDirError(err.Error())
 	}
 
 	if !deployment.HasUniqueCustomArtifactNames() {

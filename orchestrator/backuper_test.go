@@ -196,6 +196,22 @@ var _ = Describe("Backup", func() {
 			Context("cleanup fails as well", assertCleanupError)
 		})
 
+		Context("fails if the artifact directory already exists", func() {
+			BeforeEach(func() {
+				fakeBackupManager.CreateReturns(fakeBackup, nil)
+				deploymentManager.FindReturns(deployment, nil)
+				deployment.IsBackupableReturns(true)
+				deployment.CheckArtifactDirReturns(fmt.Errorf("not ready"))
+			})
+
+			It("fails the backup process", func() {
+				Expect(actualBackupError).To(ConsistOf(And(
+					MatchError("not ready"),
+					BeAssignableToTypeOf(orchestrator.ArtifactDirError{}),
+				)))
+			})
+		})
+
 		Context("fails if pre-backup-lock fails", func() {
 			var lockError = orchestrator.NewLockError("smoooooooth jazz")
 

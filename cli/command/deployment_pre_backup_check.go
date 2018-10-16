@@ -45,6 +45,9 @@ func (d DeploymentPreBackupCheck) Action(c *cli.Context) error {
 	} else {
 		errs := backupableCheck(backupChecker, deployment)
 		if errs != nil {
+			if errs.ContainsArtifactDirError() {
+				return processErrorWithFooter(errs, backupCleanupAdvisedNotice)
+			}
 			return processError(errs)
 		}
 	}
@@ -54,6 +57,7 @@ func (d DeploymentPreBackupCheck) Action(c *cli.Context) error {
 
 func backupableCheck(backupChecker *orchestrator.BackupChecker, deployment string) orchestrator.Error {
 	err := backupChecker.Check(deployment)
+
 	if err != nil {
 		fmt.Printf("Deployment '%s' cannot be backed up.\n", deployment)
 		fmt.Println(err.Error())
@@ -70,6 +74,9 @@ func allDeploymentsBackupCheck(boshClient bosh.Client, backupChecker *orchestrat
 	}
 
 	errorHandler := func(deploymentError allDeploymentsError) error {
+		if ContainsArtifactDir(deploymentError.deploymentErrs) {
+			return deploymentError.ProcessWithFooter(backupCleanupAllDeploymentsAdvisedNotice)
+		}
 		return deploymentError.Process()
 	}
 

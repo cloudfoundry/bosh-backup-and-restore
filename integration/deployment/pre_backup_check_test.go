@@ -155,21 +155,11 @@ backup_should_be_locked_before:
 						Expect(session.ExitCode()).To(Equal(1))
 					})
 
-					It("prints an error", func() {
+					It("prints an error with a backup-cleanup footer", func() {
 						Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName + "' cannot be backed up."))
 						Expect(session.Err).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid"))
+						Eventually(session.Err).Should(gbytes.Say("It is recommended that you run `bbr backup-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."))
 						Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
-					})
-
-					It("writes the stack trace", func() {
-						files, err := filepath.Glob(filepath.Join(backupWorkspace, "bbr-*.err.log"))
-						Expect(err).NotTo(HaveOccurred())
-						logFilePath := files[0]
-						_, err = os.Stat(logFilePath)
-						Expect(os.IsNotExist(err)).To(BeFalse())
-						stackTrace, err := ioutil.ReadFile(logFilePath)
-						Expect(err).ToNot(HaveOccurred())
-						Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 					})
 				})
 			})
@@ -387,29 +377,17 @@ backup_should_be_locked_before:
 				instance2.DieInBackground()
 			})
 
-			It("returns exit code 1", func() {
+			It("fails and outputs a log message saying which deployments can be backed up", func() {
 				Expect(session.ExitCode()).To(Equal(1))
-			})
 
-			It("writes the stack trace", func() {
-				files, err := filepath.Glob(filepath.Join(backupWorkspace, "bbr-*.err.log"))
-				Expect(err).NotTo(HaveOccurred())
-				logFilePath := files[0]
-				_, err = os.Stat(logFilePath)
-				Expect(os.IsNotExist(err)).To(BeFalse())
-				stackTrace, err := ioutil.ReadFile(logFilePath)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
-				Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"), "output should not include stacktrace")
-			})
-
-			It("outputs a log message saying which deployments can be backed up", func() {
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName1 + "' can be backed up."))
 				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName2 + "' cannot be backed up."))
 				Expect(session.Out).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid"))
+
 				Expect(session.Err).To(gbytes.Say("1 out of 2 deployments cannot be backed up:\n%s", deploymentName2))
 				Expect(session.Err).To(gbytes.Say("Deployment '%s':", deploymentName2))
 				Expect(session.Err).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid"))
+				Eventually(session.Err).Should(gbytes.Say("It is recommended that you run `bbr deployment --all-deployments backup-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."))
 			})
 		})
 	})

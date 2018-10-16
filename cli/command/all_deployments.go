@@ -29,6 +29,15 @@ func ContainsUnlockOrCleanup(deploymentErrs []deploymentError) bool {
 	return false
 }
 
+func ContainsArtifactDir(deploymentErrs []deploymentError) bool {
+	for _, errs := range deploymentErrs {
+		if errs.errs.ContainsArtifactDirError() {
+			return true
+		}
+	}
+	return false
+}
+
 func (a allDeploymentsError) Error() string {
 	return ""
 }
