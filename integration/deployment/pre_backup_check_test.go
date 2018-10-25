@@ -1,8 +1,10 @@
 package deployment
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
@@ -259,7 +261,6 @@ backup_should_be_locked_before:
 		})
 
 		var instance *testcluster.Instance
-		var instance2 *testcluster.Instance
 
 		singleInstanceResponse := func(instanceGroupName string) []mockbosh.VMsOutput {
 			return []mockbosh.VMsOutput{
@@ -274,23 +275,17 @@ backup_should_be_locked_before:
 
 		Context("and all deployments have backup scripts", func() {
 			deploymentName1 := "deployment1"
-			deploymentName2 := "deployment2"
 
 			BeforeEach(func() {
 				instance = testcluster.NewInstance()
 
 				director.VerifyAndMock(AppendBuilders(
 					InfoWithBasicAuth(),
-					Deployments([]string{deploymentName1, deploymentName2}),
+					Deployments([]string{deploymentName1}),
 					VmsForDeployment(deploymentName1, singleInstanceResponse("redis-dedicated-node")),
 					DownloadManifest(deploymentName1, manifest),
 					SetupSSH(deploymentName1, "redis-dedicated-node", "fake-uuid", 0, instance),
 					CleanupSSH(deploymentName1, "redis-dedicated-node"),
-
-					VmsForDeployment(deploymentName2, singleInstanceResponse("redis-dedicated-node")),
-					DownloadManifest(deploymentName2, manifest),
-					SetupSSH(deploymentName2, "redis-dedicated-node", "fake-uuid", 0, instance),
-					CleanupSSH(deploymentName2, "redis-dedicated-node"),
 				)...)
 
 				makeBackupable(instance)
@@ -305,9 +300,18 @@ backup_should_be_locked_before:
 			})
 
 			It("outputs a log message saying the deployments can be backed up", func() {
-				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName1 + "' can be backed up."))
-				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName2 + "' can be backed up."))
-				Expect(session.Out).To(gbytes.Say("All 2 deployments can be backed up"))
+
+				output := strings.Split(string(session.Out.Contents()), "\n")
+				output[1] = strings.TrimSpace(output[1])
+
+				Expect(output[0]).To(Equal("Found 1 deployments:"))
+				Expect(output[1]).To(Equal(deploymentName1))
+				Expect(output[2]).To(Equal("-------------------------"))
+				Expect(output[3]).To(Equal(
+					fmt.Sprintf("Deployment '%s' can be backed up.", deploymentName1),
+				))
+				Expect(output[4]).To(Equal("All 1 deployments can be backed up."))
+				Expect(output).To(HaveLen(6))
 			})
 		})
 
@@ -346,46 +350,33 @@ backup_should_be_locked_before:
 
 		Context("and the backup directory already exists on one of the deployments", func() {
 			deploymentName1 := "deployment1"
-			deploymentName2 := "deployment2"
 
 			BeforeEach(func() {
 				instance = testcluster.NewInstance()
-				instance2 = testcluster.NewInstance()
 
 				director.VerifyAndMock(AppendBuilders(
 					InfoWithBasicAuth(),
-					Deployments([]string{deploymentName1, deploymentName2}),
+					Deployments([]string{deploymentName1}),
 					VmsForDeployment(deploymentName1, singleInstanceResponse("redis-dedicated-node")),
 					DownloadManifest(deploymentName1, manifest),
 					SetupSSH(deploymentName1, "redis-dedicated-node", "fake-uuid", 0, instance),
 					CleanupSSH(deploymentName1, "redis-dedicated-node"),
-
-					VmsForDeployment(deploymentName2, singleInstanceResponse("redis-dedicated-node")),
-					DownloadManifest(deploymentName2, manifest),
-					SetupSSH(deploymentName2, "redis-dedicated-node", "fake-uuid", 0, instance2),
-					CleanupSSH(deploymentName2, "redis-dedicated-node"),
 				)...)
 
 				makeBackupable(instance)
-				makeBackupable(instance2)
 
-				instance2.CreateDir("/var/vcap/store/bbr-backup")
+				instance.CreateDir("/var/vcap/store/bbr-backup")
 			})
 
 			AfterEach(func() {
 				instance.DieInBackground()
-				instance2.DieInBackground()
 			})
 
 			It("fails and outputs a log message saying which deployments can be backed up", func() {
 				Expect(session.ExitCode()).To(Equal(1))
 
-				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName1 + "' can be backed up."))
-				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName2 + "' cannot be backed up."))
+				Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName1 + "' cannot be backed up."))
 				Expect(session.Out).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid"))
-
-				Expect(session.Err).To(gbytes.Say("1 out of 2 deployments cannot be backed up:\n%s", deploymentName2))
-				Expect(session.Err).To(gbytes.Say("Deployment '%s':", deploymentName2))
 				Expect(session.Err).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance redis-dedicated-node/fake-uuid"))
 				Eventually(session.Err).Should(gbytes.Say("It is recommended that you run `bbr deployment --all-deployments backup-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."))
 			})
