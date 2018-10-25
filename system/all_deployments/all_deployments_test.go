@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -31,10 +32,20 @@ var _ = Describe("All deployments", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(session).Should(gexec.Exit(0))
 
-			Expect(session.Out).To(gbytes.Say("Deployment 'redis-1' can be backed up."))
-			Expect(session.Out).To(gbytes.Say("Deployment 'redis-2' can be backed up."))
-			Expect(session.Out).To(gbytes.Say("Deployment 'redis-3' can be backed up."))
-			Expect(session.Out).To(gbytes.Say("All 3 deployments can be backed up"))
+			output := strings.Split(string(session.Out.Contents()), "\n")
+			output[1] = strings.TrimSpace(output[1])
+			output[2] = strings.TrimSpace(output[2])
+			output[3] = strings.TrimSpace(output[3])
+
+			Expect(output[0]).To(Equal("Found 3 deployments:"))
+			Expect(output[1:4]).To(ConsistOf("redis-1", "redis-2", "redis-3"))
+			Expect(output[4]).To(Equal("-------------------------"))
+			Expect(output[5:8]).To(ConsistOf(
+				"Deployment 'redis-1' can be backed up.",
+				"Deployment 'redis-2' can be backed up.",
+				"Deployment 'redis-3' can be backed up.",
+			))
+			Expect(output).To(HaveLen(8))
 		})
 	})
 

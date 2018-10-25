@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/all_deployments_executor"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
@@ -53,7 +54,7 @@ func cleanupAllDeployments(cleaner *orchestrator.BackupCleaner, boshClient bosh.
 		return cleanup(cleaner, deploymentName)
 	}
 
-	errorHandler := func(deploymentError allDeploymentsError) error {
+	errorHandler := func(deploymentError all_deployments_executor.AllDeploymentsError) error {
 		return deploymentError.Process()
 	}
 	return runForAllDeployments(
@@ -61,7 +62,8 @@ func cleanupAllDeployments(cleaner *orchestrator.BackupCleaner, boshClient bosh.
 		boshClient,
 		"could not be cleaned up",
 		"were cleaned up",
-		errorHandler)
+		errorHandler,
+		all_deployments_executor.NewSerialDeploymentExecutor())
 }
 
 func cleanup(cleaner *orchestrator.BackupCleaner, deployment string) orchestrator.Error {

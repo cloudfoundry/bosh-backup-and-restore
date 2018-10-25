@@ -108,6 +108,8 @@ instance_groups:
 				})
 
 				It("outputs a log message saying the deployment can be backed up", func() {
+					Expect(session.Out).To(gbytes.Say("INFO - Looking for scripts"))
+					Expect(session.Out).To(gbytes.Say("INFO - Running pre-checks for backup of %s...", deploymentName))
 					Expect(session.Out).To(gbytes.Say("Deployment '" + deploymentName + "' can be backed up."))
 				})
 
