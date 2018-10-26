@@ -1,7 +1,7 @@
-package all_deployments_executor
+package deployment
 
 //go:generate counterfeiter -o fakes/fake_executor.go . Executor
-type Executor interface {
+type DeploymentExecutor interface {
 	Run([]Executable) []DeploymentError
 }
 

@@ -312,8 +312,10 @@ backup_should_be_locked_before:
 				Expect(output[3]).To(Equal(
 					fmt.Sprintf("Deployment '%s' can be backed up.", deploymentName1),
 				))
-				Expect(output[4]).To(Equal("All 1 deployments can be backed up."))
-				Expect(output).To(HaveLen(6))
+
+				Expect(output[4]).To(Equal("-------------------------"))
+				Expect(output[5]).To(Equal("All 1 deployments can be backed up."))
+				Expect(output).To(HaveLen(7))
 			})
 		})
 

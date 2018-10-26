@@ -1,19 +1,14 @@
-package all_deployments_executor
+package deployment
 
 import (
 	"fmt"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
 	"io/ioutil"
+	"strings"
 	"time"
 )
 
-type DeploymentExecutable struct {
-	action ActionFunc
-	name   string
-}
-
-type ActionFunc func(string) orchestrator.Error
 type ErrorHandleFunc func(deploymentsError AllDeploymentsError) error
 
 type DeploymentError struct {
@@ -39,7 +34,7 @@ func (a AllDeploymentsError) ProcessWithFooter(footer string) error {
 	msgWithStackTrace := msg
 
 	for _, err := range a.DeploymentErrs {
-		msg = msg + fmt.Sprintf("Deployment '%s': %s\n", err.Deployment, err.Errs.Error())
+		msg = msg + fmt.Sprintf("Deployment '%s':\n%s\n", err.Deployment, IndentBlock(err.Errs.Error())) //this is stderr
 		msgWithStackTrace = msgWithStackTrace + fmt.Sprintf("Deployment %s: %s\n", err.Deployment, err.Errs.PrettyError(true))
 	}
 
@@ -64,14 +59,6 @@ func writeStackTrace(errorWithStackTrace string) error {
 	return nil
 }
 
-func NewDeploymentExecutable(action ActionFunc, name string) DeploymentExecutable {
-	return DeploymentExecutable{
-		action: action,
-		name:   name,
-	}
-}
-
-func (d DeploymentExecutable) Execute() DeploymentError {
-	err := d.action(d.name)
-	return DeploymentError{Deployment: d.name, Errs: err}
+func IndentBlock(block string) string {
+	return fmt.Sprintf("  %s", strings.Replace(block, "\n", "\n  ", -1))
 }

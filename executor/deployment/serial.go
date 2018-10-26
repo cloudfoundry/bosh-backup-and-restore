@@ -1,4 +1,4 @@
-package all_deployments_executor
+package deployment
 
 func NewSerialDeploymentExecutor() SerialDeploymentExecutor {
 	return SerialDeploymentExecutor{}

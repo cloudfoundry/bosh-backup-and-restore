@@ -1,8 +1,8 @@
 package command
 
 import (
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/all_deployments_executor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor/deployment"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
@@ -67,7 +67,7 @@ func backupAll(backuper *orchestrator.Backuper, boshClient bosh.Client, artifact
 		return backuper.Backup(deploymentName, artifactPath)
 	}
 
-	errorHandler := func(deploymentError all_deployments_executor.AllDeploymentsError) error {
+	errorHandler := func(deploymentError deployment.AllDeploymentsError) error {
 		if ContainsUnlockOrCleanup(deploymentError.DeploymentErrs) {
 			return deploymentError.ProcessWithFooter(backupCleanupAllDeploymentsAdvisedNotice)
 		}
@@ -79,5 +79,5 @@ func backupAll(backuper *orchestrator.Backuper, boshClient bosh.Client, artifact
 		"cannot be backed up",
 		"backed up",
 		errorHandler,
-		all_deployments_executor.NewSerialDeploymentExecutor())
+		deployment.NewSerialDeploymentExecutor())
 }

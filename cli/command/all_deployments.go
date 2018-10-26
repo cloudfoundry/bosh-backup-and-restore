@@ -3,14 +3,14 @@ package command
 import (
 	"errors"
 	"fmt"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/all_deployments_executor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor/deployment"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/urfave/cli"
 )
 
-func ContainsUnlockOrCleanup(deploymentErrs []all_deployments_executor.DeploymentError) bool {
+func ContainsUnlockOrCleanup(deploymentErrs []deployment.DeploymentError) bool {
 	for _, errs := range deploymentErrs {
 		if errs.Errs.ContainsUnlockOrCleanup() {
 			return true
@@ -19,7 +19,7 @@ func ContainsUnlockOrCleanup(deploymentErrs []all_deployments_executor.Deploymen
 	return false
 }
 
-func ContainsArtifactDir(deploymentErrs []all_deployments_executor.DeploymentError) bool {
+func ContainsArtifactDir(deploymentErrs []deployment.DeploymentError) bool {
 	for _, errs := range deploymentErrs {
 		if errs.Errs.ContainsArtifactDirError() {
 			return true
@@ -55,7 +55,7 @@ func getAllDeployments(boshClient bosh.Client) ([]director.Deployment, error) {
 	return allDeployments, nil
 }
 
-func runForAllDeployments(action all_deployments_executor.ActionFunc, boshClient bosh.Client, summaryErrorMsg, summarySuccessMsg string, errorHandler all_deployments_executor.ErrorHandleFunc, exec all_deployments_executor.Executor) error {
+func runForAllDeployments(action ActionFunc, boshClient bosh.Client, summaryErrorMsg, summarySuccessMsg string, errorHandler deployment.ErrorHandleFunc, exec deployment.DeploymentExecutor) error {
 	deployments, err := getAllDeployments(boshClient)
 	if err != nil {
 		return processError(orchestrator.NewError(err))
@@ -65,22 +65,42 @@ func runForAllDeployments(action all_deployments_executor.ActionFunc, boshClient
 		return processError(orchestrator.NewError(errors.New("Failed to find any deployments")))
 	}
 
-	var executables []all_deployments_executor.Executable
+	var executables []deployment.Executable
 	for _, deployment := range deployments {
-		executables = append(executables, all_deployments_executor.NewDeploymentExecutable(action, deployment.Name()))
+		executables = append(executables, NewDeploymentExecutable(action, deployment.Name()))
 	}
 	errs := exec.Run(executables)
 
+	fmt.Println("-------------------------")
 	if len(errs) != 0 {
 		errMsg := fmt.Sprintf("%d out of %d deployments %s:\n", len(errs), len(deployments), summaryErrorMsg)
 		for _, cleanupErr := range errs {
-			errMsg = errMsg + cleanupErr.Deployment + "\n"
+			errMsg = errMsg + "  " + cleanupErr.Deployment + "\n"
 		}
 
-		return errorHandler(all_deployments_executor.AllDeploymentsError{Summary: errMsg, DeploymentErrs: errs})
+		return errorHandler(deployment.AllDeploymentsError{Summary: errMsg, DeploymentErrs: errs})
 	}
 
 	fmt.Printf("All %d deployments %s.\n", len(deployments), summarySuccessMsg)
 	return cli.NewExitError("", 0)
 
+}
+
+type DeploymentExecutable struct {
+	action ActionFunc
+	name   string
+}
+
+type ActionFunc func(string) orchestrator.Error
+
+func NewDeploymentExecutable(action ActionFunc, name string) DeploymentExecutable {
+	return DeploymentExecutable{
+		action: action,
+		name:   name,
+	}
+}
+
+func (d DeploymentExecutable) Execute() deployment.DeploymentError {
+	err := d.action(d.name)
+	return deployment.DeploymentError{Deployment: d.name, Errs: err}
 }

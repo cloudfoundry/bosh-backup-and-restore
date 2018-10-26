@@ -83,9 +83,9 @@ func (err Error) PrettyError(includeStacktrace bool) string {
 	for index, err := range err {
 		fmt.Fprintf(buffer, "error %d:\n", index+1)
 		if includeStacktrace {
-			fmt.Fprintf(buffer, "%+v\n", err)
+			fmt.Fprintf(buffer, "%+v", err)
 		} else {
-			fmt.Fprintf(buffer, "%+v\n", err.Error())
+			fmt.Fprintf(buffer, "%+v", err.Error())
 		}
 	}
 	return buffer.String()

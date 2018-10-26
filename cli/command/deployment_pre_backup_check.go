@@ -3,8 +3,8 @@ package command
 import (
 	"bytes"
 	"fmt"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/all_deployments_executor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor/deployment"
 	"github.com/cloudfoundry/bosh-utils/logger"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
@@ -62,16 +62,16 @@ func (d DeploymentPreBackupCheck) Action(c *cli.Context) error {
 	return cli.NewExitError("", 0)
 }
 
-func backupableCheck(backupChecker *orchestrator.BackupChecker, deployment string) orchestrator.Error {
-	err := backupChecker.Check(deployment)
+func backupableCheck(backupChecker *orchestrator.BackupChecker, deploymentName string) orchestrator.Error {
+	err := backupChecker.Check(deploymentName)
 
 	if err != nil {
-		fmt.Printf("Deployment '%s' cannot be backed up.\n", deployment)
-		fmt.Println(err.Error())
+		fmt.Printf("Deployment '%s' cannot be backed up.\n", deploymentName)
+		fmt.Println(deployment.IndentBlock(err.Error()))
 		return err
 	}
 
-	fmt.Printf("Deployment '%s' can be backed up.\n", deployment)
+	fmt.Printf("Deployment '%s' can be backed up.\n", deploymentName)
 	return nil
 }
 
@@ -80,7 +80,7 @@ func allDeploymentsBackupCheck(boshClient bosh.Client, backupChecker *orchestrat
 		return backupableCheck(backupChecker, deploymentName)
 	}
 
-	errorHandler := func(deploymentError all_deployments_executor.AllDeploymentsError) error {
+	errorHandler := func(deploymentError deployment.AllDeploymentsError) error {
 		if ContainsArtifactDir(deploymentError.DeploymentErrs) {
 			return deploymentError.ProcessWithFooter(backupCleanupAllDeploymentsAdvisedNotice)
 		}
@@ -92,6 +92,6 @@ func allDeploymentsBackupCheck(boshClient bosh.Client, backupChecker *orchestrat
 		"cannot be backed up",
 		"can be backed up",
 		errorHandler,
-		all_deployments_executor.NewParallelDeployment(),
+		deployment.NewParallelDeployment(),
 	)
 }

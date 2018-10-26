@@ -16,38 +16,109 @@ import (
 
 var _ = Describe("All deployments", func() {
 	Context("when running pre-backup-check", func() {
-		It("runs pre-backup-check on all deployments", func() {
-			cmd := exec.Command(
-				commandPath,
-				"deployment",
-				"--ca-cert", MustHaveEnv("BOSH_CA_CERT"),
-				"--username", MustHaveEnv("BOSH_CLIENT"),
-				"--password", MustHaveEnv("BOSH_CLIENT_SECRET"),
-				"--target", MustHaveEnv("BOSH_ENVIRONMENT"),
-				"--all-deployments",
-				"pre-backup-check",
-			)
-			cmd.Dir = tempDirPath
-			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(session).Should(gexec.Exit(0))
+		Context("and all deployments are backupable", func() {
+			It("reports that all deployments are backupable", func() {
+				cmd := exec.Command(
+					commandPath,
+					"deployment",
+					"--ca-cert", MustHaveEnv("BOSH_CA_CERT"),
+					"--username", MustHaveEnv("BOSH_CLIENT"),
+					"--password", MustHaveEnv("BOSH_CLIENT_SECRET"),
+					"--target", MustHaveEnv("BOSH_ENVIRONMENT"),
+					"--all-deployments",
+					"pre-backup-check",
+				)
+				cmd.Dir = tempDirPath
+				session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+				Expect(err).NotTo(HaveOccurred())
+				Eventually(session).Should(gexec.Exit(0))
 
-			output := strings.Split(string(session.Out.Contents()), "\n")
-			output[1] = strings.TrimSpace(output[1])
-			output[2] = strings.TrimSpace(output[2])
-			output[3] = strings.TrimSpace(output[3])
+				output := strings.Split(string(session.Out.Contents()), "\n")
+				output[1] = strings.TrimSpace(output[1])
+				output[2] = strings.TrimSpace(output[2])
+				output[3] = strings.TrimSpace(output[3])
 
-			Expect(output[0]).To(Equal("Found 3 deployments:"))
-			Expect(output[1:4]).To(ConsistOf("redis-1", "redis-2", "redis-3"))
-			Expect(output[4]).To(Equal("-------------------------"))
-			Expect(output[5:8]).To(ConsistOf(
-				"Deployment 'redis-1' can be backed up.",
-				"Deployment 'redis-2' can be backed up.",
-				"Deployment 'redis-3' can be backed up.",
-			))
-			Expect(output[8]).To(Equal("All 3 deployments can be backed up."))
-			Expect(output[9]).To(Equal(""))
-			Expect(output).To(HaveLen(10))
+				Expect(output[0]).To(Equal("Found 3 deployments:"))
+				Expect(output[1:4]).To(ConsistOf("redis-1", "redis-2", "redis-3"))
+				Expect(output[4]).To(Equal("-------------------------"))
+				Expect(output[5:8]).To(ConsistOf(
+					"Deployment 'redis-1' can be backed up.",
+					"Deployment 'redis-2' can be backed up.",
+					"Deployment 'redis-3' can be backed up.",
+				))
+				Expect(output[8]).To(Equal("-------------------------"))
+				Expect(output[9]).To(Equal("All 3 deployments can be backed up."))
+				Expect(output[10]).To(Equal(""))
+				Expect(output).To(HaveLen(11))
+			})
+		})
+
+		Context("and some deployments are not backupable", func() {
+			BeforeEach(func() {
+				moveBackupScript("redis-1", "/var/vcap/jobs/redis-server", "/tmp/redis-server")
+				moveBackupScript("redis-2", "/var/vcap/jobs/redis-server", "/tmp/redis-server")
+			})
+
+			AfterEach(func() {
+				moveBackupScript("redis-1", "/tmp/redis-server", "/var/vcap/jobs/redis-server")
+				moveBackupScript("redis-2", "/tmp/redis-server", "/var/vcap/jobs/redis-server")
+			})
+			It("reports that some deployments are backupable and errors", func() {
+				cmd := exec.Command(
+					commandPath,
+					"deployment",
+					"--ca-cert", MustHaveEnv("BOSH_CA_CERT"),
+					"--username", MustHaveEnv("BOSH_CLIENT"),
+					"--password", MustHaveEnv("BOSH_CLIENT_SECRET"),
+					"--target", MustHaveEnv("BOSH_ENVIRONMENT"),
+					"--all-deployments",
+					"pre-backup-check",
+				)
+				cmd.Dir = tempDirPath
+				session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+				Expect(err).NotTo(HaveOccurred())
+				Eventually(session).Should(gexec.Exit(1))
+
+				stdout := strings.Split(string(session.Out.Contents()), "\n")
+				stderr := strings.Split(string(session.Err.Contents()), "\n")
+
+				//we cant enforce the order of the output given it is random, so we assert that it contains what we expect and only those lines.
+				Expect(stdout).To(ConsistOf(
+					"Found 3 deployments:",
+					"  redis-1",
+					"  redis-2",
+					"  redis-3",
+					"-------------------------",
+					"Deployment 'redis-1' cannot be backed up.",
+					"  1 error occurred:",
+					"  error 1:",
+					"  Deployment 'redis-1' has no backup scripts",
+					"Deployment 'redis-2' cannot be backed up.",
+					"  1 error occurred:",
+					"  error 1:",
+					"  Deployment 'redis-2' has no backup scripts",
+					"Deployment 'redis-3' can be backed up.",
+					"-------------------------",
+					"",
+				))
+				Expect(stderr).To(ConsistOf(
+					"2 out of 3 deployments cannot be backed up:",
+					"  redis-1",
+					"  redis-2",
+					"",
+					"Deployment 'redis-1':",
+					"  1 error occurred:",
+					"  error 1:",
+					"  Deployment 'redis-1' has no backup scripts",
+					"Deployment 'redis-2':",
+					"  1 error occurred:",
+					"  error 1:",
+					"  Deployment 'redis-2' has no backup scripts",
+					"",
+					"",
+				))
+
+			})
 		})
 	})
 
@@ -192,6 +263,21 @@ var _ = Describe("All deployments", func() {
 		})
 	})
 })
+
+func moveBackupScript(deployment, src, dst string) {
+	cmd := exec.Command(
+		"bosh",
+		"-d",
+		deployment,
+		"ssh",
+		"-c",
+		fmt.Sprintf("sudo mv %s %s", src, dst),
+	)
+	cmd.Dir = tempDirPath
+	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(session).Should(gexec.Exit(0))
+}
 
 func cleanupLockScriptOutput(instance Instance) {
 	session := instance.RunCommand("sudo rm /tmp/post-backup-unlock.out")
