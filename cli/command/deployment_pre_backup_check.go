@@ -92,6 +92,6 @@ func allDeploymentsBackupCheck(boshClient bosh.Client, backupChecker *orchestrat
 		"cannot be backed up",
 		"can be backed up",
 		errorHandler,
-		deployment.NewParallelDeployment(),
+		deployment.NewParallelExecutor(),
 	)
 }

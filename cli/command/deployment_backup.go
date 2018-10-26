@@ -79,5 +79,5 @@ func backupAll(backuper *orchestrator.Backuper, boshClient bosh.Client, artifact
 		"cannot be backed up",
 		"backed up",
 		errorHandler,
-		deployment.NewSerialDeploymentExecutor())
+		deployment.NewSerialExecutor())
 }

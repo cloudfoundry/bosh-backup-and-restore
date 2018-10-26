@@ -1,13 +1,13 @@
 package deployment
 
-func NewSerialDeploymentExecutor() SerialDeploymentExecutor {
-	return SerialDeploymentExecutor{}
+func NewSerialExecutor() SerialExecutor {
+	return SerialExecutor{}
 }
 
-type SerialDeploymentExecutor struct {
+type SerialExecutor struct {
 }
 
-func (s SerialDeploymentExecutor) Run(executables []Executable) []DeploymentError {
+func (s SerialExecutor) Run(executables []Executable) []DeploymentError {
 	var errors []DeploymentError
 
 	for _, executable := range executables {

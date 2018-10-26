@@ -63,7 +63,7 @@ func cleanupAllDeployments(cleaner *orchestrator.BackupCleaner, boshClient bosh.
 		"could not be cleaned up",
 		"were cleaned up",
 		errorHandler,
-		deployment.NewSerialDeploymentExecutor())
+		deployment.NewSerialExecutor())
 }
 
 func cleanup(cleaner *orchestrator.BackupCleaner, deployment string) orchestrator.Error {

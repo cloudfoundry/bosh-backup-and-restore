@@ -1,13 +1,13 @@
 package deployment
 
-func NewParallelDeployment() ParallelDeployment {
-	return ParallelDeployment{}
+func NewParallelExecutor() ParallelExecutor {
+	return ParallelExecutor{}
 }
 
-type ParallelDeployment struct {
+type ParallelExecutor struct {
 }
 
-func (s ParallelDeployment) Run(executables []Executable) []DeploymentError {
+func (s ParallelExecutor) Run(executables []Executable) []DeploymentError {
 	var errors []DeploymentError
 
 	guard := make(chan bool, 10)
