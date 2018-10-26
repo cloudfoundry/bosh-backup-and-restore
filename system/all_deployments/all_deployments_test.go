@@ -45,7 +45,9 @@ var _ = Describe("All deployments", func() {
 				"Deployment 'redis-2' can be backed up.",
 				"Deployment 'redis-3' can be backed up.",
 			))
-			Expect(output).To(HaveLen(8))
+			Expect(output[8]).To(Equal("All 3 deployments can be backed up."))
+			Expect(output[9]).To(Equal(""))
+			Expect(output).To(HaveLen(10))
 		})
 	})
 
