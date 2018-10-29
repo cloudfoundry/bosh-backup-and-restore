@@ -6,8 +6,8 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor/deployment"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/urfave/cli"
+	"strings"
 )
 
 func ContainsUnlockOrCleanup(deploymentErrs []deployment.DeploymentError) bool {
@@ -40,19 +40,18 @@ func getDeploymentParams(c *cli.Context) (string, string, string, string, bool, 
 	return username, password, target, caCert, debug, deployment, allDeployments
 }
 
-func getAllDeployments(boshClient bosh.Client) ([]director.Deployment, error) {
+func getAllDeployments(boshClient bosh.Client) ([]string, error) {
 	allDeployments, err := boshClient.Director.Deployments()
 	if err != nil {
 		return nil, orchestrator.NewError(err)
 	}
 
-	fmt.Printf("Found %d deployments:\n", len(allDeployments))
-	for _, deployment := range allDeployments {
-		fmt.Printf("  %s\n", deployment.Name())
+	deploymentNames := []string{}
+	for _, dep := range allDeployments {
+		deploymentNames = append(deploymentNames, dep.Name())
 	}
-	fmt.Println("-------------------------")
 
-	return allDeployments, nil
+	return deploymentNames, nil
 }
 
 func runForAllDeployments(action ActionFunc, boshClient bosh.Client, summaryErrorMsg, summarySuccessMsg string, errorHandler deployment.ErrorHandleFunc, exec deployment.DeploymentExecutor) error {
@@ -65,14 +64,20 @@ func runForAllDeployments(action ActionFunc, boshClient bosh.Client, summaryErro
 		return processError(orchestrator.NewError(errors.New("Failed to find any deployments")))
 	}
 
-	var executables []deployment.Executable
-	for _, deployment := range deployments {
-		executables = append(executables, NewDeploymentExecutable(action, deployment.Name()))
-	}
+	fmt.Printf("Pending: %s\n", strings.Join(deployments, ", "))
+	fmt.Println("-------------------------")
+
+	executables := createExecutables(deployments, action)
 	errs := exec.Run(executables)
 
+	successfullDeployments, failedDeployments := getDeploymentStates(deployments, errs)
+
 	fmt.Println("-------------------------")
+	fmt.Printf("Successfully %s: %s\n", summarySuccessMsg, strings.Join(successfullDeployments, ", "))
+
 	if len(errs) != 0 {
+
+		fmt.Printf("FAILED: %s\n", strings.Join(failedDeployments, ", "))
 		errMsg := fmt.Sprintf("%d out of %d deployments %s:\n", len(errs), len(deployments), summaryErrorMsg)
 		for _, cleanupErr := range errs {
 			errMsg = errMsg + "  " + cleanupErr.Deployment + "\n"
@@ -80,10 +85,41 @@ func runForAllDeployments(action ActionFunc, boshClient bosh.Client, summaryErro
 
 		return errorHandler(deployment.AllDeploymentsError{Summary: errMsg, DeploymentErrs: errs})
 	}
-
-	fmt.Printf("All %d deployments %s.\n", len(deployments), summarySuccessMsg)
 	return cli.NewExitError("", 0)
 
+}
+
+func createExecutables(deployments []string, action ActionFunc) []deployment.Executable {
+	var executables []deployment.Executable
+	for _, deploymentName := range deployments {
+		executables = append(executables, NewDeploymentExecutable(action, deploymentName))
+	}
+	return executables
+}
+
+func getDeploymentStates(allDeployments []string, errs []deployment.DeploymentError) ([]string, []string) {
+	failedDeployments := []string{}
+	for _, depErr := range errs {
+		failedDeployments = append(failedDeployments, depErr.Deployment)
+	}
+
+	successfullDeployments := []string{}
+	for _, dep := range allDeployments {
+		if !contains(failedDeployments, dep) {
+			successfullDeployments = append(successfullDeployments, dep)
+		}
+	}
+
+	return successfullDeployments, failedDeployments
+}
+
+func contains(list []string, item string) bool {
+	for _, str := range list {
+		if str == item {
+			return true
+		}
+	}
+	return false
 }
 
 type DeploymentExecutable struct {

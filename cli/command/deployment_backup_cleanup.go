@@ -61,7 +61,7 @@ func cleanupAllDeployments(cleaner *orchestrator.BackupCleaner, boshClient bosh.
 		cleanupAction,
 		boshClient,
 		"could not be cleaned up",
-		"were cleaned up",
+		"cleaned up",
 		errorHandler,
 		deployment.NewSerialExecutor())
 }

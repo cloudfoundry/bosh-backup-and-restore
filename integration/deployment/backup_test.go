@@ -1287,7 +1287,7 @@ instance_groups:
 			"--password", "admin",
 			"--target", director.URL,
 			"--all-deployments",
-			"--debug",
+			//"--debug",
 			"backup"}
 
 		session = binary.Run(backupWorkspace, []string{}, params...)
@@ -1311,6 +1311,7 @@ instance_groups:
 			director.VerifyAndMock(AppendBuilders(
 				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
 				Deployments([]string{deploymentName1}),
+				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
 				VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
 				DownloadManifest(deploymentName1, manifest),
 				SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
@@ -1333,11 +1334,11 @@ instance_groups:
 
 			By("printing the backup progress to the screen", func() {
 				assertOutput(session.Out, []string{
-					fmt.Sprintf("Found 1 deployments:"),
-					fmt.Sprintf(deploymentName1),
-					fmt.Sprintf("Starting backup of %s...", deploymentName1),
-					fmt.Sprintf("Backup created of %s on", deploymentName1),
-					fmt.Sprintf("All 1 deployments backed up."),
+					fmt.Sprintf("Starting backup..."),
+					fmt.Sprintf("Pending: %s", deploymentName1),
+					fmt.Sprintf("Starting backup of %s", deploymentName1),
+					fmt.Sprintf("Finished backup of %s", deploymentName1),
+					fmt.Sprintf("Successfully backed up: %s", deploymentName1),
 				})
 			})
 		})
@@ -1354,7 +1355,7 @@ instance_groups:
 
 		It("returns an error", func() {
 			Expect(session.ExitCode()).NotTo(BeZero())
-			Expect(session.Out).To(gbytes.Say("oups"))
+			Expect(session.Err).To(gbytes.Say("oups"))
 		})
 	})
 
@@ -1376,6 +1377,7 @@ instance_groups:
 			director.VerifyAndMock(AppendBuilders(
 				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
 				Deployments([]string{deploymentName1}),
+				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
 				VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
 				DownloadManifest(deploymentName1, manifest),
 				SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
@@ -1387,13 +1389,16 @@ instance_groups:
 			)
 		})
 
-		It("backups 1 deployment and alerts me to the failure on the second deployment", func() {
+		It("alerts me about the deployment failure", func() {
 			Expect(session.ExitCode()).NotTo(BeZero())
 			assertOutput(session.Out, []string{
-				fmt.Sprintf("Found 1 deployments:"),
-				fmt.Sprintf(deploymentName1),
-				fmt.Sprintf("Starting backup of %s...", deploymentName1),
-				"Error backing up redis on redis/fake-uuid",
+				fmt.Sprintf("Starting backup..."),
+				fmt.Sprintf("Pending: %s", deploymentName1),
+				fmt.Sprintf("Starting backup of %s", deploymentName1),
+				fmt.Sprintf("ERROR: failed to backup %s", deploymentName1),
+				fmt.Sprintf("Error backing up redis on redis/fake-uuid"),
+				fmt.Sprintf("Successfully backed up: "),
+				fmt.Sprintf("FAILED: %s", deploymentName1),
 			})
 
 			assertOutput(session.Err, []string{
@@ -1423,6 +1428,7 @@ instance_groups:
 			director.VerifyAndMock(AppendBuilders(
 				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
 				Deployments([]string{deploymentName1}),
+				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
 				VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
 				DownloadManifest(deploymentName1, manifest),
 				SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),

@@ -306,16 +306,15 @@ backup_should_be_locked_before:
 				output := strings.Split(string(session.Out.Contents()), "\n")
 				output[1] = strings.TrimSpace(output[1])
 
-				Expect(output[0]).To(Equal("Found 1 deployments:"))
-				Expect(output[1]).To(Equal(deploymentName1))
-				Expect(output[2]).To(Equal("-------------------------"))
-				Expect(output[3]).To(Equal(
+				Expect(output[0]).To(Equal(fmt.Sprintf("Pending: %s", deploymentName1)))
+				Expect(output[1]).To(Equal("-------------------------"))
+				Expect(output[2]).To(Equal(
 					fmt.Sprintf("Deployment '%s' can be backed up.", deploymentName1),
 				))
 
-				Expect(output[4]).To(Equal("-------------------------"))
-				Expect(output[5]).To(Equal("All 1 deployments can be backed up."))
-				Expect(output).To(HaveLen(7))
+				Expect(output[3]).To(Equal("-------------------------"))
+				Expect(output[4]).To(Equal(fmt.Sprintf("Successfully can be backed up: %s", deploymentName1)))
+				Expect(output).To(HaveLen(6))
 			})
 		})
 

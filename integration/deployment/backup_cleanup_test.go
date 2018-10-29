@@ -165,7 +165,7 @@ instance_groups:
 				Eventually(session.ExitCode()).Should(Equal(0))
 				Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
 				Expect(instance2.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
-				Expect(session.Out).To(gbytes.Say("All 2 deployments were cleaned up"))
+				Expect(session.Out).To(gbytes.Say("Successfully cleaned up: %s, %s", deployment1, deployment2))
 			})
 		})
 
