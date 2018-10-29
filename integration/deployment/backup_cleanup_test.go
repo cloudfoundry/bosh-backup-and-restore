@@ -368,7 +368,7 @@ instance_groups:
 				Eventually(session.ExitCode()).Should(Equal(1))
 				Expect(session.Out).To(gbytes.Say("Failed to cleanup deployment '" + deployment1 + "'"))
 				Expect(session.Out).To(gbytes.Say("Cleaned up deployment '" + deployment2 + "'"))
-				Expect(session.Err).To(gbytes.Say("1 out of 2 deployments could not be cleaned up:\n%s", deployment1))
+				Expect(session.Err).To(gbytes.Say("1 out of 2 deployments could not be cleaned up:\n  %s", deployment1))
 				Expect(session.Err).To(gbytes.Say("Deployment '%s':", deployment1))
 				Expect(session.Err).To(gbytes.Say("exit code 1"))
 			})
