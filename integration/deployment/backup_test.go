@@ -1287,7 +1287,6 @@ instance_groups:
 			"--password", "admin",
 			"--target", director.URL,
 			"--all-deployments",
-			//"--debug",
 			"backup"}
 
 		session = binary.Run(backupWorkspace, []string{}, params...)
