@@ -113,9 +113,13 @@ func (bd *deployment) Backup(exe executor.Executor) error {
 	bd.Logger.Info("bbr", "Running backup scripts...")
 
 	instances := bd.instances.AllBackupable()
+
 	var executables []executor.Executable
-	for _, instance := range instances {
-		executables = append(executables, NewBackupExecutable(instance))
+	for _, i := range instances {
+		i.MarkArtifactDirCreated()
+		for _, j := range i.Jobs() {
+			executables = append(executables, NewBackupExecutable(j))
+		}
 	}
 
 	backupErr := exe.Run([][]executor.Executable{executables})

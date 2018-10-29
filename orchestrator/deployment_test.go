@@ -116,6 +116,10 @@ var _ = Describe("Deployment", func() {
 			instance2.IsBackupableReturns(false)
 			instance3.IsBackupableReturns(true)
 			instances = []orchestrator.Instance{instance1, instance2, instance3}
+
+			instance1.JobsReturns([]orchestrator.Job{job1a})
+			instance2.JobsReturns([]orchestrator.Job{job2a})
+			instance3.JobsReturns([]orchestrator.Job{job3a})
 			fakeExecutor = new(executorFakes.FakeExecutor)
 		})
 
@@ -123,7 +127,7 @@ var _ = Describe("Deployment", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(fakeExecutor.RunArgsForCall(0)).To(Equal([][]executor.Executable{
-				{orchestrator.NewBackupExecutable(instance1), orchestrator.NewBackupExecutable(instance3)},
+				{orchestrator.NewBackupExecutable(job1a), orchestrator.NewBackupExecutable(job3a)},
 			}))
 		})
 
@@ -138,7 +142,7 @@ var _ = Describe("Deployment", func() {
 				Expect(err).To(MatchError(ContainSubstring("backup instance1 failed")))
 
 				Expect(fakeExecutor.RunArgsForCall(0)).To(Equal([][]executor.Executable{
-					{orchestrator.NewBackupExecutable(instance1), orchestrator.NewBackupExecutable(instance3)},
+					{orchestrator.NewBackupExecutable(job1a), orchestrator.NewBackupExecutable(job3a)},
 				}))
 			})
 		})

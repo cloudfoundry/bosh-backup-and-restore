@@ -1,13 +1,13 @@
 package orchestrator
 
 type BackupExecutable struct {
-	Instance
+	Job
 }
 
-func NewBackupExecutable(i Instance) BackupExecutable {
-	return BackupExecutable{i}
+func NewBackupExecutable(j Job) BackupExecutable {
+	return BackupExecutable{j}
 }
 
 func (e BackupExecutable) Execute() error {
-	return e.Instance.Backup()
+	return e.Job.Backup()
 }

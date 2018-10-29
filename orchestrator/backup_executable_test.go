@@ -12,30 +12,30 @@ import (
 
 var _ = Describe("BackupExecutables", func() {
 	var (
-		fakeInstance *fakes.FakeInstance
-		err          error
-		executable   executor.Executable
+		err        error
+		executable executor.Executable
+		fakeJob    *fakes.FakeJob
 	)
 
 	BeforeEach(func() {
-		fakeInstance = new(fakes.FakeInstance)
+		fakeJob = new(fakes.FakeJob)
 	})
 
 	Context("NewBackupExecutable", func() {
 		BeforeEach(func() {
-			executable = orchestrator.NewBackupExecutable(fakeInstance)
+			executable = orchestrator.NewBackupExecutable(fakeJob)
 		})
 		JustBeforeEach(func() {
 			err = executable.Execute()
 		})
 
 		It("executes backup", func() {
-			Expect(fakeInstance.BackupCallCount()).To(Equal(1))
+			Expect(fakeJob.BackupCallCount()).To(Equal(1))
 		})
 
 		Context("when the backup fails", func() {
 			BeforeEach(func() {
-				fakeInstance.BackupReturns(fmt.Errorf("I failed at backup"))
+				fakeJob.BackupReturns(fmt.Errorf("I failed at backup"))
 			})
 
 			It("returns an error", func() {
