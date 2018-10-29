@@ -77,10 +77,10 @@ func backupAll(target, username, password, caCert, artifactPath string, boshClie
 		buffer := new(bytes.Buffer)
 		logger := factory.BuildBoshLoggerWithCustomBuffer(debug, buffer)
 		boshClient, _ := factory.BuildBoshClient(target, username, password, caCert, logger)
-
 		backuper := factory.BuildDeploymentBackuper(withManifest, boshClient, logger)
 
 		fmt.Printf("Starting backup of %s\n", deploymentName)
+
 		err := backuper.Backup(deploymentName, artifactPath)
 
 		if err != nil {
@@ -94,7 +94,7 @@ func backupAll(target, username, password, caCert, artifactPath string, boshClie
 	}
 
 	errorHandler := func(deploymentError deployment.AllDeploymentsError) error {
-		if ContainsUnlockOrCleanup(deploymentError.DeploymentErrs) {
+		if deployment.ContainsUnlockOrCleanup(deploymentError.DeploymentErrs) {
 			return deploymentError.ProcessWithFooter(backupCleanupAllDeploymentsAdvisedNotice)
 		}
 		return deploymentError.Process()

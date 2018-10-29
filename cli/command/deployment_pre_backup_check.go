@@ -81,7 +81,7 @@ func allDeploymentsBackupCheck(boshClient bosh.Client, backupChecker *orchestrat
 	}
 
 	errorHandler := func(deploymentError deployment.AllDeploymentsError) error {
-		if ContainsArtifactDir(deploymentError.DeploymentErrs) {
+		if deployment.ContainsArtifactDir(deploymentError.DeploymentErrs) {
 			return deploymentError.ProcessWithFooter(backupCleanupAllDeploymentsAdvisedNotice)
 		}
 		return deploymentError.Process()

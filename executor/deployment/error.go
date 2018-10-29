@@ -62,3 +62,21 @@ func writeStackTrace(errorWithStackTrace string) error {
 func IndentBlock(block string) string {
 	return fmt.Sprintf("  %s", strings.Replace(block, "\n", "\n  ", -1))
 }
+
+func ContainsUnlockOrCleanup(deploymentErrs []DeploymentError) bool {
+	for _, errs := range deploymentErrs {
+		if errs.Errs.ContainsUnlockOrCleanup() {
+			return true
+		}
+	}
+	return false
+}
+
+func ContainsArtifactDir(deploymentErrs []DeploymentError) bool {
+	for _, errs := range deploymentErrs {
+		if errs.Errs.ContainsArtifactDirError() {
+			return true
+		}
+	}
+	return false
+}
