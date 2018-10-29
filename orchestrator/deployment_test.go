@@ -2,6 +2,7 @@ package orchestrator_test
 
 import (
 	"fmt"
+
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 	executorFakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
@@ -104,9 +105,10 @@ var _ = Describe("Deployment", func() {
 
 	Context("Backup", func() {
 		var err error
+		var fakeExecutor *executorFakes.FakeExecutor
 
 		JustBeforeEach(func() {
-			err = deployment.Backup()
+			err = deployment.Backup(fakeExecutor)
 		})
 
 		BeforeEach(func() {
@@ -114,27 +116,30 @@ var _ = Describe("Deployment", func() {
 			instance2.IsBackupableReturns(false)
 			instance3.IsBackupableReturns(true)
 			instances = []orchestrator.Instance{instance1, instance2, instance3}
+			fakeExecutor = new(executorFakes.FakeExecutor)
 		})
 
 		It("calls Backup() on all backupable instances", func() {
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(instance1.BackupCallCount()).To(Equal(1))
-			Expect(instance2.BackupCallCount()).To(Equal(0))
-			Expect(instance3.BackupCallCount()).To(Equal(1))
+			Expect(fakeExecutor.RunArgsForCall(0)).To(Equal([][]executor.Executable{
+				{orchestrator.NewBackupExecutable(instance1), orchestrator.NewBackupExecutable(instance3)},
+			}))
 		})
 
 		Context("when backing up an instance fails", func() {
 			BeforeEach(func() {
-				instance1.BackupReturns(fmt.Errorf("very clever sandwich"))
+				fakeExecutor.RunReturns([]error{
+					fmt.Errorf("backup instance1 failed"),
+				})
 			})
 
 			It("fails and stops the backup", func() {
-				Expect(err).To(MatchError("very clever sandwich"))
+				Expect(err).To(MatchError(ContainSubstring("backup instance1 failed")))
 
-				Expect(instance1.BackupCallCount()).To(Equal(1))
-				Expect(instance2.BackupCallCount()).To(Equal(0))
-				Expect(instance3.BackupCallCount()).To(Equal(0))
+				Expect(fakeExecutor.RunArgsForCall(0)).To(Equal([][]executor.Executable{
+					{orchestrator.NewBackupExecutable(instance1), orchestrator.NewBackupExecutable(instance3)},
+				}))
 			})
 		})
 	})

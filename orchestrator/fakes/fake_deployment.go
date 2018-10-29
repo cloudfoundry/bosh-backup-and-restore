@@ -75,10 +75,12 @@ type FakeDeployment struct {
 	preBackupLockReturnsOnCall map[int]struct {
 		result1 error
 	}
-	BackupStub        func() error
+	BackupStub        func(executor.Executor) error
 	backupMutex       sync.RWMutex
-	backupArgsForCall []struct{}
-	backupReturns     struct {
+	backupArgsForCall []struct {
+		arg1 executor.Executor
+	}
+	backupReturns struct {
 		result1 error
 	}
 	backupReturnsOnCall map[int]struct {
@@ -469,14 +471,16 @@ func (fake *FakeDeployment) PreBackupLockReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) Backup() error {
+func (fake *FakeDeployment) Backup(arg1 executor.Executor) error {
 	fake.backupMutex.Lock()
 	ret, specificReturn := fake.backupReturnsOnCall[len(fake.backupArgsForCall)]
-	fake.backupArgsForCall = append(fake.backupArgsForCall, struct{}{})
-	fake.recordInvocation("Backup", []interface{}{})
+	fake.backupArgsForCall = append(fake.backupArgsForCall, struct {
+		arg1 executor.Executor
+	}{arg1})
+	fake.recordInvocation("Backup", []interface{}{arg1})
 	fake.backupMutex.Unlock()
 	if fake.BackupStub != nil {
-		return fake.BackupStub()
+		return fake.BackupStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
@@ -488,6 +492,12 @@ func (fake *FakeDeployment) BackupCallCount() int {
 	fake.backupMutex.RLock()
 	defer fake.backupMutex.RUnlock()
 	return len(fake.backupArgsForCall)
+}
+
+func (fake *FakeDeployment) BackupArgsForCall(i int) executor.Executor {
+	fake.backupMutex.RLock()
+	defer fake.backupMutex.RUnlock()
+	return fake.backupArgsForCall[i].arg1
 }
 
 func (fake *FakeDeployment) BackupReturns(result1 error) {

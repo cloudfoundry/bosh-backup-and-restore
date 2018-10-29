@@ -20,7 +20,7 @@ type Deployment interface {
 	IsRestorable() bool
 	RestorableInstances() []Instance
 	PreBackupLock(LockOrderer, executor.Executor) error
-	Backup() error
+	Backup(executor.Executor) error
 	PostBackupUnlock(LockOrderer, executor.Executor) error
 	Restore() error
 	Cleanup() error
@@ -109,11 +109,19 @@ func (bd *deployment) PreBackupLock(lockOrderer LockOrderer, executor executor.E
 	return ConvertErrors(preBackupLockErrors)
 }
 
-func (bd *deployment) Backup() error {
+func (bd *deployment) Backup(exe executor.Executor) error {
 	bd.Logger.Info("bbr", "Running backup scripts...")
-	err := bd.instances.AllBackupable().Backup()
+
+	instances := bd.instances.AllBackupable()
+	var executables []executor.Executable
+	for _, instance := range instances {
+		executables = append(executables, NewBackupExecutable(instance))
+	}
+
+	backupErr := exe.Run([][]executor.Executable{executables})
+
 	bd.Logger.Info("bbr", "Finished running backup scripts.")
-	return err
+	return ConvertErrors(backupErr)
 }
 
 func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer, executor executor.Executor) error {
