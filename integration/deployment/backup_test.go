@@ -1240,13 +1240,11 @@ backup_name: name_2
 
 var _ = Describe("backup --all-deployments", func() {
 	const deploymentName1 = "little-deployment-1"
-	const deploymentName2 = "little-deployment-2"
 
 	var director *mockhttp.Server
 	var backupWorkspace string
 	var session *gexec.Session
 	var instance1 *testcluster.Instance
-	var instance2 *testcluster.Instance
 	manifest := `---
 instance_groups:
 - name: redis
@@ -1271,7 +1269,6 @@ instance_groups:
 		Expect(err).NotTo(HaveOccurred())
 
 		instance1 = testcluster.NewInstance()
-		instance2 = testcluster.NewInstance()
 	})
 
 	AfterEach(func() {
@@ -1279,7 +1276,6 @@ instance_groups:
 		director.Close()
 
 		instance1.DieInBackground()
-		instance2.DieInBackground()
 		Expect(os.RemoveAll(backupWorkspace)).To(Succeed())
 	})
 
@@ -1297,7 +1293,7 @@ instance_groups:
 		session = binary.Run(backupWorkspace, []string{}, params...)
 	})
 
-	Context("when both deployments are backupable", func() {
+	Context("when the deployment is backupable", func() {
 		const instanceGroupName = "redis"
 
 		BeforeEach(func() {
@@ -1314,22 +1310,14 @@ instance_groups:
 
 			director.VerifyAndMock(AppendBuilders(
 				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
-				Deployments([]string{deploymentName1, deploymentName2}),
+				Deployments([]string{deploymentName1}),
 				VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
 				DownloadManifest(deploymentName1, manifest),
 				SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
 				CleanupSSH(deploymentName1, instanceGroupName),
-				VmsForDeployment(deploymentName2, deploymentVMs(instanceGroupName)),
-				DownloadManifest(deploymentName2, manifest),
-				SetupSSH(deploymentName2, instanceGroupName, "fake-uuid", 0, instance1),
-				CleanupSSH(deploymentName2, instanceGroupName),
 			)...)
 
 			instance1.CreateExecutableFiles(
-				"/var/vcap/jobs/redis/bin/bbr/backup",
-			)
-
-			instance2.CreateExecutableFiles(
 				"/var/vcap/jobs/redis/bin/bbr/backup",
 			)
 		})
@@ -1341,22 +1329,15 @@ instance_groups:
 				deployment1Artifact := backupDirectory(deploymentName1, backupWorkspace)
 				Expect(deployment1Artifact).To(BeADirectory())
 				Expect(path.Join(deployment1Artifact, "/redis-0-redis.tar")).To(BeARegularFile())
-
-				deployment2Artifact := backupDirectory(deploymentName2, backupWorkspace)
-				Expect(deployment2Artifact).To(BeADirectory())
-				Expect(path.Join(deployment2Artifact, "/redis-0-redis.tar")).To(BeARegularFile())
 			})
 
 			By("printing the backup progress to the screen", func() {
 				assertOutput(session.Out, []string{
-					fmt.Sprintf("Found 2 deployments:"),
+					fmt.Sprintf("Found 1 deployments:"),
 					fmt.Sprintf(deploymentName1),
-					fmt.Sprintf(deploymentName2),
 					fmt.Sprintf("Starting backup of %s...", deploymentName1),
 					fmt.Sprintf("Backup created of %s on", deploymentName1),
-					fmt.Sprintf("Starting backup of %s...", deploymentName2),
-					fmt.Sprintf("Backup created of %s on", deploymentName2),
-					fmt.Sprintf("All 2 deployments backed up."),
+					fmt.Sprintf("All 1 deployments backed up."),
 				})
 			})
 		})
@@ -1377,7 +1358,7 @@ instance_groups:
 		})
 	})
 
-	Context("when one of the deployments fails to backup", func() {
+	Context("when the deployment fails to backup", func() {
 		const instanceGroupName = "redis"
 
 		BeforeEach(func() {
@@ -1394,40 +1375,29 @@ instance_groups:
 
 			director.VerifyAndMock(AppendBuilders(
 				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
-				Deployments([]string{deploymentName1, deploymentName2}),
+				Deployments([]string{deploymentName1}),
 				VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
 				DownloadManifest(deploymentName1, manifest),
 				SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
 				CleanupSSH(deploymentName1, instanceGroupName),
-				VmsForDeployment(deploymentName2, deploymentVMs(instanceGroupName)),
-				DownloadManifest(deploymentName2, manifest),
-				SetupSSH(deploymentName2, instanceGroupName, "fake-uuid", 0, instance2),
-				CleanupSSH(deploymentName2, instanceGroupName),
 			)...)
 
 			instance1.CreateScript(
 				"/var/vcap/jobs/redis/bin/bbr/backup", "echo 'ultra-bar'; (>&2 echo 'ultra-baz'); exit 1",
-			)
-
-			instance2.CreateExecutableFiles(
-				"/var/vcap/jobs/redis/bin/bbr/backup",
 			)
 		})
 
 		It("backups 1 deployment and alerts me to the failure on the second deployment", func() {
 			Expect(session.ExitCode()).NotTo(BeZero())
 			assertOutput(session.Out, []string{
-				fmt.Sprintf("Found 2 deployments:"),
+				fmt.Sprintf("Found 1 deployments:"),
 				fmt.Sprintf(deploymentName1),
-				fmt.Sprintf(deploymentName2),
 				fmt.Sprintf("Starting backup of %s...", deploymentName1),
 				"Error backing up redis on redis/fake-uuid",
-				fmt.Sprintf("Starting backup of %s...", deploymentName2),
-				fmt.Sprintf("Backup created of %s on", deploymentName2),
 			})
 
 			assertOutput(session.Err, []string{
-				"1 out of 2 deployments cannot be backed up",
+				"1 out of 1 deployments cannot be backed up",
 				fmt.Sprintf("%s", deploymentName1),
 				"Error attempting to run backup for job redis on redis/fake-uuid: ultra-baz - exit code 1",
 			})
@@ -1435,7 +1405,7 @@ instance_groups:
 
 	})
 
-	Context("when one of the deployments fails to unlock", func() {
+	Context("when the deployments fails to unlock", func() {
 		const instanceGroupName = "redis"
 
 		BeforeEach(func() {
@@ -1452,15 +1422,11 @@ instance_groups:
 
 			director.VerifyAndMock(AppendBuilders(
 				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
-				Deployments([]string{deploymentName1, deploymentName2}),
+				Deployments([]string{deploymentName1}),
 				VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
 				DownloadManifest(deploymentName1, manifest),
 				SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
 				CleanupSSH(deploymentName1, instanceGroupName),
-				VmsForDeployment(deploymentName2, deploymentVMs(instanceGroupName)),
-				DownloadManifest(deploymentName2, manifest),
-				SetupSSH(deploymentName2, instanceGroupName, "fake-uuid", 0, instance2),
-				CleanupSSH(deploymentName2, instanceGroupName),
 			)...)
 
 			instance1.CreateExecutableFiles(
@@ -1470,10 +1436,6 @@ instance_groups:
 			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
 >&2 echo 'I failed'
 exit 1`)
-
-			instance2.CreateExecutableFiles(
-				"/var/vcap/jobs/redis/bin/bbr/backup",
-			)
 		})
 
 		It("fails and prints a backup cleanup advice", func() {
