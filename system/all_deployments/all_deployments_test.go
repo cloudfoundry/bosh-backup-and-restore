@@ -15,6 +15,10 @@ import (
 )
 
 var _ = Describe("All deployments", func() {
+	var redis1 = "redis-1"
+	var redis2 = "redis-2"
+	var redis3 = "redis-3"
+
 	Context("when running pre-backup-check", func() {
 		Context("and all deployments are backupable", func() {
 			It("reports that all deployments are backupable", func() {
@@ -38,18 +42,17 @@ var _ = Describe("All deployments", func() {
 				output[2] = strings.TrimSpace(output[2])
 				output[3] = strings.TrimSpace(output[3])
 
-				Expect(output[0]).To(Equal("Found 3 deployments:"))
-				Expect(output[1:4]).To(ConsistOf("redis-1", "redis-2", "redis-3"))
-				Expect(output[4]).To(Equal("-------------------------"))
-				Expect(output[5:8]).To(ConsistOf(
+				Expect(output[0]).To(Equal("Pending: redis-1, redis-2, redis-3"))
+				Expect(output[1]).To(Equal("-------------------------"))
+				Expect(output[2:5]).To(ConsistOf(
 					"Deployment 'redis-1' can be backed up.",
 					"Deployment 'redis-2' can be backed up.",
 					"Deployment 'redis-3' can be backed up.",
 				))
-				Expect(output[8]).To(Equal("-------------------------"))
-				Expect(output[9]).To(Equal("All 3 deployments can be backed up."))
-				Expect(output[10]).To(Equal(""))
-				Expect(output).To(HaveLen(11))
+				Expect(output[5]).To(Equal("-------------------------"))
+				Expect(output[6]).To(Equal("Successfully can be backed up: redis-1, redis-2, redis-3"))
+				Expect(output[7]).To(Equal(""))
+				Expect(output).To(HaveLen(8))
 			})
 		})
 
@@ -63,6 +66,7 @@ var _ = Describe("All deployments", func() {
 				moveBackupScript("redis-1", "/tmp/redis-server", "/var/vcap/jobs/redis-server")
 				moveBackupScript("redis-2", "/tmp/redis-server", "/var/vcap/jobs/redis-server")
 			})
+
 			It("reports that some deployments are backupable and errors", func() {
 				cmd := exec.Command(
 					commandPath,
@@ -84,10 +88,7 @@ var _ = Describe("All deployments", func() {
 
 				//we cant enforce the order of the output given it is random, so we assert that it contains what we expect and only those lines.
 				Expect(stdout).To(ConsistOf(
-					"Found 3 deployments:",
-					"  redis-1",
-					"  redis-2",
-					"  redis-3",
+					fmt.Sprintf("Pending: redis-1, redis-2, redis-3"),
 					"-------------------------",
 					"Deployment 'redis-1' cannot be backed up.",
 					"  1 error occurred:",
@@ -99,8 +100,11 @@ var _ = Describe("All deployments", func() {
 					"  Deployment 'redis-2' has no backup scripts",
 					"Deployment 'redis-3' can be backed up.",
 					"-------------------------",
+					"Successfully can be backed up: redis-3",
+					MatchRegexp("FAILED: redis-[1-2], redis-[1-2]"), //don't know which order they will fail in, so must match with regex.
 					"",
 				))
+
 				Expect(stderr).To(ConsistOf(
 					"2 out of 3 deployments cannot be backed up:",
 					"  redis-1",
@@ -164,13 +168,13 @@ var _ = Describe("All deployments", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(session).Should(gexec.Exit(0))
 			By("providing debug output", func() {
-				Expect(session.Out).To(gbytes.Say("Starting backup of redis-1"))
-				Expect(session.Out).To(gbytes.Say("Backup created of redis-1"))
-				Expect(session.Out).To(gbytes.Say("Starting backup of redis-2"))
-				Expect(session.Out).To(gbytes.Say("Backup created of redis-2"))
-				Expect(session.Out).To(gbytes.Say("Starting backup of redis-3"))
-				Expect(session.Out).To(gbytes.Say("Backup created of redis-3"))
-				Expect(session.Out).To(gbytes.Say("All 3 deployments backed up."))
+				Expect(session.Out).To(gbytes.Say("Starting backup of %s", redis1))
+				Expect(session.Out).To(gbytes.Say("Finished backup of %s", redis1))
+				Expect(session.Out).To(gbytes.Say("Starting backup of %s", redis2))
+				Expect(session.Out).To(gbytes.Say("Finished backup of %s", redis2))
+				Expect(session.Out).To(gbytes.Say("Starting backup of %s", redis3))
+				Expect(session.Out).To(gbytes.Say("Finished backup of %s", redis3))
+				Expect(session.Out).To(gbytes.Say("Successfully backed up: %s, %s, %s", redis1, redis2, redis3))
 			})
 
 			By("running the pre-backup lock script", func() {
@@ -212,9 +216,9 @@ var _ = Describe("All deployments", func() {
 		var redisInstance3 Instance
 
 		BeforeEach(func() {
-			redisInstance1 = NewDeployment("redis-1", "").Instance("redis", "0")
-			redisInstance2 = NewDeployment("redis-2", "").Instance("redis", "0")
-			redisInstance3 = NewDeployment("redis-3", "").Instance("redis", "0")
+			redisInstance1 = NewDeployment(redis1, "").Instance("redis", "0")
+			redisInstance2 = NewDeployment(redis2, "").Instance("redis", "0")
+			redisInstance3 = NewDeployment(redis3, "").Instance("redis", "0")
 
 			session := redisInstance3.RunCommand("sudo mkdir /var/vcap/store/bbr-backup")
 			Eventually(session).Should(gexec.Exit(0))
@@ -244,11 +248,11 @@ var _ = Describe("All deployments", func() {
 			Eventually(session).Should(gexec.Exit(0))
 
 			By("providing debug output", func() {
-				Expect(session.Out).To(gbytes.Say("Found 3 deployments"))
-				Expect(session.Out).To(gbytes.Say("Cleaned up deployment 'redis-1'"))
-				Expect(session.Out).To(gbytes.Say("Cleaned up deployment 'redis-2'"))
-				Expect(session.Out).To(gbytes.Say("Cleaned up deployment 'redis-3'"))
-				Expect(session.Out).To(gbytes.Say("All 3 deployments were cleaned up"))
+				Expect(session.Out).To(gbytes.Say("Pending: %s, %s, %s", redis1, redis2, redis3))
+				Expect(session.Out).To(gbytes.Say("Cleaned up deployment '%s'", redis1))
+				Expect(session.Out).To(gbytes.Say("Cleaned up deployment '%s'", redis2))
+				Expect(session.Out).To(gbytes.Say("Cleaned up deployment '%s'", redis3))
+				Expect(session.Out).To(gbytes.Say("Successfully cleaned up: %s, %s, %s", redis1, redis2, redis3))
 			})
 
 			By("running the post backup unlock script", func() {
