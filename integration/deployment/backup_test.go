@@ -585,7 +585,7 @@ exit 1`)
 					downloadManifest = true
 
 					director.VerifyAndMock(AppendBuilders(
-						[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
+						InfoWithBasicAuth(),
 						VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
 						DownloadManifest(deploymentName, manifest),
 						SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
@@ -1309,9 +1309,9 @@ instance_groups:
 			}
 
 			director.VerifyAndMock(AppendBuilders(
-				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
+				InfoWithBasicAuth(),
 				Deployments([]string{deploymentName1}),
-				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
+				InfoWithBasicAuth(),
 				VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
 				DownloadManifest(deploymentName1, manifest),
 				SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
@@ -1348,7 +1348,7 @@ instance_groups:
 	Context("When the backuper fails to get the deployments", func() {
 		BeforeEach(func() {
 			director.VerifyAndMock(AppendBuilders(
-				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
+				InfoWithBasicAuth(),
 				DeploymentsFails("oups"),
 			)...)
 		})
@@ -1403,9 +1403,9 @@ instance_groups:
 			}
 
 			director.VerifyAndMock(AppendBuilders(
-				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
+				InfoWithBasicAuth(),
 				Deployments([]string{deploymentName1}),
-				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
+				InfoWithBasicAuth(),
 				VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
 				DownloadManifest(deploymentName1, manifest),
 				SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
@@ -1454,9 +1454,9 @@ instance_groups:
 			}
 
 			director.VerifyAndMock(AppendBuilders(
-				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
+				InfoWithBasicAuth(),
 				Deployments([]string{deploymentName1}),
-				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
+				InfoWithBasicAuth(),
 				VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
 				DownloadManifest(deploymentName1, manifest),
 				SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
@@ -1481,7 +1481,7 @@ exit 1`)
 	Context("when there are no deployments", func() {
 		BeforeEach(func() {
 			director.VerifyAndMock(AppendBuilders(
-				[]mockhttp.MockedResponseBuilder{mockbosh.Info().WithAuthTypeBasic()},
+				InfoWithBasicAuth(),
 				Deployments([]string{}),
 			)...)
 		})
