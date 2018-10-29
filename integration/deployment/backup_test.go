@@ -1359,6 +1359,34 @@ instance_groups:
 		})
 	})
 
+	Context("When a backuper fails to authenticate", func() {
+		BeforeEach(func() {
+			director.VerifyAndMock(AppendBuilders(
+				InfoWithBasicAuth(),
+				Deployments([]string{deploymentName1}),
+				InfoWithBasicAuthFails("oups"),
+			)...)
+		})
+
+		It("returns an error", func() {
+			Expect(session.ExitCode()).NotTo(BeZero())
+			Expect(session.Err).To(gbytes.Say("oups"))
+		})
+	})
+
+	Context("When the backuper fails to authenticate", func() {
+		BeforeEach(func() {
+			director.VerifyAndMock(AppendBuilders(
+				InfoWithBasicAuthFails("oups"),
+			)...)
+		})
+
+		It("returns an error", func() {
+			Expect(session.ExitCode()).NotTo(BeZero())
+			Expect(session.Err).To(gbytes.Say("oups"))
+		})
+	})
+
 	Context("when the deployment fails to backup", func() {
 		const instanceGroupName = "redis"
 

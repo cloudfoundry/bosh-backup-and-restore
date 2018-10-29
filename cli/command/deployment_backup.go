@@ -1,12 +1,8 @@
 package command
 
 import (
-	"bytes"
 	"fmt"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor/deployment"
-	"github.com/cloudfoundry/bosh-utils/logger"
-
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
@@ -45,44 +41,23 @@ func (d DeploymentBackupCommand) Action(c *cli.Context) error {
 	withManifest := c.Bool("with-manifest")
 	artifactPath := c.String("artifact-path")
 
-	buffer := new(bytes.Buffer)
-	var logger logger.Logger
 	if allDeployments {
-		logger = factory.BuildBoshLoggerWithCustomBuffer(debug, buffer)
+		return backupAll(target, username, password, caCert, artifactPath, withManifest, debug)
 	} else {
-		logger = factory.BuildBoshLogger(debug)
+		return backupSingleDeployment(deployment, target, username, password, caCert, artifactPath, withManifest, debug)
 	}
-
-	boshClient, err := factory.BuildBoshClient(target, username, password, caCert, logger)
-	if err != nil {
-		return processError(orchestrator.NewError(err))
-	}
-
-	if !allDeployments {
-		backuper := factory.BuildDeploymentBackuper(withManifest, boshClient, logger)
-		backupErr := backuper.Backup(deployment, artifactPath)
-
-		if backupErr.ContainsUnlockOrCleanup() {
-			return processErrorWithFooter(backupErr, backupCleanupAdvisedNotice)
-		} else {
-			return processError(backupErr)
-		}
-	}
-
-	return backupAll(target, username, password, caCert, artifactPath, boshClient, withManifest, debug)
 }
 
-func backupAll(target, username, password, caCert, artifactPath string, boshClient bosh.Client, withManifest, debug bool) error {
+func backupAll(target, username, password, caCert, artifactPath string, withManifest, debug bool) error {
 	backupAction := func(deploymentName string) orchestrator.Error {
-		buffer := new(bytes.Buffer)
-		logger := factory.BuildBoshLoggerWithCustomBuffer(debug, buffer)
-		boshClient, _ := factory.BuildBoshClient(target, username, password, caCert, logger)
-		backuper := factory.BuildDeploymentBackuper(withManifest, boshClient, logger)
+		logger, buffer := factory.BuildBoshLoggerWithCustomBuffer(debug)
+		backuper, factoryErr := factory.BuildDeploymentBackuper(target, username, password, caCert, withManifest, logger)
+		if factoryErr != nil {
+			return orchestrator.NewError(factoryErr)
+		}
 
 		fmt.Printf("Starting backup of %s\n", deploymentName)
-
 		err := backuper.Backup(deploymentName, artifactPath)
-
 		if err != nil {
 			fmt.Printf("ERROR: failed to backup %s\n", deploymentName)
 			fmt.Println(buffer.String())
@@ -102,10 +77,31 @@ func backupAll(target, username, password, caCert, artifactPath string, boshClie
 
 	fmt.Println("Starting backup...")
 
+	logger, _ := factory.BuildBoshLoggerWithCustomBuffer(debug)
+	boshClient, err := factory.BuildBoshClient(target, username, password, caCert, logger)
+	if err != nil {
+		return processError(orchestrator.NewError(err))
+	}
+
 	return runForAllDeployments(backupAction,
 		boshClient,
 		"cannot be backed up",
 		"backed up",
 		errorHandler,
 		deployment.NewSerialExecutor())
+}
+
+func backupSingleDeployment(deployment, target, username, password, caCert, artifactPath string, withManifest, debug bool) error {
+	logger := factory.BuildBoshLogger(debug)
+	backuper, err := factory.BuildDeploymentBackuper(target, username, password, caCert, withManifest, logger)
+	if err != nil {
+		return processError(orchestrator.NewError(err))
+	}
+
+	backupErr := backuper.Backup(deployment, artifactPath)
+	if backupErr.ContainsUnlockOrCleanup() {
+		return processErrorWithFooter(backupErr, backupCleanupAdvisedNotice)
+	} else {
+		return processError(backupErr)
+	}
 }

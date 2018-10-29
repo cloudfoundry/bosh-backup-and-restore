@@ -25,6 +25,12 @@ func InfoWithBasicAuth() []mockhttp.MockedResponseBuilder {
 	}
 }
 
+func InfoWithBasicAuthFails(errorMessage string) []mockhttp.MockedResponseBuilder {
+	return []mockhttp.MockedResponseBuilder{
+		mockbosh.Info().WithAuthTypeBasic().Fails(errorMessage),
+	}
+}
+
 func Deployments(deployments []string) []mockhttp.MockedResponseBuilder {
 	return []mockhttp.MockedResponseBuilder{
 		mockbosh.GetDeployments().RespondsWithListOfDeployments(deployments),

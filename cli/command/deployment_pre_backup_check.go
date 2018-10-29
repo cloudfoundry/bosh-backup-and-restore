@@ -1,7 +1,6 @@
 package command
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor/deployment"
@@ -30,10 +29,9 @@ func (d DeploymentPreBackupCheck) Cli() cli.Command {
 
 func (d DeploymentPreBackupCheck) Action(c *cli.Context) error {
 	username, password, target, caCert, debug, deployment, allDeployments := getDeploymentParams(c)
-	buffer := new(bytes.Buffer)
 	var logger logger.Logger
 	if allDeployments {
-		logger = factory.BuildBoshLoggerWithCustomBuffer(debug, buffer)
+		logger, _ = factory.BuildBoshLoggerWithCustomBuffer(debug)
 	} else {
 		logger = factory.BuildBoshLogger(debug)
 	}

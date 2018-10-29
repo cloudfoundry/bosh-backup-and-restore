@@ -11,7 +11,11 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-func BuildDeploymentBackuper(withManifest bool, boshClient bosh.Client, logger boshlog.Logger) *orchestrator.Backuper {
+func BuildDeploymentBackuper(target, username, password, caCert string, withManifest bool, logger boshlog.Logger) (*orchestrator.Backuper, error) {
+	boshClient, err := BuildBoshClient(target, username, password, caCert, logger)
+	if err != nil {
+		return nil, err
+	}
 
 	execr := executor.NewParallelExecutor()
 
@@ -23,5 +27,5 @@ func BuildDeploymentBackuper(withManifest bool, boshClient bosh.Client, logger b
 		execr,
 		time.Now,
 		orchestrator.NewArtifactCopier(execr, logger),
-	)
+	), nil
 }
