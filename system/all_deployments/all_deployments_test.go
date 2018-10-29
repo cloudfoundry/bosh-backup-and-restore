@@ -168,6 +168,7 @@ var _ = Describe("All deployments", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(session).Should(gexec.Exit(0))
 			By("providing debug output", func() {
+				Expect(session.Out).To(gbytes.Say("Pending: %s, %s, %s", redis1, redis2, redis3))
 				Expect(session.Out).To(gbytes.Say("Starting backup of %s", redis1))
 				Expect(session.Out).To(gbytes.Say("Finished backup of %s", redis1))
 				Expect(session.Out).To(gbytes.Say("Starting backup of %s", redis2))
