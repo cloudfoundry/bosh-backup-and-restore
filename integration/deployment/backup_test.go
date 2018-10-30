@@ -1322,8 +1322,8 @@ instance_groups:
 			)
 		})
 
-		It("backs up both deployments and prints process to the screen", func() {
-			By("backing up both deployments successfully", func() {
+		It("backs the deployment and prints process to the screen", func() {
+			By("backing the deployment successfully", func() {
 				Expect(session.ExitCode()).To(BeZero())
 
 				deployment1Artifact := backupDirectory(deploymentName1, backupWorkspace)

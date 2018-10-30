@@ -88,7 +88,7 @@ func backupAll(target, username, password, caCert, artifactPath string, withMani
 		"cannot be backed up",
 		"backed up",
 		errorHandler,
-		deployment.NewSerialExecutor())
+		deployment.NewParallelExecutor())
 }
 
 func backupSingleDeployment(deployment, target, username, password, caCert, artifactPath string, withManifest, debug bool) error {

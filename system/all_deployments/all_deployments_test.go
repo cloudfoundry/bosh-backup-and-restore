@@ -167,15 +167,23 @@ var _ = Describe("All deployments", func() {
 			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(session).Should(gexec.Exit(0))
+			output := strings.Split(string(session.Out.Contents()), "\n")
 			By("providing debug output", func() {
-				Expect(session.Out).To(gbytes.Say("Pending: %s, %s, %s", redis1, redis2, redis3))
-				Expect(session.Out).To(gbytes.Say("Starting backup of %s", redis1))
-				Expect(session.Out).To(gbytes.Say("Finished backup of %s", redis1))
-				Expect(session.Out).To(gbytes.Say("Starting backup of %s", redis2))
-				Expect(session.Out).To(gbytes.Say("Finished backup of %s", redis2))
-				Expect(session.Out).To(gbytes.Say("Starting backup of %s", redis3))
-				Expect(session.Out).To(gbytes.Say("Finished backup of %s", redis3))
-				Expect(session.Out).To(gbytes.Say("Successfully backed up: %s, %s, %s", redis1, redis2, redis3))
+				Expect(output[0]).To(Equal("Starting backup..."))
+				Expect(output[1]).To(Equal(fmt.Sprintf("Pending: %s, %s, %s", redis1, redis2, redis3)))
+				Expect(output[2]).To(Equal("-------------------------"))
+				Expect(output[3:9]).To(
+					ConsistOf(
+						fmt.Sprintf("Starting backup of %s", redis1),
+						fmt.Sprintf("Finished backup of %s", redis1),
+						fmt.Sprintf("Starting backup of %s", redis2),
+						fmt.Sprintf("Finished backup of %s", redis2),
+						fmt.Sprintf("Starting backup of %s", redis3),
+						fmt.Sprintf("Finished backup of %s", redis3),
+					))
+				Expect(output[9]).To(Equal("-------------------------"))
+
+				Expect(output[10]).To(Equal(fmt.Sprintf("Successfully backed up: %s, %s, %s", redis1, redis2, redis3)))
 			})
 
 			By("running the pre-backup lock script", func() {
