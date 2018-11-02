@@ -2,6 +2,8 @@ package all_deployments_tests
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -186,6 +188,12 @@ var _ = Describe("All deployments", func() {
 				Expect(output[10]).To(Equal(fmt.Sprintf("Successfully backed up: %s, %s, %s", redis1, redis2, redis3)))
 			})
 
+			By("creating log files for each deployment", func() {
+				assertLogfile(redis1)
+				assertLogfile(redis2)
+				assertLogfile(redis3)
+			})
+
 			By("running the pre-backup lock script", func() {
 				AssertPreBackupLock(redisInstance1)
 				AssertPreBackupLock(redisInstance2)
@@ -276,6 +284,20 @@ var _ = Describe("All deployments", func() {
 		})
 	})
 })
+
+func assertLogfile(deployment string) {
+	logFilePath := filepath.Join(tempDirPath, fmt.Sprintf("%s.log", deployment))
+	_, err := os.Stat(logFilePath)
+	Expect(os.IsNotExist(err)).To(BeFalse())
+	backupLogContent, err := ioutil.ReadFile(logFilePath)
+	Expect(err).ToNot(HaveOccurred())
+	output := string(backupLogContent)
+
+	Expect(output).To(ContainSubstring(fmt.Sprintf("Running pre-checks for backup of %s", deployment)))
+	Expect(output).To(ContainSubstring("Running pre-backup-lock scripts..."))
+	Expect(output).To(ContainSubstring("Running backup scripts..."))
+	Expect(output).To(ContainSubstring(fmt.Sprintf("Backup created of %s", deployment)))
+}
 
 func moveBackupScript(deployment, src, dst string) {
 	cmd := exec.Command(

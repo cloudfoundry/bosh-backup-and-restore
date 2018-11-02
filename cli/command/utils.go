@@ -17,6 +17,8 @@ import (
 	"github.com/urfave/cli"
 )
 
+const defaultLogfilePermissions = 0644
+
 func trapSigint(backup bool) {
 	sigintChan := make(chan os.Signal, 1)
 	signal.Notify(sigintChan, os.Interrupt)
@@ -72,7 +74,7 @@ func processErrorWithFooter(err orchestrator.Error, footer string) error {
 
 func writeStackTrace(errorWithStackTrace string) error {
 	if errorWithStackTrace != "" {
-		err := ioutil.WriteFile(fmt.Sprintf("bbr-%s.err.log", time.Now().UTC().Format(time.RFC3339)), []byte(errorWithStackTrace), 0644)
+		err := ioutil.WriteFile(fmt.Sprintf("bbr-%s.err.log", time.Now().UTC().Format(time.RFC3339)), []byte(errorWithStackTrace), defaultLogfilePermissions)
 		if err != nil {
 			return err
 		}

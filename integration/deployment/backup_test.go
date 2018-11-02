@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
@@ -1238,7 +1239,7 @@ backup_name: name_2
 	})
 })
 
-var _ = Describe("backup --all-deployments", func() {
+var _ = Describe("Backup --all-deployments", func() {
 	const deploymentName1 = "little-deployment-1"
 
 	var director *mockhttp.Server
@@ -1340,6 +1341,32 @@ instance_groups:
 					fmt.Sprintf("Successfully backed up: %s", deploymentName1),
 				})
 			})
+		})
+
+		It("outputs the deployment logs to file", func() {
+			logFilePath := filepath.Join(backupWorkspace, fmt.Sprintf("%s.log", deploymentName1))
+			_, err := os.Stat(logFilePath)
+			Expect(os.IsNotExist(err)).To(BeFalse())
+			backupLogContent, err := ioutil.ReadFile(logFilePath)
+			Expect(err).ToNot(HaveOccurred())
+
+			output := string(backupLogContent)
+
+			Expect(output).To(ContainSubstring("INFO - Looking for scripts"))
+			Expect(output).To(ContainSubstring("INFO - redis/fake-uuid/redis/backup"))
+			Expect(output).To(ContainSubstring(fmt.Sprintf("INFO - Running pre-checks for backup of %s...", deploymentName1)))
+			Expect(output).To(ContainSubstring(fmt.Sprintf("INFO - Starting backup of %s...", deploymentName1)))
+			Expect(output).To(ContainSubstring("INFO - Running pre-backup-lock scripts..."))
+			Expect(output).To(ContainSubstring("INFO - Finished running pre-backup-lock scripts."))
+			Expect(output).To(ContainSubstring("INFO - Running backup scripts..."))
+			Expect(output).To(ContainSubstring("INFO - Backing up redis on redis/fake-uuid..."))
+			Expect(output).To(ContainSubstring("INFO - Finished running backup scripts."))
+			Expect(output).To(ContainSubstring("INFO - Running post-backup-unlock scripts..."))
+			Expect(output).To(ContainSubstring("INFO - Finished running post-backup-unlock scripts."))
+			Expect(output).To(MatchRegexp("INFO - Copying backup -- [^-]*-- for job redis on redis/fake-uuid..."))
+			Expect(output).To(ContainSubstring("INFO - Finished copying backup -- for job redis on redis/fake-uuid..."))
+			Expect(output).To(ContainSubstring("INFO - Starting validity checks -- for job redis on redis/fake-uuid..."))
+			Expect(output).To(ContainSubstring("INFO - Finished validity checks -- for job redis on redis/fake-uuid..."))
 		})
 
 	})

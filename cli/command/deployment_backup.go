@@ -6,6 +6,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
+	"io/ioutil"
 )
 
 type DeploymentBackupCommand struct {
@@ -58,6 +59,9 @@ func backupAll(target, username, password, caCert, artifactPath string, withMani
 
 		fmt.Printf("Starting backup of %s\n", deploymentName)
 		err := backuper.Backup(deploymentName, artifactPath)
+
+		ioutil.WriteFile(fmt.Sprintf("%s.log", deploymentName), buffer.Bytes(), defaultLogfilePermissions)
+
 		if err != nil {
 			fmt.Printf("ERROR: failed to backup %s\n", deploymentName)
 			fmt.Println(buffer.String())
