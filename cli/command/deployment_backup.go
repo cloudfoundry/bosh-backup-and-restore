@@ -7,6 +7,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
 	"io/ioutil"
+	"path/filepath"
 	"time"
 )
 
@@ -61,7 +62,7 @@ func backupAll(target, username, password, caCert, artifactPath string, withMani
 		printWithTimestamp(fmt.Sprintf("Starting backup of %s, log file: %s.log\n", deploymentName, deploymentName))
 		err := backuper.Backup(deploymentName, artifactPath)
 
-		ioutil.WriteFile(fmt.Sprintf("%s.log", deploymentName), buffer.Bytes(), defaultLogfilePermissions)
+		ioutil.WriteFile(filepath.Join(artifactPath, fmt.Sprintf("%s.log", deploymentName)), buffer.Bytes(), defaultLogfilePermissions)
 
 		if err != nil {
 			printWithTimestamp(fmt.Sprintf("ERROR: failed to backup %s\n", deploymentName))

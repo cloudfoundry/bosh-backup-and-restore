@@ -1244,6 +1244,7 @@ var _ = Describe("Backup --all-deployments", func() {
 
 	var director *mockhttp.Server
 	var backupWorkspace string
+	var artifactPath string
 	var session *gexec.Session
 	var instance1 *testcluster.Instance
 	manifest := `---
@@ -1269,6 +1270,9 @@ instance_groups:
 		backupWorkspace, err = ioutil.TempDir(".", "backup-workspace-")
 		Expect(err).NotTo(HaveOccurred())
 
+		artifactPath, err = ioutil.TempDir("/tmp", "artifact-path-")
+		Expect(err).NotTo(HaveOccurred())
+
 		instance1 = testcluster.NewInstance()
 	})
 
@@ -1278,6 +1282,7 @@ instance_groups:
 
 		instance1.DieInBackground()
 		Expect(os.RemoveAll(backupWorkspace)).To(Succeed())
+		Expect(os.RemoveAll(artifactPath)).To(Succeed())
 	})
 
 	JustBeforeEach(func() {
@@ -1288,7 +1293,9 @@ instance_groups:
 			"--password", "admin",
 			"--target", director.URL,
 			"--all-deployments",
-			"backup"}
+			"backup",
+			"--artifact-path", artifactPath,
+		}
 
 		session = binary.Run(backupWorkspace, []string{}, params...)
 	})
@@ -1323,13 +1330,14 @@ instance_groups:
 			)
 		})
 
-		It("backs the deployment and prints process to the screen", func() {
+		It("backs up successfully", func() {
 			By("backing the deployment successfully", func() {
 				Expect(session.ExitCode()).To(BeZero())
 
-				deployment1Artifact := backupDirectory(deploymentName1, backupWorkspace)
+				deployment1Artifact := backupDirectory(deploymentName1, artifactPath)
 				Expect(deployment1Artifact).To(BeADirectory())
 				Expect(path.Join(deployment1Artifact, "/redis-0-redis.tar")).To(BeARegularFile())
+
 			})
 
 			By("printing the backup progress to the screen", func() {
@@ -1341,32 +1349,32 @@ instance_groups:
 					fmt.Sprintf("Successfully backed up: %s", deploymentName1),
 				})
 			})
-		})
 
-		It("outputs the deployment logs to file", func() {
-			logFilePath := filepath.Join(backupWorkspace, fmt.Sprintf("%s.log", deploymentName1))
-			_, err := os.Stat(logFilePath)
-			Expect(os.IsNotExist(err)).To(BeFalse())
-			backupLogContent, err := ioutil.ReadFile(logFilePath)
-			Expect(err).ToNot(HaveOccurred())
+			By("outputing the deployment logs to file", func() {
+				logFilePath := filepath.Join(artifactPath, fmt.Sprintf("%s.log", deploymentName1))
+				_, err := os.Stat(logFilePath)
+				Expect(os.IsNotExist(err)).To(BeFalse())
+				backupLogContent, err := ioutil.ReadFile(logFilePath)
+				Expect(err).ToNot(HaveOccurred())
 
-			output := string(backupLogContent)
+				output := string(backupLogContent)
 
-			Expect(output).To(ContainSubstring("INFO - Looking for scripts"))
-			Expect(output).To(ContainSubstring("INFO - redis/fake-uuid/redis/backup"))
-			Expect(output).To(ContainSubstring(fmt.Sprintf("INFO - Running pre-checks for backup of %s...", deploymentName1)))
-			Expect(output).To(ContainSubstring(fmt.Sprintf("INFO - Starting backup of %s...", deploymentName1)))
-			Expect(output).To(ContainSubstring("INFO - Running pre-backup-lock scripts..."))
-			Expect(output).To(ContainSubstring("INFO - Finished running pre-backup-lock scripts."))
-			Expect(output).To(ContainSubstring("INFO - Running backup scripts..."))
-			Expect(output).To(ContainSubstring("INFO - Backing up redis on redis/fake-uuid..."))
-			Expect(output).To(ContainSubstring("INFO - Finished running backup scripts."))
-			Expect(output).To(ContainSubstring("INFO - Running post-backup-unlock scripts..."))
-			Expect(output).To(ContainSubstring("INFO - Finished running post-backup-unlock scripts."))
-			Expect(output).To(MatchRegexp("INFO - Copying backup -- [^-]*-- for job redis on redis/fake-uuid..."))
-			Expect(output).To(ContainSubstring("INFO - Finished copying backup -- for job redis on redis/fake-uuid..."))
-			Expect(output).To(ContainSubstring("INFO - Starting validity checks -- for job redis on redis/fake-uuid..."))
-			Expect(output).To(ContainSubstring("INFO - Finished validity checks -- for job redis on redis/fake-uuid..."))
+				Expect(output).To(ContainSubstring("INFO - Looking for scripts"))
+				Expect(output).To(ContainSubstring("INFO - redis/fake-uuid/redis/backup"))
+				Expect(output).To(ContainSubstring(fmt.Sprintf("INFO - Running pre-checks for backup of %s...", deploymentName1)))
+				Expect(output).To(ContainSubstring(fmt.Sprintf("INFO - Starting backup of %s...", deploymentName1)))
+				Expect(output).To(ContainSubstring("INFO - Running pre-backup-lock scripts..."))
+				Expect(output).To(ContainSubstring("INFO - Finished running pre-backup-lock scripts."))
+				Expect(output).To(ContainSubstring("INFO - Running backup scripts..."))
+				Expect(output).To(ContainSubstring("INFO - Backing up redis on redis/fake-uuid..."))
+				Expect(output).To(ContainSubstring("INFO - Finished running backup scripts."))
+				Expect(output).To(ContainSubstring("INFO - Running post-backup-unlock scripts..."))
+				Expect(output).To(ContainSubstring("INFO - Finished running post-backup-unlock scripts."))
+				Expect(output).To(MatchRegexp("INFO - Copying backup -- [^-]*-- for job redis on redis/fake-uuid..."))
+				Expect(output).To(ContainSubstring("INFO - Finished copying backup -- for job redis on redis/fake-uuid..."))
+				Expect(output).To(ContainSubstring("INFO - Starting validity checks -- for job redis on redis/fake-uuid..."))
+				Expect(output).To(ContainSubstring("INFO - Finished validity checks -- for job redis on redis/fake-uuid..."))
+			})
 		})
 
 	})

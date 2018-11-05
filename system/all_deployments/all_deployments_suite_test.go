@@ -13,9 +13,10 @@ import (
 )
 
 var (
-	commandPath string
-	err         error
-	tempDirPath string
+	commandPath  string
+	err          error
+	artifactPath string
+	workingDir   string
 )
 
 var _ = BeforeSuite(func() {
@@ -25,11 +26,14 @@ var _ = BeforeSuite(func() {
 	commandPath, err = gexec.Build("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr")
 	Expect(err).NotTo(HaveOccurred())
 
-	tempDirPath, err = ioutil.TempDir("", "all_deployments")
+	artifactPath, err = ioutil.TempDir("/tmp", "all_deployments")
+
+	workingDir, err = ioutil.TempDir("/tmp", "workingDir")
+
 })
 
 var _ = AfterSuite(func() {
-	os.RemoveAll(tempDirPath)
+	os.RemoveAll(artifactPath)
 })
 
 func TestBoshTeam(t *testing.T) {

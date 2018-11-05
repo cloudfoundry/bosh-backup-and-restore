@@ -34,7 +34,7 @@ var _ = Describe("All deployments", func() {
 					"--all-deployments",
 					"pre-backup-check",
 				)
-				cmd.Dir = tempDirPath
+				cmd.Dir = artifactPath
 				session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
 				Eventually(session).Should(gexec.Exit(0))
@@ -80,7 +80,7 @@ var _ = Describe("All deployments", func() {
 					"--all-deployments",
 					"pre-backup-check",
 				)
-				cmd.Dir = tempDirPath
+				cmd.Dir = artifactPath
 				session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 				Expect(err).NotTo(HaveOccurred())
 				Eventually(session).Should(gexec.Exit(1))
@@ -164,8 +164,9 @@ var _ = Describe("All deployments", func() {
 				"--target", MustHaveEnv("BOSH_ENVIRONMENT"),
 				"--all-deployments",
 				"backup",
+				"--artifact-path", artifactPath,
 			)
-			cmd.Dir = tempDirPath
+			cmd.Dir = workingDir
 			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(session).Should(gexec.Exit(0))
@@ -259,7 +260,7 @@ var _ = Describe("All deployments", func() {
 				"backup-cleanup",
 			)
 
-			cmd.Dir = tempDirPath
+			cmd.Dir = artifactPath
 			session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 			Expect(err).NotTo(HaveOccurred())
 			Eventually(session).Should(gexec.Exit(0))
@@ -286,7 +287,7 @@ var _ = Describe("All deployments", func() {
 })
 
 func assertLogfile(deployment string) {
-	logFilePath := filepath.Join(tempDirPath, fmt.Sprintf("%s.log", deployment))
+	logFilePath := filepath.Join(artifactPath, fmt.Sprintf("%s.log", deployment))
 	_, err := os.Stat(logFilePath)
 	Expect(os.IsNotExist(err)).To(BeFalse())
 	backupLogContent, err := ioutil.ReadFile(logFilePath)
@@ -308,7 +309,7 @@ func moveBackupScript(deployment, src, dst string) {
 		"-c",
 		fmt.Sprintf("sudo mv %s %s", src, dst),
 	)
-	cmd.Dir = tempDirPath
+	cmd.Dir = artifactPath
 	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session).Should(gexec.Exit(0))
@@ -334,7 +335,7 @@ func AssertArtifactsRemovedFromInstance(instance Instance) {
 
 func AssertTimestampedDirectoryCreated(deployment Deployment) {
 	cmd := exec.Command("ls", ".")
-	cmd.Dir = tempDirPath
+	cmd.Dir = artifactPath
 	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session).Should(gexec.Exit(0))
@@ -342,7 +343,7 @@ func AssertTimestampedDirectoryCreated(deployment Deployment) {
 }
 
 func AssertBackupArtifactsCreated(deployment Deployment) {
-	files, err := filepath.Glob(filepath.Join(tempDirPath, fmt.Sprintf("%s/redis-0-redis-server.tar", BackupDirWithTimestamp(deployment.Name))))
+	files, err := filepath.Glob(filepath.Join(artifactPath, fmt.Sprintf("%s/redis-0-redis-server.tar", BackupDirWithTimestamp(deployment.Name))))
 	Expect(err).NotTo(HaveOccurred())
 	Expect(files).To(HaveLen(1))
 }
