@@ -1333,10 +1333,10 @@ instance_groups:
 			})
 
 			By("printing the backup progress to the screen", func() {
-				assertOutput(session.Out, []string{
-					fmt.Sprintf("Starting backup..."),
+				Expect(string(session.Out.Contents())).To(ContainSubstring("Starting backup..."))
+				AssertOutputWithTimestamp(session.Out, []string{
 					fmt.Sprintf("Pending: %s", deploymentName1),
-					fmt.Sprintf("Starting backup of %s", deploymentName1),
+					fmt.Sprintf("Starting backup of %s, log file: %s.log", deploymentName1, deploymentName1),
 					fmt.Sprintf("Finished backup of %s", deploymentName1),
 					fmt.Sprintf("Successfully backed up: %s", deploymentName1),
 				})

@@ -2,11 +2,11 @@ package deployment
 
 import (
 	"fmt"
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 	"io/ioutil"
 	"os"
-	"strings"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
 
@@ -302,19 +302,13 @@ backup_should_be_locked_before:
 			})
 
 			It("outputs a log message saying the deployments can be backed up", func() {
-
-				output := strings.Split(string(session.Out.Contents()), "\n")
-				output[1] = strings.TrimSpace(output[1])
-
-				Expect(output[0]).To(Equal(fmt.Sprintf("Pending: %s", deploymentName1)))
-				Expect(output[1]).To(Equal("-------------------------"))
-				Expect(output[2]).To(Equal(
+				AssertOutputWithTimestamp(session.Out, []string{
+					fmt.Sprintf("Pending: %s", deploymentName1),
+					"-------------------------",
 					fmt.Sprintf("Deployment '%s' can be backed up.", deploymentName1),
-				))
-
-				Expect(output[3]).To(Equal("-------------------------"))
-				Expect(output[4]).To(Equal(fmt.Sprintf("Successfully can be backed up: %s", deploymentName1)))
-				Expect(output).To(HaveLen(6))
+					"-------------------------",
+					fmt.Sprintf("Successfully can be backed up: %s", deploymentName1),
+				})
 			})
 		})
 

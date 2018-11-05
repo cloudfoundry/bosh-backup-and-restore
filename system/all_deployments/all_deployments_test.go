@@ -44,16 +44,16 @@ var _ = Describe("All deployments", func() {
 				output[2] = strings.TrimSpace(output[2])
 				output[3] = strings.TrimSpace(output[3])
 
-				Expect(output[0]).To(Equal("Pending: redis-1, redis-2, redis-3"))
-				Expect(output[1]).To(Equal("-------------------------"))
+				Expect(output[0]).To(ContainSubstring("Pending: redis-1, redis-2, redis-3"))
+				Expect(output[1]).To(ContainSubstring("-------------------------"))
 				Expect(output[2:5]).To(ConsistOf(
-					"Deployment 'redis-1' can be backed up.",
-					"Deployment 'redis-2' can be backed up.",
-					"Deployment 'redis-3' can be backed up.",
+					ContainSubstring("Deployment 'redis-1' can be backed up."),
+					ContainSubstring("Deployment 'redis-2' can be backed up."),
+					ContainSubstring("Deployment 'redis-3' can be backed up."),
 				))
-				Expect(output[5]).To(Equal("-------------------------"))
-				Expect(output[6]).To(Equal("Successfully can be backed up: redis-1, redis-2, redis-3"))
-				Expect(output[7]).To(Equal(""))
+				Expect(output[5]).To(ContainSubstring("-------------------------"))
+				Expect(output[6]).To(ContainSubstring("Successfully can be backed up: redis-1, redis-2, redis-3"))
+				Expect(output[7]).To(ContainSubstring(""))
 				Expect(output).To(HaveLen(8))
 			})
 		})
@@ -90,19 +90,19 @@ var _ = Describe("All deployments", func() {
 
 				//we cant enforce the order of the output given it is random, so we assert that it contains what we expect and only those lines.
 				Expect(stdout).To(ConsistOf(
-					fmt.Sprintf("Pending: redis-1, redis-2, redis-3"),
-					"-------------------------",
-					"Deployment 'redis-1' cannot be backed up.",
+					ContainSubstring(fmt.Sprintf("Pending: redis-1, redis-2, redis-3")),
+					ContainSubstring("-------------------------"),
+					ContainSubstring("Deployment 'redis-1' cannot be backed up."),
 					"  1 error occurred:",
 					"  error 1:",
 					"  Deployment 'redis-1' has no backup scripts",
-					"Deployment 'redis-2' cannot be backed up.",
+					ContainSubstring("Deployment 'redis-2' cannot be backed up."),
 					"  1 error occurred:",
 					"  error 1:",
 					"  Deployment 'redis-2' has no backup scripts",
-					"Deployment 'redis-3' can be backed up.",
-					"-------------------------",
-					"Successfully can be backed up: redis-3",
+					ContainSubstring("Deployment 'redis-3' can be backed up."),
+					ContainSubstring("-------------------------"),
+					ContainSubstring("Successfully can be backed up: redis-3"),
 					MatchRegexp("FAILED: redis-[1-2], redis-[1-2]"), //don't know which order they will fail in, so must match with regex.
 					"",
 				))
@@ -172,20 +172,20 @@ var _ = Describe("All deployments", func() {
 			output := strings.Split(string(session.Out.Contents()), "\n")
 			By("providing debug output", func() {
 				Expect(output[0]).To(Equal("Starting backup..."))
-				Expect(output[1]).To(Equal(fmt.Sprintf("Pending: %s, %s, %s", redis1, redis2, redis3)))
-				Expect(output[2]).To(Equal("-------------------------"))
+				Expect(output[1]).To(ContainSubstring(fmt.Sprintf("Pending: %s, %s, %s", redis1, redis2, redis3)))
+				Expect(output[2]).To(ContainSubstring("-------------------------"))
 				Expect(output[3:9]).To(
 					ConsistOf(
-						fmt.Sprintf("Starting backup of %s", redis1),
-						fmt.Sprintf("Finished backup of %s", redis1),
-						fmt.Sprintf("Starting backup of %s", redis2),
-						fmt.Sprintf("Finished backup of %s", redis2),
-						fmt.Sprintf("Starting backup of %s", redis3),
-						fmt.Sprintf("Finished backup of %s", redis3),
+						ContainSubstring(fmt.Sprintf("Starting backup of %s, log file: %s.log", redis1, redis1)),
+						ContainSubstring(fmt.Sprintf("Finished backup of %s", redis1)),
+						ContainSubstring(fmt.Sprintf("Starting backup of %s, log file: %s.log", redis2, redis2)),
+						ContainSubstring(fmt.Sprintf("Finished backup of %s", redis2)),
+						ContainSubstring(fmt.Sprintf("Starting backup of %s, log file: %s.log", redis3, redis3)),
+						ContainSubstring(fmt.Sprintf("Finished backup of %s", redis3)),
 					))
-				Expect(output[9]).To(Equal("-------------------------"))
+				Expect(output[9]).To(ContainSubstring("-------------------------"))
 
-				Expect(output[10]).To(Equal(fmt.Sprintf("Successfully backed up: %s, %s, %s", redis1, redis2, redis3)))
+				Expect(output[10]).To(ContainSubstring(fmt.Sprintf("Successfully backed up: %s, %s, %s", redis1, redis2, redis3)))
 			})
 
 			By("creating log files for each deployment", func() {

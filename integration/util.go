@@ -2,6 +2,7 @@ package integration
 
 import (
 	"fmt"
+	"github.com/onsi/gomega/gbytes"
 	"os/exec"
 
 	"time"
@@ -146,4 +147,10 @@ func getTarReader(path string) *tar.Reader {
 	fileReader, err := os.Open(path)
 	Expect(err).NotTo(HaveOccurred())
 	return tar.NewReader(fileReader)
+}
+
+func AssertOutputWithTimestamp(b *gbytes.Buffer, strings []string) {
+	for _, str := range strings {
+		Expect(string(b.Contents())).To(MatchRegexp(`\[(\d{2}):(\d{2}):(\d{2})\] ` + str))
+	}
 }

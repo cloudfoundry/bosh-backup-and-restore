@@ -53,17 +53,17 @@ func getAllDeployments(boshClient bosh.Client) ([]string, error) {
 }
 
 func printFailed(failedDeployments []string) {
-	fmt.Printf("FAILED: %s\n", strings.Join(failedDeployments, ", "))
+	printWithTimestamp(fmt.Sprintf("FAILED: %s\n", strings.Join(failedDeployments, ", ")))
 }
 
 func printSuccess(summarySuccessMsg string, successfulDeployments []string) {
-	fmt.Println("-------------------------")
-	fmt.Printf("Successfully %s: %s\n", summarySuccessMsg, strings.Join(successfulDeployments, ", "))
+	printWithTimestamp(fmt.Sprintln("-------------------------"))
+	printWithTimestamp(fmt.Sprintf("Successfully %s: %s\n", summarySuccessMsg, strings.Join(successfulDeployments, ", ")))
 }
 
 func printPending(deployments []string) {
-	fmt.Printf("Pending: %s\n", strings.Join(deployments, ", "))
-	fmt.Println("-------------------------")
+	printWithTimestamp(fmt.Sprintf("Pending: %s\n", strings.Join(deployments, ", ")))
+	printWithTimestamp(fmt.Sprintln("-------------------------"))
 }
 
 func summaryError(errs []deployment.DeploymentError, deployments []string, summaryErrorMsg string) string {
