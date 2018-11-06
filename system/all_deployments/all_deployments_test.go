@@ -266,11 +266,23 @@ var _ = Describe("All deployments", func() {
 			Eventually(session).Should(gexec.Exit(0))
 
 			By("providing debug output", func() {
-				Expect(session.Out).To(gbytes.Say("Pending: %s, %s, %s", redis1, redis2, redis3))
-				Expect(session.Out).To(gbytes.Say("Cleaned up deployment '%s'", redis1))
-				Expect(session.Out).To(gbytes.Say("Cleaned up deployment '%s'", redis2))
-				Expect(session.Out).To(gbytes.Say("Cleaned up deployment '%s'", redis3))
-				Expect(session.Out).To(gbytes.Say("Successfully cleaned up: %s, %s, %s", redis1, redis2, redis3))
+				output := strings.Split(string(session.Out.Contents()), "\n")
+
+				Expect(output[0]).To(Equal("Starting cleanup..."))
+				Expect(output[1]).To(ContainSubstring(fmt.Sprintf("Pending: %s, %s, %s", redis1, redis2, redis3)))
+				Expect(output[2]).To(ContainSubstring("-------------------------"))
+				Expect(output[3:9]).To(
+					ConsistOf(
+						ContainSubstring(fmt.Sprintf("Starting cleanup of %s, log file: %s.log", redis1, redis1)),
+						ContainSubstring(fmt.Sprintf("Finished cleanup of %s", redis1)),
+						ContainSubstring(fmt.Sprintf("Starting cleanup of %s, log file: %s.log", redis2, redis2)),
+						ContainSubstring(fmt.Sprintf("Finished cleanup of %s", redis2)),
+						ContainSubstring(fmt.Sprintf("Starting cleanup of %s, log file: %s.log", redis3, redis3)),
+						ContainSubstring(fmt.Sprintf("Finished cleanup of %s", redis3)),
+					))
+				Expect(output[9]).To(ContainSubstring("-------------------------"))
+
+				Expect(output[10]).To(ContainSubstring(fmt.Sprintf("Successfully cleaned up: %s, %s, %s", redis1, redis2, redis3)))
 			})
 
 			By("running the post backup unlock script", func() {

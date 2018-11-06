@@ -51,7 +51,15 @@ func (d DeploymentBackupCleanupCommand) Action(c *cli.Context) error {
 }
 func cleanupAllDeployments(cleaner *orchestrator.BackupCleaner, boshClient bosh.Client) error {
 	cleanupAction := func(deploymentName string) orchestrator.Error {
-		return cleanup(cleaner, deploymentName)
+		printWithTimestamp(fmt.Sprintf("Starting cleanup of %s, log file: %s.log", deploymentName, deploymentName))
+		err := cleanup(cleaner, deploymentName)
+
+		if err != nil {
+		} else {
+			printWithTimestamp(fmt.Sprintf("Finished cleanup of %s", deploymentName))
+		}
+
+		return err
 	}
 
 	errorHandler := func(deploymentError deployment.AllDeploymentsError) error {

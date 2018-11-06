@@ -1,12 +1,14 @@
 package deployment
 
 import (
+	"fmt"
+	"github.com/onsi/gomega/gbytes"
 	"io/ioutil"
 	"os"
 
-	"github.com/onsi/gomega/gbytes"
-
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -144,10 +146,48 @@ instance_groups:
 				Expect(os.RemoveAll(cleanupWorkspace)).To(Succeed())
 			})
 
-			It("successfully cleans up all deployments after a failed backup", func() {
-				Eventually(session.ExitCode()).Should(Equal(0))
-				Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
-				Expect(session.Out).To(gbytes.Say("Successfully cleaned up: %s", deployment1))
+			FIt("successfully cleans up all deployments after a failed backup", func() {
+				By("Removing the files", func() {
+					Eventually(session.ExitCode()).Should(Equal(0))
+					Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
+					Expect(session.Out).To(gbytes.Say("Successfully cleaned up: %s", deployment1))
+				})
+
+				By("printing the backup progress to the screen", func() {
+					AssertOutputWithTimestamp(session.Out, []string{
+						fmt.Sprintf("Pending: %s", deployment1),
+						fmt.Sprintf("Starting cleanup of %s, log file: %s.log", deployment1, deployment1),
+						fmt.Sprintf("Finished cleanup of %s", deployment1),
+						fmt.Sprintf("Successfully cleaned up: %s", deployment1),
+					})
+				})
+
+				By("outputing the deployment logs to file", func() {
+					//logFilePath := fmt.Sprintf("%s.log", deployment1)
+					//_, err := os.Stat(logFilePath)
+					//Expect(os.IsNotExist(err)).To(BeFalse())
+					//backupLogContent, err := ioutil.ReadFile(logFilePath)
+					//Expect(err).ToNot(HaveOccurred())
+					//
+					//output := string(backupLogContent)
+					//
+					//Expect(output).To(ContainSubstring("INFO - Looking for scripts"))
+					//Expect(output).To(ContainSubstring("INFO - redis/fake-uuid/redis/backup"))
+					//Expect(output).To(ContainSubstring(fmt.Sprintf("INFO - Running pre-checks for backup of %s...", deployment1)))
+					//Expect(output).To(ContainSubstring(fmt.Sprintf("INFO - Starting backup of %s...", deployment1)))
+					//Expect(output).To(ContainSubstring("INFO - Running pre-backup-lock scripts..."))
+					//Expect(output).To(ContainSubstring("INFO - Finished running pre-backup-lock scripts."))
+					//Expect(output).To(ContainSubstring("INFO - Running backup scripts..."))
+					//Expect(output).To(ContainSubstring("INFO - Backing up redis on redis/fake-uuid..."))
+					//Expect(output).To(ContainSubstring("INFO - Finished running backup scripts."))
+					//Expect(output).To(ContainSubstring("INFO - Running post-backup-unlock scripts..."))
+					//Expect(output).To(ContainSubstring("INFO - Finished running post-backup-unlock scripts."))
+					//Expect(output).To(MatchRegexp("INFO - Copying backup -- [^-]*-- for job redis on redis/fake-uuid..."))
+					//Expect(output).To(ContainSubstring("INFO - Finished copying backup -- for job redis on redis/fake-uuid..."))
+					//Expect(output).To(ContainSubstring("INFO - Starting validity checks -- for job redis on redis/fake-uuid..."))
+					//Expect(output).To(ContainSubstring("INFO - Finished validity checks -- for job redis on redis/fake-uuid..."))
+				})
+
 			})
 		})
 
