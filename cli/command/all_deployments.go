@@ -3,11 +3,12 @@ package command
 import (
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor/deployment"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
-	"strings"
 )
 
 func runForAllDeployments(action ActionFunc, boshClient bosh.Client, summaryErrorMsg, summarySuccessMsg string, errorHandler deployment.ErrorHandleFunc, executor deployment.DeploymentExecutor) error {
@@ -53,17 +54,17 @@ func getAllDeployments(boshClient bosh.Client) ([]string, error) {
 }
 
 func printFailed(failedDeployments []string) {
-	printWithTimestamp(fmt.Sprintf("FAILED: %s\n", strings.Join(failedDeployments, ", ")))
+	printlnWithTimestamp(fmt.Sprintf("FAILED: %s", strings.Join(failedDeployments, ", ")))
 }
 
 func printSuccess(summarySuccessMsg string, successfulDeployments []string) {
-	printWithTimestamp(fmt.Sprintln("-------------------------"))
-	printWithTimestamp(fmt.Sprintf("Successfully %s: %s\n", summarySuccessMsg, strings.Join(successfulDeployments, ", ")))
+	printlnWithTimestamp(fmt.Sprintln("-------------------------"))
+	printlnWithTimestamp(fmt.Sprintf("Successfully %s: %s", summarySuccessMsg, strings.Join(successfulDeployments, ", ")))
 }
 
 func printPending(deployments []string) {
-	printWithTimestamp(fmt.Sprintf("Pending: %s\n", strings.Join(deployments, ", ")))
-	printWithTimestamp(fmt.Sprintln("-------------------------"))
+	printlnWithTimestamp(fmt.Sprintf("Pending: %s\n", strings.Join(deployments, ", ")))
+	printlnWithTimestamp(fmt.Sprintln("-------------------------"))
 }
 
 func summaryError(errs []deployment.DeploymentError, deployments []string, summaryErrorMsg string) string {

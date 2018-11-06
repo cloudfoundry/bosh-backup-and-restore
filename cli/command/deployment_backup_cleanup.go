@@ -70,16 +70,16 @@ func cleanupAllDeployments(target, username, password, caCert string, withManife
 			return orchestrator.NewError(factoryError)
 		}
 
-		printWithTimestamp(fmt.Sprintf("Starting cleanup of %s, log file: %s.log", deploymentName, deploymentName))
+		printlnWithTimestamp(fmt.Sprintf("Starting cleanup of %s, log file: %s.log", deploymentName, deploymentName))
 		err := cleanup(cleaner, deploymentName)
 
 		ioutil.WriteFile(fmt.Sprintf("%s.log", deploymentName), buffer.Bytes(), defaultLogfilePermissions)
 
 		if err != nil {
-			printWithTimestamp(fmt.Sprintf("ERROR: failed cleanup of %s", deploymentName))
+			printlnWithTimestamp(fmt.Sprintf("ERROR: failed cleanup of %s", deploymentName))
 			fmt.Println(buffer.String())
 		} else {
-			printWithTimestamp(fmt.Sprintf("Finished cleanup of %s", deploymentName))
+			printlnWithTimestamp(fmt.Sprintf("Finished cleanup of %s", deploymentName))
 		}
 
 		return err

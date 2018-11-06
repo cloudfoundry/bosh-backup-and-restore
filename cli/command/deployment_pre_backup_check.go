@@ -64,12 +64,12 @@ func backupableCheck(backupChecker *orchestrator.BackupChecker, deploymentName s
 	err := backupChecker.Check(deploymentName)
 
 	if err != nil {
-		printWithTimestamp(fmt.Sprintf("Deployment '%s' cannot be backed up.\n", deploymentName))
+		printlnWithTimestamp(fmt.Sprintf("Deployment '%s' cannot be backed up.", deploymentName))
 		fmt.Println(deployment.IndentBlock(err.Error()))
 		return err
 	}
 
-	printWithTimestamp(fmt.Sprintf("Deployment '%s' can be backed up.\n", deploymentName))
+	printlnWithTimestamp(fmt.Sprintf("Deployment '%s' can be backed up.", deploymentName))
 	return nil
 }
 

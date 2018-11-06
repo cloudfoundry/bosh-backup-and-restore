@@ -2,13 +2,14 @@ package command
 
 import (
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
+	"time"
+
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor/deployment"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
-	"io/ioutil"
-	"path/filepath"
-	"time"
 )
 
 type DeploymentBackupCommand struct {
@@ -59,16 +60,16 @@ func backupAll(target, username, password, caCert, artifactPath string, withMani
 			return orchestrator.NewError(factoryErr)
 		}
 
-		printWithTimestamp(fmt.Sprintf("Starting backup of %s, log file: %s.log\n", deploymentName, deploymentName))
+		printlnWithTimestamp(fmt.Sprintf("Starting backup of %s, log file: %s.log", deploymentName, deploymentName))
 		err := backuper.Backup(deploymentName, artifactPath)
 
 		ioutil.WriteFile(filepath.Join(artifactPath, fmt.Sprintf("%s.log", deploymentName)), buffer.Bytes(), defaultLogfilePermissions)
 
 		if err != nil {
-			printWithTimestamp(fmt.Sprintf("ERROR: failed to backup %s\n", deploymentName))
+			printlnWithTimestamp(fmt.Sprintf("ERROR: failed to backup %s", deploymentName))
 			fmt.Println(buffer.String())
 		} else {
-			printWithTimestamp(fmt.Sprintf("Finished backup of %s\n", deploymentName))
+			printlnWithTimestamp(fmt.Sprintf("Finished backup of %s", deploymentName))
 		}
 
 		return err
@@ -112,6 +113,6 @@ func backupSingleDeployment(deployment, target, username, password, caCert, arti
 	}
 }
 
-func printWithTimestamp(str string) {
-	fmt.Printf("[%s] %s", time.Now().UTC().Format("15:04:05"), str)
+func printlnWithTimestamp(str string) {
+	fmt.Printf("[%s] %s\n", time.Now().UTC().Format("15:04:05"), str)
 }
