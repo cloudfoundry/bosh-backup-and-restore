@@ -96,6 +96,8 @@ func cleanupAllDeployments(target, username, password, caCert string, withManife
 		return err
 	}
 
+	fmt.Println("Starting cleanup...")
+
 	return runForAllDeployments(
 		cleanupAction,
 		boshClient,
@@ -111,6 +113,5 @@ func cleanup(cleaner *orchestrator.BackupCleaner, deployment string) orchestrato
 		fmt.Printf("Failed to cleanup deployment '%s'\n", deployment)
 		return err
 	}
-	fmt.Printf("Cleaned up deployment '%s'\n", deployment)
 	return nil
 }
