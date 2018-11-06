@@ -76,7 +76,7 @@ func cleanupAllDeployments(target, username, password, caCert string, withManife
 		ioutil.WriteFile(fmt.Sprintf("%s.log", deploymentName), buffer.Bytes(), defaultLogfilePermissions)
 
 		if err != nil {
-			printWithTimestamp(fmt.Sprintf("ERROR: heyheyhey"))
+			printWithTimestamp(fmt.Sprintf("ERROR: failed cleanup of %s", deploymentName))
 			fmt.Println(buffer.String())
 		} else {
 			printWithTimestamp(fmt.Sprintf("Finished cleanup of %s", deploymentName))

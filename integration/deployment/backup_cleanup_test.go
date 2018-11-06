@@ -321,12 +321,39 @@ instance_groups:
 				Expect(os.RemoveAll(cleanupWorkspace)).To(Succeed())
 			})
 
-			It("reports that the one deployment failed to clean up", func() {
+			It("reports that the one deployment failed to clean up with the correct error message", func() {
 				Eventually(session.ExitCode()).Should(Equal(1))
 				Expect(session.Out).To(gbytes.Say("Failed to cleanup deployment '" + deployment1 + "'"))
+				Expect(session.Out).To(gbytes.Say(fmt.Sprintf("ERROR: failed cleanup of %s", deployment1)))
+
+				Expect(session.Out).To(gbytes.Say("INFO - Looking for scripts"))
+				Expect(session.Out).To(gbytes.Say("INFO - redis-dedicated-node/fake-uuid/redis/post-backup-unlock"))
+				Expect(session.Out).To(gbytes.Say("INFO - Running post-backup-unlock scripts..."))
+				Expect(session.Out).To(gbytes.Say("INFO - Unlocking redis on redis-dedicated-node/fake-uuid..."))
+				Expect(session.Out).To(gbytes.Say("ERROR - Error unlocking redis on redis-dedicated-node/fake-uuid."))
+				Expect(session.Out).To(gbytes.Say("INFO - Finished running post-backup-unlock scripts."))
+
 				Expect(session.Err).To(gbytes.Say("1 out of 1 deployments could not be cleaned up:\n  %s", deployment1))
 				Expect(session.Err).To(gbytes.Say("Deployment '%s':", deployment1))
 				Expect(session.Err).To(gbytes.Say("exit code 1"))
+			})
+
+			It("logs the output to file", func() {
+
+				logFilePath := fmt.Sprintf("%s/%s.log", cleanupWorkspace, deployment1)
+				_, err := os.Stat(logFilePath)
+				Expect(os.IsNotExist(err)).To(BeFalse())
+				backupLogContent, err := ioutil.ReadFile(logFilePath)
+				Expect(err).ToNot(HaveOccurred())
+
+				logContent := string(backupLogContent)
+
+				Expect(logContent).To(ContainSubstring("INFO - Looking for scripts"))
+				Expect(logContent).To(ContainSubstring("INFO - redis-dedicated-node/fake-uuid/redis/post-backup-unlock"))
+				Expect(logContent).To(ContainSubstring("INFO - Running post-backup-unlock scripts..."))
+				Expect(logContent).To(ContainSubstring("INFO - Unlocking redis on redis-dedicated-node/fake-uuid..."))
+				Expect(logContent).To(ContainSubstring("ERROR - Error unlocking redis on redis-dedicated-node/fake-uuid."))
+				Expect(logContent).To(ContainSubstring("INFO - Finished running post-backup-unlock scripts."))
 			})
 		})
 	})

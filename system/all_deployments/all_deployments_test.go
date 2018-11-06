@@ -190,9 +190,9 @@ var _ = Describe("All deployments", func() {
 			})
 
 			By("creating log files for each deployment", func() {
-				assertLogfile(redis1)
-				assertLogfile(redis2)
-				assertLogfile(redis3)
+				assertBackupLogfile(redis1)
+				assertBackupLogfile(redis2)
+				assertBackupLogfile(redis3)
 			})
 
 			By("running the pre-backup lock script", func() {
@@ -294,11 +294,30 @@ var _ = Describe("All deployments", func() {
 			By("cleaning up artifacts from the remote instances", func() {
 				AssertArtifactsRemovedFromInstance(redisInstance3)
 			})
+
+			By("writing log files for each deployment backup-cleanup", func() {
+				assertCleanupLogfile(redis1)
+				assertCleanupLogfile(redis2)
+				assertCleanupLogfile(redis3)
+			})
 		})
 	})
 })
 
-func assertLogfile(deployment string) {
+func assertCleanupLogfile(deployment string) {
+	logFilePath := filepath.Join(artifactPath, fmt.Sprintf("%s.log", deployment))
+	_, err := os.Stat(logFilePath)
+	Expect(os.IsNotExist(err)).To(BeFalse())
+	backupLogContent, err := ioutil.ReadFile(logFilePath)
+	Expect(err).ToNot(HaveOccurred())
+	output := string(backupLogContent)
+
+	Expect(output).To(ContainSubstring(fmt.Sprintf("INFO - Looking for scripts")))
+	Expect(output).To(ContainSubstring("INFO - Running post-backup-unlock scripts..."))
+	Expect(output).To(ContainSubstring("INFO - Finished running post-backup-unlock scripts."))
+}
+
+func assertBackupLogfile(deployment string) {
 	logFilePath := filepath.Join(artifactPath, fmt.Sprintf("%s.log", deployment))
 	_, err := os.Stat(logFilePath)
 	Expect(os.IsNotExist(err)).To(BeFalse())
