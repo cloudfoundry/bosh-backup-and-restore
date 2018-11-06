@@ -58,13 +58,13 @@ func printFailed(failedDeployments []string) {
 }
 
 func printSuccess(summarySuccessMsg string, successfulDeployments []string) {
-	printlnWithTimestamp(fmt.Sprintln("-------------------------"))
+	printlnWithTimestamp("-------------------------")
 	printlnWithTimestamp(fmt.Sprintf("Successfully %s: %s", summarySuccessMsg, strings.Join(successfulDeployments, ", ")))
 }
 
 func printPending(deployments []string) {
-	printlnWithTimestamp(fmt.Sprintf("Pending: %s\n", strings.Join(deployments, ", ")))
-	printlnWithTimestamp(fmt.Sprintln("-------------------------"))
+	printlnWithTimestamp(fmt.Sprintf("Pending: %s", strings.Join(deployments, ", ")))
+	printlnWithTimestamp("-------------------------")
 }
 
 func summaryError(errs []deployment.DeploymentError, deployments []string, summaryErrorMsg string) string {
