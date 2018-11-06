@@ -2,9 +2,10 @@ package command
 
 import (
 	"fmt"
+	"io/ioutil"
+
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor/deployment"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
@@ -29,32 +30,54 @@ func (d DeploymentBackupCleanupCommand) Action(c *cli.Context) error {
 	trapSigint(true)
 
 	username, password, target, caCert, debug, deployment, allDeployments := getDeploymentParams(c)
-	logger := factory.BuildLogger(debug)
-	boshClient, err := factory.BuildBoshClient(target, username, password, caCert, logger)
-
-	cleaner, err := factory.BuildDeploymentBackupCleanuper(
-		c.Bool("with-manifest"),
-		boshClient,
-		logger,
-	)
-	if err != nil {
-		return processError(orchestrator.NewError(err))
-	}
+	withManifest := c.Bool("with-manifest")
 
 	if !allDeployments {
+		logger := factory.BuildBoshLogger(debug)
+
+		cleaner, err := factory.BuildDeploymentBackupCleanuper(
+			target,
+			username,
+			password,
+			caCert,
+			withManifest,
+			logger,
+		)
+		if err != nil {
+			return processError(orchestrator.NewError(err))
+		}
+
 		cleanupErr := cleaner.Cleanup(deployment)
 		return processError(cleanupErr)
 	}
 
-	return cleanupAllDeployments(cleaner, boshClient)
+	return cleanupAllDeployments(target, username, password, caCert, withManifest, debug)
 
 }
-func cleanupAllDeployments(cleaner *orchestrator.BackupCleaner, boshClient bosh.Client) error {
+func cleanupAllDeployments(target, username, password, caCert string, withManifest, debug bool) error {
 	cleanupAction := func(deploymentName string) orchestrator.Error {
+		logger, buffer := factory.BuildBoshLoggerWithCustomBuffer(debug)
+		cleaner, factoryError := factory.BuildDeploymentBackupCleanuper(
+			target,
+			username,
+			password,
+			caCert,
+			withManifest,
+			logger,
+		)
+
+		if factoryError != nil {
+			return orchestrator.NewError(factoryError)
+		}
+
 		printWithTimestamp(fmt.Sprintf("Starting cleanup of %s, log file: %s.log", deploymentName, deploymentName))
 		err := cleanup(cleaner, deploymentName)
 
+		ioutil.WriteFile(fmt.Sprintf("%s.log", deploymentName), buffer.Bytes(), defaultLogfilePermissions)
+
 		if err != nil {
+			printWithTimestamp(fmt.Sprintf("ERROR: heyheyhey"))
+			fmt.Println(buffer.String())
 		} else {
 			printWithTimestamp(fmt.Sprintf("Finished cleanup of %s", deploymentName))
 		}
@@ -65,6 +88,14 @@ func cleanupAllDeployments(cleaner *orchestrator.BackupCleaner, boshClient bosh.
 	errorHandler := func(deploymentError deployment.AllDeploymentsError) error {
 		return deploymentError.Process()
 	}
+
+	logger, _ := factory.BuildBoshLoggerWithCustomBuffer(debug)
+
+	boshClient, err := factory.BuildBoshClient(target, username, password, caCert, logger)
+	if err != nil {
+		return err
+	}
+
 	return runForAllDeployments(
 		cleanupAction,
 		boshClient,

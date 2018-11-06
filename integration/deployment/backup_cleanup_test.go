@@ -87,7 +87,7 @@ instance_groups:
 	})
 
 	Context("when running with --all-deployments", func() {
-		Context("with multiple deployments", func() {
+		Context("with single deployment", func() {
 			var session *gexec.Session
 			var instance1 *testcluster.Instance
 			var deployment1 = "dep1"
@@ -110,6 +110,7 @@ instance_groups:
 				director.VerifyAndMock(AppendBuilders(
 					InfoWithBasicAuth(),
 					Deployments([]string{deployment1}),
+					InfoWithBasicAuth(),
 					VmsForDeployment(deployment1, []mockbosh.VMsOutput{
 						{
 							IPs:     []string{"10.0.0.1"},
@@ -146,7 +147,7 @@ instance_groups:
 				Expect(os.RemoveAll(cleanupWorkspace)).To(Succeed())
 			})
 
-			FIt("successfully cleans up all deployments after a failed backup", func() {
+			It("successfully cleans up all deployments after a failed backup", func() {
 				By("Removing the files", func() {
 					Eventually(session.ExitCode()).Should(Equal(0))
 					Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
@@ -163,29 +164,19 @@ instance_groups:
 				})
 
 				By("outputing the deployment logs to file", func() {
-					//logFilePath := fmt.Sprintf("%s.log", deployment1)
-					//_, err := os.Stat(logFilePath)
-					//Expect(os.IsNotExist(err)).To(BeFalse())
-					//backupLogContent, err := ioutil.ReadFile(logFilePath)
-					//Expect(err).ToNot(HaveOccurred())
-					//
-					//output := string(backupLogContent)
-					//
-					//Expect(output).To(ContainSubstring("INFO - Looking for scripts"))
-					//Expect(output).To(ContainSubstring("INFO - redis/fake-uuid/redis/backup"))
-					//Expect(output).To(ContainSubstring(fmt.Sprintf("INFO - Running pre-checks for backup of %s...", deployment1)))
-					//Expect(output).To(ContainSubstring(fmt.Sprintf("INFO - Starting backup of %s...", deployment1)))
-					//Expect(output).To(ContainSubstring("INFO - Running pre-backup-lock scripts..."))
-					//Expect(output).To(ContainSubstring("INFO - Finished running pre-backup-lock scripts."))
-					//Expect(output).To(ContainSubstring("INFO - Running backup scripts..."))
-					//Expect(output).To(ContainSubstring("INFO - Backing up redis on redis/fake-uuid..."))
-					//Expect(output).To(ContainSubstring("INFO - Finished running backup scripts."))
-					//Expect(output).To(ContainSubstring("INFO - Running post-backup-unlock scripts..."))
-					//Expect(output).To(ContainSubstring("INFO - Finished running post-backup-unlock scripts."))
-					//Expect(output).To(MatchRegexp("INFO - Copying backup -- [^-]*-- for job redis on redis/fake-uuid..."))
-					//Expect(output).To(ContainSubstring("INFO - Finished copying backup -- for job redis on redis/fake-uuid..."))
-					//Expect(output).To(ContainSubstring("INFO - Starting validity checks -- for job redis on redis/fake-uuid..."))
-					//Expect(output).To(ContainSubstring("INFO - Finished validity checks -- for job redis on redis/fake-uuid..."))
+					logFilePath := fmt.Sprintf("%s/%s.log", cleanupWorkspace, deployment1)
+					_, err := os.Stat(logFilePath)
+					Expect(os.IsNotExist(err)).To(BeFalse())
+					backupLogContent, err := ioutil.ReadFile(logFilePath)
+					Expect(err).ToNot(HaveOccurred())
+
+					output := string(backupLogContent)
+
+					Expect(output).To(ContainSubstring("INFO - Looking for scripts"))
+					Expect(output).To(ContainSubstring("INFO - redis-dedicated-node/fake-uuid/redis/backup"))
+					Expect(output).To(ContainSubstring("INFO - Running post-backup-unlock scripts..."))
+					Expect(output).To(ContainSubstring("INFO - Finished running post-backup-unlock scripts."))
+					Expect(output).To(ContainSubstring("INFO - 'dep1' cleaned up"))
 				})
 
 			})
@@ -294,6 +285,7 @@ instance_groups:
 				director.VerifyAndMock(AppendBuilders(
 					InfoWithBasicAuth(),
 					Deployments([]string{deployment1}),
+					InfoWithBasicAuth(),
 					VmsForDeployment(deployment1, []mockbosh.VMsOutput{
 						{
 							IPs:     []string{"10.0.0.1"},
