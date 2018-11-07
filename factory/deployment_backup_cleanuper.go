@@ -13,7 +13,6 @@ func BuildDeploymentBackupCleanuper(
 	username string,
 	password string,
 	caCert string,
-	hasManifest bool,
 	logger logger.Logger,
 ) (*orchestrator.BackupCleaner, error) {
 
@@ -24,6 +23,6 @@ func BuildDeploymentBackupCleanuper(
 	}
 
 	return orchestrator.NewBackupCleaner(logger,
-		bosh.NewDeploymentManager(boshClient, logger, hasManifest), orderer.NewKahnBackupLockOrderer(),
+		bosh.NewDeploymentManager(boshClient, logger, false), orderer.NewKahnBackupLockOrderer(),
 		executor.NewParallelExecutor()), nil
 }

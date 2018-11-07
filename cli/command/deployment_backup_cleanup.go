@@ -30,7 +30,6 @@ func (d DeploymentBackupCleanupCommand) Action(c *cli.Context) error {
 	trapSigint(true)
 
 	username, password, target, caCert, debug, deployment, allDeployments := getDeploymentParams(c)
-	withManifest := c.Bool("with-manifest")
 
 	if !allDeployments {
 		logger := factory.BuildBoshLogger(debug)
@@ -40,7 +39,6 @@ func (d DeploymentBackupCleanupCommand) Action(c *cli.Context) error {
 			username,
 			password,
 			caCert,
-			withManifest,
 			logger,
 		)
 		if err != nil {
@@ -51,10 +49,10 @@ func (d DeploymentBackupCleanupCommand) Action(c *cli.Context) error {
 		return processError(cleanupErr)
 	}
 
-	return cleanupAllDeployments(target, username, password, caCert, withManifest, debug)
+	return cleanupAllDeployments(target, username, password, caCert, debug)
 
 }
-func cleanupAllDeployments(target, username, password, caCert string, withManifest, debug bool) error {
+func cleanupAllDeployments(target, username, password, caCert string, debug bool) error {
 	cleanupAction := func(deploymentName string) orchestrator.Error {
 		logger, buffer := factory.BuildBoshLoggerWithCustomBuffer(debug)
 		cleaner, factoryError := factory.BuildDeploymentBackupCleanuper(
@@ -62,7 +60,6 @@ func cleanupAllDeployments(target, username, password, caCert string, withManife
 			username,
 			password,
 			caCert,
-			withManifest,
 			logger,
 		)
 
