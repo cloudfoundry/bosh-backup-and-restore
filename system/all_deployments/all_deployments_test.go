@@ -3,7 +3,6 @@ package all_deployments_tests
 import (
 	"fmt"
 	"io/ioutil"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -305,11 +304,14 @@ var _ = Describe("All deployments", func() {
 })
 
 func assertCleanupLogfile(deployment string) {
-	logFilePath := filepath.Join(artifactPath, fmt.Sprintf("%s.log", deployment))
-	_, err := os.Stat(logFilePath)
-	Expect(os.IsNotExist(err)).To(BeFalse())
+	files, err := filepath.Glob(filepath.Join(artifactPath, fmt.Sprintf("%s_*.log", deployment)))
+	Expect(err).NotTo(HaveOccurred())
+	Expect(files).To(HaveLen(1))
+
+	logFilePath := files[0]
+	Expect(filepath.Base(logFilePath)).To(MatchRegexp(fmt.Sprintf("%s_%s.log", deployment, `(\d){8}T(\d){6}Z\b`)))
+
 	backupLogContent, err := ioutil.ReadFile(logFilePath)
-	Expect(err).ToNot(HaveOccurred())
 	output := string(backupLogContent)
 
 	Expect(output).To(ContainSubstring(fmt.Sprintf("INFO - Looking for scripts")))
@@ -318,11 +320,14 @@ func assertCleanupLogfile(deployment string) {
 }
 
 func assertBackupLogfile(deployment string) {
-	logFilePath := filepath.Join(artifactPath, fmt.Sprintf("%s.log", deployment))
-	_, err := os.Stat(logFilePath)
-	Expect(os.IsNotExist(err)).To(BeFalse())
+	files, err := filepath.Glob(filepath.Join(artifactPath, fmt.Sprintf("%s_*.log", deployment)))
+	Expect(err).NotTo(HaveOccurred())
+	Expect(files).To(HaveLen(1))
+
+	logFilePath := files[0]
+	Expect(filepath.Base(logFilePath)).To(MatchRegexp(fmt.Sprintf("%s_%s.log", deployment, `(\d){8}T(\d){6}Z\b`)))
+
 	backupLogContent, err := ioutil.ReadFile(logFilePath)
-	Expect(err).ToNot(HaveOccurred())
 	output := string(backupLogContent)
 
 	Expect(output).To(ContainSubstring(fmt.Sprintf("Running pre-checks for backup of %s", deployment)))
