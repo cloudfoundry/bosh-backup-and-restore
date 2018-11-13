@@ -12,6 +12,8 @@ import (
 	"github.com/urfave/cli"
 )
 
+const artifactTimeStampFormat = "20060102T150405Z"
+
 type DeploymentBackupCommand struct {
 }
 
@@ -55,7 +57,9 @@ func (d DeploymentBackupCommand) Action(c *cli.Context) error {
 func backupAll(target, username, password, caCert, artifactPath string, withManifest, debug bool) error {
 	backupAction := func(deploymentName string) orchestrator.Error {
 		logger, buffer := factory.BuildBoshLoggerWithCustomBuffer(debug)
-		backuper, factoryErr := factory.BuildDeploymentBackuper(target, username, password, caCert, withManifest, logger)
+		timeStamp := time.Now().UTC().Format(artifactTimeStampFormat)
+
+		backuper, factoryErr := factory.BuildDeploymentBackuper(target, username, password, caCert, withManifest, logger, timeStamp)
 		if factoryErr != nil {
 			return orchestrator.NewError(factoryErr)
 		}
@@ -100,7 +104,9 @@ func backupAll(target, username, password, caCert, artifactPath string, withMani
 
 func backupSingleDeployment(deployment, target, username, password, caCert, artifactPath string, withManifest, debug bool) error {
 	logger := factory.BuildBoshLogger(debug)
-	backuper, err := factory.BuildDeploymentBackuper(target, username, password, caCert, withManifest, logger)
+	timeStamp := time.Now().UTC().Format(artifactTimeStampFormat)
+
+	backuper, err := factory.BuildDeploymentBackuper(target, username, password, caCert, withManifest, logger, timeStamp)
 	if err != nil {
 		return processError(orchestrator.NewError(err))
 	}

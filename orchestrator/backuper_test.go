@@ -25,6 +25,7 @@ var _ = Describe("Backup", func() {
 		actualBackupError     error
 		startTime, finishTime time.Time
 		artifactCopier        *fakes.FakeArtifactCopier
+		timeStamp             string
 	)
 
 	BeforeEach(func() {
@@ -36,6 +37,7 @@ var _ = Describe("Backup", func() {
 
 		startTime = time.Now()
 		finishTime = startTime.Add(time.Hour)
+		timeStamp = time.Now().UTC().Format("20060102T150405Z")
 
 		nows := []time.Time{startTime, finishTime}
 		nowFunc := func() time.Time {
@@ -45,7 +47,7 @@ var _ = Describe("Backup", func() {
 		}
 
 		artifactCopier = new(fakes.FakeArtifactCopier)
-		b = orchestrator.NewBackuper(fakeBackupManager, logger, deploymentManager, lockOrderer, executor.NewParallelExecutor(), nowFunc, artifactCopier)
+		b = orchestrator.NewBackuper(fakeBackupManager, logger, deploymentManager, lockOrderer, executor.NewParallelExecutor(), nowFunc, artifactCopier, timeStamp)
 	})
 
 	JustBeforeEach(func() {
@@ -103,9 +105,9 @@ var _ = Describe("Backup", func() {
 		})
 
 		It("names the artifact after the deployment", func() {
-			actualPath, actualDeploymentName, actualLogger, _ := fakeBackupManager.CreateArgsForCall(0)
+			actualPath, directoryName, actualLogger := fakeBackupManager.CreateArgsForCall(0)
 			Expect(actualPath).To(Equal(""))
-			Expect(actualDeploymentName).To(Equal(deploymentName))
+			Expect(directoryName).To(Equal(fmt.Sprintf("%s_%s", deploymentName, timeStamp)))
 			Expect(actualLogger).To(Equal(logger))
 		})
 

@@ -7,7 +7,7 @@ import (
 
 //go:generate counterfeiter -o fakes/fake_backup_manager.go . BackupManager
 type BackupManager interface {
-	Create(string, string, Logger, func() time.Time) (Backup, error)
+	Create(string, string, Logger) (Backup, error)
 	Open(string, Logger) (Backup, error)
 }
 

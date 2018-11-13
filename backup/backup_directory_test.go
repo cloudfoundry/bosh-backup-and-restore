@@ -10,6 +10,8 @@ import (
 	"os"
 	"time"
 
+	"sync"
+
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
@@ -18,7 +20,6 @@ import (
 	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
 	"gopkg.in/yaml.v1"
-	"sync"
 )
 
 var _ = Describe("BackupDirectory", func() {
@@ -302,7 +303,7 @@ instances:
 		var fakeBackupArtifact *fakes.FakeBackupArtifact
 
 		BeforeEach(func() {
-			artifact, _ = backupDirectoryManager.Create("", deploymentName, logger, nowFunc)
+			artifact, _ = backupDirectoryManager.Create("", backupName, logger)
 			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
 			fakeBackupArtifact.InstanceNameReturns("redis-server")
 			fakeBackupArtifact.InstanceIndexReturns("0")
@@ -366,7 +367,7 @@ instances:
 		var saveManifestError error
 
 		BeforeEach(func() {
-			artifact, _ = backupDirectoryManager.Create("", deploymentName, logger, nowFunc)
+			artifact, _ = backupDirectoryManager.Create("", backupName, logger)
 		})
 
 		AfterEach(func() {
@@ -474,7 +475,7 @@ instances:
 			fakeBackupArtifact.InstanceIndexReturns("0")
 		})
 		JustBeforeEach(func() {
-			artifact, _ = backupDirectoryManager.Create("", deploymentName, logger, nowFunc)
+			artifact, _ = backupDirectoryManager.Create("", backupName, logger)
 		})
 		Context("file exists", func() {
 			Context("default artifact", func() {
@@ -569,7 +570,7 @@ instances:
 		var startTime time.Time
 
 		BeforeEach(func() {
-			artifact, _ = backupDirectoryManager.Create("", deploymentName, logger, nowFunc)
+			artifact, _ = backupDirectoryManager.Create("", backupName, logger)
 			startTime = time.Date(2015, 10, 21, 1, 2, 3, 0, time.UTC)
 			Expect(artifact.CreateMetadataFileWithStartTime(startTime)).To(Succeed())
 			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
@@ -925,7 +926,7 @@ instances:
 
 		BeforeEach(func() {
 			var err error
-			artifact, err = backupDirectoryManager.Create("", deploymentName, logger, nowFunc)
+			artifact, err = backupDirectoryManager.Create("", backupName, logger)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
@@ -955,7 +956,7 @@ backup_activity:
 
 		BeforeEach(func() {
 			var err error
-			artifact, err = backupDirectoryManager.Create("", deploymentName, logger, nowFunc)
+			artifact, err = backupDirectoryManager.Create("", backupName, logger)
 			Expect(err).NotTo(HaveOccurred())
 		})
 

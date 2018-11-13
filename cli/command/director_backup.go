@@ -1,6 +1,8 @@
 package command
 
 import (
+	"time"
+
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
 	"github.com/urfave/cli"
 )
@@ -32,12 +34,14 @@ func (checkCommand DirectorBackupCommand) Action(c *cli.Context) error {
 	trapSigint(true)
 
 	directorName := extractNameFromAddress(c.Parent().String("host"))
+	timeStamp := time.Now().UTC().Format(artifactTimeStampFormat)
 
 	backuper := factory.BuildDirectorBackuper(
 		c.Parent().String("host"),
 		c.Parent().String("username"),
 		c.Parent().String("private-key-path"),
-		c.GlobalBool("debug"))
+		c.GlobalBool("debug"),
+		timeStamp)
 
 	backupErr := backuper.Backup(directorName, c.String("artifact-path"))
 

@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"os"
 
-	"time"
+	"io/ioutil"
 
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
-	"io/ioutil"
 )
 
 var _ = Context("BackupManager", func() {
@@ -19,9 +18,6 @@ var _ = Context("BackupManager", func() {
 	var backupName string
 	var backupManager = BackupDirectoryManager{}
 	var err error
-	fakeClock := func() time.Time {
-		return time.Date(2015, 10, 21, 02, 2, 3, 0, time.FixedZone("UTC+1", 3600))
-	}
 
 	BeforeEach(func() {
 		artifactPath, err = ioutil.TempDir("", "test-backup-artifact-dir")
@@ -37,7 +33,7 @@ var _ = Context("BackupManager", func() {
 
 	Describe("Create", func() {
 		JustBeforeEach(func() {
-			_, err = backupManager.Create(artifactPath, deploymentName, nil, fakeClock)
+			_, err = backupManager.Create(artifactPath, backupName, nil)
 		})
 
 		It("creates a directory with the given name", func() {
