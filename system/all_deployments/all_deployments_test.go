@@ -3,6 +3,7 @@ package all_deployments_tests
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -20,6 +21,13 @@ var _ = Describe("All deployments", func() {
 	var redis2 = "redis-2"
 	var redis3 = "redis-3"
 
+	BeforeEach(func() {
+		artifactPath, err = ioutil.TempDir("/tmp", "all_deployments")
+	})
+
+	AfterEach(func() {
+		os.RemoveAll(artifactPath)
+	})
 	Context("when running pre-backup-check", func() {
 		Context("and all deployments are backupable", func() {
 			It("reports that all deployments are backupable", func() {
@@ -176,12 +184,12 @@ var _ = Describe("All deployments", func() {
 				Expect(output[2]).To(ContainSubstring("-------------------------"))
 				Expect(output[3:9]).To(
 					ConsistOf(
-						ContainSubstring(fmt.Sprintf("Starting backup of %s, log file: %s.log", redis1, redis1)),
-						ContainSubstring(fmt.Sprintf("Finished backup of %s", redis1)),
-						ContainSubstring(fmt.Sprintf("Starting backup of %s, log file: %s.log", redis2, redis2)),
-						ContainSubstring(fmt.Sprintf("Finished backup of %s", redis2)),
-						ContainSubstring(fmt.Sprintf("Starting backup of %s, log file: %s.log", redis3, redis3)),
-						ContainSubstring(fmt.Sprintf("Finished backup of %s", redis3)),
+						MatchRegexp(fmt.Sprintf("Starting backup of %s, log file: %s", redis1, filepath.Join(artifactPath, buildLogFileTimestampRegex(redis1)))),
+						MatchRegexp(fmt.Sprintf("Finished backup of %s", redis1)),
+						MatchRegexp(fmt.Sprintf("Starting backup of %s, log file: %s", redis2, filepath.Join(artifactPath, buildLogFileTimestampRegex(redis2)))),
+						MatchRegexp(fmt.Sprintf("Finished backup of %s", redis2)),
+						MatchRegexp(fmt.Sprintf("Starting backup of %s, log file: %s", redis3, filepath.Join(artifactPath, buildLogFileTimestampRegex(redis3)))),
+						MatchRegexp(fmt.Sprintf("Finished backup of %s", redis3)),
 					))
 				Expect(output[9]).To(ContainSubstring("-------------------------"))
 
@@ -272,12 +280,12 @@ var _ = Describe("All deployments", func() {
 				Expect(output[2]).To(ContainSubstring("-------------------------"))
 				Expect(output[3:9]).To(
 					ConsistOf(
-						ContainSubstring(fmt.Sprintf("Starting cleanup of %s, log file: %s.log", redis1, redis1)),
-						ContainSubstring(fmt.Sprintf("Finished cleanup of %s", redis1)),
-						ContainSubstring(fmt.Sprintf("Starting cleanup of %s, log file: %s.log", redis2, redis2)),
-						ContainSubstring(fmt.Sprintf("Finished cleanup of %s", redis2)),
-						ContainSubstring(fmt.Sprintf("Starting cleanup of %s, log file: %s.log", redis3, redis3)),
-						ContainSubstring(fmt.Sprintf("Finished cleanup of %s", redis3)),
+						MatchRegexp(fmt.Sprintf("Starting cleanup of %s, log file: %s", redis1, buildLogFileTimestampRegex(redis1))),
+						MatchRegexp(fmt.Sprintf("Finished cleanup of %s", redis1)),
+						MatchRegexp(fmt.Sprintf("Starting cleanup of %s, log file: %s", redis2, buildLogFileTimestampRegex(redis2))),
+						MatchRegexp(fmt.Sprintf("Finished cleanup of %s", redis2)),
+						MatchRegexp(fmt.Sprintf("Starting cleanup of %s, log file: %s", redis3, buildLogFileTimestampRegex(redis3))),
+						MatchRegexp(fmt.Sprintf("Finished cleanup of %s", redis3)),
 					))
 				Expect(output[9]).To(ContainSubstring("-------------------------"))
 
@@ -303,13 +311,17 @@ var _ = Describe("All deployments", func() {
 	})
 })
 
+func buildLogFileTimestampRegex(deployment string) string {
+	return fmt.Sprintf("%s_%s.log", deployment, `(\d){8}T(\d){6}Z\b`)
+}
+
 func assertCleanupLogfile(deployment string) {
 	files, err := filepath.Glob(filepath.Join(artifactPath, fmt.Sprintf("%s_*.log", deployment)))
 	Expect(err).NotTo(HaveOccurred())
 	Expect(files).To(HaveLen(1))
 
 	logFilePath := files[0]
-	Expect(filepath.Base(logFilePath)).To(MatchRegexp(fmt.Sprintf("%s_%s.log", deployment, `(\d){8}T(\d){6}Z\b`)))
+	Expect(filepath.Base(logFilePath)).To(MatchRegexp(buildLogFileTimestampRegex(deployment)))
 
 	backupLogContent, err := ioutil.ReadFile(logFilePath)
 	output := string(backupLogContent)
@@ -325,7 +337,7 @@ func assertBackupLogfile(deployment string) {
 	Expect(files).To(HaveLen(1))
 
 	logFilePath := files[0]
-	Expect(filepath.Base(logFilePath)).To(MatchRegexp(fmt.Sprintf("%s_%s.log", deployment, `(\d){8}T(\d){6}Z\b`)))
+	Expect(filepath.Base(logFilePath)).To(MatchRegexp(buildLogFileTimestampRegex(deployment)))
 
 	backupLogContent, err := ioutil.ReadFile(logFilePath)
 	output := string(backupLogContent)
