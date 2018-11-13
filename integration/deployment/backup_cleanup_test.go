@@ -2,9 +2,11 @@ package deployment
 
 import (
 	"fmt"
-	"github.com/onsi/gomega/gbytes"
 	"io/ioutil"
 	"os"
+	"path/filepath"
+
+	"github.com/onsi/gomega/gbytes"
 
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
@@ -155,18 +157,24 @@ instance_groups:
 				})
 
 				By("printing the backup progress to the screen", func() {
+					logfilePath := fmt.Sprintf("%s_%s.log", deployment1, `(\d){8}T(\d){6}Z\b`)
+
 					AssertOutputWithTimestamp(session.Out, []string{
 						fmt.Sprintf("Pending: %s", deployment1),
-						fmt.Sprintf("Starting cleanup of %s, log file: %s.log", deployment1, deployment1),
+						fmt.Sprintf("Starting cleanup of %s, log file: %s", deployment1, logfilePath),
 						fmt.Sprintf("Finished cleanup of %s", deployment1),
 						fmt.Sprintf("Successfully cleaned up: %s", deployment1),
 					})
 				})
 
 				By("outputing the deployment logs to file", func() {
-					logFilePath := fmt.Sprintf("%s/%s.log", cleanupWorkspace, deployment1)
-					_, err := os.Stat(logFilePath)
-					Expect(os.IsNotExist(err)).To(BeFalse())
+					files, err := filepath.Glob(filepath.Join(cleanupWorkspace, fmt.Sprintf("%s_*.log", deployment1)))
+					Expect(err).NotTo(HaveOccurred())
+					Expect(files).To(HaveLen(1))
+
+					logFilePath := files[0]
+					Expect(filepath.Base(logFilePath)).To(MatchRegexp(fmt.Sprintf("%s_%s.log", deployment1, `(\d){8}T(\d){6}Z\b`)))
+
 					backupLogContent, err := ioutil.ReadFile(logFilePath)
 					Expect(err).ToNot(HaveOccurred())
 
@@ -339,10 +347,13 @@ instance_groups:
 			})
 
 			It("logs the output to file", func() {
+				files, err := filepath.Glob(filepath.Join(cleanupWorkspace, fmt.Sprintf("%s_*.log", deployment1)))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(files).To(HaveLen(1))
 
-				logFilePath := fmt.Sprintf("%s/%s.log", cleanupWorkspace, deployment1)
-				_, err := os.Stat(logFilePath)
-				Expect(os.IsNotExist(err)).To(BeFalse())
+				logFilePath := files[0]
+				Expect(filepath.Base(logFilePath)).To(MatchRegexp(fmt.Sprintf("%s_%s.log", deployment1, `(\d){8}T(\d){6}Z\b`)))
+
 				backupLogContent, err := ioutil.ReadFile(logFilePath)
 				Expect(err).ToNot(HaveOccurred())
 
