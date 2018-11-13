@@ -64,10 +64,12 @@ func backupAll(target, username, password, caCert, artifactPath string, withMani
 			return orchestrator.NewError(factoryErr)
 		}
 
-		printlnWithTimestamp(fmt.Sprintf("Starting backup of %s, log file: %s.log", deploymentName, deploymentName))
+		logfilePath := filepath.Join(artifactPath, fmt.Sprintf("%s_%s.log", deploymentName, timeStamp))
+
+		printlnWithTimestamp(fmt.Sprintf("Starting backup of %s, log file: %s", deploymentName, logfilePath))
 		err := backuper.Backup(deploymentName, artifactPath)
 
-		ioutil.WriteFile(filepath.Join(artifactPath, fmt.Sprintf("%s.log", deploymentName)), buffer.Bytes(), defaultLogfilePermissions)
+		ioutil.WriteFile(logfilePath, buffer.Bytes(), defaultLogfilePermissions)
 
 		if err != nil {
 			printlnWithTimestamp(fmt.Sprintf("ERROR: failed to backup %s", deploymentName))

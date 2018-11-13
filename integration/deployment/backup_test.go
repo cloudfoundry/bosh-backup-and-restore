@@ -1341,22 +1341,26 @@ instance_groups:
 			})
 
 			By("printing the backup progress to the screen", func() {
+				logfilePath := filepath.Join(artifactPath, fmt.Sprintf("%s_%s.log", deploymentName1, `(\d){8}T(\d){6}Z\b`))
+
 				Expect(string(session.Out.Contents())).To(ContainSubstring("Starting backup..."))
 				AssertOutputWithTimestamp(session.Out, []string{
 					fmt.Sprintf("Pending: %s", deploymentName1),
-					fmt.Sprintf("Starting backup of %s, log file: %s.log", deploymentName1, deploymentName1),
+					fmt.Sprintf("Starting backup of %s, log file: %s", deploymentName1, logfilePath),
 					fmt.Sprintf("Finished backup of %s", deploymentName1),
 					fmt.Sprintf("Successfully backed up: %s", deploymentName1),
 				})
 			})
 
 			By("outputing the deployment logs to file", func() {
-				logFilePath := filepath.Join(artifactPath, fmt.Sprintf("%s.log", deploymentName1))
-				_, err := os.Stat(logFilePath)
-				Expect(os.IsNotExist(err)).To(BeFalse())
-				backupLogContent, err := ioutil.ReadFile(logFilePath)
-				Expect(err).ToNot(HaveOccurred())
+				files, err := filepath.Glob(filepath.Join(artifactPath, fmt.Sprintf("%s_*.log", deploymentName1)))
+				Expect(err).NotTo(HaveOccurred())
+				Expect(files).To(HaveLen(1))
 
+				logFilePath := files[0]
+				Expect(filepath.Base(logFilePath)).To(MatchRegexp(fmt.Sprintf("%s_%s.log", deploymentName1, `(\d){8}T(\d){6}Z\b`)))
+
+				backupLogContent, err := ioutil.ReadFile(logFilePath)
 				output := string(backupLogContent)
 
 				Expect(output).To(ContainSubstring("INFO - Looking for scripts"))
@@ -1536,7 +1540,7 @@ func assertOutput(b *gbytes.Buffer, strings []string) {
 func possibleBackupDirectories(deploymentName, backupWorkspace string) []string {
 	dirs, err := ioutil.ReadDir(backupWorkspace)
 	Expect(err).NotTo(HaveOccurred())
-	backupDirectoryPattern := regexp.MustCompile(`\b` + deploymentName + `_(\d){8}T(\d){6}Z\b`)
+	backupDirectoryPattern := regexp.MustCompile(`\b` + deploymentName + `_(\d){8}T(\d){6}Z\b$`)
 
 	matches := []string{}
 	for _, dir := range dirs {
