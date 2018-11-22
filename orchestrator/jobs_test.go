@@ -1,23 +1,14 @@
 package orchestrator_test
 
 import (
-	"log"
-
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	orchestratorFakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
-	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Jobs", func() {
 	var jobs orchestrator.Jobs
-	var logger boshlog.Logger
-
-	BeforeEach(func() {
-		combinedLog := log.New(GinkgoWriter, "[instance-test] ", log.Lshortfile)
-		logger = boshlog.New(boshlog.LevelDebug, combinedLog)
-	})
 
 	Context("contains jobs with backup script", func() {
 		var backupableJob *orchestratorFakes.FakeJob

@@ -18,7 +18,7 @@ import (
 var _ = Describe("DeployedInstance", func() {
 	var boshLogger boshlog.Logger
 	var logOutput *gbytes.Buffer
-	var instanceGroupName, instanceIndex, instanceID, expectedStdout, expectedStderr string
+	var instanceGroupName, instanceIndex, instanceID string
 	var jobs orchestrator.Jobs
 	var remoteRunner *sshfakes.FakeRemoteRunner
 
@@ -27,8 +27,6 @@ var _ = Describe("DeployedInstance", func() {
 		instanceGroupName = "instance-group-name"
 		instanceIndex = "instance-index"
 		instanceID = "instance-id"
-		expectedStdout = "i'm a stdout"
-		expectedStderr = "i'm a stderr"
 		logOutput = gbytes.NewBuffer()
 		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(logOutput, "[bosh-package] ", log.Lshortfile))
 		remoteRunner = new(sshfakes.FakeRemoteRunner)
@@ -84,10 +82,9 @@ var _ = Describe("DeployedInstance", func() {
 
 	Describe("ArtifactDirExists", func() {
 		var dirExists bool
-		var dirError error
 
 		JustBeforeEach(func() {
-			dirExists, dirError = deployedInstance.ArtifactDirExists()
+			dirExists, _ = deployedInstance.ArtifactDirExists()
 		})
 
 		It("queries whether the artifact directory is present", func() {
@@ -579,7 +576,6 @@ var _ = Describe("DeployedInstance", func() {
 
 	Describe("ArtifactsToBackup", func() {
 		var backupArtifacts []orchestrator.BackupArtifact
-		var instanceIdentifier instance.InstanceIdentifier
 
 		var jobWithBackupScript1 = instance.NewJob(remoteRunner,
 			instanceGroupName+"/"+instanceID,
@@ -617,10 +613,6 @@ var _ = Describe("DeployedInstance", func() {
 			"",
 			[]instance.Script{"/var/vcap/jobs/job-with-only-lock-script/bin/bbr/pre-backup-lock"},
 			instance.Metadata{})
-
-		BeforeEach(func() {
-			instanceIdentifier = instance.InstanceIdentifier{InstanceGroupName: instanceGroupName, InstanceId: instanceID}
-		})
 
 		JustBeforeEach(func() {
 			backupArtifacts = deployedInstance.ArtifactsToBackup()
@@ -705,7 +697,6 @@ var _ = Describe("DeployedInstance", func() {
 
 	Describe("ArtifactsToRestore", func() {
 		var restoreArtifacts []orchestrator.BackupArtifact
-		var instanceIdentifier instance.InstanceIdentifier
 
 		var jobWithRestoreScript1 = instance.NewJob(remoteRunner,
 			instanceGroupName+"/"+instanceID,
@@ -746,10 +737,6 @@ var _ = Describe("DeployedInstance", func() {
 
 		JustBeforeEach(func() {
 			restoreArtifacts = deployedInstance.ArtifactsToRestore()
-		})
-
-		BeforeEach(func() {
-			instanceIdentifier = instance.InstanceIdentifier{InstanceGroupName: instanceGroupName, InstanceId: instanceID}
 		})
 
 		Context("Has no named restore artifacts", func() {

@@ -294,9 +294,6 @@ var _ = Describe("Connection", func() {
 
 	Context("keeps session alive", func() {
 		var stdOut []byte
-		var stdErr []byte
-		var exitCode int
-		var runError error
 
 		BeforeEach(func() {
 			instance1.CreateScript("/tmp/produce", `#!/usr/bin/env sh
@@ -308,7 +305,7 @@ var _ = Describe("Connection", func() {
 			Expect(connErr).NotTo(HaveOccurred())
 
 			numGoRoutinesBeforeRun := runtime.NumGoroutine()
-			stdOut, stdErr, exitCode, runError = conn.Run("/tmp/produce")
+			stdOut, _, _, _ = conn.Run("/tmp/produce")
 			Eventually(func() int {
 				return runtime.NumGoroutine()
 			}, 10).Should(Equal(numGoRoutinesBeforeRun))

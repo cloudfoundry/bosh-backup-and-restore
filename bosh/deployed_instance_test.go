@@ -7,7 +7,6 @@ import (
 	"errors"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	"github.com/cloudfoundry/bosh-cli/director"
@@ -22,10 +21,8 @@ var _ = Describe("BoshDeployedInstance", func() {
 	var remoteRunner *sshfakes.FakeRemoteRunner
 	var boshDeployment *boshfakes.FakeDeployment
 	var boshLogger boshlog.Logger
-	var stdout, stderr *gbytes.Buffer
-	var jobName, jobIndex, jobID, expectedStdout, expectedStderr string
-	var backupAndRestoreScripts []instance.Script
-	var artifactMetadata map[string]instance.Metadata
+	var stdout *gbytes.Buffer
+	var jobName, jobIndex, jobID string
 	var artifactDirCreated bool
 	var backuperInstance orchestrator.Instance
 
@@ -35,13 +32,8 @@ var _ = Describe("BoshDeployedInstance", func() {
 		jobName = "job-name"
 		jobIndex = "job-index"
 		jobID = "job-id"
-		expectedStdout = "i'm a stdout"
-		expectedStderr = "i'm a stderr"
 		stdout = gbytes.NewBuffer()
-		stderr = gbytes.NewBuffer()
 		boshLogger = boshlog.New(boshlog.LevelDebug, log.New(stdout, "[bosh-package] ", log.Lshortfile))
-		backupAndRestoreScripts = []instance.Script{}
-		artifactMetadata = map[string]instance.Metadata{}
 		artifactDirCreated = true
 	})
 

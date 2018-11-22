@@ -19,7 +19,6 @@ var _ = Describe("Restore cleanup", func() {
 	var session *gexec.Session
 	var instance *testcluster.Instance
 	var deploymentName string
-	var err error
 	manifest := `---
 instance_groups:
 - name: redis-dedicated-node
@@ -30,7 +29,7 @@ instance_groups:
 `
 
 	BeforeEach(func() {
-		cleanupWorkspace, err = ioutil.TempDir(".", "cleanup-workspace-")
+		cleanupWorkspace, _ = ioutil.TempDir(".", "cleanup-workspace-")
 
 		instance = testcluster.NewInstance()
 

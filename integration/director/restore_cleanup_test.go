@@ -17,10 +17,9 @@ var _ = Describe("Restore Cleanup", func() {
 		var session *gexec.Session
 		var directorInstance *testcluster.Instance
 		var directorAddress string
-		var err error
 
 		BeforeEach(func() {
-			cleanupWorkspace, err = ioutil.TempDir(".", "cleanup-workspace-")
+			cleanupWorkspace, _ = ioutil.TempDir(".", "cleanup-workspace-")
 
 			directorInstance = testcluster.NewInstance()
 			directorInstance.CreateUser("foobar", readFile(pathToPublicKeyFile))

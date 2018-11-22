@@ -26,7 +26,6 @@ var _ = Describe("Backup cleanup", func() {
 		var session *gexec.Session
 		var instance1 *testcluster.Instance
 		var deploymentName string
-		var err error
 		manifest := `---
 instance_groups:
 - name: redis-dedicated-node
@@ -37,7 +36,7 @@ instance_groups:
 `
 
 		BeforeEach(func() {
-			cleanupWorkspace, err = ioutil.TempDir(".", "cleanup-workspace-")
+			cleanupWorkspace, _ = ioutil.TempDir(".", "cleanup-workspace-")
 
 			instance1 = testcluster.NewInstance()
 
@@ -93,7 +92,6 @@ instance_groups:
 			var session *gexec.Session
 			var instance1 *testcluster.Instance
 			var deployment1 = "dep1"
-			var err error
 			manifest := `---
 instance_groups:
 - name: redis-dedicated-node
@@ -104,7 +102,7 @@ instance_groups:
 `
 
 			BeforeEach(func() {
-				cleanupWorkspace, err = ioutil.TempDir(".", "cleanup-workspace-")
+				cleanupWorkspace, _ = ioutil.TempDir(".", "cleanup-workspace-")
 
 				instance1 = testcluster.NewInstance()
 				director = mockbosh.NewTLS()
@@ -192,10 +190,9 @@ instance_groups:
 
 		Context("with no deployments", func() {
 			var session *gexec.Session
-			var err error
 
 			BeforeEach(func() {
-				cleanupWorkspace, err = ioutil.TempDir(".", "cleanup-workspace-")
+				cleanupWorkspace, _ = ioutil.TempDir(".", "cleanup-workspace-")
 
 				director = mockbosh.NewTLS()
 				director.ExpectedBasicAuth("admin", "admin")
@@ -232,10 +229,9 @@ instance_groups:
 
 		Context("and an error occurs while getting deployments", func() {
 			var session *gexec.Session
-			var err error
 
 			BeforeEach(func() {
-				cleanupWorkspace, err = ioutil.TempDir(".", "cleanup-workspace-")
+				cleanupWorkspace, _ = ioutil.TempDir(".", "cleanup-workspace-")
 
 				director = mockbosh.NewTLS()
 				director.ExpectedBasicAuth("admin", "admin")
@@ -274,7 +270,6 @@ instance_groups:
 			var session *gexec.Session
 			var instance1 *testcluster.Instance
 			var deployment1 = "dep1"
-			var err error
 			manifest := `---
 instance_groups:
 - name: redis-dedicated-node
@@ -285,7 +280,7 @@ instance_groups:
 `
 
 			BeforeEach(func() {
-				cleanupWorkspace, err = ioutil.TempDir(".", "cleanup-workspace-")
+				cleanupWorkspace, _ = ioutil.TempDir(".", "cleanup-workspace-")
 
 				instance1 = testcluster.NewInstance()
 				director = mockbosh.NewTLS()
