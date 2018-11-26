@@ -39,6 +39,7 @@ You're good to go. Run tests locally with `make test`.
 **Talks:**
 - [_Burning Down the House: How to Plan for and Deal with Disaster Recovery in CF_](https://www.youtube.com/watch?v=rQSLNHAHgA8) at Cloud Foundry Summit Europe 2017
 - [_Extending the BOSH Backup and Restore Framework_](https://www.youtube.com/watch?v=LiXXqrdlXSQ) at Cloud Foundry Summit 2018
+- [_Reviving the platform every day_](https://www.youtube.com/watch?v=8osX_c1XQyI) at Cloud Foundry Summit EU 2018
 
 **Blog posts:**
 - [Cloud-Native Recovery Tool, BOSH Backup & Restore, Now Available in Public Beta](https://content.pivotal.io/blog/cloud-native-recovery-tool-bosh-backup-restore-now-available-in-public-beta) on the Pivotal Blog
