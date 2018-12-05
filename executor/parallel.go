@@ -10,6 +10,10 @@ type ParallelExecutor struct {
 	maxInFlight int
 }
 
+func (s ParallelExecutor) SetMaxInFlight(maxInFlight int) {
+	s.maxInFlight = maxInFlight
+}
+
 func (s ParallelExecutor) Run(executablesList [][]Executable) []error {
 	var errors []error
 	for _, executables := range executablesList {
