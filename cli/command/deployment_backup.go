@@ -1,8 +1,10 @@
 package command
 
 import (
+	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -56,20 +58,23 @@ func (d DeploymentBackupCommand) Action(c *cli.Context) error {
 
 func backupAll(target, username, password, caCert, artifactPath string, withManifest, debug bool) error {
 	backupAction := func(deploymentName string) orchestrator.Error {
-		logger, buffer := factory.BuildBoshLoggerWithCustomBuffer(debug)
 		timeStamp := time.Now().UTC().Format(artifactTimeStampFormat)
+
+		logfilePath := filepath.Join(artifactPath, fmt.Sprintf("%s_%s.log", deploymentName, timeStamp))
+		logFile, _ := os.OpenFile(logfilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, defaultLogfilePermissions)
+
+		buffer := new(bytes.Buffer)
+		multiWriter := io.MultiWriter(buffer, logFile)
+
+		logger := factory.BuildBoshLoggerWithCustomWriter(multiWriter, debug)
 
 		backuper, factoryErr := factory.BuildDeploymentBackuper(target, username, password, caCert, withManifest, logger, timeStamp)
 		if factoryErr != nil {
 			return orchestrator.NewError(factoryErr)
 		}
 
-		logfilePath := filepath.Join(artifactPath, fmt.Sprintf("%s_%s.log", deploymentName, timeStamp))
-
 		printlnWithTimestamp(fmt.Sprintf("Starting backup of %s, log file: %s", deploymentName, logfilePath))
 		err := backuper.Backup(deploymentName, artifactPath)
-
-		ioutil.WriteFile(logfilePath, buffer.Bytes(), defaultLogfilePermissions)
 
 		if err != nil {
 			printlnWithTimestamp(fmt.Sprintf("ERROR: failed to backup %s", deploymentName))

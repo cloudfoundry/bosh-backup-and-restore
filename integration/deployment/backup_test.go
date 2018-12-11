@@ -1247,6 +1247,7 @@ var _ = Describe("Backup --all-deployments", func() {
 	var artifactPath string
 	var session *gexec.Session
 	var instance1 *testcluster.Instance
+	var params []string
 	manifest := `---
 instance_groups:
 - name: redis
@@ -1274,6 +1275,17 @@ instance_groups:
 		Expect(err).NotTo(HaveOccurred())
 
 		instance1 = testcluster.NewInstance()
+
+		params = []string{
+			"deployment",
+			"--ca-cert", sslCertPath,
+			"--username", "admin",
+			"--password", "admin",
+			"--target", director.URL,
+			"--all-deployments",
+			"backup",
+			"--artifact-path", artifactPath,
+		}
 	})
 
 	AfterEach(func() {
@@ -1285,74 +1297,287 @@ instance_groups:
 		Expect(os.RemoveAll(artifactPath)).To(Succeed())
 	})
 
-	JustBeforeEach(func() {
-		params := []string{
-			"deployment",
-			"--ca-cert", sslCertPath,
-			"--username", "admin",
-			"--password", "admin",
-			"--target", director.URL,
-			"--all-deployments",
-			"backup",
-			"--artifact-path", artifactPath,
-		}
-
-		session = binary.Run(backupWorkspace, []string{}, params...)
-	})
-
-	Context("when the deployment is backupable", func() {
-		const instanceGroupName = "redis"
-
-		BeforeEach(func() {
-			deploymentVMs := func(instanceGroupName string) []mockbosh.VMsOutput {
-				return []mockbosh.VMsOutput{
-					{
-						IPs:     []string{"10.0.0.1"},
-						JobName: instanceGroupName,
-						Index:   newIndex(0),
-						ID:      "fake-uuid",
-					},
-				}
-			}
-
-			director.VerifyAndMock(AppendBuilders(
-				InfoWithBasicAuth(),
-				Deployments([]string{deploymentName1}),
-				InfoWithBasicAuth(),
-				VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
-				DownloadManifest(deploymentName1, manifest),
-				SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
-				CleanupSSH(deploymentName1, instanceGroupName),
-			)...)
-
-			instance1.CreateExecutableFiles(
-				"/var/vcap/jobs/redis/bin/bbr/backup",
-			)
+	Describe("Backup exits gracefully", func() {
+		JustBeforeEach(func() {
+			session = binary.Run(backupWorkspace, []string{}, params...)
 		})
 
-		It("backs up successfully", func() {
-			By("backing the deployment successfully", func() {
-				Expect(session.ExitCode()).To(BeZero())
+		Context("when the deployment is backupable", func() {
+			const instanceGroupName = "redis"
 
-				deployment1Artifact := backupDirectory(deploymentName1, artifactPath)
-				Expect(deployment1Artifact).To(BeADirectory())
-				Expect(path.Join(deployment1Artifact, "/redis-0-redis.tar")).To(BeARegularFile())
+			BeforeEach(func() {
+				deploymentVMs := func(instanceGroupName string) []mockbosh.VMsOutput {
+					return []mockbosh.VMsOutput{
+						{
+							IPs:     []string{"10.0.0.1"},
+							JobName: instanceGroupName,
+							Index:   newIndex(0),
+							ID:      "fake-uuid",
+						},
+					}
+				}
 
+				director.VerifyAndMock(AppendBuilders(
+					InfoWithBasicAuth(),
+					Deployments([]string{deploymentName1}),
+					InfoWithBasicAuth(),
+					VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
+					DownloadManifest(deploymentName1, manifest),
+					SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
+					CleanupSSH(deploymentName1, instanceGroupName),
+				)...)
+
+				instance1.CreateExecutableFiles(
+					"/var/vcap/jobs/redis/bin/bbr/backup",
+				)
 			})
 
-			By("printing the backup progress to the screen", func() {
-				logfilePath := filepath.Join(artifactPath, fmt.Sprintf("%s_%s.log", deploymentName1, `(\d){8}T(\d){6}Z\b`))
+			It("backs up successfully", func() {
+				By("backing the deployment successfully", func() {
+					Expect(session.ExitCode()).To(BeZero())
 
-				Expect(string(session.Out.Contents())).To(ContainSubstring("Starting backup..."))
-				AssertOutputWithTimestamp(session.Out, []string{
-					fmt.Sprintf("Pending: %s", deploymentName1),
-					fmt.Sprintf("Starting backup of %s, log file: %s", deploymentName1, logfilePath),
-					fmt.Sprintf("Finished backup of %s", deploymentName1),
-					fmt.Sprintf("Successfully backed up: %s", deploymentName1),
+					deployment1Artifact := backupDirectory(deploymentName1, artifactPath)
+					Expect(deployment1Artifact).To(BeADirectory())
+					Expect(path.Join(deployment1Artifact, "/redis-0-redis.tar")).To(BeARegularFile())
+
+				})
+
+				By("printing the backup progress to the screen", func() {
+					logfilePath := filepath.Join(artifactPath, fmt.Sprintf("%s_%s.log", deploymentName1, `(\d){8}T(\d){6}Z\b`))
+
+					Expect(string(session.Out.Contents())).To(ContainSubstring("Starting backup..."))
+					AssertOutputWithTimestamp(session.Out, []string{
+						fmt.Sprintf("Pending: %s", deploymentName1),
+						fmt.Sprintf("Starting backup of %s, log file: %s", deploymentName1, logfilePath),
+						fmt.Sprintf("Finished backup of %s", deploymentName1),
+						fmt.Sprintf("Successfully backed up: %s", deploymentName1),
+					})
+				})
+
+				By("outputing the deployment logs to file", func() {
+					files, err := filepath.Glob(filepath.Join(artifactPath, fmt.Sprintf("%s_*.log", deploymentName1)))
+					Expect(err).NotTo(HaveOccurred())
+					Expect(files).To(HaveLen(1))
+
+					logFilePath := files[0]
+					Expect(filepath.Base(logFilePath)).To(MatchRegexp(fmt.Sprintf("%s_%s.log", deploymentName1, `(\d){8}T(\d){6}Z\b`)))
+
+					backupLogContent, err := ioutil.ReadFile(logFilePath)
+					output := string(backupLogContent)
+
+					Expect(output).To(ContainSubstring("INFO - Looking for scripts"))
+					Expect(output).To(ContainSubstring("INFO - redis/fake-uuid/redis/backup"))
+					Expect(output).To(ContainSubstring(fmt.Sprintf("INFO - Running pre-checks for backup of %s...", deploymentName1)))
+					Expect(output).To(ContainSubstring(fmt.Sprintf("INFO - Starting backup of %s...", deploymentName1)))
+					Expect(output).To(ContainSubstring("INFO - Running pre-backup-lock scripts..."))
+					Expect(output).To(ContainSubstring("INFO - Finished running pre-backup-lock scripts."))
+					Expect(output).To(ContainSubstring("INFO - Running backup scripts..."))
+					Expect(output).To(ContainSubstring("INFO - Backing up redis on redis/fake-uuid..."))
+					Expect(output).To(ContainSubstring("INFO - Finished running backup scripts."))
+					Expect(output).To(ContainSubstring("INFO - Running post-backup-unlock scripts..."))
+					Expect(output).To(ContainSubstring("INFO - Finished running post-backup-unlock scripts."))
+					Expect(output).To(MatchRegexp("INFO - Copying backup -- [^-]*-- for job redis on redis/fake-uuid..."))
+					Expect(output).To(ContainSubstring("INFO - Finished copying backup -- for job redis on redis/fake-uuid..."))
+					Expect(output).To(ContainSubstring("INFO - Starting validity checks -- for job redis on redis/fake-uuid..."))
+					Expect(output).To(ContainSubstring("INFO - Finished validity checks -- for job redis on redis/fake-uuid..."))
 				})
 			})
 
-			By("outputing the deployment logs to file", func() {
+		})
+
+		Context("When the backuper fails to get the deployments", func() {
+			BeforeEach(func() {
+				director.VerifyAndMock(AppendBuilders(
+					InfoWithBasicAuth(),
+					DeploymentsFails("oups"),
+				)...)
+			})
+
+			It("returns an error", func() {
+				Expect(session.ExitCode()).NotTo(BeZero())
+				Expect(session.Err).To(gbytes.Say("oups"))
+			})
+		})
+
+		Context("When a backuper fails to authenticate", func() {
+			BeforeEach(func() {
+				director.VerifyAndMock(AppendBuilders(
+					InfoWithBasicAuth(),
+					Deployments([]string{deploymentName1}),
+					InfoWithBasicAuthFails("oups"),
+				)...)
+			})
+
+			It("returns an error", func() {
+				Expect(session.ExitCode()).NotTo(BeZero())
+				Expect(session.Err).To(gbytes.Say("oups"))
+			})
+		})
+
+		Context("When the backuper fails to authenticate", func() {
+			BeforeEach(func() {
+				director.VerifyAndMock(AppendBuilders(
+					InfoWithBasicAuthFails("oups"),
+				)...)
+			})
+
+			It("returns an error", func() {
+				Expect(session.ExitCode()).NotTo(BeZero())
+				Expect(session.Err).To(gbytes.Say("oups"))
+			})
+		})
+
+		Context("when the deployment fails to backup", func() {
+			const instanceGroupName = "redis"
+
+			BeforeEach(func() {
+				deploymentVMs := func(instanceGroupName string) []mockbosh.VMsOutput {
+					return []mockbosh.VMsOutput{
+						{
+							IPs:     []string{"10.0.0.1"},
+							JobName: instanceGroupName,
+							Index:   newIndex(0),
+							ID:      "fake-uuid",
+						},
+					}
+				}
+
+				director.VerifyAndMock(AppendBuilders(
+					InfoWithBasicAuth(),
+					Deployments([]string{deploymentName1}),
+					InfoWithBasicAuth(),
+					VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
+					DownloadManifest(deploymentName1, manifest),
+					SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
+					CleanupSSH(deploymentName1, instanceGroupName),
+				)...)
+
+				instance1.CreateScript(
+					"/var/vcap/jobs/redis/bin/bbr/backup", "echo 'ultra-bar'; (>&2 echo 'ultra-baz'); exit 1",
+				)
+			})
+
+			It("alerts me about the deployment failure", func() {
+				Expect(session.ExitCode()).NotTo(BeZero())
+				assertOutput(session.Out, []string{
+					fmt.Sprintf("Starting backup..."),
+					fmt.Sprintf("Pending: %s", deploymentName1),
+					fmt.Sprintf("Starting backup of %s", deploymentName1),
+					fmt.Sprintf("ERROR: failed to backup %s", deploymentName1),
+					fmt.Sprintf("Error backing up redis on redis/fake-uuid"),
+					fmt.Sprintf("Successfully backed up: "),
+					fmt.Sprintf("FAILED: %s", deploymentName1),
+				})
+
+				assertOutput(session.Err, []string{
+					"1 out of 1 deployments cannot be backed up",
+					fmt.Sprintf("%s", deploymentName1),
+					"Error attempting to run backup for job redis on redis/fake-uuid: ultra-baz - exit code 1",
+				})
+			})
+
+		})
+
+		Context("when the deployments fails to unlock", func() {
+			const instanceGroupName = "redis"
+
+			BeforeEach(func() {
+				deploymentVMs := func(instanceGroupName string) []mockbosh.VMsOutput {
+					return []mockbosh.VMsOutput{
+						{
+							IPs:     []string{"10.0.0.1"},
+							JobName: instanceGroupName,
+							Index:   newIndex(0),
+							ID:      "fake-uuid",
+						},
+					}
+				}
+
+				director.VerifyAndMock(AppendBuilders(
+					InfoWithBasicAuth(),
+					Deployments([]string{deploymentName1}),
+					InfoWithBasicAuth(),
+					VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
+					DownloadManifest(deploymentName1, manifest),
+					SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
+					CleanupSSH(deploymentName1, instanceGroupName),
+				)...)
+
+				instance1.CreateExecutableFiles(
+					"/var/vcap/jobs/redis/bin/bbr/backup",
+				)
+
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
+>&2 echo 'I failed'
+exit 1`)
+			})
+
+			It("fails and prints a backup cleanup advice", func() {
+				Expect(session.ExitCode()).NotTo(BeZero())
+				Expect(session.Err).To(gbytes.Say("It is recommended that you run `bbr deployment --all-deployments backup-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."))
+			})
+		})
+
+		Context("when there are no deployments", func() {
+			BeforeEach(func() {
+				director.VerifyAndMock(AppendBuilders(
+					InfoWithBasicAuth(),
+					Deployments([]string{}),
+				)...)
+			})
+
+			It("fails", func() {
+				Expect(session.ExitCode()).NotTo(BeZero())
+				Expect(session.Err).To(gbytes.Say("Failed to find any deployments"))
+			})
+		})
+
+	})
+
+	Describe("Backup gets interrupted", func() {
+		Context("when the backuper gets killed while backing up", func() {
+			const instanceGroupName = "redis"
+
+			BeforeEach(func() {
+				deploymentVMs := func(instanceGroupName string) []mockbosh.VMsOutput {
+					return []mockbosh.VMsOutput{
+						{
+							IPs:     []string{"10.0.0.1"},
+							JobName: instanceGroupName,
+							Index:   newIndex(0),
+							ID:      "fake-uuid",
+						},
+					}
+				}
+
+				director.VerifyAndMock(AppendBuilders(
+					InfoWithBasicAuth(),
+					Deployments([]string{deploymentName1}),
+					InfoWithBasicAuth(),
+					VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
+					DownloadManifest(deploymentName1, manifest),
+					SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
+				)...)
+
+				instance1.CreateScript(
+					"/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env bash
+				echo "" > /tmp/backup
+				sleep 600
+				`,
+				)
+			})
+
+			JustBeforeEach(func() {
+				session, _ = binary.Start(backupWorkspace, []string{}, params...)
+			})
+
+			It("updates the logfile with the progress so far", func() {
+				Eventually(func() bool {
+					return instance1.FileExists("/tmp/backup")
+				}, 2*time.Minute, 5*time.Second).Should(BeTrue())
+
+				Eventually(session.Kill(), 1*time.Minute).Should(gexec.Exit())
+
 				files, err := filepath.Glob(filepath.Join(artifactPath, fmt.Sprintf("%s_*.log", deploymentName1)))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(files).To(HaveLen(1))
@@ -1371,164 +1596,11 @@ instance_groups:
 				Expect(output).To(ContainSubstring("INFO - Finished running pre-backup-lock scripts."))
 				Expect(output).To(ContainSubstring("INFO - Running backup scripts..."))
 				Expect(output).To(ContainSubstring("INFO - Backing up redis on redis/fake-uuid..."))
-				Expect(output).To(ContainSubstring("INFO - Finished running backup scripts."))
-				Expect(output).To(ContainSubstring("INFO - Running post-backup-unlock scripts..."))
-				Expect(output).To(ContainSubstring("INFO - Finished running post-backup-unlock scripts."))
-				Expect(output).To(MatchRegexp("INFO - Copying backup -- [^-]*-- for job redis on redis/fake-uuid..."))
-				Expect(output).To(ContainSubstring("INFO - Finished copying backup -- for job redis on redis/fake-uuid..."))
-				Expect(output).To(ContainSubstring("INFO - Starting validity checks -- for job redis on redis/fake-uuid..."))
-				Expect(output).To(ContainSubstring("INFO - Finished validity checks -- for job redis on redis/fake-uuid..."))
+				Expect(output).NotTo(ContainSubstring("INFO - Finished running backup scripts."))
 			})
 		})
-
 	})
 
-	Context("When the backuper fails to get the deployments", func() {
-		BeforeEach(func() {
-			director.VerifyAndMock(AppendBuilders(
-				InfoWithBasicAuth(),
-				DeploymentsFails("oups"),
-			)...)
-		})
-
-		It("returns an error", func() {
-			Expect(session.ExitCode()).NotTo(BeZero())
-			Expect(session.Err).To(gbytes.Say("oups"))
-		})
-	})
-
-	Context("When a backuper fails to authenticate", func() {
-		BeforeEach(func() {
-			director.VerifyAndMock(AppendBuilders(
-				InfoWithBasicAuth(),
-				Deployments([]string{deploymentName1}),
-				InfoWithBasicAuthFails("oups"),
-			)...)
-		})
-
-		It("returns an error", func() {
-			Expect(session.ExitCode()).NotTo(BeZero())
-			Expect(session.Err).To(gbytes.Say("oups"))
-		})
-	})
-
-	Context("When the backuper fails to authenticate", func() {
-		BeforeEach(func() {
-			director.VerifyAndMock(AppendBuilders(
-				InfoWithBasicAuthFails("oups"),
-			)...)
-		})
-
-		It("returns an error", func() {
-			Expect(session.ExitCode()).NotTo(BeZero())
-			Expect(session.Err).To(gbytes.Say("oups"))
-		})
-	})
-
-	Context("when the deployment fails to backup", func() {
-		const instanceGroupName = "redis"
-
-		BeforeEach(func() {
-			deploymentVMs := func(instanceGroupName string) []mockbosh.VMsOutput {
-				return []mockbosh.VMsOutput{
-					{
-						IPs:     []string{"10.0.0.1"},
-						JobName: instanceGroupName,
-						Index:   newIndex(0),
-						ID:      "fake-uuid",
-					},
-				}
-			}
-
-			director.VerifyAndMock(AppendBuilders(
-				InfoWithBasicAuth(),
-				Deployments([]string{deploymentName1}),
-				InfoWithBasicAuth(),
-				VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
-				DownloadManifest(deploymentName1, manifest),
-				SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
-				CleanupSSH(deploymentName1, instanceGroupName),
-			)...)
-
-			instance1.CreateScript(
-				"/var/vcap/jobs/redis/bin/bbr/backup", "echo 'ultra-bar'; (>&2 echo 'ultra-baz'); exit 1",
-			)
-		})
-
-		It("alerts me about the deployment failure", func() {
-			Expect(session.ExitCode()).NotTo(BeZero())
-			assertOutput(session.Out, []string{
-				fmt.Sprintf("Starting backup..."),
-				fmt.Sprintf("Pending: %s", deploymentName1),
-				fmt.Sprintf("Starting backup of %s", deploymentName1),
-				fmt.Sprintf("ERROR: failed to backup %s", deploymentName1),
-				fmt.Sprintf("Error backing up redis on redis/fake-uuid"),
-				fmt.Sprintf("Successfully backed up: "),
-				fmt.Sprintf("FAILED: %s", deploymentName1),
-			})
-
-			assertOutput(session.Err, []string{
-				"1 out of 1 deployments cannot be backed up",
-				fmt.Sprintf("%s", deploymentName1),
-				"Error attempting to run backup for job redis on redis/fake-uuid: ultra-baz - exit code 1",
-			})
-		})
-
-	})
-
-	Context("when the deployments fails to unlock", func() {
-		const instanceGroupName = "redis"
-
-		BeforeEach(func() {
-			deploymentVMs := func(instanceGroupName string) []mockbosh.VMsOutput {
-				return []mockbosh.VMsOutput{
-					{
-						IPs:     []string{"10.0.0.1"},
-						JobName: instanceGroupName,
-						Index:   newIndex(0),
-						ID:      "fake-uuid",
-					},
-				}
-			}
-
-			director.VerifyAndMock(AppendBuilders(
-				InfoWithBasicAuth(),
-				Deployments([]string{deploymentName1}),
-				InfoWithBasicAuth(),
-				VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
-				DownloadManifest(deploymentName1, manifest),
-				SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
-				CleanupSSH(deploymentName1, instanceGroupName),
-			)...)
-
-			instance1.CreateExecutableFiles(
-				"/var/vcap/jobs/redis/bin/bbr/backup",
-			)
-
-			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
->&2 echo 'I failed'
-exit 1`)
-		})
-
-		It("fails and prints a backup cleanup advice", func() {
-			Expect(session.ExitCode()).NotTo(BeZero())
-			Expect(session.Err).To(gbytes.Say("It is recommended that you run `bbr deployment --all-deployments backup-cleanup` to ensure that any temp files are cleaned up and all jobs are unlocked."))
-		})
-	})
-
-	Context("when there are no deployments", func() {
-		BeforeEach(func() {
-			director.VerifyAndMock(AppendBuilders(
-				InfoWithBasicAuth(),
-				Deployments([]string{}),
-			)...)
-		})
-
-		It("fails", func() {
-			Expect(session.ExitCode()).NotTo(BeZero())
-			Expect(session.Err).To(gbytes.Say("Failed to find any deployments"))
-		})
-	})
 })
 
 func assertOutput(b *gbytes.Buffer, strings []string) {

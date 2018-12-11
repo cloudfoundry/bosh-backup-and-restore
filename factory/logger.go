@@ -2,6 +2,7 @@ package factory
 
 import (
 	"bytes"
+	"io"
 	"os"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/writer"
@@ -28,4 +29,11 @@ func BuildBoshLoggerWithCustomBuffer(debug bool) (boshlog.Logger, *bytes.Buffer)
 		return boshlog.NewWriterLogger(boshlog.LevelDebug, writer.NewPausableWriter(buffer)), buffer
 	}
 	return boshlog.NewWriterLogger(boshlog.LevelInfo, writer.NewPausableWriter(buffer)), buffer
+}
+
+func BuildBoshLoggerWithCustomWriter(w io.Writer, debug bool) boshlog.Logger {
+	if debug {
+		return boshlog.NewWriterLogger(boshlog.LevelDebug, writer.NewPausableWriter(w))
+	}
+	return boshlog.NewWriterLogger(boshlog.LevelInfo, writer.NewPausableWriter(w))
 }
