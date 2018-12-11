@@ -1,8 +1,10 @@
 package command
 
 import (
+	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"os"
 	"time"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor/deployment"
@@ -55,8 +57,16 @@ func (d DeploymentBackupCleanupCommand) Action(c *cli.Context) error {
 }
 func cleanupAllDeployments(target, username, password, caCert string, debug bool) error {
 	cleanupAction := func(deploymentName string) orchestrator.Error {
-		logger, buffer := factory.BuildBoshLoggerWithCustomBuffer(debug)
 		timeStamp := time.Now().UTC().Format(artifactTimeStampFormat)
+
+		logFilePath := fmt.Sprintf("%s_%s.log", deploymentName, timeStamp)
+		logFile, _ := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, defaultLogfilePermissions)
+
+		buffer := new(bytes.Buffer)
+		multiWriter := io.MultiWriter(buffer, logFile)
+
+		logger := factory.BuildBoshLoggerWithCustomWriter(multiWriter, debug)
+
 		cleaner, factoryError := factory.BuildDeploymentBackupCleanuper(
 			target,
 			username,
@@ -69,12 +79,8 @@ func cleanupAllDeployments(target, username, password, caCert string, debug bool
 			return orchestrator.NewError(factoryError)
 		}
 
-		logFilePath := fmt.Sprintf("%s_%s.log", deploymentName, timeStamp)
-
 		printlnWithTimestamp(fmt.Sprintf("Starting cleanup of %s, log file: %s", deploymentName, logFilePath))
 		err := cleanup(cleaner, deploymentName)
-
-		ioutil.WriteFile(logFilePath, buffer.Bytes(), defaultLogfilePermissions)
 
 		if err != nil {
 			printlnWithTimestamp(fmt.Sprintf("ERROR: failed cleanup of %s", deploymentName))

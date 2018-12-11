@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/onsi/gomega/gbytes"
 
@@ -360,6 +361,96 @@ instance_groups:
 				Expect(logContent).To(ContainSubstring("INFO - Unlocking redis on redis-dedicated-node/fake-uuid..."))
 				Expect(logContent).To(ContainSubstring("ERROR - Error unlocking redis on redis-dedicated-node/fake-uuid."))
 				Expect(logContent).To(ContainSubstring("INFO - Finished running post-backup-unlock scripts."))
+			})
+		})
+
+		Context("and the backup process gets killed while backuping up", func() {
+			var session *gexec.Session
+			var instance1 *testcluster.Instance
+			var deployment1 = "dep1"
+			manifest := `---
+instance_groups:
+- name: redis-dedicated-node
+  instances: 1
+  jobs:
+  - name: redis
+    release: redis
+`
+
+			BeforeEach(func() {
+				cleanupWorkspace, _ = ioutil.TempDir(".", "cleanup-workspace-")
+
+				instance1 = testcluster.NewInstance()
+				director = mockbosh.NewTLS()
+				director.ExpectedBasicAuth("admin", "admin")
+				director.VerifyAndMock(AppendBuilders(
+					InfoWithBasicAuth(),
+					Deployments([]string{deployment1}),
+					InfoWithBasicAuth(),
+					VmsForDeployment(deployment1, []mockbosh.VMsOutput{
+						{
+							IPs:     []string{"10.0.0.1"},
+							JobName: "redis-dedicated-node",
+							ID:      "fake-uuid",
+							Index:   newIndex(0),
+						}}),
+					DownloadManifest(deployment1, manifest),
+					SetupSSH(deployment1, "redis-dedicated-node", "fake-uuid", 0, instance1),
+				)...)
+
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
+						echo "" > /tmp/unlock; sleep 600`)
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", ``)
+				instance1.CreateDir("/var/vcap/store/bbr-backup")
+			})
+
+			JustBeforeEach(func() {
+				session, _ = binary.Start(
+					cleanupWorkspace,
+					[]string{"BOSH_CLIENT_SECRET=admin"},
+					"deployment",
+					"--ca-cert", sslCertPath,
+					"--username", "admin",
+					"--debug",
+					"--target", director.URL,
+					"--all-deployments",
+					"backup-cleanup",
+				)
+			})
+
+			AfterEach(func() {
+				director.VerifyMocks()
+				instance1.DieInBackground()
+				Expect(os.RemoveAll(cleanupWorkspace)).To(Succeed())
+			})
+
+			It("successfully logs the progress of cleanup so far", func() {
+				Eventually(func() bool {
+					return instance1.FileExists("/tmp/unlock")
+				}, 2*time.Minute, 5*time.Second).Should(BeTrue())
+
+				Eventually(session.Kill(), 1*time.Minute).Should(gexec.Exit())
+
+				By("outputing the deployment logs to file", func() {
+					files, err := filepath.Glob(filepath.Join(cleanupWorkspace, fmt.Sprintf("%s_*.log", deployment1)))
+					Expect(err).NotTo(HaveOccurred())
+					Expect(files).To(HaveLen(1))
+
+					logFilePath := files[0]
+					Expect(filepath.Base(logFilePath)).To(MatchRegexp(fmt.Sprintf("%s_%s.log", deployment1, `(\d){8}T(\d){6}Z\b`)))
+
+					backupLogContent, err := ioutil.ReadFile(logFilePath)
+					Expect(err).ToNot(HaveOccurred())
+
+					output := string(backupLogContent)
+
+					Expect(output).To(ContainSubstring("INFO - Looking for scripts"))
+					Expect(output).To(ContainSubstring("INFO - redis-dedicated-node/fake-uuid/redis/backup"))
+					Expect(output).To(ContainSubstring("INFO - Running post-backup-unlock scripts..."))
+					Expect(output).NotTo(ContainSubstring("INFO - Finished running post-backup-unlock scripts."))
+					Expect(output).NotTo(ContainSubstring("INFO - 'dep1' cleaned up"))
+				})
+
 			})
 		})
 	})
