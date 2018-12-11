@@ -104,7 +104,7 @@ func (mockInstance *Instance) CreateScript(file, contents string) {
 
 func (mockInstance *Instance) FileExists(path string) bool {
 	session := dockerRun("exec", mockInstance.dockerID, "ls", path)
-	Eventually(session).Should(gexec.Exit())
+	Eventually(session, 1*time.Minute).Should(gexec.Exit())
 	return session.ExitCode() == 0
 }
 
