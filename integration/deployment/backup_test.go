@@ -1214,7 +1214,7 @@ backup_name: name_2
 		})
 	})
 
-	Context("When deployment does not exist", func() {
+	Context("When deployment doezs not exist", func() {
 		BeforeEach(func() {
 			deploymentName = "my-non-existent-deployment"
 			director.VerifyAndMock(

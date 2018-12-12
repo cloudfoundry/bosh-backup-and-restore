@@ -1,11 +1,7 @@
 package command
 
 import (
-	"bytes"
 	"fmt"
-	"io"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor/deployment"
@@ -58,22 +54,23 @@ func (d DeploymentBackupCommand) Action(c *cli.Context) error {
 
 func backupAll(target, username, password, caCert, artifactPath string, withManifest, debug bool) error {
 	backupAction := func(deploymentName string) orchestrator.Error {
-		timeStamp := time.Now().UTC().Format(artifactTimeStampFormat)
+		timestamp := time.Now().UTC().Format(artifactTimeStampFormat)
+		logFilePath, buffer, logger := createLogger(timestamp, artifactPath, deploymentName, debug)
 
-		logfilePath := filepath.Join(artifactPath, fmt.Sprintf("%s_%s.log", deploymentName, timeStamp))
-		logFile, _ := os.OpenFile(logfilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, defaultLogfilePermissions)
-
-		buffer := new(bytes.Buffer)
-		multiWriter := io.MultiWriter(buffer, logFile)
-
-		logger := factory.BuildBoshLoggerWithCustomWriter(multiWriter, debug)
-
-		backuper, factoryErr := factory.BuildDeploymentBackuper(target, username, password, caCert, withManifest, logger, timeStamp)
+		backuper, factoryErr := factory.BuildDeploymentBackuper(
+			target,
+			username,
+			password,
+			caCert,
+			withManifest,
+			logger,
+			timestamp,
+		)
 		if factoryErr != nil {
 			return orchestrator.NewError(factoryErr)
 		}
 
-		printlnWithTimestamp(fmt.Sprintf("Starting backup of %s, log file: %s", deploymentName, logfilePath))
+		printlnWithTimestamp(fmt.Sprintf("Starting backup of %s, log file: %s", deploymentName, logFilePath))
 		err := backuper.Backup(deploymentName, artifactPath)
 
 		if err != nil {
@@ -108,7 +105,6 @@ func backupAll(target, username, password, caCert, artifactPath string, withMani
 		errorHandler,
 		deployment.NewParallelExecutor())
 }
-
 func backupSingleDeployment(deployment, target, username, password, caCert, artifactPath string, withManifest, debug bool) error {
 	logger := factory.BuildBoshLogger(debug)
 	timeStamp := time.Now().UTC().Format(artifactTimeStampFormat)

@@ -22,7 +22,10 @@ func BuildDeploymentBackupCleanuper(
 		return nil, err
 	}
 
-	return orchestrator.NewBackupCleaner(logger,
-		bosh.NewDeploymentManager(boshClient, logger, false), orderer.NewKahnBackupLockOrderer(),
-		executor.NewParallelExecutor()), nil
+	return orchestrator.NewBackupCleaner(
+		logger,
+		bosh.NewDeploymentManager(boshClient, logger, false),
+		orderer.NewKahnBackupLockOrderer(),
+		executor.NewParallelExecutor(),
+	), nil
 }

@@ -1,12 +1,19 @@
 package command
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
 	"strings"
+
+	"github.com/cloudfoundry/bosh-utils/logger"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor/deployment"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
 )
@@ -132,6 +139,15 @@ func NewDeploymentExecutable(action ActionFunc, name string) DeploymentExecutabl
 		action: action,
 		name:   name,
 	}
+}
+
+func createLogger(timestamp string, artifactPath string, deploymentName string, debug bool) (string, *bytes.Buffer, logger.Logger) {
+	logFilePath := filepath.Join(artifactPath, fmt.Sprintf("%s_%s.log", deploymentName, timestamp))
+	logFile, _ := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, defaultLogfilePermissions)
+	buffer := new(bytes.Buffer)
+	multiWriter := io.MultiWriter(buffer, logFile)
+	logger := factory.BuildBoshLoggerWithCustomWriter(multiWriter, debug)
+	return logFilePath, buffer, logger
 }
 
 func (d DeploymentExecutable) Execute() deployment.DeploymentError {

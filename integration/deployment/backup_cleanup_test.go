@@ -328,7 +328,7 @@ instance_groups:
 			It("reports that the one deployment failed to clean up with the correct error message", func() {
 				Eventually(session.ExitCode()).Should(Equal(1))
 				Expect(session.Out).To(gbytes.Say("Failed to cleanup deployment '" + deployment1 + "'"))
-				Expect(session.Out).To(gbytes.Say(fmt.Sprintf("ERROR: failed cleanup of %s", deployment1)))
+				Expect(session.Out).To(gbytes.Say(fmt.Sprintf("ERROR: failed to cleanup %s", deployment1)))
 
 				Expect(session.Out).To(gbytes.Say("INFO - Looking for scripts"))
 				Expect(session.Out).To(gbytes.Say("INFO - redis-dedicated-node/fake-uuid/redis/post-backup-unlock"))
