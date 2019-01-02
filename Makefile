@@ -31,32 +31,6 @@ generate:
 setup:
 	dep ensure
 
-sys-test-local: sys-test-local-deployment sys-test-local-director
-
-sys-test-local-deployment:
-	BOSH_ENVIRONMENT=https://lite-bosh.backup-and-restore.cf-app.com \
-	BOSH_GW_HOST=lite-bosh.backup-and-restore.cf-app.com \
-	BOSH_CLIENT=admin \
-	BOSH_CLIENT_SECRET=`lpass show LiteBoshDirector --password` \
-	BOSH_CA_CERT=~/workspace/bosh-backup-and-restore-meta/certs/lite-bosh.backup-and-restore.cf-app.com.crt \
-	BOSH_GW_USER=vcap \
-	BOSH_GW_PRIVATE_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
-	TEST_ENV=dev \
-	ginkgo -r -v -trace system/deployment
-
-sys-test-local-director:
-	BOSH_ENVIRONMENT=https://genesis-bosh.backup-and-restore.cf-app.com \
-	BOSH_GW_HOST=genesis-bosh.backup-and-restore.cf-app.com \
-	BOSH_CLIENT_SECRET=`lpass show GenesisBoshDirectorGCP --password` \
-	BOSH_CLIENT=admin \
-	BOSH_CA_CERT=~/workspace/bosh-backup-and-restore-meta/certs/genesis-bosh.backup-and-restore.cf-app.com.crt \
-	BOSH_GW_PRIVATE_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
-	BOSH_GW_USER=vcap \
-	SSH_KEY=~/workspace/bosh-backup-and-restore-meta/genesis-bosh/bosh.pem \
-	HOST_TO_BACKUP=10.0.0.8 \
-	TEST_ENV=ci \
-	ginkgo -r -v -trace system/director
-
 sys-test-director-ci: setup
 	TEST_ENV=ci \
 	ginkgo -r -v -trace system/director
@@ -76,17 +50,6 @@ sys-test-all-deployments-ci: setup
 sys-test-bosh-all-proxy-ci: setup
 	TEST_ENV=ci \
 	ginkgo -r -v -trace system/bosh_all_proxy
-
-sys-test-local-with-uaa:
-	BOSH_ENVIRONMENT=https://lite-bosh-uaa.backup-and-restore.cf-app.com \
-	BOSH_GW_HOST=lite-bosh-uaa.backup-and-restore.cf-app.com \
-	BOSH_CLIENT_SECRET=`lpass show GardenBoshUAADirectorGCP --password` \
-	BOSH_CLIENT=admin \
-	BOSH_CA_CERT=~/workspace/bosh-backup-and-restore-meta/certs/lite-bosh-uaa.backup-and-restore.cf-app.com.crt \
-    BOSH_GW_USER=jumpbox \
-	BOSH_GW_PRIVATE_KEY=~/workspace/bosh-backup-and-restore-meta/garden-bosh-uaa/bosh.pem \
-	TEST_ENV=dev \
-	ginkgo -r -v -trace system/deployment
 
 upload-test-releases:
 	fixtures/releases/upload-release redis-test-release && \
