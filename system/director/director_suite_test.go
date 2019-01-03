@@ -1,22 +1,30 @@
 package director
 
 import (
+	"fmt"
+	"io/ioutil"
+	"os"
+	"os/exec"
+	"path/filepath"
+
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 
-	"fmt"
 	"testing"
 	"time"
 )
 
-var workspaceDir string
-var fixturesPath = "../../fixtures/director-backup/"
-var skipSSHFingerprintCheckOpts = "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+const bbrArtifactDirectory = "/var/vcap/store/bbr-backup"
+
 var (
-	commandPath string
-	err         error
+	workspaceDir        string
+	commandPath         string
+	directorHost        string
+	directorSSHUsername string
+	directorSSHKeyPath  string
+	err                 error
 )
 
 func TestDirector(t *testing.T) {
@@ -27,28 +35,90 @@ func TestDirector(t *testing.T) {
 var _ = BeforeSuite(func() {
 	SetDefaultEventuallyTimeout(4 * time.Minute)
 
-	By("building bbr")
-	commandPath, err = gexec.BuildWithEnvironment("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr", []string{"GOOS=linux", "GOARCH=amd64"})
+	directorHost = MustHaveEnv("DIRECTOR_HOST")
+	directorSSHUsername = MustHaveEnv("DIRECTOR_SSH_USERNAME")
+	directorSSHKeyPath = MustHaveEnv("DIRECTOR_SSH_KEY_PATH")
+
+	commandPath, err = gexec.Build("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr")
 	Expect(err).NotTo(HaveOccurred())
 
-	workspaceDir = fmt.Sprintf("/var/vcap/store/pre_backup_check_workspace-%d", time.Now().Unix())
-
-	By("setting up the jump box")
-	Eventually(JumpboxInstance.RunCommand(
-		fmt.Sprintf("sudo mkdir %s && sudo chown vcap:vcap %s && sudo chmod 0777 %s", workspaceDir, workspaceDir, workspaceDir),
-	)).Should(gexec.Exit(0))
-
-	JumpboxInstance.Copy(commandPath, workspaceDir)
-	JumpboxInstance.Copy(MustHaveEnv("SSH_KEY"), workspaceDir+"/key.pem")
-
-	Eventually(JumpboxInstance.RunCommand(
-		fmt.Sprintf("sudo chown -R vcap:vcap %s", workspaceDir),
-	)).Should(gexec.Exit(0))
+	workspaceDir, err = ioutil.TempDir("", "bbr_system_test_director")
+	Expect(err).NotTo(HaveOccurred())
 })
 
 var _ = AfterSuite(func() {
-	By("cleaning up the jump box")
-	Eventually(JumpboxInstance.RunCommand(
-		fmt.Sprintf("sudo rm -rf %s", workspaceDir),
-	)).Should(gexec.Exit(0))
+	gexec.CleanupBuildArtifacts()
+	Expect(os.RemoveAll(workspaceDir)).To(Succeed())
 })
+
+func runBBRDirector(args ...string) *gexec.Session {
+	args = append([]string{
+		"director",
+		"--host", directorHost,
+		"--username", directorSSHUsername,
+		"--private-key-path", directorSSHKeyPath,
+	}, args...)
+	cmd := exec.Command(commandPath, args...)
+	cmd.Dir = workspaceDir
+
+	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+	Expect(err).ToNot(HaveOccurred())
+
+	return session
+}
+
+func runOnDirector(command string, args ...string) *gexec.Session {
+	sshArgs := []string{
+		fmt.Sprintf("%s@%s", directorSSHUsername, directorHost),
+		"-o", "StrictHostKeyChecking=no",
+		"-o", "UserKnownHostsFile=/dev/null",
+		"-i", directorSSHKeyPath,
+		"sudo", command,
+	}
+	sshArgs = append(sshArgs, args...)
+
+	cmd := exec.Command("ssh", sshArgs...)
+
+	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+	Expect(err).NotTo(HaveOccurred())
+	return session
+}
+
+func mustFindBackupDir(artifactPath string) string {
+	matches, err := filepath.Glob(filepath.Join(artifactPath, fmt.Sprintf("%s_*T*Z", directorHost)))
+	Expect(err).NotTo(HaveOccurred())
+	return matches[len(matches)-1]
+}
+
+func mustHaveFile(dir, filename string) {
+	_, err := os.Stat(filepath.Join(dir, filename))
+	Expect(err).ToNot(HaveOccurred())
+}
+
+func mustCopyBackupFixture(artifactDir string) {
+	walkFunc := func(path string, info os.FileInfo, err error) error {
+		Expect(err).NotTo(HaveOccurred())
+
+		if info.IsDir() {
+			return nil
+		}
+
+		bytes, err := ioutil.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		err = ioutil.WriteFile(filepath.Join(artifactDir, info.Name()), bytes, 0777)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	path, err := filepath.Abs("../../fixtures/director-backup")
+	Expect(err).NotTo(HaveOccurred())
+
+	err = filepath.Walk(path, walkFunc)
+	Expect(err).NotTo(HaveOccurred())
+}

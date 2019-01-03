@@ -2,6 +2,11 @@ instances:
 - name: bosh
   index: "0"
   artifacts:
+  - name: director
+    checksums:
+      ./bosh-director-artifact-file: 264ca00b89310785c48343e54ddb2110d3bdbfbc18a343648f624984400cf130
+  - name: blobstore
+    checksums: {}
   - name: test-backup-and-restore
     checksums:
       ./backup: 26e17765aa93724bebd8675aeaef0dc27ac7b778003a8094dffdf9b0ffe2deba

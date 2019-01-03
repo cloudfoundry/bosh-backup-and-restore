@@ -1,9 +1,10 @@
 package director
 
 import (
-	"fmt"
+	"io/ioutil"
+	"os"
+	"time"
 
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -11,143 +12,57 @@ import (
 )
 
 var _ = Describe("Director restore cleanup", func() {
-	var directorIP = MustHaveEnv("HOST_TO_BACKUP")
-	var artifactName = "artifactToRestore"
-	var workspaceDir = "/var/vcap/store/restore_cleanup_workspace"
+	var artifactDir string
 
 	BeforeEach(func() {
-		By("setting up the jumpbox", func() {
-			Eventually(JumpboxInstance.RunCommandAs("vcap",
-				fmt.Sprintf("sudo mkdir -p %s && sudo chown -R vcap:vcap %s && sudo chmod -R 0777 %s",
-					workspaceDir+"/"+artifactName, workspaceDir, workspaceDir),
-			)).Should(gexec.Exit(0))
-			JumpboxInstance.Copy(fixturesPath+"bosh-0-amazing-backup-and-restore.tar", workspaceDir+"/"+artifactName)
-			JumpboxInstance.Copy(fixturesPath+"bosh-0-remarkable-backup-and-restore.tar", workspaceDir+"/"+artifactName)
-			JumpboxInstance.Copy(fixturesPath+"bosh-0-test-backup-and-restore.tar", workspaceDir+"/"+artifactName)
-			JumpboxInstance.Copy(fixturesPath+"metadata", workspaceDir+"/"+artifactName)
+		By("creating the artifact")
+		var err error
+		artifactDir, err = ioutil.TempDir("", "bbr_system_test_director")
+		Expect(err).NotTo(HaveOccurred())
 
-			JumpboxInstance.Copy(MustHaveEnv("SSH_KEY"), workspaceDir+"/key.pem")
-			Eventually(JumpboxInstance.RunCommandAs("vcap",
-				fmt.Sprintf("sudo chmod 400 %s && sudo chown vcap:vcap %s",
-					workspaceDir+"/key.pem", workspaceDir+"/key.pem"),
-			)).Should(gexec.Exit(0))
-			JumpboxInstance.Copy(commandPath, workspaceDir)
-		})
+		mustCopyBackupFixture(artifactDir)
 
-		By("starting a restore and aborting mid-way", func() {
-			restoreSession := JumpboxInstance.RunCommandAs("vcap",
-				fmt.Sprintf(`cd %s; \
-			./bbr director \
-			--username vcap \
-			--private-key-path ./key.pem \
-			--host %s restore \
-			--artifact-path %s`,
-					workspaceDir,
-					directorIP,
-					artifactName,
-				))
-			Eventually(restoreSession.Out).Should(gbytes.Say("Restoring test-backup-and-restore on bosh"))
-			Eventually(JumpboxInstance.RunCommandAs("vcap", "killall bbr")).Should(gexec.Exit(0))
-		})
+		By("starting a restore")
+		session := runBBRDirector("restore", "--artifact-path", artifactDir)
+
+		By("aborting the restore before it finishes")
+		Eventually(session.Out).Should(gbytes.Say("Finished restoring"))
+		session.Kill().Wait(1 * time.Second)
+		Expect(session).To(gexec.Exit())
+		GinkgoWriter.Write([]byte("----------\n"))
 	})
 
 	AfterEach(func() {
-		By("cleaning up the director", func() {
-			Eventually(JumpboxInstance.RunCommandAs("vcap",
-				fmt.Sprintf(
-					`cd %s; \
-					ssh %s vcap@%s \
-						-i key.pem \
-						"sudo rm -rf /var/vcap/store/bbr-backup"`,
-					workspaceDir,
-					skipSSHFingerprintCheckOpts,
-					directorIP,
-				))).Should(gexec.Exit(0))
-		})
+		By("cleaning up the BBR artifact directory on the director")
+		Eventually(runOnDirector("rm", "-rf", bbrArtifactDirectory)).Should(gexec.Exit(0))
 
-		By("removing the backup", func() {
-			Eventually(JumpboxInstance.RunCommandAs("vcap",
-				fmt.Sprintf(
-					`sudo rm -rf %s/%s*`,
-					workspaceDir,
-					directorIP,
-				))).Should(gexec.Exit(0))
-		})
-
-		By("removing the restore cleanup workspace", func() {
-			Eventually(JumpboxInstance.RunCommandAs("vcap",
-				fmt.Sprintf("sudo rm -rf %s", workspaceDir),
-			)).Should(gexec.Exit(0))
-		})
+		By("cleaning up the artifact")
+		Expect(os.RemoveAll(artifactDir)).To(Succeed())
 	})
 
 	Context("When we run cleanup", func() {
 		It("succeeds", func() {
-			By("cleaning up the director artifact", func() {
-				cleanupCommand := JumpboxInstance.RunCommandAs("vcap",
-					fmt.Sprintf(
-						`cd %s; \
-					 ./bbr director \
-						 --username vcap \
-						 --debug \
-						 --private-key-path ./key.pem \
-						 --host %s restore-cleanup`,
-						workspaceDir,
-						directorIP),
-				)
+			By("running restore-cleanup")
+			restoreCleanupSession := runBBRDirector("restore-cleanup")
+			Eventually(restoreCleanupSession).Should(gexec.Exit(0))
+			Eventually(restoreCleanupSession.Out).Should(gbytes.Say("'%s' cleaned up", directorHost))
 
-				Eventually(cleanupCommand).Should(gexec.Exit(0))
-				Eventually(cleanupCommand).Should(gbytes.Say("'%s' cleaned up", directorIP))
+			By("confirming the BBR artifact directory has been cleaned up on the director")
+			sshSession := runOnDirector("ls", "-l", bbrArtifactDirectory)
+			Eventually(sshSession.Err).Should(gbytes.Say("ls: cannot access '%s': No such file or directory", bbrArtifactDirectory))
 
-				Eventually(JumpboxInstance.RunCommandAs("vcap",
-					fmt.Sprintf(
-						`cd %s; \
-						ssh %s vcap@%s \
-						-i key.pem \
-						"ls -l /var/vcap/store/bbr-backup"`,
-						workspaceDir,
-						skipSSHFingerprintCheckOpts,
-						directorIP,
-					))).Should(gbytes.Say("ls: cannot access /var/vcap/store/bbr-backup: No such file or directory"))
-			})
-
-			By("allowing subsequent restore to complete successfully", func() {
-				restoreCommand := JumpboxInstance.RunCommandAs("vcap",
-					fmt.Sprintf(
-						`cd %s; \
-					 ./bbr director \
-						 --debug \
-						 --username vcap \
-						 --private-key-path ./key.pem \
-						 --host %s restore \
-						 --artifact-path %s`,
-						workspaceDir,
-						directorIP,
-						artifactName),
-				)
-
-				Eventually(restoreCommand).Should(gexec.Exit(0))
-			})
+			By("running restore successfully")
+			restoreSession := runBBRDirector("restore", "--artifact-path", artifactDir)
+			Eventually(restoreSession).Should(gexec.Exit(0))
 		})
 	})
 
 	Context("when we don't run a cleanup", func() {
 		It("is in a state where subsequent restore fail", func() {
-			restoreCommand := JumpboxInstance.RunCommandAs("vcap",
-				fmt.Sprintf(
-					`cd %s; \
-					 ./bbr director \
-						 --username vcap \
-						 --private-key-path ./key.pem \
-						 --host %s restore \
-						 --artifact-path %s`,
-					workspaceDir,
-					directorIP,
-					artifactName),
-			)
+			session := runBBRDirector("restore", "--artifact-path", artifactDir)
 
-			Eventually(restoreCommand).Should(gexec.Exit(1))
-			Expect(restoreCommand.Out.Contents()).To(ContainSubstring("Directory /var/vcap/store/bbr-backup already exists"))
+			Eventually(session).Should(gexec.Exit(1))
+			Expect(session.Err).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists"))
 		})
 	})
 })
