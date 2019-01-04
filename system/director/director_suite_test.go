@@ -24,7 +24,6 @@ var (
 	directorHost        string
 	directorSSHUsername string
 	directorSSHKeyPath  string
-	err                 error
 )
 
 func TestDirector(t *testing.T) {
@@ -39,6 +38,7 @@ var _ = BeforeSuite(func() {
 	directorSSHUsername = MustHaveEnv("DIRECTOR_SSH_USERNAME")
 	directorSSHKeyPath = MustHaveEnv("DIRECTOR_SSH_KEY_PATH")
 
+	var err error
 	commandPath, err = gexec.Build("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr")
 	Expect(err).NotTo(HaveOccurred())
 

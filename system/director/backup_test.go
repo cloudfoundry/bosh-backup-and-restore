@@ -47,7 +47,6 @@ var _ = Describe("Backup", func() {
 
 			session := runBBRDirector("backup", "--artifact-path", artifactDir)
 
-			Expect(err).ToNot(HaveOccurred())
 			Eventually(session).Should(gexec.Exit(1))
 			Expect(session.Err).To(gbytes.Say(fmt.Sprintf("%s: no such file or directory", artifactDir)))
 		})
