@@ -18,7 +18,8 @@ var _ = Describe("Director backup cleanup", func() {
 		Eventually(session.Out).Should(gbytes.Say("Finished backing up"))
 		session.Kill().Wait(1 * time.Second)
 		Expect(session).To(gexec.Exit())
-		Expect(GinkgoWriter.Write([]byte("----------\n"))).To(Succeed())
+		_, err := GinkgoWriter.Write([]byte("----------\n"))
+		Expect(err).NotTo(HaveOccurred())
 	})
 
 	AfterEach(func() {

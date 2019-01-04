@@ -19,11 +19,12 @@ import (
 const bbrArtifactDirectory = "/var/vcap/store/bbr-backup"
 
 var (
-	workspaceDir        string
-	commandPath         string
-	directorHost        string
-	directorSSHUsername string
-	directorSSHKeyPath  string
+	workspaceDir              string
+	commandPath               string
+	directorHost              string
+	directorSSHUsername       string
+	directorSSHKeyPath        string
+	directorBackupFixturePath string
 )
 
 func TestDirector(t *testing.T) {
@@ -43,6 +44,9 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	workspaceDir, err = ioutil.TempDir("", "bbr_system_test_director")
+	Expect(err).NotTo(HaveOccurred())
+
+	directorBackupFixturePath, err = filepath.Abs("../../fixtures/director-backup")
 	Expect(err).NotTo(HaveOccurred())
 })
 
@@ -93,32 +97,4 @@ func mustFindBackupDir(artifactPath string) string {
 func mustHaveFile(dir, filename string) {
 	_, err := os.Stat(filepath.Join(dir, filename))
 	Expect(err).ToNot(HaveOccurred())
-}
-
-func mustCopyBackupFixture(artifactDir string) {
-	walkFunc := func(path string, info os.FileInfo, err error) error {
-		Expect(err).NotTo(HaveOccurred())
-
-		if info.IsDir() {
-			return nil
-		}
-
-		bytes, err := ioutil.ReadFile(path)
-		if err != nil {
-			return err
-		}
-
-		err = ioutil.WriteFile(filepath.Join(artifactDir, info.Name()), bytes, 0777)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	}
-
-	path, err := filepath.Abs("../../fixtures/director-backup")
-	Expect(err).NotTo(HaveOccurred())
-
-	err = filepath.Walk(path, walkFunc)
-	Expect(err).NotTo(HaveOccurred())
 }
