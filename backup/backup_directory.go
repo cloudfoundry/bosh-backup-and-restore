@@ -6,7 +6,9 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
+	"strings"
 
 	"crypto/sha256"
 	"time"
@@ -23,6 +25,21 @@ type BackupDirectory struct {
 	orchestrator.Logger
 	baseDirName string
 	sync.Mutex
+}
+
+func (backupDirectory *BackupDirectory) GetArtifactSize(artifactIdentifier orchestrator.ArtifactIdentifier) (string, error) {
+	filename := backupDirectory.instanceFilename(artifactIdentifier)
+
+	cmd := exec.Command("du", "-sh", filename)
+
+	output, err := cmd.Output()
+
+	if err != nil {
+		return "", err
+	}
+
+	size := strings.Fields(string(output))[0]
+	return size, nil
 }
 
 func (backupDirectory *BackupDirectory) logAndReturn(err error, message string, args ...interface{}) error {

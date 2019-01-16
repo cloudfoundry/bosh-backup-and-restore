@@ -86,7 +86,7 @@ instances: []`))
 			)
 			session = binary.Run(
 				restoreWorkspace,
-				[]string{"BOSH_CLIENT_SECRET=admin"},
+				[]string{"BOSH_CLIENT_SECRET=admin", fmt.Sprintf("PATH=%s", os.Getenv("PATH"))},
 				"deployment",
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
@@ -130,7 +130,7 @@ instances: []`))
 			director.VerifyAndMock(mockbosh.Info().WithAuthTypeBasic())
 			session = binary.Run(
 				restoreWorkspace,
-				[]string{"BOSH_CLIENT_SECRET=admin"},
+				[]string{"BOSH_CLIENT_SECRET=admin", fmt.Sprintf("PATH=%s", os.Getenv("PATH"))},
 				"deployment",
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
@@ -190,7 +190,7 @@ instances:
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", backupContents)
 			session = binary.Run(
 				restoreWorkspace,
-				[]string{"BOSH_CLIENT_SECRET=admin"},
+				[]string{"BOSH_CLIENT_SECRET=admin", fmt.Sprintf("PATH=%s", os.Getenv("PATH"))},
 				"deployment",
 				"--debug",
 				"--ca-cert", sslCertPath,
@@ -280,7 +280,7 @@ instances:
 		})
 
 		JustBeforeEach(func() {
-			env := []string{"BOSH_CLIENT_SECRET=admin"}
+			env := []string{"BOSH_CLIENT_SECRET=admin", fmt.Sprintf("PATH=%s", os.Getenv("PATH"))}
 
 			params := []string{
 				"deployment",
@@ -331,7 +331,7 @@ touch /tmp/restore-script-was-run`)
 					Expect(session.Out).To(gbytes.Say("INFO - Starting restore of my-new-deployment"))
 					Expect(session.Out).To(gbytes.Say("INFO - Validating backup artifact for my-new-deployment"))
 					Expect(session.Out).To(gbytes.Say("INFO - Looking for scripts"))
-					Expect(session.Out).To(gbytes.Say("INFO - Copying backup for job redis on redis-dedicated-node/0..."))
+					Expect(session.Out).To(gbytes.Say("INFO - Copying backup -- 12K uncompressed -- for job redis on redis-dedicated-node/0..."))
 					Expect(session.Out).To(gbytes.Say("INFO - Finished copying backup for job redis on redis-dedicated-node/0."))
 					Expect(session.Out).To(gbytes.Say("INFO - Completed restore of my-new-deployment"))
 				})
@@ -598,7 +598,7 @@ instances:
 		JustBeforeEach(func() {
 			session = binary.Run(
 				restoreWorkspace,
-				[]string{"BOSH_CLIENT_SECRET=admin"},
+				[]string{"BOSH_CLIENT_SECRET=admin", fmt.Sprintf("PATH=%s", os.Getenv("PATH"))},
 				"deployment",
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
@@ -793,7 +793,7 @@ custom_artifacts:
 		JustBeforeEach(func() {
 			session = binary.Run(
 				restoreWorkspace,
-				[]string{"BOSH_CLIENT_SECRET=admin"},
+				[]string{"BOSH_CLIENT_SECRET=admin", fmt.Sprintf("PATH=%s", os.Getenv("PATH"))},
 				"deployment",
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
@@ -888,7 +888,7 @@ custom_artifacts:
 		JustBeforeEach(func() {
 			session = binary.Run(
 				restoreWorkspace,
-				[]string{"BOSH_CLIENT_SECRET=admin"},
+				[]string{"BOSH_CLIENT_SECRET=admin", fmt.Sprintf("PATH=%s", os.Getenv("PATH"))},
 				"deployment",
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
@@ -949,7 +949,7 @@ custom_artifacts:
 		JustBeforeEach(func() {
 			session = binary.Run(
 				restoreWorkspace,
-				[]string{"BOSH_CLIENT_SECRET=admin"},
+				[]string{"BOSH_CLIENT_SECRET=admin", fmt.Sprintf("PATH=%s", os.Getenv("PATH"))},
 				"deployment",
 				"--ca-cert", sslCertPath,
 				"--username", "admin",
@@ -1022,7 +1022,7 @@ instances:
 		JustBeforeEach(func() {
 			session = binary.Run(
 				restoreWorkspace,
-				[]string{"BOSH_CLIENT_SECRET=admin"},
+				[]string{"BOSH_CLIENT_SECRET=admin", fmt.Sprintf("PATH=%s", os.Getenv("PATH"))},
 				"deployment",
 				"--ca-cert", sslCertPath,
 				"--username", "admin",

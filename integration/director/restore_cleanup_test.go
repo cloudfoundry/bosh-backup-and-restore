@@ -1,6 +1,7 @@
 package director
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -32,7 +33,7 @@ var _ = Describe("Restore Cleanup", func() {
 		JustBeforeEach(func() {
 			session = binary.Run(
 				cleanupWorkspace,
-				[]string{"BOSH_CLIENT_SECRET=admin"},
+				[]string{"BOSH_CLIENT_SECRET=admin", fmt.Sprintf("PATH=%s", os.Getenv("PATH"))},
 				"director",
 				"--host", directorAddress,
 				"--username", "foobar",

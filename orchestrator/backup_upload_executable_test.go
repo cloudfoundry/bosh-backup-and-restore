@@ -2,15 +2,17 @@ package orchestrator_test
 
 import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/pkg/errors"
 
 	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
+
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"io"
-	"io/ioutil"
 )
 
 var _ = Describe("BackupUploadExecutable", func() {
@@ -41,36 +43,60 @@ var _ = Describe("BackupUploadExecutable", func() {
 
 	})
 
-	It("uploads the backup", func() {
-		By("not failing", func() {
-			Expect(actualError).NotTo(HaveOccurred())
+	Context("When the upload succeeds", func() {
+		BeforeEach(func() {
+			backup.GetArtifactSizeReturns("1G", nil)
+
 		})
 
-		By("fetching the remote artifact from the backup", func() {
-			Expect(backup.ReadArtifactCallCount()).To(Equal(1))
-			Expect(backup.ReadArtifactArgsForCall(0)).To(Equal(remoteArtifact))
+		It("uploads the backup", func() {
+
+			By("not failing", func() {
+				Expect(actualError).NotTo(HaveOccurred())
+			})
+
+			By("fetching the remote artifact from the backup", func() {
+				Expect(backup.ReadArtifactCallCount()).To(Equal(1))
+				Expect(backup.ReadArtifactArgsForCall(0)).To(Equal(remoteArtifact))
+			})
+
+			By("streaming local artifact to remote", func() {
+				Expect(remoteArtifact.StreamToRemoteCallCount()).To(Equal(1))
+				Expect(remoteArtifact.StreamToRemoteArgsForCall(0)).To(Equal(localBackupArtifactReader))
+			})
+
+			By("marking the director created", func() {
+				Expect(instance.MarkArtifactDirCreatedCallCount()).To(Equal(1))
+			})
+
+			By("fetching local checksum", func() {
+				Expect(backup.ReadArtifactCallCount()).To(Equal(1))
+				Expect(backup.FetchChecksumArgsForCall(0)).To(Equal(remoteArtifact))
+			})
+
+			By("calculating the remote checksum", func() {
+				Expect(remoteArtifact.ChecksumCallCount()).To(Equal(1))
+			})
+
+			By("logging the upload", func() {
+				logMsgPartOne, logMsgPartTwo, args := logger.InfoArgsForCall(0)
+				Expect(logMsgPartOne).To(ContainSubstring("bbr"))
+				Expect(logMsgPartTwo).To(ContainSubstring("Copying backup -- %s uncompressed -- for job %s on %s/%s..."))
+				Expect(args[0]).To(Equal("1G"))
+
+			})
+		})
+	})
+
+	Context("When the artifact size fails to be calculated", func() {
+		BeforeEach(func() {
+			backup.GetArtifactSizeReturns("1G", errors.New("I failed"))
 		})
 
-		By("streaming local artifact to remote", func() {
-			Expect(remoteArtifact.StreamToRemoteCallCount()).To(Equal(1))
-			Expect(remoteArtifact.StreamToRemoteArgsForCall(0)).To(Equal(localBackupArtifactReader))
-		})
-
-		By("marking the director created", func() {
-			Expect(instance.MarkArtifactDirCreatedCallCount()).To(Equal(1))
-		})
-
-		By("fetching local checksum", func() {
-			Expect(backup.ReadArtifactCallCount()).To(Equal(1))
-			Expect(backup.FetchChecksumArgsForCall(0)).To(Equal(remoteArtifact))
-		})
-
-		By("calculating the remote checksum", func() {
-			Expect(remoteArtifact.ChecksumCallCount()).To(Equal(1))
-		})
-
-		By("logging the upload", func() {
-			Expect(logger.InfoCallCount()).To(BeNumerically(">", 0))
+		It("uploads the backup", func() {
+			By("not failing", func() {
+				Expect(actualError).To(MatchError("I failed"))
+			})
 		})
 	})
 

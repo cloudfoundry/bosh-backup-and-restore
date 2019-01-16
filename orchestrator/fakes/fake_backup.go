@@ -10,6 +10,19 @@ import (
 )
 
 type FakeBackup struct {
+	GetArtifactSizeStub        func(orchestrator.ArtifactIdentifier) (string, error)
+	getArtifactSizeMutex       sync.RWMutex
+	getArtifactSizeArgsForCall []struct {
+		arg1 orchestrator.ArtifactIdentifier
+	}
+	getArtifactSizeReturns struct {
+		result1 string
+		result2 error
+	}
+	getArtifactSizeReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	CreateArtifactStub        func(orchestrator.ArtifactIdentifier) (io.WriteCloser, error)
 	createArtifactMutex       sync.RWMutex
 	createArtifactArgsForCall []struct {
@@ -134,6 +147,57 @@ type FakeBackup struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeBackup) GetArtifactSize(arg1 orchestrator.ArtifactIdentifier) (string, error) {
+	fake.getArtifactSizeMutex.Lock()
+	ret, specificReturn := fake.getArtifactSizeReturnsOnCall[len(fake.getArtifactSizeArgsForCall)]
+	fake.getArtifactSizeArgsForCall = append(fake.getArtifactSizeArgsForCall, struct {
+		arg1 orchestrator.ArtifactIdentifier
+	}{arg1})
+	fake.recordInvocation("GetArtifactSize", []interface{}{arg1})
+	fake.getArtifactSizeMutex.Unlock()
+	if fake.GetArtifactSizeStub != nil {
+		return fake.GetArtifactSizeStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.getArtifactSizeReturns.result1, fake.getArtifactSizeReturns.result2
+}
+
+func (fake *FakeBackup) GetArtifactSizeCallCount() int {
+	fake.getArtifactSizeMutex.RLock()
+	defer fake.getArtifactSizeMutex.RUnlock()
+	return len(fake.getArtifactSizeArgsForCall)
+}
+
+func (fake *FakeBackup) GetArtifactSizeArgsForCall(i int) orchestrator.ArtifactIdentifier {
+	fake.getArtifactSizeMutex.RLock()
+	defer fake.getArtifactSizeMutex.RUnlock()
+	return fake.getArtifactSizeArgsForCall[i].arg1
+}
+
+func (fake *FakeBackup) GetArtifactSizeReturns(result1 string, result2 error) {
+	fake.GetArtifactSizeStub = nil
+	fake.getArtifactSizeReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeBackup) GetArtifactSizeReturnsOnCall(i int, result1 string, result2 error) {
+	fake.GetArtifactSizeStub = nil
+	if fake.getArtifactSizeReturnsOnCall == nil {
+		fake.getArtifactSizeReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.getArtifactSizeReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeBackup) CreateArtifact(arg1 orchestrator.ArtifactIdentifier) (io.WriteCloser, error) {
@@ -636,6 +700,8 @@ func (fake *FakeBackup) ValidReturnsOnCall(i int, result1 bool, result2 error) {
 func (fake *FakeBackup) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.getArtifactSizeMutex.RLock()
+	defer fake.getArtifactSizeMutex.RUnlock()
 	fake.createArtifactMutex.RLock()
 	defer fake.createArtifactMutex.RUnlock()
 	fake.readArtifactMutex.RLock()

@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"time"
 
 	"sync"
@@ -979,6 +980,49 @@ backup_activity:
   finish_time: 2016/10/21 04:05:06 UTC`
 
 				Expect(ioutil.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
+			})
+		})
+	})
+
+	Describe("GetArtifactSize", func() {
+		var (
+			jobName            string
+			artifact           orchestrator.Backup
+			fakeBackupArtifact *fakes.FakeBackupArtifact
+			size               string
+			err                error
+		)
+
+		BeforeEach(func() {
+			backupDir := os.TempDir()
+			jobName = "my-artifact"
+			filename := jobName + "-" + "0" + "-" + jobName + ".tar"
+			ioutil.WriteFile(filepath.Join(backupDir, filename), []byte("this-is-a-4k-file"), 0600)
+
+			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
+			fakeBackupArtifact.InstanceIndexReturns("0")
+			fakeBackupArtifact.InstanceNameReturns(jobName)
+			fakeBackupArtifact.NameReturns(jobName)
+
+			artifact, err = backupDirectoryManager.Open(backupDir, logger)
+			Expect(err).NotTo(HaveOccurred())
+
+		})
+
+		Context("when the artifact exists", func() {
+			It("returns an the artifact size", func() {
+				size, err = artifact.GetArtifactSize(fakeBackupArtifact)
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(size).To(Equal("4.0K"))
+			})
+		})
+
+		Context("when the size command fails", func() {
+			It("returns an error", func() {
+				size, err = artifact.GetArtifactSize(new(fakes.FakeBackupArtifact))
+
+				Expect(err).To(HaveOccurred())
 			})
 		})
 	})

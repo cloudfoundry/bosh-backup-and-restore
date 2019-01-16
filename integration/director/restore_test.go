@@ -48,7 +48,7 @@ var _ = Describe("Restore", func() {
 	})
 
 	JustBeforeEach(func() {
-		env := []string{"BOSH_CLIENT_SECRET=admin"}
+		env := []string{"BOSH_CLIENT_SECRET=admin", fmt.Sprintf("PATH=%s", os.Getenv("PATH"))}
 
 		params := []string{
 			"director",
@@ -115,7 +115,7 @@ cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 						Expect(session.Out).To(gbytes.Say("INFO - Starting restore of"))
 						Expect(session.Out).To(gbytes.Say("INFO - Validating backup artifact for"))
 						Expect(session.Out).To(gbytes.Say("INFO - Looking for scripts"))
-						Expect(session.Out).To(gbytes.Say("INFO - Copying backup for job bosh on bosh/0..."))
+						Expect(session.Out).To(gbytes.Say("INFO - Copying backup -- 4.0K uncompressed -- for job bosh on bosh/0..."))
 						Expect(session.Out).To(gbytes.Say("INFO - Finished copying backup for job bosh on bosh/0."))
 						Expect(session.Out).To(gbytes.Say("INFO - Completed restore of"))
 					})

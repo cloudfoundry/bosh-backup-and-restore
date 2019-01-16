@@ -2,6 +2,7 @@ package orchestrator
 
 import (
 	"fmt"
+
 	"github.com/pkg/errors"
 )
 
@@ -27,7 +28,12 @@ func (e BackupUploadExecutable) Execute() error {
 		return err
 	}
 
-	e.Logger.Info("bbr", "Copying backup for job %s on %s/%s...", e.remoteArtifact.Name(), e.instance.Name(), e.instance.Index())
+	size, err := e.localBackup.GetArtifactSize(e.remoteArtifact)
+	if err != nil {
+		return err
+	}
+
+	e.Logger.Info("bbr", "Copying backup -- %s uncompressed -- for job %s on %s/%s...", size, e.remoteArtifact.Name(), e.instance.Name(), e.instance.Index())
 	err = e.remoteArtifact.StreamToRemote(localBackupArtifactReader)
 	if err != nil {
 		return err

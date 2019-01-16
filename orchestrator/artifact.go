@@ -13,6 +13,7 @@ type BackupManager interface {
 
 //go:generate counterfeiter -o fakes/fake_backup.go . Backup
 type Backup interface {
+	GetArtifactSize(ArtifactIdentifier) (string, error)
 	CreateArtifact(ArtifactIdentifier) (io.WriteCloser, error)
 	ReadArtifact(ArtifactIdentifier) (io.ReadCloser, error)
 	AddChecksum(ArtifactIdentifier, BackupChecksum) error
