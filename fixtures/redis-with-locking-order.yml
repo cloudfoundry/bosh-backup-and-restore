@@ -18,8 +18,8 @@ jobs:
   templates:
   - name: redis-server
     release: redis-test
-  vm_type: default
-  persistent_disk_type: default
+  vm_type: minimal
+  persistent_disk_type: 5GB
   stemcell: xenial
   azs:
   - z1
@@ -36,8 +36,8 @@ jobs:
   templates:
   - name: capi
     release: lock-ordering
-  vm_type: default
-  persistent_disk_type: default
+  vm_type: minimal
+  persistent_disk_type: 5GB
   stemcell: xenial
   azs:
   - z1
@@ -49,8 +49,8 @@ jobs:
   templates:
   - name: capi-consumer-1
     release: lock-ordering
-  vm_type: default
-  persistent_disk_type: default
+  vm_type: minimal
+  persistent_disk_type: 5GB
   stemcell: xenial
   azs:
   - z1
@@ -62,8 +62,8 @@ jobs:
   templates:
   - name: capi-consumer-2
     release: lock-ordering
-  vm_type: default
-  persistent_disk_type: default
+  vm_type: minimal
+  persistent_disk_type: 5GB
   stemcell: xenial
   azs:
   - z1
@@ -75,8 +75,8 @@ jobs:
   templates:
   - name: redis-server
     release: lock-ordering
-  vm_type: default
-  persistent_disk_type: default
+  vm_type: minimal
+  persistent_disk_type: 5GB
   stemcell: xenial
   azs:
   - z1

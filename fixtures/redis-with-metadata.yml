@@ -13,8 +13,8 @@ jobs:
   templates:
   - name: redis-server-with-metadata
     release: redis-test
-  vm_type: default
-  persistent_disk_type: default
+  vm_type: minimal
+  persistent_disk_type: 5GB
   stemcell: xenial
   azs:
   - z1
@@ -30,8 +30,8 @@ jobs:
   templates:
   - name: redis-server-with-restore-metadata
     release: redis-test
-  vm_type: default
-  persistent_disk_type: default
+  vm_type: minimal
+  persistent_disk_type: 5GB
   stemcell: xenial
   azs:
   - z1

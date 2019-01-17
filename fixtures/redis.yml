@@ -13,8 +13,8 @@ jobs:
   templates:
   - name: redis-server
     release: redis-test
-  vm_type: default
-  persistent_disk_type: default
+  vm_type: minimal
+  persistent_disk_type: 5GB
   stemcell: xenial
   azs:
   - z1
@@ -32,8 +32,8 @@ jobs:
     release: redis-test
   - name: lock-only-job
     release: redis-test
-  vm_type: default
-  persistent_disk_type: default
+  vm_type: minimal
+  persistent_disk_type: 5GB
   stemcell: xenial
   azs:
   - z1

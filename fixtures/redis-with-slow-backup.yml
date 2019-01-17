@@ -16,8 +16,8 @@ instance_groups:
   jobs:
   - name: slow-backup
     release: redis-test
-  vm_type: container
-  persistent_disk_type: default
+  vm_type: minimal
+  persistent_disk_type: 5GB
   stemcell: xenial
   azs:
   - z1

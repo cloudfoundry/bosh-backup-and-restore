@@ -7,7 +7,7 @@ jobs:
   name: redis
   networks:
   - name: default
-  persistent_disk_type: default
+  persistent_disk_type: 5GB
   properties:
     redis:
       maxclients: 1000
@@ -17,14 +17,14 @@ jobs:
   templates:
   - name: redis-server
     release: redis-test
-  vm_type: default
+  vm_type: minimal
 - azs:
   - z1
   instances: 1
   name: other-redis
   networks:
   - name: default
-  persistent_disk_type: default
+  persistent_disk_type: 5GB
   properties:
     redis:
       maxclients: 1000
@@ -34,7 +34,7 @@ jobs:
   templates:
   - name: redis-server
     release: redis-test
-  vm_type: default
+  vm_type: minimal
 releases:
 - name: redis-test
   version: 0+dev.43

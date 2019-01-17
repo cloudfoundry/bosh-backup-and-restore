@@ -9,8 +9,8 @@ jobs:
 - name: jumpbox
   instances: 1
   templates: []
-  vm_type: default
-  persistent_disk_type: default
+  vm_type: minimal
+  persistent_disk_type: 5GB
   stemcell: xenial
   azs:
   - z1
