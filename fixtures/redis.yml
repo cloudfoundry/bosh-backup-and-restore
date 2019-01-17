@@ -13,13 +13,13 @@ jobs:
   templates:
   - name: redis-server
     release: redis-test
-  vm_type: container
-  persistent_disk_type: five
+  vm_type: default
+  persistent_disk_type: default
   stemcell: xenial
   azs:
-  - lite
+  - z1
   networks:
-  - name: services
+  - name: default
   properties:
     redis:
       password: redis
@@ -32,13 +32,13 @@ jobs:
     release: redis-test
   - name: lock-only-job
     release: redis-test
-  vm_type: container
-  persistent_disk_type: five
+  vm_type: default
+  persistent_disk_type: default
   stemcell: xenial
   azs:
-  - lite
+  - z1
   networks:
-  - name: services
+  - name: default
   properties:
     redis:
       password: redis

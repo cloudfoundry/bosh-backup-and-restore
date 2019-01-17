@@ -9,13 +9,13 @@ jobs:
 - name: jumpbox
   instances: 1
   templates: []
-  vm_type: container
-  persistent_disk_type: five
+  vm_type: default
+  persistent_disk_type: default
   stemcell: xenial
   azs:
-  - lite
+  - z1
   networks:
-  - name: services
+  - name: default
 update:
   canaries: 1
   canary_watch_time: 1000

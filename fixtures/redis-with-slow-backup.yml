@@ -17,12 +17,12 @@ instance_groups:
   - name: slow-backup
     release: redis-test
   vm_type: container
-  persistent_disk_type: five
+  persistent_disk_type: default
   stemcell: xenial
   azs:
-  - lite
+  - z1
   networks:
-  - name: services
+  - name: default
   properties:
     redis:
       password: redis

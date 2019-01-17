@@ -18,13 +18,13 @@ jobs:
   templates:
   - name: redis-server
     release: redis-test
-  vm_type: container
-  persistent_disk_type: five
+  vm_type: default
+  persistent_disk_type: default
   stemcell: xenial
   azs:
-  - lite
+  - z1
   networks:
-  - name: services
+  - name: default
   properties:
     redis:
       password: redis
@@ -36,52 +36,52 @@ jobs:
   templates:
   - name: capi
     release: lock-ordering
-  vm_type: container
-  persistent_disk_type: five
+  vm_type: default
+  persistent_disk_type: default
   stemcell: xenial
   azs:
-  - lite
+  - z1
   networks:
-  - name: services
+  - name: default
 
 - name: capi-consumer-1
   instances: 1
   templates:
   - name: capi-consumer-1
     release: lock-ordering
-  vm_type: container
-  persistent_disk_type: five
+  vm_type: default
+  persistent_disk_type: default
   stemcell: xenial
   azs:
-  - lite
+  - z1
   networks:
-  - name: services
+  - name: default
 
 - name: capi-consumer-2
   instances: 1
   templates:
   - name: capi-consumer-2
     release: lock-ordering
-  vm_type: container
-  persistent_disk_type: five
+  vm_type: default
+  persistent_disk_type: default
   stemcell: xenial
   azs:
-  - lite
+  - z1
   networks:
-  - name: services
+  - name: default
 
 - name: capi-redis
   instances: 1
   templates:
   - name: redis-server
     release: lock-ordering
-  vm_type: container
-  persistent_disk_type: five
+  vm_type: default
+  persistent_disk_type: default
   stemcell: xenial
   azs:
-  - lite
+  - z1
   networks:
-  - name: services
+  - name: default
 
 update:
   canaries: 2

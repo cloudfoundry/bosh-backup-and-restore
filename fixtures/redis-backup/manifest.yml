@@ -2,12 +2,12 @@
 name: redis-dev-2
 jobs:
 - azs:
-  - lite
+  - z1
   instances: 2
   name: redis
   networks:
-  - name: services
-  persistent_disk_type: five
+  - name: default
+  persistent_disk_type: default
   properties:
     redis:
       maxclients: 1000
@@ -17,14 +17,14 @@ jobs:
   templates:
   - name: redis-server
     release: redis-test
-  vm_type: container
+  vm_type: default
 - azs:
-  - lite
+  - z1
   instances: 1
   name: other-redis
   networks:
-  - name: services
-  persistent_disk_type: five
+  - name: default
+  persistent_disk_type: default
   properties:
     redis:
       maxclients: 1000
@@ -34,14 +34,14 @@ jobs:
   templates:
   - name: redis-server
     release: redis-test
-  vm_type: container
+  vm_type: default
 releases:
 - name: redis-test
   version: 0+dev.43
 stemcells:
 - alias: xenial
   os: ubuntu-xenial
-  version: '3312'
+  version: latest
 update:
   canaries: 2
   canary_watch_time: 30000-180000
