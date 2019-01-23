@@ -139,7 +139,13 @@ func (bd *deployment) PostBackupUnlock(afterSuccessfulBackup bool, lockOrderer L
 	}
 	reversedJobs := Reverse(orderedJobs)
 
-	postBackupUnlockErrors := executor.Run(newJobExecutables(reversedJobs, NewJobPostSuccessfulBackupUnlockExecutable))
+	executableJobConstructor := NewJobPostFailedBackupUnlockExecutable
+	if afterSuccessfulBackup {
+		executableJobConstructor = NewJobPostSuccessfulBackupUnlockExecutable
+
+	}
+	postBackupUnlockErrors := executor.Run(newJobExecutables(reversedJobs, executableJobConstructor))
+
 	bd.Logger.Info("bbr", "Finished running post-backup-unlock scripts.")
 	return ConvertErrors(postBackupUnlockErrors)
 }

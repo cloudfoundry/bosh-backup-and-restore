@@ -162,11 +162,9 @@ var _ = Describe("Deployment", func() {
 			lockOrderer.OrderReturns([][]orchestrator.Job{{job2a}, {job3a, job1a}, {job1b}}, nil)
 		})
 
-		JustBeforeEach(func() {
+		It("calls the executor with post successful backup executables", func() {
 			lockError = deployment.PostBackupUnlock(true, lockOrderer, fakeExecutor)
-		})
 
-		It("delegates the execution to the executor", func() {
 			Expect(lockError).NotTo(HaveOccurred())
 			Expect(lockOrderer.OrderArgsForCall(0)).To(ConsistOf(job1a, job1b, job2a, job3a))
 			Expect(fakeExecutor.RunArgsForCall(0)).To(Equal([][]executor.Executable{
@@ -176,15 +174,29 @@ var _ = Describe("Deployment", func() {
 			}))
 		})
 
+		Context("when called after a failed backup", func() {
+			It("calls the executor with post failed backup executables", func() {
+				lockError = deployment.PostBackupUnlock(false, lockOrderer, fakeExecutor)
+
+				Expect(lockError).NotTo(HaveOccurred())
+				Expect(lockOrderer.OrderArgsForCall(0)).To(ConsistOf(job1a, job1b, job2a, job3a))
+				Expect(fakeExecutor.RunArgsForCall(0)).To(Equal([][]executor.Executable{
+					{orchestrator.NewJobPostFailedBackupUnlockExecutable(job2a)},
+					{orchestrator.NewJobPostFailedBackupUnlockExecutable(job3a), orchestrator.NewJobPostFailedBackupUnlockExecutable(job1a)},
+					{orchestrator.NewJobPostFailedBackupUnlockExecutable(job1b)},
+				}))
+			})
+		})
+
 		Context("if the post-backup-unlock fails", func() {
-			BeforeEach(func() {
+			It("fails", func() {
 				fakeExecutor.RunReturns([]error{
 					fmt.Errorf("job1b failed"),
 					fmt.Errorf("job2a failed"),
 				})
-			})
 
-			It("fails", func() {
+				lockError = deployment.PostBackupUnlock(true, lockOrderer, fakeExecutor)
+
 				Expect(lockError).To(MatchError(SatisfyAll(
 					ContainSubstring("job1b failed"),
 					ContainSubstring("job2a failed"),
@@ -193,11 +205,11 @@ var _ = Describe("Deployment", func() {
 		})
 
 		Context("if the lockOrderer returns an error", func() {
-			BeforeEach(func() {
-				lockOrderer.OrderReturns(nil, fmt.Errorf("test lock orderer error"))
-			})
-
 			It("fails", func() {
+				lockOrderer.OrderReturns(nil, fmt.Errorf("test lock orderer error"))
+
+				lockError = deployment.PostBackupUnlock(true, lockOrderer, fakeExecutor)
+
 				Expect(lockError).To(MatchError(ContainSubstring("test lock orderer error")))
 			})
 		})

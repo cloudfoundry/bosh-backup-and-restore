@@ -2,6 +2,7 @@ package instance
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
@@ -153,7 +154,7 @@ func (j Job) PostBackupUnlock(afterSuccessfulBackup bool) error {
 		j.Logger.Debug("bbr", "> %s", j.postBackupScript)
 		j.Logger.Info("bbr", "Unlocking %s on %s...", j.name, j.instanceIdentifier)
 		env := map[string]string{
-			"BBR_AFTER_BACKUP_SCRIPTS_SUCCESSFUL": "true",
+			"BBR_AFTER_BACKUP_SCRIPTS_SUCCESSFUL": strconv.FormatBool(afterSuccessfulBackup),
 		}
 		_, err := j.remoteRunner.RunScriptWithEnv(
 			string(j.postBackupScript),

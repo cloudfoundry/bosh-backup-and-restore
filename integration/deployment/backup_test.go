@@ -735,7 +735,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				)
 
 				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
-touch /tmp/post-backup-unlock-script-was-run
+echo "$BBR_AFTER_BACKUP_SCRIPTS_SUCCESSFUL" > /tmp/post-backup-unlock-script-was-run
 echo "Unlocking release"`)
 			})
 
@@ -743,8 +743,10 @@ echo "Unlocking release"`)
 				By("returning exit code 1", func() {
 					Expect(session.ExitCode()).To(Equal(1))
 				})
+
 				By("running the the post-backup-unlock scripts", func() {
 					Expect(instance1.FileExists("/tmp/post-backup-unlock-script-was-run")).To(BeTrue())
+					Expect(strings.TrimSpace(instance1.Run("cat", "/tmp/post-backup-unlock-script-was-run"))).To(Equal("false"))
 				})
 
 				By("not printing a recommendation to run bbr backup-cleanup", func() {

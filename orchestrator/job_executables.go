@@ -21,8 +21,15 @@ type JobPostBackupUnlockExecutor struct {
 
 func NewJobPostSuccessfulBackupUnlockExecutable(job Job) executor.Executable {
 	return JobPostBackupUnlockExecutor{
-		Job: job,
+		Job:                   job,
 		afterSuccessfulBackup: true,
+	}
+}
+
+func NewJobPostFailedBackupUnlockExecutable(job Job) executor.Executable {
+	return JobPostBackupUnlockExecutor{
+		Job:                   job,
+		afterSuccessfulBackup: false,
 	}
 }
 

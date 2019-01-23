@@ -431,10 +431,17 @@ var _ = Describe("Job", func() {
 	})
 
 	Describe("PostBackupUnlock", func() {
-		var postBackupUnlockError error
+		var (
+			postBackupUnlockError error
+			afterSuccessfulBackup bool
+		)
+
+		BeforeEach(func() {
+			afterSuccessfulBackup = true
+		})
 
 		JustBeforeEach(func() {
-			postBackupUnlockError = job.PostBackupUnlock(true)
+			postBackupUnlockError = job.PostBackupUnlock(afterSuccessfulBackup)
 		})
 
 		Context("job has no post-backup-unlock script", func() {
@@ -473,6 +480,23 @@ var _ = Describe("Job", func() {
 						Expect(postBackupUnlockError).NotTo(HaveOccurred())
 					})
 				})
+			})
+
+			Context("and is called after a failed backup", func() {
+				BeforeEach(func() {
+					jobScripts = instance.BackupAndRestoreScripts{
+						"/var/vcap/jobs/jobname/bin/bbr/post-backup-unlock",
+					}
+					afterSuccessfulBackup = false
+				})
+
+				It("uses remote runner to run the script", func() {
+					Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(1))
+					cmd, envVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
+					Expect(cmd).To(Equal("/var/vcap/jobs/jobname/bin/bbr/post-backup-unlock"))
+					Expect(envVars).To(HaveKeyWithValue("BBR_AFTER_BACKUP_SCRIPTS_SUCCESSFUL", "false"))
+				})
+
 			})
 
 			Context("post-backup-unlock script fails", func() {
