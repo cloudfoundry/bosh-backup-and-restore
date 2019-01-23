@@ -16,14 +16,18 @@ func (j JobPreBackupLockExecutor) Execute() error {
 
 type JobPostBackupUnlockExecutor struct {
 	Job
+	afterSuccessfulBackup bool
 }
 
-func NewJobPostBackupUnlockExecutable(job Job) executor.Executable {
-	return JobPostBackupUnlockExecutor{job}
+func NewJobPostSuccessfulBackupUnlockExecutable(job Job) executor.Executable {
+	return JobPostBackupUnlockExecutor{
+		Job: job,
+		afterSuccessfulBackup: true,
+	}
 }
 
 func (j JobPostBackupUnlockExecutor) Execute() error {
-	return j.PostBackupUnlock()
+	return j.PostBackupUnlock(j.afterSuccessfulBackup)
 }
 
 type JobPreRestoreLockExecutor struct {

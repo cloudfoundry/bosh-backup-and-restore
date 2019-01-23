@@ -94,6 +94,8 @@ var _ = Describe("Backup", func() {
 
 		It("runs post-backup-unlock scripts on the deployment", func() {
 			Expect(deployment.PostBackupUnlockCallCount()).To(Equal(1))
+			afterSuccessfulBackup, _, _ := deployment.PostBackupUnlockArgsForCall(0)
+			Expect(afterSuccessfulBackup).To(BeTrue())
 		})
 
 		It("ensures that deployment is cleaned up", func() {
@@ -233,6 +235,8 @@ var _ = Describe("Backup", func() {
 
 			It("also runs post-backup-unlock", func() {
 				Expect(deployment.PostBackupUnlockCallCount()).To(Equal(1))
+				afterSuccessfulBackup, _, _ := deployment.PostBackupUnlockArgsForCall(0)
+				Expect(afterSuccessfulBackup).To(BeFalse())
 			})
 
 			Context("cleanup fails as well", assertCleanupError)
@@ -422,6 +426,12 @@ var _ = Describe("Backup", func() {
 
 			It("fails the backup process", func() {
 				Expect(actualBackupError.Error()).To(ContainSubstring(backupError.Error()))
+			})
+
+			It("runs post-backup-unlock scripts on the deployment", func() {
+				Expect(deployment.PostBackupUnlockCallCount()).To(Equal(1))
+				afterSuccessfulBackup, _, _ := deployment.PostBackupUnlockArgsForCall(0)
+				Expect(afterSuccessfulBackup).To(BeFalse())
 			})
 
 			It("ensures that deployment's instance is cleaned up", func() {

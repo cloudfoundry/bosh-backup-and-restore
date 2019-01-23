@@ -39,7 +39,7 @@ type Job interface {
 	RestoreArtifactName() string
 	Backup() error
 	PreBackupLock() error
-	PostBackupUnlock() error
+	PostBackupUnlock(afterSuccessfulBackup bool) error
 	PreRestoreLock() error
 	Restore() error
 	PostRestoreUnlock() error

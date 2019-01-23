@@ -86,11 +86,12 @@ type FakeDeployment struct {
 	backupReturnsOnCall map[int]struct {
 		result1 error
 	}
-	PostBackupUnlockStub        func(orchestrator.LockOrderer, executor.Executor) error
+	PostBackupUnlockStub        func(bool, orchestrator.LockOrderer, executor.Executor) error
 	postBackupUnlockMutex       sync.RWMutex
 	postBackupUnlockArgsForCall []struct {
-		arg1 orchestrator.LockOrderer
-		arg2 executor.Executor
+		arg1 bool
+		arg2 orchestrator.LockOrderer
+		arg3 executor.Executor
 	}
 	postBackupUnlockReturns struct {
 		result1 error
@@ -519,17 +520,18 @@ func (fake *FakeDeployment) BackupReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeDeployment) PostBackupUnlock(arg1 orchestrator.LockOrderer, arg2 executor.Executor) error {
+func (fake *FakeDeployment) PostBackupUnlock(arg1 bool, arg2 orchestrator.LockOrderer, arg3 executor.Executor) error {
 	fake.postBackupUnlockMutex.Lock()
 	ret, specificReturn := fake.postBackupUnlockReturnsOnCall[len(fake.postBackupUnlockArgsForCall)]
 	fake.postBackupUnlockArgsForCall = append(fake.postBackupUnlockArgsForCall, struct {
-		arg1 orchestrator.LockOrderer
-		arg2 executor.Executor
-	}{arg1, arg2})
-	fake.recordInvocation("PostBackupUnlock", []interface{}{arg1, arg2})
+		arg1 bool
+		arg2 orchestrator.LockOrderer
+		arg3 executor.Executor
+	}{arg1, arg2, arg3})
+	fake.recordInvocation("PostBackupUnlock", []interface{}{arg1, arg2, arg3})
 	fake.postBackupUnlockMutex.Unlock()
 	if fake.PostBackupUnlockStub != nil {
-		return fake.PostBackupUnlockStub(arg1, arg2)
+		return fake.PostBackupUnlockStub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1
@@ -543,10 +545,10 @@ func (fake *FakeDeployment) PostBackupUnlockCallCount() int {
 	return len(fake.postBackupUnlockArgsForCall)
 }
 
-func (fake *FakeDeployment) PostBackupUnlockArgsForCall(i int) (orchestrator.LockOrderer, executor.Executor) {
+func (fake *FakeDeployment) PostBackupUnlockArgsForCall(i int) (bool, orchestrator.LockOrderer, executor.Executor) {
 	fake.postBackupUnlockMutex.RLock()
 	defer fake.postBackupUnlockMutex.RUnlock()
-	return fake.postBackupUnlockArgsForCall[i].arg1, fake.postBackupUnlockArgsForCall[i].arg2
+	return fake.postBackupUnlockArgsForCall[i].arg1, fake.postBackupUnlockArgsForCall[i].arg2, fake.postBackupUnlockArgsForCall[i].arg3
 }
 
 func (fake *FakeDeployment) PostBackupUnlockReturns(result1 error) {

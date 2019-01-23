@@ -51,7 +51,9 @@ var _ = Describe("Cleanup", func() {
 
 		It("ensures that deployment is unlocked using the provided lockOrderer", func() {
 			Expect(deployment.PostBackupUnlockCallCount()).To(Equal(1))
-			Expect(deployment.PostBackupUnlockArgsForCall(0)).To(Equal(lockOrderer))
+			actualAfterSuccessfulBackup, actualLockOrderer, _ := deployment.PostBackupUnlockArgsForCall(0)
+			Expect(actualAfterSuccessfulBackup).To(BeFalse())
+			Expect(actualLockOrderer).To(Equal(lockOrderer))
 		})
 	})
 
@@ -59,7 +61,7 @@ var _ = Describe("Cleanup", func() {
 		var currentSequenceNumber, unlockCallIndex, cleanupCallIndex int
 		BeforeEach(func() {
 			deploymentManager.FindReturns(deployment, nil)
-			deployment.PostBackupUnlockStub = func(orderer orchestrator.LockOrderer, runner executor.Executor) error {
+			deployment.PostBackupUnlockStub = func(afterSuccessfulBackup bool, orderer orchestrator.LockOrderer, runner executor.Executor) error {
 				unlockCallIndex = currentSequenceNumber
 				currentSequenceNumber = currentSequenceNumber + 1
 				return nil

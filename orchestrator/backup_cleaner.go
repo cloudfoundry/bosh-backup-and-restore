@@ -7,7 +7,7 @@ func NewBackupCleaner(logger Logger, deploymentManager DeploymentManager, lockOr
 
 	workflow := NewWorkflow()
 	findDeploymentStep := NewFindDeploymentStep(deploymentManager, logger)
-	postBackUnlockStep := NewPostBackupUnlockStep(lockOrderer, executor)
+	postBackUnlockStep := NewPostBackupUnlockStep(false, lockOrderer, executor)
 	cleanupPreviousStep := NewCleanupPreviousStep()
 
 	workflow.StartWith(findDeploymentStep).OnSuccess(postBackUnlockStep)

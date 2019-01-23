@@ -80,10 +80,12 @@ type FakeJob struct {
 	preBackupLockReturnsOnCall map[int]struct {
 		result1 error
 	}
-	PostBackupUnlockStub        func() error
+	PostBackupUnlockStub        func(afterSuccessfulBackup bool) error
 	postBackupUnlockMutex       sync.RWMutex
-	postBackupUnlockArgsForCall []struct{}
-	postBackupUnlockReturns     struct {
+	postBackupUnlockArgsForCall []struct {
+		afterSuccessfulBackup bool
+	}
+	postBackupUnlockReturns struct {
 		result1 error
 	}
 	postBackupUnlockReturnsOnCall map[int]struct {
@@ -503,14 +505,16 @@ func (fake *FakeJob) PreBackupLockReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeJob) PostBackupUnlock() error {
+func (fake *FakeJob) PostBackupUnlock(afterSuccessfulBackup bool) error {
 	fake.postBackupUnlockMutex.Lock()
 	ret, specificReturn := fake.postBackupUnlockReturnsOnCall[len(fake.postBackupUnlockArgsForCall)]
-	fake.postBackupUnlockArgsForCall = append(fake.postBackupUnlockArgsForCall, struct{}{})
-	fake.recordInvocation("PostBackupUnlock", []interface{}{})
+	fake.postBackupUnlockArgsForCall = append(fake.postBackupUnlockArgsForCall, struct {
+		afterSuccessfulBackup bool
+	}{afterSuccessfulBackup})
+	fake.recordInvocation("PostBackupUnlock", []interface{}{afterSuccessfulBackup})
 	fake.postBackupUnlockMutex.Unlock()
 	if fake.PostBackupUnlockStub != nil {
-		return fake.PostBackupUnlockStub()
+		return fake.PostBackupUnlockStub(afterSuccessfulBackup)
 	}
 	if specificReturn {
 		return ret.result1
@@ -522,6 +526,12 @@ func (fake *FakeJob) PostBackupUnlockCallCount() int {
 	fake.postBackupUnlockMutex.RLock()
 	defer fake.postBackupUnlockMutex.RUnlock()
 	return len(fake.postBackupUnlockArgsForCall)
+}
+
+func (fake *FakeJob) PostBackupUnlockArgsForCall(i int) bool {
+	fake.postBackupUnlockMutex.RLock()
+	defer fake.postBackupUnlockMutex.RUnlock()
+	return fake.postBackupUnlockArgsForCall[i].afterSuccessfulBackup
 }
 
 func (fake *FakeJob) PostBackupUnlockReturns(result1 error) {

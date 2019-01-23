@@ -163,16 +163,16 @@ var _ = Describe("Deployment", func() {
 		})
 
 		JustBeforeEach(func() {
-			lockError = deployment.PostBackupUnlock(lockOrderer, fakeExecutor)
+			lockError = deployment.PostBackupUnlock(true, lockOrderer, fakeExecutor)
 		})
 
 		It("delegates the execution to the executor", func() {
 			Expect(lockError).NotTo(HaveOccurred())
 			Expect(lockOrderer.OrderArgsForCall(0)).To(ConsistOf(job1a, job1b, job2a, job3a))
 			Expect(fakeExecutor.RunArgsForCall(0)).To(Equal([][]executor.Executable{
-				{orchestrator.NewJobPostBackupUnlockExecutable(job2a)},
-				{orchestrator.NewJobPostBackupUnlockExecutable(job3a), orchestrator.NewJobPostBackupUnlockExecutable(job1a)},
-				{orchestrator.NewJobPostBackupUnlockExecutable(job1b)},
+				{orchestrator.NewJobPostSuccessfulBackupUnlockExecutable(job2a)},
+				{orchestrator.NewJobPostSuccessfulBackupUnlockExecutable(job3a), orchestrator.NewJobPostSuccessfulBackupUnlockExecutable(job1a)},
+				{orchestrator.NewJobPostSuccessfulBackupUnlockExecutable(job1b)},
 			}))
 		})
 

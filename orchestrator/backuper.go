@@ -15,8 +15,8 @@ func NewBackuper(backupManager BackupManager, logger Logger, deploymentManager D
 	lock := NewLockStep(lockOrderer, executor)
 
 	backup := NewBackupStep(executor)
-	unlockAfterSuccessfulBackup := NewPostBackupUnlockStep(lockOrderer, executor)
-	unlockAfterFailedBackup := NewPostBackupUnlockStep(lockOrderer, executor)
+	unlockAfterSuccessfulBackup := NewPostBackupUnlockStep(true, lockOrderer, executor)
+	unlockAfterFailedBackup := NewPostBackupUnlockStep(false, lockOrderer, executor)
 	drain := NewDrainStep(logger, artifactCopier)
 	cleanup := NewCleanupStep()
 	addFinishTimeStep := NewAddFinishTimeStep(nowFunc)

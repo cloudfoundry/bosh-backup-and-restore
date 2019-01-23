@@ -21,7 +21,7 @@ type Deployment interface {
 	RestorableInstances() []Instance
 	PreBackupLock(LockOrderer, executor.Executor) error
 	Backup(executor.Executor) error
-	PostBackupUnlock(LockOrderer, executor.Executor) error
+	PostBackupUnlock(bool, LockOrderer, executor.Executor) error
 	Restore() error
 	Cleanup() error
 	CleanupPrevious() error
@@ -128,7 +128,7 @@ func (bd *deployment) Backup(exe executor.Executor) error {
 	return ConvertErrors(backupErr)
 }
 
-func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer, executor executor.Executor) error {
+func (bd *deployment) PostBackupUnlock(afterSuccessfulBackup bool, lockOrderer LockOrderer, executor executor.Executor) error {
 	bd.Logger.Info("bbr", "Running post-backup-unlock scripts...")
 
 	jobs := bd.instances.Jobs()
@@ -139,7 +139,7 @@ func (bd *deployment) PostBackupUnlock(lockOrderer LockOrderer, executor executo
 	}
 	reversedJobs := Reverse(orderedJobs)
 
-	postBackupUnlockErrors := executor.Run(newJobExecutables(reversedJobs, NewJobPostBackupUnlockExecutable))
+	postBackupUnlockErrors := executor.Run(newJobExecutables(reversedJobs, NewJobPostSuccessfulBackupUnlockExecutable))
 	bd.Logger.Info("bbr", "Finished running post-backup-unlock scripts.")
 	return ConvertErrors(postBackupUnlockErrors)
 }

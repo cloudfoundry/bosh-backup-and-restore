@@ -434,7 +434,7 @@ var _ = Describe("Job", func() {
 		var postBackupUnlockError error
 
 		JustBeforeEach(func() {
-			postBackupUnlockError = job.PostBackupUnlock()
+			postBackupUnlockError = job.PostBackupUnlock(true)
 		})
 
 		Context("job has no post-backup-unlock script", func() {
@@ -450,31 +450,34 @@ var _ = Describe("Job", func() {
 		})
 
 		Context("job has a post-backup-unlock script", func() {
-			BeforeEach(func() {
-				jobScripts = instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/jobname/bin/bbr/post-backup-unlock",
-				}
-			})
-
-			It("uses remote runner to run the script", func() {
-				Expect(remoteRunner.RunScriptCallCount()).To(Equal(1))
-				cmd, _ := remoteRunner.RunScriptArgsForCall(0)
-				Expect(cmd).To(Equal("/var/vcap/jobs/jobname/bin/bbr/post-backup-unlock"))
-			})
-
-			Context("post-backup-unlock script runs successfully", func() {
+			Context("and is called after a successful backup", func() {
 				BeforeEach(func() {
-					remoteRunner.RunScriptReturns("stdout", nil)
+					jobScripts = instance.BackupAndRestoreScripts{
+						"/var/vcap/jobs/jobname/bin/bbr/post-backup-unlock",
+					}
 				})
 
-				It("succeeds", func() {
-					Expect(postBackupUnlockError).NotTo(HaveOccurred())
+				It("uses remote runner to run the script", func() {
+					Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(1))
+					cmd, envVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
+					Expect(cmd).To(Equal("/var/vcap/jobs/jobname/bin/bbr/post-backup-unlock"))
+					Expect(envVars).To(HaveKeyWithValue("BBR_AFTER_BACKUP_SCRIPTS_SUCCESSFUL", "true"))
+				})
+
+				Context("post-backup-unlock script runs successfully", func() {
+					BeforeEach(func() {
+						remoteRunner.RunScriptWithEnvReturns("stdout", nil)
+					})
+
+					It("succeeds", func() {
+						Expect(postBackupUnlockError).NotTo(HaveOccurred())
+					})
 				})
 			})
 
 			Context("post-backup-unlock script fails", func() {
 				BeforeEach(func() {
-					remoteRunner.RunScriptReturns("", fmt.Errorf("it failed"))
+					remoteRunner.RunScriptWithEnvReturns("", fmt.Errorf("it failed"))
 				})
 
 				It("fails", func() {

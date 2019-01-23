@@ -45,7 +45,7 @@ var _ = Describe("JobExecutables", func() {
 
 	Context("JobPostBackupUnlockExecutor", func() {
 		BeforeEach(func() {
-			executable = orchestrator.NewJobPostBackupUnlockExecutable(fakeJob)
+			executable = orchestrator.NewJobPostSuccessfulBackupUnlockExecutable(fakeJob)
 		})
 		JustBeforeEach(func() {
 			err = executable.Execute()

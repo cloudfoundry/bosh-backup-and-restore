@@ -148,13 +148,16 @@ func (j Job) PreBackupLock() error {
 	return nil
 }
 
-func (j Job) PostBackupUnlock() error {
+func (j Job) PostBackupUnlock(afterSuccessfulBackup bool) error {
 	if j.postBackupScript != "" {
 		j.Logger.Debug("bbr", "> %s", j.postBackupScript)
 		j.Logger.Info("bbr", "Unlocking %s on %s...", j.name, j.instanceIdentifier)
-
-		_, err := j.remoteRunner.RunScript(
+		env := map[string]string{
+			"BBR_AFTER_BACKUP_SCRIPTS_SUCCESSFUL": "true",
+		}
+		_, err := j.remoteRunner.RunScriptWithEnv(
 			string(j.postBackupScript),
+			env,
 			fmt.Sprintf("post-backup unlock %s on %s", j.name, j.instanceIdentifier),
 		)
 		if err != nil {
