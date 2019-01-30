@@ -1102,6 +1102,7 @@ backup_should_be_locked_before:
 
 					By("loging which instance has the extant artifact directory", func() {
 						Expect(session.Err).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance redis-broker/fake-uuid-2"))
+						Expect(string(session.Err.Contents())).To(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
 					})
 				})
 			})
@@ -1476,6 +1477,56 @@ instance_groups:
 					"1 out of 1 deployments cannot be backed up",
 					fmt.Sprintf("%s", deploymentName1),
 					"Error attempting to run backup for job redis on redis/fake-uuid: ultra-baz - exit code 1",
+				})
+			})
+
+		})
+
+		Context("when the backup artifact directory already exists on a deployment", func() {
+			const instanceGroupName = "redis"
+
+			BeforeEach(func() {
+				deploymentVMs := func(instanceGroupName string) []mockbosh.VMsOutput {
+					return []mockbosh.VMsOutput{
+						{
+							IPs:     []string{"10.0.0.1"},
+							JobName: instanceGroupName,
+							Index:   newIndex(0),
+							ID:      "fake-uuid",
+						},
+					}
+				}
+
+				director.VerifyAndMock(AppendBuilders(
+					InfoWithBasicAuth(),
+					Deployments([]string{deploymentName1}),
+					InfoWithBasicAuth(),
+					VmsForDeployment(deploymentName1, deploymentVMs(instanceGroupName)),
+					DownloadManifest(deploymentName1, manifest),
+					SetupSSH(deploymentName1, instanceGroupName, "fake-uuid", 0, instance1),
+					CleanupSSH(deploymentName1, instanceGroupName),
+				)...)
+
+				instance1.CreateScript(
+					"/var/vcap/jobs/redis/bin/bbr/backup", "echo 'ultra-bar'; (>&2 echo 'ultra-baz'); exit 1",
+				)
+
+				instance1.CreateDir("/var/vcap/store/bbr-backup")
+
+			})
+
+			It("recommends the operator to run backup-cleanup", func() {
+				By("failing", func() {
+					Expect(session.ExitCode()).NotTo(BeZero())
+				})
+
+				By("not deleting the existing backup artifact directory", func() {
+					Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeTrue())
+				})
+
+				By("loging which instance has the extant artifact directory", func() {
+					Expect(session.Err).To(gbytes.Say("Directory /var/vcap/store/bbr-backup already exists on instance redis/fake-uuid"))
+					Expect(string(session.Err.Contents())).To(ContainSubstring("It is recommended that you run `bbr deployment --all-deployments backup-cleanup`"))
 				})
 			})
 

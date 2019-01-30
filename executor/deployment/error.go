@@ -65,7 +65,7 @@ func IndentBlock(block string) string {
 
 func ContainsUnlockOrCleanup(deploymentErrs []DeploymentError) bool {
 	for _, errs := range deploymentErrs {
-		if errs.Errs.ContainsUnlockOrCleanup() {
+		if errs.Errs.ContainsUnlockOrCleanupOrArtifactDirExists() {
 			return true
 		}
 	}

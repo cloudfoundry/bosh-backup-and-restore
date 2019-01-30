@@ -99,12 +99,14 @@ func (err Error) getPostFix() string {
 	return errorPostfix
 }
 
-func (err Error) ContainsUnlockOrCleanup() bool {
+func (err Error) ContainsUnlockOrCleanupOrArtifactDirExists() bool {
 	for _, e := range err {
 		switch e.(type) {
 		case UnlockError:
 			return true
 		case CleanupError:
+			return true
+		case ArtifactDirError:
 			return true
 		default:
 			continue

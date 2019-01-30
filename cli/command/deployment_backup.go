@@ -115,7 +115,7 @@ func backupSingleDeployment(deployment, target, username, password, caCert, arti
 	}
 
 	backupErr := backuper.Backup(deployment, artifactPath)
-	if backupErr.ContainsUnlockOrCleanup() {
+	if backupErr.ContainsUnlockOrCleanupOrArtifactDirExists() {
 		return processErrorWithFooter(backupErr, backupCleanupAdvisedNotice)
 	} else {
 		return processError(backupErr)
