@@ -1,6 +1,7 @@
 package deployment
 
 import (
+	"fmt"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -24,8 +25,10 @@ var sslCertValue string
 
 var binary integration.Binary
 
+const bbrVersion = "bbr_version"
+
 var _ = BeforeSuite(func() {
-	commandPath, err := gexec.Build("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr")
+	commandPath, err := gexec.Build("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr", "-ldflags", fmt.Sprintf("-X main.version=%s", bbrVersion))
 	Expect(err).NotTo(HaveOccurred())
 	binary = integration.NewBinary(commandPath)
 

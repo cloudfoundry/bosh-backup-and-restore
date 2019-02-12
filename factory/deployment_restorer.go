@@ -8,13 +8,14 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orderer"
 )
 
-func BuildDeploymentRestorer(target, username, password, caCert string, debug bool) (*orchestrator.Restorer, error) {
+func BuildDeploymentRestorer(target, username, password, caCert, bbrVersion string, debug bool) (*orchestrator.Restorer, error) {
 	logger := BuildLogger(debug)
 	boshClient, err := BuildBoshClient(
 		target,
 		username,
 		password,
 		caCert,
+		bbrVersion,
 		logger,
 	)
 	if err != nil {

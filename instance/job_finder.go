@@ -2,7 +2,6 @@ package instance
 
 import (
 	"fmt"
-
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/pkg/errors"
@@ -23,12 +22,14 @@ type JobFinder interface {
 }
 
 type JobFinderFromScripts struct {
-	Logger Logger
+	bbrVersion string
+	Logger     Logger
 }
 
-func NewJobFinder(logger Logger) *JobFinderFromScripts {
+func NewJobFinder(bbrVersion string, logger Logger) *JobFinderFromScripts {
 	return &JobFinderFromScripts{
-		Logger: logger,
+		bbrVersion: bbrVersion,
+		Logger:     logger,
 	}
 }
 
@@ -81,8 +82,9 @@ func (j *JobFinderFromScripts) findBBRScripts(instanceIdentifierForLogging Insta
 }
 
 func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifier, script Script, remoteRunner ssh.RemoteRunner) (*Metadata, error) {
-	metadataContent, err := remoteRunner.RunScript(
+	metadataContent, err := remoteRunner.RunScriptWithEnv(
 		string(script),
+		map[string]string{"BBR_VERSION": j.bbrVersion},
 		fmt.Sprintf("find metadata for %s on %s", script.JobName(), instanceIdentifier),
 	)
 	if err != nil {
@@ -93,7 +95,6 @@ func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifie
 			err,
 		))
 	}
-
 	jobMetadata, err := ParseJobMetadata(metadataContent)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf(

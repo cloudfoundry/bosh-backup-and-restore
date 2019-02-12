@@ -27,6 +27,7 @@ func (d DirectorBackupCleanupCommand) Action(c *cli.Context) error {
 	cleaner := factory.BuildDirectorBackupCleaner(c.Parent().String("host"),
 		c.Parent().String("username"),
 		c.Parent().String("private-key-path"),
+		c.App.Version,
 		c.GlobalBool("debug"),
 	)
 

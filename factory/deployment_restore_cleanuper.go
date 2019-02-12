@@ -10,7 +10,8 @@ import (
 func BuildDeploymentRestoreCleanuper(target,
 	usename,
 	password,
-	caCert string,
+	caCert,
+	bbrVersion string,
 	withManifest,
 	isDebug bool) (*orchestrator.RestoreCleaner, error) {
 
@@ -21,6 +22,7 @@ func BuildDeploymentRestoreCleanuper(target,
 		usename,
 		password,
 		caCert,
+		bbrVersion,
 		logger,
 	)
 

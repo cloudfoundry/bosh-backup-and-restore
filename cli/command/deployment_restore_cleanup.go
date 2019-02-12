@@ -28,6 +28,7 @@ func (d DeploymentRestoreCleanupCommand) Action(c *cli.Context) error {
 		c.Parent().String("username"),
 		c.Parent().String("password"),
 		c.Parent().String("ca-cert"),
+		c.App.Version,
 		c.Bool("with-manifest"),
 		c.GlobalBool("debug"))
 

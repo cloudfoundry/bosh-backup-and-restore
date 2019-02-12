@@ -29,7 +29,7 @@ func (d DeploymentBackupCleanupCommand) Cli() cli.Command {
 func (d DeploymentBackupCleanupCommand) Action(c *cli.Context) error {
 	trapSigint(true)
 
-	username, password, target, caCert, debug, deployment, allDeployments := getDeploymentParams(c)
+	username, password, target, caCert, bbrVersion, debug, deployment, allDeployments := getDeploymentParams(c)
 
 	if !allDeployments {
 		logger := factory.BuildBoshLogger(debug)
@@ -39,6 +39,7 @@ func (d DeploymentBackupCleanupCommand) Action(c *cli.Context) error {
 			username,
 			password,
 			caCert,
+			c.App.Version,
 			logger,
 		)
 		if err != nil {
@@ -49,10 +50,10 @@ func (d DeploymentBackupCleanupCommand) Action(c *cli.Context) error {
 		return processError(cleanupErr)
 	}
 
-	return cleanupAllDeployments(target, username, password, caCert, debug)
+	return cleanupAllDeployments(target, username, password, caCert, bbrVersion, debug)
 }
 
-func cleanupAllDeployments(target, username, password, caCert string, debug bool) error {
+func cleanupAllDeployments(target, username, password, caCert, bbrVersion string, debug bool) error {
 	cleanupAction := func(deploymentName string) orchestrator.Error {
 		timestamp := time.Now().UTC().Format(artifactTimeStampFormat)
 		logFilePath, buffer, logger := createLogger(timestamp, "", deploymentName, debug)
@@ -62,6 +63,7 @@ func cleanupAllDeployments(target, username, password, caCert string, debug bool
 			username,
 			password,
 			caCert,
+			bbrVersion,
 			logger,
 		)
 
@@ -88,7 +90,7 @@ func cleanupAllDeployments(target, username, password, caCert string, debug bool
 
 	logger, _ := factory.BuildBoshLoggerWithCustomBuffer(debug)
 
-	boshClient, err := factory.BuildBoshClient(target, username, password, caCert, logger)
+	boshClient, err := factory.BuildBoshClient(target, username, password, caCert, bbrVersion, logger)
 	if err != nil {
 		return err
 	}

@@ -9,14 +9,15 @@ import (
 )
 
 func BuildDeploymentBackupCleanuper(
-	target string,
-	username string,
-	password string,
-	caCert string,
+	target,
+	username,
+	password,
+	caCert,
+	bbrVersion string,
 	logger logger.Logger,
 ) (*orchestrator.BackupCleaner, error) {
 
-	boshClient, err := BuildBoshClient(target, username, password, caCert, logger)
+	boshClient, err := BuildBoshClient(target, username, password, caCert, bbrVersion, logger)
 
 	if err != nil {
 		return nil, err

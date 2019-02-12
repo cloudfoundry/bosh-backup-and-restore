@@ -10,7 +10,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-func BuildClient(targetUrl, username, password, caCert string, logger boshlog.Logger) (Client, error) {
+func BuildClient(targetUrl, username, password, caCert, bbrVersion string, logger boshlog.Logger) (Client, error) {
 	var client Client
 	config, err := director.NewConfigFromURL(targetUrl)
 	if err != nil {
@@ -43,7 +43,7 @@ func BuildClient(targetUrl, username, password, caCert string, logger boshlog.Lo
 		return client, errors.Wrap(err, "error building bosh director client")
 	}
 
-	return NewClient(boshDirector, director.NewSSHOpts, ssh.NewSshRemoteRunner, logger, instance.NewJobFinder(logger), NewBoshManifestReleaseMapping), nil
+	return NewClient(boshDirector, director.NewSSHOpts, ssh.NewSshRemoteRunner, logger, instance.NewJobFinder(bbrVersion, logger), NewBoshManifestReleaseMapping), nil
 }
 
 func getDirectorInfo(directorFactory director.Factory, config director.FactoryConfig) (director.Info, error) {

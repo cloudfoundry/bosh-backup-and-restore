@@ -20,6 +20,7 @@ var _ = Describe("BuildClient", func() {
 
 	var director *mockhttp.Server
 	var deploymentName = "my-little-deployment"
+	var bbrVersion = "bbr_version"
 	var caCert string
 
 	BeforeEach(func() {
@@ -45,7 +46,7 @@ var _ = Describe("BuildClient", func() {
 				mockbosh.Manifest(deploymentName).RespondsWith([]byte("manifest contents")),
 			)
 
-			client, err := BuildClient(director.URL, username, password, caCert, logger)
+			client, err := BuildClient(director.URL, username, password, caCert, bbrVersion, logger)
 
 			Expect(err).NotTo(HaveOccurred())
 			manifest, err := client.GetManifest(deploymentName)
@@ -70,7 +71,7 @@ var _ = Describe("BuildClient", func() {
 				mockbosh.Manifest(deploymentName).RespondsWith([]byte("manifest contents")),
 			)
 
-			client, err := BuildClient(director.URL, username, password, caCert, logger)
+			client, err := BuildClient(director.URL, username, password, caCert, bbrVersion, logger)
 
 			Expect(err).NotTo(HaveOccurred())
 			manifest, err := client.GetManifest(deploymentName)
@@ -85,7 +86,7 @@ var _ = Describe("BuildClient", func() {
 			director.VerifyAndMock(
 				mockbosh.Info().WithAuthTypeUAA(""),
 			)
-			_, err := BuildClient(director.URL, username, password, caCert, logger)
+			_, err := BuildClient(director.URL, username, password, caCert, bbrVersion, logger)
 
 			Expect(err).To(MatchError(ContainSubstring("invalid UAA URL")))
 
@@ -98,7 +99,7 @@ var _ = Describe("BuildClient", func() {
 		caCertPath := "-----BEGIN"
 		basicAuthDirectorUrl := director.URL
 
-		_, err := BuildClient(basicAuthDirectorUrl, username, password, caCertPath, logger)
+		_, err := BuildClient(basicAuthDirectorUrl, username, password, caCertPath, bbrVersion, logger)
 		Expect(err).To(MatchError(ContainSubstring("Missing PEM block")))
 	})
 
@@ -108,7 +109,7 @@ var _ = Describe("BuildClient", func() {
 		caCertPath := ""
 		basicAuthDirectorUrl := ""
 
-		_, err := BuildClient(basicAuthDirectorUrl, username, password, caCertPath, logger)
+		_, err := BuildClient(basicAuthDirectorUrl, username, password, caCertPath, bbrVersion, logger)
 		Expect(err).To(MatchError(ContainSubstring("invalid bosh URL")))
 	})
 
@@ -120,7 +121,7 @@ var _ = Describe("BuildClient", func() {
 			mockbosh.Info().Fails("fooo!"),
 		)
 
-		_, err := BuildClient(director.URL, username, password, caCert, logger)
+		_, err := BuildClient(director.URL, username, password, caCert, bbrVersion, logger)
 		Expect(err).To(MatchError(ContainSubstring("bosh director unreachable or unhealthy")))
 	})
 

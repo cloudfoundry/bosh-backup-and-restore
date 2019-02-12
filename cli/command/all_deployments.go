@@ -115,16 +115,17 @@ func contains(list []string, item string) bool {
 	return false
 }
 
-func getDeploymentParams(c *cli.Context) (string, string, string, string, bool, string, bool) {
+func getDeploymentParams(c *cli.Context) (string, string, string, string, string, bool, string, bool) {
 	username := c.Parent().String("username")
 	password := c.Parent().String("password")
 	target := c.Parent().String("target")
 	caCert := c.Parent().String("ca-cert")
+	bbrVersion := c.App.Version
 	debug := c.GlobalBool("debug")
 	deployment := c.Parent().String("deployment")
 	allDeployments := c.Parent().Bool("all-deployments")
 
-	return username, password, target, caCert, debug, deployment, allDeployments
+	return username, password, target, caCert, bbrVersion, debug, deployment, allDeployments
 }
 
 type DeploymentExecutable struct {

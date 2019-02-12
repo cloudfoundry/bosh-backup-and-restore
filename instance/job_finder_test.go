@@ -21,6 +21,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 	var logStream *bytes.Buffer
 	var logger Logger
 	var jobFinder *JobFinderFromScripts
+	var bbrVersion = "bbr_version"
 
 	instanceIdentifier := InstanceIdentifier{InstanceGroupName: "identifier", InstanceId: "0"}
 
@@ -29,7 +30,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 		combinedLog := log.New(io.MultiWriter(GinkgoWriter, logStream), "[instance-test] ", log.Lshortfile)
 		logger = boshlog.New(boshlog.LevelDebug, combinedLog)
 
-		jobFinder = NewJobFinder(logger)
+		jobFinder = NewJobFinder(bbrVersion, logger)
 	})
 
 	Describe("FindJobs", func() {
@@ -169,14 +170,15 @@ var _ = Describe("JobFinderFromScripts", func() {
 			Context("when metadata is valid", func() {
 				BeforeEach(func() {
 					remoteRunner.FindFilesReturns([]string{"/var/vcap/jobs/consul_agent/bin/bbr/metadata"}, nil)
-					remoteRunner.RunScriptReturns(`---
+					remoteRunner.RunScriptWithEnvReturns(`---
 backup_name: consul_backup`, nil)
 				})
 
 				It("attaches the metadata to the corresponding jobs", func() {
-					By("executing the metadata scripts", func() {
-						cmd, _ := remoteRunner.RunScriptArgsForCall(0)
+					By("executing the metadata scripts passing the correct arguments", func() {
+						cmd, env, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 						Expect(cmd).To(Equal("/var/vcap/jobs/consul_agent/bin/bbr/metadata"))
+						Expect(env).To(Equal(map[string]string{"BBR_VERSION": bbrVersion}))
 					})
 
 					By("adding the metadata to the returned jobs", func() {
@@ -223,7 +225,7 @@ backup_name: consul_backup`, nil)
 			Context("when executing a metadata script fails", func() {
 				BeforeEach(func() {
 					remoteRunner.FindFilesReturns([]string{"/var/vcap/jobs/consul_agent/bin/bbr/metadata"}, nil)
-					remoteRunner.RunScriptReturns("", fmt.Errorf("blah blah blah foo"))
+					remoteRunner.RunScriptWithEnvReturns("", fmt.Errorf("blah blah blah foo"))
 				})
 
 				It("printing the location of the error, and the original error message", func() {
@@ -236,7 +238,7 @@ backup_name: consul_backup`, nil)
 			Context("when a metadata script returns invalid metadata YAML", func() {
 				BeforeEach(func() {
 					remoteRunner.FindFilesReturns([]string{"/var/vcap/jobs/consul_agent/bin/bbr/metadata"}, nil)
-					remoteRunner.RunScriptReturns(`this metadata is missing all the keys`, nil)
+					remoteRunner.RunScriptWithEnvReturns(`this metadata is missing all the keys`, nil)
 				})
 
 				It("prints the location of the error", func() {

@@ -426,6 +426,20 @@ backup_name: custom_backup_named_redis
 					})
 				})
 
+				Context("and there is a metadata script which uses BBR_VERSION environment variable", func() {
+					BeforeEach(func() {
+						instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
+	echo "${BBR_VERSION}" > /tmp/metadata-script-was-run
+echo "---
+"`)
+					})
+
+					It("calls the metadata script and passes the environment variable", func() {
+						Expect(instance1.FileExists("/tmp/metadata-script-was-run")).To(BeTrue())
+						Expect(strings.TrimSpace(instance1.GetFileContents("/tmp/metadata-script-was-run"))).To(Equal(bbrVersion))
+					})
+				})
+
 				Context("and the pre-backup-lock script is present", func() {
 					BeforeEach(func() {
 						instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh

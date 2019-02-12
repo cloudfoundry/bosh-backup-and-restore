@@ -41,6 +41,7 @@ func (d DeploymentRestoreCommand) Action(c *cli.Context) error {
 		c.Parent().String("username"),
 		c.Parent().String("password"),
 		c.Parent().String("ca-cert"),
+		c.App.Version,
 		c.GlobalBool("debug"))
 
 	if err != nil {

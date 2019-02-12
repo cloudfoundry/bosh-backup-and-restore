@@ -11,7 +11,8 @@ import (
 
 func BuildDirectorRestoreCleaner(host,
 	username,
-	privateKeyPath string,
+	privateKeyPath,
+	bbrVersion string,
 	hasDebug bool) *orchestrator.RestoreCleaner {
 
 	logger := BuildLogger(hasDebug)
@@ -20,7 +21,7 @@ func BuildDirectorRestoreCleaner(host,
 		host,
 		username,
 		privateKeyPath,
-		instance.NewJobFinder(logger),
+		instance.NewJobFinder(bbrVersion, logger),
 		ssh.NewSshRemoteRunner,
 	)
 

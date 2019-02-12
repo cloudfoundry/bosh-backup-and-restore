@@ -17,10 +17,11 @@ func BuildDeploymentBackuper(
 	password,
 	caCert string,
 	withManifest bool,
+	bbrVersion string,
 	logger boshlog.Logger,
 	timestamp string,
 ) (*orchestrator.Backuper, error) {
-	boshClient, err := BuildBoshClient(target, username, password, caCert, logger)
+	boshClient, err := BuildBoshClient(target, username, password, caCert, bbrVersion, logger)
 	if err != nil {
 		return nil, err
 	}

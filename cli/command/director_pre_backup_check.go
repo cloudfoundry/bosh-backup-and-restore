@@ -30,6 +30,7 @@ func (checkCommand DirectorPreBackupCheckCommand) Action(c *cli.Context) error {
 		c.Parent().String("host"),
 		c.Parent().String("username"),
 		c.Parent().String("private-key-path"),
+		c.App.Version,
 		c.GlobalBool("debug"),
 	)
 
