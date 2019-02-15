@@ -8,16 +8,6 @@ import (
 )
 
 var _ = Describe("Metadata", func() {
-	It("has BackupName and RestoreName fields", func() {
-		metadata := Metadata{
-			BackupName:  "foo",
-			RestoreName: "bar",
-		}
-
-		Expect(metadata.BackupName).To(Equal("foo"))
-		Expect(metadata.RestoreName).To(Equal("bar"))
-	})
-
 	It("can be created with raw metadata YAML", func() {
 		rawMetadata := `---
 backup_name: foo
