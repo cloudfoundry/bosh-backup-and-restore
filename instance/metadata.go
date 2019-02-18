@@ -5,6 +5,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+type MetadataParserFunc func(string) (*Metadata, error)
+
 type LockBefore struct {
 	JobName string `yaml:"job_name"`
 	Release string `yaml:"release"`
@@ -32,6 +34,31 @@ func ParseJobMetadata(data string) (*Metadata, error) {
 	}
 
 	return metadata, nil
+}
+
+func ParseJobMetadataOmitReleases(data string) (*Metadata, error) {
+	metadata, err := ParseJobMetadata(data)
+	if err != nil {
+		return nil, err
+	}
+
+	metadata.BackupShouldBeLockedBefore = omitReleases(metadata.BackupShouldBeLockedBefore)
+	metadata.RestoreShouldBeLockedBefore = omitReleases(metadata.RestoreShouldBeLockedBefore)
+
+	return metadata, nil
+}
+
+func omitReleases(lockBefores []LockBefore) []LockBefore {
+	var lockBeforesWithoutReleases []LockBefore
+
+	for _, lockBefore := range lockBefores {
+		lockBeforesWithoutReleases = append(
+			lockBeforesWithoutReleases,
+			LockBefore{JobName: lockBefore.JobName, Release: ""},
+		)
+	}
+
+	return lockBeforesWithoutReleases
 }
 
 func (l LockBefore) Validate() error {

@@ -8,12 +8,30 @@ import (
 )
 
 var _ = Describe("Metadata", func() {
+	Describe("ParseJobMetadata", func() {
+		expectedLockBefores := []LockBefore{
+			{JobName: "job1", Release: "release1"},
+			{JobName: "job2", Release: "release2"},
+		}
+		runTestsWithFunc(ParseJobMetadata, expectedLockBefores)
+	})
+
+	Describe("ParseJobMetadataOmitReleases", func() {
+		expectedLockBefores := []LockBefore{
+			{JobName: "job1", Release: ""},
+			{JobName: "job2", Release: ""},
+		}
+		runTestsWithFunc(ParseJobMetadataOmitReleases, expectedLockBefores)
+	})
+})
+
+func runTestsWithFunc(metadataParserFunc MetadataParserFunc, expectedLockBefores []LockBefore) {
 	It("can be created with raw metadata YAML", func() {
 		rawMetadata := `---
 backup_name: foo
 restore_name: bar`
 
-		m, err := ParseJobMetadata(rawMetadata)
+		m, err := metadataParserFunc(rawMetadata)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(m.BackupName).To(Equal("foo"))
@@ -23,7 +41,7 @@ restore_name: bar`
 	It("fails when provided invalid YAML", func() {
 		rawMetadata := "arrrr"
 
-		_, err := ParseJobMetadata(rawMetadata)
+		_, err := metadataParserFunc(rawMetadata)
 
 		Expect(err).To(MatchError(ContainSubstring("failed to unmarshal job metadata")))
 	})
@@ -36,17 +54,14 @@ backup_should_be_locked_before:
 - job_name: job1
   release: release1
 - job_name: job2
-  release: release2
-`
+  release: release2`
 
-		m, err := ParseJobMetadata(rawMetadata)
+		m, err := metadataParserFunc(rawMetadata)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(m.BackupName).To(Equal("foo"))
 		Expect(m.RestoreName).To(Equal("bar"))
-		Expect(m.BackupShouldBeLockedBefore).To(ConsistOf(
-			LockBefore{JobName: "job1", Release: "release1"}, LockBefore{JobName: "job2", Release: "release2"},
-		))
+		Expect(m.BackupShouldBeLockedBefore).To(ConsistOf(expectedLockBefores))
 	})
 
 	It("errors if either the job name or release are missing from backup_should_be_locked_before", func() {
@@ -56,10 +71,9 @@ restore_name: bar
 backup_should_be_locked_before:
 - job_name: job1
   release: release1
-- job_name: job2
-`
+- job_name: job2`
 
-		_, err := ParseJobMetadata(rawMetadata)
+		_, err := metadataParserFunc(rawMetadata)
 
 		Expect(err).To(MatchError(ContainSubstring("both job name and release should be specified for should be locked before")))
 	})
@@ -72,17 +86,14 @@ restore_should_be_locked_before:
 - job_name: job1
   release: release1
 - job_name: job2
-  release: release2
-`
+  release: release2`
 
-		m, err := ParseJobMetadata(rawMetadata)
+		m, err := metadataParserFunc(rawMetadata)
 
 		Expect(err).NotTo(HaveOccurred())
 		Expect(m.BackupName).To(Equal("foo"))
 		Expect(m.RestoreName).To(Equal("bar"))
-		Expect(m.RestoreShouldBeLockedBefore).To(ConsistOf(
-			LockBefore{JobName: "job1", Release: "release1"}, LockBefore{JobName: "job2", Release: "release2"},
-		))
+		Expect(m.RestoreShouldBeLockedBefore).To(ConsistOf(expectedLockBefores))
 	})
 
 	It("errors if either the job name or release are missing", func() {
@@ -92,11 +103,10 @@ restore_name: bar
 restore_should_be_locked_before:
 - job_name: job1
   release: release1
-- job_name: job2
-`
+- job_name: job2`
 
-		_, err := ParseJobMetadata(rawMetadata)
+		_, err := metadataParserFunc(rawMetadata)
 
 		Expect(err).To(MatchError(ContainSubstring("both job name and release should be specified for should be locked before")))
 	})
-})
+}
