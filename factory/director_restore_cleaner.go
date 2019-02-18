@@ -21,9 +21,9 @@ func BuildDirectorRestoreCleaner(host,
 		host,
 		username,
 		privateKeyPath,
-		instance.NewJobFinder(bbrVersion, logger),
+		instance.NewJobFinderOmitMetadataReleases(bbrVersion, logger),
 		ssh.NewSshRemoteRunner,
 	)
 
-	return orchestrator.NewRestoreCleaner(logger, deploymentManager, orderer.NewDirectorLockOrderer(), executor.NewSerialExecutor())
+	return orchestrator.NewRestoreCleaner(logger, deploymentManager, orderer.NewKahnRestoreLockOrderer(), executor.NewSerialExecutor())
 }

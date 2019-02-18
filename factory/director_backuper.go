@@ -18,7 +18,7 @@ func BuildDirectorBackuper(host, username, privateKeyPath, bbrVersion string, ha
 		host,
 		username,
 		privateKeyPath,
-		instance.NewJobFinder(bbrVersion, logger),
+		instance.NewJobFinderOmitMetadataReleases(bbrVersion, logger),
 		ssh.NewSshRemoteRunner,
 	)
 	execr := executor.NewParallelExecutor()
@@ -27,7 +27,7 @@ func BuildDirectorBackuper(host, username, privateKeyPath, bbrVersion string, ha
 		backup.BackupDirectoryManager{},
 		logger,
 		deploymentManager,
-		orderer.NewDirectorLockOrderer(),
+		orderer.NewKahnBackupLockOrderer(),
 		execr,
 		time.Now,
 		orchestrator.NewArtifactCopier(execr, logger),

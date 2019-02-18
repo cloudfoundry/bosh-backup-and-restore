@@ -2,6 +2,8 @@ package instance
 
 import (
 	"fmt"
+	"path/filepath"
+
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/pkg/errors"
@@ -72,10 +74,10 @@ func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier, r
 
 func (j *JobFinderFromScripts) logMetadata(jobMetadata *Metadata, jobName string) {
 	for _, lockBefore := range jobMetadata.BackupShouldBeLockedBefore {
-		j.Logger.Info("bbr", "Detected order: %s should be locked before %s/%s during backup", jobName, lockBefore.Release, lockBefore.JobName)
+		j.Logger.Info("bbr", "Detected order: %s should be locked before %s during backup", jobName, filepath.Join(lockBefore.Release, lockBefore.JobName))
 	}
 	for _, lockBefore := range jobMetadata.RestoreShouldBeLockedBefore {
-		j.Logger.Info("bbr", "Detected order: %s should be locked before %s/%s during restore", jobName, lockBefore.Release, lockBefore.JobName)
+		j.Logger.Info("bbr", "Detected order: %s should be locked before %s during restore", jobName, filepath.Join(lockBefore.Release, lockBefore.JobName))
 	}
 }
 

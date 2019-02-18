@@ -20,9 +20,9 @@ func BuildDirectorBackupCleaner(host,
 		host,
 		username,
 		privateKeyPath,
-		instance.NewJobFinder(bbrVersion, logger),
+		instance.NewJobFinderOmitMetadataReleases(bbrVersion, logger),
 		ssh.NewSshRemoteRunner,
 	)
 
-	return orchestrator.NewBackupCleaner(logger, deploymentManager, orderer.NewDirectorLockOrderer(), executor.NewParallelExecutor())
+	return orchestrator.NewBackupCleaner(logger, deploymentManager, orderer.NewKahnBackupLockOrderer(), executor.NewParallelExecutor())
 }

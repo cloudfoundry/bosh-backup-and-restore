@@ -3,14 +3,13 @@ package director
 import (
 	"io/ioutil"
 	"os"
+	"path"
+	"strings"
 
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
-
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-
-	"path"
 
 	"time"
 
@@ -221,7 +220,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 				})
 			})
 
-			Context("but a metadata script specifying locking dependencies also exists", func() {
+			Context("with ordering on pre-backup-lock specified", func() {
 				BeforeEach(func() {
 					directorInstance.CreateScript("/var/vcap/jobs/bosh/bin/bbr/metadata",
 						`#!/usr/bin/env sh
@@ -230,20 +229,87 @@ backup_should_be_locked_before:
 - job_name: postgres
   release: bosh
 "`)
+					directorInstance.CreateScript(
+						"/var/vcap/jobs/postgres/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
+touch /tmp/postgres-pre-backup-lock-called
+exit 0`)
+
+					directorInstance.CreateScript(
+						"/var/vcap/jobs/bosh/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
+touch /tmp/bosh-pre-backup-lock-called
+exit 0`)
+
+					directorInstance.CreateScript(
+						"/var/vcap/jobs/postgres/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
+touch /tmp/postgres-post-backup-unlock-called
+exit 0`)
+
+					directorInstance.CreateScript(
+						"/var/vcap/jobs/bosh/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
+touch /tmp/bosh-post-backup-unlock-called
+exit 0`)
 				})
 
-				It("fails", func() {
-					By("returning exit code 1", func() {
-						Expect(session.ExitCode()).To(Equal(1))
+				It("locks in the specified order", func() {
+					Expect(directorInstance.FileExists("/tmp/postgres-pre-backup-lock-called")).To(BeTrue())
+					postgresJobLockTime := directorInstance.GetCreatedTime("/tmp/postgres-pre-backup-lock-called")
+
+					Expect(directorInstance.FileExists("/tmp/bosh-pre-backup-lock-called")).To(BeTrue())
+					boshJobLockTime := directorInstance.GetCreatedTime("/tmp/bosh-pre-backup-lock-called")
+
+					Expect(session.Out).To(gbytes.Say("Detected order: bosh should be locked before postgres during backup"))
+
+					Expect(boshJobLockTime < postgresJobLockTime).To(BeTrue(), fmt.Sprintf(
+						"'bosh' job locked at %s, which is after the 'postgres' job locked (%s)",
+						strings.TrimSuffix(boshJobLockTime, "\n"),
+						strings.TrimSuffix(postgresJobLockTime, "\n")))
+				})
+
+				It("unlocks in the right order", func() {
+					By("unlocking the postgres job before unlocking the bosh job")
+					postgresJobUnlockTime := directorInstance.GetCreatedTime("/tmp/postgres-post-backup-unlock-called")
+					boshJobUnlockTime := directorInstance.GetCreatedTime("/tmp/bosh-post-backup-unlock-called")
+
+					Expect(postgresJobUnlockTime < boshJobUnlockTime).To(BeTrue(), fmt.Sprintf(
+						"'bosh' job unlocked at %s, which is before the 'postgres' job unlocked (%s)",
+						strings.TrimSuffix(boshJobUnlockTime, "\n"),
+						strings.TrimSuffix(postgresJobUnlockTime, "\n")))
+				})
+			})
+
+			Context("but the pre-backup-lock ordering is cyclic", func() {
+				BeforeEach(func() {
+					directorInstance.CreateScript(
+						"/var/vcap/jobs/bosh/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
+touch /tmp/bosh-pre-backup-lock-called
+exit 0`)
+					directorInstance.CreateScript(
+						"/var/vcap/jobs/postgres/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
+touch /tmp/postgres-writer-pre-restore-lock-called
+exit 0`)
+					directorInstance.CreateScript("/var/vcap/jobs/bosh/bin/bbr/metadata",
+						`#!/usr/bin/env sh
+echo "---
+backup_should_be_locked_before:
+- job_name: postgres
+  release: bosh
+"`)
+					directorInstance.CreateScript("/var/vcap/jobs/postgres/bin/bbr/metadata",
+						`#!/usr/bin/env sh
+echo "---
+backup_should_be_locked_before:
+- job_name: bosh
+  release: bosh
+"`)
+				})
+
+				It("Should fail", func() {
+					By("exiting with an error", func() {
+						Expect(session).To(gexec.Exit(1))
 					})
 
-					By("printing an helpful error", func() {
-						Expect(session.Err).To(gbytes.Say(
-							fmt.Sprintf("director job 'bosh' specifies locking dependencies, which are not allowed for director jobs")))
-					})
-
-					By("not printing the stack trace to stderr", func() {
-						Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
+					By("printing a helpful error message", func() {
+						Expect(session.Err).To(gbytes.Say("job locking dependency graph is cyclic"))
 					})
 				})
 			})

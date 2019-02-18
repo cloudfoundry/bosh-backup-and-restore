@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 
@@ -396,6 +397,99 @@ exit 1
 
 					By("not deleting the existing artifact directory", func() {
 						Expect(directorInstance.FileExists("/var/vcap/store/bbr-backup")).To(BeTrue())
+					})
+				})
+			})
+
+			Context("with ordering on pre-restore-lock specified", func() {
+				BeforeEach(func() {
+					directorInstance.CreateScript("/var/vcap/jobs/bosh/bin/bbr/metadata",
+						`#!/usr/bin/env sh
+echo "---
+restore_should_be_locked_before:
+- job_name: postgres
+  release: bosh
+"`)
+					directorInstance.CreateScript(
+						"/var/vcap/jobs/postgres/bin/bbr/pre-restore-lock", `#!/usr/bin/env sh
+touch /tmp/postgres-pre-restore-lock-called
+exit 0`)
+
+					directorInstance.CreateScript(
+						"/var/vcap/jobs/bosh/bin/bbr/pre-restore-lock", `#!/usr/bin/env sh
+touch /tmp/bosh-pre-restore-lock-called
+exit 0`)
+					directorInstance.CreateScript(
+						"/var/vcap/jobs/postgres/bin/bbr/post-restore-unlock", `#!/usr/bin/env sh
+touch /tmp/postgres-post-restore-unlock-called
+exit 0`)
+
+					directorInstance.CreateScript(
+						"/var/vcap/jobs/bosh/bin/bbr/post-restore-unlock", `#!/usr/bin/env sh
+touch /tmp/bosh-post-restore-unlock-called
+exit 0`)
+				})
+
+				It("locks in the specified order", func() {
+					Expect(directorInstance.FileExists("/tmp/postgres-pre-restore-lock-called")).To(BeTrue())
+					postgresJobLockTime := directorInstance.GetCreatedTime("/tmp/postgres-pre-restore-lock-called")
+
+					Expect(directorInstance.FileExists("/tmp/bosh-pre-restore-lock-called")).To(BeTrue())
+					boshJobLockTime := directorInstance.GetCreatedTime("/tmp/bosh-pre-restore-lock-called")
+
+					Expect(session.Out).To(gbytes.Say("Detected order: bosh should be locked before postgres during restore"))
+
+					Expect(boshJobLockTime < postgresJobLockTime).To(BeTrue(), fmt.Sprintf(
+						"'bosh' locked at %s, which is after the 'postgres' locked (%s)",
+						strings.TrimSuffix(boshJobLockTime, "\n"),
+						strings.TrimSuffix(postgresJobLockTime, "\n")))
+				})
+
+				It("unlocks in the right order", func() {
+					By("unlocking the postgres job before unlocking the bosh job")
+					postgresJobUnlockTime := directorInstance.GetCreatedTime("/tmp/postgres-post-restore-unlock-called")
+					boshJobUnlockTime := directorInstance.GetCreatedTime("/tmp/bosh-post-restore-unlock-called")
+
+					Expect(postgresJobUnlockTime < boshJobUnlockTime).To(BeTrue(), fmt.Sprintf(
+						"'bosh' job unlocked at %s, which is before the 'postgres' job unlocked (%s)",
+						strings.TrimSuffix(boshJobUnlockTime, "\n"),
+						strings.TrimSuffix(postgresJobUnlockTime, "\n")))
+				})
+			})
+
+			Context("but the pre-restore-lock ordering is cyclic", func() {
+				BeforeEach(func() {
+					directorInstance.CreateScript(
+						"/var/vcap/jobs/bosh/bin/bbr/pre-restore-lock", `#!/usr/bin/env sh
+touch /tmp/bosh-pre-restore-lock-called
+exit 0`)
+					directorInstance.CreateScript(
+						"/var/vcap/jobs/postgres/bin/bbr/pre-restore-lock", `#!/usr/bin/env sh
+touch /tmp/postgres-writer-pre-restore-lock-called
+exit 0`)
+					directorInstance.CreateScript("/var/vcap/jobs/bosh/bin/bbr/metadata",
+						`#!/usr/bin/env sh
+echo "---
+restore_should_be_locked_before:
+- job_name: postgres
+  release: bosh
+"`)
+					directorInstance.CreateScript("/var/vcap/jobs/postgres/bin/bbr/metadata",
+						`#!/usr/bin/env sh
+echo "---
+restore_should_be_locked_before:
+- job_name: bosh
+  release: bosh
+"`)
+				})
+
+				It("Should fail", func() {
+					By("exiting with an error", func() {
+						Expect(session).To(gexec.Exit(1))
+					})
+
+					By("printing a helpful error message", func() {
+						Expect(session.Err).To(gbytes.Say("job locking dependency graph is cyclic"))
 					})
 				})
 			})

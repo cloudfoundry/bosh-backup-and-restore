@@ -16,7 +16,7 @@ func BuildDirectorRestorer(host, username, privateKeyPath, bbrVersion string, ha
 		host,
 		username,
 		privateKeyPath,
-		instance.NewJobFinder(bbrVersion, logger),
+		instance.NewJobFinderOmitMetadataReleases(bbrVersion, logger),
 		ssh.NewSshRemoteRunner,
 	)
 
@@ -24,7 +24,7 @@ func BuildDirectorRestorer(host, username, privateKeyPath, bbrVersion string, ha
 		backup.BackupDirectoryManager{},
 		logger,
 		deploymentManager,
-		orderer.NewDirectorLockOrderer(),
+		orderer.NewKahnRestoreLockOrderer(),
 		executor.NewSerialExecutor(),
 		orchestrator.NewArtifactCopier(executor.NewParallelExecutor(), logger),
 	)
