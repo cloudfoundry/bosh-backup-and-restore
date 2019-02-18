@@ -171,7 +171,10 @@ var _ = Describe("JobFinderFromScripts", func() {
 				BeforeEach(func() {
 					remoteRunner.FindFilesReturns([]string{"/var/vcap/jobs/consul_agent/bin/bbr/metadata"}, nil)
 					remoteRunner.RunScriptWithEnvReturns(`---
-backup_name: consul_backup`, nil)
+backup_name: consul_backup
+backup_should_be_locked_before:
+- job_name: bosh
+  release: bosh`, nil)
 				})
 
 				It("attaches the metadata to the corresponding jobs", func() {
@@ -191,7 +194,8 @@ backup_name: consul_backup`, nil)
 								BackupAndRestoreScripts{
 									"/var/vcap/jobs/consul_agent/bin/bbr/metadata",
 								}, Metadata{
-									BackupName: "consul_backup",
+									BackupName:                 "consul_backup",
+									BackupShouldBeLockedBefore: []LockBefore{{JobName: "bosh", Release: "bosh"}},
 								},
 							),
 						))
@@ -199,6 +203,41 @@ backup_name: consul_backup`, nil)
 
 					By("not returning an error", func() {
 						Expect(jobsError).NotTo(HaveOccurred())
+					})
+				})
+
+				Context("and the jobFinder is configured to omit releases", func() {
+					BeforeEach(func() {
+						jobFinder = NewJobFinderOmitMetadataReleases(bbrVersion, logger)
+					})
+
+					It("attaches the metadata to the corresponding jobs", func() {
+						By("executing the metadata scripts passing the correct arguments", func() {
+							cmd, env, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
+							Expect(cmd).To(Equal("/var/vcap/jobs/consul_agent/bin/bbr/metadata"))
+							Expect(env).To(Equal(map[string]string{"BBR_VERSION": bbrVersion}))
+						})
+
+						By("adding the metadata to the returned jobs with empty releases", func() {
+							Expect(jobs).To(ConsistOf(
+								NewJob(
+									remoteRunner,
+									"identifier/0",
+									logger,
+									consulAgentReleaseName,
+									BackupAndRestoreScripts{
+										"/var/vcap/jobs/consul_agent/bin/bbr/metadata",
+									}, Metadata{
+										BackupName:                 "consul_backup",
+										BackupShouldBeLockedBefore: []LockBefore{{JobName: "bosh", Release: ""}},
+									},
+								),
+							))
+						})
+
+						By("not returning an error", func() {
+							Expect(jobsError).NotTo(HaveOccurred())
+						})
 					})
 				})
 			})

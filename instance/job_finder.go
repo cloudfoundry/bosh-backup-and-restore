@@ -22,14 +22,24 @@ type JobFinder interface {
 }
 
 type JobFinderFromScripts struct {
-	bbrVersion string
-	Logger     Logger
+	bbrVersion       string
+	Logger           Logger
+	parseJobMetadata MetadataParserFunc
 }
 
 func NewJobFinder(bbrVersion string, logger Logger) *JobFinderFromScripts {
 	return &JobFinderFromScripts{
-		bbrVersion: bbrVersion,
-		Logger:     logger,
+		bbrVersion:       bbrVersion,
+		Logger:           logger,
+		parseJobMetadata: ParseJobMetadata,
+	}
+}
+
+func NewJobFinderOmitMetadataReleases(bbrVersion string, logger Logger) *JobFinderFromScripts {
+	return &JobFinderFromScripts{
+		bbrVersion:       bbrVersion,
+		Logger:           logger,
+		parseJobMetadata: ParseJobMetadataOmitReleases,
 	}
 }
 
@@ -95,7 +105,7 @@ func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifie
 			err,
 		))
 	}
-	jobMetadata, err := ParseJobMetadata(metadataContent)
+	jobMetadata, err := j.parseJobMetadata(metadataContent)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf(
 			"Parsing metadata from job %s on %s failed: %s",
