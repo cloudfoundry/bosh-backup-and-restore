@@ -4,7 +4,7 @@ instances:
   artifacts:
   - name: director
     checksums:
-      ./bosh-director-artifact-file: 264ca00b89310785c48343e54ddb2110d3bdbfbc18a343648f624984400cf130
+      ./bosh-director-artifact-file: 413609e95fe6525db2d9b8192ec56fc0b848dcbec6f430e3272e77bcd4dc675e
   - name: blobstore
     checksums: {}
   - name: test-backup-and-restore
