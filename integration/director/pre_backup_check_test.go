@@ -92,35 +92,19 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 			Context("and there is a metadata script", func() {
 				BeforeEach(func() {
-
-					directorInstance.CreateScript("/var/vcap/jobs/uaa/bin/bbr/pre-backup-lock",
-						`#!/usr/bin/env sh
-touch /tmp/uaa-pre-backup-lock-called
-exit 0`)
-					directorInstance.CreateScript("/var/vcap/jobs/uaa/bin/bbr/metadata",
+					directorInstance.CreateScript("/var/vcap/jobs/bosh/bin/bbr/metadata",
 						`#!/usr/bin/env sh
 echo "---
-backup_should_be_locked_before:
+restore_should_be_locked_before:
 - job_name: postgres
   release: bosh
 "`)
 				})
 
-				It("fails", func() {
-					By("returning exit code 1", func() {
-						Expect(session.ExitCode()).To(Equal(1))
-					})
-
-					By("printing an helpful error", func() {
-						Expect(session.Out).To(gbytes.Say("Director cannot be backed up."))
-						Expect(session.Err).To(gbytes.Say(
-							fmt.Sprintf("director job 'uaa' specifies locking dependencies, which are not allowed for director jobs")))
-					})
-
-					By("not printing the stack trace to stderr", func() {
-						Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
-					})
+				It("succeeds", func() {
+					Expect(session.ExitCode()).To(Equal(0))
 				})
+
 			})
 		})
 

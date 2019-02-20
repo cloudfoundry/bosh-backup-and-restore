@@ -14,9 +14,9 @@ func BuildDirectorBackupChecker(host, username, privateKeyPath, bbrVersion strin
 		host,
 		username,
 		privateKeyPath,
-		instance.NewJobFinder(bbrVersion, logger),
+		instance.NewJobFinderOmitMetadataReleases(bbrVersion, logger),
 		ssh.NewSshRemoteRunner,
 	)
 
-	return orchestrator.NewBackupChecker(logger, deploymentManager, orderer.NewDirectorLockOrderer())
+	return orchestrator.NewBackupChecker(logger, deploymentManager, orderer.NewKahnBackupLockOrderer())
 }
