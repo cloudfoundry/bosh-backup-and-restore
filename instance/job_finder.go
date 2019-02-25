@@ -139,7 +139,17 @@ func (j *JobFinderFromScripts) buildJobs(remoteRunner ssh.RemoteRunner,
 			releaseName = ""
 		}
 
-		jobs = append(jobs, NewJob(remoteRunner, instanceIdentifier.String(), logger, releaseName, jobScripts, metadata[jobName]))
+		backupOneRestoreAll, _ := manifestQuerier.IsJobBackupOneRestoreAll(instanceIdentifier.InstanceGroupName, jobName)
+
+		jobs = append(jobs, NewJob(
+			remoteRunner,
+			instanceIdentifier.String(),
+			logger,
+			releaseName,
+			jobScripts,
+			metadata[jobName],
+			backupOneRestoreAll,
+		))
 	}
 
 	return jobs, nil

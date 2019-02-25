@@ -54,6 +54,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 
 			manifestQuerier = new(fakes.FakeManifestQuerier)
 			manifestQuerier.FindReleaseNameReturns(consulAgentReleaseName, nil)
+			manifestQuerier.IsJobBackupOneRestoreAllReturns(true, nil)
 		})
 
 		JustBeforeEach(func() {
@@ -80,20 +81,34 @@ var _ = Describe("JobFinderFromScripts", func() {
 				Expect(jobNameActual).To(Equal("consul_agent"))
 			})
 
+			By("calling `IsJobBackupOneRestoreAll` with the right arguments", func() {
+				instanceGroupNameActual, jobNameActual := manifestQuerier.IsJobBackupOneRestoreAllArgsForCall(0)
+				Expect(instanceGroupNameActual).To(Equal(instanceIdentifier.InstanceGroupName))
+				Expect(jobNameActual).To(Equal("consul_agent"))
+			})
+
 			By("not returning an error", func() {
 				Expect(jobsError).NotTo(HaveOccurred())
 			})
 
 			By("returning the list of jobs", func() {
 				Expect(jobs).To(ConsistOf(
-					NewJob(remoteRunner, "identifier/0", logger, consulAgentReleaseName, BackupAndRestoreScripts{
-						"/var/vcap/jobs/consul_agent/bin/bbr/backup",
-						"/var/vcap/jobs/consul_agent/bin/bbr/restore",
-						"/var/vcap/jobs/consul_agent/bin/bbr/post-backup-unlock",
-						"/var/vcap/jobs/consul_agent/bin/bbr/post-restore-unlock",
-						"/var/vcap/jobs/consul_agent/bin/bbr/pre-backup-lock",
-						"/var/vcap/jobs/consul_agent/bin/bbr/pre-restore-lock",
-					}, Metadata{})))
+					NewJob(
+						remoteRunner,
+						"identifier/0",
+						logger,
+						consulAgentReleaseName,
+						BackupAndRestoreScripts{
+							"/var/vcap/jobs/consul_agent/bin/bbr/backup",
+							"/var/vcap/jobs/consul_agent/bin/bbr/restore",
+							"/var/vcap/jobs/consul_agent/bin/bbr/post-backup-unlock",
+							"/var/vcap/jobs/consul_agent/bin/bbr/post-restore-unlock",
+							"/var/vcap/jobs/consul_agent/bin/bbr/pre-backup-lock",
+							"/var/vcap/jobs/consul_agent/bin/bbr/pre-restore-lock",
+						},
+						Metadata{},
+						true,
+					)))
 			})
 		})
 
@@ -152,9 +167,9 @@ var _ = Describe("JobFinderFromScripts", func() {
 			})
 		})
 
-		Context("when mapping jobs to releases fails", func() {
+		Context("when manifest querier fails to find the release for a job", func() {
 			BeforeEach(func() {
-				manifestQuerier.FindReleaseNameReturns("", fmt.Errorf("release name mapping failure"))
+				manifestQuerier.FindReleaseNameReturns("", fmt.Errorf("finding the release for a job failed"))
 			})
 
 			It("does not fail", func() {
@@ -163,6 +178,35 @@ var _ = Describe("JobFinderFromScripts", func() {
 
 				By("issuing a warning")
 				Expect(logStream.String()).To(ContainSubstring("WARN - could not find release name for job consul_agent"))
+			})
+		})
+
+		Context("when manifest querier fails to find the backupOneRestore all property for a job", func() {
+			BeforeEach(func() {
+				manifestQuerier.IsJobBackupOneRestoreAllReturns(false, fmt.Errorf("finding the job and release failed"))
+			})
+
+			It("does not fail", func() {
+				Expect(jobsError).ToNot(HaveOccurred())
+
+				By("setting the backupOneRestoreAll to false")
+				Expect(jobs).To(ConsistOf(
+					NewJob(
+						remoteRunner,
+						"identifier/0",
+						logger,
+						consulAgentReleaseName,
+						BackupAndRestoreScripts{
+							"/var/vcap/jobs/consul_agent/bin/bbr/backup",
+							"/var/vcap/jobs/consul_agent/bin/bbr/restore",
+							"/var/vcap/jobs/consul_agent/bin/bbr/post-backup-unlock",
+							"/var/vcap/jobs/consul_agent/bin/bbr/post-restore-unlock",
+							"/var/vcap/jobs/consul_agent/bin/bbr/pre-backup-lock",
+							"/var/vcap/jobs/consul_agent/bin/bbr/pre-restore-lock",
+						},
+						Metadata{},
+						false,
+					)))
 			})
 		})
 
@@ -193,10 +237,13 @@ backup_should_be_locked_before:
 								consulAgentReleaseName,
 								BackupAndRestoreScripts{
 									"/var/vcap/jobs/consul_agent/bin/bbr/metadata",
-								}, Metadata{
-									BackupName:                 "consul_backup",
-									BackupShouldBeLockedBefore: []LockBefore{{JobName: "bosh", Release: "bosh"}},
 								},
+								Metadata{
+									BackupName: "consul_backup",
+									BackupShouldBeLockedBefore: []LockBefore{{JobName: "bosh",
+										Release: "bosh"}},
+								},
+								true,
 							),
 						))
 					})
@@ -227,10 +274,13 @@ backup_should_be_locked_before:
 									consulAgentReleaseName,
 									BackupAndRestoreScripts{
 										"/var/vcap/jobs/consul_agent/bin/bbr/metadata",
-									}, Metadata{
-										BackupName:                 "consul_backup",
-										BackupShouldBeLockedBefore: []LockBefore{{JobName: "bosh", Release: ""}},
 									},
+									Metadata{
+										BackupName: "consul_backup",
+										BackupShouldBeLockedBefore: []LockBefore{{JobName: "bosh",
+											Release: ""}},
+									},
+									true,
 								),
 							))
 						})

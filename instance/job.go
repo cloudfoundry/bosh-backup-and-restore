@@ -9,38 +9,39 @@ import (
 	"github.com/pkg/errors"
 )
 
-func NewJob(remoteRunner ssh.RemoteRunner, instanceIdentifier string, logger Logger, release string,
-	jobScripts BackupAndRestoreScripts, metadata Metadata) Job {
+func NewJob(remoteRunner ssh.RemoteRunner, instanceIdentifier string, logger Logger, release string, jobScripts BackupAndRestoreScripts, metadata Metadata, backupOneRestoreAll bool) Job {
 	jobName := jobScripts[0].JobName()
 	return Job{
-		Logger:             logger,
-		remoteRunner:       remoteRunner,
-		instanceIdentifier: instanceIdentifier,
-		name:               jobName,
-		release:            release,
-		metadata:           metadata,
-		backupScript:       jobScripts.BackupOnly().firstOrBlank(),
-		restoreScript:      jobScripts.RestoreOnly().firstOrBlank(),
-		preBackupScript:    jobScripts.PreBackupLockOnly().firstOrBlank(),
-		preRestoreScript:   jobScripts.PreRestoreLockOnly().firstOrBlank(),
-		postBackupScript:   jobScripts.PostBackupUnlockOnly().firstOrBlank(),
-		postRestoreScript:  jobScripts.SinglePostRestoreUnlockScript(),
+		Logger:              logger,
+		remoteRunner:        remoteRunner,
+		instanceIdentifier:  instanceIdentifier,
+		name:                jobName,
+		release:             release,
+		metadata:            metadata,
+		backupScript:        jobScripts.BackupOnly().firstOrBlank(),
+		restoreScript:       jobScripts.RestoreOnly().firstOrBlank(),
+		preBackupScript:     jobScripts.PreBackupLockOnly().firstOrBlank(),
+		preRestoreScript:    jobScripts.PreRestoreLockOnly().firstOrBlank(),
+		postBackupScript:    jobScripts.PostBackupUnlockOnly().firstOrBlank(),
+		postRestoreScript:   jobScripts.SinglePostRestoreUnlockScript(),
+		backupOneRestoreAll: backupOneRestoreAll,
 	}
 }
 
 type Job struct {
-	Logger             Logger
-	name               string
-	release            string
-	metadata           Metadata
-	backupScript       Script
-	preBackupScript    Script
-	postBackupScript   Script
-	preRestoreScript   Script
-	restoreScript      Script
-	postRestoreScript  Script
-	remoteRunner       ssh.RemoteRunner
-	instanceIdentifier string
+	Logger              Logger
+	name                string
+	release             string
+	metadata            Metadata
+	backupScript        Script
+	preBackupScript     Script
+	postBackupScript    Script
+	preRestoreScript    Script
+	restoreScript       Script
+	postRestoreScript   Script
+	remoteRunner        ssh.RemoteRunner
+	instanceIdentifier  string
+	backupOneRestoreAll bool
 }
 
 func (j Job) Name() string {
@@ -56,6 +57,10 @@ func (j Job) InstanceIdentifier() string {
 }
 
 func (j Job) BackupArtifactName() string {
+	if j.backupOneRestoreAll {
+		return fmt.Sprintf("%s-%s-backup-one-restore-all", j.name, j.release)
+	}
+
 	return j.metadata.BackupName
 }
 
@@ -84,7 +89,7 @@ func (j Job) HasRestore() bool {
 }
 
 func (j Job) HasNamedBackupArtifact() bool {
-	return j.metadata.BackupName != ""
+	return j.backupOneRestoreAll || j.metadata.BackupName != ""
 }
 
 func (j Job) HasNamedRestoreArtifact() bool {
