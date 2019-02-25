@@ -25,6 +25,7 @@ var _ = Describe("Job", func() {
 	var remoteRunner *sshfakes.FakeRemoteRunner
 	var instanceIdentifier = "instance/identifier"
 	var backupOneRestoreAll bool
+	var onBootstrapNode bool
 
 	BeforeEach(func() {
 		jobScripts = instance.BackupAndRestoreScripts{
@@ -40,10 +41,11 @@ var _ = Describe("Job", func() {
 		releaseName = "redis"
 		remoteRunner = new(sshfakes.FakeRemoteRunner)
 		backupOneRestoreAll = false
+		onBootstrapNode = false
 	})
 
 	JustBeforeEach(func() {
-		job = instance.NewJob(remoteRunner, instanceIdentifier, logger, releaseName, jobScripts, metadata, backupOneRestoreAll)
+		job = instance.NewJob(remoteRunner, instanceIdentifier, logger, releaseName, jobScripts, metadata, backupOneRestoreAll, onBootstrapNode)
 	})
 
 	Describe("BackupArtifactDirectory", func() {
@@ -55,9 +57,17 @@ var _ = Describe("Job", func() {
 			var jobWithName instance.Job
 
 			JustBeforeEach(func() {
-				jobWithName = instance.NewJob(remoteRunner, "", logger, releaseName, jobScripts, instance.Metadata{
-					BackupName: "a-bosh-backup",
-				}, backupOneRestoreAll)
+				jobWithName = instance.NewJob(
+					remoteRunner,
+					"",
+					logger,
+					releaseName,
+					jobScripts,
+					instance.Metadata{
+						BackupName: "a-bosh-backup",
+					},
+					backupOneRestoreAll,
+					onBootstrapNode)
 			})
 
 			It("calculates the artifact directory based on the artifact name", func() {
@@ -75,9 +85,17 @@ var _ = Describe("Job", func() {
 			var jobWithName instance.Job
 
 			JustBeforeEach(func() {
-				jobWithName = instance.NewJob(remoteRunner, "", logger, releaseName, jobScripts, instance.Metadata{
-					RestoreName: "a-bosh-backup",
-				}, backupOneRestoreAll)
+				jobWithName = instance.NewJob(
+					remoteRunner,
+					"",
+					logger,
+					releaseName,
+					jobScripts,
+					instance.Metadata{
+						RestoreName: "a-bosh-backup",
+					},
+					backupOneRestoreAll,
+					onBootstrapNode)
 			})
 
 			It("calculates the artifact directory based on the artifact name", func() {
@@ -92,8 +110,24 @@ var _ = Describe("Job", func() {
 				backupOneRestoreAll = true
 			})
 
-			It("returns a backup artifact name of the form <job>-<release>-backup-one-restore-all", func() {
-				Expect(job.BackupArtifactName()).To(Equal("jobname-redis-backup-one-restore-all"))
+			Context("and the job is on the bootstrap node", func() {
+				BeforeEach(func() {
+					onBootstrapNode = true
+				})
+
+				It("returns a backup artifact name of the form <job>-<release>-backup-one-restore-all", func() {
+					Expect(job.BackupArtifactName()).To(Equal("jobname-redis-backup-one-restore-all"))
+				})
+			})
+
+			Context("and the job is not on the bootstrap node", func() {
+				BeforeEach(func() {
+					onBootstrapNode = false
+				})
+
+				It("returns a backup artifact name of the form <job>-<release>-backup-one-restore-all", func() {
+					Expect(job.BackupArtifactName()).To(Equal(""))
+				})
 			})
 		})
 
@@ -113,9 +147,22 @@ var _ = Describe("Job", func() {
 					backupOneRestoreAll = true
 				})
 
-				It("returns the backup-one-restore-all artifact name instead of the custom metadata name", func() {
-					Expect(job.BackupArtifactName()).To(Equal("jobname-redis-backup-one-restore-all"))
+				Context("and the job is on the bootstrap node", func() {
+					BeforeEach(func() {
+						onBootstrapNode = true
+					})
+
+					It("returns the backup-one-restore-all artifact name instead of the custom metadata name", func() {
+						Expect(job.BackupArtifactName()).To(Equal("jobname-redis-backup-one-restore-all"))
+					})
 				})
+
+				Context("and the job is not on the bootstrap node", func() {
+					It("returns the job's custom backup artifact name", func() {
+						Expect(job.BackupArtifactName()).To(Equal("fool"))
+					})
+				})
+
 			})
 		})
 
@@ -194,7 +241,7 @@ var _ = Describe("Job", func() {
 		})
 	})
 
-	FDescribe("HasNamedBackupArtifact", func() {
+	Describe("HasNamedBackupArtifact", func() {
 		It("returns false", func() {
 			Expect(job.HasNamedBackupArtifact()).To(BeFalse())
 		})
@@ -229,9 +276,22 @@ var _ = Describe("Job", func() {
 				backupOneRestoreAll = true
 			})
 
-			It("returns true", func() {
-				Expect(job.HasNamedBackupArtifact()).To(BeTrue())
+			Context("and the job is on the bootstrap node", func() {
+				BeforeEach(func() {
+					onBootstrapNode = true
+				})
+
+				It("returns true", func() {
+					Expect(job.HasNamedBackupArtifact()).To(BeTrue())
+				})
 			})
+
+			Context("and the job is not on the bootstrap node", func() {
+				It("returns true", func() {
+					Expect(job.HasNamedBackupArtifact()).To(BeFalse())
+				})
+			})
+
 		})
 	})
 

@@ -22,10 +22,10 @@ var _ = Describe("JobFinderFromScripts", func() {
 	var logger Logger
 	var jobFinder *JobFinderFromScripts
 	var bbrVersion = "bbr_version"
-
-	instanceIdentifier := InstanceIdentifier{InstanceGroupName: "identifier", InstanceId: "0"}
+	var instanceIdentifier InstanceIdentifier
 
 	BeforeEach(func() {
+		instanceIdentifier = InstanceIdentifier{InstanceGroupName: "identifier", InstanceId: "0", Bootstrap: true}
 		logStream = bytes.NewBufferString("")
 		combinedLog := log.New(io.MultiWriter(GinkgoWriter, logStream), "[instance-test] ", log.Lshortfile)
 		logger = boshlog.New(boshlog.LevelDebug, combinedLog)
@@ -62,6 +62,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 		})
 
 		It("finds the jobs", func() {
+			jobs, jobsError = jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier)
 			By("finding the scripts", func() {
 				Expect(remoteRunner.FindFilesArgsForCall(0)).To(Equal("/var/vcap/jobs/*/bin/bbr/*"))
 			})
@@ -108,6 +109,35 @@ var _ = Describe("JobFinderFromScripts", func() {
 						},
 						Metadata{},
 						true,
+						true,
+					)))
+			})
+		})
+
+		Context("when the instance node is not the bootstrap node", func() {
+			BeforeEach(func() {
+				instanceIdentifier = InstanceIdentifier{InstanceGroupName: "identifier", InstanceId: "0", Bootstrap: false}
+			})
+
+			It("finds the jobs", func() {
+				jobs, _ = jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier)
+				Expect(jobs).To(ConsistOf(
+					NewJob(
+						remoteRunner,
+						"identifier/0",
+						logger,
+						consulAgentReleaseName,
+						BackupAndRestoreScripts{
+							"/var/vcap/jobs/consul_agent/bin/bbr/backup",
+							"/var/vcap/jobs/consul_agent/bin/bbr/restore",
+							"/var/vcap/jobs/consul_agent/bin/bbr/post-backup-unlock",
+							"/var/vcap/jobs/consul_agent/bin/bbr/post-restore-unlock",
+							"/var/vcap/jobs/consul_agent/bin/bbr/pre-backup-lock",
+							"/var/vcap/jobs/consul_agent/bin/bbr/pre-restore-lock",
+						},
+						Metadata{},
+						true,
+						false,
 					)))
 			})
 		})
@@ -206,7 +236,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 						},
 						Metadata{},
 						false,
-					)))
+						true)))
 			})
 		})
 
@@ -244,7 +274,7 @@ backup_should_be_locked_before:
 										Release: "bosh"}},
 								},
 								true,
-							),
+								true),
 						))
 					})
 
@@ -281,7 +311,7 @@ backup_should_be_locked_before:
 											Release: ""}},
 									},
 									true,
-								),
+									true),
 							))
 						})
 

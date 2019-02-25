@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func NewJob(remoteRunner ssh.RemoteRunner, instanceIdentifier string, logger Logger, release string, jobScripts BackupAndRestoreScripts, metadata Metadata, backupOneRestoreAll bool) Job {
+func NewJob(remoteRunner ssh.RemoteRunner, instanceIdentifier string, logger Logger, release string, jobScripts BackupAndRestoreScripts, metadata Metadata, backupOneRestoreAll bool, onBootstrapNode bool) Job {
 	jobName := jobScripts[0].JobName()
 	return Job{
 		Logger:              logger,
@@ -25,6 +25,7 @@ func NewJob(remoteRunner ssh.RemoteRunner, instanceIdentifier string, logger Log
 		postBackupScript:    jobScripts.PostBackupUnlockOnly().firstOrBlank(),
 		postRestoreScript:   jobScripts.SinglePostRestoreUnlockScript(),
 		backupOneRestoreAll: backupOneRestoreAll,
+		onBootstrapNode:     onBootstrapNode,
 	}
 }
 
@@ -42,6 +43,7 @@ type Job struct {
 	remoteRunner        ssh.RemoteRunner
 	instanceIdentifier  string
 	backupOneRestoreAll bool
+	onBootstrapNode     bool
 }
 
 func (j Job) Name() string {
@@ -57,7 +59,7 @@ func (j Job) InstanceIdentifier() string {
 }
 
 func (j Job) BackupArtifactName() string {
-	if j.backupOneRestoreAll {
+	if j.backupOneRestoreAll && j.onBootstrapNode {
 		return fmt.Sprintf("%s-%s-backup-one-restore-all", j.name, j.release)
 	}
 
@@ -89,7 +91,7 @@ func (j Job) HasRestore() bool {
 }
 
 func (j Job) HasNamedBackupArtifact() bool {
-	return j.backupOneRestoreAll || j.metadata.BackupName != ""
+	return (j.backupOneRestoreAll && j.onBootstrapNode) || j.metadata.BackupName != ""
 }
 
 func (j Job) HasNamedRestoreArtifact() bool {

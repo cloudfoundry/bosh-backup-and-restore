@@ -54,9 +54,18 @@ var _ = Describe("DeployedInstance", func() {
 		Describe("there are backup scripts in the job directories", func() {
 			BeforeEach(func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/dave/bin/bbr/backup",
-					}, instance.Metadata{}, false),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/dave/bin/bbr/backup",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
 				})
 			})
 
@@ -68,9 +77,18 @@ var _ = Describe("DeployedInstance", func() {
 		Describe("there are no backup scripts in the job directories", func() {
 			BeforeEach(func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/dave/bin/foo",
-					}, instance.Metadata{}, false),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/dave/bin/foo",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
 				})
 			})
 
@@ -123,9 +141,18 @@ var _ = Describe("DeployedInstance", func() {
 		Describe("there are restore scripts in the job directories", func() {
 			BeforeEach(func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/dave/bin/bbr/restore",
-					}, instance.Metadata{}, false),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/dave/bin/bbr/restore",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
 				})
 			})
 
@@ -137,9 +164,18 @@ var _ = Describe("DeployedInstance", func() {
 		Describe("there are no restore scripts", func() {
 			BeforeEach(func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/dave/bin/foo",
-					}, instance.Metadata{}, false),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/dave/bin/foo",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
 				})
 			})
 
@@ -153,11 +189,20 @@ var _ = Describe("DeployedInstance", func() {
 		Context("when the instance has custom artifact names defined", func() {
 			BeforeEach(func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/dave/bin/foo",
-					}, instance.Metadata{
-						BackupName: "foo",
-					}, false),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/dave/bin/foo",
+						},
+						instance.Metadata{
+							BackupName: "foo",
+						},
+						false,
+						false,
+					),
 				})
 			})
 
@@ -172,11 +217,20 @@ var _ = Describe("DeployedInstance", func() {
 		Context("when the instance has custom restore artifact names defined", func() {
 			BeforeEach(func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/dave/bin/foo",
-					}, instance.Metadata{
-						RestoreName: "foo",
-					}, false),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/dave/bin/foo",
+						},
+						instance.Metadata{
+							RestoreName: "foo",
+						},
+						false,
+						false,
+					),
 				})
 			})
 
@@ -190,9 +244,18 @@ var _ = Describe("DeployedInstance", func() {
 	Describe("Jobs", func() {
 		BeforeEach(func() {
 			jobs = orchestrator.Jobs([]orchestrator.Job{
-				instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-					"/var/vcap/jobs/dave/bin/foo",
-				}, instance.Metadata{}, false),
+				instance.NewJob(
+					remoteRunner,
+					instanceGroupName+"/"+instanceID,
+					boshLogger,
+					"",
+					instance.BackupAndRestoreScripts{
+						"/var/vcap/jobs/dave/bin/foo",
+					},
+					instance.Metadata{},
+					false,
+					false,
+				),
 			})
 		})
 
@@ -212,15 +275,42 @@ var _ = Describe("DeployedInstance", func() {
 		Context("when there are multiple backup scripts in multiple job directories", func() {
 			BeforeEach(func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/foo/bin/bbr/backup",
-					}, instance.Metadata{}, false),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/bar/bin/bbr/backup",
-					}, instance.Metadata{}, false),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/baz/bin/bbr/backup",
-					}, instance.Metadata{}, false),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/foo/bin/bbr/backup",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/bar/bin/bbr/backup",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/baz/bin/bbr/backup",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
 				})
 			})
 
@@ -297,12 +387,30 @@ var _ = Describe("DeployedInstance", func() {
 		Context("when there are multiple backup scripts and one of them is named", func() {
 			BeforeEach(func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/foo/bin/bbr/backup",
-					}, instance.Metadata{}, false),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/baz/bin/bbr/backup",
-					}, instance.Metadata{BackupName: "special-backup"}, false),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/foo/bin/bbr/backup",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/baz/bin/bbr/backup",
+						},
+						instance.Metadata{BackupName: "special-backup"},
+						false,
+						false,
+					),
 				})
 			})
 
@@ -338,12 +446,30 @@ var _ = Describe("DeployedInstance", func() {
 		Context("when there are multiple jobs with no backup scripts", func() {
 			BeforeEach(func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/foo/bin/bbr/restore",
-					}, instance.Metadata{}, false),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/bar/bin/bbr/restore",
-					}, instance.Metadata{}, false),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/foo/bin/bbr/restore",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/bar/bin/bbr/restore",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
 				})
 			})
 			It("doesn't make calls to the instance over the remote runner", func() {
@@ -354,15 +480,42 @@ var _ = Describe("DeployedInstance", func() {
 		Context("when there are several scripts and two of them cause an error", func() {
 			BeforeEach(func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/foo/bin/bbr/backup",
-					}, instance.Metadata{}, false),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/bar/bin/bbr/backup",
-					}, instance.Metadata{}, false),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/baz/bin/bbr/backup",
-					}, instance.Metadata{}, false),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/foo/bin/bbr/backup",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/bar/bin/bbr/backup",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/baz/bin/bbr/backup",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
 				})
 
 				remoteRunner.RunScriptWithEnvStub = func(cmd string, envVars map[string]string, label string) (string, error) {
@@ -405,15 +558,42 @@ var _ = Describe("DeployedInstance", func() {
 		Context("when there are multiple restore scripts in multiple job directories", func() {
 			BeforeEach(func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/foo/bin/bbr/restore",
-					}, instance.Metadata{}, false),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/bar/bin/bbr/restore",
-					}, instance.Metadata{}, false),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/baz/bin/bbr/restore",
-					}, instance.Metadata{}, false),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/foo/bin/bbr/restore",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/bar/bin/bbr/restore",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/baz/bin/bbr/restore",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
 				})
 			})
 
@@ -476,15 +656,42 @@ var _ = Describe("DeployedInstance", func() {
 		Context("when there are multiple restore scripts and one of them is named", func() {
 			BeforeEach(func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/foo/bin/bbr/restore",
-					}, instance.Metadata{}, false),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/bar/bin/bbr/restore",
-					}, instance.Metadata{}, false),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/baz/bin/bbr/restore",
-					}, instance.Metadata{RestoreName: "special-backup"}, false),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/foo/bin/bbr/restore",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/bar/bin/bbr/restore",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/baz/bin/bbr/restore",
+						},
+						instance.Metadata{RestoreName: "special-backup"},
+						false,
+						false,
+					),
 				})
 			})
 
@@ -521,15 +728,42 @@ var _ = Describe("DeployedInstance", func() {
 		Context("when there are several scripts and two of them cause an error", func() {
 			BeforeEach(func() {
 				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/foo/bin/bbr/restore",
-					}, instance.Metadata{}, false),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/bar/bin/bbr/restore",
-					}, instance.Metadata{}, false),
-					instance.NewJob(remoteRunner, instanceGroupName+"/"+instanceID, boshLogger, "", instance.BackupAndRestoreScripts{
-						"/var/vcap/jobs/baz/bin/bbr/restore",
-					}, instance.Metadata{}, false),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/foo/bin/bbr/restore",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/bar/bin/bbr/restore",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/baz/bin/bbr/restore",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
 				})
 
 				remoteRunner.RunScriptWithEnvStub = func(cmd string, envVars map[string]string, label string) (string, error) {
@@ -585,6 +819,7 @@ var _ = Describe("DeployedInstance", func() {
 			[]instance.Script{"/var/vcap/jobs/job-with-backup-script-1/bin/bbr/backup"},
 			instance.Metadata{},
 			false,
+			false,
 		)
 		var jobWithBackupScript2 = instance.NewJob(
 			remoteRunner,
@@ -593,6 +828,7 @@ var _ = Describe("DeployedInstance", func() {
 			"",
 			[]instance.Script{"/var/vcap/jobs/job-with-backup-script-2/bin/bbr/backup"},
 			instance.Metadata{},
+			false,
 			false,
 		)
 		var jobWithBackupScriptAndMetadata = instance.NewJob(
@@ -603,6 +839,7 @@ var _ = Describe("DeployedInstance", func() {
 			instance.BackupAndRestoreScripts{"/var/vcap/jobs/job-with-backup-script-and-metadata/bin/bbr/backup"},
 			instance.Metadata{BackupName: "my-artifact"},
 			false,
+			false,
 		)
 		var jobWithRestoreScript = instance.NewJob(
 			remoteRunner,
@@ -612,6 +849,7 @@ var _ = Describe("DeployedInstance", func() {
 			[]instance.Script{"/var/vcap/jobs/job-with-restore-script-1/bin/bbr/restore"},
 			instance.Metadata{},
 			false,
+			false,
 		)
 		var jobWithOnlyLockScript = instance.NewJob(
 			remoteRunner,
@@ -620,6 +858,7 @@ var _ = Describe("DeployedInstance", func() {
 			"",
 			[]instance.Script{"/var/vcap/jobs/job-with-only-lock-script/bin/bbr/pre-backup-lock"},
 			instance.Metadata{},
+			false,
 			false,
 		)
 
@@ -715,6 +954,7 @@ var _ = Describe("DeployedInstance", func() {
 			[]instance.Script{"/var/vcap/jobs/job-with-restore-script-1/bin/bbr/restore"},
 			instance.Metadata{},
 			false,
+			false,
 		)
 		var jobWithRestoreScript2 = instance.NewJob(
 			remoteRunner,
@@ -723,6 +963,7 @@ var _ = Describe("DeployedInstance", func() {
 			"",
 			[]instance.Script{"/var/vcap/jobs/job-with-restore-script-2/bin/bbr/restore"},
 			instance.Metadata{},
+			false,
 			false,
 		)
 		var jobWithRestoreScriptAndMetadata = instance.NewJob(
@@ -733,6 +974,7 @@ var _ = Describe("DeployedInstance", func() {
 			instance.BackupAndRestoreScripts{"/var/vcap/jobs/job-with-restore-script-and-metadata/bin/bbr/restore"},
 			instance.Metadata{RestoreName: "my-artifact"},
 			false,
+			false,
 		)
 		var jobWithBackupScript = instance.NewJob(
 			remoteRunner,
@@ -742,6 +984,7 @@ var _ = Describe("DeployedInstance", func() {
 			[]instance.Script{"/var/vcap/jobs/job-with-backup-script-1/bin/bbr/backup"},
 			instance.Metadata{},
 			false,
+			false,
 		)
 		var jobWithOnlyLockScript = instance.NewJob(
 			remoteRunner,
@@ -750,6 +993,7 @@ var _ = Describe("DeployedInstance", func() {
 			"",
 			[]instance.Script{"/var/vcap/jobs/job-with-only-lock-script/bin/bbr/pre-restore-lock"},
 			instance.Metadata{},
+			false,
 			false,
 		)
 

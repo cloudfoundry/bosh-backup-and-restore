@@ -12,6 +12,7 @@ import (
 type InstanceIdentifier struct {
 	InstanceGroupName string
 	InstanceId        string
+	Bootstrap         bool
 }
 
 func (i InstanceIdentifier) String() string {
@@ -149,6 +150,7 @@ func (j *JobFinderFromScripts) buildJobs(remoteRunner ssh.RemoteRunner,
 			jobScripts,
 			metadata[jobName],
 			backupOneRestoreAll,
+			instanceIdentifier.Bootstrap,
 		))
 	}
 
