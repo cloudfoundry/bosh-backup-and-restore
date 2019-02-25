@@ -22,6 +22,20 @@ type FakeReleaseMapping struct {
 		result1 string
 		result2 error
 	}
+	IsJobBackupOneRestoreAllStub        func(instanceGroupName, jobName string) (bool, error)
+	isJobBackupOneRestoreAllMutex       sync.RWMutex
+	isJobBackupOneRestoreAllArgsForCall []struct {
+		instanceGroupName string
+		jobName           string
+	}
+	isJobBackupOneRestoreAllReturns struct {
+		result1 bool
+		result2 error
+	}
+	isJobBackupOneRestoreAllReturnsOnCall map[int]struct {
+		result1 bool
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -78,11 +92,65 @@ func (fake *FakeReleaseMapping) FindReleaseNameReturnsOnCall(i int, result1 stri
 	}{result1, result2}
 }
 
+func (fake *FakeReleaseMapping) IsJobBackupOneRestoreAll(instanceGroupName string, jobName string) (bool, error) {
+	fake.isJobBackupOneRestoreAllMutex.Lock()
+	ret, specificReturn := fake.isJobBackupOneRestoreAllReturnsOnCall[len(fake.isJobBackupOneRestoreAllArgsForCall)]
+	fake.isJobBackupOneRestoreAllArgsForCall = append(fake.isJobBackupOneRestoreAllArgsForCall, struct {
+		instanceGroupName string
+		jobName           string
+	}{instanceGroupName, jobName})
+	fake.recordInvocation("IsJobBackupOneRestoreAll", []interface{}{instanceGroupName, jobName})
+	fake.isJobBackupOneRestoreAllMutex.Unlock()
+	if fake.IsJobBackupOneRestoreAllStub != nil {
+		return fake.IsJobBackupOneRestoreAllStub(instanceGroupName, jobName)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fake.isJobBackupOneRestoreAllReturns.result1, fake.isJobBackupOneRestoreAllReturns.result2
+}
+
+func (fake *FakeReleaseMapping) IsJobBackupOneRestoreAllCallCount() int {
+	fake.isJobBackupOneRestoreAllMutex.RLock()
+	defer fake.isJobBackupOneRestoreAllMutex.RUnlock()
+	return len(fake.isJobBackupOneRestoreAllArgsForCall)
+}
+
+func (fake *FakeReleaseMapping) IsJobBackupOneRestoreAllArgsForCall(i int) (string, string) {
+	fake.isJobBackupOneRestoreAllMutex.RLock()
+	defer fake.isJobBackupOneRestoreAllMutex.RUnlock()
+	return fake.isJobBackupOneRestoreAllArgsForCall[i].instanceGroupName, fake.isJobBackupOneRestoreAllArgsForCall[i].jobName
+}
+
+func (fake *FakeReleaseMapping) IsJobBackupOneRestoreAllReturns(result1 bool, result2 error) {
+	fake.IsJobBackupOneRestoreAllStub = nil
+	fake.isJobBackupOneRestoreAllReturns = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeReleaseMapping) IsJobBackupOneRestoreAllReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.IsJobBackupOneRestoreAllStub = nil
+	if fake.isJobBackupOneRestoreAllReturnsOnCall == nil {
+		fake.isJobBackupOneRestoreAllReturnsOnCall = make(map[int]struct {
+			result1 bool
+			result2 error
+		})
+	}
+	fake.isJobBackupOneRestoreAllReturnsOnCall[i] = struct {
+		result1 bool
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeReleaseMapping) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.findReleaseNameMutex.RLock()
 	defer fake.findReleaseNameMutex.RUnlock()
+	fake.isJobBackupOneRestoreAllMutex.RLock()
+	defer fake.isJobBackupOneRestoreAllMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

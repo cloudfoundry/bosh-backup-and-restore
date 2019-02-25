@@ -48,6 +48,30 @@ func NewBoshManifestReleaseMapping(manifest string) (instance.ReleaseMapping, er
 	return ManifestReleaseMapping{manifest: parsedManifest, v2Manifest: v2Manifest}, nil
 }
 
+func (rm ManifestReleaseMapping) IsJobBackupOneRestoreAll(instanceGroupName, jobName string) (bool, error) {
+	var jobPath string
+	if rm.v2Manifest {
+		jobPath = fmt.Sprintf("/instance_groups/name=%s/jobs/name=%s", instanceGroupName, jobName)
+	} else {
+		jobPath = fmt.Sprintf("/jobs/name=%s/templates/name=%s", instanceGroupName, jobName)
+	}
+
+	jobPathPointer, _ := patch.NewPointerFromString(jobPath)
+	_, err := patch.FindOp{Path: jobPathPointer}.Apply(rm.manifest)
+	if err != nil {
+		return false, errors.Wrap(err, fmt.Sprintf("error finding job %s in instance group %s", jobName, instanceGroupName))
+	}
+
+	backupOneRestoreAllPropertyPath := fmt.Sprintf("%s/properties/bbr/backup_one_restore_all", jobPath)
+	backupOneRestoreAllPropertyPointer, _ := patch.NewPointerFromString(backupOneRestoreAllPropertyPath)
+	backupOneRestoreAll, err := patch.FindOp{Path: backupOneRestoreAllPropertyPointer}.Apply(rm.manifest)
+	if err != nil {
+		return false, nil
+	}
+
+	return backupOneRestoreAll.(bool), nil
+}
+
 func isV2Manifest(manifest interface{}) bool {
 	instanceGroupPath := patch.MustNewPointerFromString(fmt.Sprintf("/instance_groups"))
 	_, err := patch.FindOp{Path: instanceGroupPath}.Apply(manifest)
