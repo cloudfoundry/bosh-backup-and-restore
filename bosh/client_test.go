@@ -30,8 +30,8 @@ var _ = Describe("Director", func() {
 	var boshDeployment *boshfakes.FakeDeployment
 	var remoteRunner *sshfakes.FakeRemoteRunner
 	var fakeJobFinder *instancefakes.FakeJobFinder
-	var releaseMappingFinder *instancefakes.FakeReleaseMappingFinder
-	var releaseMapping *instancefakes.FakeReleaseMapping
+	var manifestQuerierCreator *instancefakes.FakeManifestQuerierCreator
+	var manifestQuerier *instancefakes.FakeManifestQuerier
 
 	var deploymentName = "kubernetes"
 
@@ -43,7 +43,7 @@ var _ = Describe("Director", func() {
 	var b bosh.BoshClient
 
 	JustBeforeEach(func() {
-		b = bosh.NewClient(boshDirector, optsGenerator.Spy, remoteRunnerFactory.Spy, boshLogger, fakeJobFinder, releaseMappingFinder.Spy)
+		b = bosh.NewClient(boshDirector, optsGenerator.Spy, remoteRunnerFactory.Spy, boshLogger, fakeJobFinder, manifestQuerierCreator.Spy)
 	})
 
 	BeforeEach(func() {
@@ -53,8 +53,8 @@ var _ = Describe("Director", func() {
 		boshDeployment = new(boshfakes.FakeDeployment)
 		remoteRunner = new(sshfakes.FakeRemoteRunner)
 		fakeJobFinder = new(instancefakes.FakeJobFinder)
-		releaseMappingFinder = new(instancefakes.FakeReleaseMappingFinder)
-		releaseMapping = new(instancefakes.FakeReleaseMapping)
+		manifestQuerierCreator = new(instancefakes.FakeManifestQuerierCreator)
+		manifestQuerier = new(instancefakes.FakeManifestQuerier)
 
 		remoteRunner.IsWindowsReturns(false, nil)
 
@@ -107,7 +107,7 @@ var _ = Describe("Director", func() {
 				}
 				fakeJobFinder.FindJobsReturns(expectedJobs, nil)
 
-				releaseMappingFinder.Returns(releaseMapping, nil)
+				manifestQuerierCreator.Returns(manifestQuerier, nil)
 			})
 
 			It("collects the instances", func() {
@@ -140,14 +140,14 @@ var _ = Describe("Director", func() {
 				Expect(optsGenerator.CallCount()).To(Equal(1))
 			})
 
-			It("generates a release mapping with the finder", func() {
-				Expect(releaseMappingFinder.CallCount()).To(Equal(1))
+			It("generates a manifest querier with the creator", func() {
+				Expect(manifestQuerierCreator.CallCount()).To(Equal(1))
 			})
 
 			It("finds the jobs with the job finder", func() {
 				Expect(fakeJobFinder.FindJobsCallCount()).To(Equal(1))
-				_, _, releaseMapper := fakeJobFinder.FindJobsArgsForCall(0)
-				Expect(releaseMapper).To(Equal(releaseMapper))
+				_, _, manifestQuerier := fakeJobFinder.FindJobsArgsForCall(0)
+				Expect(manifestQuerier).To(Equal(manifestQuerier))
 			})
 
 			It("sets up ssh for each group found", func() {
@@ -244,7 +244,7 @@ var _ = Describe("Director", func() {
 						instance.Metadata{},
 					),
 				}
-				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
+				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, manifestQuerier instance.ManifestQuerier) (orchestrator.Jobs, error) {
 					if instanceIdentifier.InstanceId == "id1" {
 						return instance0Jobs, nil
 					} else {
@@ -252,7 +252,7 @@ var _ = Describe("Director", func() {
 					}
 				}
 
-				releaseMappingFinder.Returns(releaseMapping, nil)
+				manifestQuerierCreator.Returns(manifestQuerier, nil)
 			})
 
 			It("collects the instances", func() {
@@ -296,8 +296,8 @@ var _ = Describe("Director", func() {
 				Expect(optsGenerator.CallCount()).To(Equal(1))
 			})
 
-			It("generates a release mapping with the finder", func() {
-				Expect(releaseMappingFinder.CallCount()).To(Equal(1))
+			It("generates a manifest querier with the creator", func() {
+				Expect(manifestQuerierCreator.CallCount()).To(Equal(1))
 			})
 
 			It("sets up ssh for each group found", func() {
@@ -376,7 +376,7 @@ var _ = Describe("Director", func() {
 					),
 				}
 
-				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
+				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, manifestQuerier instance.ManifestQuerier) (orchestrator.Jobs, error) {
 					if instanceIdentifier.InstanceId == "linux1" {
 						return instance0Jobs, nil
 					} else {
@@ -384,7 +384,7 @@ var _ = Describe("Director", func() {
 					}
 				}
 
-				releaseMappingFinder.Returns(releaseMapping, nil)
+				manifestQuerierCreator.Returns(manifestQuerier, nil)
 			})
 
 			It("collects the instances", func() {
@@ -476,7 +476,7 @@ var _ = Describe("Director", func() {
 				}
 				remoteRunnerFactory.Returns(remoteRunner, nil)
 				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier,
-					remoteRunner ssh.RemoteRunner, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
+					remoteRunner ssh.RemoteRunner, manifestQuerier instance.ManifestQuerier) (orchestrator.Jobs, error) {
 					if instanceIdentifier.InstanceGroupName == "job2" {
 						return []orchestrator.Job{
 							instance.NewJob(remoteRunner, "", boshLogger, "",
@@ -488,7 +488,7 @@ var _ = Describe("Director", func() {
 
 					return []orchestrator.Job{}, nil
 				}
-				releaseMappingFinder.Returns(releaseMapping, nil)
+				manifestQuerierCreator.Returns(manifestQuerier, nil)
 			})
 
 			It("collects the instances", func() {
@@ -553,8 +553,8 @@ var _ = Describe("Director", func() {
 				Expect(optsGenerator.CallCount()).To(Equal(1))
 			})
 
-			It("generates a release mapping with the finder", func() {
-				Expect(releaseMappingFinder.CallCount()).To(Equal(1))
+			It("generates a manifest querier with the finder", func() {
+				Expect(manifestQuerierCreator.CallCount()).To(Equal(1))
 			})
 
 			It("sets up ssh for each group found", func() {
@@ -597,20 +597,20 @@ var _ = Describe("Director", func() {
 			It("for each remote runner, it finds the jobs with the job finder", func() {
 				Expect(fakeJobFinder.FindJobsCallCount()).To(Equal(3))
 
-				actualInstanceIdentifier, actualRemoteRunner, actualReleaseMapping := fakeJobFinder.FindJobsArgsForCall(0)
+				actualInstanceIdentifier, actualRemoteRunner, actualManifestQuerier := fakeJobFinder.FindJobsArgsForCall(0)
 				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id1"}))
 				Expect(actualRemoteRunner).To(Equal(remoteRunner))
-				Expect(actualReleaseMapping).To(Equal(releaseMapping))
+				Expect(actualManifestQuerier).To(Equal(manifestQuerier))
 
-				actualInstanceIdentifier, actualRemoteRunner, actualReleaseMapping = fakeJobFinder.FindJobsArgsForCall(1)
+				actualInstanceIdentifier, actualRemoteRunner, actualManifestQuerier = fakeJobFinder.FindJobsArgsForCall(1)
 				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id3"}))
 				Expect(actualRemoteRunner).To(Equal(remoteRunner))
-				Expect(actualReleaseMapping).To(Equal(releaseMapping))
+				Expect(actualManifestQuerier).To(Equal(manifestQuerier))
 
-				actualInstanceIdentifier, actualRemoteRunner, actualReleaseMapping = fakeJobFinder.FindJobsArgsForCall(2)
+				actualInstanceIdentifier, actualRemoteRunner, actualManifestQuerier = fakeJobFinder.FindJobsArgsForCall(2)
 				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id4"}))
 				Expect(actualRemoteRunner).To(Equal(remoteRunner))
-				Expect(actualReleaseMapping).To(Equal(releaseMapping))
+				Expect(actualManifestQuerier).To(Equal(manifestQuerier))
 			})
 		})
 

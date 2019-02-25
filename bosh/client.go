@@ -25,14 +25,14 @@ func NewClient(boshDirector director.Director,
 	remoteRunnerFactory ssh.RemoteRunnerFactory,
 	logger Logger,
 	jobFinder instance.JobFinder,
-	releaseMappingFinder instance.ReleaseMappingFinder) Client {
+	manifestQuerierCreator instance.ManifestQuerierCreator) Client {
 	return Client{
-		Director:             boshDirector,
-		SSHOptsGenerator:     sshOptsGenerator,
-		RemoteRunnerFactory:  remoteRunnerFactory,
-		Logger:               logger,
-		jobFinder:            jobFinder,
-		releaseMappingFinder: releaseMappingFinder,
+		Director:               boshDirector,
+		SSHOptsGenerator:       sshOptsGenerator,
+		RemoteRunnerFactory:    remoteRunnerFactory,
+		Logger:                 logger,
+		jobFinder:              jobFinder,
+		manifestQuerierCreator: manifestQuerierCreator,
 	}
 }
 
@@ -41,8 +41,8 @@ type Client struct {
 	ssh.SSHOptsGenerator
 	ssh.RemoteRunnerFactory
 	Logger
-	jobFinder            instance.JobFinder
-	releaseMappingFinder instance.ReleaseMappingFinder
+	jobFinder              instance.JobFinder
+	manifestQuerierCreator instance.ManifestQuerierCreator
 }
 
 //go:generate counterfeiter -o fakes/fake_logger.go . Logger
@@ -78,9 +78,9 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 		return nil, errors.Wrap(err, "couldn't find manifest for deployment "+deploymentName)
 	}
 
-	releaseMapping, err := c.releaseMappingFinder(manifest)
+	manifestQuerier, err := c.manifestQuerierCreator(manifest)
 	if err != nil {
-		return nil, errors.Wrap(err, "couldn't generate release mapping for deployment "+deploymentName)
+		return nil, errors.Wrap(err, "couldn't generate manifest querier for deployment "+deploymentName)
 	}
 
 	for _, instanceGroupName := range uniqueInstanceGroupNamesFromVMs(vms) {
@@ -129,7 +129,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 				continue
 			}
 
-			jobs, err := c.jobFinder.FindJobs(instanceIdentifier, remoteRunner, releaseMapping)
+			jobs, err := c.jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier)
 			if err != nil {
 				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
 				return nil, errors.Wrap(err, "couldn't find jobs")

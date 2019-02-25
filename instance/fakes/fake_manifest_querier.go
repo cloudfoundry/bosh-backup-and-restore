@@ -7,7 +7,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 )
 
-type FakeReleaseMapping struct {
+type FakeManifestQuerier struct {
 	FindReleaseNameStub        func(instanceGroupName, jobName string) (string, error)
 	findReleaseNameMutex       sync.RWMutex
 	findReleaseNameArgsForCall []struct {
@@ -40,7 +40,7 @@ type FakeReleaseMapping struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeReleaseMapping) FindReleaseName(instanceGroupName string, jobName string) (string, error) {
+func (fake *FakeManifestQuerier) FindReleaseName(instanceGroupName string, jobName string) (string, error) {
 	fake.findReleaseNameMutex.Lock()
 	ret, specificReturn := fake.findReleaseNameReturnsOnCall[len(fake.findReleaseNameArgsForCall)]
 	fake.findReleaseNameArgsForCall = append(fake.findReleaseNameArgsForCall, struct {
@@ -58,19 +58,19 @@ func (fake *FakeReleaseMapping) FindReleaseName(instanceGroupName string, jobNam
 	return fake.findReleaseNameReturns.result1, fake.findReleaseNameReturns.result2
 }
 
-func (fake *FakeReleaseMapping) FindReleaseNameCallCount() int {
+func (fake *FakeManifestQuerier) FindReleaseNameCallCount() int {
 	fake.findReleaseNameMutex.RLock()
 	defer fake.findReleaseNameMutex.RUnlock()
 	return len(fake.findReleaseNameArgsForCall)
 }
 
-func (fake *FakeReleaseMapping) FindReleaseNameArgsForCall(i int) (string, string) {
+func (fake *FakeManifestQuerier) FindReleaseNameArgsForCall(i int) (string, string) {
 	fake.findReleaseNameMutex.RLock()
 	defer fake.findReleaseNameMutex.RUnlock()
 	return fake.findReleaseNameArgsForCall[i].instanceGroupName, fake.findReleaseNameArgsForCall[i].jobName
 }
 
-func (fake *FakeReleaseMapping) FindReleaseNameReturns(result1 string, result2 error) {
+func (fake *FakeManifestQuerier) FindReleaseNameReturns(result1 string, result2 error) {
 	fake.FindReleaseNameStub = nil
 	fake.findReleaseNameReturns = struct {
 		result1 string
@@ -78,7 +78,7 @@ func (fake *FakeReleaseMapping) FindReleaseNameReturns(result1 string, result2 e
 	}{result1, result2}
 }
 
-func (fake *FakeReleaseMapping) FindReleaseNameReturnsOnCall(i int, result1 string, result2 error) {
+func (fake *FakeManifestQuerier) FindReleaseNameReturnsOnCall(i int, result1 string, result2 error) {
 	fake.FindReleaseNameStub = nil
 	if fake.findReleaseNameReturnsOnCall == nil {
 		fake.findReleaseNameReturnsOnCall = make(map[int]struct {
@@ -92,7 +92,7 @@ func (fake *FakeReleaseMapping) FindReleaseNameReturnsOnCall(i int, result1 stri
 	}{result1, result2}
 }
 
-func (fake *FakeReleaseMapping) IsJobBackupOneRestoreAll(instanceGroupName string, jobName string) (bool, error) {
+func (fake *FakeManifestQuerier) IsJobBackupOneRestoreAll(instanceGroupName string, jobName string) (bool, error) {
 	fake.isJobBackupOneRestoreAllMutex.Lock()
 	ret, specificReturn := fake.isJobBackupOneRestoreAllReturnsOnCall[len(fake.isJobBackupOneRestoreAllArgsForCall)]
 	fake.isJobBackupOneRestoreAllArgsForCall = append(fake.isJobBackupOneRestoreAllArgsForCall, struct {
@@ -110,19 +110,19 @@ func (fake *FakeReleaseMapping) IsJobBackupOneRestoreAll(instanceGroupName strin
 	return fake.isJobBackupOneRestoreAllReturns.result1, fake.isJobBackupOneRestoreAllReturns.result2
 }
 
-func (fake *FakeReleaseMapping) IsJobBackupOneRestoreAllCallCount() int {
+func (fake *FakeManifestQuerier) IsJobBackupOneRestoreAllCallCount() int {
 	fake.isJobBackupOneRestoreAllMutex.RLock()
 	defer fake.isJobBackupOneRestoreAllMutex.RUnlock()
 	return len(fake.isJobBackupOneRestoreAllArgsForCall)
 }
 
-func (fake *FakeReleaseMapping) IsJobBackupOneRestoreAllArgsForCall(i int) (string, string) {
+func (fake *FakeManifestQuerier) IsJobBackupOneRestoreAllArgsForCall(i int) (string, string) {
 	fake.isJobBackupOneRestoreAllMutex.RLock()
 	defer fake.isJobBackupOneRestoreAllMutex.RUnlock()
 	return fake.isJobBackupOneRestoreAllArgsForCall[i].instanceGroupName, fake.isJobBackupOneRestoreAllArgsForCall[i].jobName
 }
 
-func (fake *FakeReleaseMapping) IsJobBackupOneRestoreAllReturns(result1 bool, result2 error) {
+func (fake *FakeManifestQuerier) IsJobBackupOneRestoreAllReturns(result1 bool, result2 error) {
 	fake.IsJobBackupOneRestoreAllStub = nil
 	fake.isJobBackupOneRestoreAllReturns = struct {
 		result1 bool
@@ -130,7 +130,7 @@ func (fake *FakeReleaseMapping) IsJobBackupOneRestoreAllReturns(result1 bool, re
 	}{result1, result2}
 }
 
-func (fake *FakeReleaseMapping) IsJobBackupOneRestoreAllReturnsOnCall(i int, result1 bool, result2 error) {
+func (fake *FakeManifestQuerier) IsJobBackupOneRestoreAllReturnsOnCall(i int, result1 bool, result2 error) {
 	fake.IsJobBackupOneRestoreAllStub = nil
 	if fake.isJobBackupOneRestoreAllReturnsOnCall == nil {
 		fake.isJobBackupOneRestoreAllReturnsOnCall = make(map[int]struct {
@@ -144,7 +144,7 @@ func (fake *FakeReleaseMapping) IsJobBackupOneRestoreAllReturnsOnCall(i int, res
 	}{result1, result2}
 }
 
-func (fake *FakeReleaseMapping) Invocations() map[string][][]interface{} {
+func (fake *FakeManifestQuerier) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.findReleaseNameMutex.RLock()
@@ -158,7 +158,7 @@ func (fake *FakeReleaseMapping) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeReleaseMapping) recordInvocation(key string, args []interface{}) {
+func (fake *FakeManifestQuerier) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -170,4 +170,4 @@ func (fake *FakeReleaseMapping) recordInvocation(key string, args []interface{})
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ instance.ReleaseMapping = new(FakeReleaseMapping)
+var _ instance.ManifestQuerier = new(FakeManifestQuerier)

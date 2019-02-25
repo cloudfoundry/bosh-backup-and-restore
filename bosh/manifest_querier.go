@@ -2,21 +2,20 @@ package bosh
 
 import (
 	"fmt"
-
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cppforlife/go-patch/patch"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v1"
 )
 
-type ManifestReleaseMapping struct {
+type BoshManifestQuerier struct {
 	manifest   interface{}
 	v2Manifest bool
 }
 
-func (rm ManifestReleaseMapping) FindReleaseName(instanceGroupName, jobName string) (string, error) {
+func (mq BoshManifestQuerier) FindReleaseName(instanceGroupName, jobName string) (string, error) {
 	var releasePath string
-	if rm.v2Manifest {
+	if mq.v2Manifest {
 		releasePath = fmt.Sprintf("/instance_groups/name=%s/jobs/name=%s/release", instanceGroupName, jobName)
 	} else {
 		releasePath = fmt.Sprintf("/jobs/name=%s/templates/name=%s/release", instanceGroupName, jobName)
@@ -27,7 +26,7 @@ func (rm ManifestReleaseMapping) FindReleaseName(instanceGroupName, jobName stri
 		return "", errors.Wrap(err, fmt.Sprintf("error finding release name for job %s in instance group %s", jobName, instanceGroupName))
 	}
 
-	release, err := patch.FindOp{Path: releasePointer}.Apply(rm.manifest)
+	release, err := patch.FindOp{Path: releasePointer}.Apply(mq.manifest)
 	if err != nil {
 		return "", errors.Wrap(err, fmt.Sprintf("error finding release name for job %s in instance group %s", jobName, instanceGroupName))
 	}
@@ -35,7 +34,7 @@ func (rm ManifestReleaseMapping) FindReleaseName(instanceGroupName, jobName stri
 	return release.(string), nil
 }
 
-func NewBoshManifestReleaseMapping(manifest string) (instance.ReleaseMapping, error) {
+func NewBoshManifestQuerier(manifest string) (instance.ManifestQuerier, error) {
 	var parsedManifest interface{}
 
 	err := yaml.Unmarshal([]byte(manifest), &parsedManifest)
@@ -45,26 +44,26 @@ func NewBoshManifestReleaseMapping(manifest string) (instance.ReleaseMapping, er
 
 	v2Manifest := isV2Manifest(parsedManifest)
 
-	return ManifestReleaseMapping{manifest: parsedManifest, v2Manifest: v2Manifest}, nil
+	return BoshManifestQuerier{manifest: parsedManifest, v2Manifest: v2Manifest}, nil
 }
 
-func (rm ManifestReleaseMapping) IsJobBackupOneRestoreAll(instanceGroupName, jobName string) (bool, error) {
+func (mq BoshManifestQuerier) IsJobBackupOneRestoreAll(instanceGroupName, jobName string) (bool, error) {
 	var jobPath string
-	if rm.v2Manifest {
+	if mq.v2Manifest {
 		jobPath = fmt.Sprintf("/instance_groups/name=%s/jobs/name=%s", instanceGroupName, jobName)
 	} else {
 		jobPath = fmt.Sprintf("/jobs/name=%s/templates/name=%s", instanceGroupName, jobName)
 	}
 
 	jobPathPointer, _ := patch.NewPointerFromString(jobPath)
-	_, err := patch.FindOp{Path: jobPathPointer}.Apply(rm.manifest)
+	_, err := patch.FindOp{Path: jobPathPointer}.Apply(mq.manifest)
 	if err != nil {
 		return false, errors.Wrap(err, fmt.Sprintf("error finding job %s in instance group %s", jobName, instanceGroupName))
 	}
 
 	backupOneRestoreAllPropertyPath := fmt.Sprintf("%s/properties/bbr/backup_one_restore_all", jobPath)
 	backupOneRestoreAllPropertyPointer, _ := patch.NewPointerFromString(backupOneRestoreAllPropertyPath)
-	backupOneRestoreAll, err := patch.FindOp{Path: backupOneRestoreAllPropertyPointer}.Apply(rm.manifest)
+	backupOneRestoreAll, err := patch.FindOp{Path: backupOneRestoreAllPropertyPointer}.Apply(mq.manifest)
 	if err != nil {
 		return false, nil
 	}

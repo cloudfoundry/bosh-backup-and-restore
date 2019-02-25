@@ -10,12 +10,12 @@ import (
 )
 
 type FakeJobFinder struct {
-	FindJobsStub        func(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error)
+	FindJobsStub        func(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, manifestQuerier instance.ManifestQuerier) (orchestrator.Jobs, error)
 	findJobsMutex       sync.RWMutex
 	findJobsArgsForCall []struct {
 		instanceIdentifier instance.InstanceIdentifier
 		remoteRunner       ssh.RemoteRunner
-		releaseMapping     instance.ReleaseMapping
+		manifestQuerier    instance.ManifestQuerier
 	}
 	findJobsReturns struct {
 		result1 orchestrator.Jobs
@@ -29,18 +29,18 @@ type FakeJobFinder struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeJobFinder) FindJobs(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, releaseMapping instance.ReleaseMapping) (orchestrator.Jobs, error) {
+func (fake *FakeJobFinder) FindJobs(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, manifestQuerier instance.ManifestQuerier) (orchestrator.Jobs, error) {
 	fake.findJobsMutex.Lock()
 	ret, specificReturn := fake.findJobsReturnsOnCall[len(fake.findJobsArgsForCall)]
 	fake.findJobsArgsForCall = append(fake.findJobsArgsForCall, struct {
 		instanceIdentifier instance.InstanceIdentifier
 		remoteRunner       ssh.RemoteRunner
-		releaseMapping     instance.ReleaseMapping
-	}{instanceIdentifier, remoteRunner, releaseMapping})
-	fake.recordInvocation("FindJobs", []interface{}{instanceIdentifier, remoteRunner, releaseMapping})
+		manifestQuerier    instance.ManifestQuerier
+	}{instanceIdentifier, remoteRunner, manifestQuerier})
+	fake.recordInvocation("FindJobs", []interface{}{instanceIdentifier, remoteRunner, manifestQuerier})
 	fake.findJobsMutex.Unlock()
 	if fake.FindJobsStub != nil {
-		return fake.FindJobsStub(instanceIdentifier, remoteRunner, releaseMapping)
+		return fake.FindJobsStub(instanceIdentifier, remoteRunner, manifestQuerier)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -54,10 +54,10 @@ func (fake *FakeJobFinder) FindJobsCallCount() int {
 	return len(fake.findJobsArgsForCall)
 }
 
-func (fake *FakeJobFinder) FindJobsArgsForCall(i int) (instance.InstanceIdentifier, ssh.RemoteRunner, instance.ReleaseMapping) {
+func (fake *FakeJobFinder) FindJobsArgsForCall(i int) (instance.InstanceIdentifier, ssh.RemoteRunner, instance.ManifestQuerier) {
 	fake.findJobsMutex.RLock()
 	defer fake.findJobsMutex.RUnlock()
-	return fake.findJobsArgsForCall[i].instanceIdentifier, fake.findJobsArgsForCall[i].remoteRunner, fake.findJobsArgsForCall[i].releaseMapping
+	return fake.findJobsArgsForCall[i].instanceIdentifier, fake.findJobsArgsForCall[i].remoteRunner, fake.findJobsArgsForCall[i].manifestQuerier
 }
 
 func (fake *FakeJobFinder) FindJobsReturns(result1 orchestrator.Jobs, result2 error) {

@@ -20,7 +20,7 @@ func (i InstanceIdentifier) String() string {
 
 //go:generate counterfeiter -o fakes/fake_job_finder.go . JobFinder
 type JobFinder interface {
-	FindJobs(instanceIdentifier InstanceIdentifier, remoteRunner ssh.RemoteRunner, releaseMapping ReleaseMapping) (orchestrator.Jobs, error)
+	FindJobs(instanceIdentifier InstanceIdentifier, remoteRunner ssh.RemoteRunner, manifestQuerier ManifestQuerier) (orchestrator.Jobs, error)
 }
 
 type JobFinderFromScripts struct {
@@ -46,7 +46,7 @@ func NewJobFinderOmitMetadataReleases(bbrVersion string, logger Logger) *JobFind
 }
 
 func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier, remoteRunner ssh.RemoteRunner,
-	releaseMapping ReleaseMapping) (orchestrator.Jobs, error) {
+	manifestQuerier ManifestQuerier) (orchestrator.Jobs, error) {
 
 	findOutput, err := j.findBBRScripts(instanceIdentifier, remoteRunner)
 	if err != nil {
@@ -69,7 +69,7 @@ func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier, r
 		}
 	}
 
-	return j.buildJobs(remoteRunner, instanceIdentifier, j.Logger, scripts, metadata, releaseMapping)
+	return j.buildJobs(remoteRunner, instanceIdentifier, j.Logger, scripts, metadata, manifestQuerier)
 }
 
 func (j *JobFinderFromScripts) logMetadata(jobMetadata *Metadata, jobName string) {
@@ -123,7 +123,7 @@ func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifie
 func (j *JobFinderFromScripts) buildJobs(remoteRunner ssh.RemoteRunner,
 	instanceIdentifier InstanceIdentifier,
 	logger Logger, scripts BackupAndRestoreScripts,
-	metadata map[string]Metadata, releaseMapping ReleaseMapping) (orchestrator.Jobs, error) {
+	metadata map[string]Metadata, manifestQuerier ManifestQuerier) (orchestrator.Jobs, error) {
 	groupedByJobName := map[string]BackupAndRestoreScripts{}
 	for _, script := range scripts {
 		jobName := script.JobName()
@@ -133,7 +133,7 @@ func (j *JobFinderFromScripts) buildJobs(remoteRunner ssh.RemoteRunner,
 	var jobs orchestrator.Jobs
 
 	for jobName, jobScripts := range groupedByJobName {
-		releaseName, err := releaseMapping.FindReleaseName(instanceIdentifier.InstanceGroupName, jobName)
+		releaseName, err := manifestQuerier.FindReleaseName(instanceIdentifier.InstanceGroupName, jobName)
 		if err != nil {
 			logger.Warn("bbr", "could not find release name for job %s", jobName)
 			releaseName = ""

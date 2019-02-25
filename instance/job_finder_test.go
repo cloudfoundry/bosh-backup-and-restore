@@ -35,7 +35,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 
 	Describe("FindJobs", func() {
 		var remoteRunner *sshfakes.FakeRemoteRunner
-		var releaseMapping *fakes.FakeReleaseMapping
+		var manifestQuerier *fakes.FakeManifestQuerier
 		var jobs orchestrator.Jobs
 		var jobsError error
 
@@ -52,12 +52,12 @@ var _ = Describe("JobFinderFromScripts", func() {
 				"/var/vcap/jobs/consul_agent/bin/bbr/post-restore-unlock"},
 				nil)
 
-			releaseMapping = new(fakes.FakeReleaseMapping)
-			releaseMapping.FindReleaseNameReturns(consulAgentReleaseName, nil)
+			manifestQuerier = new(fakes.FakeManifestQuerier)
+			manifestQuerier.FindReleaseNameReturns(consulAgentReleaseName, nil)
 		})
 
 		JustBeforeEach(func() {
-			jobs, jobsError = jobFinder.FindJobs(instanceIdentifier, remoteRunner, releaseMapping)
+			jobs, jobsError = jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier)
 		})
 
 		It("finds the jobs", func() {
@@ -75,7 +75,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 			})
 
 			By("calling `FindReleaseName` with the right arguments", func() {
-				instanceGroupNameActual, jobNameActual := releaseMapping.FindReleaseNameArgsForCall(0)
+				instanceGroupNameActual, jobNameActual := manifestQuerier.FindReleaseNameArgsForCall(0)
 				Expect(instanceGroupNameActual).To(Equal(instanceIdentifier.InstanceGroupName))
 				Expect(jobNameActual).To(Equal("consul_agent"))
 			})
@@ -154,7 +154,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 
 		Context("when mapping jobs to releases fails", func() {
 			BeforeEach(func() {
-				releaseMapping.FindReleaseNameReturns("", fmt.Errorf("release name mapping failure"))
+				manifestQuerier.FindReleaseNameReturns("", fmt.Errorf("release name mapping failure"))
 			})
 
 			It("does not fail", func() {
