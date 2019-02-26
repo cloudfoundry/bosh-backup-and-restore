@@ -3,6 +3,7 @@ package deployment
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
@@ -75,26 +76,49 @@ func AppendBuilders(arrayOfArrayOfBuilders ...[]mockhttp.MockedResponseBuilder) 
 }
 
 func SetupSSH(deploymentName, instanceGroup, instanceID string, instanceIndex int, instance *testcluster.Instance) []mockhttp.MockedResponseBuilder {
+	vmOutput := mockbosh.VMsOutput{
+		ID:    instanceID,
+		Index: &instanceIndex,
+	}
+
+	return SetupSSHForAllInstances(
+		deploymentName,
+		instanceGroup,
+		[]mockbosh.VMsOutput{vmOutput},
+		[]*testcluster.Instance{instance},
+	)
+}
+
+func SetupSSHForAllInstances(deploymentName string, instanceGroup string, vmsOutputs []mockbosh.VMsOutput, instances []*testcluster.Instance) []mockhttp.MockedResponseBuilder {
 	randomTaskID := generateTaskId()
+
+	buildResponse := func() string {
+		var response []string
+		for i, vm := range vmsOutputs {
+			response = append(response, fmt.Sprintf(`{"status":"success",
+"ip":"%s",
+"host_public_key":"%s",
+"id":"%s",
+"index":%d}`,
+				instances[i].Address(),
+				instances[i].HostPublicKey(),
+				vm.ID,
+				vm.Index,
+			))
+		}
+		return fmt.Sprintf("[%s]", strings.Join(response, ","))
+	}
+
 	return []mockhttp.MockedResponseBuilder{
 		mockbosh.StartSSHSession(deploymentName).SetSSHResponseCallback(func(username, key string) {
-			instance.CreateUser(username, key)
+			for _, instance := range instances {
+				instance.CreateUser(username, key)
+			}
 		}).ForInstanceGroup(instanceGroup).RedirectsToTask(randomTaskID),
 		mockbosh.Task(randomTaskID).RespondsWithTaskContainingState(mockbosh.TaskDone),
 		mockbosh.Task(randomTaskID).RespondsWithTaskContainingState(mockbosh.TaskDone),
 		mockbosh.TaskEvent(randomTaskID).RespondsWith("{}"),
-		mockbosh.TaskOutput(randomTaskID).RespondsWith(
-			fmt.Sprintf(`[{"status":"success",
-"ip":"%s",
-"host_public_key":"%s",
-"id":"%s",
-"index":%d}]`,
-				instance.Address(),
-				instance.HostPublicKey(),
-				instanceID,
-				instanceIndex,
-			),
-		),
+		mockbosh.TaskOutput(randomTaskID).RespondsWith(buildResponse()),
 	}
 }
 

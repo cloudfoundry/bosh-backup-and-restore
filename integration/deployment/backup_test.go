@@ -1230,6 +1230,116 @@ backup_name: name_2
 				})
 			})
 		})
+
+		Context("and there is a job property 'backup_one_restore_all' set to true", func() {
+			var (
+				redisBBRGeneratedArtifactFile                 string
+				redisDefaultNonBootstrapArtifactFile          string
+				firstReturnedInstance, secondReturnedInstance *testcluster.Instance
+			)
+
+			BeforeEach(func() {
+				manifest := `---
+instance_groups:
+- name: redis-dedicated-node
+  instances: 2
+  jobs:
+  - name: redis-dedicated-node
+    release: redis
+    properties:
+      bbr:
+        backup_one_restore_all: true
+  - name: redis-writer
+    release: redis
+  - name: redis-broker
+    release: redis
+`
+				deploymentName = "my-bigger-deployment"
+				firstReturnedInstance = testcluster.NewInstance()
+				secondReturnedInstance = testcluster.NewInstance()
+
+				twoInstancesInSameGroupResponse := func(instanceGroupName string) []mockbosh.VMsOutput {
+					return []mockbosh.VMsOutput{
+						{
+							IPs:       []string{firstReturnedInstance.Address()},
+							JobName:   instanceGroupName,
+							Index:     newIndex(0),
+							ID:        "fake-uuid-0",
+							Bootstrap: true,
+						},
+						{
+							IPs:     []string{secondReturnedInstance.Address()},
+							JobName: instanceGroupName,
+							Index:   newIndex(1),
+							ID:      "fake-uuid-1",
+						},
+					}
+				}
+
+				MockDirectorWith(director,
+					mockbosh.Info().WithAuthTypeBasic(),
+					VmsForDeployment(deploymentName, twoInstancesInSameGroupResponse("redis-dedicated-node")),
+					DownloadManifest(deploymentName, manifest),
+					SetupSSHForAllInstances(deploymentName, "redis-dedicated-node", twoInstancesInSameGroupResponse("redis-dedicated-node"), []*testcluster.Instance{
+						firstReturnedInstance, secondReturnedInstance,
+					}),
+					append(
+						CleanupSSH(deploymentName, "redis-dedicated-node"),
+						CleanupSSH(deploymentName, "redis-dedicated-node")...),
+				)
+				firstReturnedInstance.CreateScript("/var/vcap/jobs/redis-dedicated-node/bin/bbr/backup", `#!/usr/bin/env sh
+
+set -u
+touch /tmp/bootstrapped-backup-script-was-run
+printf "bootstrap-backupdump-contents" > $BBR_ARTIFACT_DIRECTORY/bootstrap-backupdump
+`)
+				secondReturnedInstance.CreateScript("/var/vcap/jobs/redis-dedicated-node/bin/bbr/backup", `#!/usr/bin/env sh
+
+set -u
+touch /tmp/backup-script-was-run
+`)
+			})
+
+			JustBeforeEach(func() {
+				redisBBRGeneratedArtifactFile = path.Join(backupDirectory(), "/redis-dedicated-node-redis-backup-one-restore-all.tar")
+				redisDefaultNonBootstrapArtifactFile = path.Join(backupDirectory(), "/redis-dedicated-node-1-redis-dedicated-node.tar")
+			})
+
+			It("creates a named artifact", func() {
+				By("running the backup scripts", func() {
+					Expect(firstReturnedInstance.FileExists("/tmp/bootstrapped-backup-script-was-run")).To(BeTrue())
+					Expect(secondReturnedInstance.FileExists("/tmp/backup-script-was-run")).To(BeTrue())
+				})
+
+				By("creating a deterministically-named backup artifact", func() {
+					archive := OpenTarArchive(redisBBRGeneratedArtifactFile)
+
+					Expect(archive.Files()).To(ConsistOf("bootstrap-backupdump"))
+					Expect(archive.FileContents("bootstrap-backupdump")).To(Equal("bootstrap-backupdump-contents"))
+				})
+
+				By("creating an empty artifact with the default name for the non bootstrap node", func() {
+					Expect(redisDefaultNonBootstrapArtifactFile).To(BeARegularFile())
+
+					archive := OpenTarArchive(redisDefaultNonBootstrapArtifactFile)
+
+					Expect(archive.Files()).To(BeEmpty())
+				})
+
+				By("recording the artifact as a custom artifact in the backup metadata", func() {
+					metadataContents := ParseMetadata(metadataFile())
+
+					currentTimezone, _ := time.Now().Zone()
+					Expect(metadataContents.BackupActivityMetadata.StartTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
+					Expect(metadataContents.BackupActivityMetadata.FinishTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
+
+					Expect(metadataContents.CustomArtifactsMetadata).To(HaveLen(1))
+					Expect(metadataContents.CustomArtifactsMetadata[0].Name).To(Equal("redis-dedicated-node-redis-backup-one-restore-all"))
+					Expect(metadataContents.CustomArtifactsMetadata[0].Checksums).To(HaveLen(1))
+					Expect(metadataContents.CustomArtifactsMetadata[0].Checksums["./bootstrap-backupdump"]).To(Equal(ShaFor("bootstrap-backupdump-contents")))
+				})
+			})
+		})
 	})
 
 	Context("When deployment does not exist", func() {
