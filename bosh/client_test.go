@@ -92,7 +92,7 @@ var _ = Describe("Director", func() {
 				boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
 					{
 						Username:      "username",
-						Host:          "hostname",
+						Host:          "10.0.0.0",
 						IndexOrID:     "jobID",
 						HostPublicKey: hostsPublicKey,
 					},
@@ -170,7 +170,7 @@ var _ = Describe("Director", func() {
 			It("creates a remote runner for each host", func() {
 				Expect(remoteRunnerFactory.CallCount()).To(Equal(1))
 				host, username, privateKey, _, hostPublicKeyAlgorithm, logger := remoteRunnerFactory.ArgsForCall(0)
-				Expect(host).To(Equal("hostname"))
+				Expect(host).To(Equal("10.0.0.0"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
 				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithm))
@@ -189,7 +189,7 @@ var _ = Describe("Director", func() {
 				boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
 					{
 						Username:      "username",
-						Host:          "hostname:3457",
+						Host:          "10.0.0.0:3457",
 						IndexOrID:     "index",
 						HostPublicKey: hostsPublicKey,
 					},
@@ -200,7 +200,7 @@ var _ = Describe("Director", func() {
 			It("uses the specified port", func() {
 				Expect(remoteRunnerFactory.CallCount()).To(Equal(1))
 				host, username, privateKey, _, hostPublicKeyAlgorithm, logger := remoteRunnerFactory.ArgsForCall(0)
-				Expect(host).To(Equal("hostname:3457"))
+				Expect(host).To(Equal("10.0.0.0:3457"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
 				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithm))
@@ -228,13 +228,13 @@ var _ = Describe("Director", func() {
 				boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
 					{
 						Username:      "username",
-						Host:          "hostname1",
+						Host:          "10.0.0.1",
 						IndexOrID:     "id1",
 						HostPublicKey: hostsPublicKey,
 					},
 					{
 						Username:      "username",
-						Host:          "hostname2",
+						Host:          "10.0.0.2",
 						IndexOrID:     "id2",
 						HostPublicKey: hostsPublicKey,
 					},
@@ -333,14 +333,14 @@ var _ = Describe("Director", func() {
 				Expect(remoteRunnerFactory.CallCount()).To(Equal(2))
 
 				host, username, privateKey, _, hostPublicKeyAlgorithm, logger := remoteRunnerFactory.ArgsForCall(0)
-				Expect(host).To(Equal("hostname1"))
+				Expect(host).To(Equal("10.0.0.1"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
 				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithm))
 				Expect(logger).To(Equal(boshLogger))
 
 				host, username, privateKey, _, hostPublicKeyAlgorithm, logger = remoteRunnerFactory.ArgsForCall(1)
-				Expect(host).To(Equal("hostname2"))
+				Expect(host).To(Equal("10.0.0.2"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
 				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithm))
@@ -373,13 +373,13 @@ var _ = Describe("Director", func() {
 				boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
 					{
 						Username:      "username",
-						Host:          "hostname1",
+						Host:          "10.0.0.1",
 						IndexOrID:     "linux1",
 						HostPublicKey: hostsPublicKey,
 					},
 					{
 						Username:      "username",
-						Host:          "hostname2",
+						Host:          "10.0.0.2",
 						IndexOrID:     "windows2",
 						HostPublicKey: hostsPublicKey,
 					},
@@ -473,13 +473,13 @@ var _ = Describe("Director", func() {
 						return director.SSHResult{Hosts: []director.Host{
 							{
 								Username:      "username",
-								Host:          "hostname1",
+								Host:          "10.0.0.1",
 								IndexOrID:     "id1",
 								HostPublicKey: hostsPublicKey,
 							},
 							{
 								Username:      "username",
-								Host:          "hostname2",
+								Host:          "10.0.0.2",
 								IndexOrID:     "id2",
 								HostPublicKey: hostsPublicKey,
 							},
@@ -488,13 +488,13 @@ var _ = Describe("Director", func() {
 						return director.SSHResult{Hosts: []director.Host{
 							{
 								Username:      "username",
-								Host:          "hostname3",
+								Host:          "10.0.0.3",
 								IndexOrID:     "id3",
 								HostPublicKey: hostsPublicKey,
 							},
 							{
 								Username:      "username",
-								Host:          "hostname4",
+								Host:          "10.0.0.4",
 								IndexOrID:     "id4",
 								HostPublicKey: hostsPublicKey,
 							},
@@ -618,21 +618,21 @@ var _ = Describe("Director", func() {
 				Expect(remoteRunnerFactory.CallCount()).To(Equal(3))
 
 				host, username, privateKey, _, hostPublicKeyAlgorithm, logger := remoteRunnerFactory.ArgsForCall(0)
-				Expect(host).To(Equal("hostname1"))
+				Expect(host).To(Equal("10.0.0.1"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
 				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithm))
 				Expect(logger).To(Equal(boshLogger))
 
 				host, username, privateKey, _, hostPublicKeyAlgorithm, logger = remoteRunnerFactory.ArgsForCall(1)
-				Expect(host).To(Equal("hostname3"))
+				Expect(host).To(Equal("10.0.0.3"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
 				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithm))
 				Expect(logger).To(Equal(boshLogger))
 
 				host, username, privateKey, _, hostPublicKeyAlgorithm, logger = remoteRunnerFactory.ArgsForCall(2)
-				Expect(host).To(Equal("hostname4"))
+				Expect(host).To(Equal("10.0.0.4"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
 				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithm))
@@ -707,7 +707,7 @@ var _ = Describe("Director", func() {
 					boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
 						{
 							Username:      "username",
-							Host:          "hostname",
+							Host:          "10.0.0.0",
 							IndexOrID:     "jobID",
 							HostPublicKey: hostsPublicKey,
 						},
@@ -733,7 +733,7 @@ var _ = Describe("Director", func() {
 					boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
 						{
 							Username:      "username",
-							Host:          "hostname",
+							Host:          "10.0.0.0",
 							IndexOrID:     "otherJobID",
 							HostPublicKey: hostsPublicKey,
 						},
@@ -820,7 +820,7 @@ var _ = Describe("Director", func() {
 					boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
 						{
 							Username:      "username",
-							Host:          "hostname",
+							Host:          "10.0.0.0",
 							IndexOrID:     "index",
 							HostPublicKey: hostsPublicKey,
 						},
@@ -874,7 +874,7 @@ var _ = Describe("Director", func() {
 							return director.SSHResult{Hosts: []director.Host{
 								{
 									Username:      "username",
-									Host:          "hostname",
+									Host:          "10.0.0.0",
 									IndexOrID:     "jobID",
 									HostPublicKey: hostsPublicKey,
 								},
@@ -914,7 +914,7 @@ var _ = Describe("Director", func() {
 					boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
 						{
 							Username:      "username",
-							Host:          "hostname",
+							Host:          "10.0.0.0",
 							IndexOrID:     "jobID",
 							HostPublicKey: hostsPublicKey,
 						},
@@ -952,7 +952,7 @@ var _ = Describe("Director", func() {
 						return director.SSHResult{Hosts: []director.Host{
 							{
 								Username:      "username",
-								Host:          "hostname_" + slug.Name(),
+								Host:          "10.0.0.0_" + slug.Name(),
 								IndexOrID:     "jobID",
 								HostPublicKey: hostsPublicKey,
 							},
@@ -960,7 +960,7 @@ var _ = Describe("Director", func() {
 					}
 
 					remoteRunnerFactory.Stub = func(host, user, privateKey string, publicKeyCallback gossh.HostKeyCallback, publicKeyAlgorithm []string, logger ssh.Logger) (ssh.RemoteRunner, error) {
-						if host == "hostname_job1" {
+						if host == "10.0.0.0_job1" {
 							return remoteRunner, nil
 						}
 						return nil, errors.New(expectedError)
@@ -992,7 +992,7 @@ var _ = Describe("Director", func() {
 						return director.SSHResult{Hosts: []director.Host{
 							{
 								Username:      "username",
-								Host:          "hostname_" + slug.Name(),
+								Host:          "10.0.0.0_" + slug.Name(),
 								IndexOrID:     "index",
 								HostPublicKey: hostsPublicKey,
 							},
