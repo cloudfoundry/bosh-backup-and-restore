@@ -447,24 +447,32 @@ var _ = Describe("Director", func() {
 				boshDirector.FindDeploymentReturns(boshDeployment, nil)
 				boshDeployment.VMInfosReturns([]director.VMInfo{
 					{
-						JobName: "job1",
-						ID:      "id1",
-						Index:   newIndex(0),
+						JobName:   "job1",
+						ID:        "id1",
+						Index:     newIndex(0),
+						Bootstrap: true,
+						IPs:       []string{"10.0.0.1"},
 					},
 					{
-						JobName: "job1",
-						ID:      "id2",
-						Index:   newIndex(1),
+						JobName:   "job1",
+						ID:        "id2",
+						Index:     newIndex(1),
+						Bootstrap: false,
+						IPs:       []string{"10.0.0.2"},
 					},
 					{
-						JobName: "job2",
-						ID:      "id3",
-						Index:   newIndex(0),
+						JobName:   "job2",
+						ID:        "id3",
+						Index:     newIndex(0),
+						Bootstrap: true,
+						IPs:       []string{"10.0.0.3"},
 					},
 					{
-						JobName: "job2",
-						ID:      "id4",
-						Index:   newIndex(1),
+						JobName:   "job2",
+						ID:        "id4",
+						Index:     newIndex(1),
+						Bootstrap: false,
+						IPs:       []string{"10.0.0.4"},
 					},
 				}, nil)
 				optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
@@ -643,17 +651,17 @@ var _ = Describe("Director", func() {
 				Expect(fakeJobFinder.FindJobsCallCount()).To(Equal(3))
 
 				actualInstanceIdentifier, actualRemoteRunner, actualManifestQuerier := fakeJobFinder.FindJobsArgsForCall(0)
-				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id1"}))
+				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job1", InstanceId: "id1", Bootstrap: true}))
 				Expect(actualRemoteRunner).To(Equal(remoteRunner))
 				Expect(actualManifestQuerier).To(Equal(manifestQuerier))
 
 				actualInstanceIdentifier, actualRemoteRunner, actualManifestQuerier = fakeJobFinder.FindJobsArgsForCall(1)
-				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id3"}))
+				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id3", Bootstrap: true}))
 				Expect(actualRemoteRunner).To(Equal(remoteRunner))
 				Expect(actualManifestQuerier).To(Equal(manifestQuerier))
 
 				actualInstanceIdentifier, actualRemoteRunner, actualManifestQuerier = fakeJobFinder.FindJobsArgsForCall(2)
-				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id4"}))
+				Expect(actualInstanceIdentifier).To(Equal(instance.InstanceIdentifier{InstanceGroupName: "job2", InstanceId: "id4", Bootstrap: false}))
 				Expect(actualRemoteRunner).To(Equal(remoteRunner))
 				Expect(actualManifestQuerier).To(Equal(manifestQuerier))
 			})

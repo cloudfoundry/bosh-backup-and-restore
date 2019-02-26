@@ -116,7 +116,8 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 				return nil, errors.Wrap(err, "failed to connect using ssh")
 			}
 
-			instanceIdentifier := instance.InstanceIdentifier{InstanceGroupName: instanceGroupName, InstanceId: host.IndexOrID}
+			isBootstrap := isInstanceABootstrapNode(instanceGroupName, host.Host, vms)
+			instanceIdentifier := instance.InstanceIdentifier{InstanceGroupName: instanceGroupName, InstanceId: host.IndexOrID, Bootstrap: isBootstrap}
 
 			isWindows, err := remoteRunner.IsWindows()
 			if err != nil {
@@ -164,12 +165,33 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 	return instances, nil
 }
 
+func isInstanceABootstrapNode(jobName, ip string, vms []director.VMInfo) bool {
+	for _, vm := range vms {
+		if jobName != vm.JobName || !vm.Bootstrap {
+			continue
+		}
+
+		for _, vmIP := range vm.IPs {
+			if ip == vmIP {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 func (c Client) GetManifest(deploymentName string) (string, error) {
 	deployment, err := c.Director.FindDeployment(deploymentName)
 	if err != nil {
 		return "", errors.Wrap(err, "couldn't find deployment "+deploymentName)
 	}
 	return deployment.Manifest()
+}
+
+type JobVMInfo struct {
+	JobName string
+	VMInfo  director.VMInfo
 }
 
 func uniqueInstanceGroupNamesFromVMs(vms []director.VMInfo) []string {
