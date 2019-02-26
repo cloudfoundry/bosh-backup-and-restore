@@ -125,7 +125,7 @@ var _ = Describe("Job", func() {
 					onBootstrapNode = false
 				})
 
-				It("returns a backup artifact name of the form <job>-<release>-backup-one-restore-all", func() {
+				It("returns the default backup artifact name", func() {
 					Expect(job.BackupArtifactName()).To(Equal(""))
 				})
 			})
