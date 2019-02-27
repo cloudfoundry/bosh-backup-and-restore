@@ -994,6 +994,7 @@ custom_artifacts:
 
 		It("fails", func() {
 			Expect(session.ExitCode()).To(Equal(1))
+			Expect(session.Err).To(gbytes.Say("Backup is corrupted"))
 		})
 
 		It("writes the stack trace", func() {
