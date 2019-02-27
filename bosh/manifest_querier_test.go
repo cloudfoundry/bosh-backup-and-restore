@@ -144,9 +144,9 @@ jobs:
   templates:
   - name: redis-server
     release: redis
-    properties:
-      bbr:
-        backup_one_restore_all: false
+  properties:
+    bbr:
+      backup_one_restore_all: true
 `
 
 			manifestQuerier, err := NewBoshManifestQuerier(manifest)
@@ -155,7 +155,7 @@ jobs:
 			backupOneRestoreAll, err := manifestQuerier.IsJobBackupOneRestoreAll("red1", "redis-server")
 			Expect(err).ToNot(HaveOccurred())
 
-			Expect(backupOneRestoreAll).To(BeFalse())
+			Expect(backupOneRestoreAll).To(BeTrue())
 		})
 
 		It("parses a v2 manifest and finds the bbr.backup_one_restore_all property for an instance group and job", func() {
