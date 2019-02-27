@@ -60,13 +60,21 @@ func (j Job) InstanceIdentifier() string {
 
 func (j Job) BackupArtifactName() string {
 	if j.backupOneRestoreAll && j.onBootstrapNode {
-		return fmt.Sprintf("%s-%s-backup-one-restore-all", j.name, j.release)
+		return j.backupOneRestoreAllArtifactName()
 	}
 
 	return j.metadata.BackupName
 }
 
+func (j Job) backupOneRestoreAllArtifactName() string {
+	return fmt.Sprintf("%s-%s-backup-one-restore-all", j.name, j.release)
+}
+
 func (j Job) RestoreArtifactName() string {
+	if j.backupOneRestoreAll {
+		return j.backupOneRestoreAllArtifactName()
+	}
+
 	return j.metadata.RestoreName
 }
 
@@ -95,7 +103,7 @@ func (j Job) HasNamedBackupArtifact() bool {
 }
 
 func (j Job) HasNamedRestoreArtifact() bool {
-	return j.metadata.RestoreName != ""
+	return j.backupOneRestoreAll || j.metadata.RestoreName != ""
 }
 
 func (j Job) Backup() error {

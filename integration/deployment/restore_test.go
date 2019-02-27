@@ -826,6 +826,133 @@ custom_artifacts:
 		})
 	})
 
+	Context("when deployment has named artifacts using backup_one_restore_all", func() {
+		var session *gexec.Session
+		var instance1 *testcluster.Instance
+		var instance2 *testcluster.Instance
+		var deploymentName string
+
+		manifest := `---
+instance_groups:
+- name: redis-dedicated-node
+  instances: 2
+  jobs:
+  - name: redis-dedicated-node
+    release: redis
+    properties:
+      bbr:
+        backup_one_restore_all: true
+  - name: redis-writer
+    release: redis
+  - name: redis-broker
+    release: redis
+`
+
+		BeforeEach(func() {
+			instance1 = testcluster.NewInstance()
+			instance2 = testcluster.NewInstance()
+
+			deploymentName = "my-new-deployment"
+			twoInstancesInSameGroupResponse := func(instanceGroupName string) []mockbosh.VMsOutput {
+				return []mockbosh.VMsOutput{
+					{
+						IPs:       []string{instance1.Address()},
+						JobName:   instanceGroupName,
+						Index:     newIndex(0),
+						ID:        "fake-uuid-0",
+						Bootstrap: true,
+					},
+					{
+						IPs:     []string{instance2.Address()},
+						JobName: instanceGroupName,
+						Index:   newIndex(1),
+						ID:      "fake-uuid-1",
+					},
+				}
+			}
+
+			MockDirectorWith(director,
+				mockbosh.Info().WithAuthTypeBasic(),
+				VmsForDeployment(deploymentName, twoInstancesInSameGroupResponse("redis-dedicated-node")),
+				DownloadManifest(deploymentName, manifest),
+				SetupSSHForAllInstances(deploymentName, "redis-dedicated-node", twoInstancesInSameGroupResponse("redis-dedicated-node"), []*testcluster.Instance{
+					instance1, instance2,
+				}),
+				append(
+					CleanupSSH(deploymentName, "redis-dedicated-node"),
+					CleanupSSH(deploymentName, "redis-dedicated-node")...),
+			)
+			instance1.CreateScript("/var/vcap/jobs/redis-dedicated-node/bin/bbr/restore", `#!/usr/bin/env sh
+set -u
+cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server
+touch /tmp/restore-script-was-run`)
+
+			instance2.CreateScript("/var/vcap/jobs/redis-dedicated-node/bin/bbr/restore", `#!/usr/bin/env sh
+set -u
+cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server
+touch /tmp/restore-script-was-run`)
+
+			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
+instances:
+- name: redis-dedicated-node
+  index: "1"
+  artifacts:
+  - name: redis-dedicated-node
+    checksums: {}
+custom_artifacts:
+- name: redis-dedicated-node-redis-backup-one-restore-all
+  checksums:
+    ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0
+backup_activity:
+  start_time: 2019/02/27 10:10:30 GMT
+  finish_time: 2019/02/27 10:10:30 GMT`))
+
+			backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
+			Expect(err).NotTo(HaveOccurred())
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-redis-backup-one-restore-all.tar", backupContents)
+
+			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-1-redis-dedicated-node.tar", createTarWithContents(map[string]string{}))
+		})
+
+		JustBeforeEach(func() {
+			session = binary.Run(
+				restoreWorkspace,
+				[]string{"BOSH_CLIENT_SECRET=admin", fmt.Sprintf("PATH=%s", os.Getenv("PATH"))},
+				"deployment",
+				"--ca-cert", sslCertPath,
+				"--username", "admin",
+				"--debug",
+				"--target", director.URL,
+				"--deployment", deploymentName,
+				"restore",
+				"--artifact-path", deploymentName)
+		})
+
+		AfterEach(func() {
+			Expect(os.RemoveAll(deploymentName)).To(Succeed())
+			instance1.DieInBackground()
+		})
+
+		It("runs the restore script and cleans up", func() {
+			By("succeeding", func() {
+				Expect(session.ExitCode()).To(Equal(0))
+			})
+
+			By("cleaning up the archive file on the remote", func() {
+				Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
+			})
+
+			By("running the restore script on the remote", func() {
+				Expect(instance1.FileExists("/tmp/restore-script-was-run")).To(BeTrue())
+				Expect(instance1.FileExists("/var/vcap/store/redis-server/redis-backup")).To(BeTrue())
+
+				Expect(instance2.FileExists("/tmp/restore-script-was-run")).To(BeTrue())
+				Expect(instance2.FileExists("/var/vcap/store/redis-server/redis-backup")).To(BeTrue())
+			})
+		})
+	})
+
 	Context("when the backup with named artifacts on disk is corrupted", func() {
 		var session *gexec.Session
 		var deploymentName string

@@ -174,6 +174,16 @@ var _ = Describe("Job", func() {
 	})
 
 	Describe("RestoreArtifactName", func() {
+		Context("the job has the `bbr.backup_one_restore_all` property enabled", func() {
+			BeforeEach(func() {
+				backupOneRestoreAll = true
+			})
+
+			It("returns a restore artifact name of the form <job>-<release>-backup-one-restore-all", func() {
+				Expect(job.RestoreArtifactName()).To(Equal("jobname-redis-backup-one-restore-all"))
+			})
+		})
+
 		Context("the job has a custom backup artifact name", func() {
 			BeforeEach(func() {
 				metadata = instance.Metadata{
@@ -321,6 +331,17 @@ var _ = Describe("Job", func() {
 
 			It("returns false", func() {
 				Expect(job.HasNamedRestoreArtifact()).To(BeFalse())
+			})
+		})
+
+		Context("when the job has a backupAllRestoreOne property set to true", func() {
+			BeforeEach(func() {
+				metadata = instance.Metadata{}
+				backupOneRestoreAll = true
+			})
+
+			It("returns true", func() {
+				Expect(job.HasNamedRestoreArtifact()).To(BeTrue())
 			})
 		})
 	})
