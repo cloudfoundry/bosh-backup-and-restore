@@ -42,6 +42,9 @@ var _ = BeforeSuite(func() {
 
 		By("deploying the Redis with metadata")
 		RedisWithMetadataDeployment.Deploy()
+
+		By("deploying the Redis with backup_one_restore_all property")
+		RedisWithBackupOneRestoreAll.Deploy()
 	}()
 
 	go func() {
@@ -102,6 +105,9 @@ var _ = AfterSuite(func() {
 
 		By("tearing down the other redis release")
 		RedisWithMetadataDeployment.Delete()
+
+		By("tearing down the Redis with backup_one_restore_all property")
+		RedisWithBackupOneRestoreAll.Delete()
 	}()
 
 	go func() {
