@@ -69,6 +69,16 @@ func (jobs Jobs) CustomRestoreArtifactNames() []string {
 	return artifactNames
 }
 
+func (jobs Jobs) HasMetadataRestoreNames() bool {
+	for _, job := range jobs {
+		if job.HasMetadataRestoreName() {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (jobs Jobs) empty() bool {
 	return len(jobs) == 0
 }

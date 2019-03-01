@@ -171,6 +171,26 @@ var _ = Describe("Job", func() {
 		})
 	})
 
+	Describe("HasMetadataRestoreName", func() {
+		Context("when it has RestoreName in metadata", func() {
+			BeforeEach(func() {
+				metadata = instance.Metadata{
+					RestoreName: "some-restore-name",
+				}
+			})
+
+			It("is true", func() {
+				Expect(job.HasMetadataRestoreName()).To(BeTrue())
+			})
+		})
+
+		Context("when it has RestoreName in metadata", func() {
+			It("is false", func() {
+				Expect(job.HasMetadataRestoreName()).To(BeFalse())
+			})
+		})
+	})
+
 	Describe("RestoreArtifactName", func() {
 		Context("the job has the `bbr.backup_one_restore_all` property enabled", func() {
 			BeforeEach(func() {

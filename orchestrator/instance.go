@@ -26,6 +26,7 @@ type Instance interface {
 	ArtifactsToRestore() []BackupArtifact
 	CustomBackupArtifactNames() []string
 	CustomRestoreArtifactNames() []string
+	HasMetadataRestoreNames() bool
 	Jobs() []Job
 }
 
@@ -37,6 +38,7 @@ type Job interface {
 	HasNamedRestoreArtifact() bool
 	BackupArtifactName() string
 	RestoreArtifactName() string
+	HasMetadataRestoreName() bool
 	Backup() error
 	PreBackupLock() error
 	PostBackupUnlock(afterSuccessfulBackup bool) error

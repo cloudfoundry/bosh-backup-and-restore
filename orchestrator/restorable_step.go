@@ -1,20 +1,33 @@
 package orchestrator
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 )
 
 type RestorableStep struct {
 	lockOrderer LockOrderer
+	logger      Logger
 }
 
-func NewRestorableStep(lockOrderer LockOrderer) Step {
+func NewRestorableStep(lockOrderer LockOrderer, logger Logger) Step {
 	return &RestorableStep{
 		lockOrderer: lockOrderer,
+		logger:      logger,
 	}
 }
 
 func (s *RestorableStep) Run(session *Session) error {
+
+	for _, instance := range session.CurrentDeployment().RestorableInstances() {
+		if instance.HasMetadataRestoreNames() {
+			errMsg := fmt.Sprintf("discontinued metadata keys backup_name/restore_name found on instance %s. bbr cannot restore this backup artifact.", instance.Name())
+			s.logger.Error("bbr", errMsg)
+			return errors.New(errMsg)
+		}
+	}
+
 	if !session.CurrentDeployment().IsRestorable() {
 		return errors.Errorf("Deployment '%s' has no restore scripts", session.DeploymentName())
 	}

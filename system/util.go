@@ -7,7 +7,6 @@ import (
 )
 
 var RedisDeployment = DeploymentWithName("redis")
-var RedisWithMetadataDeployment = DeploymentWithName("redis-with-metadata")
 var RedisWithBackupOneRestoreAll = DeploymentWithName("redis-with-backup-one-restore-all")
 var RedisWithMissingScriptDeployment = DeploymentWithName("redis-with-missing-script")
 var JumpboxDeployment = DeploymentWithName("jumpbox")

@@ -58,6 +58,10 @@ func (i *DeployedInstance) CustomRestoreArtifactNames() []string {
 	return i.jobs.CustomRestoreArtifactNames()
 }
 
+func (i *DeployedInstance) HasMetadataRestoreNames() bool {
+	return i.jobs.HasMetadataRestoreNames()
+}
+
 func (i *DeployedInstance) Jobs() []orchestrator.Job {
 	return i.jobs
 }

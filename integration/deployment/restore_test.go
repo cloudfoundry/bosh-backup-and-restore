@@ -744,7 +744,7 @@ restore_should_be_locked_before:
 		})
 	})
 
-	Context("when deployment has named artifacts, with a default artifact", func() {
+	Context("when deployment has named artifacts", func() {
 		var session *gexec.Session
 		var instance1 *testcluster.Instance
 		var deploymentName string
@@ -810,18 +810,19 @@ custom_artifacts:
 		})
 
 		It("runs the restore script and cleans up", func() {
-			By("succeeding", func() {
-				Expect(session.ExitCode()).To(Equal(0))
+			By("fails", func() {
+				Expect(session.ExitCode()).NotTo(Equal(0))
 			})
 
-			By("cleaning up the archive file on the remote", func() {
-				Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
+			By("returning the failure", func() {
+				Expect(session.Out).To(gbytes.Say("ERROR - discontinued metadata keys backup_name/restore_name found on instance redis-dedicated-node. bbr cannot restore this backup artifact."))
+				Expect(session.Err).To(gbytes.Say("discontinued metadata keys backup_name/restore_name found on instance redis-dedicated-node. bbr cannot restore this backup artifact."))
 			})
 
-			By("running the restore script on the remote", func() {
+			By("not running the restore script on the remote", func() {
 				Expect(instance1.FileExists("/var/vcap/store/redis-server" +
-					"/redis-backup")).To(BeTrue())
-				Expect(instance1.FileExists("/tmp/restore-script-was-run")).To(BeTrue())
+					"/redis-backup")).To(BeFalse())
+				Expect(instance1.FileExists("/tmp/restore-script-was-run")).To(BeFalse())
 			})
 		})
 	})

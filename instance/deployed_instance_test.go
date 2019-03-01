@@ -238,7 +238,57 @@ var _ = Describe("DeployedInstance", func() {
 				Expect(deployedInstance.CustomRestoreArtifactNames()).To(ConsistOf("foo"))
 			})
 		})
+	})
 
+	Describe("HasMetadataRestoreNames", func() {
+		Context("when a job has metadata restore name", func() {
+			BeforeEach(func() {
+				jobs = orchestrator.Jobs([]orchestrator.Job{
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/dave/bin/foo",
+						},
+						instance.Metadata{
+							RestoreName: "foo",
+						},
+						false,
+						false,
+					),
+				})
+			})
+
+			It("returns true", func() {
+				Expect(deployedInstance.HasMetadataRestoreNames()).To(BeTrue())
+			})
+		})
+
+		Context("when none of the jobs has metadata restore name", func() {
+			BeforeEach(func() {
+				jobs = orchestrator.Jobs([]orchestrator.Job{
+					instance.NewJob(
+						remoteRunner,
+						instanceGroupName+"/"+instanceID,
+						boshLogger,
+						"",
+						instance.BackupAndRestoreScripts{
+							"/var/vcap/jobs/dave/bin/foo",
+						},
+						instance.Metadata{},
+						false,
+						false,
+					),
+				})
+			})
+
+			It("returns false", func() {
+				Expect(deployedInstance.HasMetadataRestoreNames()).To(BeFalse())
+
+			})
+		})
 	})
 
 	Describe("Jobs", func() {

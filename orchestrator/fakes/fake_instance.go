@@ -148,6 +148,15 @@ type FakeInstance struct {
 	customRestoreArtifactNamesReturnsOnCall map[int]struct {
 		result1 []string
 	}
+	HasMetadataRestoreNamesStub        func() bool
+	hasMetadataRestoreNamesMutex       sync.RWMutex
+	hasMetadataRestoreNamesArgsForCall []struct{}
+	hasMetadataRestoreNamesReturns     struct {
+		result1 bool
+	}
+	hasMetadataRestoreNamesReturnsOnCall map[int]struct {
+		result1 bool
+	}
 	JobsStub        func() []orchestrator.Job
 	jobsMutex       sync.RWMutex
 	jobsArgsForCall []struct{}
@@ -780,6 +789,46 @@ func (fake *FakeInstance) CustomRestoreArtifactNamesReturnsOnCall(i int, result1
 	}{result1}
 }
 
+func (fake *FakeInstance) HasMetadataRestoreNames() bool {
+	fake.hasMetadataRestoreNamesMutex.Lock()
+	ret, specificReturn := fake.hasMetadataRestoreNamesReturnsOnCall[len(fake.hasMetadataRestoreNamesArgsForCall)]
+	fake.hasMetadataRestoreNamesArgsForCall = append(fake.hasMetadataRestoreNamesArgsForCall, struct{}{})
+	fake.recordInvocation("HasMetadataRestoreNames", []interface{}{})
+	fake.hasMetadataRestoreNamesMutex.Unlock()
+	if fake.HasMetadataRestoreNamesStub != nil {
+		return fake.HasMetadataRestoreNamesStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.hasMetadataRestoreNamesReturns.result1
+}
+
+func (fake *FakeInstance) HasMetadataRestoreNamesCallCount() int {
+	fake.hasMetadataRestoreNamesMutex.RLock()
+	defer fake.hasMetadataRestoreNamesMutex.RUnlock()
+	return len(fake.hasMetadataRestoreNamesArgsForCall)
+}
+
+func (fake *FakeInstance) HasMetadataRestoreNamesReturns(result1 bool) {
+	fake.HasMetadataRestoreNamesStub = nil
+	fake.hasMetadataRestoreNamesReturns = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeInstance) HasMetadataRestoreNamesReturnsOnCall(i int, result1 bool) {
+	fake.HasMetadataRestoreNamesStub = nil
+	if fake.hasMetadataRestoreNamesReturnsOnCall == nil {
+		fake.hasMetadataRestoreNamesReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.hasMetadataRestoreNamesReturnsOnCall[i] = struct {
+		result1 bool
+	}{result1}
+}
+
 func (fake *FakeInstance) Jobs() []orchestrator.Job {
 	fake.jobsMutex.Lock()
 	ret, specificReturn := fake.jobsReturnsOnCall[len(fake.jobsArgsForCall)]
@@ -855,6 +904,8 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.customBackupArtifactNamesMutex.RUnlock()
 	fake.customRestoreArtifactNamesMutex.RLock()
 	defer fake.customRestoreArtifactNamesMutex.RUnlock()
+	fake.hasMetadataRestoreNamesMutex.RLock()
+	defer fake.hasMetadataRestoreNamesMutex.RUnlock()
 	fake.jobsMutex.RLock()
 	defer fake.jobsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

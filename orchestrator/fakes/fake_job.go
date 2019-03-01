@@ -62,6 +62,15 @@ type FakeJob struct {
 	restoreArtifactNameReturnsOnCall map[int]struct {
 		result1 string
 	}
+	HasMetadataRestoreNameStub        func() bool
+	hasMetadataRestoreNameMutex       sync.RWMutex
+	hasMetadataRestoreNameArgsForCall []struct{}
+	hasMetadataRestoreNameReturns     struct {
+		result1 bool
+	}
+	hasMetadataRestoreNameReturnsOnCall map[int]struct {
+		result1 bool
+	}
 	BackupStub        func() error
 	backupMutex       sync.RWMutex
 	backupArgsForCall []struct{}
@@ -422,6 +431,46 @@ func (fake *FakeJob) RestoreArtifactNameReturnsOnCall(i int, result1 string) {
 	}
 	fake.restoreArtifactNameReturnsOnCall[i] = struct {
 		result1 string
+	}{result1}
+}
+
+func (fake *FakeJob) HasMetadataRestoreName() bool {
+	fake.hasMetadataRestoreNameMutex.Lock()
+	ret, specificReturn := fake.hasMetadataRestoreNameReturnsOnCall[len(fake.hasMetadataRestoreNameArgsForCall)]
+	fake.hasMetadataRestoreNameArgsForCall = append(fake.hasMetadataRestoreNameArgsForCall, struct{}{})
+	fake.recordInvocation("HasMetadataRestoreName", []interface{}{})
+	fake.hasMetadataRestoreNameMutex.Unlock()
+	if fake.HasMetadataRestoreNameStub != nil {
+		return fake.HasMetadataRestoreNameStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fake.hasMetadataRestoreNameReturns.result1
+}
+
+func (fake *FakeJob) HasMetadataRestoreNameCallCount() int {
+	fake.hasMetadataRestoreNameMutex.RLock()
+	defer fake.hasMetadataRestoreNameMutex.RUnlock()
+	return len(fake.hasMetadataRestoreNameArgsForCall)
+}
+
+func (fake *FakeJob) HasMetadataRestoreNameReturns(result1 bool) {
+	fake.HasMetadataRestoreNameStub = nil
+	fake.hasMetadataRestoreNameReturns = struct {
+		result1 bool
+	}{result1}
+}
+
+func (fake *FakeJob) HasMetadataRestoreNameReturnsOnCall(i int, result1 bool) {
+	fake.HasMetadataRestoreNameStub = nil
+	if fake.hasMetadataRestoreNameReturnsOnCall == nil {
+		fake.hasMetadataRestoreNameReturnsOnCall = make(map[int]struct {
+			result1 bool
+		})
+	}
+	fake.hasMetadataRestoreNameReturnsOnCall[i] = struct {
+		result1 bool
 	}{result1}
 }
 
@@ -968,6 +1017,8 @@ func (fake *FakeJob) Invocations() map[string][][]interface{} {
 	defer fake.backupArtifactNameMutex.RUnlock()
 	fake.restoreArtifactNameMutex.RLock()
 	defer fake.restoreArtifactNameMutex.RUnlock()
+	fake.hasMetadataRestoreNameMutex.RLock()
+	defer fake.hasMetadataRestoreNameMutex.RUnlock()
 	fake.backupMutex.RLock()
 	defer fake.backupMutex.RUnlock()
 	fake.preBackupLockMutex.RLock()

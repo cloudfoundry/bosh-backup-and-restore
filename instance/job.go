@@ -70,6 +70,13 @@ func (j Job) backupOneRestoreAllArtifactName() string {
 	return fmt.Sprintf("%s-%s-backup-one-restore-all", j.name, j.release)
 }
 
+func (j Job) HasMetadataRestoreName() bool {
+	if j.metadata.RestoreName != "" {
+		return true
+	}
+	return false
+}
+
 func (j Job) RestoreArtifactName() string {
 	if j.backupOneRestoreAll {
 		return j.backupOneRestoreAllArtifactName()

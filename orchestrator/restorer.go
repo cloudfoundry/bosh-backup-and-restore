@@ -11,7 +11,7 @@ func NewRestorer(backupManager BackupManager, logger Logger, deploymentManager D
 	workflow := NewWorkflow()
 	validateArtifactStep := NewValidateArtifactStep(logger, backupManager)
 	findDeploymentStep := NewFindDeploymentStep(deploymentManager, logger)
-	restorableStep := NewRestorableStep(lockOrderer)
+	restorableStep := NewRestorableStep(lockOrderer, logger)
 	cleanupStep := NewCleanupStep()
 	copyToRemoteStep := NewCopyToRemoteStep(artifactCopier)
 	preRestoreLockStep := NewPreRestoreLockStep(lockOrderer, executor)
