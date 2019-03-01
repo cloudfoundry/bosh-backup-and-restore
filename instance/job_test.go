@@ -91,15 +91,13 @@ var _ = Describe("Job", func() {
 					logger,
 					releaseName,
 					jobScripts,
-					instance.Metadata{
-						RestoreName: "a-bosh-backup",
-					},
-					backupOneRestoreAll,
+					instance.Metadata{},
+					true,
 					onBootstrapNode)
 			})
 
 			It("calculates the artifact directory based on the artifact name", func() {
-				Expect(jobWithName.RestoreArtifactDirectory()).To(Equal("/var/vcap/store/bbr-backup/a-bosh-backup"))
+				Expect(jobWithName.RestoreArtifactDirectory()).To(Equal("/var/vcap/store/bbr-backup/jobname-redis-backup-one-restore-all"))
 			})
 		})
 	})

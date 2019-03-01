@@ -373,7 +373,6 @@ echo "hi"
 				})
 
 				Context("and there is a metadata script which produces yaml containing the custom backup_name", func() {
-					var redisCustomArtifactFile string
 					var redisDefaultArtifactFile string
 
 					BeforeEach(func() {
@@ -385,7 +384,6 @@ backup_name: custom_backup_named_redis
 					})
 
 					JustBeforeEach(func() {
-						redisCustomArtifactFile = path.Join(backupDirectory(), "/custom_backup_named_redis.tar")
 						redisDefaultArtifactFile = path.Join(backupDirectory(), "/redis-dedicated-node-0-redis.tar")
 					})
 
@@ -394,34 +392,39 @@ backup_name: custom_backup_named_redis
 							Expect(instance1.FileExists("/tmp/metadata-script-was-run")).To(BeTrue())
 						})
 
+						By("printing a warning message", func() {
+							Expect(session.Out).To(gbytes.Say("WARN - discontinued metadata keys backup_name/restore_name found in job redis. bbr will not be able to restore this backup artifact."))
+						})
+
 						By("running a the backup script", func() {
 							Expect(instance1.FileExists("/tmp/backup-script-was-run")).To(BeTrue())
 						})
 
-						By("creating a custom backup artifact", func() {
-							archive := OpenTarArchive(redisCustomArtifactFile)
+						By("creating a default backup artifact", func() {
+							archive := OpenTarArchive(redisDefaultArtifactFile)
 
 							Expect(archive.Files()).To(ConsistOf("backupdump1", "backupdump2"))
 							Expect(archive.FileContents("backupdump1")).To(Equal("backupcontent1"))
 							Expect(archive.FileContents("backupdump2")).To(Equal("backupcontent2"))
 						})
 
-						By("not creating an artifact with the default name", func() {
-							Expect(redisDefaultArtifactFile).NotTo(BeARegularFile())
-						})
-
-						By("recording the artifact as a custom artifact in the backup metadata", func() {
+						By("recording the artifact in the metadata", func() {
 							metadataContents := ParseMetadata(metadataFile())
 
 							currentTimezone, _ := time.Now().Zone()
 							Expect(metadataContents.BackupActivityMetadata.StartTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
 							Expect(metadataContents.BackupActivityMetadata.FinishTime).To(MatchRegexp(`^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2}) ` + currentTimezone + "$"))
 
-							Expect(metadataContents.CustomArtifactsMetadata).To(HaveLen(1))
-							Expect(metadataContents.CustomArtifactsMetadata[0].Name).To(Equal("custom_backup_named_redis"))
-							Expect(metadataContents.CustomArtifactsMetadata[0].Checksums).To(HaveLen(2))
-							Expect(metadataContents.CustomArtifactsMetadata[0].Checksums["./backupdump1"]).To(Equal(ShaFor("backupcontent1")))
-							Expect(metadataContents.CustomArtifactsMetadata[0].Checksums["./backupdump2"]).To(Equal(ShaFor("backupcontent2")))
+							Expect(metadataContents.InstancesMetadata).To(HaveLen(1))
+							Expect(metadataContents.InstancesMetadata[0].InstanceName).To(Equal("redis-dedicated-node"))
+							Expect(metadataContents.InstancesMetadata[0].InstanceIndex).To(Equal("0"))
+
+							Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Name).To(Equal("redis"))
+							Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums).To(HaveLen(2))
+							Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums["./backupdump1"]).To(Equal(ShaFor("backupcontent1")))
+							Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums["./backupdump2"]).To(Equal(ShaFor("backupcontent2")))
+
+							Expect(metadataContents.CustomArtifactsMetadata).To(BeEmpty())
 						})
 					})
 				})
@@ -952,6 +955,8 @@ backup_should_be_locked_before:
 					redisWriterLockTime := secondReturnedInstance.GetCreatedTime("/tmp/redis-writer-pre-backup-lock-called")
 
 					Expect(session.Out).To(gbytes.Say("Detected order: redis-writer should be locked before redis/redis during backup"))
+
+					Expect(string(session.Out.Contents())).NotTo(ContainSubstring("discontinued metadata keys backup_name/restore_name"))
 
 					Expect(redisWriterLockTime < redisLockTime).To(BeTrue(), fmt.Sprintf(
 						"Writer locked at %s, which is after the server locked (%s)",

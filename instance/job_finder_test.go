@@ -246,6 +246,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 					remoteRunner.FindFilesReturns([]string{"/var/vcap/jobs/consul_agent/bin/bbr/metadata"}, nil)
 					remoteRunner.RunScriptWithEnvReturns(`---
 backup_name: consul_backup
+restore_name: consul_backup
 backup_should_be_locked_before:
 - job_name: bosh
   release: bosh`, nil)
@@ -269,7 +270,8 @@ backup_should_be_locked_before:
 									"/var/vcap/jobs/consul_agent/bin/bbr/metadata",
 								},
 								Metadata{
-									BackupName: "consul_backup",
+									BackupName:  "", // should be blank
+									RestoreName: "consul_backup",
 									BackupShouldBeLockedBefore: []LockBefore{{JobName: "bosh",
 										Release: "bosh"}},
 								},
@@ -306,7 +308,8 @@ backup_should_be_locked_before:
 										"/var/vcap/jobs/consul_agent/bin/bbr/metadata",
 									},
 									Metadata{
-										BackupName: "consul_backup",
+										BackupName:  "", // should be blank
+										RestoreName: "consul_backup",
 										BackupShouldBeLockedBefore: []LockBefore{{JobName: "bosh",
 											Release: ""}},
 									},

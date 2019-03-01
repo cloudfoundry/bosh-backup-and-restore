@@ -65,8 +65,10 @@ func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier, r
 			}
 
 			jobName := script.JobName()
+			j.logMetadata(jobMetadata, jobName)
+
+			jobMetadata.BackupName = ""
 			metadata[jobName] = *jobMetadata
-			j.logMetadata(jobMetadata, script.JobName())
 		}
 	}
 
@@ -79,6 +81,10 @@ func (j *JobFinderFromScripts) logMetadata(jobMetadata *Metadata, jobName string
 	}
 	for _, lockBefore := range jobMetadata.RestoreShouldBeLockedBefore {
 		j.Logger.Info("bbr", "Detected order: %s should be locked before %s during restore", jobName, filepath.Join(lockBefore.Release, lockBefore.JobName))
+	}
+
+	if jobMetadata.BackupName != "" {
+		j.Logger.Warn("bbr", "discontinued metadata keys backup_name/restore_name found in job %s. bbr will not be able to restore this backup artifact.", jobName)
 	}
 }
 
