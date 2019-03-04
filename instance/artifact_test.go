@@ -248,7 +248,7 @@ var _ = Describe("artifact", func() {
 
 		Context("Named Artifact", func() {
 			BeforeEach(func() {
-				job = instance.NewJob(nil, "", nil, "", instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"}, instance.Metadata{BackupName: "named-artifact-to-backup"}, false, false)
+				job = instance.NewJob(nil, "", nil, "foo1", instance.BackupAndRestoreScripts{"/var/vcap/jobs/foo1/start_ctl"}, instance.Metadata{}, true, true)
 			})
 
 			It("is named with the job's custom backup name", func() {
@@ -259,7 +259,7 @@ var _ = Describe("artifact", func() {
 				Expect(backupArtifact.HasCustomName()).To(BeTrue())
 			})
 
-			ArtifactBehaviourForDirectory("/var/vcap/store/bbr-backup/named-artifact-to-backup")
+			ArtifactBehaviourForDirectory("/var/vcap/store/bbr-backup/foo1-foo1-backup-one-restore-all")
 		})
 
 		Context("Default Artifact", func() {

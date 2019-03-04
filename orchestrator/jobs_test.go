@@ -120,47 +120,6 @@ var _ = Describe("Jobs", func() {
 		})
 	})
 
-	Context("contains no jobs with named backup artifacts", func() {
-		Describe("CustomBackupArtifactNames", func() {
-			It("returns empty", func() {
-				Expect(jobs.CustomBackupArtifactNames()).To(BeEmpty())
-			})
-		})
-	})
-
-	Context("contains jobs with a named backup artifact", func() {
-		var jobWithNamedBackupArtifact, anotherJobWithNamedBackupArtifact *orchestratorFakes.FakeJob
-		var jobWithoutNamedBackupArtifact *orchestratorFakes.FakeJob
-
-		BeforeEach(func() {
-			jobWithNamedBackupArtifact = new(orchestratorFakes.FakeJob)
-			jobWithNamedBackupArtifact.HasNamedBackupArtifactReturns(true)
-			jobWithNamedBackupArtifact.BackupArtifactNameReturns("backup-artifact-name")
-
-			anotherJobWithNamedBackupArtifact = new(orchestratorFakes.FakeJob)
-			anotherJobWithNamedBackupArtifact.HasNamedBackupArtifactReturns(true)
-			anotherJobWithNamedBackupArtifact.BackupArtifactNameReturns("another-backup-artifact-name")
-
-			jobWithoutNamedBackupArtifact = new(orchestratorFakes.FakeJob)
-			jobWithoutNamedBackupArtifact.HasNamedBackupArtifactReturns(false)
-
-			jobs = orchestrator.Jobs([]orchestrator.Job{
-				jobWithNamedBackupArtifact,
-				anotherJobWithNamedBackupArtifact,
-				jobWithoutNamedBackupArtifact,
-			})
-		})
-
-		Describe("CustomBackupArtifactNames", func() {
-			It("returns a list of artifact names", func() {
-				Expect(jobs.CustomBackupArtifactNames()).To(ConsistOf(
-					"backup-artifact-name",
-					"another-backup-artifact-name",
-				))
-			})
-		})
-	})
-
 	Context("contains jobs with a named restore artifact", func() {
 		var jobWithNamedRestoreArtifact *orchestratorFakes.FakeJob
 		var jobWithoutNamedRestoreArtifact *orchestratorFakes.FakeJob

@@ -27,15 +27,6 @@ type FakeDeployment struct {
 	backupableInstancesReturnsOnCall map[int]struct {
 		result1 []orchestrator.Instance
 	}
-	HasUniqueCustomArtifactNamesStub        func() bool
-	hasUniqueCustomArtifactNamesMutex       sync.RWMutex
-	hasUniqueCustomArtifactNamesArgsForCall []struct{}
-	hasUniqueCustomArtifactNamesReturns     struct {
-		result1 bool
-	}
-	hasUniqueCustomArtifactNamesReturnsOnCall map[int]struct {
-		result1 bool
-	}
 	CheckArtifactDirStub        func() error
 	checkArtifactDirMutex       sync.RWMutex
 	checkArtifactDirArgsForCall []struct{}
@@ -134,15 +125,6 @@ type FakeDeployment struct {
 	}
 	instancesReturnsOnCall map[int]struct {
 		result1 []orchestrator.Instance
-	}
-	CustomArtifactNamesMatchStub        func() error
-	customArtifactNamesMatchMutex       sync.RWMutex
-	customArtifactNamesMatchArgsForCall []struct{}
-	customArtifactNamesMatchReturns     struct {
-		result1 error
-	}
-	customArtifactNamesMatchReturnsOnCall map[int]struct {
-		result1 error
 	}
 	PreRestoreLockStub        func(orchestrator.LockOrderer, executor.Executor) error
 	preRestoreLockMutex       sync.RWMutex
@@ -260,46 +242,6 @@ func (fake *FakeDeployment) BackupableInstancesReturnsOnCall(i int, result1 []or
 	}
 	fake.backupableInstancesReturnsOnCall[i] = struct {
 		result1 []orchestrator.Instance
-	}{result1}
-}
-
-func (fake *FakeDeployment) HasUniqueCustomArtifactNames() bool {
-	fake.hasUniqueCustomArtifactNamesMutex.Lock()
-	ret, specificReturn := fake.hasUniqueCustomArtifactNamesReturnsOnCall[len(fake.hasUniqueCustomArtifactNamesArgsForCall)]
-	fake.hasUniqueCustomArtifactNamesArgsForCall = append(fake.hasUniqueCustomArtifactNamesArgsForCall, struct{}{})
-	fake.recordInvocation("HasUniqueCustomArtifactNames", []interface{}{})
-	fake.hasUniqueCustomArtifactNamesMutex.Unlock()
-	if fake.HasUniqueCustomArtifactNamesStub != nil {
-		return fake.HasUniqueCustomArtifactNamesStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.hasUniqueCustomArtifactNamesReturns.result1
-}
-
-func (fake *FakeDeployment) HasUniqueCustomArtifactNamesCallCount() int {
-	fake.hasUniqueCustomArtifactNamesMutex.RLock()
-	defer fake.hasUniqueCustomArtifactNamesMutex.RUnlock()
-	return len(fake.hasUniqueCustomArtifactNamesArgsForCall)
-}
-
-func (fake *FakeDeployment) HasUniqueCustomArtifactNamesReturns(result1 bool) {
-	fake.HasUniqueCustomArtifactNamesStub = nil
-	fake.hasUniqueCustomArtifactNamesReturns = struct {
-		result1 bool
-	}{result1}
-}
-
-func (fake *FakeDeployment) HasUniqueCustomArtifactNamesReturnsOnCall(i int, result1 bool) {
-	fake.HasUniqueCustomArtifactNamesStub = nil
-	if fake.hasUniqueCustomArtifactNamesReturnsOnCall == nil {
-		fake.hasUniqueCustomArtifactNamesReturnsOnCall = make(map[int]struct {
-			result1 bool
-		})
-	}
-	fake.hasUniqueCustomArtifactNamesReturnsOnCall[i] = struct {
-		result1 bool
 	}{result1}
 }
 
@@ -730,46 +672,6 @@ func (fake *FakeDeployment) InstancesReturnsOnCall(i int, result1 []orchestrator
 	}{result1}
 }
 
-func (fake *FakeDeployment) CustomArtifactNamesMatch() error {
-	fake.customArtifactNamesMatchMutex.Lock()
-	ret, specificReturn := fake.customArtifactNamesMatchReturnsOnCall[len(fake.customArtifactNamesMatchArgsForCall)]
-	fake.customArtifactNamesMatchArgsForCall = append(fake.customArtifactNamesMatchArgsForCall, struct{}{})
-	fake.recordInvocation("CustomArtifactNamesMatch", []interface{}{})
-	fake.customArtifactNamesMatchMutex.Unlock()
-	if fake.CustomArtifactNamesMatchStub != nil {
-		return fake.CustomArtifactNamesMatchStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.customArtifactNamesMatchReturns.result1
-}
-
-func (fake *FakeDeployment) CustomArtifactNamesMatchCallCount() int {
-	fake.customArtifactNamesMatchMutex.RLock()
-	defer fake.customArtifactNamesMatchMutex.RUnlock()
-	return len(fake.customArtifactNamesMatchArgsForCall)
-}
-
-func (fake *FakeDeployment) CustomArtifactNamesMatchReturns(result1 error) {
-	fake.CustomArtifactNamesMatchStub = nil
-	fake.customArtifactNamesMatchReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeDeployment) CustomArtifactNamesMatchReturnsOnCall(i int, result1 error) {
-	fake.CustomArtifactNamesMatchStub = nil
-	if fake.customArtifactNamesMatchReturnsOnCall == nil {
-		fake.customArtifactNamesMatchReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.customArtifactNamesMatchReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
 func (fake *FakeDeployment) PreRestoreLock(arg1 orchestrator.LockOrderer, arg2 executor.Executor) error {
 	fake.preRestoreLockMutex.Lock()
 	ret, specificReturn := fake.preRestoreLockReturnsOnCall[len(fake.preRestoreLockArgsForCall)]
@@ -923,8 +825,6 @@ func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	defer fake.isBackupableMutex.RUnlock()
 	fake.backupableInstancesMutex.RLock()
 	defer fake.backupableInstancesMutex.RUnlock()
-	fake.hasUniqueCustomArtifactNamesMutex.RLock()
-	defer fake.hasUniqueCustomArtifactNamesMutex.RUnlock()
 	fake.checkArtifactDirMutex.RLock()
 	defer fake.checkArtifactDirMutex.RUnlock()
 	fake.isRestorableMutex.RLock()
@@ -945,8 +845,6 @@ func (fake *FakeDeployment) Invocations() map[string][][]interface{} {
 	defer fake.cleanupPreviousMutex.RUnlock()
 	fake.instancesMutex.RLock()
 	defer fake.instancesMutex.RUnlock()
-	fake.customArtifactNamesMatchMutex.RLock()
-	defer fake.customArtifactNamesMatchMutex.RUnlock()
 	fake.preRestoreLockMutex.RLock()
 	defer fake.preRestoreLockMutex.RUnlock()
 	fake.postRestoreUnlockMutex.RLock()

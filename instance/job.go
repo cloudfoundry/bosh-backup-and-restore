@@ -106,7 +106,7 @@ func (j Job) HasRestore() bool {
 }
 
 func (j Job) HasNamedBackupArtifact() bool {
-	return (j.backupOneRestoreAll && j.onBootstrapNode) || j.metadata.BackupName != ""
+	return j.backupOneRestoreAll && j.onBootstrapNode
 }
 
 func (j Job) HasNamedRestoreArtifact() bool {

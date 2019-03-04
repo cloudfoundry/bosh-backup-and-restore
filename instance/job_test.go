@@ -54,24 +54,13 @@ var _ = Describe("Job", func() {
 		})
 
 		Context("when an artifact name is provided", func() {
-			var jobWithName instance.Job
-
-			JustBeforeEach(func() {
-				jobWithName = instance.NewJob(
-					remoteRunner,
-					"",
-					logger,
-					releaseName,
-					jobScripts,
-					instance.Metadata{
-						BackupName: "a-bosh-backup",
-					},
-					backupOneRestoreAll,
-					onBootstrapNode)
+			BeforeEach(func() {
+				backupOneRestoreAll = true
+				onBootstrapNode = true
 			})
 
 			It("calculates the artifact directory based on the artifact name", func() {
-				Expect(jobWithName.BackupArtifactDirectory()).To(Equal("/var/vcap/store/bbr-backup/a-bosh-backup"))
+				Expect(job.BackupArtifactDirectory()).To(Equal("/var/vcap/store/bbr-backup/jobname-redis-backup-one-restore-all"))
 			})
 		})
 	})
@@ -272,18 +261,6 @@ var _ = Describe("Job", func() {
 	Describe("HasNamedBackupArtifact", func() {
 		It("returns false", func() {
 			Expect(job.HasNamedBackupArtifact()).To(BeFalse())
-		})
-
-		Context("when the job has a named backup artifact", func() {
-			BeforeEach(func() {
-				metadata = instance.Metadata{
-					BackupName: "whatever",
-				}
-			})
-
-			It("returns true", func() {
-				Expect(job.HasNamedBackupArtifact()).To(BeTrue())
-			})
 		})
 
 		Context("when the job has a named restore artifact", func() {

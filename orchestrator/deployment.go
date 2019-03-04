@@ -15,7 +15,6 @@ const ArtifactDirectory = "/var/vcap/store/bbr-backup"
 type Deployment interface {
 	IsBackupable() bool
 	BackupableInstances() []Instance
-	HasUniqueCustomArtifactNames() bool
 	CheckArtifactDir() error
 	IsRestorable() bool
 	RestorableInstances() []Instance
@@ -26,7 +25,6 @@ type Deployment interface {
 	Cleanup() error
 	CleanupPrevious() error
 	Instances() []Instance
-	CustomArtifactNamesMatch() error
 	PreRestoreLock(LockOrderer, executor.Executor) error
 	PostRestoreUnlock(LockOrderer, executor.Executor) error
 	ValidateLockingDependencies(orderer LockOrderer) error
@@ -53,19 +51,6 @@ func (bd *deployment) IsBackupable() bool {
 
 func (bd *deployment) BackupableInstances() []Instance {
 	return bd.instances.AllBackupable()
-}
-
-func (bd *deployment) HasUniqueCustomArtifactNames() bool {
-	names := bd.instances.CustomArtifactNames()
-
-	uniqueNames := map[string]bool{}
-	for _, name := range names {
-		if _, found := uniqueNames[name]; found {
-			return false
-		}
-		uniqueNames[name] = true
-	}
-	return true
 }
 
 func (bd *deployment) CheckArtifactDir() error {
@@ -217,30 +202,6 @@ func (bd *deployment) IsRestorable() bool {
 
 func (bd *deployment) RestorableInstances() []Instance {
 	return bd.instances.AllRestoreable()
-}
-
-func (bd *deployment) CustomArtifactNamesMatch() error {
-	for _, instance := range bd.Instances() {
-		jobName := instance.Name()
-		for _, restoreName := range instance.CustomRestoreArtifactNames() {
-			var found bool
-			for _, backupName := range bd.instances.CustomArtifactNames() {
-				if restoreName == backupName {
-					found = true
-				}
-			}
-			if !found {
-				return errors.New(
-					fmt.Sprintf(
-						"The %s restore script expects a backup script which produces %s artifact which is not present in the deployment.",
-						jobName,
-						restoreName,
-					),
-				)
-			}
-		}
-	}
-	return nil
 }
 
 func (bd *deployment) Instances() []Instance {

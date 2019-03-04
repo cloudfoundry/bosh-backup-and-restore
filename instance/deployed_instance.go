@@ -50,14 +50,6 @@ func (i *DeployedInstance) MarkArtifactDirCreated() {
 	i.artifactDirCreated = true
 }
 
-func (i *DeployedInstance) CustomBackupArtifactNames() []string {
-	return i.jobs.CustomBackupArtifactNames()
-}
-
-func (i *DeployedInstance) CustomRestoreArtifactNames() []string {
-	return i.jobs.CustomRestoreArtifactNames()
-}
-
 func (i *DeployedInstance) HasMetadataRestoreNames() bool {
 	return i.jobs.HasMetadataRestoreNames()
 }

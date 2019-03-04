@@ -130,24 +130,6 @@ type FakeInstance struct {
 	artifactsToRestoreReturnsOnCall map[int]struct {
 		result1 []orchestrator.BackupArtifact
 	}
-	CustomBackupArtifactNamesStub        func() []string
-	customBackupArtifactNamesMutex       sync.RWMutex
-	customBackupArtifactNamesArgsForCall []struct{}
-	customBackupArtifactNamesReturns     struct {
-		result1 []string
-	}
-	customBackupArtifactNamesReturnsOnCall map[int]struct {
-		result1 []string
-	}
-	CustomRestoreArtifactNamesStub        func() []string
-	customRestoreArtifactNamesMutex       sync.RWMutex
-	customRestoreArtifactNamesArgsForCall []struct{}
-	customRestoreArtifactNamesReturns     struct {
-		result1 []string
-	}
-	customRestoreArtifactNamesReturnsOnCall map[int]struct {
-		result1 []string
-	}
 	HasMetadataRestoreNamesStub        func() bool
 	hasMetadataRestoreNamesMutex       sync.RWMutex
 	hasMetadataRestoreNamesArgsForCall []struct{}
@@ -709,86 +691,6 @@ func (fake *FakeInstance) ArtifactsToRestoreReturnsOnCall(i int, result1 []orche
 	}{result1}
 }
 
-func (fake *FakeInstance) CustomBackupArtifactNames() []string {
-	fake.customBackupArtifactNamesMutex.Lock()
-	ret, specificReturn := fake.customBackupArtifactNamesReturnsOnCall[len(fake.customBackupArtifactNamesArgsForCall)]
-	fake.customBackupArtifactNamesArgsForCall = append(fake.customBackupArtifactNamesArgsForCall, struct{}{})
-	fake.recordInvocation("CustomBackupArtifactNames", []interface{}{})
-	fake.customBackupArtifactNamesMutex.Unlock()
-	if fake.CustomBackupArtifactNamesStub != nil {
-		return fake.CustomBackupArtifactNamesStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.customBackupArtifactNamesReturns.result1
-}
-
-func (fake *FakeInstance) CustomBackupArtifactNamesCallCount() int {
-	fake.customBackupArtifactNamesMutex.RLock()
-	defer fake.customBackupArtifactNamesMutex.RUnlock()
-	return len(fake.customBackupArtifactNamesArgsForCall)
-}
-
-func (fake *FakeInstance) CustomBackupArtifactNamesReturns(result1 []string) {
-	fake.CustomBackupArtifactNamesStub = nil
-	fake.customBackupArtifactNamesReturns = struct {
-		result1 []string
-	}{result1}
-}
-
-func (fake *FakeInstance) CustomBackupArtifactNamesReturnsOnCall(i int, result1 []string) {
-	fake.CustomBackupArtifactNamesStub = nil
-	if fake.customBackupArtifactNamesReturnsOnCall == nil {
-		fake.customBackupArtifactNamesReturnsOnCall = make(map[int]struct {
-			result1 []string
-		})
-	}
-	fake.customBackupArtifactNamesReturnsOnCall[i] = struct {
-		result1 []string
-	}{result1}
-}
-
-func (fake *FakeInstance) CustomRestoreArtifactNames() []string {
-	fake.customRestoreArtifactNamesMutex.Lock()
-	ret, specificReturn := fake.customRestoreArtifactNamesReturnsOnCall[len(fake.customRestoreArtifactNamesArgsForCall)]
-	fake.customRestoreArtifactNamesArgsForCall = append(fake.customRestoreArtifactNamesArgsForCall, struct{}{})
-	fake.recordInvocation("CustomRestoreArtifactNames", []interface{}{})
-	fake.customRestoreArtifactNamesMutex.Unlock()
-	if fake.CustomRestoreArtifactNamesStub != nil {
-		return fake.CustomRestoreArtifactNamesStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.customRestoreArtifactNamesReturns.result1
-}
-
-func (fake *FakeInstance) CustomRestoreArtifactNamesCallCount() int {
-	fake.customRestoreArtifactNamesMutex.RLock()
-	defer fake.customRestoreArtifactNamesMutex.RUnlock()
-	return len(fake.customRestoreArtifactNamesArgsForCall)
-}
-
-func (fake *FakeInstance) CustomRestoreArtifactNamesReturns(result1 []string) {
-	fake.CustomRestoreArtifactNamesStub = nil
-	fake.customRestoreArtifactNamesReturns = struct {
-		result1 []string
-	}{result1}
-}
-
-func (fake *FakeInstance) CustomRestoreArtifactNamesReturnsOnCall(i int, result1 []string) {
-	fake.CustomRestoreArtifactNamesStub = nil
-	if fake.customRestoreArtifactNamesReturnsOnCall == nil {
-		fake.customRestoreArtifactNamesReturnsOnCall = make(map[int]struct {
-			result1 []string
-		})
-	}
-	fake.customRestoreArtifactNamesReturnsOnCall[i] = struct {
-		result1 []string
-	}{result1}
-}
-
 func (fake *FakeInstance) HasMetadataRestoreNames() bool {
 	fake.hasMetadataRestoreNamesMutex.Lock()
 	ret, specificReturn := fake.hasMetadataRestoreNamesReturnsOnCall[len(fake.hasMetadataRestoreNamesArgsForCall)]
@@ -900,10 +802,6 @@ func (fake *FakeInstance) Invocations() map[string][][]interface{} {
 	defer fake.artifactsToBackupMutex.RUnlock()
 	fake.artifactsToRestoreMutex.RLock()
 	defer fake.artifactsToRestoreMutex.RUnlock()
-	fake.customBackupArtifactNamesMutex.RLock()
-	defer fake.customBackupArtifactNamesMutex.RUnlock()
-	fake.customRestoreArtifactNamesMutex.RLock()
-	defer fake.customRestoreArtifactNamesMutex.RUnlock()
 	fake.hasMetadataRestoreNamesMutex.RLock()
 	defer fake.hasMetadataRestoreNamesMutex.RUnlock()
 	fake.jobsMutex.RLock()

@@ -185,61 +185,6 @@ var _ = Describe("DeployedInstance", func() {
 		})
 	})
 
-	Describe("CustomBackupArtifactNames", func() {
-		Context("when the instance has custom artifact names defined", func() {
-			BeforeEach(func() {
-				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(
-						remoteRunner,
-						instanceGroupName+"/"+instanceID,
-						boshLogger,
-						"",
-						instance.BackupAndRestoreScripts{
-							"/var/vcap/jobs/dave/bin/foo",
-						},
-						instance.Metadata{
-							BackupName: "foo",
-						},
-						false,
-						false,
-					),
-				})
-			})
-
-			It("returns a list of the instance's custom artifact names", func() {
-				Expect(deployedInstance.CustomBackupArtifactNames()).To(ConsistOf("foo"))
-			})
-		})
-
-	})
-
-	Describe("CustomRestoreArtifactNames", func() {
-		Context("when the instance has custom restore artifact names defined", func() {
-			BeforeEach(func() {
-				jobs = orchestrator.Jobs([]orchestrator.Job{
-					instance.NewJob(
-						remoteRunner,
-						instanceGroupName+"/"+instanceID,
-						boshLogger,
-						"",
-						instance.BackupAndRestoreScripts{
-							"/var/vcap/jobs/dave/bin/foo",
-						},
-						instance.Metadata{
-							RestoreName: "foo",
-						},
-						false,
-						false,
-					),
-				})
-			})
-
-			It("returns a list of the instance's custom restore artifact names", func() {
-				Expect(deployedInstance.CustomRestoreArtifactNames()).To(ConsistOf("foo"))
-			})
-		})
-	})
-
 	Describe("HasMetadataRestoreNames", func() {
 		Context("when a job has metadata restore name", func() {
 			BeforeEach(func() {
@@ -453,13 +398,13 @@ var _ = Describe("DeployedInstance", func() {
 						remoteRunner,
 						instanceGroupName+"/"+instanceID,
 						boshLogger,
-						"",
+						"dave",
 						instance.BackupAndRestoreScripts{
 							"/var/vcap/jobs/baz/bin/bbr/backup",
 						},
-						instance.Metadata{BackupName: "special-backup"},
-						false,
-						false,
+						instance.Metadata{},
+						true,
+						true,
 					),
 				})
 			})
@@ -474,7 +419,7 @@ var _ = Describe("DeployedInstance", func() {
 					remoteRunner.CreateDirectoryArgsForCall(1),
 				}).To(ConsistOf(
 					"/var/vcap/store/bbr-backup/foo",
-					"/var/vcap/store/bbr-backup/special-backup",
+					"/var/vcap/store/bbr-backup/baz-dave-backup-one-restore-all",
 				))
 				specifiedScriptPath, specifiedEnvVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/foo/bin/bbr/backup"))
@@ -486,8 +431,8 @@ var _ = Describe("DeployedInstance", func() {
 				specifiedScriptPath, specifiedEnvVars, _ = remoteRunner.RunScriptWithEnvArgsForCall(1)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/baz/bin/bbr/backup"))
 				Expect(specifiedEnvVars).To(Equal(map[string]string{
-					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/special-backup/",
-					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/special-backup/",
+					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/baz-dave-backup-one-restore-all/",
+					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/baz-dave-backup-one-restore-all/",
 				}))
 
 			})

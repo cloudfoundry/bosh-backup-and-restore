@@ -59,7 +59,6 @@ var _ = Describe("Backup", func() {
 			fakeBackupManager.CreateReturns(fakeBackup, nil)
 			deploymentManager.FindReturns(deployment, nil)
 			deployment.IsBackupableReturns(true)
-			deployment.HasUniqueCustomArtifactNamesReturns(true)
 			deployment.CleanupReturns(nil)
 			artifactCopier.DownloadBackupFromDeploymentReturns(nil)
 		})
@@ -156,7 +155,6 @@ var _ = Describe("Backup", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
-				deployment.HasUniqueCustomArtifactNamesReturns(true)
 				fakeBackupManager.CreateReturns(fakeBackup, nil)
 				deploymentManager.SaveManifestReturns(expectedError)
 			})
@@ -193,10 +191,6 @@ var _ = Describe("Backup", func() {
 				Expect(deployment.CleanupCallCount()).To(Equal(1))
 			})
 
-			It("does not check the backup metadata validity", func() {
-				Expect(deployment.HasUniqueCustomArtifactNamesCallCount()).To(BeZero())
-			})
-
 			Context("cleanup fails as well", assertCleanupError)
 		})
 
@@ -223,7 +217,6 @@ var _ = Describe("Backup", func() {
 				fakeBackupManager.CreateReturns(fakeBackup, nil)
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
-				deployment.HasUniqueCustomArtifactNamesReturns(true)
 				deployment.CleanupReturns(nil)
 
 				deployment.PreBackupLockReturns(lockError)
@@ -250,7 +243,6 @@ var _ = Describe("Backup", func() {
 				fakeBackupManager.CreateReturns(fakeBackup, nil)
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
-				deployment.HasUniqueCustomArtifactNamesReturns(true)
 				deployment.CleanupReturns(nil)
 
 				deployment.PostBackupUnlockReturns(unlockError)
@@ -312,7 +304,6 @@ var _ = Describe("Backup", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
-				deployment.HasUniqueCustomArtifactNamesReturns(true)
 				fakeBackupManager.CreateReturns(fakeBackup, nil)
 				artifactCopier.DownloadBackupFromDeploymentReturns(drainError)
 			})
@@ -342,7 +333,6 @@ var _ = Describe("Backup", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
-				deployment.HasUniqueCustomArtifactNamesReturns(true)
 
 				fakeBackupManager.CreateReturns(nil, artifactError)
 			})
@@ -371,7 +361,6 @@ var _ = Describe("Backup", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
-				deployment.HasUniqueCustomArtifactNamesReturns(true)
 
 				fakeBackupManager.CreateReturns(fakeBackup, nil)
 				deployment.CleanupReturns(cleanupError)
@@ -405,7 +394,6 @@ var _ = Describe("Backup", func() {
 			BeforeEach(func() {
 				deploymentManager.FindReturns(deployment, nil)
 				deployment.IsBackupableReturns(true)
-				deployment.HasUniqueCustomArtifactNamesReturns(true)
 
 				fakeBackupManager.CreateReturns(fakeBackup, nil)
 				deployment.BackupReturns(backupError)
@@ -439,34 +427,6 @@ var _ = Describe("Backup", func() {
 			})
 
 			Context("cleanup fails as well", assertCleanupError)
-		})
-
-		Context("fails if deployment is invalid", func() {
-			BeforeEach(func() {
-				deploymentManager.FindReturns(deployment, nil)
-				deployment.IsBackupableReturns(true)
-				deployment.HasUniqueCustomArtifactNamesReturns(false)
-			})
-
-			It("fails the backup process", func() {
-				Expect(actualBackupError).To(ConsistOf(
-					MatchError(fmt.Sprintf("Multiple jobs in deployment '%s' specified the same backup name", deploymentName)),
-				))
-			})
-		})
-
-		Context("fails if deployments custom artifact names don't match", func() {
-			var expectedError = fmt.Errorf("artifact names invalid")
-			BeforeEach(func() {
-				deploymentManager.FindReturns(deployment, nil)
-				deployment.IsBackupableReturns(true)
-				deployment.HasUniqueCustomArtifactNamesReturns(true)
-				deployment.CustomArtifactNamesMatchReturns(expectedError)
-			})
-
-			It("fails the backup process", func() {
-				expectErrorMatch(actualBackupError, expectedError)
-			})
 		})
 	})
 })

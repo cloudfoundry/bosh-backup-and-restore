@@ -49,16 +49,6 @@ func (jobs Jobs) withNamedRestoreArtifacts() Jobs {
 	return jobsWithNamedArtifacts
 }
 
-func (jobs Jobs) CustomBackupArtifactNames() []string {
-	var artifactNames []string
-
-	for _, job := range jobs.withNamedBackupArtifacts() {
-		artifactNames = append(artifactNames, job.BackupArtifactName())
-	}
-
-	return artifactNames
-}
-
 func (jobs Jobs) CustomRestoreArtifactNames() []string {
 	var artifactNames []string
 

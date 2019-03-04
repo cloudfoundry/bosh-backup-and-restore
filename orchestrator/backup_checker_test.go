@@ -36,7 +36,6 @@ var _ = Describe("Check", func() {
 		BeforeEach(func() {
 			deploymentManager.FindReturns(deployment, nil)
 			deployment.IsBackupableReturns(true)
-			deployment.HasUniqueCustomArtifactNamesReturns(true)
 			deployment.CleanupReturns(nil)
 		})
 
@@ -66,7 +65,6 @@ var _ = Describe("Check", func() {
 		BeforeEach(func() {
 			deploymentManager.FindReturns(nil, fmt.Errorf("deployment not found"))
 			deployment.IsBackupableReturns(true)
-			deployment.HasUniqueCustomArtifactNamesReturns(true)
 			deployment.CleanupReturns(nil)
 		})
 
@@ -77,34 +75,6 @@ var _ = Describe("Check", func() {
 		It("attempts to find the deployment", func() {
 			Expect(deploymentManager.FindCallCount()).To(Equal(1))
 			Expect(deploymentManager.FindArgsForCall(0)).To(Equal(deploymentName))
-		})
-	})
-
-	Context("fails if deployments custom artifact names don't match", func() {
-		var expectedError = fmt.Errorf("artifact names invalid")
-		BeforeEach(func() {
-			deploymentManager.FindReturns(deployment, nil)
-			deployment.IsBackupableReturns(true)
-			deployment.HasUniqueCustomArtifactNamesReturns(true)
-			deployment.CustomArtifactNamesMatchReturns(expectedError)
-		})
-
-		It("fails the backup process", func() {
-			expectErrorMatch(actualCanBeBackedUpError, expectedError)
-		})
-	})
-
-	Context("fails if deployment is invalid", func() {
-		BeforeEach(func() {
-			deploymentManager.FindReturns(deployment, nil)
-			deployment.IsBackupableReturns(true)
-			deployment.HasUniqueCustomArtifactNamesReturns(false)
-		})
-
-		It("fails the backup process", func() {
-			Expect(actualCanBeBackedUpError).To(ConsistOf(
-				MatchError(ContainSubstring(fmt.Sprintf("Multiple jobs in deployment '%s' specified the same backup name", deploymentName))),
-			))
 		})
 	})
 })

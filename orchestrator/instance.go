@@ -24,8 +24,6 @@ type Instance interface {
 	CleanupPrevious() error
 	ArtifactsToBackup() []BackupArtifact
 	ArtifactsToRestore() []BackupArtifact
-	CustomBackupArtifactNames() []string
-	CustomRestoreArtifactNames() []string
 	HasMetadataRestoreNames() bool
 	Jobs() []Job
 }
@@ -101,26 +99,6 @@ func (is instances) AllBackupable() instances {
 		}
 	}
 	return backupableInstances
-}
-
-func (is instances) CustomArtifactNames() []string {
-	var artifactNames []string
-
-	for _, instance := range is {
-		artifactNames = append(artifactNames, instance.CustomBackupArtifactNames()...)
-	}
-
-	return artifactNames
-}
-
-func (is instances) RestoreArtifactNames() []string {
-	var artifactNames []string
-
-	for _, instance := range is {
-		artifactNames = append(artifactNames, instance.CustomRestoreArtifactNames()...)
-	}
-
-	return artifactNames
 }
 
 func (is instances) AllRestoreable() instances {
