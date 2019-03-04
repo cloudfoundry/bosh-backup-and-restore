@@ -380,6 +380,7 @@ echo "hi"
 	touch /tmp/metadata-script-was-run
 echo "---
 backup_name: custom_backup_named_redis
+restore_name: custom_backup_named_redis
 "`)
 					})
 
