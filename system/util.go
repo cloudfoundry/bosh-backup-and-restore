@@ -8,7 +8,6 @@ import (
 
 var RedisDeployment = DeploymentWithName("redis")
 var RedisWithBackupOneRestoreAll = DeploymentWithName("redis-with-backup-one-restore-all")
-var RedisWithMissingScriptDeployment = DeploymentWithName("redis-with-missing-script")
 var JumpboxDeployment = DeploymentWithName("jumpbox")
 var JumpboxInstance = JumpboxDeployment.Instance("jumpbox", "0")
 var RedisSlowBackupDeployment = DeploymentWithName("redis-with-slow-backup")

@@ -48,9 +48,6 @@ var _ = BeforeSuite(func() {
 		defer GinkgoRecover()
 		defer wg.Done()
 
-		By("deploying the Redis with missing backup script")
-		RedisWithMissingScriptDeployment.Deploy()
-
 		By("deploying the slow backup Redis test release")
 		RedisSlowBackupDeployment.Deploy()
 	}()
@@ -107,9 +104,6 @@ var _ = AfterSuite(func() {
 	go func() {
 		defer GinkgoRecover()
 		defer wg.Done()
-
-		By("tearing down the other redis release")
-		RedisWithMissingScriptDeployment.Delete()
 
 		By("tearing down the slow backup Redis test release")
 		RedisSlowBackupDeployment.Delete()
