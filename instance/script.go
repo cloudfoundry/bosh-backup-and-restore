@@ -18,6 +18,8 @@ const (
 
 	jobBaseDirectory               = "/var/vcap/jobs/"
 	jobDirectoryMatcher            = jobBaseDirectory + "*/bin/bbr/"
+	mySQLBackupScriptMatcher       = jobBaseDirectory + "mysql-backup/bin/bbr/*"
+	mySQLRestoreScriptMatcher      = jobBaseDirectory + "mysql-restore/bin/bbr/*"
 	backupScriptMatcher            = jobDirectoryMatcher + backupScriptName
 	restoreScriptMatcher           = jobDirectoryMatcher + restoreScriptName
 	metadataScriptMatcher          = jobDirectoryMatcher + metadataScriptName
@@ -62,7 +64,17 @@ func (s Script) isPostRestoreUnlock() bool {
 	return match
 }
 
+func (s Script) isMySQLScript() bool {
+	backupMatch, _ := filepath.Match(mySQLBackupScriptMatcher, string(s))
+	restoreMatch, _ := filepath.Match(mySQLRestoreScriptMatcher, string(s))
+	return backupMatch || restoreMatch
+}
+
 func (s Script) isPlatformScript() bool {
+	if s.isMySQLScript() {
+		return false
+	}
+
 	return s.isBackup() ||
 		s.isRestore() ||
 		s.isPreBackupUnlock() ||

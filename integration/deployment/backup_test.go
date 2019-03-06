@@ -36,27 +36,7 @@ var _ = Describe("Backup", func() {
 	var artifactPath string
 	var verifyMocks bool
 	var instance1 *testcluster.Instance
-	manifest := `---
-instance_groups:
-- name: redis-dedicated-node
-  instances: 1
-  jobs:
-  - name: redis
-    release: redis
-  - name: redis-writer
-    release: redis
-  - name: redis-broker
-    release: redis
-- name: redis-broker
-  instances: 1
-  jobs:
-  - name: redis
-    release: redis
-  - name: redis-writer
-    release: redis
-  - name: redis-broker
-    release: redis
-`
+	var manifest string
 
 	backupDirectory := func() string {
 		matches := possibleBackupDirectories(deploymentName, backupWorkspace)
@@ -84,6 +64,27 @@ instance_groups:
 		backupWorkspace, err = ioutil.TempDir(".", "backup-workspace-")
 		Expect(err).NotTo(HaveOccurred())
 		artifactPath = ""
+		manifest = `---
+instance_groups:
+- name: redis-dedicated-node
+  instances: 1
+  jobs:
+  - name: redis
+    release: redis
+  - name: redis-writer
+    release: redis
+  - name: redis-broker
+    release: redis
+- name: redis-broker
+  instances: 1
+  jobs:
+  - name: redis
+    release: redis
+  - name: redis-writer
+    release: redis
+  - name: redis-broker
+    release: redis
+`
 	})
 
 	AfterEach(func() {
@@ -426,6 +427,47 @@ restore_name: custom_backup_named_redis
 							Expect(metadataContents.InstancesMetadata[0].Artifacts[0].Checksums["./backupdump2"]).To(Equal(ShaFor("backupcontent2")))
 
 							Expect(metadataContents.CustomArtifactsMetadata).To(BeEmpty())
+						})
+					})
+				})
+
+				Context("and there is a job present named mysql-backup", func() {
+					BeforeEach(func() {
+						manifest = `---
+instance_groups:
+- name: redis-dedicated-node
+  instances: 1
+  jobs:
+  - name: redis
+    release: redis
+  - name: mysql-backup
+    release: cf-backup-and-restore
+`
+						instance1.CreateScript("/var/vcap/jobs/mysql-backup/bin/bbr/metadata", `#!/usr/bin/env sh
+echo "---
+backup_name: mysql-artifact
+"`)
+						instance1.CreateScript("/var/vcap/jobs/mysql-backup/bin/bbr/backup", `#!/usr/bin/env sh
+set -u
+cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/mysql-backup
+touch /tmp/mysql-backup-script-was-run`)
+					})
+
+					It("ignores the mysql-backup job scripts", func() {
+						By("exiting zero", func() {
+							Expect(session.ExitCode()).To(BeZero())
+						})
+
+						By("running the redis backup script", func() {
+							Expect(instance1.FileExists("/tmp/backup-script-was-run")).To(BeTrue())
+						})
+
+						By("not running the mysql-backup backup script", func() {
+							Expect(instance1.FileExists("/tmp/mysql-backup-script-was-run")).To(BeFalse())
+						})
+
+						By("not printing a warning message", func() {
+							Expect(string(session.Out.Contents())).NotTo(ContainSubstring("discontinued metadata keys backup_name/restore_name found"))
 						})
 					})
 				})

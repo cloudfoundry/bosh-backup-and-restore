@@ -752,42 +752,6 @@ restore_should_be_locked_before:
 		BeforeEach(func() {
 			instance1 = testcluster.NewInstance()
 			deploymentName = "my-new-deployment"
-			director.VerifyAndMock(AppendBuilders(
-				InfoWithBasicAuth(),
-				VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
-					{
-						IPs:     []string{"10.0.0.1"},
-						JobName: "redis-dedicated-node",
-						ID:      "fake-uuid",
-						Index:   newIndex(0),
-					}}),
-				DownloadManifest(deploymentName, manifest),
-				SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
-				CleanupSSH(deploymentName, "redis-dedicated-node"))...)
-			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
-echo "---
-restore_name: foo
-"`)
-			instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
-set -u
-cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server
-touch /tmp/restore-script-was-run`)
-
-			Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
-instances:
-- name: redis-dedicated-node
-  index: 0
-custom_artifacts:
-- name: foo
-  checksums:
-    ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
-
-			backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
-			Expect(err).NotTo(HaveOccurred())
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tar", backupContents)
-
-			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", createTarWithContents(map[string]string{}))
 		})
 
 		JustBeforeEach(func() {
@@ -809,20 +773,151 @@ custom_artifacts:
 			instance1.DieInBackground()
 		})
 
-		It("runs the restore script and cleans up", func() {
-			By("fails", func() {
-				Expect(session.ExitCode()).NotTo(Equal(0))
+		Context("and the job name is not special", func() {
+			BeforeEach(func() {
+				director.VerifyAndMock(AppendBuilders(
+					InfoWithBasicAuth(),
+					VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+
+						{
+							IPs:     []string{"10.0.0.1"},
+							JobName: "redis-dedicated-node",
+							ID:      "fake-uuid",
+							Index:   newIndex(0),
+						}}),
+					DownloadManifest(deploymentName, manifest),
+					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
+					CleanupSSH(deploymentName, "redis-dedicated-node"))...)
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
+echo "---
+restore_name: foo
+"`)
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
+set -u
+cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server
+touch /tmp/restore-script-was-run`)
+
+				Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
+				createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
+instances:
+- name: redis-dedicated-node
+  index: 0
+custom_artifacts:
+- name: foo
+  checksums:
+    ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
+
+				backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
+				Expect(err).NotTo(HaveOccurred())
+				createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tar", backupContents)
+
+				createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", createTarWithContents(map[string]string{}))
 			})
 
-			By("returning the failure", func() {
-				Expect(session.Out).To(gbytes.Say("ERROR - discontinued metadata keys backup_name/restore_name found on instance redis-dedicated-node. bbr cannot restore this backup artifact."))
-				Expect(session.Err).To(gbytes.Say("discontinued metadata keys backup_name/restore_name found on instance redis-dedicated-node. bbr cannot restore this backup artifact."))
+			It("runs the restore script and cleans up", func() {
+				By("fails", func() {
+					Expect(session.ExitCode()).NotTo(Equal(0))
+				})
+
+				By("returning the failure", func() {
+					Expect(session.Out).To(gbytes.Say("ERROR - discontinued metadata keys backup_name/restore_name found on instance redis-dedicated-node. bbr cannot restore this backup artifact."))
+					Expect(session.Err).To(gbytes.Say("discontinued metadata keys backup_name/restore_name found on instance redis-dedicated-node. bbr cannot restore this backup artifact."))
+				})
+
+				By("not running the restore script on the remote", func() {
+					Expect(instance1.FileExists("/var/vcap/store/redis-server" +
+						"/redis-backup")).To(BeFalse())
+					Expect(instance1.FileExists("/tmp/restore-script-was-run")).To(BeFalse())
+				})
+			})
+		})
+
+		Context("and the job is called mysql-restore", func() {
+			const instanceGroupName = "mysql"
+
+			BeforeEach(func() {
+				manifest = `---
+instance_groups:
+- name: mysql
+  instances: 1
+  jobs:
+  - name: redis
+    release: redis
+  - name: mysql-restore
+    release: cf-backup-and-restore
+`
+				director.VerifyAndMock(AppendBuilders(
+					InfoWithBasicAuth(),
+					VmsForDeployment(deploymentName, []mockbosh.VMsOutput{
+						{
+							IPs:     []string{"10.0.0.1"},
+							JobName: instanceGroupName,
+							ID:      "fake-uuid",
+							Index:   newIndex(0),
+						},
+					}),
+					DownloadManifest(deploymentName, manifest),
+					SetupSSH(deploymentName, instanceGroupName, "fake-uuid", 0, instance1),
+					CleanupSSH(deploymentName, instanceGroupName))...)
+
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
+set -u
+cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server
+touch /tmp/redis-restore-script-was-run`)
+
+				instance1.CreateScript("/var/vcap/jobs/mysql-restore/bin/bbr/metadata", `#!/usr/bin/env sh
+echo "---
+restore_name: mysql-artifact
+"`)
+				instance1.CreateScript("/var/vcap/jobs/mysql-restore/bin/bbr/restore", `#!/usr/bin/env sh
+set -u
+cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/mysql-restore
+touch /tmp/mysql-restore-script-was-run`)
+
+				Expect(os.Mkdir(restoreWorkspace+"/"+deploymentName, 0777)).To(Succeed())
+				createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"metadata", []byte(`---
+instances:
+- name: mysql
+  index: 0
+  artifacts:
+  - name: redis
+    checksums:
+      ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0
+custom_artifacts:
+- name: mysql-artifact
+  checksums: {}
+`))
+
+				backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
+				Expect(err).NotTo(HaveOccurred())
+
+				createFileWithContents(
+					restoreWorkspace+"/"+deploymentName+"/"+"mysql-0-redis.tar",
+					backupContents,
+				)
 			})
 
-			By("not running the restore script on the remote", func() {
-				Expect(instance1.FileExists("/var/vcap/store/redis-server" +
-					"/redis-backup")).To(BeFalse())
-				Expect(instance1.FileExists("/tmp/restore-script-was-run")).To(BeFalse())
+			It("ignores the mysql-restore job scripts", func() {
+				By("succeeding", func() {
+					Expect(session.ExitCode()).To(Equal(0))
+				})
+
+				By("not printing a warning", func() {
+					Expect(string(session.Out.Contents())).NotTo(ContainSubstring("discontinued metadata keys backup_name/restore_name"))
+				})
+
+				By("cleaning up the archive file on the remote", func() {
+					Expect(instance1.FileExists("/var/vcap/store/bbr-backup")).To(BeFalse())
+				})
+
+				By("running the redis restore script on the remote", func() {
+					Expect(instance1.FileExists("/tmp/redis-restore-script-was-run")).To(BeTrue())
+					Expect(instance1.FileExists("/var/vcap/store/redis-server/redis-backup")).To(BeTrue())
+				})
+
+				By("not running the mysql restore script on the remote", func() {
+					Expect(instance1.FileExists("/tmp/mysql-restore-script-was-run")).To(BeFalse())
+				})
 			})
 		})
 	})

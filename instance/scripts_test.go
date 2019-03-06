@@ -52,6 +52,12 @@ var _ = Describe("Backup and Restore Scripts", func() {
 					"/var/vcap/jobs/cloud_controller_clock/bin/pre-start"}
 				Expect(NewBackupAndRestoreScripts(allScripts)).To(Equal(BackupAndRestoreScripts{}))
 			})
+
+			It("returns empty when there are only mysql-backup backup scripts", func() {
+				var allScripts = []string{"/var/vcap/jobs/mysql-backup/bin/bbr/metadata",
+					"/var/vcap/jobs/mysql-backup/bin/bbr/backup"}
+				Expect(NewBackupAndRestoreScripts(allScripts)).To(Equal(BackupAndRestoreScripts{}))
+			})
 		})
 
 		Context("Restore", func() {
@@ -95,6 +101,12 @@ var _ = Describe("Backup and Restore Scripts", func() {
 				var allScripts = []string{"/var/vcap/jobs/cloud_controller_clock/bin/baz",
 					"/var/vcap/jobs/cloud_controller_clock/bin/cloud_controller_clock_ctl",
 					"/var/vcap/jobs/cloud_controller_clock/bin/pre-start"}
+				Expect(NewBackupAndRestoreScripts(allScripts)).To(Equal(BackupAndRestoreScripts{}))
+			})
+
+			It("returns empty when there are only mysql-restore restore scripts", func() {
+				var allScripts = []string{"/var/vcap/jobs/mysql-restore/bin/bbr/metadata",
+					"/var/vcap/jobs/mysql-restore/bin/bbr/restore"}
 				Expect(NewBackupAndRestoreScripts(allScripts)).To(Equal(BackupAndRestoreScripts{}))
 			})
 		})
