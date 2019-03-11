@@ -179,7 +179,7 @@ var _ = Describe("Director", func() {
 			})
 
 			It("logs the disabled jobs", func() {
-				Expect(string(logStream.Bytes())).To(ContainSubstring("Skipping disabled jobs: my-instance/0 jobs: foo - some-other-instance/0 jobs: baz"))
+				Expect(string(logStream.Bytes())).To(ContainSubstring("Skipping disabled jobs: my-instance/0 jobs: foo"))
 			})
 
 		})
