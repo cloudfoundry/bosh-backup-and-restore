@@ -114,7 +114,8 @@ var _ = Describe("Director", func() {
 						false,
 					),
 				}
-				fakeJobFinder.FindJobsReturns(expectedJobs, nil)
+
+				fakeJobFinder.FindJobsReturns(append(expectedJobs), "my-instance/0 jobs: foo", nil)
 
 				manifestQuerierCreator.Returns(manifestQuerier, nil)
 			})
@@ -175,6 +176,10 @@ var _ = Describe("Director", func() {
 				Expect(privateKey).To(Equal("private_key"))
 				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithm))
 				Expect(logger).To(Equal(boshLogger))
+			})
+
+			It("logs the disabled jobs", func() {
+				Expect(string(logStream.Bytes())).To(ContainSubstring("Skipping disabled jobs: my-instance/0 jobs: foo - some-other-instance/0 jobs: baz"))
 			})
 
 		})
@@ -265,11 +270,11 @@ var _ = Describe("Director", func() {
 						false,
 					),
 				}
-				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, manifestQuerier instance.ManifestQuerier) (orchestrator.Jobs, error) {
+				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, manifestQuerier instance.ManifestQuerier) (orchestrator.Jobs, string, error) {
 					if instanceIdentifier.InstanceId == "id1" {
-						return instance0Jobs, nil
+						return instance0Jobs, "", nil
 					} else {
-						return instance1Jobs, nil
+						return instance1Jobs, "", nil
 					}
 				}
 
@@ -403,11 +408,11 @@ var _ = Describe("Director", func() {
 					),
 				}
 
-				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, manifestQuerier instance.ManifestQuerier) (orchestrator.Jobs, error) {
+				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, manifestQuerier instance.ManifestQuerier) (orchestrator.Jobs, string, error) {
 					if instanceIdentifier.InstanceId == "linux1" {
-						return instance0Jobs, nil
+						return instance0Jobs, "", nil
 					} else {
-						return nil, errors.New("should not call FindJobs on non-Linux VMs")
+						return nil, "", errors.New("should not call FindJobs on non-Linux VMs")
 					}
 				}
 
@@ -511,7 +516,7 @@ var _ = Describe("Director", func() {
 				}
 				remoteRunnerFactory.Returns(remoteRunner, nil)
 				fakeJobFinder.FindJobsStub = func(instanceIdentifier instance.InstanceIdentifier,
-					remoteRunner ssh.RemoteRunner, manifestQuerier instance.ManifestQuerier) (orchestrator.Jobs, error) {
+					remoteRunner ssh.RemoteRunner, manifestQuerier instance.ManifestQuerier) (orchestrator.Jobs, string, error) {
 					if instanceIdentifier.InstanceGroupName == "job2" {
 						return []orchestrator.Job{
 							instance.NewJob(
@@ -524,10 +529,10 @@ var _ = Describe("Director", func() {
 								false,
 								false,
 							),
-						}, nil
+						}, "", nil
 					}
 
-					return []orchestrator.Job{}, nil
+					return []orchestrator.Job{}, "", nil
 				}
 				manifestQuerierCreator.Returns(manifestQuerier, nil)
 			})

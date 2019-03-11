@@ -42,6 +42,9 @@ var _ = BeforeSuite(func() {
 
 		By("deploying the Redis with backup_one_restore_all property")
 		RedisWithBackupOneRestoreAll.Deploy()
+
+		By("deploying the Redis with disabled bbr job property")
+		RedisDeploymentWithDisabledJob.Deploy()
 	}()
 
 	go func() {
@@ -99,6 +102,9 @@ var _ = AfterSuite(func() {
 
 		By("tearing down the Redis with backup_one_restore_all property")
 		RedisWithBackupOneRestoreAll.Delete()
+
+		By("tearing down the Redis with disabled bbr job property")
+		RedisDeploymentWithDisabledJob.Delete()
 	}()
 
 	go func() {

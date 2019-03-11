@@ -21,7 +21,7 @@ func (i InstanceIdentifier) String() string {
 
 //go:generate counterfeiter -o fakes/fake_job_finder.go . JobFinder
 type JobFinder interface {
-	FindJobs(instanceIdentifier InstanceIdentifier, remoteRunner ssh.RemoteRunner, manifestQuerier ManifestQuerier) (orchestrator.Jobs, error)
+	FindJobs(instanceIdentifier InstanceIdentifier, remoteRunner ssh.RemoteRunner, manifestQuerier ManifestQuerier) (orchestrator.Jobs, string, error)
 }
 
 type JobFinderFromScripts struct {
@@ -47,21 +47,20 @@ func NewJobFinderOmitMetadataReleases(bbrVersion string, logger Logger) *JobFind
 }
 
 func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier, remoteRunner ssh.RemoteRunner,
-	manifestQuerier ManifestQuerier) (orchestrator.Jobs, error) {
+	manifestQuerier ManifestQuerier) (orchestrator.Jobs, string, error) {
 
 	findOutput, err := j.findBBRScripts(instanceIdentifier, remoteRunner)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	metadata := map[string]Metadata{}
 	scripts := NewBackupAndRestoreScripts(findOutput)
 	for _, script := range scripts {
-		j.Logger.Info("bbr", "%s/%s/%s", instanceIdentifier, script.JobName(), script.Name())
 		if script.isMetadata() {
 			jobMetadata, err := j.findMetadata(instanceIdentifier, script, remoteRunner)
 
 			if err != nil {
-				return nil, err
+				return nil, "", err
 			}
 
 			jobName := script.JobName()
@@ -73,6 +72,7 @@ func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier, r
 	}
 
 	return j.buildJobs(remoteRunner, instanceIdentifier, j.Logger, scripts, metadata, manifestQuerier)
+
 }
 
 func (j *JobFinderFromScripts) logMetadata(jobMetadata *Metadata, jobName string) {
@@ -130,7 +130,7 @@ func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifie
 func (j *JobFinderFromScripts) buildJobs(remoteRunner ssh.RemoteRunner,
 	instanceIdentifier InstanceIdentifier,
 	logger Logger, scripts BackupAndRestoreScripts,
-	metadata map[string]Metadata, manifestQuerier ManifestQuerier) (orchestrator.Jobs, error) {
+	metadata map[string]Metadata, manifestQuerier ManifestQuerier) (orchestrator.Jobs, string, error) {
 	groupedByJobName := map[string]BackupAndRestoreScripts{}
 	for _, script := range scripts {
 		jobName := script.JobName()
@@ -138,8 +138,17 @@ func (j *JobFinderFromScripts) buildJobs(remoteRunner ssh.RemoteRunner,
 		groupedByJobName[jobName] = append(existingScripts, script)
 	}
 	var jobs orchestrator.Jobs
-
+	var skippedJobs []string
 	for jobName, jobScripts := range groupedByJobName {
+		if metadata[jobName].SkipBBRScripts {
+			skippedJobs = append(skippedJobs, jobName)
+			continue
+		}
+
+		for _, jobScript := range jobScripts {
+			j.Logger.Info("bbr", "%s/%s/%s", instanceIdentifier, jobName, jobScript.Name())
+		}
+
 		releaseName, err := manifestQuerier.FindReleaseName(instanceIdentifier.InstanceGroupName, jobName)
 		if err != nil {
 			logger.Warn("bbr", "could not find release name for job %s", jobName)
@@ -160,5 +169,12 @@ func (j *JobFinderFromScripts) buildJobs(remoteRunner ssh.RemoteRunner,
 		))
 	}
 
-	return jobs, nil
+	var skippedJobsMsg string
+	if len(skippedJobs) != 0 {
+		skippedJobsMsg = fmt.Sprintf("%s jobs:", instanceIdentifier)
+		for _, job := range skippedJobs {
+			skippedJobsMsg = skippedJobsMsg + " " + job
+		}
+	}
+	return jobs, skippedJobsMsg, nil
 }

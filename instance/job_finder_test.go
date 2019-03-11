@@ -20,11 +20,14 @@ import (
 )
 
 var _ = Describe("JobFinderFromScripts", func() {
-	var logStream *bytes.Buffer
-	var logger Logger
-	var jobFinder *JobFinderFromScripts
-	var bbrVersion = "bbr_version"
-	var instanceIdentifier InstanceIdentifier
+	var (
+		logStream          *bytes.Buffer
+		logger             Logger
+		jobFinder          *JobFinderFromScripts
+		bbrVersion         = "bbr_version"
+		instanceIdentifier InstanceIdentifier
+		skippedJobs        string
+	)
 
 	BeforeEach(func() {
 		instanceIdentifier = InstanceIdentifier{InstanceGroupName: "identifier", InstanceId: "0", Bootstrap: true}
@@ -60,13 +63,14 @@ var _ = Describe("JobFinderFromScripts", func() {
 		})
 
 		JustBeforeEach(func() {
-			jobs, jobsError = jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier)
+			jobs, skippedJobs, jobsError = jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier)
 		})
 
 		It("finds the jobs", func() {
-			jobs, jobsError = jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier)
+			jobs, skippedJobs, jobsError = jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier)
 			By("finding the scripts", func() {
 				Expect(remoteRunner.FindFilesArgsForCall(0)).To(Equal("/var/vcap/jobs/*/bin/bbr/*"))
+				Expect(skippedJobs).To(Equal(""))
 			})
 
 			By("logging the scripts found", func() {
@@ -122,7 +126,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 			})
 
 			It("finds the jobs", func() {
-				jobs, _ = jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier)
+				jobs, _, _ = jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier)
 				Expect(jobs).To(ConsistOf(
 					NewJob(
 						remoteRunner,
@@ -371,6 +375,32 @@ backup_should_be_locked_before:
 					Expect(jobsError).To(MatchError(ContainSubstring(
 						"Parsing metadata from job consul_agent on identifier/0 failed",
 					)))
+				})
+			})
+
+			Context("when the bbr job is disabled", func() {
+				BeforeEach(func() {
+					remoteRunner.FindFilesReturns([]string{"/var/vcap/jobs/consul_agent/bin/bbr/metadata"}, nil)
+					remoteRunner.RunScriptWithEnvReturns(`---
+skip_bbr_scripts: true
+`, nil)
+				})
+
+				It("ignores the job", func() {
+					By("executing the metadata scripts passing the correct arguments", func() {
+						cmd, env, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
+						Expect(cmd).To(Equal("/var/vcap/jobs/consul_agent/bin/bbr/metadata"))
+						Expect(env).To(Equal(map[string]string{"BBR_VERSION": bbrVersion}))
+					})
+
+					By("ommiting the job", func() {
+						Expect(jobs).To(BeEmpty())
+					})
+
+					By("returning the list of disabled jobs", func() {
+						Expect(skippedJobs).To(Equal("identifier/0 jobs: consul_agent"))
+					})
+
 				})
 			})
 		})

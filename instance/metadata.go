@@ -17,6 +17,7 @@ type Metadata struct {
 	RestoreName                 string       `yaml:"restore_name"`
 	BackupShouldBeLockedBefore  []LockBefore `yaml:"backup_should_be_locked_before"`
 	RestoreShouldBeLockedBefore []LockBefore `yaml:"restore_should_be_locked_before"`
+	SkipBBRScripts              bool         `yaml:"skip_bbr_scripts"`
 }
 
 func ParseJobMetadata(data string) (*Metadata, error) {

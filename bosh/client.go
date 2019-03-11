@@ -10,6 +10,7 @@ import (
 	"github.com/cloudfoundry/bosh-utils/uuid"
 
 	"fmt"
+
 	"github.com/pkg/errors"
 	gossh "golang.org/x/crypto/ssh"
 )
@@ -83,6 +84,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 		return nil, errors.Wrap(err, "couldn't generate manifest querier for deployment "+deploymentName)
 	}
 
+	var allDisabledJobs []string
 	for _, instanceGroupName := range uniqueInstanceGroupNamesFromVMs(vms) {
 		c.Logger.Debug("bbr", "Setting up SSH for job %s", instanceGroupName)
 
@@ -130,7 +132,11 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 				continue
 			}
 
-			jobs, err := c.jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier)
+			jobs, disabledJobs, err := c.jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier) //TODO: here
+
+			if disabledJobs != "" {
+				allDisabledJobs = append(allDisabledJobs, disabledJobs)
+			}
 			if err != nil {
 				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
 				return nil, errors.Wrap(err, "couldn't find jobs")
@@ -162,7 +168,22 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 		}
 	}
 
+	c.logDisabledJobs(allDisabledJobs)
+
 	return instances, nil
+}
+
+func (c Client) logDisabledJobs(allDisabledJobs []string) {
+	if len(allDisabledJobs) == 0 {
+		return
+	}
+
+	var disabledJobsMsg = "Skipping disabled jobs:"
+	for _, skippedJob := range allDisabledJobs {
+		disabledJobsMsg = disabledJobsMsg + " " + skippedJob
+	}
+
+	c.Logger.Info("bbr", disabledJobsMsg)
 }
 
 func isInstanceABootstrapNode(jobName, ip string, vms []director.VMInfo) bool {

@@ -10,7 +10,7 @@ import (
 )
 
 type FakeJobFinder struct {
-	FindJobsStub        func(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, manifestQuerier instance.ManifestQuerier) (orchestrator.Jobs, error)
+	FindJobsStub        func(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, manifestQuerier instance.ManifestQuerier) (orchestrator.Jobs, string, error)
 	findJobsMutex       sync.RWMutex
 	findJobsArgsForCall []struct {
 		instanceIdentifier instance.InstanceIdentifier
@@ -19,17 +19,19 @@ type FakeJobFinder struct {
 	}
 	findJobsReturns struct {
 		result1 orchestrator.Jobs
-		result2 error
+		result2 string
+		result3 error
 	}
 	findJobsReturnsOnCall map[int]struct {
 		result1 orchestrator.Jobs
-		result2 error
+		result2 string
+		result3 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeJobFinder) FindJobs(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, manifestQuerier instance.ManifestQuerier) (orchestrator.Jobs, error) {
+func (fake *FakeJobFinder) FindJobs(instanceIdentifier instance.InstanceIdentifier, remoteRunner ssh.RemoteRunner, manifestQuerier instance.ManifestQuerier) (orchestrator.Jobs, string, error) {
 	fake.findJobsMutex.Lock()
 	ret, specificReturn := fake.findJobsReturnsOnCall[len(fake.findJobsArgsForCall)]
 	fake.findJobsArgsForCall = append(fake.findJobsArgsForCall, struct {
@@ -43,9 +45,9 @@ func (fake *FakeJobFinder) FindJobs(instanceIdentifier instance.InstanceIdentifi
 		return fake.FindJobsStub(instanceIdentifier, remoteRunner, manifestQuerier)
 	}
 	if specificReturn {
-		return ret.result1, ret.result2
+		return ret.result1, ret.result2, ret.result3
 	}
-	return fake.findJobsReturns.result1, fake.findJobsReturns.result2
+	return fake.findJobsReturns.result1, fake.findJobsReturns.result2, fake.findJobsReturns.result3
 }
 
 func (fake *FakeJobFinder) FindJobsCallCount() int {
@@ -60,26 +62,29 @@ func (fake *FakeJobFinder) FindJobsArgsForCall(i int) (instance.InstanceIdentifi
 	return fake.findJobsArgsForCall[i].instanceIdentifier, fake.findJobsArgsForCall[i].remoteRunner, fake.findJobsArgsForCall[i].manifestQuerier
 }
 
-func (fake *FakeJobFinder) FindJobsReturns(result1 orchestrator.Jobs, result2 error) {
+func (fake *FakeJobFinder) FindJobsReturns(result1 orchestrator.Jobs, result2 string, result3 error) {
 	fake.FindJobsStub = nil
 	fake.findJobsReturns = struct {
 		result1 orchestrator.Jobs
-		result2 error
-	}{result1, result2}
+		result2 string
+		result3 error
+	}{result1, result2, result3}
 }
 
-func (fake *FakeJobFinder) FindJobsReturnsOnCall(i int, result1 orchestrator.Jobs, result2 error) {
+func (fake *FakeJobFinder) FindJobsReturnsOnCall(i int, result1 orchestrator.Jobs, result2 string, result3 error) {
 	fake.FindJobsStub = nil
 	if fake.findJobsReturnsOnCall == nil {
 		fake.findJobsReturnsOnCall = make(map[int]struct {
 			result1 orchestrator.Jobs
-			result2 error
+			result2 string
+			result3 error
 		})
 	}
 	fake.findJobsReturnsOnCall[i] = struct {
 		result1 orchestrator.Jobs
-		result2 error
-	}{result1, result2}
+		result2 string
+		result3 error
+	}{result1, result2, result3}
 }
 
 func (fake *FakeJobFinder) Invocations() map[string][][]interface{} {

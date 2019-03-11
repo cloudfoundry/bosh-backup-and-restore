@@ -64,6 +64,26 @@ backup_should_be_locked_before:
 		Expect(m.BackupShouldBeLockedBefore).To(ConsistOf(expectedLockBefores))
 	})
 
+	It("has an optional `skip_bbr_scripts` field", func() {
+		rawMetadata := `---
+backup_name: foo
+restore_name: bar
+backup_should_be_locked_before:
+- job_name: job1
+  release: release1
+- job_name: job2
+  release: release2
+skip_bbr_scripts: true`
+
+		m, err := metadataParserFunc(rawMetadata)
+
+		Expect(err).NotTo(HaveOccurred())
+		Expect(m.BackupName).To(Equal("foo"))
+		Expect(m.RestoreName).To(Equal("bar"))
+		Expect(m.SkipBBRScripts).To(Equal(true))
+		Expect(m.BackupShouldBeLockedBefore).To(ConsistOf(expectedLockBefores))
+	})
+
 	It("errors if either the job name or release are missing from backup_should_be_locked_before", func() {
 		rawMetadata := `---
 backup_name: foo

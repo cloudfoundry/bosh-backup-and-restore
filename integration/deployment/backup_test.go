@@ -303,6 +303,8 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						Expect(session.Out).To(gbytes.Say("DEBUG - Calculating shasum for remote files"))
 						Expect(session.Out).To(gbytes.Say("DEBUG - Comparing shasums"))
 						Expect(session.Out).To(gbytes.Say("INFO - Finished validity checks -- for job redis on redis-dedicated-node/fake-uuid..."))
+
+						Expect(string(session.Out.Contents())).NotTo(ContainSubstring("Skipping disabled jobs:"))
 					})
 
 					By("cleaning up backup artifacts from the remote", func() {
@@ -920,6 +922,41 @@ echo "not valid yaml
 				})
 			})
 		})
+
+		Context("when the job is disabled", func() {
+			BeforeEach(func() {
+				instance1 = testcluster.NewInstance()
+
+				instance1.CreateScript(
+					"/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
+exit 0`)
+
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata",
+					`#!/usr/bin/env sh
+echo "---
+skip_bbr_scripts: true
+"`)
+
+				MockDirectorWith(director,
+					mockbosh.Info().WithAuthTypeBasic(),
+					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
+					DownloadManifest(deploymentName, manifest),
+					SetupSSH(deploymentName, "redis-dedicated-node", "fake-uuid", 0, instance1),
+					CleanupSSH(deploymentName, "redis-dedicated-node"),
+				)
+			})
+
+			It("Should exit say no bbr jobs found", func() {
+				By("exiting with an error", func() {
+					Expect(session).To(gexec.Exit(1))
+				})
+
+				By("printing a helpful error message", func() {
+					Expect(session.Out).To(gbytes.Say("Skipping disabled jobs: redis-dedicated-node/fake-uuid jobs: redis"))
+					Expect(session.Err).To(gbytes.Say("has no backup scripts"))
+				})
+			})
+		})
 	})
 
 	Context("When there is a deployment which has two instances", func() {
@@ -1088,6 +1125,29 @@ backup_should_be_locked_before:
 						Expect(possibleBackupDirectories(deploymentName, backupWorkspace)).To(BeEmpty(),
 							"Should quit before creating any local backup artifact.")
 					})
+				})
+			})
+
+			Context("but one is disabled", func() {
+				BeforeEach(func() {
+					secondReturnedInstance.CreateScript(
+						"/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
+exit 0`)
+
+					secondReturnedInstance.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata",
+						`#!/usr/bin/env sh
+echo "---
+skip_bbr_scripts: true
+"`)
+				})
+
+				It("only backups up the enabled instance", func() {
+					Expect(session.ExitCode()).To(BeZero())
+
+					Expect(string(session.Buffer().Contents())).To(ContainSubstring("Skipping disabled jobs: redis-broker/fake-uuid-2 jobs: redis"))
+					Expect(string(session.Buffer().Contents())).To(ContainSubstring("Backing up redis on redis-dedicated-node/fake-uuid"))
+					Expect(string(session.Buffer().Contents())).NotTo(ContainSubstring("Backing up redis on redis-broker/fake-uuid-2"))
+
 				})
 			})
 		})
