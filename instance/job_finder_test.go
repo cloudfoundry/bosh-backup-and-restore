@@ -1,6 +1,8 @@
 package instance_test
 
 import (
+	"strings"
+
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
 	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
@@ -354,6 +356,8 @@ backup_should_be_locked_before:
 					Expect(jobsError).To(MatchError(ContainSubstring(
 						"An error occurred while running metadata script for job consul_agent on identifier/0: blah blah blah foo",
 					)))
+					Expect(strings.Count(jobsError.Error(), "blah blah blah foo")).To(Equal(1))
+
 				})
 			})
 

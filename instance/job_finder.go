@@ -107,21 +107,21 @@ func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifie
 		fmt.Sprintf("find metadata for %s on %s", script.JobName(), instanceIdentifier),
 	)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf(
-			"An error occurred while running metadata script for job %s on %s: %s",
+		return nil, errors.Wrapf(
+			err,
+			"An error occurred while running metadata script for job %s on %s",
 			script.JobName(),
 			instanceIdentifier,
-			err,
-		))
+		)
 	}
 	jobMetadata, err := j.parseJobMetadata(metadataContent)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf(
-			"Parsing metadata from job %s on %s failed: %s",
+		return nil, errors.Wrapf(
+			err,
+			"Parsing metadata from job %s on %s failed",
 			script.JobName(),
 			instanceIdentifier,
-			err.Error(),
-		))
+		)
 	}
 
 	return jobMetadata, nil
