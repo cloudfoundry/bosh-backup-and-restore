@@ -952,7 +952,7 @@ skip_bbr_scripts: true
 				})
 
 				By("printing a helpful error message", func() {
-					Expect(session.Out).To(gbytes.Say("Skipping disabled jobs: redis-dedicated-node/fake-uuid jobs: redis"))
+					Expect(session.Out).To(gbytes.Say("DEBUG - Found disabled jobs on instance redis-dedicated-node/fake-uuid jobs: redis"))
 					Expect(session.Err).To(gbytes.Say("has no backup scripts"))
 				})
 			})
@@ -1144,7 +1144,7 @@ skip_bbr_scripts: true
 				It("only backups up the enabled instance", func() {
 					Expect(session.ExitCode()).To(BeZero())
 
-					Expect(string(session.Buffer().Contents())).To(ContainSubstring("Skipping disabled jobs: redis-broker/fake-uuid-2 jobs: redis"))
+					Expect(string(session.Buffer().Contents())).To(ContainSubstring("DEBUG - Found disabled jobs on instance redis-broker/fake-uuid-2 jobs: redis"))
 					Expect(string(session.Buffer().Contents())).To(ContainSubstring("Backing up redis on redis-dedicated-node/fake-uuid"))
 					Expect(string(session.Buffer().Contents())).NotTo(ContainSubstring("Backing up redis on redis-broker/fake-uuid-2"))
 

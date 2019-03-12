@@ -115,7 +115,7 @@ var _ = Describe("backup", func() {
 		It("does not run the scripts", func() {
 			By("running a backup")
 			bbrCommand = fmt.Sprintf(
-				`cd %s; BOSH_CLIENT_SECRET=%s ./bbr deployment --ca-cert bosh.crt --username %s --target %s --deployment %s backup`,
+				`cd %s; BOSH_CLIENT_SECRET=%s ./bbr deployment --ca-cert bosh.crt --username %s --debug --target %s --deployment %s backup`,
 				workspaceDir,
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
@@ -143,30 +143,33 @@ var _ = Describe("backup", func() {
 			})
 
 			By("not calling the scripts of the disabled jobs", func() {
-				session := RedisDeploymentWithDisabledJob.Instance("redis-server-with-disabled-bbr-job", "0").RunCommand(
+				session := RedisDeploymentWithDisabledJob.Instance("disabled-job", "0").RunCommand(
 					"cat /tmp/pre-backup-lock.out",
 				)
 
 				Eventually(session).Should(gexec.Exit())
 				Expect(session.ExitCode()).NotTo(Equal(0))
+				Expect(string(session.Out.Contents())).To(ContainSubstring("No such file"))
 
-				session = RedisDeploymentWithDisabledJob.Instance("redis-server-with-disabled-bbr-job", "0").RunCommand(
+				session = RedisDeploymentWithDisabledJob.Instance("disabled-job", "0").RunCommand(
 					"cat /tmp/backup.out",
 				)
 
 				Eventually(session).Should(gexec.Exit())
 				Expect(session.ExitCode()).NotTo(Equal(0))
+				Expect(string(session.Out.Contents())).To(ContainSubstring("No such file"))
 
-				session = RedisDeploymentWithDisabledJob.Instance("redis-server-with-disabled-bbr-job", "0").RunCommand(
+				session = RedisDeploymentWithDisabledJob.Instance("disabled-job", "0").RunCommand(
 					"cat /tmp/post-backup-unlock.out",
 				)
 
 				Eventually(session).Should(gexec.Exit())
 				Expect(session.ExitCode()).NotTo(Equal(0))
+				Expect(string(session.Out.Contents())).To(ContainSubstring("No such file"))
 			})
 
 			By("logging", func() {
-				Expect(string(session.Buffer().Contents())).To(MatchRegexp(`Skipping disabled jobs: disabled-job\/.* jobs: disabled-job`))
+				Expect(string(session.Buffer().Contents())).To(MatchRegexp(`Found disabled jobs on instance disabled-job\/.* jobs: disabled-job`))
 			})
 		})
 	})

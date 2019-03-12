@@ -21,7 +21,7 @@ func (i InstanceIdentifier) String() string {
 
 //go:generate counterfeiter -o fakes/fake_job_finder.go . JobFinder
 type JobFinder interface {
-	FindJobs(instanceIdentifier InstanceIdentifier, remoteRunner ssh.RemoteRunner, manifestQuerier ManifestQuerier) (orchestrator.Jobs, string, error)
+	FindJobs(instanceIdentifier InstanceIdentifier, remoteRunner ssh.RemoteRunner, manifestQuerier ManifestQuerier) (orchestrator.Jobs, error)
 }
 
 type JobFinderFromScripts struct {
@@ -47,11 +47,11 @@ func NewJobFinderOmitMetadataReleases(bbrVersion string, logger Logger) *JobFind
 }
 
 func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier, remoteRunner ssh.RemoteRunner,
-	manifestQuerier ManifestQuerier) (orchestrator.Jobs, string, error) {
+	manifestQuerier ManifestQuerier) (orchestrator.Jobs, error) {
 
 	findOutput, err := j.findBBRScripts(instanceIdentifier, remoteRunner)
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 	metadata := map[string]Metadata{}
 	scripts := NewBackupAndRestoreScripts(findOutput)
@@ -60,7 +60,7 @@ func (j *JobFinderFromScripts) FindJobs(instanceIdentifier InstanceIdentifier, r
 			jobMetadata, err := j.findMetadata(instanceIdentifier, script, remoteRunner)
 
 			if err != nil {
-				return nil, "", err
+				return nil, err
 			}
 
 			jobName := script.JobName()
@@ -130,7 +130,7 @@ func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifie
 func (j *JobFinderFromScripts) buildJobs(remoteRunner ssh.RemoteRunner,
 	instanceIdentifier InstanceIdentifier,
 	logger Logger, scripts BackupAndRestoreScripts,
-	metadata map[string]Metadata, manifestQuerier ManifestQuerier) (orchestrator.Jobs, string, error) {
+	metadata map[string]Metadata, manifestQuerier ManifestQuerier) (orchestrator.Jobs, error) {
 	groupedByJobName := map[string]BackupAndRestoreScripts{}
 	for _, script := range scripts {
 		jobName := script.JobName()
@@ -169,12 +169,13 @@ func (j *JobFinderFromScripts) buildJobs(remoteRunner ssh.RemoteRunner,
 		))
 	}
 
-	var skippedJobsMsg string
+	var skippedJobsMsg = "Found disabled jobs on instance"
 	if len(skippedJobs) != 0 {
-		skippedJobsMsg = fmt.Sprintf("%s jobs:", instanceIdentifier)
+		skippedJobsMsg = fmt.Sprintf("%s %s jobs:", skippedJobsMsg, instanceIdentifier)
 		for _, job := range skippedJobs {
 			skippedJobsMsg = skippedJobsMsg + " " + job
 		}
+		j.Logger.Debug("bbr", skippedJobsMsg)
 	}
-	return jobs, skippedJobsMsg, nil
+	return jobs, nil
 }

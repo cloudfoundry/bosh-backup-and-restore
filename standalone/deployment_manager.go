@@ -50,7 +50,7 @@ func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment
 	instanceIdentifier := instance.InstanceIdentifier{InstanceGroupName: "bosh", InstanceId: "0"}
 
 	//TODO: change instanceIdentifier, its not always bosh
-	jobs, _, err := dm.jobFinder.FindJobs(instanceIdentifier, remoteRunner, instance.NewNoopManifestQuerier())
+	jobs, err := dm.jobFinder.FindJobs(instanceIdentifier, remoteRunner, instance.NewNoopManifestQuerier())
 	if err != nil {
 		return nil, err
 	}

@@ -26,7 +26,6 @@ var _ = Describe("JobFinderFromScripts", func() {
 		jobFinder          *JobFinderFromScripts
 		bbrVersion         = "bbr_version"
 		instanceIdentifier InstanceIdentifier
-		skippedJobs        string
 	)
 
 	BeforeEach(func() {
@@ -63,14 +62,13 @@ var _ = Describe("JobFinderFromScripts", func() {
 		})
 
 		JustBeforeEach(func() {
-			jobs, skippedJobs, jobsError = jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier)
+			jobs, jobsError = jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier)
 		})
 
 		It("finds the jobs", func() {
-			jobs, skippedJobs, jobsError = jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier)
+			jobs, jobsError = jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier)
 			By("finding the scripts", func() {
 				Expect(remoteRunner.FindFilesArgsForCall(0)).To(Equal("/var/vcap/jobs/*/bin/bbr/*"))
-				Expect(skippedJobs).To(Equal(""))
 			})
 
 			By("logging the scripts found", func() {
@@ -80,6 +78,10 @@ var _ = Describe("JobFinderFromScripts", func() {
 				Expect(logStream.String()).To(ContainSubstring("identifier/0/consul_agent/pre-restore-lock"))
 				Expect(logStream.String()).To(ContainSubstring("identifier/0/consul_agent/post-backup-unlock"))
 				Expect(logStream.String()).To(ContainSubstring("identifier/0/consul_agent/post-restore-unlock"))
+			})
+
+			By("not logging an empty list of disabled jobs", func() {
+				Expect(logStream.String()).NotTo(ContainSubstring("Found disabled jobs"))
 			})
 
 			By("calling `FindReleaseName` with the right arguments", func() {
@@ -126,7 +128,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 			})
 
 			It("finds the jobs", func() {
-				jobs, _, _ = jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier)
+				jobs, _ = jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier)
 				Expect(jobs).To(ConsistOf(
 					NewJob(
 						remoteRunner,
@@ -397,8 +399,8 @@ skip_bbr_scripts: true
 						Expect(jobs).To(BeEmpty())
 					})
 
-					By("returning the list of disabled jobs", func() {
-						Expect(skippedJobs).To(Equal("identifier/0 jobs: consul_agent"))
+					By("logging the list of disabled jobs", func() {
+						Expect(string(logStream.Bytes())).To(ContainSubstring("DEBUG - Found disabled jobs on instance identifier/0 jobs: consul_agent"))
 					})
 
 				})

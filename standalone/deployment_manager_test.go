@@ -57,7 +57,7 @@ var _ = Describe("DeploymentManager", func() {
 			BeforeEach(func() {
 				fakeJobs = orchestrator.Jobs{instance.NewJob(nil, "", nil, "", instance.BackupAndRestoreScripts{"foo"}, instance.Metadata{}, false, false)}
 				remoteRunnerFactory.Returns(remoteRunner, nil)
-				fakeJobFinder.FindJobsReturns(fakeJobs, "", nil)
+				fakeJobFinder.FindJobsReturns(fakeJobs, nil)
 			})
 			It("does not fail", func() {
 				Expect(actualError).NotTo(HaveOccurred())
@@ -118,7 +118,7 @@ var _ = Describe("DeploymentManager", func() {
 
 			BeforeEach(func() {
 				remoteRunnerFactory.Returns(remoteRunner, nil)
-				fakeJobFinder.FindJobsReturns(nil, "", findJobsErr)
+				fakeJobFinder.FindJobsReturns(nil, findJobsErr)
 			})
 
 			It("should fail", func() {
