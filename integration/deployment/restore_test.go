@@ -531,6 +531,25 @@ touch /tmp/restore-script-was-run`)
 				})
 			})
 		})
+
+		Context("when the job is disabled", func() {
+			BeforeEach(func() {
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/restore", `#!/usr/bin/env sh
+set -u
+cp -r $BBR_ARTIFACT_DIRECTORY* /var/vcap/store/redis-server
+touch /tmp/restore-script-was-run`)
+
+				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
+echo "---
+skip_bbr_scripts: true
+"`)
+			})
+
+			It("reports that no restore scripts were found", func() {
+				Expect(session.ExitCode()).NotTo(BeZero())
+				Expect(string(session.Err.Contents())).To(ContainSubstring("has no restore scripts"))
+			})
+		})
 	})
 
 	Context("when deployment has a multiple instances", func() {
@@ -630,6 +649,24 @@ instances:
 				Expect(instance1.FileExists("/tmp/restore-script-was-run")).To(BeTrue())
 				Expect(instance2.FileExists("/var/vcap/store/redis-server/redis-backup")).To(BeTrue())
 				Expect(instance2.FileExists("/tmp/restore-script-was-run")).To(BeTrue())
+			})
+		})
+
+		Context("and one of the jobs is disabled", func() {
+			BeforeEach(func() {
+				instance2.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
+echo "---
+skip_bbr_scripts: true
+"`)
+			})
+
+			It("does not restore the disable job", func() {
+				Expect(session.ExitCode()).To(BeZero())
+				Expect(string(session.Out.Contents())).To(ContainSubstring("Found disabled jobs on instance redis-server/fake-uuid jobs: redis"))
+				Expect(instance1.FileExists("/var/vcap/store/redis-server/redis-backup")).To(BeTrue())
+				Expect(instance1.FileExists("/tmp/restore-script-was-run")).To(BeTrue())
+				Expect(instance2.FileExists("/var/vcap/store/redis-server/redis-backup")).To(BeFalse())
+				Expect(instance2.FileExists("/tmp/restore-script-was-run")).To(BeFalse())
 			})
 		})
 

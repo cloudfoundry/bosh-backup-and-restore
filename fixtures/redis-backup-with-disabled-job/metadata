@@ -1,0 +1,8 @@
+instances:
+- name: redis
+  index: "0"
+  artifacts:
+  - name: redis-server
+    checksums:
+      ./redis-server/appendonly.aof: be1b7e4e577b7cbcd556ec75f2f4b2e2d3afca1e40f8ce5a2b748b462cf4bd53
+      ./redis-server/dump.rdb: ba3589985f5f4869fe62d155faee8e59c328b42875cb7e3fbb18c7b8152a92d2
