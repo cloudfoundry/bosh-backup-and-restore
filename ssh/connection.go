@@ -137,7 +137,7 @@ func createDialFunc() boshhttp.DialFunc {
 	dialFuncMutex.Lock()
 	defer dialFuncMutex.Unlock()
 
-	socksProxy := proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(os.Stdout, "sock5-proxy", log.LstdFlags))
+	socksProxy := proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(os.Stdout, "sock5-proxy", log.LstdFlags), 60)
 	dialFunc = boshhttp.SOCKS5DialFuncFromEnvironment(net.Dial, socksProxy)
 	return dialFunc
 }

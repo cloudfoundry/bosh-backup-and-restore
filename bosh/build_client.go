@@ -6,22 +6,30 @@ import (
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/pkg/errors"
 
+	boshconfig "github.com/cloudfoundry/bosh-cli/cmd/config"
 	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
+	boshsystem "github.com/cloudfoundry/bosh-utils/system"
 )
 
-func BuildClient(targetUrl, username, password, caCert, bbrVersion string, logger boshlog.Logger) (Client, error) {
+func BuildClient(targetUrl, username, password, caCert, boshConfigPath, bbrVersion string, logger boshlog.Logger) (Client, error) {
 	var client Client
-	config, err := director.NewConfigFromURL(targetUrl)
+
+	config, err := boshconfig.NewFSConfigFromPath(boshConfigPath, boshsystem.NewOsFileSystem(logger))
+	if err != nil {
+		return client, errors.Errorf("error initialising bosh config - %s", err.Error())
+	}
+
+	factoryConfig, err := director.NewConfigFromURL(targetUrl)
 	if err != nil {
 		return client, errors.Errorf("invalid bosh URL - %s", err.Error())
 	}
 
-	config.CACert = caCert
+	factoryConfig.CACert = caCert
 
 	directorFactory := director.NewFactory(logger)
 
-	info, err := getDirectorInfo(directorFactory, config)
+	info, err := getDirectorInfo(directorFactory, factoryConfig, config)
 	if err != nil {
 		return client, err
 	}
@@ -32,13 +40,13 @@ func BuildClient(targetUrl, username, password, caCert, bbrVersion string, logge
 			return client, err
 		}
 
-		config.TokenFunc = boshuaa.NewClientTokenSession(uaa).TokenFunc
+		factoryConfig.TokenFunc = boshuaa.NewClientTokenSession(uaa).TokenFunc
 	} else {
-		config.Client = username
-		config.ClientSecret = password
+		factoryConfig.Client = username
+		factoryConfig.ClientSecret = password
 	}
 
-	boshDirector, err := directorFactory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
+	boshDirector, err := directorFactory.New(factoryConfig, config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
 	if err != nil {
 		return client, errors.Wrap(err, "error building bosh director client")
 	}
@@ -46,8 +54,8 @@ func BuildClient(targetUrl, username, password, caCert, bbrVersion string, logge
 	return NewClient(boshDirector, director.NewSSHOpts, ssh.NewSshRemoteRunner, logger, instance.NewJobFinder(bbrVersion, logger), NewBoshManifestQuerier), nil
 }
 
-func getDirectorInfo(directorFactory director.Factory, config director.FactoryConfig) (director.Info, error) {
-	infoDirector, err := directorFactory.New(config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
+func getDirectorInfo(directorFactory director.Factory, factoryConfig director.FactoryConfig, config boshconfig.Config) (director.Info, error) {
+	infoDirector, err := directorFactory.New(factoryConfig, config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
 	if err != nil {
 		return director.Info{}, errors.Wrap(err, "error building bosh director client")
 	}

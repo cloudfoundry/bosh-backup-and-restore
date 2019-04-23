@@ -109,7 +109,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:d6dd97e8301271845244ba0cf246164f69347354e45be0656cb5c217a9db2436"
+  digest = "1:09a4fa8fd3e9ad19b65f838c8e92a12b8574486861cdd2d4842890d1ef485624"
   name = "github.com/cloudfoundry/bosh-agent"
   packages = [
     "agentclient",
@@ -117,10 +117,10 @@
     "agentclient/http",
   ]
   pruneopts = ""
-  revision = "cbfc5060b5b3955aa72c044a557ee734122f23b0"
+  revision = "d1c0462f68455eea8dbfa415bf485474fe19efb6"
 
 [[projects]]
-  digest = "1:fecab5343aabb39e35f3fbd2d6fac3a8e3b4a947c758908e6332851e0681490f"
+  digest = "1:b1cf194a8253d6650991d9dae9ca4e70ab5fd9bde2d744a1d494cfb1f6a2418e"
   name = "github.com/cloudfoundry/bosh-cli"
   packages = [
     "blobstore",
@@ -175,8 +175,8 @@
     "ui/task",
   ]
   pruneopts = ""
-  revision = "14b04789e7bf7c7e2e5ce35dbaf3b52c00bb1569"
-  version = "v5.1.2"
+  revision = "0ee5b2abedb27e521dc6e70719023e7b382cab79"
+  version = "v5.5.0"
 
 [[projects]]
   branch = "master"
@@ -213,7 +213,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c683fce1149194d3a62877099a8a98f14409c1eff0dd77feb4f9eb227755daab"
+  digest = "1:a90a18bc8f489be8c0d62a30821880fffa914262aa9d3d22d4dc5f58ed455529"
   name = "github.com/cloudfoundry/bosh-utils"
   packages = [
     "blobstore",
@@ -229,15 +229,15 @@
     "work",
   ]
   pruneopts = ""
-  revision = "407dd7546455f1a0a50feba2dcaef0ae88da1810"
+  revision = "8bc576c954d77a7f4271dd94097cd3a293900293"
 
 [[projects]]
-  digest = "1:2e4a436ab4445340dd82bc5290aa44582243a2fee940b21daf55f0b4fac4ff06"
+  digest = "1:b616e7e1006a9985563a13a9dcca9b5d7ec741fc2243a703f325818b88d6efe4"
   name = "github.com/cloudfoundry/config-server"
   packages = ["types"]
   pruneopts = ""
-  revision = "eceeee1c3232c58b1a32051b83d5f87e77ca2645"
-  version = "v0.1.8"
+  revision = "d29aa99b7c301778efea4714252b6ef549089d6b"
+  version = "v0.0.124"
 
 [[projects]]
   branch = "master"
@@ -248,12 +248,12 @@
   revision = "54f73bdb8a8e85a6611d3d29ab9bbf98c2a060d7"
 
 [[projects]]
-  branch = "master"
-  digest = "1:ad0ef7941d901d624f0db1f5ea0333ce4884280696a3b24bc3ca3d4856e412b4"
+  digest = "1:6e4dba984b464f6cdc3fb6d10ca28703c4620b8062ec5f85d3210e556a90918f"
   name = "github.com/cloudfoundry/socks5-proxy"
   packages = ["."]
   pruneopts = ""
-  revision = "3659db090cb23a57807b53e2f8580b2427dc2659"
+  revision = "633b6fe4c3d8d72a4e7397a948027db02a8e2a96"
+  version = "v0.2.0"
 
 [[projects]]
   branch = "master"
@@ -744,6 +744,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/cloudfoundry/bosh-cli/cmd",
+    "github.com/cloudfoundry/bosh-cli/cmd/config",
     "github.com/cloudfoundry/bosh-cli/director",
     "github.com/cloudfoundry/bosh-cli/director/directorfakes",
     "github.com/cloudfoundry/bosh-cli/uaa",

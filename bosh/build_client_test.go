@@ -2,6 +2,7 @@ package bosh
 
 import (
 	"log"
+	"os"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
@@ -21,6 +22,7 @@ var _ = Describe("BuildClient", func() {
 	var director *mockhttp.Server
 	var deploymentName = "my-little-deployment"
 	var bbrVersion = "bbr_version"
+	var boshConfigPath = "~/.bosh/config"
 	var caCert string
 
 	BeforeEach(func() {
@@ -46,7 +48,7 @@ var _ = Describe("BuildClient", func() {
 				mockbosh.Manifest(deploymentName).RespondsWith([]byte("manifest contents")),
 			)
 
-			client, err := BuildClient(director.URL, username, password, caCert, bbrVersion, logger)
+			client, err := BuildClient(director.URL, username, password, caCert, boshConfigPath, bbrVersion, logger)
 
 			Expect(err).NotTo(HaveOccurred())
 			manifest, err := client.GetManifest(deploymentName)
@@ -71,7 +73,7 @@ var _ = Describe("BuildClient", func() {
 				mockbosh.Manifest(deploymentName).RespondsWith([]byte("manifest contents")),
 			)
 
-			client, err := BuildClient(director.URL, username, password, caCert, bbrVersion, logger)
+			client, err := BuildClient(director.URL, username, password, caCert, boshConfigPath, bbrVersion, logger)
 
 			Expect(err).NotTo(HaveOccurred())
 			manifest, err := client.GetManifest(deploymentName)
@@ -86,7 +88,7 @@ var _ = Describe("BuildClient", func() {
 			director.VerifyAndMock(
 				mockbosh.Info().WithAuthTypeUAA(""),
 			)
-			_, err := BuildClient(director.URL, username, password, caCert, bbrVersion, logger)
+			_, err := BuildClient(director.URL, username, password, caCert, boshConfigPath, bbrVersion, logger)
 
 			Expect(err).To(MatchError(ContainSubstring("invalid UAA URL")))
 
@@ -99,7 +101,7 @@ var _ = Describe("BuildClient", func() {
 		caCertPath := "-----BEGIN"
 		basicAuthDirectorUrl := director.URL
 
-		_, err := BuildClient(basicAuthDirectorUrl, username, password, caCertPath, bbrVersion, logger)
+		_, err := BuildClient(basicAuthDirectorUrl, username, password, caCertPath, boshConfigPath, bbrVersion, logger)
 		Expect(err).To(MatchError(ContainSubstring("Missing PEM block")))
 	})
 
@@ -109,7 +111,7 @@ var _ = Describe("BuildClient", func() {
 		caCertPath := ""
 		basicAuthDirectorUrl := ""
 
-		_, err := BuildClient(basicAuthDirectorUrl, username, password, caCertPath, bbrVersion, logger)
+		_, err := BuildClient(basicAuthDirectorUrl, username, password, caCertPath, boshConfigPath, bbrVersion, logger)
 		Expect(err).To(MatchError(ContainSubstring("invalid bosh URL")))
 	})
 
@@ -121,8 +123,33 @@ var _ = Describe("BuildClient", func() {
 			mockbosh.Info().Fails("fooo!"),
 		)
 
-		_, err := BuildClient(director.URL, username, password, caCert, bbrVersion, logger)
+		_, err := BuildClient(director.URL, username, password, caCert, boshConfigPath, bbrVersion, logger)
 		Expect(err).To(MatchError(ContainSubstring("bosh director unreachable or unhealthy")))
 	})
 
+	Context("when the given bosh config file exists and it is invalid", func() {
+		var invalidBoshConfigPath string
+
+		BeforeEach(func() {
+			invalidBoshConfig, err := ioutil.TempFile("", "")
+			Expect(err).NotTo(HaveOccurred())
+
+			_, err = invalidBoshConfig.Write([]byte("invalid json"))
+			Expect(err).NotTo(HaveOccurred())
+
+			err = invalidBoshConfig.Close()
+			Expect(err).NotTo(HaveOccurred())
+
+			invalidBoshConfigPath = invalidBoshConfig.Name()
+		})
+
+		AfterEach(func() {
+			Expect(os.Remove(invalidBoshConfigPath)).To(Succeed())
+		})
+
+		It("fails", func() {
+			_, err := BuildClient(director.URL, "no-relevant", "no-relevant", caCert, invalidBoshConfigPath, bbrVersion, logger)
+			Expect(err).To(MatchError(ContainSubstring("error initialising bosh config")))
+		})
+	})
 })

@@ -8,6 +8,8 @@ import (
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 
+const boshConfigPath = "~/.bosh/config"
+
 func BuildBoshClient(targetUrl, username, password, caCertPathOrValue, bbrVersion string, logger boshlog.Logger) (bosh.Client, error) {
 	var boshClient bosh.Client
 	var err error
@@ -20,7 +22,7 @@ func BuildBoshClient(targetUrl, username, password, caCertPathOrValue, bbrVersio
 		return boshClient, err
 	}
 
-	boshClient, err = bosh.BuildClient(targetUrl, username, password, caCertArg.Content, bbrVersion, logger)
+	boshClient, err = bosh.BuildClient(targetUrl, username, password, caCertArg.Content, boshConfigPath, bbrVersion, logger)
 	if err != nil {
 		return boshClient, err
 	}
