@@ -31,7 +31,7 @@ var _ = Describe("BoshAllProxy", func() {
 			"--deployment", "many-bbr-scripts",
 			"backup",
 		)
-		cmd.Env = append(os.Environ(), "BOSH_ALL_PROXY=%s"+boshAllProxy)
+		cmd.Env = append(os.Environ(), "BOSH_ALL_PROXY="+boshAllProxy)
 		cmd.Stderr = GinkgoWriter
 		cmd.Stdout = GinkgoWriter
 
