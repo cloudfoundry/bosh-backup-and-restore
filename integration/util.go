@@ -32,8 +32,7 @@ func NewBinary(path string) Binary {
 
 func (b Binary) Start(cwd string, env []string, params ...string) (*gexec.Session, io.WriteCloser) {
 	command := exec.Command(b.path, params...)
-	env = append(env, os.Environ()...)
-	command.Env = env
+	command.Env = append(os.Environ(), env...)
 	command.Dir = cwd
 	stdin, err := command.StdinPipe()
 	Expect(err).ToNot(HaveOccurred())

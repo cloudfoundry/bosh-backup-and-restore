@@ -1,6 +1,7 @@
 package bosh
 
 import (
+	"io"
 	"log"
 	"os"
 
@@ -134,11 +135,10 @@ var _ = Describe("BuildClient", func() {
 			invalidBoshConfig, err := ioutil.TempFile("", "")
 			Expect(err).NotTo(HaveOccurred())
 
-			_, err = invalidBoshConfig.Write([]byte("invalid json"))
+			_, err = io.WriteString(invalidBoshConfig, "invalid json")
 			Expect(err).NotTo(HaveOccurred())
 
-			err = invalidBoshConfig.Close()
-			Expect(err).NotTo(HaveOccurred())
+			Expect(invalidBoshConfig.Close()).To(Succeed())
 
 			invalidBoshConfigPath = invalidBoshConfig.Name()
 		})

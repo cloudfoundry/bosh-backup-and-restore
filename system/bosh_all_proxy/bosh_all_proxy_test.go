@@ -1,9 +1,10 @@
 package bosh_all_proxy
 
 import (
+	"os"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gexec"
 
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 
@@ -30,14 +31,13 @@ var _ = Describe("BoshAllProxy", func() {
 			"--deployment", "many-bbr-scripts",
 			"backup",
 		)
-		cmd.Env = append(cmd.Env, fmt.Sprintf("BOSH_ALL_PROXY=%s", boshAllProxy))
+		cmd.Env = append(os.Environ(), "BOSH_ALL_PROXY=%s"+boshAllProxy)
+		cmd.Stderr = GinkgoWriter
+		cmd.Stdout = GinkgoWriter
 
 		fmt.Println("BOSH_ALL_PROXY=", boshAllProxy, " bbr ", cmd.Args)
 
-		session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
-		Expect(err).NotTo(HaveOccurred())
-
-		Eventually(session).Should(gexec.Exit(0))
+		Expect(cmd.Run()).To(Succeed())
 	})
 
 	It("backs up the director using BOSH_ALL_PROXY", func() {
@@ -49,13 +49,12 @@ var _ = Describe("BoshAllProxy", func() {
 			"--host", MustHaveEnv("DIRECTOR_ADDRESS"),
 			"pre-backup-check",
 		)
-		cmd.Env = append(cmd.Env, fmt.Sprintf("BOSH_ALL_PROXY=%s", boshAllProxy))
+		cmd.Env = append(os.Environ(), "BOSH_ALL_PROXY="+boshAllProxy)
+		cmd.Stderr = GinkgoWriter
+		cmd.Stdout = GinkgoWriter
 
 		fmt.Println("BOSH_ALL_PROXY=", boshAllProxy, " bbr ", cmd.Args)
 
-		session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
-		Expect(err).NotTo(HaveOccurred())
-
-		Eventually(session).Should(gexec.Exit(0))
+		Expect(cmd.Run()).To(Succeed())
 	})
 })
