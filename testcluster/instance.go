@@ -28,7 +28,7 @@ func PullDockerImage() {
 	startTime := time.Now()
 	args := []string{"pull", "cloudfoundrylondon/backup-and-restore-node-with-ssh"}
 	session := dockerRun(args...)
-	Eventually(session, 60*time.Second).Should(gexec.Exit(0))
+	Eventually(session, 10*time.Minute).Should(gexec.Exit(0))
 	fmt.Fprintf(GinkgoWriter, "Completed docker run in %v, cmd: %v\n", time.Now().Sub(startTime), args)
 }
 
