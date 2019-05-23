@@ -26,14 +26,14 @@ const timeout = 20 * time.Second
 
 func PullDockerImage() {
 	startTime := time.Now()
-	args := []string{"pull", "cloudfoundrylondon/backup-and-restore-node-with-ssh"}
+	args := []string{"pull", "pcfplatformrecovery/backup-and-restore-node-with-ssh"}
 	session := dockerRun(args...)
 	Eventually(session, 10*time.Minute).Should(gexec.Exit(0))
 	fmt.Fprintf(GinkgoWriter, "Completed docker run in %v, cmd: %v\n", time.Now().Sub(startTime), args)
 }
 
 func NewInstance() *Instance {
-	contents := dockerRunAndWaitForSuccess("run", "--publish", "22", "--detach", "cloudfoundrylondon/backup-and-restore-node-with-ssh")
+	contents := dockerRunAndWaitForSuccess("run", "--publish", "22", "--detach", "pcfplatformrecovery/backup-and-restore-node-with-ssh")
 
 	dockerID := strings.TrimSpace(contents)
 
