@@ -1150,6 +1150,27 @@ skip_bbr_scripts: true
 
 				})
 			})
+
+			Context("and the backup fails during the drain step", func() {
+				BeforeEach(func() {
+					firstReturnedInstance.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
+rm -rf /usr/bin/shasum
+`)
+				})
+
+				It("reports that it failed to create the backup", func() {
+					By("failing", func() {
+						Expect(session.ExitCode()).NotTo(BeZero())
+					})
+
+					By("logging the error", func() {
+						Expect(session.Out).NotTo(gbytes.Say("Backup created of"))
+						Expect(session.Out).To(gbytes.Say("Failed to create backup of %s", deploymentName))
+						Expect(string(session.Err.Contents())).To(ContainSubstring("It is recommended that you run `bbr backup-cleanup`"))
+					})
+				})
+			})
+
 		})
 
 		Context("both backupable", func() {

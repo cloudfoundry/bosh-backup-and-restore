@@ -17,6 +17,7 @@ type BackupError customError
 type UnlockError customError
 type CleanupError customError
 type ArtifactDirError customError
+type DrainError customError
 
 func NewLockError(errorMessage string) LockError {
 	return LockError{errors.New(errorMessage)}
@@ -28,6 +29,10 @@ func NewBackupError(errorMessage string) BackupError {
 
 func NewPostUnlockError(errorMessage string) UnlockError {
 	return UnlockError{errors.New(errorMessage)}
+}
+
+func NewDrainError(errorMessage string) DrainError {
+	return DrainError{errors.New(errorMessage)}
 }
 
 func NewCleanupError(errorMessage string) CleanupError {
@@ -107,6 +112,8 @@ func (err Error) ContainsUnlockOrCleanupOrArtifactDirExists() bool {
 		case CleanupError:
 			return true
 		case ArtifactDirError:
+			return true
+		case DrainError:
 			return true
 		default:
 			continue

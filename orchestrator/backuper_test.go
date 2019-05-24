@@ -318,7 +318,7 @@ var _ = Describe("Backup", func() {
 			})
 
 			It("fails the backup process", func() {
-				Expect(actualBackupError).To(ConsistOf(drainError))
+				Expect(actualBackupError.Error()).To(ContainSubstring(drainError.Error()))
 			})
 
 			It("ensures that deployment's instance is cleaned up", func() {
