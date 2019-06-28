@@ -31,7 +31,7 @@ func (d DeploymentBackupCommand) Cli() cli.Command {
 				Usage: "Download the deployment manifest",
 			},
 			cli.StringFlag{
-				Name:  "artifact-path",
+				Name:  "artifact-path, a",
 				Usage: "Specify an optional path to save the backup artifacts to",
 			},
 		},
