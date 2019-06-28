@@ -1,0 +1,5 @@
+---
+update_configs:
+- directory: "/"
+  package_manager: go:dep
+  update_schedule: weekly
