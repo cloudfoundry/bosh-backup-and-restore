@@ -837,7 +837,7 @@ instances:
 				Expect(checksum).To(Equal(orchestrator.BackupChecksum{"filename1": "orignal_checksum"}))
 			})
 		})
-		//TODO: why is this required
+
 		Context("the default artifact is not found in metadata", func() {
 			BeforeEach(func() {
 				fakeArtifact.NameReturns("not-baz")
