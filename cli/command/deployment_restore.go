@@ -21,7 +21,7 @@ func (d DeploymentRestoreCommand) Cli() cli.Command {
 		Usage:   "Restore a deployment from backup",
 		Action:  d.Action,
 		Flags: []cli.Flag{cli.StringFlag{
-			Name:  "artifact-path",
+			Name:  "artifact-path, a",
 			Usage: "Path to the artifact to restore",
 		}},
 	}
