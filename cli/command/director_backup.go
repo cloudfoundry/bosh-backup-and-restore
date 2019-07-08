@@ -48,7 +48,7 @@ func (checkCommand DirectorBackupCommand) Action(c *cli.Context) error {
 
 	if backupErr.ContainsUnlockOrCleanupOrArtifactDirExists() {
 		return processErrorWithFooter(backupErr, backupCleanupAdvisedNotice)
-	} else {
-		return processError(backupErr)
 	}
+
+	return processError(backupErr)
 }

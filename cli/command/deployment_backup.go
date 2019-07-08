@@ -47,9 +47,9 @@ func (d DeploymentBackupCommand) Action(c *cli.Context) error {
 
 	if allDeployments {
 		return backupAll(target, username, password, caCert, artifactPath, withManifest, bbrVersion, debug)
-	} else {
-		return backupSingleDeployment(deployment, target, username, password, caCert, artifactPath, withManifest, bbrVersion, debug)
 	}
+
+	return backupSingleDeployment(deployment, target, username, password, caCert, artifactPath, withManifest, bbrVersion, debug)
 }
 
 func backupAll(target, username, password, caCert, artifactPath string, withManifest bool, bbrVersion string, debug bool) error {
@@ -106,6 +106,7 @@ func backupAll(target, username, password, caCert, artifactPath string, withMani
 		errorHandler,
 		deployment.NewParallelExecutor())
 }
+
 func backupSingleDeployment(deployment, target, username, password, caCert, artifactPath string, withManifest bool, bbrVersion string, debug bool) error {
 	logger := factory.BuildBoshLogger(debug)
 	timeStamp := time.Now().UTC().Format(artifactTimeStampFormat)
@@ -118,9 +119,9 @@ func backupSingleDeployment(deployment, target, username, password, caCert, arti
 	backupErr := backuper.Backup(deployment, artifactPath)
 	if backupErr.ContainsUnlockOrCleanupOrArtifactDirExists() {
 		return processErrorWithFooter(backupErr, backupCleanupAdvisedNotice)
-	} else {
-		return processError(backupErr)
 	}
+
+	return processError(backupErr)
 }
 
 func printlnWithTimestamp(str string) {
