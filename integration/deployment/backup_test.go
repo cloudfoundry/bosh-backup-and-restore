@@ -8,35 +8,34 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strings"
+	"time"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gbytes"
+	"github.com/onsi/gomega/gexec"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
 
-	"github.com/onsi/gomega/gbytes"
-	"github.com/onsi/gomega/gexec"
-
-	"time"
-
-	"strings"
-
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 )
 
 var _ = Describe("Backup", func() {
-	var director *mockhttp.Server
-	var backupWorkspace string
-	var session *gexec.Session
-	var stdin io.WriteCloser
-	var deploymentName string
-	var downloadManifest bool
-	var waitForBackupToFinish bool
-	var artifactPath string
-	var verifyMocks bool
-	var instance1 *testcluster.Instance
-	var manifest string
+	var (
+		director              *mockhttp.Server
+		backupWorkspace       string
+		session               *gexec.Session
+		stdin                 io.WriteCloser
+		deploymentName        string
+		downloadManifest      bool
+		waitForBackupToFinish bool
+		artifactPath          string
+		verifyMocks           bool
+		instance1             *testcluster.Instance
+		manifest              string
+	)
 
 	backupDirectory := func() string {
 		matches := possibleBackupDirectories(deploymentName, backupWorkspace)
@@ -187,7 +186,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 							Expect(string(session.Out.Contents())).To(HaveSuffix("[yes/no]\n"))
 						})
 
-						stdin.Write([]byte("yes\n"))
+						fmt.Fprintln(stdin, "yes")
 
 						By("then exiting with a failure", func() {
 							Eventually(session, 10).Should(gexec.Exit(1))
@@ -214,7 +213,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 							Expect(string(session.Out.Contents())).To(HaveSuffix("[yes/no]\n"))
 						})
 
-						stdin.Write([]byte("no\n"))
+						fmt.Fprintln(stdin, "yes")
 
 						By("waiting for the backup to finish successfully", func() {
 							Eventually(session, 10).Should(gexec.Exit(0))
@@ -1798,7 +1797,6 @@ exit 1`)
 			})
 		})
 	})
-
 })
 
 func assertOutput(b *gbytes.Buffer, strings []string) {
