@@ -186,7 +186,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 							Expect(string(session.Out.Contents())).To(HaveSuffix("[yes/no]\n"))
 						})
 
-						io.WriteString(stdin, "yes\n")
+						fmt.Fprintln(stdin, "yes")
 
 						By("then exiting with a failure", func() {
 							Eventually(session, 10).Should(gexec.Exit(1))
@@ -213,7 +213,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 							Expect(string(session.Out.Contents())).To(HaveSuffix("[yes/no]\n"))
 						})
 
-						io.WriteString(stdin, "yes\n")
+						fmt.Fprintln(stdin, "no")
 
 						By("waiting for the backup to finish successfully", func() {
 							Eventually(session, 10).Should(gexec.Exit(0))
