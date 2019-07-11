@@ -1,3 +1,0 @@
-[submodule "fixtures/releases"]
-	path = fixtures/releases
-	url = https://github.com/cloudfoundry-incubator/bosh-backup-and-restore-test-releases.git
