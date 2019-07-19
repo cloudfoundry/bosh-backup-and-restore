@@ -1,7 +1,7 @@
 
 [[constraint]]
   name = "github.com/cloudfoundry/bosh-cli"
-  version = "5.5.0"
+  branch = "master"
 
 [[constraint]]
   name = "github.com/cloudfoundry/bosh-utils"
@@ -20,7 +20,7 @@
 
 [[constraint]]
   name = "github.com/pkg/errors"
-  version = "0.8.0"
+  version = "0.8.1"
 
 [[constraint]]
   name = "github.com/urfave/cli"
