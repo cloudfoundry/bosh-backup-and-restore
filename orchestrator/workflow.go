@@ -37,8 +37,8 @@ func (workflow *Workflow) findNode(step Step) *Node {
 	}
 	//TODO: replace with something else
 	panic("node not found")
-	return nil
 }
+
 func (workflow *Workflow) Add(step Step) *Node {
 	node := NewNode(step)
 	workflow.Nodes = append(workflow.Nodes, node)
