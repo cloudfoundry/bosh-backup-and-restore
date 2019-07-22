@@ -120,8 +120,7 @@
   revision = "d1c0462f68455eea8dbfa415bf485474fe19efb6"
 
 [[projects]]
-  branch = "master"
-  digest = "1:f7a56302c8f565049e9df5b5eca563f0a8fa15616140ae3b16d8e1133e9d5eb5"
+  digest = "1:b1cf194a8253d6650991d9dae9ca4e70ab5fd9bde2d744a1d494cfb1f6a2418e"
   name = "github.com/cloudfoundry/bosh-cli"
   packages = [
     "blobstore",
@@ -176,7 +175,8 @@
     "ui/task",
   ]
   pruneopts = ""
-  revision = "7850ac985726c614f8ecba726ae8c0d17b08ad7f"
+  revision = "0ee5b2abedb27e521dc6e70719023e7b382cab79"
+  version = "v5.5.0"
 
 [[projects]]
   branch = "master"
@@ -476,12 +476,12 @@
   revision = "a64ae2051c20c5cde13292a41db01029566134ba"
 
 [[projects]]
-  digest = "1:1d7e1867c49a6dd9856598ef7c3123604ea3daabf5b83f303ff457bcbc410b1d"
+  digest = "1:7365acd48986e205ccb8652cc746f09c8b7876030d53710ea6ef7d0bd0dcd7ca"
   name = "github.com/pkg/errors"
   packages = ["."]
   pruneopts = ""
-  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
-  version = "v0.8.1"
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
 
 [[projects]]
   digest = "1:e85837cb04b78f61688c6eba93ea9d14f60d611e2aaf8319999b1a60d2dafbfa"
