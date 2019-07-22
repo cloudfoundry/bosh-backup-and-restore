@@ -1,7 +1,7 @@
 
 [[constraint]]
   name = "github.com/cloudfoundry/bosh-cli"
-  version = "5.5.0"
+  version = "5.5.1"
 
 [[constraint]]
   name = "github.com/cloudfoundry/bosh-utils"
