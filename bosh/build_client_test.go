@@ -18,11 +18,12 @@ import (
 var _ = Describe("BuildClient", func() {
 	var logger = boshlog.New(boshlog.LevelDebug, log.New(gbytes.NewBuffer(), "[bosh-package] ", log.Lshortfile))
 
-	var director *mockhttp.Server
-	var deploymentName = "my-little-deployment"
-	var bbrVersion = "bbr_version"
-	var boshConfigPath = "~/.bosh/config"
-	var caCert string
+	var (
+		director       *mockhttp.Server
+		deploymentName = "my-little-deployment"
+		bbrVersion     = "bbr_version"
+		caCert         string
+	)
 
 	BeforeEach(func() {
 		director = mockbosh.NewTLS()
@@ -98,9 +99,9 @@ var _ = Describe("BuildClient", func() {
 		username := "no-relevant"
 		password := "no-relevant"
 		caCertPath := "-----BEGIN"
-		basicAuthDirectorUrl := director.URL
+		basicAuthDirectorURL := director.URL
 
-		_, err := BuildClient(basicAuthDirectorUrl, username, password, caCertPath, bbrVersion, logger)
+		_, err := BuildClient(basicAuthDirectorURL, username, password, caCertPath, bbrVersion, logger)
 		Expect(err).To(MatchError(ContainSubstring("Missing PEM block")))
 	})
 
@@ -108,9 +109,9 @@ var _ = Describe("BuildClient", func() {
 		username := "no-relevant"
 		password := "no-relevant"
 		caCertPath := ""
-		basicAuthDirectorUrl := ""
+		basicAuthDirectorURL := ""
 
-		_, err := BuildClient(basicAuthDirectorUrl, username, password, caCertPath, bbrVersion, logger)
+		_, err := BuildClient(basicAuthDirectorURL, username, password, caCertPath, bbrVersion, logger)
 		Expect(err).To(MatchError(ContainSubstring("invalid bosh URL")))
 	})
 
