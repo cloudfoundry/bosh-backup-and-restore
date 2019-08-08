@@ -10,7 +10,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-func BuildClient(targetUrl, username, password, caCert, boshConfigPath, bbrVersion string, logger boshlog.Logger) (Client, error) {
+func BuildClient(targetUrl, username, password, caCert, bbrVersion string, logger boshlog.Logger) (Client, error) {
 	var client Client
 
 	factoryConfig, err := director.NewConfigFromURL(targetUrl)
