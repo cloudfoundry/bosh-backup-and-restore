@@ -17,16 +17,13 @@ test-integration:
 	ginkgo -r -trace integration
 
 bin:
-	go build -o bbr github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr
+	go build -o bbr ./cmd/bbr
 
 bin-linux:
-	GOOS=linux GOARCH=amd64 go build -o bbr github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr
+	GOOS=linux GOARCH=amd64 go build -o bbr ./cmd/bbr
 
 generate-fakes:
 	go generate ./...
-
-generate:
-	ls -F | grep / | grep -v vendor | xargs -IN go generate github.com/cloudfoundry-incubator/bosh-backup-and-restore/N/...
 
 setup:
 	dep ensure
@@ -58,8 +55,8 @@ upload-test-releases:
 release: setup
 	go version
 	mkdir releases
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/bbr github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr
-	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/bbr-mac github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/bbr ./cmd/bbr
+	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/bbr-mac ./cmd/bbr
 	cd releases && shasum -a 256 * > checksum.sha256
 
 clean-docker:
