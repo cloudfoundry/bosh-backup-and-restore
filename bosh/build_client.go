@@ -6,19 +6,12 @@ import (
 	"github.com/cloudfoundry/bosh-cli/director"
 	"github.com/pkg/errors"
 
-	boshconfig "github.com/cloudfoundry/bosh-cli/cmd/config"
 	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	boshsystem "github.com/cloudfoundry/bosh-utils/system"
 )
 
 func BuildClient(targetUrl, username, password, caCert, boshConfigPath, bbrVersion string, logger boshlog.Logger) (Client, error) {
 	var client Client
-
-	config, err := boshconfig.NewFSConfigFromPath(boshConfigPath, boshsystem.NewOsFileSystem(logger))
-	if err != nil {
-		return client, errors.Errorf("error initialising bosh config - %s", err.Error())
-	}
 
 	factoryConfig, err := director.NewConfigFromURL(targetUrl)
 	if err != nil {
@@ -29,7 +22,7 @@ func BuildClient(targetUrl, username, password, caCert, boshConfigPath, bbrVersi
 
 	directorFactory := director.NewFactory(logger)
 
-	info, err := getDirectorInfo(directorFactory, factoryConfig, config)
+	info, err := getDirectorInfo(directorFactory, factoryConfig)
 	if err != nil {
 		return client, err
 	}
@@ -46,7 +39,7 @@ func BuildClient(targetUrl, username, password, caCert, boshConfigPath, bbrVersi
 		factoryConfig.ClientSecret = password
 	}
 
-	boshDirector, err := directorFactory.New(factoryConfig, config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
+	boshDirector, err := directorFactory.New(factoryConfig, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
 	if err != nil {
 		return client, errors.Wrap(err, "error building bosh director client")
 	}
@@ -54,8 +47,8 @@ func BuildClient(targetUrl, username, password, caCert, boshConfigPath, bbrVersi
 	return NewClient(boshDirector, director.NewSSHOpts, ssh.NewSshRemoteRunner, logger, instance.NewJobFinder(bbrVersion, logger), NewBoshManifestQuerier), nil
 }
 
-func getDirectorInfo(directorFactory director.Factory, factoryConfig director.FactoryConfig, config boshconfig.Config) (director.Info, error) {
-	infoDirector, err := directorFactory.New(factoryConfig, config, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
+func getDirectorInfo(directorFactory director.Factory, factoryConfig director.FactoryConfig) (director.Info, error) {
+	infoDirector, err := directorFactory.New(factoryConfig, director.NewNoopTaskReporter(), director.NewNoopFileReporter())
 	if err != nil {
 		return director.Info{}, errors.Wrap(err, "error building bosh director client")
 	}

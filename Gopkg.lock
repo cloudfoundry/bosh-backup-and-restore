@@ -120,7 +120,7 @@
   revision = "d1c0462f68455eea8dbfa415bf485474fe19efb6"
 
 [[projects]]
-  digest = "1:f7a56302c8f565049e9df5b5eca563f0a8fa15616140ae3b16d8e1133e9d5eb5"
+  digest = "1:eba087ba78975c2da95724925db8765d0b7b9c77b644a8c7839b5edcbcac72c8"
   name = "github.com/cloudfoundry/bosh-cli"
   packages = [
     "blobstore",
@@ -150,6 +150,7 @@
     "installation/manifest",
     "installation/pkg",
     "installation/tarball",
+    "io",
     "registry",
     "release",
     "release/job",
@@ -175,8 +176,8 @@
     "ui/task",
   ]
   pruneopts = ""
-  revision = "7850ac985726c614f8ecba726ae8c0d17b08ad7f"
-  version = "v5.5.1"
+  revision = "5240e8aa8f1612f32edd8507058884ee52ffd1c6"
+  version = "v6.0.0"
 
 [[projects]]
   branch = "master"
@@ -349,13 +350,12 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "cli-patches"
-  digest = "1:a590e12a18b56c7b22c5e649128e8abffaff8179c273b1399d7ffb64b9d359b9"
+  digest = "1:ca5c90960520407749b98c49650f54f5f90a667796e85c5ee1597478f702fb91"
   name = "github.com/jessevdk/go-flags"
   packages = ["."]
   pruneopts = ""
-  revision = "351f5f310b26e7f1a0602887c0a0432ddda2947d"
-  source = "github.com/cppforlife/go-flags"
+  revision = "c6ca198ec95c841fdb89fc0de7496fed11ab854e"
+  version = "v1.4.0"
 
 [[projects]]
   digest = "1:6f49eae0c1e5dab1dafafee34b207aeb7a42303105960944828c2079b92fc88e"
@@ -744,7 +744,6 @@
   analyzer-version = 1
   input-imports = [
     "github.com/cloudfoundry/bosh-cli/cmd",
-    "github.com/cloudfoundry/bosh-cli/cmd/config",
     "github.com/cloudfoundry/bosh-cli/director",
     "github.com/cloudfoundry/bosh-cli/director/directorfakes",
     "github.com/cloudfoundry/bosh-cli/uaa",
