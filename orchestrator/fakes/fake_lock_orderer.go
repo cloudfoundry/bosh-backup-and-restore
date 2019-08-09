@@ -8,10 +8,10 @@ import (
 )
 
 type FakeLockOrderer struct {
-	OrderStub        func(jobs []orchestrator.Job) ([][]orchestrator.Job, error)
+	OrderStub        func([]orchestrator.Job) ([][]orchestrator.Job, error)
 	orderMutex       sync.RWMutex
 	orderArgsForCall []struct {
-		jobs []orchestrator.Job
+		arg1 []orchestrator.Job
 	}
 	orderReturns struct {
 		result1 [][]orchestrator.Job
@@ -25,26 +25,27 @@ type FakeLockOrderer struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeLockOrderer) Order(jobs []orchestrator.Job) ([][]orchestrator.Job, error) {
-	var jobsCopy []orchestrator.Job
-	if jobs != nil {
-		jobsCopy = make([]orchestrator.Job, len(jobs))
-		copy(jobsCopy, jobs)
+func (fake *FakeLockOrderer) Order(arg1 []orchestrator.Job) ([][]orchestrator.Job, error) {
+	var arg1Copy []orchestrator.Job
+	if arg1 != nil {
+		arg1Copy = make([]orchestrator.Job, len(arg1))
+		copy(arg1Copy, arg1)
 	}
 	fake.orderMutex.Lock()
 	ret, specificReturn := fake.orderReturnsOnCall[len(fake.orderArgsForCall)]
 	fake.orderArgsForCall = append(fake.orderArgsForCall, struct {
-		jobs []orchestrator.Job
-	}{jobsCopy})
-	fake.recordInvocation("Order", []interface{}{jobsCopy})
+		arg1 []orchestrator.Job
+	}{arg1Copy})
+	fake.recordInvocation("Order", []interface{}{arg1Copy})
 	fake.orderMutex.Unlock()
 	if fake.OrderStub != nil {
-		return fake.OrderStub(jobs)
+		return fake.OrderStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.orderReturns.result1, fake.orderReturns.result2
+	fakeReturns := fake.orderReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeLockOrderer) OrderCallCount() int {
@@ -53,13 +54,22 @@ func (fake *FakeLockOrderer) OrderCallCount() int {
 	return len(fake.orderArgsForCall)
 }
 
+func (fake *FakeLockOrderer) OrderCalls(stub func([]orchestrator.Job) ([][]orchestrator.Job, error)) {
+	fake.orderMutex.Lock()
+	defer fake.orderMutex.Unlock()
+	fake.OrderStub = stub
+}
+
 func (fake *FakeLockOrderer) OrderArgsForCall(i int) []orchestrator.Job {
 	fake.orderMutex.RLock()
 	defer fake.orderMutex.RUnlock()
-	return fake.orderArgsForCall[i].jobs
+	argsForCall := fake.orderArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeLockOrderer) OrderReturns(result1 [][]orchestrator.Job, result2 error) {
+	fake.orderMutex.Lock()
+	defer fake.orderMutex.Unlock()
 	fake.OrderStub = nil
 	fake.orderReturns = struct {
 		result1 [][]orchestrator.Job
@@ -68,6 +78,8 @@ func (fake *FakeLockOrderer) OrderReturns(result1 [][]orchestrator.Job, result2 
 }
 
 func (fake *FakeLockOrderer) OrderReturnsOnCall(i int, result1 [][]orchestrator.Job, result2 error) {
+	fake.orderMutex.Lock()
+	defer fake.orderMutex.Unlock()
 	fake.OrderStub = nil
 	if fake.orderReturnsOnCall == nil {
 		fake.orderReturnsOnCall = make(map[int]struct {

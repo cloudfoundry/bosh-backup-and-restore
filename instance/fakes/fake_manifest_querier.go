@@ -8,11 +8,11 @@ import (
 )
 
 type FakeManifestQuerier struct {
-	FindReleaseNameStub        func(instanceGroupName, jobName string) (string, error)
+	FindReleaseNameStub        func(string, string) (string, error)
 	findReleaseNameMutex       sync.RWMutex
 	findReleaseNameArgsForCall []struct {
-		instanceGroupName string
-		jobName           string
+		arg1 string
+		arg2 string
 	}
 	findReleaseNameReturns struct {
 		result1 string
@@ -22,11 +22,11 @@ type FakeManifestQuerier struct {
 		result1 string
 		result2 error
 	}
-	IsJobBackupOneRestoreAllStub        func(instanceGroupName, jobName string) (bool, error)
+	IsJobBackupOneRestoreAllStub        func(string, string) (bool, error)
 	isJobBackupOneRestoreAllMutex       sync.RWMutex
 	isJobBackupOneRestoreAllArgsForCall []struct {
-		instanceGroupName string
-		jobName           string
+		arg1 string
+		arg2 string
 	}
 	isJobBackupOneRestoreAllReturns struct {
 		result1 bool
@@ -40,22 +40,23 @@ type FakeManifestQuerier struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeManifestQuerier) FindReleaseName(instanceGroupName string, jobName string) (string, error) {
+func (fake *FakeManifestQuerier) FindReleaseName(arg1 string, arg2 string) (string, error) {
 	fake.findReleaseNameMutex.Lock()
 	ret, specificReturn := fake.findReleaseNameReturnsOnCall[len(fake.findReleaseNameArgsForCall)]
 	fake.findReleaseNameArgsForCall = append(fake.findReleaseNameArgsForCall, struct {
-		instanceGroupName string
-		jobName           string
-	}{instanceGroupName, jobName})
-	fake.recordInvocation("FindReleaseName", []interface{}{instanceGroupName, jobName})
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	fake.recordInvocation("FindReleaseName", []interface{}{arg1, arg2})
 	fake.findReleaseNameMutex.Unlock()
 	if fake.FindReleaseNameStub != nil {
-		return fake.FindReleaseNameStub(instanceGroupName, jobName)
+		return fake.FindReleaseNameStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.findReleaseNameReturns.result1, fake.findReleaseNameReturns.result2
+	fakeReturns := fake.findReleaseNameReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeManifestQuerier) FindReleaseNameCallCount() int {
@@ -64,13 +65,22 @@ func (fake *FakeManifestQuerier) FindReleaseNameCallCount() int {
 	return len(fake.findReleaseNameArgsForCall)
 }
 
+func (fake *FakeManifestQuerier) FindReleaseNameCalls(stub func(string, string) (string, error)) {
+	fake.findReleaseNameMutex.Lock()
+	defer fake.findReleaseNameMutex.Unlock()
+	fake.FindReleaseNameStub = stub
+}
+
 func (fake *FakeManifestQuerier) FindReleaseNameArgsForCall(i int) (string, string) {
 	fake.findReleaseNameMutex.RLock()
 	defer fake.findReleaseNameMutex.RUnlock()
-	return fake.findReleaseNameArgsForCall[i].instanceGroupName, fake.findReleaseNameArgsForCall[i].jobName
+	argsForCall := fake.findReleaseNameArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeManifestQuerier) FindReleaseNameReturns(result1 string, result2 error) {
+	fake.findReleaseNameMutex.Lock()
+	defer fake.findReleaseNameMutex.Unlock()
 	fake.FindReleaseNameStub = nil
 	fake.findReleaseNameReturns = struct {
 		result1 string
@@ -79,6 +89,8 @@ func (fake *FakeManifestQuerier) FindReleaseNameReturns(result1 string, result2 
 }
 
 func (fake *FakeManifestQuerier) FindReleaseNameReturnsOnCall(i int, result1 string, result2 error) {
+	fake.findReleaseNameMutex.Lock()
+	defer fake.findReleaseNameMutex.Unlock()
 	fake.FindReleaseNameStub = nil
 	if fake.findReleaseNameReturnsOnCall == nil {
 		fake.findReleaseNameReturnsOnCall = make(map[int]struct {
@@ -92,22 +104,23 @@ func (fake *FakeManifestQuerier) FindReleaseNameReturnsOnCall(i int, result1 str
 	}{result1, result2}
 }
 
-func (fake *FakeManifestQuerier) IsJobBackupOneRestoreAll(instanceGroupName string, jobName string) (bool, error) {
+func (fake *FakeManifestQuerier) IsJobBackupOneRestoreAll(arg1 string, arg2 string) (bool, error) {
 	fake.isJobBackupOneRestoreAllMutex.Lock()
 	ret, specificReturn := fake.isJobBackupOneRestoreAllReturnsOnCall[len(fake.isJobBackupOneRestoreAllArgsForCall)]
 	fake.isJobBackupOneRestoreAllArgsForCall = append(fake.isJobBackupOneRestoreAllArgsForCall, struct {
-		instanceGroupName string
-		jobName           string
-	}{instanceGroupName, jobName})
-	fake.recordInvocation("IsJobBackupOneRestoreAll", []interface{}{instanceGroupName, jobName})
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	fake.recordInvocation("IsJobBackupOneRestoreAll", []interface{}{arg1, arg2})
 	fake.isJobBackupOneRestoreAllMutex.Unlock()
 	if fake.IsJobBackupOneRestoreAllStub != nil {
-		return fake.IsJobBackupOneRestoreAllStub(instanceGroupName, jobName)
+		return fake.IsJobBackupOneRestoreAllStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.isJobBackupOneRestoreAllReturns.result1, fake.isJobBackupOneRestoreAllReturns.result2
+	fakeReturns := fake.isJobBackupOneRestoreAllReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeManifestQuerier) IsJobBackupOneRestoreAllCallCount() int {
@@ -116,13 +129,22 @@ func (fake *FakeManifestQuerier) IsJobBackupOneRestoreAllCallCount() int {
 	return len(fake.isJobBackupOneRestoreAllArgsForCall)
 }
 
+func (fake *FakeManifestQuerier) IsJobBackupOneRestoreAllCalls(stub func(string, string) (bool, error)) {
+	fake.isJobBackupOneRestoreAllMutex.Lock()
+	defer fake.isJobBackupOneRestoreAllMutex.Unlock()
+	fake.IsJobBackupOneRestoreAllStub = stub
+}
+
 func (fake *FakeManifestQuerier) IsJobBackupOneRestoreAllArgsForCall(i int) (string, string) {
 	fake.isJobBackupOneRestoreAllMutex.RLock()
 	defer fake.isJobBackupOneRestoreAllMutex.RUnlock()
-	return fake.isJobBackupOneRestoreAllArgsForCall[i].instanceGroupName, fake.isJobBackupOneRestoreAllArgsForCall[i].jobName
+	argsForCall := fake.isJobBackupOneRestoreAllArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeManifestQuerier) IsJobBackupOneRestoreAllReturns(result1 bool, result2 error) {
+	fake.isJobBackupOneRestoreAllMutex.Lock()
+	defer fake.isJobBackupOneRestoreAllMutex.Unlock()
 	fake.IsJobBackupOneRestoreAllStub = nil
 	fake.isJobBackupOneRestoreAllReturns = struct {
 		result1 bool
@@ -131,6 +153,8 @@ func (fake *FakeManifestQuerier) IsJobBackupOneRestoreAllReturns(result1 bool, r
 }
 
 func (fake *FakeManifestQuerier) IsJobBackupOneRestoreAllReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.isJobBackupOneRestoreAllMutex.Lock()
+	defer fake.isJobBackupOneRestoreAllMutex.Unlock()
 	fake.IsJobBackupOneRestoreAllStub = nil
 	if fake.isJobBackupOneRestoreAllReturnsOnCall == nil {
 		fake.isJobBackupOneRestoreAllReturnsOnCall = make(map[int]struct {

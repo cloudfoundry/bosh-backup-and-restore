@@ -42,7 +42,8 @@ func (fake *FakeExecutor) Run(arg1 [][]executor.Executable) []error {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.runReturns.result1
+	fakeReturns := fake.runReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeExecutor) RunCallCount() int {
@@ -51,13 +52,22 @@ func (fake *FakeExecutor) RunCallCount() int {
 	return len(fake.runArgsForCall)
 }
 
+func (fake *FakeExecutor) RunCalls(stub func([][]executor.Executable) []error) {
+	fake.runMutex.Lock()
+	defer fake.runMutex.Unlock()
+	fake.RunStub = stub
+}
+
 func (fake *FakeExecutor) RunArgsForCall(i int) [][]executor.Executable {
 	fake.runMutex.RLock()
 	defer fake.runMutex.RUnlock()
-	return fake.runArgsForCall[i].arg1
+	argsForCall := fake.runArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeExecutor) RunReturns(result1 []error) {
+	fake.runMutex.Lock()
+	defer fake.runMutex.Unlock()
 	fake.RunStub = nil
 	fake.runReturns = struct {
 		result1 []error
@@ -65,6 +75,8 @@ func (fake *FakeExecutor) RunReturns(result1 []error) {
 }
 
 func (fake *FakeExecutor) RunReturnsOnCall(i int, result1 []error) {
+	fake.runMutex.Lock()
+	defer fake.runMutex.Unlock()
 	fake.RunStub = nil
 	if fake.runReturnsOnCall == nil {
 		fake.runReturnsOnCall = make(map[int]struct {

@@ -10,17 +10,40 @@ import (
 )
 
 type FakeBackup struct {
-	GetArtifactSizeStub        func(orchestrator.ArtifactIdentifier) (string, error)
-	getArtifactSizeMutex       sync.RWMutex
-	getArtifactSizeArgsForCall []struct {
+	AddChecksumStub        func(orchestrator.ArtifactIdentifier, orchestrator.BackupChecksum) error
+	addChecksumMutex       sync.RWMutex
+	addChecksumArgsForCall []struct {
+		arg1 orchestrator.ArtifactIdentifier
+		arg2 orchestrator.BackupChecksum
+	}
+	addChecksumReturns struct {
+		result1 error
+	}
+	addChecksumReturnsOnCall map[int]struct {
+		result1 error
+	}
+	AddFinishTimeStub        func(time.Time) error
+	addFinishTimeMutex       sync.RWMutex
+	addFinishTimeArgsForCall []struct {
+		arg1 time.Time
+	}
+	addFinishTimeReturns struct {
+		result1 error
+	}
+	addFinishTimeReturnsOnCall map[int]struct {
+		result1 error
+	}
+	CalculateChecksumStub        func(orchestrator.ArtifactIdentifier) (orchestrator.BackupChecksum, error)
+	calculateChecksumMutex       sync.RWMutex
+	calculateChecksumArgsForCall []struct {
 		arg1 orchestrator.ArtifactIdentifier
 	}
-	getArtifactSizeReturns struct {
-		result1 string
+	calculateChecksumReturns struct {
+		result1 orchestrator.BackupChecksum
 		result2 error
 	}
-	getArtifactSizeReturnsOnCall map[int]struct {
-		result1 string
+	calculateChecksumReturnsOnCall map[int]struct {
+		result1 orchestrator.BackupChecksum
 		result2 error
 	}
 	CreateArtifactStub        func(orchestrator.ArtifactIdentifier) (io.WriteCloser, error)
@@ -36,31 +59,6 @@ type FakeBackup struct {
 		result1 io.WriteCloser
 		result2 error
 	}
-	ReadArtifactStub        func(orchestrator.ArtifactIdentifier) (io.ReadCloser, error)
-	readArtifactMutex       sync.RWMutex
-	readArtifactArgsForCall []struct {
-		arg1 orchestrator.ArtifactIdentifier
-	}
-	readArtifactReturns struct {
-		result1 io.ReadCloser
-		result2 error
-	}
-	readArtifactReturnsOnCall map[int]struct {
-		result1 io.ReadCloser
-		result2 error
-	}
-	AddChecksumStub        func(orchestrator.ArtifactIdentifier, orchestrator.BackupChecksum) error
-	addChecksumMutex       sync.RWMutex
-	addChecksumArgsForCall []struct {
-		arg1 orchestrator.ArtifactIdentifier
-		arg2 orchestrator.BackupChecksum
-	}
-	addChecksumReturns struct {
-		result1 error
-	}
-	addChecksumReturnsOnCall map[int]struct {
-		result1 error
-	}
 	CreateMetadataFileWithStartTimeStub        func(time.Time) error
 	createMetadataFileWithStartTimeMutex       sync.RWMutex
 	createMetadataFileWithStartTimeArgsForCall []struct {
@@ -71,43 +69,6 @@ type FakeBackup struct {
 	}
 	createMetadataFileWithStartTimeReturnsOnCall map[int]struct {
 		result1 error
-	}
-	AddFinishTimeStub        func(time.Time) error
-	addFinishTimeMutex       sync.RWMutex
-	addFinishTimeArgsForCall []struct {
-		arg1 time.Time
-	}
-	addFinishTimeReturns struct {
-		result1 error
-	}
-	addFinishTimeReturnsOnCall map[int]struct {
-		result1 error
-	}
-	FetchChecksumStub        func(orchestrator.ArtifactIdentifier) (orchestrator.BackupChecksum, error)
-	fetchChecksumMutex       sync.RWMutex
-	fetchChecksumArgsForCall []struct {
-		arg1 orchestrator.ArtifactIdentifier
-	}
-	fetchChecksumReturns struct {
-		result1 orchestrator.BackupChecksum
-		result2 error
-	}
-	fetchChecksumReturnsOnCall map[int]struct {
-		result1 orchestrator.BackupChecksum
-		result2 error
-	}
-	CalculateChecksumStub        func(orchestrator.ArtifactIdentifier) (orchestrator.BackupChecksum, error)
-	calculateChecksumMutex       sync.RWMutex
-	calculateChecksumArgsForCall []struct {
-		arg1 orchestrator.ArtifactIdentifier
-	}
-	calculateChecksumReturns struct {
-		result1 orchestrator.BackupChecksum
-		result2 error
-	}
-	calculateChecksumReturnsOnCall map[int]struct {
-		result1 orchestrator.BackupChecksum
-		result2 error
 	}
 	DeploymentMatchesStub        func(string, []orchestrator.Instance) (bool, error)
 	deploymentMatchesMutex       sync.RWMutex
@@ -123,10 +84,49 @@ type FakeBackup struct {
 		result1 bool
 		result2 error
 	}
-	SaveManifestStub        func(manifest string) error
+	FetchChecksumStub        func(orchestrator.ArtifactIdentifier) (orchestrator.BackupChecksum, error)
+	fetchChecksumMutex       sync.RWMutex
+	fetchChecksumArgsForCall []struct {
+		arg1 orchestrator.ArtifactIdentifier
+	}
+	fetchChecksumReturns struct {
+		result1 orchestrator.BackupChecksum
+		result2 error
+	}
+	fetchChecksumReturnsOnCall map[int]struct {
+		result1 orchestrator.BackupChecksum
+		result2 error
+	}
+	GetArtifactSizeStub        func(orchestrator.ArtifactIdentifier) (string, error)
+	getArtifactSizeMutex       sync.RWMutex
+	getArtifactSizeArgsForCall []struct {
+		arg1 orchestrator.ArtifactIdentifier
+	}
+	getArtifactSizeReturns struct {
+		result1 string
+		result2 error
+	}
+	getArtifactSizeReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
+	ReadArtifactStub        func(orchestrator.ArtifactIdentifier) (io.ReadCloser, error)
+	readArtifactMutex       sync.RWMutex
+	readArtifactArgsForCall []struct {
+		arg1 orchestrator.ArtifactIdentifier
+	}
+	readArtifactReturns struct {
+		result1 io.ReadCloser
+		result2 error
+	}
+	readArtifactReturnsOnCall map[int]struct {
+		result1 io.ReadCloser
+		result2 error
+	}
+	SaveManifestStub        func(string) error
 	saveManifestMutex       sync.RWMutex
 	saveManifestArgsForCall []struct {
-		manifest string
+		arg1 string
 	}
 	saveManifestReturns struct {
 		result1 error
@@ -136,8 +136,9 @@ type FakeBackup struct {
 	}
 	ValidStub        func() (bool, error)
 	validMutex       sync.RWMutex
-	validArgsForCall []struct{}
-	validReturns     struct {
+	validArgsForCall []struct {
+	}
+	validReturns struct {
 		result1 bool
 		result2 error
 	}
@@ -147,159 +148,6 @@ type FakeBackup struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
-}
-
-func (fake *FakeBackup) GetArtifactSize(arg1 orchestrator.ArtifactIdentifier) (string, error) {
-	fake.getArtifactSizeMutex.Lock()
-	ret, specificReturn := fake.getArtifactSizeReturnsOnCall[len(fake.getArtifactSizeArgsForCall)]
-	fake.getArtifactSizeArgsForCall = append(fake.getArtifactSizeArgsForCall, struct {
-		arg1 orchestrator.ArtifactIdentifier
-	}{arg1})
-	fake.recordInvocation("GetArtifactSize", []interface{}{arg1})
-	fake.getArtifactSizeMutex.Unlock()
-	if fake.GetArtifactSizeStub != nil {
-		return fake.GetArtifactSizeStub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.getArtifactSizeReturns.result1, fake.getArtifactSizeReturns.result2
-}
-
-func (fake *FakeBackup) GetArtifactSizeCallCount() int {
-	fake.getArtifactSizeMutex.RLock()
-	defer fake.getArtifactSizeMutex.RUnlock()
-	return len(fake.getArtifactSizeArgsForCall)
-}
-
-func (fake *FakeBackup) GetArtifactSizeArgsForCall(i int) orchestrator.ArtifactIdentifier {
-	fake.getArtifactSizeMutex.RLock()
-	defer fake.getArtifactSizeMutex.RUnlock()
-	return fake.getArtifactSizeArgsForCall[i].arg1
-}
-
-func (fake *FakeBackup) GetArtifactSizeReturns(result1 string, result2 error) {
-	fake.GetArtifactSizeStub = nil
-	fake.getArtifactSizeReturns = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeBackup) GetArtifactSizeReturnsOnCall(i int, result1 string, result2 error) {
-	fake.GetArtifactSizeStub = nil
-	if fake.getArtifactSizeReturnsOnCall == nil {
-		fake.getArtifactSizeReturnsOnCall = make(map[int]struct {
-			result1 string
-			result2 error
-		})
-	}
-	fake.getArtifactSizeReturnsOnCall[i] = struct {
-		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeBackup) CreateArtifact(arg1 orchestrator.ArtifactIdentifier) (io.WriteCloser, error) {
-	fake.createArtifactMutex.Lock()
-	ret, specificReturn := fake.createArtifactReturnsOnCall[len(fake.createArtifactArgsForCall)]
-	fake.createArtifactArgsForCall = append(fake.createArtifactArgsForCall, struct {
-		arg1 orchestrator.ArtifactIdentifier
-	}{arg1})
-	fake.recordInvocation("CreateArtifact", []interface{}{arg1})
-	fake.createArtifactMutex.Unlock()
-	if fake.CreateArtifactStub != nil {
-		return fake.CreateArtifactStub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.createArtifactReturns.result1, fake.createArtifactReturns.result2
-}
-
-func (fake *FakeBackup) CreateArtifactCallCount() int {
-	fake.createArtifactMutex.RLock()
-	defer fake.createArtifactMutex.RUnlock()
-	return len(fake.createArtifactArgsForCall)
-}
-
-func (fake *FakeBackup) CreateArtifactArgsForCall(i int) orchestrator.ArtifactIdentifier {
-	fake.createArtifactMutex.RLock()
-	defer fake.createArtifactMutex.RUnlock()
-	return fake.createArtifactArgsForCall[i].arg1
-}
-
-func (fake *FakeBackup) CreateArtifactReturns(result1 io.WriteCloser, result2 error) {
-	fake.CreateArtifactStub = nil
-	fake.createArtifactReturns = struct {
-		result1 io.WriteCloser
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeBackup) CreateArtifactReturnsOnCall(i int, result1 io.WriteCloser, result2 error) {
-	fake.CreateArtifactStub = nil
-	if fake.createArtifactReturnsOnCall == nil {
-		fake.createArtifactReturnsOnCall = make(map[int]struct {
-			result1 io.WriteCloser
-			result2 error
-		})
-	}
-	fake.createArtifactReturnsOnCall[i] = struct {
-		result1 io.WriteCloser
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeBackup) ReadArtifact(arg1 orchestrator.ArtifactIdentifier) (io.ReadCloser, error) {
-	fake.readArtifactMutex.Lock()
-	ret, specificReturn := fake.readArtifactReturnsOnCall[len(fake.readArtifactArgsForCall)]
-	fake.readArtifactArgsForCall = append(fake.readArtifactArgsForCall, struct {
-		arg1 orchestrator.ArtifactIdentifier
-	}{arg1})
-	fake.recordInvocation("ReadArtifact", []interface{}{arg1})
-	fake.readArtifactMutex.Unlock()
-	if fake.ReadArtifactStub != nil {
-		return fake.ReadArtifactStub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.readArtifactReturns.result1, fake.readArtifactReturns.result2
-}
-
-func (fake *FakeBackup) ReadArtifactCallCount() int {
-	fake.readArtifactMutex.RLock()
-	defer fake.readArtifactMutex.RUnlock()
-	return len(fake.readArtifactArgsForCall)
-}
-
-func (fake *FakeBackup) ReadArtifactArgsForCall(i int) orchestrator.ArtifactIdentifier {
-	fake.readArtifactMutex.RLock()
-	defer fake.readArtifactMutex.RUnlock()
-	return fake.readArtifactArgsForCall[i].arg1
-}
-
-func (fake *FakeBackup) ReadArtifactReturns(result1 io.ReadCloser, result2 error) {
-	fake.ReadArtifactStub = nil
-	fake.readArtifactReturns = struct {
-		result1 io.ReadCloser
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeBackup) ReadArtifactReturnsOnCall(i int, result1 io.ReadCloser, result2 error) {
-	fake.ReadArtifactStub = nil
-	if fake.readArtifactReturnsOnCall == nil {
-		fake.readArtifactReturnsOnCall = make(map[int]struct {
-			result1 io.ReadCloser
-			result2 error
-		})
-	}
-	fake.readArtifactReturnsOnCall[i] = struct {
-		result1 io.ReadCloser
-		result2 error
-	}{result1, result2}
 }
 
 func (fake *FakeBackup) AddChecksum(arg1 orchestrator.ArtifactIdentifier, arg2 orchestrator.BackupChecksum) error {
@@ -317,7 +165,8 @@ func (fake *FakeBackup) AddChecksum(arg1 orchestrator.ArtifactIdentifier, arg2 o
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.addChecksumReturns.result1
+	fakeReturns := fake.addChecksumReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeBackup) AddChecksumCallCount() int {
@@ -326,13 +175,22 @@ func (fake *FakeBackup) AddChecksumCallCount() int {
 	return len(fake.addChecksumArgsForCall)
 }
 
+func (fake *FakeBackup) AddChecksumCalls(stub func(orchestrator.ArtifactIdentifier, orchestrator.BackupChecksum) error) {
+	fake.addChecksumMutex.Lock()
+	defer fake.addChecksumMutex.Unlock()
+	fake.AddChecksumStub = stub
+}
+
 func (fake *FakeBackup) AddChecksumArgsForCall(i int) (orchestrator.ArtifactIdentifier, orchestrator.BackupChecksum) {
 	fake.addChecksumMutex.RLock()
 	defer fake.addChecksumMutex.RUnlock()
-	return fake.addChecksumArgsForCall[i].arg1, fake.addChecksumArgsForCall[i].arg2
+	argsForCall := fake.addChecksumArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeBackup) AddChecksumReturns(result1 error) {
+	fake.addChecksumMutex.Lock()
+	defer fake.addChecksumMutex.Unlock()
 	fake.AddChecksumStub = nil
 	fake.addChecksumReturns = struct {
 		result1 error
@@ -340,6 +198,8 @@ func (fake *FakeBackup) AddChecksumReturns(result1 error) {
 }
 
 func (fake *FakeBackup) AddChecksumReturnsOnCall(i int, result1 error) {
+	fake.addChecksumMutex.Lock()
+	defer fake.addChecksumMutex.Unlock()
 	fake.AddChecksumStub = nil
 	if fake.addChecksumReturnsOnCall == nil {
 		fake.addChecksumReturnsOnCall = make(map[int]struct {
@@ -347,54 +207,6 @@ func (fake *FakeBackup) AddChecksumReturnsOnCall(i int, result1 error) {
 		})
 	}
 	fake.addChecksumReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeBackup) CreateMetadataFileWithStartTime(arg1 time.Time) error {
-	fake.createMetadataFileWithStartTimeMutex.Lock()
-	ret, specificReturn := fake.createMetadataFileWithStartTimeReturnsOnCall[len(fake.createMetadataFileWithStartTimeArgsForCall)]
-	fake.createMetadataFileWithStartTimeArgsForCall = append(fake.createMetadataFileWithStartTimeArgsForCall, struct {
-		arg1 time.Time
-	}{arg1})
-	fake.recordInvocation("CreateMetadataFileWithStartTime", []interface{}{arg1})
-	fake.createMetadataFileWithStartTimeMutex.Unlock()
-	if fake.CreateMetadataFileWithStartTimeStub != nil {
-		return fake.CreateMetadataFileWithStartTimeStub(arg1)
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.createMetadataFileWithStartTimeReturns.result1
-}
-
-func (fake *FakeBackup) CreateMetadataFileWithStartTimeCallCount() int {
-	fake.createMetadataFileWithStartTimeMutex.RLock()
-	defer fake.createMetadataFileWithStartTimeMutex.RUnlock()
-	return len(fake.createMetadataFileWithStartTimeArgsForCall)
-}
-
-func (fake *FakeBackup) CreateMetadataFileWithStartTimeArgsForCall(i int) time.Time {
-	fake.createMetadataFileWithStartTimeMutex.RLock()
-	defer fake.createMetadataFileWithStartTimeMutex.RUnlock()
-	return fake.createMetadataFileWithStartTimeArgsForCall[i].arg1
-}
-
-func (fake *FakeBackup) CreateMetadataFileWithStartTimeReturns(result1 error) {
-	fake.CreateMetadataFileWithStartTimeStub = nil
-	fake.createMetadataFileWithStartTimeReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeBackup) CreateMetadataFileWithStartTimeReturnsOnCall(i int, result1 error) {
-	fake.CreateMetadataFileWithStartTimeStub = nil
-	if fake.createMetadataFileWithStartTimeReturnsOnCall == nil {
-		fake.createMetadataFileWithStartTimeReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.createMetadataFileWithStartTimeReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -413,7 +225,8 @@ func (fake *FakeBackup) AddFinishTime(arg1 time.Time) error {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.addFinishTimeReturns.result1
+	fakeReturns := fake.addFinishTimeReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeBackup) AddFinishTimeCallCount() int {
@@ -422,13 +235,22 @@ func (fake *FakeBackup) AddFinishTimeCallCount() int {
 	return len(fake.addFinishTimeArgsForCall)
 }
 
+func (fake *FakeBackup) AddFinishTimeCalls(stub func(time.Time) error) {
+	fake.addFinishTimeMutex.Lock()
+	defer fake.addFinishTimeMutex.Unlock()
+	fake.AddFinishTimeStub = stub
+}
+
 func (fake *FakeBackup) AddFinishTimeArgsForCall(i int) time.Time {
 	fake.addFinishTimeMutex.RLock()
 	defer fake.addFinishTimeMutex.RUnlock()
-	return fake.addFinishTimeArgsForCall[i].arg1
+	argsForCall := fake.addFinishTimeArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeBackup) AddFinishTimeReturns(result1 error) {
+	fake.addFinishTimeMutex.Lock()
+	defer fake.addFinishTimeMutex.Unlock()
 	fake.AddFinishTimeStub = nil
 	fake.addFinishTimeReturns = struct {
 		result1 error
@@ -436,6 +258,8 @@ func (fake *FakeBackup) AddFinishTimeReturns(result1 error) {
 }
 
 func (fake *FakeBackup) AddFinishTimeReturnsOnCall(i int, result1 error) {
+	fake.addFinishTimeMutex.Lock()
+	defer fake.addFinishTimeMutex.Unlock()
 	fake.AddFinishTimeStub = nil
 	if fake.addFinishTimeReturnsOnCall == nil {
 		fake.addFinishTimeReturnsOnCall = make(map[int]struct {
@@ -445,57 +269,6 @@ func (fake *FakeBackup) AddFinishTimeReturnsOnCall(i int, result1 error) {
 	fake.addFinishTimeReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
-}
-
-func (fake *FakeBackup) FetchChecksum(arg1 orchestrator.ArtifactIdentifier) (orchestrator.BackupChecksum, error) {
-	fake.fetchChecksumMutex.Lock()
-	ret, specificReturn := fake.fetchChecksumReturnsOnCall[len(fake.fetchChecksumArgsForCall)]
-	fake.fetchChecksumArgsForCall = append(fake.fetchChecksumArgsForCall, struct {
-		arg1 orchestrator.ArtifactIdentifier
-	}{arg1})
-	fake.recordInvocation("FetchChecksum", []interface{}{arg1})
-	fake.fetchChecksumMutex.Unlock()
-	if fake.FetchChecksumStub != nil {
-		return fake.FetchChecksumStub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.fetchChecksumReturns.result1, fake.fetchChecksumReturns.result2
-}
-
-func (fake *FakeBackup) FetchChecksumCallCount() int {
-	fake.fetchChecksumMutex.RLock()
-	defer fake.fetchChecksumMutex.RUnlock()
-	return len(fake.fetchChecksumArgsForCall)
-}
-
-func (fake *FakeBackup) FetchChecksumArgsForCall(i int) orchestrator.ArtifactIdentifier {
-	fake.fetchChecksumMutex.RLock()
-	defer fake.fetchChecksumMutex.RUnlock()
-	return fake.fetchChecksumArgsForCall[i].arg1
-}
-
-func (fake *FakeBackup) FetchChecksumReturns(result1 orchestrator.BackupChecksum, result2 error) {
-	fake.FetchChecksumStub = nil
-	fake.fetchChecksumReturns = struct {
-		result1 orchestrator.BackupChecksum
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeBackup) FetchChecksumReturnsOnCall(i int, result1 orchestrator.BackupChecksum, result2 error) {
-	fake.FetchChecksumStub = nil
-	if fake.fetchChecksumReturnsOnCall == nil {
-		fake.fetchChecksumReturnsOnCall = make(map[int]struct {
-			result1 orchestrator.BackupChecksum
-			result2 error
-		})
-	}
-	fake.fetchChecksumReturnsOnCall[i] = struct {
-		result1 orchestrator.BackupChecksum
-		result2 error
-	}{result1, result2}
 }
 
 func (fake *FakeBackup) CalculateChecksum(arg1 orchestrator.ArtifactIdentifier) (orchestrator.BackupChecksum, error) {
@@ -512,7 +285,8 @@ func (fake *FakeBackup) CalculateChecksum(arg1 orchestrator.ArtifactIdentifier) 
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.calculateChecksumReturns.result1, fake.calculateChecksumReturns.result2
+	fakeReturns := fake.calculateChecksumReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeBackup) CalculateChecksumCallCount() int {
@@ -521,13 +295,22 @@ func (fake *FakeBackup) CalculateChecksumCallCount() int {
 	return len(fake.calculateChecksumArgsForCall)
 }
 
+func (fake *FakeBackup) CalculateChecksumCalls(stub func(orchestrator.ArtifactIdentifier) (orchestrator.BackupChecksum, error)) {
+	fake.calculateChecksumMutex.Lock()
+	defer fake.calculateChecksumMutex.Unlock()
+	fake.CalculateChecksumStub = stub
+}
+
 func (fake *FakeBackup) CalculateChecksumArgsForCall(i int) orchestrator.ArtifactIdentifier {
 	fake.calculateChecksumMutex.RLock()
 	defer fake.calculateChecksumMutex.RUnlock()
-	return fake.calculateChecksumArgsForCall[i].arg1
+	argsForCall := fake.calculateChecksumArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeBackup) CalculateChecksumReturns(result1 orchestrator.BackupChecksum, result2 error) {
+	fake.calculateChecksumMutex.Lock()
+	defer fake.calculateChecksumMutex.Unlock()
 	fake.CalculateChecksumStub = nil
 	fake.calculateChecksumReturns = struct {
 		result1 orchestrator.BackupChecksum
@@ -536,6 +319,8 @@ func (fake *FakeBackup) CalculateChecksumReturns(result1 orchestrator.BackupChec
 }
 
 func (fake *FakeBackup) CalculateChecksumReturnsOnCall(i int, result1 orchestrator.BackupChecksum, result2 error) {
+	fake.calculateChecksumMutex.Lock()
+	defer fake.calculateChecksumMutex.Unlock()
 	fake.CalculateChecksumStub = nil
 	if fake.calculateChecksumReturnsOnCall == nil {
 		fake.calculateChecksumReturnsOnCall = make(map[int]struct {
@@ -547,6 +332,129 @@ func (fake *FakeBackup) CalculateChecksumReturnsOnCall(i int, result1 orchestrat
 		result1 orchestrator.BackupChecksum
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeBackup) CreateArtifact(arg1 orchestrator.ArtifactIdentifier) (io.WriteCloser, error) {
+	fake.createArtifactMutex.Lock()
+	ret, specificReturn := fake.createArtifactReturnsOnCall[len(fake.createArtifactArgsForCall)]
+	fake.createArtifactArgsForCall = append(fake.createArtifactArgsForCall, struct {
+		arg1 orchestrator.ArtifactIdentifier
+	}{arg1})
+	fake.recordInvocation("CreateArtifact", []interface{}{arg1})
+	fake.createArtifactMutex.Unlock()
+	if fake.CreateArtifactStub != nil {
+		return fake.CreateArtifactStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.createArtifactReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeBackup) CreateArtifactCallCount() int {
+	fake.createArtifactMutex.RLock()
+	defer fake.createArtifactMutex.RUnlock()
+	return len(fake.createArtifactArgsForCall)
+}
+
+func (fake *FakeBackup) CreateArtifactCalls(stub func(orchestrator.ArtifactIdentifier) (io.WriteCloser, error)) {
+	fake.createArtifactMutex.Lock()
+	defer fake.createArtifactMutex.Unlock()
+	fake.CreateArtifactStub = stub
+}
+
+func (fake *FakeBackup) CreateArtifactArgsForCall(i int) orchestrator.ArtifactIdentifier {
+	fake.createArtifactMutex.RLock()
+	defer fake.createArtifactMutex.RUnlock()
+	argsForCall := fake.createArtifactArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeBackup) CreateArtifactReturns(result1 io.WriteCloser, result2 error) {
+	fake.createArtifactMutex.Lock()
+	defer fake.createArtifactMutex.Unlock()
+	fake.CreateArtifactStub = nil
+	fake.createArtifactReturns = struct {
+		result1 io.WriteCloser
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeBackup) CreateArtifactReturnsOnCall(i int, result1 io.WriteCloser, result2 error) {
+	fake.createArtifactMutex.Lock()
+	defer fake.createArtifactMutex.Unlock()
+	fake.CreateArtifactStub = nil
+	if fake.createArtifactReturnsOnCall == nil {
+		fake.createArtifactReturnsOnCall = make(map[int]struct {
+			result1 io.WriteCloser
+			result2 error
+		})
+	}
+	fake.createArtifactReturnsOnCall[i] = struct {
+		result1 io.WriteCloser
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeBackup) CreateMetadataFileWithStartTime(arg1 time.Time) error {
+	fake.createMetadataFileWithStartTimeMutex.Lock()
+	ret, specificReturn := fake.createMetadataFileWithStartTimeReturnsOnCall[len(fake.createMetadataFileWithStartTimeArgsForCall)]
+	fake.createMetadataFileWithStartTimeArgsForCall = append(fake.createMetadataFileWithStartTimeArgsForCall, struct {
+		arg1 time.Time
+	}{arg1})
+	fake.recordInvocation("CreateMetadataFileWithStartTime", []interface{}{arg1})
+	fake.createMetadataFileWithStartTimeMutex.Unlock()
+	if fake.CreateMetadataFileWithStartTimeStub != nil {
+		return fake.CreateMetadataFileWithStartTimeStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.createMetadataFileWithStartTimeReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeBackup) CreateMetadataFileWithStartTimeCallCount() int {
+	fake.createMetadataFileWithStartTimeMutex.RLock()
+	defer fake.createMetadataFileWithStartTimeMutex.RUnlock()
+	return len(fake.createMetadataFileWithStartTimeArgsForCall)
+}
+
+func (fake *FakeBackup) CreateMetadataFileWithStartTimeCalls(stub func(time.Time) error) {
+	fake.createMetadataFileWithStartTimeMutex.Lock()
+	defer fake.createMetadataFileWithStartTimeMutex.Unlock()
+	fake.CreateMetadataFileWithStartTimeStub = stub
+}
+
+func (fake *FakeBackup) CreateMetadataFileWithStartTimeArgsForCall(i int) time.Time {
+	fake.createMetadataFileWithStartTimeMutex.RLock()
+	defer fake.createMetadataFileWithStartTimeMutex.RUnlock()
+	argsForCall := fake.createMetadataFileWithStartTimeArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeBackup) CreateMetadataFileWithStartTimeReturns(result1 error) {
+	fake.createMetadataFileWithStartTimeMutex.Lock()
+	defer fake.createMetadataFileWithStartTimeMutex.Unlock()
+	fake.CreateMetadataFileWithStartTimeStub = nil
+	fake.createMetadataFileWithStartTimeReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeBackup) CreateMetadataFileWithStartTimeReturnsOnCall(i int, result1 error) {
+	fake.createMetadataFileWithStartTimeMutex.Lock()
+	defer fake.createMetadataFileWithStartTimeMutex.Unlock()
+	fake.CreateMetadataFileWithStartTimeStub = nil
+	if fake.createMetadataFileWithStartTimeReturnsOnCall == nil {
+		fake.createMetadataFileWithStartTimeReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.createMetadataFileWithStartTimeReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeBackup) DeploymentMatches(arg1 string, arg2 []orchestrator.Instance) (bool, error) {
@@ -569,7 +477,8 @@ func (fake *FakeBackup) DeploymentMatches(arg1 string, arg2 []orchestrator.Insta
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.deploymentMatchesReturns.result1, fake.deploymentMatchesReturns.result2
+	fakeReturns := fake.deploymentMatchesReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeBackup) DeploymentMatchesCallCount() int {
@@ -578,13 +487,22 @@ func (fake *FakeBackup) DeploymentMatchesCallCount() int {
 	return len(fake.deploymentMatchesArgsForCall)
 }
 
+func (fake *FakeBackup) DeploymentMatchesCalls(stub func(string, []orchestrator.Instance) (bool, error)) {
+	fake.deploymentMatchesMutex.Lock()
+	defer fake.deploymentMatchesMutex.Unlock()
+	fake.DeploymentMatchesStub = stub
+}
+
 func (fake *FakeBackup) DeploymentMatchesArgsForCall(i int) (string, []orchestrator.Instance) {
 	fake.deploymentMatchesMutex.RLock()
 	defer fake.deploymentMatchesMutex.RUnlock()
-	return fake.deploymentMatchesArgsForCall[i].arg1, fake.deploymentMatchesArgsForCall[i].arg2
+	argsForCall := fake.deploymentMatchesArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeBackup) DeploymentMatchesReturns(result1 bool, result2 error) {
+	fake.deploymentMatchesMutex.Lock()
+	defer fake.deploymentMatchesMutex.Unlock()
 	fake.DeploymentMatchesStub = nil
 	fake.deploymentMatchesReturns = struct {
 		result1 bool
@@ -593,6 +511,8 @@ func (fake *FakeBackup) DeploymentMatchesReturns(result1 bool, result2 error) {
 }
 
 func (fake *FakeBackup) DeploymentMatchesReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.deploymentMatchesMutex.Lock()
+	defer fake.deploymentMatchesMutex.Unlock()
 	fake.DeploymentMatchesStub = nil
 	if fake.deploymentMatchesReturnsOnCall == nil {
 		fake.deploymentMatchesReturnsOnCall = make(map[int]struct {
@@ -606,21 +526,211 @@ func (fake *FakeBackup) DeploymentMatchesReturnsOnCall(i int, result1 bool, resu
 	}{result1, result2}
 }
 
-func (fake *FakeBackup) SaveManifest(manifest string) error {
+func (fake *FakeBackup) FetchChecksum(arg1 orchestrator.ArtifactIdentifier) (orchestrator.BackupChecksum, error) {
+	fake.fetchChecksumMutex.Lock()
+	ret, specificReturn := fake.fetchChecksumReturnsOnCall[len(fake.fetchChecksumArgsForCall)]
+	fake.fetchChecksumArgsForCall = append(fake.fetchChecksumArgsForCall, struct {
+		arg1 orchestrator.ArtifactIdentifier
+	}{arg1})
+	fake.recordInvocation("FetchChecksum", []interface{}{arg1})
+	fake.fetchChecksumMutex.Unlock()
+	if fake.FetchChecksumStub != nil {
+		return fake.FetchChecksumStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.fetchChecksumReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeBackup) FetchChecksumCallCount() int {
+	fake.fetchChecksumMutex.RLock()
+	defer fake.fetchChecksumMutex.RUnlock()
+	return len(fake.fetchChecksumArgsForCall)
+}
+
+func (fake *FakeBackup) FetchChecksumCalls(stub func(orchestrator.ArtifactIdentifier) (orchestrator.BackupChecksum, error)) {
+	fake.fetchChecksumMutex.Lock()
+	defer fake.fetchChecksumMutex.Unlock()
+	fake.FetchChecksumStub = stub
+}
+
+func (fake *FakeBackup) FetchChecksumArgsForCall(i int) orchestrator.ArtifactIdentifier {
+	fake.fetchChecksumMutex.RLock()
+	defer fake.fetchChecksumMutex.RUnlock()
+	argsForCall := fake.fetchChecksumArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeBackup) FetchChecksumReturns(result1 orchestrator.BackupChecksum, result2 error) {
+	fake.fetchChecksumMutex.Lock()
+	defer fake.fetchChecksumMutex.Unlock()
+	fake.FetchChecksumStub = nil
+	fake.fetchChecksumReturns = struct {
+		result1 orchestrator.BackupChecksum
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeBackup) FetchChecksumReturnsOnCall(i int, result1 orchestrator.BackupChecksum, result2 error) {
+	fake.fetchChecksumMutex.Lock()
+	defer fake.fetchChecksumMutex.Unlock()
+	fake.FetchChecksumStub = nil
+	if fake.fetchChecksumReturnsOnCall == nil {
+		fake.fetchChecksumReturnsOnCall = make(map[int]struct {
+			result1 orchestrator.BackupChecksum
+			result2 error
+		})
+	}
+	fake.fetchChecksumReturnsOnCall[i] = struct {
+		result1 orchestrator.BackupChecksum
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeBackup) GetArtifactSize(arg1 orchestrator.ArtifactIdentifier) (string, error) {
+	fake.getArtifactSizeMutex.Lock()
+	ret, specificReturn := fake.getArtifactSizeReturnsOnCall[len(fake.getArtifactSizeArgsForCall)]
+	fake.getArtifactSizeArgsForCall = append(fake.getArtifactSizeArgsForCall, struct {
+		arg1 orchestrator.ArtifactIdentifier
+	}{arg1})
+	fake.recordInvocation("GetArtifactSize", []interface{}{arg1})
+	fake.getArtifactSizeMutex.Unlock()
+	if fake.GetArtifactSizeStub != nil {
+		return fake.GetArtifactSizeStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.getArtifactSizeReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeBackup) GetArtifactSizeCallCount() int {
+	fake.getArtifactSizeMutex.RLock()
+	defer fake.getArtifactSizeMutex.RUnlock()
+	return len(fake.getArtifactSizeArgsForCall)
+}
+
+func (fake *FakeBackup) GetArtifactSizeCalls(stub func(orchestrator.ArtifactIdentifier) (string, error)) {
+	fake.getArtifactSizeMutex.Lock()
+	defer fake.getArtifactSizeMutex.Unlock()
+	fake.GetArtifactSizeStub = stub
+}
+
+func (fake *FakeBackup) GetArtifactSizeArgsForCall(i int) orchestrator.ArtifactIdentifier {
+	fake.getArtifactSizeMutex.RLock()
+	defer fake.getArtifactSizeMutex.RUnlock()
+	argsForCall := fake.getArtifactSizeArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeBackup) GetArtifactSizeReturns(result1 string, result2 error) {
+	fake.getArtifactSizeMutex.Lock()
+	defer fake.getArtifactSizeMutex.Unlock()
+	fake.GetArtifactSizeStub = nil
+	fake.getArtifactSizeReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeBackup) GetArtifactSizeReturnsOnCall(i int, result1 string, result2 error) {
+	fake.getArtifactSizeMutex.Lock()
+	defer fake.getArtifactSizeMutex.Unlock()
+	fake.GetArtifactSizeStub = nil
+	if fake.getArtifactSizeReturnsOnCall == nil {
+		fake.getArtifactSizeReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.getArtifactSizeReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeBackup) ReadArtifact(arg1 orchestrator.ArtifactIdentifier) (io.ReadCloser, error) {
+	fake.readArtifactMutex.Lock()
+	ret, specificReturn := fake.readArtifactReturnsOnCall[len(fake.readArtifactArgsForCall)]
+	fake.readArtifactArgsForCall = append(fake.readArtifactArgsForCall, struct {
+		arg1 orchestrator.ArtifactIdentifier
+	}{arg1})
+	fake.recordInvocation("ReadArtifact", []interface{}{arg1})
+	fake.readArtifactMutex.Unlock()
+	if fake.ReadArtifactStub != nil {
+		return fake.ReadArtifactStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.readArtifactReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeBackup) ReadArtifactCallCount() int {
+	fake.readArtifactMutex.RLock()
+	defer fake.readArtifactMutex.RUnlock()
+	return len(fake.readArtifactArgsForCall)
+}
+
+func (fake *FakeBackup) ReadArtifactCalls(stub func(orchestrator.ArtifactIdentifier) (io.ReadCloser, error)) {
+	fake.readArtifactMutex.Lock()
+	defer fake.readArtifactMutex.Unlock()
+	fake.ReadArtifactStub = stub
+}
+
+func (fake *FakeBackup) ReadArtifactArgsForCall(i int) orchestrator.ArtifactIdentifier {
+	fake.readArtifactMutex.RLock()
+	defer fake.readArtifactMutex.RUnlock()
+	argsForCall := fake.readArtifactArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeBackup) ReadArtifactReturns(result1 io.ReadCloser, result2 error) {
+	fake.readArtifactMutex.Lock()
+	defer fake.readArtifactMutex.Unlock()
+	fake.ReadArtifactStub = nil
+	fake.readArtifactReturns = struct {
+		result1 io.ReadCloser
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeBackup) ReadArtifactReturnsOnCall(i int, result1 io.ReadCloser, result2 error) {
+	fake.readArtifactMutex.Lock()
+	defer fake.readArtifactMutex.Unlock()
+	fake.ReadArtifactStub = nil
+	if fake.readArtifactReturnsOnCall == nil {
+		fake.readArtifactReturnsOnCall = make(map[int]struct {
+			result1 io.ReadCloser
+			result2 error
+		})
+	}
+	fake.readArtifactReturnsOnCall[i] = struct {
+		result1 io.ReadCloser
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeBackup) SaveManifest(arg1 string) error {
 	fake.saveManifestMutex.Lock()
 	ret, specificReturn := fake.saveManifestReturnsOnCall[len(fake.saveManifestArgsForCall)]
 	fake.saveManifestArgsForCall = append(fake.saveManifestArgsForCall, struct {
-		manifest string
-	}{manifest})
-	fake.recordInvocation("SaveManifest", []interface{}{manifest})
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("SaveManifest", []interface{}{arg1})
 	fake.saveManifestMutex.Unlock()
 	if fake.SaveManifestStub != nil {
-		return fake.SaveManifestStub(manifest)
+		return fake.SaveManifestStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.saveManifestReturns.result1
+	fakeReturns := fake.saveManifestReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeBackup) SaveManifestCallCount() int {
@@ -629,13 +739,22 @@ func (fake *FakeBackup) SaveManifestCallCount() int {
 	return len(fake.saveManifestArgsForCall)
 }
 
+func (fake *FakeBackup) SaveManifestCalls(stub func(string) error) {
+	fake.saveManifestMutex.Lock()
+	defer fake.saveManifestMutex.Unlock()
+	fake.SaveManifestStub = stub
+}
+
 func (fake *FakeBackup) SaveManifestArgsForCall(i int) string {
 	fake.saveManifestMutex.RLock()
 	defer fake.saveManifestMutex.RUnlock()
-	return fake.saveManifestArgsForCall[i].manifest
+	argsForCall := fake.saveManifestArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeBackup) SaveManifestReturns(result1 error) {
+	fake.saveManifestMutex.Lock()
+	defer fake.saveManifestMutex.Unlock()
 	fake.SaveManifestStub = nil
 	fake.saveManifestReturns = struct {
 		result1 error
@@ -643,6 +762,8 @@ func (fake *FakeBackup) SaveManifestReturns(result1 error) {
 }
 
 func (fake *FakeBackup) SaveManifestReturnsOnCall(i int, result1 error) {
+	fake.saveManifestMutex.Lock()
+	defer fake.saveManifestMutex.Unlock()
 	fake.SaveManifestStub = nil
 	if fake.saveManifestReturnsOnCall == nil {
 		fake.saveManifestReturnsOnCall = make(map[int]struct {
@@ -657,7 +778,8 @@ func (fake *FakeBackup) SaveManifestReturnsOnCall(i int, result1 error) {
 func (fake *FakeBackup) Valid() (bool, error) {
 	fake.validMutex.Lock()
 	ret, specificReturn := fake.validReturnsOnCall[len(fake.validArgsForCall)]
-	fake.validArgsForCall = append(fake.validArgsForCall, struct{}{})
+	fake.validArgsForCall = append(fake.validArgsForCall, struct {
+	}{})
 	fake.recordInvocation("Valid", []interface{}{})
 	fake.validMutex.Unlock()
 	if fake.ValidStub != nil {
@@ -666,7 +788,8 @@ func (fake *FakeBackup) Valid() (bool, error) {
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.validReturns.result1, fake.validReturns.result2
+	fakeReturns := fake.validReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeBackup) ValidCallCount() int {
@@ -675,7 +798,15 @@ func (fake *FakeBackup) ValidCallCount() int {
 	return len(fake.validArgsForCall)
 }
 
+func (fake *FakeBackup) ValidCalls(stub func() (bool, error)) {
+	fake.validMutex.Lock()
+	defer fake.validMutex.Unlock()
+	fake.ValidStub = stub
+}
+
 func (fake *FakeBackup) ValidReturns(result1 bool, result2 error) {
+	fake.validMutex.Lock()
+	defer fake.validMutex.Unlock()
 	fake.ValidStub = nil
 	fake.validReturns = struct {
 		result1 bool
@@ -684,6 +815,8 @@ func (fake *FakeBackup) ValidReturns(result1 bool, result2 error) {
 }
 
 func (fake *FakeBackup) ValidReturnsOnCall(i int, result1 bool, result2 error) {
+	fake.validMutex.Lock()
+	defer fake.validMutex.Unlock()
 	fake.ValidStub = nil
 	if fake.validReturnsOnCall == nil {
 		fake.validReturnsOnCall = make(map[int]struct {
@@ -700,24 +833,24 @@ func (fake *FakeBackup) ValidReturnsOnCall(i int, result1 bool, result2 error) {
 func (fake *FakeBackup) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.getArtifactSizeMutex.RLock()
-	defer fake.getArtifactSizeMutex.RUnlock()
-	fake.createArtifactMutex.RLock()
-	defer fake.createArtifactMutex.RUnlock()
-	fake.readArtifactMutex.RLock()
-	defer fake.readArtifactMutex.RUnlock()
 	fake.addChecksumMutex.RLock()
 	defer fake.addChecksumMutex.RUnlock()
-	fake.createMetadataFileWithStartTimeMutex.RLock()
-	defer fake.createMetadataFileWithStartTimeMutex.RUnlock()
 	fake.addFinishTimeMutex.RLock()
 	defer fake.addFinishTimeMutex.RUnlock()
-	fake.fetchChecksumMutex.RLock()
-	defer fake.fetchChecksumMutex.RUnlock()
 	fake.calculateChecksumMutex.RLock()
 	defer fake.calculateChecksumMutex.RUnlock()
+	fake.createArtifactMutex.RLock()
+	defer fake.createArtifactMutex.RUnlock()
+	fake.createMetadataFileWithStartTimeMutex.RLock()
+	defer fake.createMetadataFileWithStartTimeMutex.RUnlock()
 	fake.deploymentMatchesMutex.RLock()
 	defer fake.deploymentMatchesMutex.RUnlock()
+	fake.fetchChecksumMutex.RLock()
+	defer fake.fetchChecksumMutex.RUnlock()
+	fake.getArtifactSizeMutex.RLock()
+	defer fake.getArtifactSizeMutex.RUnlock()
+	fake.readArtifactMutex.RLock()
+	defer fake.readArtifactMutex.RUnlock()
 	fake.saveManifestMutex.RLock()
 	defer fake.saveManifestMutex.RUnlock()
 	fake.validMutex.RLock()

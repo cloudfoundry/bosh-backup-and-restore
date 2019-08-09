@@ -9,71 +9,88 @@ import (
 )
 
 type FakeBackupArtifact struct {
-	InstanceNameStub        func() string
-	instanceNameMutex       sync.RWMutex
-	instanceNameArgsForCall []struct{}
-	instanceNameReturns     struct {
-		result1 string
-	}
-	instanceNameReturnsOnCall map[int]struct {
-		result1 string
-	}
-	InstanceIndexStub        func() string
-	instanceIndexMutex       sync.RWMutex
-	instanceIndexArgsForCall []struct{}
-	instanceIndexReturns     struct {
-		result1 string
-	}
-	instanceIndexReturnsOnCall map[int]struct {
-		result1 string
-	}
-	InstanceIDStub        func() string
-	instanceIDMutex       sync.RWMutex
-	instanceIDArgsForCall []struct{}
-	instanceIDReturns     struct {
-		result1 string
-	}
-	instanceIDReturnsOnCall map[int]struct {
-		result1 string
-	}
-	NameStub        func() string
-	nameMutex       sync.RWMutex
-	nameArgsForCall []struct{}
-	nameReturns     struct {
-		result1 string
-	}
-	nameReturnsOnCall map[int]struct {
-		result1 string
-	}
-	HasCustomNameStub        func() bool
-	hasCustomNameMutex       sync.RWMutex
-	hasCustomNameArgsForCall []struct{}
-	hasCustomNameReturns     struct {
-		result1 bool
-	}
-	hasCustomNameReturnsOnCall map[int]struct {
-		result1 bool
-	}
-	SizeStub        func() (string, error)
-	sizeMutex       sync.RWMutex
-	sizeArgsForCall []struct{}
-	sizeReturns     struct {
-		result1 string
-		result2 error
-	}
-	sizeReturnsOnCall map[int]struct {
-		result1 string
-		result2 error
-	}
 	ChecksumStub        func() (orchestrator.BackupChecksum, error)
 	checksumMutex       sync.RWMutex
-	checksumArgsForCall []struct{}
-	checksumReturns     struct {
+	checksumArgsForCall []struct {
+	}
+	checksumReturns struct {
 		result1 orchestrator.BackupChecksum
 		result2 error
 	}
 	checksumReturnsOnCall map[int]struct {
 		result1 orchestrator.BackupChecksum
+		result2 error
+	}
+	DeleteStub        func() error
+	deleteMutex       sync.RWMutex
+	deleteArgsForCall []struct {
+	}
+	deleteReturns struct {
+		result1 error
+	}
+	deleteReturnsOnCall map[int]struct {
+		result1 error
+	}
+	HasCustomNameStub        func() bool
+	hasCustomNameMutex       sync.RWMutex
+	hasCustomNameArgsForCall []struct {
+	}
+	hasCustomNameReturns struct {
+		result1 bool
+	}
+	hasCustomNameReturnsOnCall map[int]struct {
+		result1 bool
+	}
+	InstanceIDStub        func() string
+	instanceIDMutex       sync.RWMutex
+	instanceIDArgsForCall []struct {
+	}
+	instanceIDReturns struct {
+		result1 string
+	}
+	instanceIDReturnsOnCall map[int]struct {
+		result1 string
+	}
+	InstanceIndexStub        func() string
+	instanceIndexMutex       sync.RWMutex
+	instanceIndexArgsForCall []struct {
+	}
+	instanceIndexReturns struct {
+		result1 string
+	}
+	instanceIndexReturnsOnCall map[int]struct {
+		result1 string
+	}
+	InstanceNameStub        func() string
+	instanceNameMutex       sync.RWMutex
+	instanceNameArgsForCall []struct {
+	}
+	instanceNameReturns struct {
+		result1 string
+	}
+	instanceNameReturnsOnCall map[int]struct {
+		result1 string
+	}
+	NameStub        func() string
+	nameMutex       sync.RWMutex
+	nameArgsForCall []struct {
+	}
+	nameReturns struct {
+		result1 string
+	}
+	nameReturnsOnCall map[int]struct {
+		result1 string
+	}
+	SizeStub        func() (string, error)
+	sizeMutex       sync.RWMutex
+	sizeArgsForCall []struct {
+	}
+	sizeReturns struct {
+		result1 string
+		result2 error
+	}
+	sizeReturnsOnCall map[int]struct {
+		result1 string
 		result2 error
 	}
 	StreamFromRemoteStub        func(io.Writer) error
@@ -85,15 +102,6 @@ type FakeBackupArtifact struct {
 		result1 error
 	}
 	streamFromRemoteReturnsOnCall map[int]struct {
-		result1 error
-	}
-	DeleteStub        func() error
-	deleteMutex       sync.RWMutex
-	deleteArgsForCall []struct{}
-	deleteReturns     struct {
-		result1 error
-	}
-	deleteReturnsOnCall map[int]struct {
 		result1 error
 	}
 	StreamToRemoteStub        func(io.Reader) error
@@ -111,170 +119,118 @@ type FakeBackupArtifact struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeBackupArtifact) InstanceName() string {
-	fake.instanceNameMutex.Lock()
-	ret, specificReturn := fake.instanceNameReturnsOnCall[len(fake.instanceNameArgsForCall)]
-	fake.instanceNameArgsForCall = append(fake.instanceNameArgsForCall, struct{}{})
-	fake.recordInvocation("InstanceName", []interface{}{})
-	fake.instanceNameMutex.Unlock()
-	if fake.InstanceNameStub != nil {
-		return fake.InstanceNameStub()
+func (fake *FakeBackupArtifact) Checksum() (orchestrator.BackupChecksum, error) {
+	fake.checksumMutex.Lock()
+	ret, specificReturn := fake.checksumReturnsOnCall[len(fake.checksumArgsForCall)]
+	fake.checksumArgsForCall = append(fake.checksumArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Checksum", []interface{}{})
+	fake.checksumMutex.Unlock()
+	if fake.ChecksumStub != nil {
+		return fake.ChecksumStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.checksumReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeBackupArtifact) ChecksumCallCount() int {
+	fake.checksumMutex.RLock()
+	defer fake.checksumMutex.RUnlock()
+	return len(fake.checksumArgsForCall)
+}
+
+func (fake *FakeBackupArtifact) ChecksumCalls(stub func() (orchestrator.BackupChecksum, error)) {
+	fake.checksumMutex.Lock()
+	defer fake.checksumMutex.Unlock()
+	fake.ChecksumStub = stub
+}
+
+func (fake *FakeBackupArtifact) ChecksumReturns(result1 orchestrator.BackupChecksum, result2 error) {
+	fake.checksumMutex.Lock()
+	defer fake.checksumMutex.Unlock()
+	fake.ChecksumStub = nil
+	fake.checksumReturns = struct {
+		result1 orchestrator.BackupChecksum
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeBackupArtifact) ChecksumReturnsOnCall(i int, result1 orchestrator.BackupChecksum, result2 error) {
+	fake.checksumMutex.Lock()
+	defer fake.checksumMutex.Unlock()
+	fake.ChecksumStub = nil
+	if fake.checksumReturnsOnCall == nil {
+		fake.checksumReturnsOnCall = make(map[int]struct {
+			result1 orchestrator.BackupChecksum
+			result2 error
+		})
+	}
+	fake.checksumReturnsOnCall[i] = struct {
+		result1 orchestrator.BackupChecksum
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeBackupArtifact) Delete() error {
+	fake.deleteMutex.Lock()
+	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
+	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Delete", []interface{}{})
+	fake.deleteMutex.Unlock()
+	if fake.DeleteStub != nil {
+		return fake.DeleteStub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.instanceNameReturns.result1
+	fakeReturns := fake.deleteReturns
+	return fakeReturns.result1
 }
 
-func (fake *FakeBackupArtifact) InstanceNameCallCount() int {
-	fake.instanceNameMutex.RLock()
-	defer fake.instanceNameMutex.RUnlock()
-	return len(fake.instanceNameArgsForCall)
+func (fake *FakeBackupArtifact) DeleteCallCount() int {
+	fake.deleteMutex.RLock()
+	defer fake.deleteMutex.RUnlock()
+	return len(fake.deleteArgsForCall)
 }
 
-func (fake *FakeBackupArtifact) InstanceNameReturns(result1 string) {
-	fake.InstanceNameStub = nil
-	fake.instanceNameReturns = struct {
-		result1 string
+func (fake *FakeBackupArtifact) DeleteCalls(stub func() error) {
+	fake.deleteMutex.Lock()
+	defer fake.deleteMutex.Unlock()
+	fake.DeleteStub = stub
+}
+
+func (fake *FakeBackupArtifact) DeleteReturns(result1 error) {
+	fake.deleteMutex.Lock()
+	defer fake.deleteMutex.Unlock()
+	fake.DeleteStub = nil
+	fake.deleteReturns = struct {
+		result1 error
 	}{result1}
 }
 
-func (fake *FakeBackupArtifact) InstanceNameReturnsOnCall(i int, result1 string) {
-	fake.InstanceNameStub = nil
-	if fake.instanceNameReturnsOnCall == nil {
-		fake.instanceNameReturnsOnCall = make(map[int]struct {
-			result1 string
+func (fake *FakeBackupArtifact) DeleteReturnsOnCall(i int, result1 error) {
+	fake.deleteMutex.Lock()
+	defer fake.deleteMutex.Unlock()
+	fake.DeleteStub = nil
+	if fake.deleteReturnsOnCall == nil {
+		fake.deleteReturnsOnCall = make(map[int]struct {
+			result1 error
 		})
 	}
-	fake.instanceNameReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeBackupArtifact) InstanceIndex() string {
-	fake.instanceIndexMutex.Lock()
-	ret, specificReturn := fake.instanceIndexReturnsOnCall[len(fake.instanceIndexArgsForCall)]
-	fake.instanceIndexArgsForCall = append(fake.instanceIndexArgsForCall, struct{}{})
-	fake.recordInvocation("InstanceIndex", []interface{}{})
-	fake.instanceIndexMutex.Unlock()
-	if fake.InstanceIndexStub != nil {
-		return fake.InstanceIndexStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.instanceIndexReturns.result1
-}
-
-func (fake *FakeBackupArtifact) InstanceIndexCallCount() int {
-	fake.instanceIndexMutex.RLock()
-	defer fake.instanceIndexMutex.RUnlock()
-	return len(fake.instanceIndexArgsForCall)
-}
-
-func (fake *FakeBackupArtifact) InstanceIndexReturns(result1 string) {
-	fake.InstanceIndexStub = nil
-	fake.instanceIndexReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeBackupArtifact) InstanceIndexReturnsOnCall(i int, result1 string) {
-	fake.InstanceIndexStub = nil
-	if fake.instanceIndexReturnsOnCall == nil {
-		fake.instanceIndexReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.instanceIndexReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeBackupArtifact) InstanceID() string {
-	fake.instanceIDMutex.Lock()
-	ret, specificReturn := fake.instanceIDReturnsOnCall[len(fake.instanceIDArgsForCall)]
-	fake.instanceIDArgsForCall = append(fake.instanceIDArgsForCall, struct{}{})
-	fake.recordInvocation("InstanceID", []interface{}{})
-	fake.instanceIDMutex.Unlock()
-	if fake.InstanceIDStub != nil {
-		return fake.InstanceIDStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.instanceIDReturns.result1
-}
-
-func (fake *FakeBackupArtifact) InstanceIDCallCount() int {
-	fake.instanceIDMutex.RLock()
-	defer fake.instanceIDMutex.RUnlock()
-	return len(fake.instanceIDArgsForCall)
-}
-
-func (fake *FakeBackupArtifact) InstanceIDReturns(result1 string) {
-	fake.InstanceIDStub = nil
-	fake.instanceIDReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeBackupArtifact) InstanceIDReturnsOnCall(i int, result1 string) {
-	fake.InstanceIDStub = nil
-	if fake.instanceIDReturnsOnCall == nil {
-		fake.instanceIDReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.instanceIDReturnsOnCall[i] = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeBackupArtifact) Name() string {
-	fake.nameMutex.Lock()
-	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
-	fake.nameArgsForCall = append(fake.nameArgsForCall, struct{}{})
-	fake.recordInvocation("Name", []interface{}{})
-	fake.nameMutex.Unlock()
-	if fake.NameStub != nil {
-		return fake.NameStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.nameReturns.result1
-}
-
-func (fake *FakeBackupArtifact) NameCallCount() int {
-	fake.nameMutex.RLock()
-	defer fake.nameMutex.RUnlock()
-	return len(fake.nameArgsForCall)
-}
-
-func (fake *FakeBackupArtifact) NameReturns(result1 string) {
-	fake.NameStub = nil
-	fake.nameReturns = struct {
-		result1 string
-	}{result1}
-}
-
-func (fake *FakeBackupArtifact) NameReturnsOnCall(i int, result1 string) {
-	fake.NameStub = nil
-	if fake.nameReturnsOnCall == nil {
-		fake.nameReturnsOnCall = make(map[int]struct {
-			result1 string
-		})
-	}
-	fake.nameReturnsOnCall[i] = struct {
-		result1 string
+	fake.deleteReturnsOnCall[i] = struct {
+		result1 error
 	}{result1}
 }
 
 func (fake *FakeBackupArtifact) HasCustomName() bool {
 	fake.hasCustomNameMutex.Lock()
 	ret, specificReturn := fake.hasCustomNameReturnsOnCall[len(fake.hasCustomNameArgsForCall)]
-	fake.hasCustomNameArgsForCall = append(fake.hasCustomNameArgsForCall, struct{}{})
+	fake.hasCustomNameArgsForCall = append(fake.hasCustomNameArgsForCall, struct {
+	}{})
 	fake.recordInvocation("HasCustomName", []interface{}{})
 	fake.hasCustomNameMutex.Unlock()
 	if fake.HasCustomNameStub != nil {
@@ -283,7 +239,8 @@ func (fake *FakeBackupArtifact) HasCustomName() bool {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.hasCustomNameReturns.result1
+	fakeReturns := fake.hasCustomNameReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeBackupArtifact) HasCustomNameCallCount() int {
@@ -292,7 +249,15 @@ func (fake *FakeBackupArtifact) HasCustomNameCallCount() int {
 	return len(fake.hasCustomNameArgsForCall)
 }
 
+func (fake *FakeBackupArtifact) HasCustomNameCalls(stub func() bool) {
+	fake.hasCustomNameMutex.Lock()
+	defer fake.hasCustomNameMutex.Unlock()
+	fake.HasCustomNameStub = stub
+}
+
 func (fake *FakeBackupArtifact) HasCustomNameReturns(result1 bool) {
+	fake.hasCustomNameMutex.Lock()
+	defer fake.hasCustomNameMutex.Unlock()
 	fake.HasCustomNameStub = nil
 	fake.hasCustomNameReturns = struct {
 		result1 bool
@@ -300,6 +265,8 @@ func (fake *FakeBackupArtifact) HasCustomNameReturns(result1 bool) {
 }
 
 func (fake *FakeBackupArtifact) HasCustomNameReturnsOnCall(i int, result1 bool) {
+	fake.hasCustomNameMutex.Lock()
+	defer fake.hasCustomNameMutex.Unlock()
 	fake.HasCustomNameStub = nil
 	if fake.hasCustomNameReturnsOnCall == nil {
 		fake.hasCustomNameReturnsOnCall = make(map[int]struct {
@@ -311,10 +278,219 @@ func (fake *FakeBackupArtifact) HasCustomNameReturnsOnCall(i int, result1 bool) 
 	}{result1}
 }
 
+func (fake *FakeBackupArtifact) InstanceID() string {
+	fake.instanceIDMutex.Lock()
+	ret, specificReturn := fake.instanceIDReturnsOnCall[len(fake.instanceIDArgsForCall)]
+	fake.instanceIDArgsForCall = append(fake.instanceIDArgsForCall, struct {
+	}{})
+	fake.recordInvocation("InstanceID", []interface{}{})
+	fake.instanceIDMutex.Unlock()
+	if fake.InstanceIDStub != nil {
+		return fake.InstanceIDStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.instanceIDReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeBackupArtifact) InstanceIDCallCount() int {
+	fake.instanceIDMutex.RLock()
+	defer fake.instanceIDMutex.RUnlock()
+	return len(fake.instanceIDArgsForCall)
+}
+
+func (fake *FakeBackupArtifact) InstanceIDCalls(stub func() string) {
+	fake.instanceIDMutex.Lock()
+	defer fake.instanceIDMutex.Unlock()
+	fake.InstanceIDStub = stub
+}
+
+func (fake *FakeBackupArtifact) InstanceIDReturns(result1 string) {
+	fake.instanceIDMutex.Lock()
+	defer fake.instanceIDMutex.Unlock()
+	fake.InstanceIDStub = nil
+	fake.instanceIDReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeBackupArtifact) InstanceIDReturnsOnCall(i int, result1 string) {
+	fake.instanceIDMutex.Lock()
+	defer fake.instanceIDMutex.Unlock()
+	fake.InstanceIDStub = nil
+	if fake.instanceIDReturnsOnCall == nil {
+		fake.instanceIDReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.instanceIDReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeBackupArtifact) InstanceIndex() string {
+	fake.instanceIndexMutex.Lock()
+	ret, specificReturn := fake.instanceIndexReturnsOnCall[len(fake.instanceIndexArgsForCall)]
+	fake.instanceIndexArgsForCall = append(fake.instanceIndexArgsForCall, struct {
+	}{})
+	fake.recordInvocation("InstanceIndex", []interface{}{})
+	fake.instanceIndexMutex.Unlock()
+	if fake.InstanceIndexStub != nil {
+		return fake.InstanceIndexStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.instanceIndexReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeBackupArtifact) InstanceIndexCallCount() int {
+	fake.instanceIndexMutex.RLock()
+	defer fake.instanceIndexMutex.RUnlock()
+	return len(fake.instanceIndexArgsForCall)
+}
+
+func (fake *FakeBackupArtifact) InstanceIndexCalls(stub func() string) {
+	fake.instanceIndexMutex.Lock()
+	defer fake.instanceIndexMutex.Unlock()
+	fake.InstanceIndexStub = stub
+}
+
+func (fake *FakeBackupArtifact) InstanceIndexReturns(result1 string) {
+	fake.instanceIndexMutex.Lock()
+	defer fake.instanceIndexMutex.Unlock()
+	fake.InstanceIndexStub = nil
+	fake.instanceIndexReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeBackupArtifact) InstanceIndexReturnsOnCall(i int, result1 string) {
+	fake.instanceIndexMutex.Lock()
+	defer fake.instanceIndexMutex.Unlock()
+	fake.InstanceIndexStub = nil
+	if fake.instanceIndexReturnsOnCall == nil {
+		fake.instanceIndexReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.instanceIndexReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeBackupArtifact) InstanceName() string {
+	fake.instanceNameMutex.Lock()
+	ret, specificReturn := fake.instanceNameReturnsOnCall[len(fake.instanceNameArgsForCall)]
+	fake.instanceNameArgsForCall = append(fake.instanceNameArgsForCall, struct {
+	}{})
+	fake.recordInvocation("InstanceName", []interface{}{})
+	fake.instanceNameMutex.Unlock()
+	if fake.InstanceNameStub != nil {
+		return fake.InstanceNameStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.instanceNameReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeBackupArtifact) InstanceNameCallCount() int {
+	fake.instanceNameMutex.RLock()
+	defer fake.instanceNameMutex.RUnlock()
+	return len(fake.instanceNameArgsForCall)
+}
+
+func (fake *FakeBackupArtifact) InstanceNameCalls(stub func() string) {
+	fake.instanceNameMutex.Lock()
+	defer fake.instanceNameMutex.Unlock()
+	fake.InstanceNameStub = stub
+}
+
+func (fake *FakeBackupArtifact) InstanceNameReturns(result1 string) {
+	fake.instanceNameMutex.Lock()
+	defer fake.instanceNameMutex.Unlock()
+	fake.InstanceNameStub = nil
+	fake.instanceNameReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeBackupArtifact) InstanceNameReturnsOnCall(i int, result1 string) {
+	fake.instanceNameMutex.Lock()
+	defer fake.instanceNameMutex.Unlock()
+	fake.InstanceNameStub = nil
+	if fake.instanceNameReturnsOnCall == nil {
+		fake.instanceNameReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.instanceNameReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeBackupArtifact) Name() string {
+	fake.nameMutex.Lock()
+	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
+	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
+	}{})
+	fake.recordInvocation("Name", []interface{}{})
+	fake.nameMutex.Unlock()
+	if fake.NameStub != nil {
+		return fake.NameStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.nameReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeBackupArtifact) NameCallCount() int {
+	fake.nameMutex.RLock()
+	defer fake.nameMutex.RUnlock()
+	return len(fake.nameArgsForCall)
+}
+
+func (fake *FakeBackupArtifact) NameCalls(stub func() string) {
+	fake.nameMutex.Lock()
+	defer fake.nameMutex.Unlock()
+	fake.NameStub = stub
+}
+
+func (fake *FakeBackupArtifact) NameReturns(result1 string) {
+	fake.nameMutex.Lock()
+	defer fake.nameMutex.Unlock()
+	fake.NameStub = nil
+	fake.nameReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeBackupArtifact) NameReturnsOnCall(i int, result1 string) {
+	fake.nameMutex.Lock()
+	defer fake.nameMutex.Unlock()
+	fake.NameStub = nil
+	if fake.nameReturnsOnCall == nil {
+		fake.nameReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.nameReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
 func (fake *FakeBackupArtifact) Size() (string, error) {
 	fake.sizeMutex.Lock()
 	ret, specificReturn := fake.sizeReturnsOnCall[len(fake.sizeArgsForCall)]
-	fake.sizeArgsForCall = append(fake.sizeArgsForCall, struct{}{})
+	fake.sizeArgsForCall = append(fake.sizeArgsForCall, struct {
+	}{})
 	fake.recordInvocation("Size", []interface{}{})
 	fake.sizeMutex.Unlock()
 	if fake.SizeStub != nil {
@@ -323,7 +499,8 @@ func (fake *FakeBackupArtifact) Size() (string, error) {
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.sizeReturns.result1, fake.sizeReturns.result2
+	fakeReturns := fake.sizeReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeBackupArtifact) SizeCallCount() int {
@@ -332,7 +509,15 @@ func (fake *FakeBackupArtifact) SizeCallCount() int {
 	return len(fake.sizeArgsForCall)
 }
 
+func (fake *FakeBackupArtifact) SizeCalls(stub func() (string, error)) {
+	fake.sizeMutex.Lock()
+	defer fake.sizeMutex.Unlock()
+	fake.SizeStub = stub
+}
+
 func (fake *FakeBackupArtifact) SizeReturns(result1 string, result2 error) {
+	fake.sizeMutex.Lock()
+	defer fake.sizeMutex.Unlock()
 	fake.SizeStub = nil
 	fake.sizeReturns = struct {
 		result1 string
@@ -341,6 +526,8 @@ func (fake *FakeBackupArtifact) SizeReturns(result1 string, result2 error) {
 }
 
 func (fake *FakeBackupArtifact) SizeReturnsOnCall(i int, result1 string, result2 error) {
+	fake.sizeMutex.Lock()
+	defer fake.sizeMutex.Unlock()
 	fake.SizeStub = nil
 	if fake.sizeReturnsOnCall == nil {
 		fake.sizeReturnsOnCall = make(map[int]struct {
@@ -350,49 +537,6 @@ func (fake *FakeBackupArtifact) SizeReturnsOnCall(i int, result1 string, result2
 	}
 	fake.sizeReturnsOnCall[i] = struct {
 		result1 string
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeBackupArtifact) Checksum() (orchestrator.BackupChecksum, error) {
-	fake.checksumMutex.Lock()
-	ret, specificReturn := fake.checksumReturnsOnCall[len(fake.checksumArgsForCall)]
-	fake.checksumArgsForCall = append(fake.checksumArgsForCall, struct{}{})
-	fake.recordInvocation("Checksum", []interface{}{})
-	fake.checksumMutex.Unlock()
-	if fake.ChecksumStub != nil {
-		return fake.ChecksumStub()
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fake.checksumReturns.result1, fake.checksumReturns.result2
-}
-
-func (fake *FakeBackupArtifact) ChecksumCallCount() int {
-	fake.checksumMutex.RLock()
-	defer fake.checksumMutex.RUnlock()
-	return len(fake.checksumArgsForCall)
-}
-
-func (fake *FakeBackupArtifact) ChecksumReturns(result1 orchestrator.BackupChecksum, result2 error) {
-	fake.ChecksumStub = nil
-	fake.checksumReturns = struct {
-		result1 orchestrator.BackupChecksum
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeBackupArtifact) ChecksumReturnsOnCall(i int, result1 orchestrator.BackupChecksum, result2 error) {
-	fake.ChecksumStub = nil
-	if fake.checksumReturnsOnCall == nil {
-		fake.checksumReturnsOnCall = make(map[int]struct {
-			result1 orchestrator.BackupChecksum
-			result2 error
-		})
-	}
-	fake.checksumReturnsOnCall[i] = struct {
-		result1 orchestrator.BackupChecksum
 		result2 error
 	}{result1, result2}
 }
@@ -411,7 +555,8 @@ func (fake *FakeBackupArtifact) StreamFromRemote(arg1 io.Writer) error {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.streamFromRemoteReturns.result1
+	fakeReturns := fake.streamFromRemoteReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeBackupArtifact) StreamFromRemoteCallCount() int {
@@ -420,13 +565,22 @@ func (fake *FakeBackupArtifact) StreamFromRemoteCallCount() int {
 	return len(fake.streamFromRemoteArgsForCall)
 }
 
+func (fake *FakeBackupArtifact) StreamFromRemoteCalls(stub func(io.Writer) error) {
+	fake.streamFromRemoteMutex.Lock()
+	defer fake.streamFromRemoteMutex.Unlock()
+	fake.StreamFromRemoteStub = stub
+}
+
 func (fake *FakeBackupArtifact) StreamFromRemoteArgsForCall(i int) io.Writer {
 	fake.streamFromRemoteMutex.RLock()
 	defer fake.streamFromRemoteMutex.RUnlock()
-	return fake.streamFromRemoteArgsForCall[i].arg1
+	argsForCall := fake.streamFromRemoteArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeBackupArtifact) StreamFromRemoteReturns(result1 error) {
+	fake.streamFromRemoteMutex.Lock()
+	defer fake.streamFromRemoteMutex.Unlock()
 	fake.StreamFromRemoteStub = nil
 	fake.streamFromRemoteReturns = struct {
 		result1 error
@@ -434,6 +588,8 @@ func (fake *FakeBackupArtifact) StreamFromRemoteReturns(result1 error) {
 }
 
 func (fake *FakeBackupArtifact) StreamFromRemoteReturnsOnCall(i int, result1 error) {
+	fake.streamFromRemoteMutex.Lock()
+	defer fake.streamFromRemoteMutex.Unlock()
 	fake.StreamFromRemoteStub = nil
 	if fake.streamFromRemoteReturnsOnCall == nil {
 		fake.streamFromRemoteReturnsOnCall = make(map[int]struct {
@@ -441,46 +597,6 @@ func (fake *FakeBackupArtifact) StreamFromRemoteReturnsOnCall(i int, result1 err
 		})
 	}
 	fake.streamFromRemoteReturnsOnCall[i] = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeBackupArtifact) Delete() error {
-	fake.deleteMutex.Lock()
-	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
-	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct{}{})
-	fake.recordInvocation("Delete", []interface{}{})
-	fake.deleteMutex.Unlock()
-	if fake.DeleteStub != nil {
-		return fake.DeleteStub()
-	}
-	if specificReturn {
-		return ret.result1
-	}
-	return fake.deleteReturns.result1
-}
-
-func (fake *FakeBackupArtifact) DeleteCallCount() int {
-	fake.deleteMutex.RLock()
-	defer fake.deleteMutex.RUnlock()
-	return len(fake.deleteArgsForCall)
-}
-
-func (fake *FakeBackupArtifact) DeleteReturns(result1 error) {
-	fake.DeleteStub = nil
-	fake.deleteReturns = struct {
-		result1 error
-	}{result1}
-}
-
-func (fake *FakeBackupArtifact) DeleteReturnsOnCall(i int, result1 error) {
-	fake.DeleteStub = nil
-	if fake.deleteReturnsOnCall == nil {
-		fake.deleteReturnsOnCall = make(map[int]struct {
-			result1 error
-		})
-	}
-	fake.deleteReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -499,7 +615,8 @@ func (fake *FakeBackupArtifact) StreamToRemote(arg1 io.Reader) error {
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.streamToRemoteReturns.result1
+	fakeReturns := fake.streamToRemoteReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeBackupArtifact) StreamToRemoteCallCount() int {
@@ -508,13 +625,22 @@ func (fake *FakeBackupArtifact) StreamToRemoteCallCount() int {
 	return len(fake.streamToRemoteArgsForCall)
 }
 
+func (fake *FakeBackupArtifact) StreamToRemoteCalls(stub func(io.Reader) error) {
+	fake.streamToRemoteMutex.Lock()
+	defer fake.streamToRemoteMutex.Unlock()
+	fake.StreamToRemoteStub = stub
+}
+
 func (fake *FakeBackupArtifact) StreamToRemoteArgsForCall(i int) io.Reader {
 	fake.streamToRemoteMutex.RLock()
 	defer fake.streamToRemoteMutex.RUnlock()
-	return fake.streamToRemoteArgsForCall[i].arg1
+	argsForCall := fake.streamToRemoteArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeBackupArtifact) StreamToRemoteReturns(result1 error) {
+	fake.streamToRemoteMutex.Lock()
+	defer fake.streamToRemoteMutex.Unlock()
 	fake.StreamToRemoteStub = nil
 	fake.streamToRemoteReturns = struct {
 		result1 error
@@ -522,6 +648,8 @@ func (fake *FakeBackupArtifact) StreamToRemoteReturns(result1 error) {
 }
 
 func (fake *FakeBackupArtifact) StreamToRemoteReturnsOnCall(i int, result1 error) {
+	fake.streamToRemoteMutex.Lock()
+	defer fake.streamToRemoteMutex.Unlock()
 	fake.StreamToRemoteStub = nil
 	if fake.streamToRemoteReturnsOnCall == nil {
 		fake.streamToRemoteReturnsOnCall = make(map[int]struct {
@@ -536,24 +664,24 @@ func (fake *FakeBackupArtifact) StreamToRemoteReturnsOnCall(i int, result1 error
 func (fake *FakeBackupArtifact) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.instanceNameMutex.RLock()
-	defer fake.instanceNameMutex.RUnlock()
-	fake.instanceIndexMutex.RLock()
-	defer fake.instanceIndexMutex.RUnlock()
-	fake.instanceIDMutex.RLock()
-	defer fake.instanceIDMutex.RUnlock()
-	fake.nameMutex.RLock()
-	defer fake.nameMutex.RUnlock()
-	fake.hasCustomNameMutex.RLock()
-	defer fake.hasCustomNameMutex.RUnlock()
-	fake.sizeMutex.RLock()
-	defer fake.sizeMutex.RUnlock()
 	fake.checksumMutex.RLock()
 	defer fake.checksumMutex.RUnlock()
-	fake.streamFromRemoteMutex.RLock()
-	defer fake.streamFromRemoteMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
+	fake.hasCustomNameMutex.RLock()
+	defer fake.hasCustomNameMutex.RUnlock()
+	fake.instanceIDMutex.RLock()
+	defer fake.instanceIDMutex.RUnlock()
+	fake.instanceIndexMutex.RLock()
+	defer fake.instanceIndexMutex.RUnlock()
+	fake.instanceNameMutex.RLock()
+	defer fake.instanceNameMutex.RUnlock()
+	fake.nameMutex.RLock()
+	defer fake.nameMutex.RUnlock()
+	fake.sizeMutex.RLock()
+	defer fake.sizeMutex.RUnlock()
+	fake.streamFromRemoteMutex.RLock()
+	defer fake.streamFromRemoteMutex.RUnlock()
 	fake.streamToRemoteMutex.RLock()
 	defer fake.streamToRemoteMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

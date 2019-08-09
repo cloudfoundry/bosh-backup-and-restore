@@ -8,10 +8,10 @@ import (
 )
 
 type FakeDeploymentManager struct {
-	FindStub        func(deploymentName string) (orchestrator.Deployment, error)
+	FindStub        func(string) (orchestrator.Deployment, error)
 	findMutex       sync.RWMutex
 	findArgsForCall []struct {
-		deploymentName string
+		arg1 string
 	}
 	findReturns struct {
 		result1 orchestrator.Deployment
@@ -21,11 +21,11 @@ type FakeDeploymentManager struct {
 		result1 orchestrator.Deployment
 		result2 error
 	}
-	SaveManifestStub        func(deploymentName string, artifact orchestrator.Backup) error
+	SaveManifestStub        func(string, orchestrator.Backup) error
 	saveManifestMutex       sync.RWMutex
 	saveManifestArgsForCall []struct {
-		deploymentName string
-		artifact       orchestrator.Backup
+		arg1 string
+		arg2 orchestrator.Backup
 	}
 	saveManifestReturns struct {
 		result1 error
@@ -37,21 +37,22 @@ type FakeDeploymentManager struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeDeploymentManager) Find(deploymentName string) (orchestrator.Deployment, error) {
+func (fake *FakeDeploymentManager) Find(arg1 string) (orchestrator.Deployment, error) {
 	fake.findMutex.Lock()
 	ret, specificReturn := fake.findReturnsOnCall[len(fake.findArgsForCall)]
 	fake.findArgsForCall = append(fake.findArgsForCall, struct {
-		deploymentName string
-	}{deploymentName})
-	fake.recordInvocation("Find", []interface{}{deploymentName})
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("Find", []interface{}{arg1})
 	fake.findMutex.Unlock()
 	if fake.FindStub != nil {
-		return fake.FindStub(deploymentName)
+		return fake.FindStub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.findReturns.result1, fake.findReturns.result2
+	fakeReturns := fake.findReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeDeploymentManager) FindCallCount() int {
@@ -60,13 +61,22 @@ func (fake *FakeDeploymentManager) FindCallCount() int {
 	return len(fake.findArgsForCall)
 }
 
+func (fake *FakeDeploymentManager) FindCalls(stub func(string) (orchestrator.Deployment, error)) {
+	fake.findMutex.Lock()
+	defer fake.findMutex.Unlock()
+	fake.FindStub = stub
+}
+
 func (fake *FakeDeploymentManager) FindArgsForCall(i int) string {
 	fake.findMutex.RLock()
 	defer fake.findMutex.RUnlock()
-	return fake.findArgsForCall[i].deploymentName
+	argsForCall := fake.findArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeDeploymentManager) FindReturns(result1 orchestrator.Deployment, result2 error) {
+	fake.findMutex.Lock()
+	defer fake.findMutex.Unlock()
 	fake.FindStub = nil
 	fake.findReturns = struct {
 		result1 orchestrator.Deployment
@@ -75,6 +85,8 @@ func (fake *FakeDeploymentManager) FindReturns(result1 orchestrator.Deployment, 
 }
 
 func (fake *FakeDeploymentManager) FindReturnsOnCall(i int, result1 orchestrator.Deployment, result2 error) {
+	fake.findMutex.Lock()
+	defer fake.findMutex.Unlock()
 	fake.FindStub = nil
 	if fake.findReturnsOnCall == nil {
 		fake.findReturnsOnCall = make(map[int]struct {
@@ -88,22 +100,23 @@ func (fake *FakeDeploymentManager) FindReturnsOnCall(i int, result1 orchestrator
 	}{result1, result2}
 }
 
-func (fake *FakeDeploymentManager) SaveManifest(deploymentName string, artifact orchestrator.Backup) error {
+func (fake *FakeDeploymentManager) SaveManifest(arg1 string, arg2 orchestrator.Backup) error {
 	fake.saveManifestMutex.Lock()
 	ret, specificReturn := fake.saveManifestReturnsOnCall[len(fake.saveManifestArgsForCall)]
 	fake.saveManifestArgsForCall = append(fake.saveManifestArgsForCall, struct {
-		deploymentName string
-		artifact       orchestrator.Backup
-	}{deploymentName, artifact})
-	fake.recordInvocation("SaveManifest", []interface{}{deploymentName, artifact})
+		arg1 string
+		arg2 orchestrator.Backup
+	}{arg1, arg2})
+	fake.recordInvocation("SaveManifest", []interface{}{arg1, arg2})
 	fake.saveManifestMutex.Unlock()
 	if fake.SaveManifestStub != nil {
-		return fake.SaveManifestStub(deploymentName, artifact)
+		return fake.SaveManifestStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.saveManifestReturns.result1
+	fakeReturns := fake.saveManifestReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeDeploymentManager) SaveManifestCallCount() int {
@@ -112,13 +125,22 @@ func (fake *FakeDeploymentManager) SaveManifestCallCount() int {
 	return len(fake.saveManifestArgsForCall)
 }
 
+func (fake *FakeDeploymentManager) SaveManifestCalls(stub func(string, orchestrator.Backup) error) {
+	fake.saveManifestMutex.Lock()
+	defer fake.saveManifestMutex.Unlock()
+	fake.SaveManifestStub = stub
+}
+
 func (fake *FakeDeploymentManager) SaveManifestArgsForCall(i int) (string, orchestrator.Backup) {
 	fake.saveManifestMutex.RLock()
 	defer fake.saveManifestMutex.RUnlock()
-	return fake.saveManifestArgsForCall[i].deploymentName, fake.saveManifestArgsForCall[i].artifact
+	argsForCall := fake.saveManifestArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeDeploymentManager) SaveManifestReturns(result1 error) {
+	fake.saveManifestMutex.Lock()
+	defer fake.saveManifestMutex.Unlock()
 	fake.SaveManifestStub = nil
 	fake.saveManifestReturns = struct {
 		result1 error
@@ -126,6 +148,8 @@ func (fake *FakeDeploymentManager) SaveManifestReturns(result1 error) {
 }
 
 func (fake *FakeDeploymentManager) SaveManifestReturnsOnCall(i int, result1 error) {
+	fake.saveManifestMutex.Lock()
+	defer fake.saveManifestMutex.Unlock()
 	fake.SaveManifestStub = nil
 	if fake.saveManifestReturnsOnCall == nil {
 		fake.saveManifestReturnsOnCall = make(map[int]struct {

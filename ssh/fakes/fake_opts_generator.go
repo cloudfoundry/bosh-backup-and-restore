@@ -10,10 +10,10 @@ import (
 )
 
 type FakeSSHOptsGenerator struct {
-	Stub        func(uuidGen uuid.Generator) (director.SSHOpts, string, error)
+	Stub        func(uuid.Generator) (director.SSHOpts, string, error)
 	mutex       sync.RWMutex
 	argsForCall []struct {
-		uuidGen uuid.Generator
+		arg1 uuid.Generator
 	}
 	returns struct {
 		result1 director.SSHOpts
@@ -29,16 +29,16 @@ type FakeSSHOptsGenerator struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeSSHOptsGenerator) Spy(uuidGen uuid.Generator) (director.SSHOpts, string, error) {
+func (fake *FakeSSHOptsGenerator) Spy(arg1 uuid.Generator) (director.SSHOpts, string, error) {
 	fake.mutex.Lock()
 	ret, specificReturn := fake.returnsOnCall[len(fake.argsForCall)]
 	fake.argsForCall = append(fake.argsForCall, struct {
-		uuidGen uuid.Generator
-	}{uuidGen})
-	fake.recordInvocation("SSHOptsGenerator", []interface{}{uuidGen})
+		arg1 uuid.Generator
+	}{arg1})
+	fake.recordInvocation("SSHOptsGenerator", []interface{}{arg1})
 	fake.mutex.Unlock()
 	if fake.Stub != nil {
-		return fake.Stub(uuidGen)
+		return fake.Stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
@@ -52,13 +52,21 @@ func (fake *FakeSSHOptsGenerator) CallCount() int {
 	return len(fake.argsForCall)
 }
 
+func (fake *FakeSSHOptsGenerator) Calls(stub func(uuid.Generator) (director.SSHOpts, string, error)) {
+	fake.mutex.Lock()
+	defer fake.mutex.Unlock()
+	fake.Stub = stub
+}
+
 func (fake *FakeSSHOptsGenerator) ArgsForCall(i int) uuid.Generator {
 	fake.mutex.RLock()
 	defer fake.mutex.RUnlock()
-	return fake.argsForCall[i].uuidGen
+	return fake.argsForCall[i].arg1
 }
 
 func (fake *FakeSSHOptsGenerator) Returns(result1 director.SSHOpts, result2 string, result3 error) {
+	fake.mutex.Lock()
+	defer fake.mutex.Unlock()
 	fake.Stub = nil
 	fake.returns = struct {
 		result1 director.SSHOpts
@@ -68,6 +76,8 @@ func (fake *FakeSSHOptsGenerator) Returns(result1 director.SSHOpts, result2 stri
 }
 
 func (fake *FakeSSHOptsGenerator) ReturnsOnCall(i int, result1 director.SSHOpts, result2 string, result3 error) {
+	fake.mutex.Lock()
+	defer fake.mutex.Unlock()
 	fake.Stub = nil
 	if fake.returnsOnCall == nil {
 		fake.returnsOnCall = make(map[int]struct {

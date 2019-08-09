@@ -51,7 +51,8 @@ func (fake *FakeArtifactCopier) DownloadBackupFromDeployment(arg1 orchestrator.B
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.downloadBackupFromDeploymentReturns.result1
+	fakeReturns := fake.downloadBackupFromDeploymentReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeArtifactCopier) DownloadBackupFromDeploymentCallCount() int {
@@ -60,13 +61,22 @@ func (fake *FakeArtifactCopier) DownloadBackupFromDeploymentCallCount() int {
 	return len(fake.downloadBackupFromDeploymentArgsForCall)
 }
 
+func (fake *FakeArtifactCopier) DownloadBackupFromDeploymentCalls(stub func(orchestrator.Backup, orchestrator.Deployment) error) {
+	fake.downloadBackupFromDeploymentMutex.Lock()
+	defer fake.downloadBackupFromDeploymentMutex.Unlock()
+	fake.DownloadBackupFromDeploymentStub = stub
+}
+
 func (fake *FakeArtifactCopier) DownloadBackupFromDeploymentArgsForCall(i int) (orchestrator.Backup, orchestrator.Deployment) {
 	fake.downloadBackupFromDeploymentMutex.RLock()
 	defer fake.downloadBackupFromDeploymentMutex.RUnlock()
-	return fake.downloadBackupFromDeploymentArgsForCall[i].arg1, fake.downloadBackupFromDeploymentArgsForCall[i].arg2
+	argsForCall := fake.downloadBackupFromDeploymentArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeArtifactCopier) DownloadBackupFromDeploymentReturns(result1 error) {
+	fake.downloadBackupFromDeploymentMutex.Lock()
+	defer fake.downloadBackupFromDeploymentMutex.Unlock()
 	fake.DownloadBackupFromDeploymentStub = nil
 	fake.downloadBackupFromDeploymentReturns = struct {
 		result1 error
@@ -74,6 +84,8 @@ func (fake *FakeArtifactCopier) DownloadBackupFromDeploymentReturns(result1 erro
 }
 
 func (fake *FakeArtifactCopier) DownloadBackupFromDeploymentReturnsOnCall(i int, result1 error) {
+	fake.downloadBackupFromDeploymentMutex.Lock()
+	defer fake.downloadBackupFromDeploymentMutex.Unlock()
 	fake.DownloadBackupFromDeploymentStub = nil
 	if fake.downloadBackupFromDeploymentReturnsOnCall == nil {
 		fake.downloadBackupFromDeploymentReturnsOnCall = make(map[int]struct {
@@ -100,7 +112,8 @@ func (fake *FakeArtifactCopier) UploadBackupToDeployment(arg1 orchestrator.Backu
 	if specificReturn {
 		return ret.result1
 	}
-	return fake.uploadBackupToDeploymentReturns.result1
+	fakeReturns := fake.uploadBackupToDeploymentReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeArtifactCopier) UploadBackupToDeploymentCallCount() int {
@@ -109,13 +122,22 @@ func (fake *FakeArtifactCopier) UploadBackupToDeploymentCallCount() int {
 	return len(fake.uploadBackupToDeploymentArgsForCall)
 }
 
+func (fake *FakeArtifactCopier) UploadBackupToDeploymentCalls(stub func(orchestrator.Backup, orchestrator.Deployment) error) {
+	fake.uploadBackupToDeploymentMutex.Lock()
+	defer fake.uploadBackupToDeploymentMutex.Unlock()
+	fake.UploadBackupToDeploymentStub = stub
+}
+
 func (fake *FakeArtifactCopier) UploadBackupToDeploymentArgsForCall(i int) (orchestrator.Backup, orchestrator.Deployment) {
 	fake.uploadBackupToDeploymentMutex.RLock()
 	defer fake.uploadBackupToDeploymentMutex.RUnlock()
-	return fake.uploadBackupToDeploymentArgsForCall[i].arg1, fake.uploadBackupToDeploymentArgsForCall[i].arg2
+	argsForCall := fake.uploadBackupToDeploymentArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeArtifactCopier) UploadBackupToDeploymentReturns(result1 error) {
+	fake.uploadBackupToDeploymentMutex.Lock()
+	defer fake.uploadBackupToDeploymentMutex.Unlock()
 	fake.UploadBackupToDeploymentStub = nil
 	fake.uploadBackupToDeploymentReturns = struct {
 		result1 error
@@ -123,6 +145,8 @@ func (fake *FakeArtifactCopier) UploadBackupToDeploymentReturns(result1 error) {
 }
 
 func (fake *FakeArtifactCopier) UploadBackupToDeploymentReturnsOnCall(i int, result1 error) {
+	fake.uploadBackupToDeploymentMutex.Lock()
+	defer fake.uploadBackupToDeploymentMutex.Unlock()
 	fake.UploadBackupToDeploymentStub = nil
 	if fake.uploadBackupToDeploymentReturnsOnCall == nil {
 		fake.uploadBackupToDeploymentReturnsOnCall = make(map[int]struct {

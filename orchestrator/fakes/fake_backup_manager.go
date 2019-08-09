@@ -57,7 +57,8 @@ func (fake *FakeBackupManager) Create(arg1 string, arg2 string, arg3 orchestrato
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.createReturns.result1, fake.createReturns.result2
+	fakeReturns := fake.createReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeBackupManager) CreateCallCount() int {
@@ -66,13 +67,22 @@ func (fake *FakeBackupManager) CreateCallCount() int {
 	return len(fake.createArgsForCall)
 }
 
+func (fake *FakeBackupManager) CreateCalls(stub func(string, string, orchestrator.Logger) (orchestrator.Backup, error)) {
+	fake.createMutex.Lock()
+	defer fake.createMutex.Unlock()
+	fake.CreateStub = stub
+}
+
 func (fake *FakeBackupManager) CreateArgsForCall(i int) (string, string, orchestrator.Logger) {
 	fake.createMutex.RLock()
 	defer fake.createMutex.RUnlock()
-	return fake.createArgsForCall[i].arg1, fake.createArgsForCall[i].arg2, fake.createArgsForCall[i].arg3
+	argsForCall := fake.createArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
 func (fake *FakeBackupManager) CreateReturns(result1 orchestrator.Backup, result2 error) {
+	fake.createMutex.Lock()
+	defer fake.createMutex.Unlock()
 	fake.CreateStub = nil
 	fake.createReturns = struct {
 		result1 orchestrator.Backup
@@ -81,6 +91,8 @@ func (fake *FakeBackupManager) CreateReturns(result1 orchestrator.Backup, result
 }
 
 func (fake *FakeBackupManager) CreateReturnsOnCall(i int, result1 orchestrator.Backup, result2 error) {
+	fake.createMutex.Lock()
+	defer fake.createMutex.Unlock()
 	fake.CreateStub = nil
 	if fake.createReturnsOnCall == nil {
 		fake.createReturnsOnCall = make(map[int]struct {
@@ -109,7 +121,8 @@ func (fake *FakeBackupManager) Open(arg1 string, arg2 orchestrator.Logger) (orch
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.openReturns.result1, fake.openReturns.result2
+	fakeReturns := fake.openReturns
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *FakeBackupManager) OpenCallCount() int {
@@ -118,13 +131,22 @@ func (fake *FakeBackupManager) OpenCallCount() int {
 	return len(fake.openArgsForCall)
 }
 
+func (fake *FakeBackupManager) OpenCalls(stub func(string, orchestrator.Logger) (orchestrator.Backup, error)) {
+	fake.openMutex.Lock()
+	defer fake.openMutex.Unlock()
+	fake.OpenStub = stub
+}
+
 func (fake *FakeBackupManager) OpenArgsForCall(i int) (string, orchestrator.Logger) {
 	fake.openMutex.RLock()
 	defer fake.openMutex.RUnlock()
-	return fake.openArgsForCall[i].arg1, fake.openArgsForCall[i].arg2
+	argsForCall := fake.openArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeBackupManager) OpenReturns(result1 orchestrator.Backup, result2 error) {
+	fake.openMutex.Lock()
+	defer fake.openMutex.Unlock()
 	fake.OpenStub = nil
 	fake.openReturns = struct {
 		result1 orchestrator.Backup
@@ -133,6 +155,8 @@ func (fake *FakeBackupManager) OpenReturns(result1 orchestrator.Backup, result2 
 }
 
 func (fake *FakeBackupManager) OpenReturnsOnCall(i int, result1 orchestrator.Backup, result2 error) {
+	fake.openMutex.Lock()
+	defer fake.openMutex.Unlock()
 	fake.OpenStub = nil
 	if fake.openReturnsOnCall == nil {
 		fake.openReturnsOnCall = make(map[int]struct {

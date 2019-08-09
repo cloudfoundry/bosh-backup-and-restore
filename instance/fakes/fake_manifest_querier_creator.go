@@ -8,10 +8,10 @@ import (
 )
 
 type FakeManifestQuerierCreator struct {
-	Stub        func(manifest string) (instance.ManifestQuerier, error)
+	Stub        func(string) (instance.ManifestQuerier, error)
 	mutex       sync.RWMutex
 	argsForCall []struct {
-		manifest string
+		arg1 string
 	}
 	returns struct {
 		result1 instance.ManifestQuerier
@@ -25,16 +25,16 @@ type FakeManifestQuerierCreator struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeManifestQuerierCreator) Spy(manifest string) (instance.ManifestQuerier, error) {
+func (fake *FakeManifestQuerierCreator) Spy(arg1 string) (instance.ManifestQuerier, error) {
 	fake.mutex.Lock()
 	ret, specificReturn := fake.returnsOnCall[len(fake.argsForCall)]
 	fake.argsForCall = append(fake.argsForCall, struct {
-		manifest string
-	}{manifest})
-	fake.recordInvocation("ManifestQuerierCreator", []interface{}{manifest})
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("ManifestQuerierCreator", []interface{}{arg1})
 	fake.mutex.Unlock()
 	if fake.Stub != nil {
-		return fake.Stub(manifest)
+		return fake.Stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -48,13 +48,21 @@ func (fake *FakeManifestQuerierCreator) CallCount() int {
 	return len(fake.argsForCall)
 }
 
+func (fake *FakeManifestQuerierCreator) Calls(stub func(string) (instance.ManifestQuerier, error)) {
+	fake.mutex.Lock()
+	defer fake.mutex.Unlock()
+	fake.Stub = stub
+}
+
 func (fake *FakeManifestQuerierCreator) ArgsForCall(i int) string {
 	fake.mutex.RLock()
 	defer fake.mutex.RUnlock()
-	return fake.argsForCall[i].manifest
+	return fake.argsForCall[i].arg1
 }
 
 func (fake *FakeManifestQuerierCreator) Returns(result1 instance.ManifestQuerier, result2 error) {
+	fake.mutex.Lock()
+	defer fake.mutex.Unlock()
 	fake.Stub = nil
 	fake.returns = struct {
 		result1 instance.ManifestQuerier
@@ -63,6 +71,8 @@ func (fake *FakeManifestQuerierCreator) Returns(result1 instance.ManifestQuerier
 }
 
 func (fake *FakeManifestQuerierCreator) ReturnsOnCall(i int, result1 instance.ManifestQuerier, result2 error) {
+	fake.mutex.Lock()
+	defer fake.mutex.Unlock()
 	fake.Stub = nil
 	if fake.returnsOnCall == nil {
 		fake.returnsOnCall = make(map[int]struct {
