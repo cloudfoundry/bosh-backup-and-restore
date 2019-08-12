@@ -8,8 +8,6 @@ pre-commit: test sys-test-local
 watch:
 	ginkgo watch -r -skipPackage integration,system,backup
 
-test-ci: setup test
-
 test-unit:
 	ginkgo -p -r -skipPackage integration,system
 
@@ -25,26 +23,23 @@ bin-linux:
 generate-fakes:
 	go generate ./...
 
-setup:
-	dep ensure
-
-sys-test-director-ci: setup
+sys-test-director-ci:
 	TEST_ENV=ci \
 	ginkgo -r -v -trace system/director
 
-sys-test-deployment-ci: setup
+sys-test-deployment-ci:
 	TEST_ENV=ci \
 	ginkgo -r -v -trace system/deployment
 
-sys-test-windows-ci: setup
+sys-test-windows-ci:
 	TEST_ENV=ci \
 	ginkgo -r -v -trace system/windows
 
-sys-test-all-deployments-ci: setup
+sys-test-all-deployments-ci:
 	TEST_ENV=ci \
 	ginkgo -r -v -trace system/all_deployments
 
-sys-test-bosh-all-proxy-ci: setup
+sys-test-bosh-all-proxy-ci:
 	TEST_ENV=ci \
 	ginkgo -r -v -trace system/bosh_all_proxy
 
@@ -52,7 +47,7 @@ upload-test-releases:
 	fixtures/releases/upload-release redis-test-release && \
 	fixtures/releases/upload-release many-bbr-jobs-release
 
-release: setup
+release:
 	go version
 	mkdir releases
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/bbr ./cmd/bbr
