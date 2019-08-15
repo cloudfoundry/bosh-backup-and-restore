@@ -28,6 +28,10 @@ instance_groups:
           public_key: ((jumpbox-public-key))
   - name: test-backup-and-restore
     release: test-bosh-backup-and-restore
+  - name: amazing-back-and-restore
+    release: test-bosh-backup-and-restore
+  - name: remarkable-back-and-restore
+    release: test-bosh-backup-and-restore
   vm_type: minimal
   persistent_disk_type: 5GB
   stemcell: xenial
