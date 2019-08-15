@@ -1,12 +1,7 @@
 instances:
-- name: bosh
+- name: fake-director
   index: "0"
   artifacts:
-  - name: director
-    checksums:
-      ./bosh-director-artifact-file: 15e51499d9a12dd9c347f89757b95f4a5a4dc30d7aa87d61fb95d07f1e0b1515
-  - name: blobstore
-    checksums: {}
   - name: test-backup-and-restore
     checksums:
       ./backup: 26e17765aa93724bebd8675aeaef0dc27ac7b778003a8094dffdf9b0ffe2deba
