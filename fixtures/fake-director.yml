@@ -1,0 +1,48 @@
+
+---
+name: ((deployment-name))
+
+releases:
+- name: "os-conf"
+  version: "21.0.0"
+  url: "https://bosh.io/d/github.com/cloudfoundry/os-conf-release?v=21.0.0"
+  sha1: "7579a96515b265c6d828924bf4f5fae115798199"
+- name: "test-bosh-backup-and-restore"
+  version: create
+  url: ((test_release_path))
+
+stemcells:
+- alias: xenial
+  os: ubuntu-xenial
+  version: latest
+
+instance_groups:
+- name: fake-director
+  instances: 1
+  jobs:
+  - name: user_add
+    release: os-conf
+    properties:
+      users:
+        - name: jumpbox
+          public_key: ((jumpbox-public-key))
+  - name: test-backup-and-restore
+    release: test-bosh-backup-and-restore
+  vm_type: minimal
+  persistent_disk_type: 5GB
+  stemcell: xenial
+  azs:
+  - z1
+  networks:
+  - name: default
+  properties:
+    redis:
+      password: redis
+      persistence: 'yes'
+      maxclients: 1000
+
+update:
+  canaries: 2
+  canary_watch_time: 30000-180000
+  update_watch_time: 30000-180000
+  max_in_flight: 4
