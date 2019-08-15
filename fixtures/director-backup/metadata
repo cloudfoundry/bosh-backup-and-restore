@@ -1,5 +1,5 @@
 instances:
-- name: fake-director
+- name: bosh
   index: "0"
   artifacts:
   - name: test-backup-and-restore
