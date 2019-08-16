@@ -40,7 +40,7 @@ require (
 	github.com/onsi/gomega v1.5.0
 	github.com/pivotal-cf-experimental/cf-webmock v0.0.0-20190222120028-6bf93e3bc5ed
 	github.com/pivotal-cf/paraphernalia v0.0.0-20180203224945-a64ae2051c20 // indirect
-	github.com/pkg/errors v0.8.0
+	github.com/pkg/errors v0.8.1
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/square/certstrap v1.1.1 // indirect
 	github.com/stretchr/testify v1.3.0 // indirect
