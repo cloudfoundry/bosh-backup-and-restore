@@ -2,10 +2,11 @@ package bosh
 
 import (
 	"fmt"
+
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cppforlife/go-patch/patch"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v1"
+	"gopkg.in/yaml.v2"
 )
 
 type BoshManifestQuerier struct {

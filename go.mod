@@ -56,6 +56,5 @@ require (
 	google.golang.org/grpc v1.14.0 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.28 // indirect
 	gopkg.in/ini.v1 v1.46.0 // indirect
-	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
 	gopkg.in/yaml.v2 v2.2.2
 )

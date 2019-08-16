@@ -20,7 +20,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
-	"gopkg.in/yaml.v1"
+	"gopkg.in/yaml.v2"
 )
 
 var _ = Describe("BackupDirectory", func() {
