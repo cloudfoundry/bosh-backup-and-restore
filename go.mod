@@ -22,16 +22,13 @@ require (
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fatih/color v1.7.0 // indirect
-	github.com/fsnotify/fsnotify v1.4.7 // indirect
 	github.com/go-ini/ini v1.38.2 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/golang/mock v1.3.1 // indirect
-	github.com/golang/protobuf v1.2.0 // indirect
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/google/martian v2.1.0+incompatible // indirect
 	github.com/googleapis/gax-go v2.0.0+incompatible // indirect
 	github.com/hashicorp/go-multierror v1.0.0 // indirect
-	github.com/hpcloud/tail v1.0.0 // indirect
 	github.com/jessevdk/go-flags v1.4.0 // indirect
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/mattn/go-colorable v0.0.9 // indirect
@@ -39,8 +36,8 @@ require (
 	github.com/mattn/go-runewidth v0.0.3 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
-	github.com/onsi/ginkgo v1.6.0
-	github.com/onsi/gomega v1.4.1
+	github.com/onsi/ginkgo v1.8.0
+	github.com/onsi/gomega v1.5.0
 	github.com/pivotal-cf-experimental/cf-webmock v0.0.0-20190222120028-6bf93e3bc5ed
 	github.com/pivotal-cf/paraphernalia v0.0.0-20180203224945-a64ae2051c20 // indirect
 	github.com/pkg/errors v0.8.0
@@ -58,9 +55,7 @@ require (
 	google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8 // indirect
 	google.golang.org/grpc v1.14.0 // indirect
 	gopkg.in/cheggaaa/pb.v1 v1.0.28 // indirect
-	gopkg.in/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/ini.v1 v1.46.0 // indirect
-	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0
 	gopkg.in/yaml.v2 v2.2.1
 )
