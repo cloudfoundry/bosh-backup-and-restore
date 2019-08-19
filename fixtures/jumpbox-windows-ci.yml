@@ -1,23 +1,26 @@
 ---
 name: jumpbox-windows-ci
+
 releases: []
+
 stemcells:
 - alias: default
   os: ubuntu-xenial
   version: latest
-jobs:
+
+instance_groups:
 - name: jumpbox
   instances: 1
+  jobs: []
   vm_type: g1-small
   vm_extensions:
   - bosh-director-access
   persistent_disk_type: 1GB
-  stemcell: default
   azs: [z1]
   networks:
   - name: default
   stemcell: default
-  jobs: []
+
 update:
   canaries: 1
   canary_watch_time: 1000

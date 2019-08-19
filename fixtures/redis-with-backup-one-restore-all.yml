@@ -1,32 +1,35 @@
 ---
 name: ((deployment-name))
+
 releases:
-  - name: redis-test
-    version: latest
+- name: redis-test
+  version: latest
+
 stemcells:
-  - alias: xenial
-    os: ubuntu-xenial
-    version: latest
-jobs:
-  - name: redis
-    instances: 2
-    templates:
-      - name: redis-server
-        release: redis-test
-    vm_type: minimal
-    persistent_disk_type: 5GB
-    stemcell: xenial
-    azs:
-      - z1
-    networks:
-      - name: default
-    properties:
-      bbr:
-        backup_one_restore_all: true
-      redis:
-        password: redis
-        persistence: 'yes'
-        maxclients: 1000
+- alias: xenial
+  os: ubuntu-xenial
+  version: latest
+
+instance_groups:
+- name: redis
+  instances: 2
+  jobs:
+  - name: redis-server
+    release: redis-test
+  vm_type: minimal
+  persistent_disk_type: 5GB
+  stemcell: xenial
+  azs: [z1]
+  networks:
+  - name: default
+  properties:
+    bbr:
+      backup_one_restore_all: true
+    redis:
+      password: redis
+      persistence: 'yes'
+      maxclients: 1000
+
 update:
   canaries: 2
   canary_watch_time: 30000-180000

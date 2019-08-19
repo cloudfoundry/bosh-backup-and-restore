@@ -1,5 +1,6 @@
 ---
 name: redis-windows-ci
+
 releases:
 - name: windows-utilities
   sha1: 2bf15743be48e696a72236c05e8e3e137474cedd
@@ -7,6 +8,7 @@ releases:
   version: 0.10.0
 - name: redis-test
   version: latest
+
 stemcells:
 - alias: default
   os: windows2016
@@ -14,11 +16,7 @@ stemcells:
 - alias: ubuntu
   os: ubuntu-xenial
   version: latest
-update:
-  canaries: 1
-  canary_watch_time: 2000
-  max_in_flight: 1
-  update_watch_time: 2000
+
 instance_groups:
 - name: windows-vm
   azs: [z1]
@@ -47,5 +45,11 @@ instance_groups:
         password: redis
         persistence: 'yes'
         maxclients: 1000
+
+update:
+  canaries: 1
+  canary_watch_time: 2000
+  max_in_flight: 1
+  update_watch_time: 2000
 
 

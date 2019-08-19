@@ -12,10 +12,10 @@ stemcells:
   os: ubuntu-xenial
   version: latest
 
-jobs:
+instance_groups:
 - name: redis
   instances: 1
-  templates:
+  jobs:
   - name: redis-server
     release: redis-test
   vm_type: minimal
@@ -33,7 +33,7 @@ jobs:
 
 - name: capi
   instances: 1
-  templates:
+  jobs:
   - name: capi
     release: lock-ordering
   vm_type: minimal
@@ -46,7 +46,7 @@ jobs:
 
 - name: capi-consumer-1
   instances: 1
-  templates:
+  jobs:
   - name: capi-consumer-1
     release: lock-ordering
   vm_type: minimal
@@ -59,7 +59,7 @@ jobs:
 
 - name: capi-consumer-2
   instances: 1
-  templates:
+  jobs:
   - name: capi-consumer-2
     release: lock-ordering
   vm_type: minimal
@@ -72,7 +72,7 @@ jobs:
 
 - name: capi-redis
   instances: 1
-  templates:
+  jobs:
   - name: redis-server
     release: lock-ordering
   vm_type: minimal
