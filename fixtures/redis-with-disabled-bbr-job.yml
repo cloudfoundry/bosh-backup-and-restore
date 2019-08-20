@@ -14,8 +14,15 @@ instance_groups:
 - name: redis
   instances: 1
   jobs:
-    - name: redis-server
-      release: redis-test
+  - name: redis-server
+    release: redis-test
+    properties:
+      bbr:
+        backup_one_restore_all: false
+      redis:
+        password: redis
+        persistence: 'yes'
+        maxclients: 1000
   vm_type: minimal
   persistent_disk_type: 5GB
   stemcell: xenial
@@ -23,19 +30,19 @@ instance_groups:
   - z1
   networks:
   - name: default
-  properties:
-    bbr:
-      backup_one_restore_all: false
-    redis:
-      password: redis
-      persistence: 'yes'
-      maxclients: 1000
 
 - name: disabled-job
   instances: 1
   jobs:
   - name: disabled-job
     release: redis-test
+    properties:
+      bbr:
+        backup_one_restore_all: false
+      redis:
+        password: redis
+        persistence: 'yes'
+        maxclients: 1000
   vm_type: minimal
   persistent_disk_type: 5GB
   stemcell: xenial
@@ -43,13 +50,6 @@ instance_groups:
   - z1
   networks:
   - name: default
-  properties:
-    bbr:
-      backup_one_restore_all: false
-    redis:
-      password: redis
-      persistence: 'yes'
-      maxclients: 1000
 
 update:
   canaries: 2

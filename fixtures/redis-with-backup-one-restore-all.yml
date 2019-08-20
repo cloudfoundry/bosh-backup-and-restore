@@ -16,19 +16,19 @@ instance_groups:
   jobs:
   - name: redis-server
     release: redis-test
+    properties:
+      bbr:
+        backup_one_restore_all: true
+      redis:
+        password: redis
+        persistence: 'yes'
+        maxclients: 1000
   vm_type: minimal
   persistent_disk_type: 5GB
   stemcell: xenial
   azs: [z1]
   networks:
   - name: default
-  properties:
-    bbr:
-      backup_one_restore_all: true
-    redis:
-      password: redis
-      persistence: 'yes'
-      maxclients: 1000
 
 update:
   canaries: 2

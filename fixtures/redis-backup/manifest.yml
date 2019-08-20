@@ -1,6 +1,16 @@
 ---
 name: redis-dev-2
-jobs:
+
+releases:
+- name: redis-test
+  version: 0+dev.43
+
+stemcells:
+- alias: xenial
+  os: ubuntu-xenial
+  version: latest
+
+instance_groups:
 - azs:
   - z1
   instances: 2
@@ -8,15 +18,15 @@ jobs:
   networks:
   - name: default
   persistent_disk_type: 5GB
-  properties:
-    redis:
-      maxclients: 1000
-      password: redis
-      persistence: 'yes'
   stemcell: xenial
-  templates:
+  jobs:
   - name: redis-server
     release: redis-test
+    properties:
+      redis:
+        maxclients: 1000
+        password: redis
+        persistence: 'yes'
   vm_type: minimal
 - azs:
   - z1
@@ -25,23 +35,17 @@ jobs:
   networks:
   - name: default
   persistent_disk_type: 5GB
-  properties:
-    redis:
-      maxclients: 1000
-      password: redis
-      persistence: 'yes'
   stemcell: xenial
-  templates:
+  jobs:
   - name: redis-server
     release: redis-test
+    properties:
+      redis:
+        maxclients: 1000
+        password: redis
+        persistence: 'yes'
   vm_type: minimal
-releases:
-- name: redis-test
-  version: 0+dev.43
-stemcells:
-- alias: xenial
-  os: ubuntu-xenial
-  version: latest
+
 update:
   canaries: 2
   canary_watch_time: 30000-180000

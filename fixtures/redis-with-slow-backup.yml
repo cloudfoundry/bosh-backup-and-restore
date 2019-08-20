@@ -16,6 +16,11 @@ instance_groups:
   jobs:
   - name: slow-backup
     release: redis-test
+    properties:
+      redis:
+        password: redis
+        persistence: 'yes'
+        maxclients: 1000
   vm_type: minimal
   persistent_disk_type: 5GB
   stemcell: xenial
@@ -23,11 +28,6 @@ instance_groups:
   - z1
   networks:
   - name: default
-  properties:
-    redis:
-      password: redis
-      persistence: 'yes'
-      maxclients: 1000
 
 update:
   canaries: 2
