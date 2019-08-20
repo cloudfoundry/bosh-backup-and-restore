@@ -39,6 +39,8 @@ instance_groups:
   - z1
   networks:
   - name: default
+    static_ips:
+    - ((internal_ip))
   properties:
     redis:
       password: redis
