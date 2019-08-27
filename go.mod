@@ -48,10 +48,10 @@ require (
 	github.com/urfave/cli v1.20.0
 	github.com/vito/go-interact v0.0.0-20171111012221-fa338ed9e9ec // indirect
 	go.opencensus.io v0.15.0 // indirect
-	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
+	golang.org/x/crypto v0.0.0-20190820162420-60c769a6c586
 	golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7 // indirect
 	golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be // indirect
-	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a // indirect
+	golang.org/x/sys v0.0.0-20190826190057-c7b8b68b1456 // indirect
 	golang.org/x/text v0.3.2 // indirect
 	google.golang.org/api v0.0.0-20180824000442-943e5aafc110 // indirect
 	google.golang.org/appengine v1.1.0 // indirect
