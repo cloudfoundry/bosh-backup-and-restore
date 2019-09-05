@@ -43,3 +43,4 @@ You're good to go. Run tests locally with `make test`.
 
 **Blog posts:**
 - [Cloud-Native Recovery Tool, BOSH Backup & Restore, Now Available in Public Beta](https://content.pivotal.io/blog/cloud-native-recovery-tool-bosh-backup-restore-now-available-in-public-beta) on the Pivotal Blog
+- [TUTORIAL: Automating ERT Backups with BBR and Concourse](https://content.pivotal.io/blog/tutorial-automating-ert-backups-with-bbr-and-concourse)
