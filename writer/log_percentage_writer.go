@@ -5,17 +5,17 @@ import (
 	"sync"
 )
 
-type CountWriter struct {
+type LogPercentageWriter struct {
 	Writer  io.Writer
 	mutex   sync.RWMutex
 	counter int
 }
 
-func NewCountWriter(w io.Writer) *CountWriter {
-	return &CountWriter{Writer: w}
+func NewLogPercentageWriter(w io.Writer) *LogPercentageWriter {
+	return &LogPercentageWriter{Writer: w}
 }
 
-func (c *CountWriter) Write(b []byte) (int, error) {
+func (c *LogPercentageWriter) Write(b []byte) (int, error) {
 	n, err := c.Writer.Write(b)
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -27,7 +27,7 @@ func (c *CountWriter) Write(b []byte) (int, error) {
 	return n, nil
 }
 
-func (c *CountWriter) Count() int {
+func (c *LogPercentageWriter) Count() int {
 	var localCounter int
 	c.mutex.Lock()
 	localCounter = c.counter

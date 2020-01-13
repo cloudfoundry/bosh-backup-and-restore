@@ -16,17 +16,17 @@ import (
 var _ = Describe("Writer", func() {
 	It("returns the amount written", func() {
 		backingWriter := bytes.NewBuffer([]byte(""))
-		writerCounter := writer.NewCountWriter(backingWriter)
+		logPercentageWriter := writer.NewLogPercentageWriter(backingWriter)
 
-		n, err := writerCounter.Write([]byte("four"))
+		n, err := logPercentageWriter.Write([]byte("four"))
 		Expect(err).NotTo(HaveOccurred())
 		Expect(n).To(Equal(4))
 
-		Expect(writerCounter.Count()).To(Equal(4))
+		Expect(logPercentageWriter.Count()).To(Equal(4))
 
-		_, err = writerCounter.Write([]byte("four"))
+		_, err = logPercentageWriter.Write([]byte("four"))
 		Expect(err).NotTo(HaveOccurred())
-		Expect(writerCounter.Count()).To(Equal(8))
+		Expect(logPercentageWriter.Count()).To(Equal(8))
 	})
 
 	When("the write fails", func() {
@@ -34,9 +34,9 @@ var _ = Describe("Writer", func() {
 
 			backingWriter := new(fakes.FakeWriter)
 			backingWriter.WriteReturns(0, errors.New("foo"))
-			writerCounter := writer.NewCountWriter(backingWriter)
+			logPercentageWriter := writer.NewLogPercentageWriter(backingWriter)
 
-			_, err := writerCounter.Write(nil)
+			_, err := logPercentageWriter.Write(nil)
 			Expect(err).To(MatchError("foo"))
 		})
 	})
