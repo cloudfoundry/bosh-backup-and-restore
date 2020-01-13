@@ -1,4 +1,4 @@
-package counter_test
+package writer_test
 
 import (
 	"bytes"
@@ -7,16 +7,16 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/counter"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/counter/fakes"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/writer"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/writer/fakes"
 )
 
 //go:generate counterfeiter -o fakes/fake_writer.go io.Writer
 
 var _ = Describe("Writer", func() {
 	It("returns the amount written", func() {
-		writer := bytes.NewBuffer([]byte(""))
-		writerCounter := counter.NewCountWriter(writer)
+		backingWriter := bytes.NewBuffer([]byte(""))
+		writerCounter := writer.NewCountWriter(backingWriter)
 
 		n, err := writerCounter.Write([]byte("four"))
 		Expect(err).NotTo(HaveOccurred())
@@ -32,9 +32,9 @@ var _ = Describe("Writer", func() {
 	When("the write fails", func() {
 		It("returns an error", func() {
 
-			writer := new(fakes.FakeWriter)
-			writer.WriteReturns(0, errors.New("foo"))
-			writerCounter := counter.NewCountWriter(writer)
+			backingWriter := new(fakes.FakeWriter)
+			backingWriter.WriteReturns(0, errors.New("foo"))
+			writerCounter := writer.NewCountWriter(backingWriter)
 
 			_, err := writerCounter.Write(nil)
 			Expect(err).To(MatchError("foo"))
