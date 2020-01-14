@@ -12,7 +12,7 @@ import (
 //go:generate counterfeiter -o fakes/fake_writer.go io.Writer
 
 var _ = Describe("LogPercentageWriter", func() {
-	Context("when the total size is 3 and the writer writes 1 at a time", func() {
+	Context("when the total size is 12 and the writer writes 4 at a time", func() {
 		var fakeLogger *orchestratorFakes.FakeLogger
 		var fakeWriter *fakes.FakeWriter
 		var logPercentageWriter *writer.LogPercentageWriter
@@ -20,11 +20,12 @@ var _ = Describe("LogPercentageWriter", func() {
 		BeforeEach(func() {
 			fakeLogger = new(orchestratorFakes.FakeLogger)
 			fakeWriter = new(fakes.FakeWriter)
-			fakeWriter.WriteReturns(1, nil)
-			logPercentageWriter = writer.NewLogPercentageWriter(fakeWriter, fakeLogger, 3, "schblam", "message")
+			fakeWriter.WriteReturns(4, nil)
+			logPercentageWriter = writer.NewLogPercentageWriter(fakeWriter, fakeLogger, 12, "schblam", "message")
 		})
 
-		It("logs 33% on each write", func() {
+		It("logs percentage on each write", func() {
+			By("logging 33% on first write")
 			Expect(fakeLogger.InfoCallCount()).To(Equal(0))
 			Expect(fakeWriter.WriteCallCount()).To(Equal(0))
 			logPercentageWriter.Write([]byte("words"))
@@ -34,6 +35,30 @@ var _ = Describe("LogPercentageWriter", func() {
 			Expect(cmd).To(Equal("schblam"))
 			Expect(message).To(ContainSubstring("message"))
 			Expect(args[0]).To(Equal(33))
+
+			By("logging 66% on second write")
+			logPercentageWriter.Write([]byte("words"))
+			Expect(fakeWriter.WriteCallCount()).To(Equal(2))
+			Expect(fakeLogger.InfoCallCount()).To(Equal(2))
+			cmd, message, args = fakeLogger.InfoArgsForCall(1)
+			Expect(cmd).To(Equal("schblam"))
+			Expect(message).To(ContainSubstring("message"))
+			Expect(args[0]).To(Equal(66))
+		})
+
+		It("never logs more than 100%", func() {
+			Expect(fakeLogger.InfoCallCount()).To(Equal(0))
+			Expect(fakeWriter.WriteCallCount()).To(Equal(0))
+			logPercentageWriter.Write([]byte("words"))
+			logPercentageWriter.Write([]byte("words"))
+			logPercentageWriter.Write([]byte("words"))
+			logPercentageWriter.Write([]byte("words"))
+			Expect(fakeWriter.WriteCallCount()).To(Equal(4))
+			Expect(fakeLogger.InfoCallCount()).To(Equal(4))
+			cmd, message, args := fakeLogger.InfoArgsForCall(3)
+			Expect(cmd).To(Equal("schblam"))
+			Expect(message).To(ContainSubstring("message"))
+			Expect(args[0]).To(Equal(100))
 		})
 	})
 })

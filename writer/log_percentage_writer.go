@@ -2,19 +2,17 @@ package writer
 
 import (
 	"io"
-	"sync"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 )
 
 type LogPercentageWriter struct {
-	Writer    io.Writer
-	mutex     sync.RWMutex
-	counter   int
-	logger    orchestrator.Logger
-	totalSize int
-	command   string
-	message   string
+	Writer       io.Writer
+	bytesWritten int
+	logger       orchestrator.Logger
+	totalSize    int
+	command      string
+	message      string
 }
 
 func NewLogPercentageWriter(writer io.Writer, logger orchestrator.Logger, totalSize int, command, message string) *LogPercentageWriter {
@@ -33,7 +31,13 @@ func (l *LogPercentageWriter) Write(b []byte) (int, error) {
 		return 0, err
 	}
 
-	l.counter += n
-	l.logger.Info(l.command, l.message, ((100 * l.counter) / l.totalSize))
+	l.bytesWritten += n
+
+	if l.bytesWritten > l.totalSize {
+		l.logger.Info(l.command, l.message, 100)
+	} else {
+		l.logger.Info(l.command, l.message, ((100 * l.bytesWritten) / l.totalSize))
+	}
+
 	return n, nil
 }
