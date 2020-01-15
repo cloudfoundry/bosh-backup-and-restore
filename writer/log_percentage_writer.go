@@ -2,14 +2,12 @@ package writer
 
 import (
 	"io"
-
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 )
 
 type LogPercentageWriter struct {
 	Writer              io.Writer
 	bytesWritten        int
-	logger              orchestrator.Logger
+	logger              Logger
 	totalSize           int
 	command             string
 	message             string
@@ -17,7 +15,12 @@ type LogPercentageWriter struct {
 	percentageIncrement int
 }
 
-func NewLogPercentageWriter(writer io.Writer, logger orchestrator.Logger, totalSize int, command, message string) *LogPercentageWriter {
+//go:generate counterfeiter -o fakes/fake_logger.go . Logger
+type Logger interface {
+	Info(tag, msg string, args ...interface{})
+}
+
+func NewLogPercentageWriter(writer io.Writer, logger Logger, totalSize int, command, message string) *LogPercentageWriter {
 	return &LogPercentageWriter{
 		Writer:              writer,
 		logger:              logger,

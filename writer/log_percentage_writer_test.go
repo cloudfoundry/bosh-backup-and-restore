@@ -4,7 +4,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	orchestratorFakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/writer"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/writer/fakes"
 )
@@ -12,12 +11,12 @@ import (
 //go:generate counterfeiter -o fakes/fake_writer.go io.Writer
 
 var _ = Describe("LogPercentageWriter", func() {
-	var fakeLogger *orchestratorFakes.FakeLogger
+	var fakeLogger *fakes.FakeLogger
 	var fakeWriter *fakes.FakeWriter
 	var logPercentageWriter *writer.LogPercentageWriter
 
 	BeforeEach(func() {
-		fakeLogger = new(orchestratorFakes.FakeLogger)
+		fakeLogger = new(fakes.FakeLogger)
 		fakeWriter = new(fakes.FakeWriter)
 	})
 
