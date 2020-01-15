@@ -2,6 +2,8 @@ package orchestrator
 
 import (
 	"fmt"
+
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/writer"
 	"github.com/pkg/errors"
 )
 
@@ -55,8 +57,16 @@ func (e BackupDownloadExecutable) downloadBackupArtifact(localBackup Backup, rem
 		return err
 	}
 
+	sizeInBytes, err := remoteBackupArtifact.SizeInBytes()
+	if err != nil {
+		return err
+	}
+
+	percentageMessage := fmt.Sprintf("Copying backup -- %%d%%%% complete -- for job %s on %s/%s...", remoteBackupArtifact.Name(), remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
+	percentageLogger := writer.NewLogPercentageWriter(localBackupArtifactWriter, e.Logger, sizeInBytes, "bbr", percentageMessage)
+
 	e.Logger.Info("bbr", "Copying backup -- %s uncompressed -- for job %s on %s/%s...", size, remoteBackupArtifact.Name(), remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
-	err = remoteBackupArtifact.StreamFromRemote(localBackupArtifactWriter)
+	err = remoteBackupArtifact.StreamFromRemote(percentageLogger)
 	if err != nil {
 		return err
 	}
