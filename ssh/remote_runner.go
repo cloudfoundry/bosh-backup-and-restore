@@ -3,6 +3,7 @@ package ssh
 import (
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 
 	"golang.org/x/crypto/ssh"
@@ -19,6 +20,7 @@ type RemoteRunner interface {
 	CreateDirectory(directory string) error
 	ExtractAndUpload(reader io.Reader, directory string) error
 	SizeOf(path string) (string, error)
+	SizeInBytes(path string) (int, error)
 	ChecksumDirectory(path string) (map[string]string, error)
 	RunScript(path, label string) (string, error)
 	RunScriptWithEnv(path string, env map[string]string, label string) (string, error)
@@ -79,6 +81,20 @@ func (r SshRemoteRunner) SizeOf(path string) (string, error) {
 	}
 
 	return strings.Fields(string(stdout))[0], nil
+}
+
+func (r SshRemoteRunner) SizeInBytes(path string) (int, error) {
+	stdout, err := r.runOnInstance(fmt.Sprintf("sudo du -s %s", path))
+	if err != nil {
+		return 0, err
+	}
+	sizeString := strings.Fields(stdout)[0]
+	size, err := strconv.Atoi(sizeString)
+	if err != nil {
+		//untested
+		return 0, fmt.Errorf("expected <%s> to be a number of bytes: failed to convert it to int", sizeString)
+	}
+	return size * 1024, nil
 }
 
 func (r SshRemoteRunner) ChecksumDirectory(path string) (map[string]string, error) {

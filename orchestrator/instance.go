@@ -69,6 +69,7 @@ type ArtifactIdentifier interface {
 type BackupArtifact interface {
 	ArtifactIdentifier
 	Size() (string, error)
+	SizeInBytes() (int, error)
 	Checksum() (BackupChecksum, error)
 	StreamFromRemote(io.Writer) error
 	Delete() error

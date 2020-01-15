@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	backuperfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
 	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -22,7 +21,7 @@ var _ = Describe("artifact", func() {
 	var logOutput *gbytes.Buffer
 	var job instance.Job
 
-	var backupArtifact orchestrator.BackupArtifact
+	var backupArtifact *instance.Artifact
 
 	BeforeEach(func() {
 		remoteRunner = new(sshfakes.FakeRemoteRunner)
@@ -147,6 +146,33 @@ var _ = Describe("artifact", func() {
 
 				It("fails", func() {
 					Expect(err).To(MatchError(ContainSubstring("nope")))
+				})
+			})
+		})
+
+		Describe("SizeInBytes", func() {
+			JustBeforeEach(func() {
+				remoteRunner.SizeInBytesReturns(65537, nil)
+				backupArtifact.SetArtifactDirectory("some path")
+			})
+			Context("when the remoteRunner can determine the size", func() {
+				It("delegates to the remoteRunner", func() {
+					size, err := backupArtifact.SizeInBytes()
+					Expect(err).NotTo(HaveOccurred())
+					Expect(size).To(Equal(65537))
+					Expect(remoteRunner.SizeInBytesCallCount()).To(Equal(1))
+					Expect(remoteRunner.SizeInBytesArgsForCall(0)).To(Equal("some path"))
+				})
+			})
+
+			Context("when the remoteRunner fails", func() {
+				JustBeforeEach(func() {
+					remoteRunner.SizeInBytesReturns(0, fmt.Errorf("I am completely broken"))
+					backupArtifact.SetArtifactDirectory("my cool thing")
+				})
+				It("wraps the error and returns it", func() {
+					_, err := backupArtifact.SizeInBytes()
+					Expect(err).To(MatchError(ContainSubstring("Unable to check size of my cool thing: I am completely broken")))
 				})
 			})
 		})

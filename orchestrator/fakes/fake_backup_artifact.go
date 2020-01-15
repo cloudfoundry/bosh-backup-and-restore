@@ -93,6 +93,18 @@ type FakeBackupArtifact struct {
 		result1 string
 		result2 error
 	}
+	SizeInBytesStub        func() (int, error)
+	sizeInBytesMutex       sync.RWMutex
+	sizeInBytesArgsForCall []struct {
+	}
+	sizeInBytesReturns struct {
+		result1 int
+		result2 error
+	}
+	sizeInBytesReturnsOnCall map[int]struct {
+		result1 int
+		result2 error
+	}
 	StreamFromRemoteStub        func(io.Writer) error
 	streamFromRemoteMutex       sync.RWMutex
 	streamFromRemoteArgsForCall []struct {
@@ -541,6 +553,61 @@ func (fake *FakeBackupArtifact) SizeReturnsOnCall(i int, result1 string, result2
 	}{result1, result2}
 }
 
+func (fake *FakeBackupArtifact) SizeInBytes() (int, error) {
+	fake.sizeInBytesMutex.Lock()
+	ret, specificReturn := fake.sizeInBytesReturnsOnCall[len(fake.sizeInBytesArgsForCall)]
+	fake.sizeInBytesArgsForCall = append(fake.sizeInBytesArgsForCall, struct {
+	}{})
+	fake.recordInvocation("SizeInBytes", []interface{}{})
+	fake.sizeInBytesMutex.Unlock()
+	if fake.SizeInBytesStub != nil {
+		return fake.SizeInBytesStub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.sizeInBytesReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeBackupArtifact) SizeInBytesCallCount() int {
+	fake.sizeInBytesMutex.RLock()
+	defer fake.sizeInBytesMutex.RUnlock()
+	return len(fake.sizeInBytesArgsForCall)
+}
+
+func (fake *FakeBackupArtifact) SizeInBytesCalls(stub func() (int, error)) {
+	fake.sizeInBytesMutex.Lock()
+	defer fake.sizeInBytesMutex.Unlock()
+	fake.SizeInBytesStub = stub
+}
+
+func (fake *FakeBackupArtifact) SizeInBytesReturns(result1 int, result2 error) {
+	fake.sizeInBytesMutex.Lock()
+	defer fake.sizeInBytesMutex.Unlock()
+	fake.SizeInBytesStub = nil
+	fake.sizeInBytesReturns = struct {
+		result1 int
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeBackupArtifact) SizeInBytesReturnsOnCall(i int, result1 int, result2 error) {
+	fake.sizeInBytesMutex.Lock()
+	defer fake.sizeInBytesMutex.Unlock()
+	fake.SizeInBytesStub = nil
+	if fake.sizeInBytesReturnsOnCall == nil {
+		fake.sizeInBytesReturnsOnCall = make(map[int]struct {
+			result1 int
+			result2 error
+		})
+	}
+	fake.sizeInBytesReturnsOnCall[i] = struct {
+		result1 int
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeBackupArtifact) StreamFromRemote(arg1 io.Writer) error {
 	fake.streamFromRemoteMutex.Lock()
 	ret, specificReturn := fake.streamFromRemoteReturnsOnCall[len(fake.streamFromRemoteArgsForCall)]
@@ -680,6 +747,8 @@ func (fake *FakeBackupArtifact) Invocations() map[string][][]interface{} {
 	defer fake.nameMutex.RUnlock()
 	fake.sizeMutex.RLock()
 	defer fake.sizeMutex.RUnlock()
+	fake.sizeInBytesMutex.RLock()
+	defer fake.sizeInBytesMutex.RUnlock()
 	fake.streamFromRemoteMutex.RLock()
 	defer fake.streamFromRemoteMutex.RUnlock()
 	fake.streamToRemoteMutex.RLock()

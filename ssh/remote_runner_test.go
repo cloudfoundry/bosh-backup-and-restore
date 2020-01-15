@@ -245,6 +245,39 @@ var _ = Describe("SshRemoteRunner", func() {
 		})
 	})
 
+	Describe("SizeInBytes", func() {
+		Context("when the file or directory exists", func() {
+			BeforeEach(func() {
+				runCommand("mkdir /tmp/a-dir")
+				runCommand("dd if=/dev/zero of=/tmp/a-dir/a-file bs=1k count=1000")
+				runCommand("dd if=/dev/zero of=/tmp/a-dir/b-file bs=1k count=500")
+				makeAccessibleOnlyByRoot("/tmp/a-dir")
+			})
+
+			It("returns a string with the specified file or directory size", func() {
+				Expect(sshRemoteRunner.SizeInBytes("/tmp/a-dir")).To(Equal(1540096))
+			})
+		})
+
+		Context("when the directory does not exist", func() {
+			It("returns an error", func() {
+				_, err := sshRemoteRunner.SizeInBytes("/tmp/not-a-file")
+				Expect(err).To(MatchError(ContainSubstring("No such file or directory")))
+			})
+		})
+
+		Context("When the ssh connection fails", func() {
+			BeforeEach(func() {
+				destroyInstance(testInstance)
+			})
+
+			It("returns an error", func() {
+				_, err := sshRemoteRunner.SizeInBytes("whatever")
+				Expect(err).To(MatchError(ContainSubstring("ssh.Dial failed")))
+			})
+		})
+	})
+
 	Describe("ChecksumDirectory", func() {
 		Context("when the file or directory exists", func() {
 			BeforeEach(func() {

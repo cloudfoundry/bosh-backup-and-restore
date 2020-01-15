@@ -145,6 +145,19 @@ type FakeRemoteRunner struct {
 		result1 string
 		result2 error
 	}
+	SizeInBytesStub        func(string) (int, error)
+	sizeInBytesMutex       sync.RWMutex
+	sizeInBytesArgsForCall []struct {
+		arg1 string
+	}
+	sizeInBytesReturns struct {
+		result1 int
+		result2 error
+	}
+	sizeInBytesReturnsOnCall map[int]struct {
+		result1 int
+		result2 error
+	}
 	SizeOfStub        func(string) (string, error)
 	sizeOfMutex       sync.RWMutex
 	sizeOfArgsForCall []struct {
@@ -829,6 +842,69 @@ func (fake *FakeRemoteRunner) RunScriptWithEnvReturnsOnCall(i int, result1 strin
 	}{result1, result2}
 }
 
+func (fake *FakeRemoteRunner) SizeInBytes(arg1 string) (int, error) {
+	fake.sizeInBytesMutex.Lock()
+	ret, specificReturn := fake.sizeInBytesReturnsOnCall[len(fake.sizeInBytesArgsForCall)]
+	fake.sizeInBytesArgsForCall = append(fake.sizeInBytesArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("SizeInBytes", []interface{}{arg1})
+	fake.sizeInBytesMutex.Unlock()
+	if fake.SizeInBytesStub != nil {
+		return fake.SizeInBytesStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.sizeInBytesReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeRemoteRunner) SizeInBytesCallCount() int {
+	fake.sizeInBytesMutex.RLock()
+	defer fake.sizeInBytesMutex.RUnlock()
+	return len(fake.sizeInBytesArgsForCall)
+}
+
+func (fake *FakeRemoteRunner) SizeInBytesCalls(stub func(string) (int, error)) {
+	fake.sizeInBytesMutex.Lock()
+	defer fake.sizeInBytesMutex.Unlock()
+	fake.SizeInBytesStub = stub
+}
+
+func (fake *FakeRemoteRunner) SizeInBytesArgsForCall(i int) string {
+	fake.sizeInBytesMutex.RLock()
+	defer fake.sizeInBytesMutex.RUnlock()
+	argsForCall := fake.sizeInBytesArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeRemoteRunner) SizeInBytesReturns(result1 int, result2 error) {
+	fake.sizeInBytesMutex.Lock()
+	defer fake.sizeInBytesMutex.Unlock()
+	fake.SizeInBytesStub = nil
+	fake.sizeInBytesReturns = struct {
+		result1 int
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRemoteRunner) SizeInBytesReturnsOnCall(i int, result1 int, result2 error) {
+	fake.sizeInBytesMutex.Lock()
+	defer fake.sizeInBytesMutex.Unlock()
+	fake.SizeInBytesStub = nil
+	if fake.sizeInBytesReturnsOnCall == nil {
+		fake.sizeInBytesReturnsOnCall = make(map[int]struct {
+			result1 int
+			result2 error
+		})
+	}
+	fake.sizeInBytesReturnsOnCall[i] = struct {
+		result1 int
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeRemoteRunner) SizeOf(arg1 string) (string, error) {
 	fake.sizeOfMutex.Lock()
 	ret, specificReturn := fake.sizeOfReturnsOnCall[len(fake.sizeOfArgsForCall)]
@@ -917,6 +993,8 @@ func (fake *FakeRemoteRunner) Invocations() map[string][][]interface{} {
 	defer fake.runScriptMutex.RUnlock()
 	fake.runScriptWithEnvMutex.RLock()
 	defer fake.runScriptWithEnvMutex.RUnlock()
+	fake.sizeInBytesMutex.RLock()
+	defer fake.sizeInBytesMutex.RUnlock()
 	fake.sizeOfMutex.RLock()
 	defer fake.sizeOfMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

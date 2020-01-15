@@ -92,6 +92,14 @@ func (b *Artifact) Size() (string, error) {
 	return size, nil
 }
 
+func (b *Artifact) SizeInBytes() (int, error) {
+	size, err := b.remoteRunner.SizeInBytes(b.artifactDirectory)
+	if err != nil {
+		return 0, errors.Wrap(err, fmt.Sprintf("Unable to check size of %s", b.artifactDirectory))
+	}
+	return size, nil
+}
+
 func (b *Artifact) Checksum() (orchestrator.BackupChecksum, error) {
 	b.Logger.Debug("bbr", "Calculating shasum for remote files on %s/%s", b.instance.Name(), b.instance.ID())
 
