@@ -2,9 +2,11 @@ package orchestrator_test
 
 import (
 	"fmt"
+
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/writer"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -48,7 +50,10 @@ var _ = Describe("BackupDownloadExecutable", func() {
 
 		By("streaming from the remote artifact", func() {
 			Expect(remoteArtifact.StreamFromRemoteCallCount()).To(Equal(1))
-			Expect(remoteArtifact.StreamFromRemoteArgsForCall(0)).To(Equal(localBackupArtifactWriter))
+			streamWriter := remoteArtifact.StreamFromRemoteArgsForCall(0)
+			Expect(streamWriter).To(BeAssignableToTypeOf(&writer.LogPercentageWriter{}))
+			logPercentageWriter := streamWriter.(*writer.LogPercentageWriter)
+			Expect(logPercentageWriter.Writer).To(Equal(localBackupArtifactWriter))
 		})
 
 		By("closing the local backup artifact writer", func() {
