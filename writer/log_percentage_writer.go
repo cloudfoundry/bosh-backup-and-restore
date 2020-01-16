@@ -43,6 +43,7 @@ func (l *LogPercentageWriter) Write(b []byte) (int, error) {
 	if l.bytesWritten > l.totalSize {
 		l.logger.Info(l.command, l.message, 100)
 	} else if percentageWrittenSoFar >= l.lastLogPercentage+l.percentageIncrement {
+		l.lastLogPercentage = percentageWrittenSoFar
 		l.logger.Info(l.command, l.message, percentageWrittenSoFar)
 	}
 
