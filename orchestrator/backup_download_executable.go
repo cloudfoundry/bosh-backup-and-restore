@@ -62,7 +62,7 @@ func (e BackupDownloadExecutable) downloadBackupArtifact(localBackup Backup, rem
 		return err
 	}
 
-	percentageMessage := fmt.Sprintf("Copying backup -- %%d%%%% complete -- for job %s on %s/%s...", remoteBackupArtifact.Name(), remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
+	percentageMessage := fmt.Sprintf("Copying backup for job %s on %s/%s -- %%d%%%% complete", remoteBackupArtifact.Name(), remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
 	percentageLogger := writer.NewLogPercentageWriter(localBackupArtifactWriter, e.Logger, sizeInBytes, "bbr", percentageMessage)
 
 	e.Logger.Info("bbr", "Copying backup -- %s uncompressed -- for job %s on %s/%s...", size, remoteBackupArtifact.Name(), remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())

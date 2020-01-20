@@ -295,7 +295,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						Expect(session.Out).To(gbytes.Say("INFO - Running post-backup-unlock scripts..."))
 						Expect(session.Out).To(gbytes.Say("INFO - Finished running post-backup-unlock scripts."))
 						Expect(session.Out).To(gbytes.Say("INFO - Copying backup -- [^-]*-- for job redis on redis-dedicated-node/fake-uuid..."))
-						Expect(session.Out).To(gbytes.Say(`INFO - Copying backup -- \d\d\d?% complete -- for job redis on redis-dedicated-node/fake-uuid...`))
+						Expect(session.Out).To(gbytes.Say(`INFO - Copying backup for job redis on redis-dedicated-node/fake-uuid -- \d\d\d?% complete`))
 						Expect(session.Out).To(gbytes.Say("INFO - Finished copying backup -- for job redis on redis-dedicated-node/fake-uuid..."))
 						Expect(session.Out).To(gbytes.Say("INFO - Starting validity checks -- for job redis on redis-dedicated-node/fake-uuid..."))
 						Expect(session.Out).To(gbytes.Say(`DEBUG - Calculating shasum for local file ./backupdump[12]`))
