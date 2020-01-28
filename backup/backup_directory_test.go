@@ -997,7 +997,8 @@ backup_activity:
 			backupDir := os.TempDir()
 			jobName = "my-artifact"
 			filename := jobName + "-" + "0" + "-" + jobName + ".tar"
-			ioutil.WriteFile(filepath.Join(backupDir, filename), []byte("this-is-a-4k-file"), 0600)
+			err := ioutil.WriteFile(filepath.Join(backupDir, filename), []byte("this-is-a-4k-file"), 0600)
+			Expect(err).NotTo(HaveOccurred())
 
 			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
 			fakeBackupArtifact.InstanceIndexReturns("0")
@@ -1021,6 +1022,66 @@ backup_activity:
 		Context("when the size command fails", func() {
 			It("returns an error", func() {
 				size, err = artifact.GetArtifactSize(new(fakes.FakeBackupArtifact))
+
+				Expect(err).To(HaveOccurred())
+			})
+		})
+	})
+
+	Describe("GetArtifactByteSize", func() {
+		var (
+			jobName            string
+			artifact           orchestrator.Backup
+			fakeBackupArtifact *fakes.FakeBackupArtifact
+			size               int
+			err                error
+		)
+
+		BeforeEach(func() {
+			backupDir := os.TempDir()
+			jobName = "my-artifact-bytes"
+			filename := jobName + "-" + "0" + "-" + jobName + ".tar"
+			err := ioutil.WriteFile(filepath.Join(backupDir, filename), []byte("this-is-a-4k-file"), 0600)
+			Expect(err).NotTo(HaveOccurred())
+
+			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
+			fakeBackupArtifact.InstanceIndexReturns("0")
+			fakeBackupArtifact.InstanceNameReturns(jobName)
+			fakeBackupArtifact.NameReturns(jobName)
+
+			artifact, err = backupDirectoryManager.Open(backupDir, logger)
+			Expect(err).NotTo(HaveOccurred())
+
+		})
+
+		Context("when the artifact exists", func() {
+			It("returns an the artifact size in bytes", func() {
+				size, err = artifact.GetArtifactByteSize(fakeBackupArtifact)
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(size).To(Equal(4096))
+			})
+		})
+
+		Context("when the filename is invalid", func() {
+			var fakeBackupArtifact *fakes.FakeBackupArtifact
+
+			BeforeEach(func(){
+				fakeBackupArtifact = new(fakes.FakeBackupArtifact)
+				fakeBackupArtifact.NameReturns("$IAMGARBAGE")
+			})
+
+			It("returns an error", func() {
+				size, err = artifact.GetArtifactByteSize(fakeBackupArtifact)
+
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("failed to determine file size for file"))
+			})
+		})
+
+		Context("when the size command fails", func() {
+			It("returns an error", func() {
+				size, err = artifact.GetArtifactByteSize(new(fakes.FakeBackupArtifact))
 
 				Expect(err).To(HaveOccurred())
 			})
