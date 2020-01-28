@@ -2,6 +2,7 @@ package orchestrator
 
 import (
 	"fmt"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/readwriter"
 
 	"github.com/pkg/errors"
 )
@@ -33,8 +34,16 @@ func (e BackupUploadExecutable) Execute() error {
 		return err
 	}
 
+	sizeInBytes, err := e.localBackup.GetArtifactByteSize(e.remoteArtifact)
+	if err != nil {
+		return err
+	}
+
+	percentageMessage := fmt.Sprintf("Copying backup for job %s on %s/%s -- %%d%%%% complete", e.remoteArtifact.Name(), e.remoteArtifact.InstanceName(), e.remoteArtifact.InstanceID())
+	percentageLogger := readwriter.NewLogPercentageReader(localBackupArtifactReader, e.Logger, sizeInBytes, "bbr", percentageMessage)
+
 	e.Logger.Info("bbr", "Copying backup -- %s uncompressed -- for job %s on %s/%s...", size, e.remoteArtifact.Name(), e.instance.Name(), e.instance.Index())
-	err = e.remoteArtifact.StreamToRemote(localBackupArtifactReader)
+	err = e.remoteArtifact.StreamToRemote(percentageLogger)
 	if err != nil {
 		return err
 	}

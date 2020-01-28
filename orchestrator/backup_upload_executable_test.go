@@ -2,6 +2,7 @@ package orchestrator_test
 
 import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/readwriter"
 	"github.com/pkg/errors"
 
 	"bytes"
@@ -60,9 +61,12 @@ var _ = Describe("BackupUploadExecutable", func() {
 				Expect(backup.ReadArtifactArgsForCall(0)).To(Equal(remoteArtifact))
 			})
 
-			By("streaming local artifact to remote", func() {
+			By("streaming from the remote artifact", func() {
 				Expect(remoteArtifact.StreamToRemoteCallCount()).To(Equal(1))
-				Expect(remoteArtifact.StreamToRemoteArgsForCall(0)).To(Equal(localBackupArtifactReader))
+				streamReader := remoteArtifact.StreamToRemoteArgsForCall(0)
+				Expect(streamReader).To(BeAssignableToTypeOf(&readwriter.LogPercentageReader{}))
+				logPercentageReader := streamReader.(*readwriter.LogPercentageReader)
+				Expect(logPercentageReader.Reader).To(Equal(localBackupArtifactReader))
 			})
 
 			By("marking the director created", func() {
