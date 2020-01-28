@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/writer"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/readwriter"
 )
 
 type FakeLogger struct {
@@ -76,4 +76,4 @@ func (fake *FakeLogger) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ writer.Logger = new(FakeLogger)
+var _ readwriter.Logger = new(FakeLogger)

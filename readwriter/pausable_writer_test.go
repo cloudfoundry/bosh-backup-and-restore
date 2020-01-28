@@ -1,7 +1,7 @@
-package writer_test
+package readwriter_test
 
 import (
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/writer"
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/readwriter"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

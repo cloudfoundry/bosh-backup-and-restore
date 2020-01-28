@@ -1,4 +1,4 @@
-package writer_test
+package readwriter_test
 
 import (
 	. "github.com/onsi/ginkgo"
