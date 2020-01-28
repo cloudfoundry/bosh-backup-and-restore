@@ -13,8 +13,8 @@ func BuildLogger(debug bool) boshlog.Logger {
 	return BuildBoshLogger(debug)
 }
 
-var ApplicationLoggerStdout = writer.NewPausableWriter(os.Stdout)
-var ApplicationLoggerStderr = writer.NewPausableWriter(os.Stderr)
+var ApplicationLoggerStdout = readwriter.NewPausableWriter(os.Stdout)
+var ApplicationLoggerStderr = readwriter.NewPausableWriter(os.Stderr)
 
 func BuildBoshLogger(debug bool) boshlog.Logger {
 	if debug {
@@ -26,14 +26,14 @@ func BuildBoshLogger(debug bool) boshlog.Logger {
 func BuildBoshLoggerWithCustomBuffer(debug bool) (boshlog.Logger, *bytes.Buffer) {
 	buffer := new(bytes.Buffer)
 	if debug {
-		return boshlog.NewWriterLogger(boshlog.LevelDebug, writer.NewPausableWriter(buffer)), buffer
+		return boshlog.NewWriterLogger(boshlog.LevelDebug, readwriter.NewPausableWriter(buffer)), buffer
 	}
-	return boshlog.NewWriterLogger(boshlog.LevelInfo, writer.NewPausableWriter(buffer)), buffer
+	return boshlog.NewWriterLogger(boshlog.LevelInfo, readwriter.NewPausableWriter(buffer)), buffer
 }
 
 func BuildBoshLoggerWithCustomWriter(w io.Writer, debug bool) boshlog.Logger {
 	if debug {
-		return boshlog.NewWriterLogger(boshlog.LevelDebug, writer.NewPausableWriter(w))
+		return boshlog.NewWriterLogger(boshlog.LevelDebug, readwriter.NewPausableWriter(w))
 	}
-	return boshlog.NewWriterLogger(boshlog.LevelInfo, writer.NewPausableWriter(w))
+	return boshlog.NewWriterLogger(boshlog.LevelInfo, readwriter.NewPausableWriter(w))
 }
