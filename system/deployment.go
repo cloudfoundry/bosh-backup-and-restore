@@ -30,12 +30,12 @@ func NewDeployment(name, manifest string) Deployment {
 
 func (d Deployment) Deploy() {
 	session := d.runBosh("deploy", "--var=deployment-name="+d.Name, d.Manifest)
-	Eventually(session).Should(gexec.Exit(0))
+	EventuallyWithOffset(1, session).Should(gexec.Exit(0))
 }
 
 func (d Deployment) Delete() {
 	session := d.runBosh("delete-deployment")
-	Eventually(session).Should(gexec.Exit(0))
+	EventuallyWithOffset(1, session).Should(gexec.Exit(0))
 }
 
 func (d Deployment) Instance(group, index string) Instance {
@@ -59,7 +59,7 @@ func run(cmd string, args ...string) *gexec.Session {
 	command := exec.Command(commandPath, combinedArgs...)
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 
-	Expect(err).ToNot(HaveOccurred())
+	ExpectWithOffset(1, err).ToNot(HaveOccurred())
 	return session
 }
 
@@ -84,12 +84,12 @@ func (i Instance) Copy(sourcePath, destinationPath string) {
 	}
 
 	session := i.deployment.runBosh("scp", sourcePath, i.Group+"/"+i.Index+":"+destinationPath)
-	Eventually(session).Should(gexec.Exit(0))
+	EventuallyWithOffset(1, session).Should(gexec.Exit(0))
 }
 
 func (i Instance) AssertFilesExist(paths []string) {
 	for _, path := range paths {
 		cmd := i.RunCommandAs("vcap", "stat "+path)
-		Eventually(cmd).Should(gexec.Exit(0), fmt.Sprintf("File at %s not found on %s/%s\n", path, i.Group, i.Index))
+		EventuallyWithOffset(1, cmd).Should(gexec.Exit(0), fmt.Sprintf("File at %s not found on %s/%s\n", path, i.Group, i.Index))
 	}
 }
