@@ -4,7 +4,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
-	boshcmd "github.com/cloudfoundry/bosh-cli/cmd"
+	boshcmd "github.com/cloudfoundry/bosh-cli/cmd/opts"
 	boshsys "github.com/cloudfoundry/bosh-utils/system"
 )
 

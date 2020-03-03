@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-sdk-go v1.29.15 // indirect
 	github.com/bmatcuk/doublestar v1.2.2 // indirect
 	github.com/charlievieth/fs v0.0.0-20170613215519-7dc373669fa1 // indirect
-	github.com/cheggaaa/pb v2.0.7+incompatible // indirect
+	github.com/cheggaaa/pb v1.0.28 // indirect
 	github.com/cloudfoundry/bosh-agent v2.305.0+incompatible // indirect
 	github.com/cloudfoundry/bosh-cli v6.2.1+incompatible
 	github.com/cloudfoundry/bosh-davcli v0.0.44 // indirect
@@ -29,6 +29,7 @@ require (
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/mattn/go-colorable v0.1.6 // indirect
+	github.com/mattn/go-runewidth v0.0.8 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/onsi/ginkgo v1.12.0
@@ -41,6 +42,7 @@ require (
 	github.com/urfave/cli v1.22.2
 	github.com/vito/go-interact v1.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
+	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527 // indirect
 	gopkg.in/VividCortex/ewma.v1 v1.1.1 // indirect
 	gopkg.in/cheggaaa/pb.v2 v2.0.7 // indirect
 	gopkg.in/fatih/color.v1 v1.7.0 // indirect
