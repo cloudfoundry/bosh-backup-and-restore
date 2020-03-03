@@ -2,6 +2,7 @@ package ssh
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"sync"
 
@@ -14,7 +15,7 @@ import (
 	"os"
 
 	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
-	"github.com/cloudfoundry/socks5-proxy"
+	proxy "github.com/cloudfoundry/socks5-proxy"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/ssh"
 )
@@ -32,7 +33,7 @@ type Logger interface {
 	Debug(tag, msg string, args ...interface{})
 }
 
-var dialFunc boshhttp.DialFunc
+var dialFunc boshhttp.DialContextFunc
 var dialFuncMutex sync.RWMutex
 
 func NewConnection(hostName, userName, privateKey string, publicKeyCallback ssh.HostKeyCallback, publicKeyAlgorithm []string, logger Logger) (SSHConnection, error) {
@@ -57,7 +58,7 @@ func NewConnectionWithServerAliveInterval(hostName, userName, privateKey string,
 		},
 		logger:              logger,
 		serverAliveInterval: serverAliveInterval,
-		dialFunc:            createDialFunc(),
+		dialFunc:            createDialContextFunc(),
 	}
 
 	return conn, nil
@@ -68,7 +69,7 @@ type Connection struct {
 	sshConfig           *ssh.ClientConfig
 	logger              Logger
 	serverAliveInterval time.Duration
-	dialFunc            boshhttp.DialFunc
+	dialFunc            boshhttp.DialContextFunc
 }
 
 func (c Connection) Run(cmd string) (stdout, stderr []byte, exitCode int, err error) {
@@ -112,7 +113,7 @@ func (w *sessionClosingOnErrorWriter) Write(data []byte) (int, error) {
 }
 
 func (c Connection) newClient() (*ssh.Client, error) {
-	conn, err := c.dialFunc("tcp", c.host)
+	conn, err := c.dialFunc(context.Background(), "tcp", c.host)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +126,7 @@ func (c Connection) newClient() (*ssh.Client, error) {
 	return ssh.NewClient(client, chans, reqs), nil
 }
 
-func createDialFunc() boshhttp.DialFunc {
+func createDialContextFunc() boshhttp.DialContextFunc {
 	dialFuncMutex.RLock()
 	haveDialer := dialFunc != nil
 	dialFuncMutex.RUnlock()
@@ -138,7 +139,7 @@ func createDialFunc() boshhttp.DialFunc {
 	defer dialFuncMutex.Unlock()
 
 	socksProxy := proxy.NewSocks5Proxy(proxy.NewHostKey(), log.New(os.Stdout, "sock5-proxy", log.LstdFlags), 60*time.Second)
-	dialFunc = boshhttp.SOCKS5DialFuncFromEnvironment(net.Dial, socksProxy)
+	dialFunc = boshhttp.SOCKS5DialContextFuncFromEnvironment(&net.Dialer{}, socksProxy)
 	return dialFunc
 }
 
