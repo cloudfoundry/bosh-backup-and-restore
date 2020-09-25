@@ -143,6 +143,19 @@ func createDialContextFunc() boshhttp.DialContextFunc {
 	return dialFunc
 }
 
+func buildSSHSession(client *ssh.Client, stdin io.Reader, stdout, stderr io.Writer) (*ssh.Session, error) {
+	session, err := client.NewSession()
+	if err != nil {
+		return nil, errors.Wrap(err, "ssh.NewSession failed")
+	}
+
+	session.Stdin = stdin
+	session.Stdout = stdout
+	session.Stderr = stderr
+
+	return session, nil
+}
+
 func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.Reader) (int, error) {
 	client, err := c.newClient()
 	if err != nil {
@@ -150,20 +163,17 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 	}
 	defer client.Close()
 
-	session, err := client.NewSession()
+	stdoutWrappingWriter := &sessionClosingOnErrorWriter{endGameWriter: stdout, sshSession: nil}
+	session, err := buildSSHSession(client, stdin, stdoutWrappingWriter, stderr)
 	if err != nil {
-		return -1, errors.Wrap(err, "ssh.NewSession failed")
+		return -1, err
 	}
+	stdoutWrappingWriter.sshSession = session
+
 	c.logger.Debug("bbr", "Trying to execute '%s' on remote", cmd)
 
 	stopKeepAliveLoop := c.startKeepAliveLoop(session)
 	defer close(stopKeepAliveLoop)
-
-	stdoutWrappingWriter := &sessionClosingOnErrorWriter{endGameWriter: stdout, sshSession: session}
-
-	session.Stdin = stdin
-	session.Stdout = stdoutWrappingWriter
-	session.Stderr = stderr
 
 	var exitCode int
 
