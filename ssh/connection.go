@@ -175,23 +175,20 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 	stopKeepAliveLoop := c.startKeepAliveLoop(session)
 	defer close(stopKeepAliveLoop)
 
-	var exitCode int
-
 	err = session.Run(cmd)
 
 	if err == nil && stdoutWrappingWriter.writerError == nil {
-		exitCode = 0
+		return 0, nil
 	} else if stdoutWrappingWriter.writerError != nil {
 		return -1, errors.Wrap(stdoutWrappingWriter.writerError, "stdout.Write failed")
 	} else {
 		switch err := err.(type) {
 		case *ssh.ExitError:
-			exitCode = err.ExitStatus()
+			return err.ExitStatus(), nil
 		default:
 			return -1, errors.Wrap(err, "ssh.Session.Run failed")
 		}
 	}
-	return exitCode, nil
 }
 
 func (c Connection) startKeepAliveLoop(session *ssh.Session) chan struct{} {
