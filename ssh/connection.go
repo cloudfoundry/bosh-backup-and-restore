@@ -177,11 +177,11 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 
 	err = session.Run(cmd)
 
-	if err == nil && stdoutWrappingWriter.writerError == nil {
-		return 0, nil
-	} else if stdoutWrappingWriter.writerError != nil {
+	if stdoutWrappingWriter.writerError != nil {
 		return -1, errors.Wrap(stdoutWrappingWriter.writerError, "stdout.Write failed")
-	} else {
+	}
+
+	if err != nil {
 		switch err := err.(type) {
 		case *ssh.ExitError:
 			return err.ExitStatus(), nil
@@ -189,6 +189,8 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 			return -1, errors.Wrap(err, "ssh.Session.Run failed")
 		}
 	}
+
+	return 0, nil
 }
 
 func (c Connection) startKeepAliveLoop(session *ssh.Session) chan struct{} {
