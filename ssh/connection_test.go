@@ -12,8 +12,6 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	gossh "golang.org/x/crypto/ssh"
 
-	"runtime"
-
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -292,7 +290,7 @@ var _ = Describe("Connection", func() {
 		})
 	})
 
-	Context("keeps session alive", func() {
+	When("working with a long running remote process", func() {
 		var stdOut []byte
 
 		BeforeEach(func() {
@@ -304,16 +302,12 @@ var _ = Describe("Connection", func() {
 			conn, connErr = ssh.NewConnectionWithServerAliveInterval(hostname, user, privateKey, gossh.InsecureIgnoreHostKey(), nil, 1, logger)
 			Expect(connErr).NotTo(HaveOccurred())
 
-			numGoRoutinesBeforeRun := runtime.NumGoroutine()
 			stdOut, _, _, _ = conn.Run("/tmp/produce")
-			Eventually(func() int {
-				return runtime.NumGoroutine()
-			}, 10).Should(Equal(numGoRoutinesBeforeRun))
 		})
 
-		It("should keep the connection alive", func() {
-			Expect(stdOut).To(ContainSubstring("start"))
-			Expect(stdOut).To(ContainSubstring("end"))
+		It("keeps the connection alive", func() {
+			Eventually(stdOut).Should(ContainSubstring("start"))
+			Eventually(stdOut).Should(ContainSubstring("end"))
 		})
 	})
 
