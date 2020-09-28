@@ -143,13 +143,16 @@ func createDialContextFunc() boshhttp.DialContextFunc {
 	return dialFunc
 }
 
+//go:generate counterfeiter -o fakes/fake_ssh_session.go . SSHSession
 type SSHSession interface {
 	Run(cmd string) error
 	SendRequest(name string, wantReply bool, payload []byte) (bool, error)
 	Close() error
 }
 
-func buildSSHSession(client *ssh.Client, stdin io.Reader, stdout, stderr io.Writer) (SSHSession, error) {
+type SSHSessionBuilder = func(client *ssh.Client, stdin io.Reader, stdout, stderr io.Writer) (SSHSession, error)
+
+func buildSSHSessionImpl(client *ssh.Client, stdin io.Reader, stdout, stderr io.Writer) (SSHSession, error) {
 	session, err := client.NewSession()
 	if err != nil {
 		return nil, errors.Wrap(err, "ssh.NewSession failed")
@@ -161,6 +164,8 @@ func buildSSHSession(client *ssh.Client, stdin io.Reader, stdout, stderr io.Writ
 
 	return session, nil
 }
+
+var buildSSHSession = buildSSHSessionImpl
 
 func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.Reader) (int, error) {
 	client, err := c.newClient()
@@ -191,6 +196,8 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 		switch err := err.(type) {
 		case *ssh.ExitError:
 			return err.ExitStatus(), nil
+		case *ssh.ExitMissingError:
+			return -1, errors.Wrap(err, "ssh session ended before returning an exit code")
 		default:
 			return -1, errors.Wrap(err, "ssh.Session.Run failed")
 		}

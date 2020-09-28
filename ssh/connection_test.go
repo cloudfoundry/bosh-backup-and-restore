@@ -8,6 +8,7 @@ import (
 	"log"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	gossh "golang.org/x/crypto/ssh"
@@ -37,6 +38,7 @@ var _ = Describe("Connection", func() {
 
 		combinedOutLog := log.New(io.MultiWriter(GinkgoWriter, bytes.NewBufferString("")), "[bosh-package] ", log.Lshortfile)
 		logger = boshlog.New(boshlog.LevelDebug, combinedOutLog)
+		ssh.ResetBuildSSHSession()
 	})
 
 	AfterEach(func() {
@@ -207,6 +209,23 @@ var _ = Describe("Connection", func() {
 				})
 				It("captures exit code", func() {
 					Expect(exitCode).To(Equal(127))
+				})
+			})
+
+			When("the network dies before the command finishes", func() {
+				var fakeSSHSession *fakes.FakeSSHSession
+
+				BeforeEach(func() {
+					fakeSSHSession = new(fakes.FakeSSHSession)
+					ssh.InjectBuildSSHSession(func(client *gossh.Client, stdin io.Reader, stdout, stderr io.Writer) (ssh.SSHSession, error) {
+						return fakeSSHSession, nil
+					})
+
+					fakeSSHSession.RunReturns(new(gossh.ExitMissingError))
+				})
+
+				It("returns a helpful error message", func() {
+					Expect(runError).To(MatchError(ContainSubstring("ssh session ended before returning an exit code")))
 				})
 			})
 		})
