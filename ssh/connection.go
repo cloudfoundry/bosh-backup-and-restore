@@ -99,7 +99,7 @@ func (c Connection) StreamStdin(cmd string, stdinReader io.Reader) (stdout, stde
 
 type sessionClosingOnErrorWriter struct {
 	endGameWriter io.Writer
-	sshSession    *ssh.Session
+	sshSession    SSHSession
 	writerError   error
 }
 
@@ -143,7 +143,13 @@ func createDialContextFunc() boshhttp.DialContextFunc {
 	return dialFunc
 }
 
-func buildSSHSession(client *ssh.Client, stdin io.Reader, stdout, stderr io.Writer) (*ssh.Session, error) {
+type SSHSession interface {
+	Run(cmd string) error
+	SendRequest(name string, wantReply bool, payload []byte) (bool, error)
+	Close() error
+}
+
+func buildSSHSession(client *ssh.Client, stdin io.Reader, stdout, stderr io.Writer) (SSHSession, error) {
 	session, err := client.NewSession()
 	if err != nil {
 		return nil, errors.Wrap(err, "ssh.NewSession failed")
@@ -193,7 +199,7 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 	return 0, nil
 }
 
-func (c Connection) startKeepAliveLoop(session *ssh.Session) chan struct{} {
+func (c Connection) startKeepAliveLoop(session SSHSession) chan struct{} {
 	terminate := make(chan struct{})
 	go func() {
 		for {
