@@ -215,7 +215,7 @@ var _ = Describe("Connection", func() {
 			When("the network dies before the command finishes", func() {
 				var (
 					fakeSSHSession *fakes.FakeSSHSession
-					fakeLogger *fakes.FakeLogger
+					fakeLogger     *fakes.FakeLogger
 				)
 
 				BeforeEach(func() {
@@ -234,7 +234,7 @@ var _ = Describe("Connection", func() {
 					Expect(fakeLogger.ErrorCallCount()).To(Equal(1))
 					tag, msg, _ := fakeLogger.ErrorArgsForCall(0)
 					Expect(tag).To(Equal("bbr"))
-					Expect(msg).To(ContainSubstring("Did the network just fail? It looks like my ssh session ended suddenly without getting an exit status from the remote VM"))
+					Expect(msg).To(ContainSubstring("Did the network just fail? It looks like my ssh session to %s ended suddenly without getting an exit status from the remote VM", hostname))
 				})
 			})
 		})

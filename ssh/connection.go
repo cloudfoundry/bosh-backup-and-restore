@@ -3,6 +3,7 @@ package ssh
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"sync"
 
@@ -199,7 +200,7 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 		case *ssh.ExitError:
 			return err.ExitStatus(), nil
 		case *ssh.ExitMissingError:
-			c.logger.Error("bbr", "Did the network just fail? It looks like my ssh session ended suddenly without getting an exit status from the remote VM.")
+			c.logger.Error("bbr", fmt.Sprintf("Did the network just fail? It looks like my ssh session to %s ended suddenly without getting an exit status from the remote VM.", c.host))
 			return -1, errors.Wrap(err, "ssh session ended before returning an exit code")
 		default:
 			return -1, errors.Wrap(err, "ssh.Session.Run failed")
