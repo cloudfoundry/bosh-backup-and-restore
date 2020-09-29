@@ -6,10 +6,10 @@ push: test sys-test-local
 pre-commit: test sys-test-local
 
 watch:
-	ginkgo watch -r -skipPackage integration,system,backup
+	ginkgo watch -r -skipPackage integration,system,backup,s3-config-validator
 
 test-unit:
-	ginkgo -p -r -skipPackage integration,system
+	ginkgo -p -r -skipPackage integration,system,s3-config-validator
 
 test-integration:
 	ginkgo -r -trace integration
