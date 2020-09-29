@@ -213,9 +213,14 @@ var _ = Describe("Connection", func() {
 			})
 
 			When("the network dies before the command finishes", func() {
-				var fakeSSHSession *fakes.FakeSSHSession
+				var (
+					fakeSSHSession *fakes.FakeSSHSession
+					fakeLogger *fakes.FakeLogger
+				)
 
 				BeforeEach(func() {
+					fakeLogger = new(fakes.FakeLogger)
+					logger = fakeLogger
 					fakeSSHSession = new(fakes.FakeSSHSession)
 					ssh.InjectBuildSSHSession(func(client *gossh.Client, stdin io.Reader, stdout, stderr io.Writer) (ssh.SSHSession, error) {
 						return fakeSSHSession, nil
@@ -226,6 +231,10 @@ var _ = Describe("Connection", func() {
 
 				It("returns a helpful error message", func() {
 					Expect(runError).To(MatchError(ContainSubstring("ssh session ended before returning an exit code")))
+					Expect(fakeLogger.ErrorCallCount()).To(Equal(1))
+					tag, msg, _ := fakeLogger.ErrorArgsForCall(0)
+					Expect(tag).To(Equal("bbr"))
+					Expect(msg).To(ContainSubstring("Did the network just fail? It looks like my ssh session ended suddenly without getting an exit status from the remote VM"))
 				})
 			})
 		})

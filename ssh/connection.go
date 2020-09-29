@@ -28,9 +28,11 @@ type SSHConnection interface {
 	Username() string
 }
 
+//go:generate counterfeiter -o fakes/fake_logger.go . Logger
 type Logger interface {
 	Warn(tag, msg string, args ...interface{})
 	Debug(tag, msg string, args ...interface{})
+	Error(tag, msg string, args ...interface{})
 }
 
 var dialFunc boshhttp.DialContextFunc
@@ -197,6 +199,7 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 		case *ssh.ExitError:
 			return err.ExitStatus(), nil
 		case *ssh.ExitMissingError:
+			c.logger.Error("bbr", "Did the network just fail? It looks like my ssh session ended suddenly without getting an exit status from the remote VM.")
 			return -1, errors.Wrap(err, "ssh session ended before returning an exit code")
 		default:
 			return -1, errors.Wrap(err, "ssh.Session.Run failed")
