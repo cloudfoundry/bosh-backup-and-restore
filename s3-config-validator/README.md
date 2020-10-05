@@ -1,14 +1,13 @@
 # BBR S3 bucket configuration validator
 
 The [BBR](https://docs.cloudfoundry.org/bbr/index.html) S3 bucket configuration
-validator is a tool to validate and troubleshoot your TAS & BBR external
+validator is a tool to validate and troubleshoot your Cloud Foundry & BBR external
 blobstore configuration. It will look at your bucket configuration file and
 validate that all credentials, buckets and policies are in order. If it
 succeeds, so should your backups and restores with BBR. If it does not, it will
 help you debug the issue.
 
-The tool is geared towards bucket configuration files that are produced by _Ops
-Manager_ (see [Bucket configuration files](#bucket-configuration-files)).
+The tool is geared towards bucket configuration files that are consumed by the BBR SDK (see [Bucket configuration files](#bucket-configuration-files)).
 Both
 [versioned](https://docs.aws.amazon.com/AmazonS3/latest/dev/Versioning.html)
 and unversioned S3-compatible blobstores are supported.
@@ -19,7 +18,7 @@ Get an idea by looking at the [sample output](#sample-output).
 
 **The tool should be used on the VM that you run your backups and restores from.**
 This is to provide realistic network conditions and because that's where your
-bucket configuration file will be put by _Ops Manager_.
+bucket configuration file will be put by the jobs configured through the BBR SDK.
 
 You can use the [BOSH CLI](https://github.com/cloudfoundry/bosh-cli) to get
 the tool onto that VM assuming that it's pointing to your environment:
