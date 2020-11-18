@@ -1835,6 +1835,16 @@ exit 1`)
 			})
 
 			JustBeforeEach(func() {
+				params = []string{
+					"deployment",
+					"--ca-cert", sslCertPath,
+					"--username", "admin",
+					"--password", "admin",
+					"--target", director.URL,
+					"--all-deployments",
+					"backup",
+					"--artifact-path", artifactPath,
+				}
 				session, _ = binary.Start(backupWorkspace, []string{}, params...)
 			})
 
