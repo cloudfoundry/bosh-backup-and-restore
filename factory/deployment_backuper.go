@@ -17,6 +17,7 @@ func BuildDeploymentBackuper(
 	password,
 	caCert string,
 	withManifest bool,
+	unsafeLockFree bool,
 	bbrVersion string,
 	logger boshlog.Logger,
 	timestamp string,
@@ -36,6 +37,7 @@ func BuildDeploymentBackuper(
 		execr,
 		time.Now,
 		orchestrator.NewArtifactCopier(execr, logger),
+		unsafeLockFree,
 		timestamp,
 	), nil
 }

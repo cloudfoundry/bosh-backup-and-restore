@@ -30,6 +30,7 @@ var _ = Describe("Backup", func() {
 		stdin                 io.WriteCloser
 		deploymentName        string
 		downloadManifest      bool
+		unsafeLockFreeBackup  bool
 		waitForBackupToFinish bool
 		artifactPath          string
 		verifyMocks           bool
@@ -56,6 +57,7 @@ var _ = Describe("Backup", func() {
 		deploymentName = "my-little-deployment"
 		downloadManifest = false
 		waitForBackupToFinish = true
+		unsafeLockFreeBackup = false
 		verifyMocks = true
 		director = mockbosh.NewTLS()
 		director.ExpectedBasicAuth("admin", "admin")
@@ -114,6 +116,10 @@ instance_groups:
 
 		if artifactPath != "" {
 			params = append(params, "--artifact-path", artifactPath)
+		}
+
+		if unsafeLockFreeBackup {
+			params = append(params, "--unsafe-lock-free")
 		}
 
 		if waitForBackupToFinish {
@@ -506,6 +512,53 @@ touch /tmp/pre-backup-lock-script-was-run
 								"> /var/vcap/jobs/redis-broker/bin/bbr/pre-backup-lock",
 								"> /var/vcap/jobs/redis/bin/bbr/pre-backup-lock",
 								`Locking redis on redis-dedicated-node/fake-uuid for backup`,
+							})
+						})
+					})
+				})
+				Context("and the pre-backup-lock is present, but the unsafe-lock-free-backup is set", func() {
+					BeforeEach(func() {
+						unsafeLockFreeBackup = true
+						instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/pre-backup-lock", `#!/usr/bin/env sh
+touch /tmp/pre-backup-lock-script-was-run
+`)
+						instance1.CreateScript("/var/vcap/jobs/redis-broker/bin/bbr/pre-backup-lock", ``)
+					})
+
+					It("executes and logs the locks", func() {
+						By("running the pre-backup-lock script", func() {
+							Expect(instance1.FileExists("/tmp/pre-backup-lock-script-was-run")).To(BeFalse())
+						})
+
+						By("logging that it is locking the instance, and listing the scripts", func() {
+							assertOutput(session.Out, []string{
+								"/var/vcap/jobs/redis-broker/bin/bbr/pre-backup-lock",
+								"/var/vcap/jobs/redis/bin/bbr/pre-backup-lock",
+								`Skipping lock for deployment`,
+							})
+						})
+					})
+				})
+
+				Context("and the post-backup-unlock is present, but the unsafe-lock-free-backup is set", func() {
+					BeforeEach(func() {
+						unsafeLockFreeBackup = true
+						instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/post-backup-unlock", `#!/usr/bin/env sh
+touch /tmp/post-backup-unlock-script-was-run
+`)
+						instance1.CreateScript("/var/vcap/jobs/redis-broker/bin/bbr/post-backup-unlock", ``)
+					})
+
+					It("executes and logs the locks", func() {
+						By("running the pre-backup-lock script", func() {
+							Expect(instance1.FileExists("/tmp/post-backup-unlock-script-was-run")).To(BeFalse())
+						})
+
+						By("logging that it is locking the instance, and listing the scripts", func() {
+							assertOutput(session.Out, []string{
+								"/var/vcap/jobs/redis-broker/bin/bbr/post-backup-unlock",
+								"/var/vcap/jobs/redis/bin/bbr/post-backup-unlock",
+								`Skipping unlock after successful backup for deployment`,
 							})
 						})
 					})
@@ -1395,6 +1448,7 @@ var _ = Describe("Backup --all-deployments", func() {
 	var artifactPath string
 	var session *gexec.Session
 	var instance1 *testcluster.Instance
+	var unsafeLockFreeBackup bool
 	var params []string
 	manifest := `---
 instance_groups:
@@ -1424,16 +1478,7 @@ instance_groups:
 
 		instance1 = testcluster.NewInstance()
 
-		params = []string{
-			"deployment",
-			"--ca-cert", sslCertPath,
-			"--username", "admin",
-			"--password", "admin",
-			"--target", director.URL,
-			"--all-deployments",
-			"backup",
-			"--artifact-path", artifactPath,
-		}
+		unsafeLockFreeBackup = false
 	})
 
 	AfterEach(func() {
@@ -1447,6 +1492,19 @@ instance_groups:
 
 	Describe("Backup exits gracefully", func() {
 		JustBeforeEach(func() {
+			params = []string{
+				"deployment",
+				"--ca-cert", sslCertPath,
+				"--username", "admin",
+				"--password", "admin",
+				"--target", director.URL,
+				"--all-deployments",
+				"backup",
+				"--artifact-path", artifactPath,
+			}
+			if unsafeLockFreeBackup {
+				params = append(params, "--unsafe-lock-free")
+			}
 			session = binary.Run(backupWorkspace, []string{}, params...)
 		})
 
@@ -1727,6 +1785,17 @@ exit 1`)
 			It("fails", func() {
 				Expect(session.ExitCode()).NotTo(BeZero())
 				Expect(session.Err).To(gbytes.Say("Failed to find any deployments"))
+			})
+		})
+
+		Context("when called with unsafe-lock-free", func() {
+			BeforeEach(func() {
+				unsafeLockFreeBackup = true
+			})
+
+			It("fails", func() {
+				Expect(session.ExitCode()).NotTo(BeZero())
+				Expect(session.Err).To(gbytes.Say("Cannot use the --unsafe-lock-free flag in conjunction with the --all-deployments flag"))
 			})
 		})
 

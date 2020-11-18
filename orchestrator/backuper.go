@@ -6,20 +6,28 @@ import (
 	exe "github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 )
 
-func NewBackuper(backupManager BackupManager, logger Logger, deploymentManager DeploymentManager,
-	lockOrderer LockOrderer, executor exe.Executor, nowFunc func() time.Time, artifactCopier ArtifactCopier, timestamp string) *Backuper {
+func NewBackuper(backupManager BackupManager, logger Logger, deploymentManager DeploymentManager, lockOrderer LockOrderer,
+	executor exe.Executor, nowFunc func() time.Time, artifactCopier ArtifactCopier, unsafeLockFree bool, timestamp string) *Backuper {
 
 	findDeploymentStep := NewFindDeploymentStep(deploymentManager, logger)
 	backupable := NewBackupableStep(lockOrderer, logger)
 	createArtifact := NewCreateArtifactStep(logger, backupManager, deploymentManager, nowFunc, timestamp)
-	lock := NewLockStep(lockOrderer, executor)
 
 	backup := NewBackupStep(executor)
-	unlockAfterSuccessfulBackup := NewPostBackupUnlockStep(true, lockOrderer, executor)
-	unlockAfterFailedBackup := NewPostBackupUnlockStep(false, lockOrderer, executor)
 	drain := NewDrainStep(logger, artifactCopier)
 	cleanup := NewCleanupStep()
 	addFinishTimeStep := NewAddFinishTimeStep(nowFunc)
+
+	var lock, unlockAfterSuccessfulBackup, unlockAfterFailedBackup Step
+	if !unsafeLockFree {
+		lock = NewLockStep(lockOrderer, executor)
+		unlockAfterSuccessfulBackup = NewPostBackupUnlockStep(true, lockOrderer, executor)
+		unlockAfterFailedBackup = NewPostBackupUnlockStep(false, lockOrderer, executor)
+	} else {
+		lock = NewSkipStep(logger, "lock")
+		unlockAfterSuccessfulBackup = NewSkipStep(logger, "unlock after successful backup")
+		unlockAfterFailedBackup = NewSkipStep(logger, "unlock after unsuccessful backup")
+	}
 
 	workflow := NewWorkflow()
 	workflow.StartWith(findDeploymentStep).OnSuccess(backupable)

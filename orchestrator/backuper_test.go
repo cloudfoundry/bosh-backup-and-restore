@@ -26,6 +26,8 @@ var _ = Describe("Backup", func() {
 		startTime, finishTime time.Time
 		artifactCopier        *fakes.FakeArtifactCopier
 		timeStamp             string
+		unsafeLockFree        bool
+		nowFunc               func() time.Time
 	)
 
 	BeforeEach(func() {
@@ -34,23 +36,25 @@ var _ = Describe("Backup", func() {
 		fakeBackupManager = new(fakes.FakeBackupManager)
 		fakeBackup = new(fakes.FakeBackup)
 		logger = new(fakes.FakeLogger)
+		unsafeLockFree = false
 
 		startTime = time.Now()
 		finishTime = startTime.Add(time.Hour)
 		timeStamp = time.Now().UTC().Format("20060102T150405Z")
 
 		nows := []time.Time{startTime, finishTime}
-		nowFunc := func() time.Time {
+		nowFunc = func() time.Time {
 			var now time.Time
 			now, nows = nows[0], nows[1:]
 			return now
 		}
 
 		artifactCopier = new(fakes.FakeArtifactCopier)
-		b = orchestrator.NewBackuper(fakeBackupManager, logger, deploymentManager, lockOrderer, executor.NewParallelExecutor(), nowFunc, artifactCopier, timeStamp)
+
 	})
 
 	JustBeforeEach(func() {
+		b = orchestrator.NewBackuper(fakeBackupManager, logger, deploymentManager, lockOrderer, executor.NewParallelExecutor(), nowFunc, artifactCopier, unsafeLockFree, timeStamp)
 		actualBackupError = b.Backup(deploymentName, "")
 	})
 
@@ -95,6 +99,77 @@ var _ = Describe("Backup", func() {
 			Expect(deployment.PostBackupUnlockCallCount()).To(Equal(1))
 			afterSuccessfulBackup, _, _ := deployment.PostBackupUnlockArgsForCall(0)
 			Expect(afterSuccessfulBackup).To(BeTrue())
+		})
+
+		It("ensures that deployment is cleaned up", func() {
+			Expect(deployment.CleanupCallCount()).To(Equal(1))
+		})
+
+		It("creates a local artifact", func() {
+			Expect(fakeBackupManager.CreateCallCount()).To(Equal(1))
+		})
+
+		It("names the artifact after the deployment", func() {
+			actualPath, directoryName, actualLogger := fakeBackupManager.CreateArgsForCall(0)
+			Expect(actualPath).To(Equal(""))
+			Expect(directoryName).To(Equal(fmt.Sprintf("%s_%s", deploymentName, timeStamp)))
+			Expect(actualLogger).To(Equal(logger))
+		})
+
+		It("drains the backup to the artifact", func() {
+			Expect(artifactCopier.DownloadBackupFromDeploymentCallCount()).To(Equal(1))
+
+			downloadedBackup, downloadedFromDeployment := artifactCopier.DownloadBackupFromDeploymentArgsForCall(0)
+			Expect(downloadedBackup).To(Equal(fakeBackup))
+			Expect(downloadedFromDeployment).To(Equal(deployment))
+		})
+
+		It("saves start and finish timestamps in the metadata file", func() {
+			Expect(fakeBackup.CreateMetadataFileWithStartTimeArgsForCall(0)).To(Equal(startTime))
+			Expect(fakeBackup.AddFinishTimeArgsForCall(0)).To(Equal(finishTime))
+		})
+	})
+
+	Context("backs up a deployment without locking it", func() {
+		BeforeEach(func() {
+			unsafeLockFree = true
+			fakeBackupManager.CreateReturns(fakeBackup, nil)
+			deploymentManager.FindReturns(deployment, nil)
+			deployment.IsBackupableReturns(true)
+			deployment.CleanupReturns(nil)
+			artifactCopier.DownloadBackupFromDeploymentReturns(nil)
+		})
+
+		It("does not fail", func() {
+			Expect(actualBackupError).NotTo(HaveOccurred())
+		})
+
+		It("finds the deployment", func() {
+			Expect(deploymentManager.FindCallCount()).To(Equal(1))
+			Expect(deploymentManager.FindArgsForCall(0)).To(Equal(deploymentName))
+		})
+
+		It("saves the deployment manifest", func() {
+			Expect(deploymentManager.SaveManifestCallCount()).To(Equal(1))
+			actualDeploymentName, actualArtifact := deploymentManager.SaveManifestArgsForCall(0)
+			Expect(actualDeploymentName).To(Equal(deploymentName))
+			Expect(actualArtifact).To(Equal(fakeBackup))
+		})
+
+		It("checks if the deployment is backupable", func() {
+			Expect(deployment.IsBackupableCallCount()).To(Equal(1))
+		})
+
+		It("runs pre-backup-lock scripts on the deployment", func() {
+			Expect(deployment.PreBackupLockCallCount()).To(Equal(0))
+		})
+
+		It("runs backup scripts on the deployment", func() {
+			Expect(deployment.BackupCallCount()).To(Equal(1))
+		})
+
+		It("runs post-backup-unlock scripts on the deployment", func() {
+			Expect(deployment.PostBackupUnlockCallCount()).To(Equal(0))
 		})
 
 		It("ensures that deployment is cleaned up", func() {

@@ -23,14 +23,5 @@ func BuildDirectorBackuper(host, username, privateKeyPath, bbrVersion string, ha
 	)
 	execr := executor.NewParallelExecutor()
 
-	return orchestrator.NewBackuper(
-		backup.BackupDirectoryManager{},
-		logger,
-		deploymentManager,
-		orderer.NewKahnBackupLockOrderer(),
-		execr,
-		time.Now,
-		orchestrator.NewArtifactCopier(execr, logger),
-		timeStamp,
-	)
+	return orchestrator.NewBackuper(backup.BackupDirectoryManager{}, logger, deploymentManager, orderer.NewKahnBackupLockOrderer(), execr, time.Now, orchestrator.NewArtifactCopier(execr, logger), false, timeStamp)
 }
