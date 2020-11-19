@@ -63,7 +63,10 @@ func (d DeploymentBackupCommand) Action(c *cli.Context) error {
 func backupAll(target, username, password, caCert, artifactPath string, withManifest bool, bbrVersion string, debug bool) error {
 	backupAction := func(deploymentName string) orchestrator.Error {
 		timestamp := time.Now().UTC().Format(artifactTimeStampFormat)
-		logFilePath, buffer, logger := createLogger(timestamp, artifactPath, deploymentName, debug)
+		logFilePath, buffer, logger, logErr := createLogger(timestamp, artifactPath, deploymentName, debug)
+		if logErr != nil {
+			return orchestrator.NewError(logErr)
+		}
 
 		backuper, factoryErr := factory.BuildDeploymentBackuper(
 			target,

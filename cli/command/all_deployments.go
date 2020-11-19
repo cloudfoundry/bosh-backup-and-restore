@@ -142,13 +142,16 @@ func NewDeploymentExecutable(action ActionFunc, name string) DeploymentExecutabl
 	}
 }
 
-func createLogger(timestamp string, artifactPath string, deploymentName string, debug bool) (string, *bytes.Buffer, logger.Logger) {
+func createLogger(timestamp string, artifactPath string, deploymentName string, debug bool) (string, *bytes.Buffer, logger.Logger, error) {
 	logFilePath := filepath.Join(artifactPath, fmt.Sprintf("%s_%s.log", deploymentName, timestamp))
-	logFile, _ := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, defaultLogfilePermissions)
+	logFile, err := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, defaultLogfilePermissions)
+	if err != nil {
+		return "",nil,nil,err
+	}
 	buffer := new(bytes.Buffer)
 	multiWriter := io.MultiWriter(buffer, logFile)
 	logger := factory.BuildBoshLoggerWithCustomWriter(multiWriter, debug)
-	return logFilePath, buffer, logger
+	return logFilePath, buffer, logger, nil
 }
 
 func (d DeploymentExecutable) Execute() deployment.DeploymentError {

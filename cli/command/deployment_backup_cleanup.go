@@ -56,7 +56,10 @@ func (d DeploymentBackupCleanupCommand) Action(c *cli.Context) error {
 func cleanupAllDeployments(target, username, password, caCert, bbrVersion string, debug bool) error {
 	cleanupAction := func(deploymentName string) orchestrator.Error {
 		timestamp := time.Now().UTC().Format(artifactTimeStampFormat)
-		logFilePath, buffer, logger := createLogger(timestamp, "", deploymentName, debug)
+		logFilePath, buffer, logger, logErr := createLogger(timestamp, "", deploymentName, debug)
+		if logErr != nil {
+			return orchestrator.NewError(logErr)
+		}
 
 		cleaner, factoryError := factory.BuildDeploymentBackupCleanuper(
 			target,
