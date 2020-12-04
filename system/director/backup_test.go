@@ -56,7 +56,7 @@ var _ = Describe("Backup", func() {
 				"director",
 				"--username", MustHaveEnv("DIRECTOR_SSH_USERNAME"),
 				"--private-key-path", MustHaveEnv("DIRECTOR_SSH_KEY_PATH"),
-				"--host", MustHaveEnv("DIRECTOR_ADDRESS"),
+				"--host", MustHaveEnv("DIRECTOR_HOST"),
 				"pre-backup-check",
 			)
 			cmd.Env = append(os.Environ(), "BOSH_ALL_PROXY="+boshAllProxy)

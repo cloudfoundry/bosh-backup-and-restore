@@ -99,7 +99,7 @@ var _ = Describe("backup", func() {
 				"--username", MustHaveEnv("BOSH_CLIENT"),
 				"--password", MustHaveEnv("BOSH_CLIENT_SECRET"),
 				"--target", MustHaveEnv("BOSH_ENVIRONMENT"),
-				"--deployment", "many-bbr-scripts",
+				"--deployment", RedisDeployment.Name,
 				"backup",
 			)
 			cmd.Env = append(os.Environ(), "BOSH_ALL_PROXY="+boshAllProxy)
