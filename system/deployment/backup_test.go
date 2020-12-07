@@ -2,6 +2,8 @@ package deployment
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
 	. "github.com/onsi/ginkgo"
@@ -20,6 +22,13 @@ var _ = Describe("backup", func() {
 			"other-redis": {"0"},
 		}
 		bbrCommand string
+	)
+
+	boshAllProxy := fmt.Sprintf(
+		"ssh+socks5://%s@%s?private-key=%s",
+		MustHaveEnv("BOSH_GW_USER"),
+		MustHaveEnv("BOSH_GW_HOST"),
+		MustHaveEnv("BOSH_GW_PRIVATE_KEY"),
 	)
 
 	runBBRBackupAndSucceed := func() {
@@ -80,6 +89,28 @@ var _ = Describe("backup", func() {
 			})
 		})
 	}
+
+	Context("BOSH_ALL_PROXY is set", func() {
+		It("backs up the deployment using BOSH_ALL_PROXY", func() {
+			cmd := exec.Command(
+				commandPath,
+				"deployment",
+				"--ca-cert", MustHaveEnv("BOSH_CA_CERT"),
+				"--username", MustHaveEnv("BOSH_CLIENT"),
+				"--password", MustHaveEnv("BOSH_CLIENT_SECRET"),
+				"--target", MustHaveEnv("BOSH_ENVIRONMENT"),
+				"--deployment", RedisDeployment.Name,
+				"backup",
+			)
+			cmd.Env = append(os.Environ(), "BOSH_ALL_PROXY="+boshAllProxy)
+			cmd.Stderr = GinkgoWriter
+			cmd.Stdout = GinkgoWriter
+
+			fmt.Println("BOSH_ALL_PROXY=", boshAllProxy, " bbr ", cmd.Args)
+
+			Expect(cmd.Run()).To(Succeed())
+		})
+	})
 
 	Context("when the operator does not specify an artifact directory", func() {
 		BeforeEach(func() {
