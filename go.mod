@@ -5,16 +5,10 @@ go 1.14
 require (
 	code.cloudfoundry.org/clock v1.0.0 // indirect
 	code.cloudfoundry.org/tlsconfig v0.0.0-20200131000646-bbe0f8da39b3 // indirect
-	code.cloudfoundry.org/workpool v0.0.0-20200131000409-2ac56b354115 // indirect
-	github.com/aws/aws-sdk-go v1.29.15 // indirect
 	github.com/bmatcuk/doublestar v1.3.3 // indirect
 	github.com/charlievieth/fs v0.0.1 // indirect
 	github.com/cheggaaa/pb v1.0.29 // indirect
-	github.com/cloudfoundry/bosh-agent v2.305.0+incompatible // indirect
 	github.com/cloudfoundry/bosh-cli v6.4.1+incompatible
-	github.com/cloudfoundry/bosh-davcli v0.0.44 // indirect
-	github.com/cloudfoundry/bosh-gcscli v0.0.18 // indirect
-	github.com/cloudfoundry/bosh-s3cli v0.0.95 // indirect
 	github.com/cloudfoundry/bosh-utils v0.0.0-20201107100218-f523638849f6
 	github.com/cloudfoundry/config-server v0.1.21 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e // indirect
@@ -24,13 +18,10 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fatih/color v1.10.0 // indirect
-	github.com/golang/mock v1.4.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.0 // indirect
-	github.com/jessevdk/go-flags v1.4.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/kr/pty v1.1.8 // indirect
-	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
@@ -51,11 +42,5 @@ require (
 	golang.org/x/term v0.0.0-20201117132131-f5c789dd3221 // indirect
 	golang.org/x/text v0.3.4 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
-	gopkg.in/VividCortex/ewma.v1 v1.1.1 // indirect
-	gopkg.in/cheggaaa/pb.v2 v2.0.7 // indirect
-	gopkg.in/fatih/color.v1 v1.7.0 // indirect
-	gopkg.in/mattn/go-colorable.v0 v0.1.0 // indirect
-	gopkg.in/mattn/go-isatty.v0 v0.0.4 // indirect
-	gopkg.in/mattn/go-runewidth.v0 v0.0.4 // indirect
-	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v2 v2.4.0
 )
