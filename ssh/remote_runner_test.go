@@ -63,6 +63,7 @@ var _ = Describe("SshRemoteRunner", func() {
 		runCommand("sudo chmod 0700 " + path)
 	}
 	Describe("ConnectedUsername", func() {
+		Fail("Intended test failure")
 		It("returns the name of the connected user", func() {
 			Expect(sshRemoteRunner.ConnectedUsername()).To(Equal(user))
 		})
