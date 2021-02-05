@@ -34,12 +34,14 @@ jobs:
       status: pending
   - get: backup-and-restore-ci
   - task: find-pr-story
+    attempts: 5
     file: bosh-backup-and-restore/ci/tasks/find-pr-story/task.yml
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
       TRACKER_PROJECT_ID: ((tracker.project_id))
       GIT_REPOSITORY: cloudfoundry-incubator/bosh-backup-and-restore
   - task: start-story
+    attempts: 5
     file: bosh-backup-and-restore/ci/tasks/start-story/task.yml
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
