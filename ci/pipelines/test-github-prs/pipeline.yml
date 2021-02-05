@@ -1,0 +1,63 @@
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: teliaoss/github-pr-resource
+
+resources:
+- name: bosh-backup-and-restore
+  type: pull-request
+  check_every: 1m
+  source:
+    repository: cloudfoundry-incubator/bosh-backup-and-restore
+    access_token: ((github.access_token))
+    labels: ["dependencies"]
+
+- name: backup-and-restore-ci
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:cloudfoundry-incubator/backup-and-restore-ci.git
+    private_key: ((github.ssh_key))
+    branch: master
+
+jobs:
+- name: test-and-merge
+  serial: true
+  plan:
+  - get: bosh-backup-and-restore
+    trigger: true
+    version: every
+  - put: bosh-backup-and-restore
+    params:
+      path: bosh-backup-and-restore
+      status: pending
+  - get: backup-and-restore-ci
+  - task: find-pr-story
+    file: bosh-backup-and-restore/ci/tasks/find-pr-story/task.yml
+    params:
+      TRACKER_API_TOKEN: ((tracker.api_token))
+      TRACKER_PROJECT_ID: ((tracker.project_id))
+      GIT_REPOSITORY: cloudfoundry-incubator/bosh-backup-and-restore
+  - task: start-story
+    file: bosh-backup-and-restore/ci/tasks/start-story/task.yml
+    params:
+      TRACKER_API_TOKEN: ((tracker.api_token))
+      TRACKER_PROJECT_ID: ((tracker.project_id))
+  - task: bbr-unit
+    attempts: 5
+    file: backup-and-restore-ci/tasks/bbr-unit/task.yml
+    params:
+      DOCKER_HOST_IP: ((docker_host.ip))
+      DOCKER_HOST: ((docker_host.uri))
+      DOCKER_HOST_SSH_KEY: ((docker_host.ssh_key))
+    on_failure:
+      put: bosh-backup-and-restore
+      params:
+        path: bosh-backup-and-restore
+        status: failure
+  - put: bosh-backup-and-restore
+    params:
+        path: bosh-backup-and-restore
+        status: success
+        comment: "@dependabot merge"
