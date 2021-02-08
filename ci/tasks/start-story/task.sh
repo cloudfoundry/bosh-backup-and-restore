@@ -13,7 +13,7 @@ err=$(
         -X PUT \
         -H "X-TrackerToken: $API_TOKEN" \
         -H "Content-Type: application/json" \
-        -d '{"current_state": "started"}' \
+        -d '{"current_state": "started","estimate": 1}' \
         "https://www.pivotaltracker.com/services/v5/projects/$PROJECT_ID/stories/$STORY_ID" \
         -s \
         | jq '.error'
