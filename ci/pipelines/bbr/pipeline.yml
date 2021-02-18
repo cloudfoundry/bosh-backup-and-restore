@@ -1,0 +1,751 @@
+---
+maru-bosh-env: &maru-bosh-env
+  BOSH_ENVIRONMENT: "((infrastructure/bosh-director.director_url))"
+  BOSH_CLIENT: "((infrastructure/bosh-director.director_username))"
+  BOSH_CLIENT_SECRET: "((infrastructure/bosh-director.director_password))"
+  BOSH_CA_CERT: "((infrastructure/bosh-director.director_ca_cert))"
+  BOSH_GW_HOST: "((infrastructure/bosh-director.jumpbox_host)):22"
+  BOSH_GW_USER: jumpbox
+  BOSH_GW_PRIVATE_KEY: "((infrastructure/bosh-director.jumpbox_ssh_key))"
+
+maru-lite-bosh-env: &maru-lite-bosh-env
+  BOSH_ENVIRONMENT: "((infrastructure/bosh-lite-director.director_url))"
+  BOSH_CLIENT: "((infrastructure/bosh-lite-director.director_username))"
+  BOSH_CLIENT_SECRET: "((infrastructure/bosh-lite-director.director_password))"
+  BOSH_CA_CERT: "((infrastructure/bosh-lite-director.director_ca_cert))"
+  BOSH_GW_USER: jumpbox
+  BOSH_GW_HOST: "((infrastructure/bosh-lite-director.jumpbox_host)):22"
+  BOSH_GW_PRIVATE_KEY: "((infrastructure/bosh-lite-director.jumpbox_ssh_key))"
+
+test-bosh-director-ip: &test-bosh-director-ip 10.0.255.5
+test-bosh-director-deployment: &test-bosh-director-deployment test-bosh-director
+
+toolsmiths_api_worker: &toolsmiths_api_worker nimbus-worker
+tanzunet_product_name: &tanzunet_product_name p-bosh-backup-and-restore
+
+groups:
+- name: all
+  jobs:
+  - upload-deployment-test-releases
+  - unit-integration
+  - deploy-fake-director
+  - system-test-deployment
+  - system-test-director
+  - delete-system-director
+  - build-rc
+  - update-tracker
+  - build-and-publish-final
+  - publish-ga
+  - update-homebrew-formula
+  - test-build-s3-config-validator
+  - claim-env-pas-2-10
+  - configure-aws-s3-filestore
+  - validate-aws-s3-config
+  - unclaim-env-pas-2-10
+
+- name: build
+  jobs:
+  - upload-deployment-test-releases
+  - unit-integration
+  - deploy-fake-director
+  - system-test-deployment
+  - system-test-director
+  - delete-system-director
+  - build-rc
+  - update-tracker
+
+- name: s3-validator
+  jobs:
+  - test-build-s3-config-validator
+  - claim-env-pas-2-10
+  - configure-aws-s3-filestore
+  - validate-aws-s3-config
+  - unclaim-env-pas-2-10
+
+- name: shipit
+  jobs:
+  - build-and-publish-final
+  - publish-ga
+  - update-homebrew-formula
+
+resource_types:
+- name: pivnet
+  type: docker-image
+  source:
+    repository: pivotalcf/pivnet-resource
+    tag: latest-final
+
+- name: bosh-deployment-resource
+  type: docker-image
+  source:
+    repository: cloudfoundry/bosh-deployment-resource
+
+- name: gcs
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
+- name: pcf-pool
+  type: registry-image
+  source:
+    repository: cftoolsmiths/toolsmiths-envs-resource
+    tag: latest
+
+resources:
+- name: bbr-director-test-releases
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/bosh-backup-and-restore-test-releases.git
+    private_key: ((github.ssh_key))
+    branch: master
+    paths:
+    - test-bosh-backup-and-restore-release
+
+- name: bbr-deployment-test-releases
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/bosh-backup-and-restore-test-releases.git
+    private_key: ((github.ssh_key))
+    branch: master
+    paths:
+    - redis-test-release
+    - lock-ordering-release
+    - many-bbr-jobs-release
+
+- name: bosh-backup-and-restore
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:cloudfoundry-incubator/bosh-backup-and-restore.git
+    private_key: ((github.ssh_key))
+    branch: master
+    disable_git_lfs: true
+    ignore_paths:
+    - ci
+
+- name: bbr-s3-config-validator
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:cloudfoundry-incubator/bosh-backup-and-restore
+    private_key: ((github.ssh_key))
+    branch: master
+    paths:
+      - s3-config-validator
+
+- name: bosh-backup-and-restore-meta
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:pivotal-cf/bosh-backup-and-restore-meta.git
+    private_key: ((github.ssh_key))
+    git_crypt_key: ((github-bbr.crypt_key))
+    branch: master
+
+- name: backup-and-restore-ci
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:cloudfoundry-incubator/backup-and-restore-ci.git
+    private_key: ((github.ssh_key))
+    branch: master
+
+- name: homebrew-tap
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:cloudfoundry/homebrew-tap.git
+    branch: master
+    private_key: ((homebrew_ci_bot.private_key))
+
+- name: bbr-pivnet
+  type: pivnet
+  icon: alpha-p-box
+  source:
+    api_token: ((pivnet.api_token))
+    product_slug: *tanzunet_product_name
+    copy_metadata: true
+
+- name: rc
+  type: s3
+  icon: aws
+  source:
+    bucket: bosh-backup-and-restore-builds
+    region_name: eu-west-1
+    regexp: bbr-(.*)\.tar
+    access_key_id: ((aws_credentials.access_key_id))
+    secret_access_key: ((aws_credentials.secret_access_key))
+
+- name: bbr-release
+  type: github-release
+  icon: github
+  source:
+    user: cloudfoundry-incubator
+    repository: bosh-backup-and-restore
+    access_token: ((github.access_token))
+    drafts: true
+
+- name: bbr-final-release
+  type: github-release
+  icon: github
+  source:
+    user: cloudfoundry-incubator
+    repository: bosh-backup-and-restore
+    access_token: ((github.access_token))
+
+- name: bbr-final-release-version
+  type: semver
+  icon: google
+  source:
+    bucket: release-versions
+    key: bbr-final
+    json_key: ((gcp/service_accounts/bucket_owner.json_key))
+    initial_version: 1.9.0
+    driver: gcs
+
+- name: docs-bbr-main
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:cloudfoundry/docs-bbr.git
+    private_key: ((github.ssh_key))
+
+- name: docs-bbr-automation
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:cloudfoundry/docs-bbr.git
+    private_key: ((github.ssh_key))
+    branch: automated-release-notes
+
+- name: xenial-stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-google-kvm-ubuntu-xenial-go_agent
+
+- name: bosh-deployment
+  type: git
+  icon: github
+  source:
+    branch: master
+    uri: https://github.com/cloudfoundry/bosh-deployment.git
+
+- name: test-bosh-director-deployment
+  type: bosh-deployment-resource
+  source:
+    deployment: *test-bosh-director-deployment
+    skip_check: true
+
+- name: six-hours
+  type: time
+  icon: timer-outline
+  source:
+    interval: 6h
+    start: 9:00 AM
+    stop: 5:00 PM
+    days: [Monday, Tuesday, Wednesday, Thursday, Friday]
+
+- name: s3-config-validator-version
+  type: semver
+  icon: google
+  source:
+    bucket: cryo-bbr-s3-config-validator-test-artifacts
+    key: version
+    json_key: ((gcp/service_accounts/bbr_bucket_owner.json_key))
+    initial_version: 0.0.1
+    driver: gcs
+
+- name: bbr-s3-config-validator-test-artifacts
+  type: gcs
+  source:
+    bucket: cryo-bbr-s3-config-validator-test-artifacts
+    json_key: ((gcp/service_accounts/bbr_bucket_owner.json_key))
+    regexp: .*.tgz
+
+- name: bbr-s3-config-validator-artifact
+  type: gcs
+  source:
+    bucket: cryo-bbr-s3-config-validator-test-artifacts
+    json_key: ((gcp/service_accounts/bbr_bucket_owner.json_key))
+    regexp: bbr-s3-config-validator.(.*).tgz
+
+- name: pcf-2-10-pool
+  type: pcf-pool
+  source:
+    api_token: ((toolsmiths.api_token))
+    pool_name: us_2_10
+  tags:
+    - *toolsmiths_api_worker
+
+- name: cryogenics-meta
+  type: git
+  source:
+    uri: git@github.com:pivotal-cf/cryogenics-meta.git
+    private_key: ((github.ssh_key))
+    branch: main
+
+jobs:
+- name: unit-integration
+  serial: true
+  plan:
+  - in_parallel:
+    - get: six-hours
+      trigger: true
+    - get: bosh-backup-and-restore
+      trigger: true
+      params:
+        submodules: none
+        disable_git_lfs: true
+    - get: backup-and-restore-ci
+  - task: test
+    file: backup-and-restore-ci/tasks/bbr-unit/task.yml
+    params:
+      DOCKER_HOST_IP: ((docker_host.ip))
+      DOCKER_HOST: ((docker_host.uri))
+      DOCKER_HOST_SSH_KEY: ((docker_host.ssh_key))
+
+- name: upload-deployment-test-releases
+  serial: true
+  plan:
+  - in_parallel:
+    - get: six-hours
+      passed: [unit-integration]
+    - get: bbr-deployment-test-releases
+      trigger: true
+    - get: bosh-backup-and-restore
+      trigger: true
+      passed: [unit-integration]
+    - get: backup-and-restore-ci
+    - get: bosh-backup-and-restore-meta
+  - in_parallel:
+    - task: upload-redis-test-release-maru-lite
+      file: backup-and-restore-ci/tasks/bbr-upload-system-test-releases/task.yml
+      params:
+        RELEASE_NAME: redis-test-release
+        <<: *maru-lite-bosh-env
+    - task: upload-many-bbr-jobs-release-lite-bosh-uaa
+      file: backup-and-restore-ci/tasks/bbr-upload-system-test-releases/task.yml
+      params:
+        RELEASE_NAME: many-bbr-jobs-release
+        <<: *maru-lite-bosh-env
+    - task: upload-many-bbr-jobs-release-maru
+      file: backup-and-restore-ci/tasks/bbr-upload-system-test-releases/task.yml
+      params:
+        RELEASE_NAME: many-bbr-jobs-release
+        <<: *maru-bosh-env
+    - task: upload-redis-test-release-maru-bosh
+      file: backup-and-restore-ci/tasks/bbr-upload-system-test-releases/task.yml
+      params:
+        RELEASE_NAME: redis-test-release
+        <<: *maru-bosh-env
+    - task: upload-redis-test-release-lite-bosh-uaa
+      file: backup-and-restore-ci/tasks/bbr-upload-system-test-releases/task.yml
+      params:
+        RELEASE_NAME: redis-test-release
+        <<: *maru-lite-bosh-env
+    - task: upload-lock-ordering-release-lite-bosh-uaa
+      file: backup-and-restore-ci/tasks/bbr-upload-system-test-releases/task.yml
+      params:
+        RELEASE_NAME: lock-ordering-release
+        <<: *maru-lite-bosh-env
+
+- name: deploy-fake-director
+  serial: true
+  serial_groups: [system-test-director]
+  plan:
+  - in_parallel:
+    - get: six-hours
+      trigger: true
+      passed: [upload-deployment-test-releases]
+    - get: bosh-backup-and-restore
+      passed: [unit-integration, upload-deployment-test-releases]
+      trigger: true
+    - get: bosh-deployment
+    - get: bosh-backup-and-restore-meta
+    - get: bbr-director-test-releases
+      trigger: true
+    - get: xenial-stemcell
+    - get: backup-and-restore-ci
+  - task: generate-bosh-deployment-source-file
+    file: backup-and-restore-ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
+    params:
+      BBL_STATE: maru
+  - put: test-bosh-director-deployment
+    params:
+      manifest: bosh-backup-and-restore/fixtures/fake-director.yml
+      stemcells: [xenial-stemcell/*.tgz]
+      source_file: source-file/source-file.yml
+      vars:
+        deployment-name: test-bosh-director
+        jumpbox-public-key: ((test_bosh_director.public_key))
+        test_release_path: /tmp/build/put/bbr-director-test-releases/test-bosh-backup-and-restore-release
+        internal_ip: *test-bosh-director-ip
+
+- name: system-test-deployment
+  serial: true
+  plan:
+  - in_parallel:
+    - get: six-hours
+      trigger: true
+      passed: [upload-deployment-test-releases]
+    - get: bosh-backup-and-restore
+      passed: [unit-integration, upload-deployment-test-releases]
+      trigger: true
+    - get: bosh-backup-and-restore-meta
+    - get: backup-and-restore-ci
+    - get: bbr-deployment-test-releases
+      passed: [upload-deployment-test-releases]
+      trigger: true
+  - task: system-deployment-with-uaa
+    file: backup-and-restore-ci/tasks/bbr-system-deployment/task.yml
+    params:
+      <<: *maru-lite-bosh-env
+
+- name: system-test-director
+  serial: true
+  serial_groups: [system-test-director]
+  plan:
+  - in_parallel:
+    - get: six-hours
+      trigger: true
+      passed: [deploy-fake-director]
+    - get: bosh-backup-and-restore
+      passed: [deploy-fake-director]
+      trigger: true
+    - get: bosh-backup-and-restore-meta
+    - get: backup-and-restore-ci
+    - get: bbr-director-test-releases
+      passed: [deploy-fake-director]
+      trigger: true
+  - task: system-test-director
+    file: backup-and-restore-ci/tasks/bbr-system-director/task.yml
+    privileged: true
+    params:
+      CREDHUB_SERVER: "((infrastructure/bosh-director.credhub_server))"
+      CREDHUB_CLIENT: "((infrastructure/bosh-director.credhub_client))"
+      CREDHUB_SECRET: "((infrastructure/bosh-director.credhub_secret))"
+      CREDHUB_CA_CERT: "((infrastructure/bosh-director.credhub_ca_cert))"
+      DIRECTOR_HOST: *test-bosh-director-ip
+      DIRECTOR_SSH_KEY: ((test_bosh_director.private_key))
+      DIRECTOR_SSH_USERNAME: jumpbox
+      BOSH_DEPLOYMENT: *test-bosh-director-deployment
+      <<: *maru-bosh-env
+
+- name: delete-system-director
+  serial: true
+  serial_groups: [system-test-director]
+  plan:
+  - in_parallel:
+    - get: six-hours
+      trigger: true
+      passed: [system-test-director]
+    - get: bosh-backup-and-restore
+      passed: [system-test-director]
+      trigger: true
+    - get: bbr-director-test-releases
+      passed: [system-test-director]
+      trigger: true
+    - get: backup-and-restore-ci
+    - get: bosh-backup-and-restore-meta
+  - task: generate-bosh-deployment-source-file
+    file: backup-and-restore-ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
+    params:
+      BBL_STATE: maru
+  - put: test-bosh-director-deployment
+    params:
+      delete:
+        enabled: true
+      source_file: source-file/source-file.yml
+
+- name: build-rc
+  serial_groups: [version]
+  plan:
+  - in_parallel:
+    - get: six-hours
+      trigger: true
+      passed: [system-test-deployment, system-test-director]
+    - get: bosh-backup-and-restore
+      passed: [system-test-deployment, system-test-director]
+      trigger: true
+      params:
+        submodules: none
+        disable_git_lfs: true
+    - get: bbr-final-release-version
+      params: {pre: rc}
+    - get: bosh-backup-and-restore-meta
+    - get: backup-and-restore-ci
+  - task: build
+    file: backup-and-restore-ci/tasks/bbr-build/task.yml
+  - put: rc
+    params: {file: bbr-build/bbr-*.tar}
+
+- name: test-build-s3-config-validator
+  plan:
+  - in_parallel:
+    - get: backup-and-restore-ci
+    - get: s3-config-validator-version
+      params: {pre: build}
+    - get: bbr-s3-config-validator
+      trigger: true
+  - task: unit-test
+    file: backup-and-restore-ci/tasks/bbr-s3-config-validator-unit-test/task.yml
+    params:
+      AWS_ACCESS_KEY: ((s3_validator_test_bucket.access_key))
+      AWS_SECRET_KEY: ((s3_validator_test_bucket.secret_key))
+  - task: e2e-test
+    file: backup-and-restore-ci/tasks/bbr-s3-config-validator-e2e-test/task.yml
+    params:
+      AWS_ACCESS_KEY: ((s3_validator_test_bucket.access_key))
+      AWS_SECRET_KEY: ((s3_validator_test_bucket.secret_key))
+  - task: build
+    file: backup-and-restore-ci/tasks/bbr-s3-config-validator-build/task.yml
+  - put: s3-config-validator-version
+    params: { file: s3-config-validator-version/number }
+  - put: bbr-s3-config-validator-test-artifacts
+    params:
+      file: bbr-s3-config-validator-test-artifacts/*
+
+- name: claim-env-pas-2-10
+  serial_groups: [pas-2-10-aws-s3]
+  plan:
+  - in_parallel:
+    - get: backup-and-restore-ci
+    - put: env-pool
+      resource: pcf-2-10-pool
+      params:
+        action: claim
+      tags:
+      - *toolsmiths_api_worker
+    - get: bbr-s3-config-validator-test-artifacts
+      passed: [test-build-s3-config-validator]
+      trigger: true
+
+- name: configure-aws-s3-filestore
+  serial: true
+  serial_groups: [pas-2-10-aws-s3]
+  plan:
+  - in_parallel:
+    - get: env-pool
+      passed: [claim-env-pas-2-10]
+      resource: pcf-2-10-pool
+      tags:
+      - *toolsmiths_api_worker
+      trigger: true
+    - get: backup-and-restore-ci
+    - get: bbr-s3-config-validator-test-artifacts
+      passed: [claim-env-pas-2-10]
+  - task: enable-backup-prepare-pas
+    file: backup-and-restore-ci/tasks/bbr-s3-config-validator-enable-backup-prepare-pas/task.yml
+    params:
+      SKIP_APPLY_CHANGES: true
+  - task: enable-aws-s3-filestore
+    file: backup-and-restore-ci/tasks/bbr-s3-config-validator-enable-aws-s3-filestore/task.yml
+    params:
+      ENDPOINT: ((s3_validator_aws.endpoint))
+      BUILDPACKS_BUCKET: ((s3_validator_aws.live_bucket))
+      DROPLETS_BUCKET: ((s3_validator_aws.live_bucket))
+      PACKAGES_BUCKET: ((s3_validator_aws.live_bucket))
+      RESOURCES_BUCKET: ((s3_validator_aws.live_bucket))
+      BACKUP_BUCKET: ((s3_validator_aws.backup_bucket))
+      BACKUP_REGION: ((s3_validator_aws.backup_region))
+      ACCESS_KEY: ((s3_validator_aws.secret_key_id))
+      SECRET_KEY: ((s3_validator_aws.secret_key))
+      REGION: ((s3_validator_aws.region))
+      SKIP_APPLY_CHANGES: false
+
+- name: validate-aws-s3-config
+  serial: true
+  serial_groups: [pas-2-10-aws-s3]
+  plan:
+  - in_parallel:
+    - get: env-pool
+      passed: [configure-aws-s3-filestore]
+      resource: pcf-2-10-pool
+      tags:
+      - *toolsmiths_api_worker
+      trigger: true
+    - get: backup-and-restore-ci
+    - get: bbr-s3-config-validator-test-artifacts
+      passed: [configure-aws-s3-filestore]
+  - task: move-and-run-validator
+    file: backup-and-restore-ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.yml
+
+- name: unclaim-env-pas-2-10
+  serial: true
+  serial_groups: [pas-2-10-aws-s3]
+  plan:
+  - get: env-pool
+    passed: [validate-aws-s3-config]
+    resource: pcf-2-10-pool
+    tags:
+    - *toolsmiths_api_worker
+    trigger: true
+  - put: pcf-2-10-pool
+    params:
+      action: unclaim
+      env_file: env-pool/metadata
+    tags:
+    - *toolsmiths_api_worker
+
+- name: update-tracker
+  serial_groups: [version]
+  plan:
+  - get: cryogenics-meta
+  - get: bosh-backup-and-restore
+    passed: [build-rc]
+    trigger: true
+    params:
+      submodules: none
+      disable_git_lfs: true
+  - task: deliver-stories
+    file: cryogenics-meta/tasks/tracker-automation/deliver-stories/task.yml
+    params:
+      TRACKER_API_TOKEN: ((tracker.api_token))
+      TRACKER_PROJECT_ID: ((tracker.project_id))
+      GIT_REPOSITORY: cloudfoundry-incubator/bosh-backup-and-restore
+  - task: accept-stories
+    file: cryogenics-meta/tasks/tracker-automation/accept-stories/task.yml
+    params:
+      TRACKER_API_TOKEN: ((tracker.api_token))
+      TRACKER_PROJECT_ID: ((tracker.project_id))
+      GIT_REPOSITORY: cloudfoundry-incubator/bosh-backup-and-restore
+
+- name: build-and-publish-final
+  serial_groups: [version]
+  plan:
+  - in_parallel:
+    - get: docs-bbr-main
+    - get: cryogenics-meta
+    - get: bosh-backup-and-restore-meta
+    - get: bosh-backup-and-restore
+      passed: [build-rc]
+      params:
+        submodules: none
+        disable_git_lfs: true
+    - get: backup-and-restore-ci
+    - get: homebrew-tap
+    - get: bbr-s3-config-validator-artifact
+    - get: bbr-final-release-version
+      params: {bump: patch}
+  - task: check-for-changes
+    file: backup-and-restore-ci/tasks/check-for-changes/task.yml
+    input_mapping:
+      repo: bosh-backup-and-restore
+  - task: build-binaries
+    file: backup-and-restore-ci/tasks/build-binaries/task.yml
+  - in_parallel:
+    - task: generate-artifact-and-metadata
+      file: backup-and-restore-ci/tasks/generate-bbr-release-metadata/task.yml
+      input_mapping:
+        version-folder: bbr-final-release-version
+        template-folder: bosh-backup-and-restore-meta
+        release: bbr-build
+        release-tar: bbr-release
+      params:
+        TEMPLATE_PATH: templates/release.yml.erb
+        VERSION_PATH: number
+    - task: generate-release-notes
+      file: backup-and-restore-ci/tasks/generate-release-notes/task.yml
+      input_mapping:
+        repo: bosh-backup-and-restore
+        template-folder: bosh-backup-and-restore-meta
+      params:
+        TEMPLATE_PATH: templates/release-notes.md.erb
+    - task: generate-docs
+      file: backup-and-restore-ci/tasks/generate-docs/task.yml
+      input_mapping:
+        version-folder: bbr-final-release-version
+        repo: bosh-backup-and-restore
+        docs-repo: docs-bbr-main
+        template-folder: bosh-backup-and-restore-meta
+      params:
+        TEMPLATE_PATH: templates/bbr-docs.md.erb
+        VERSION_PATH: number
+  - load_var: version-number
+    file: bbr-final-release-version/number
+  - task: create-osm-release
+    file: cryogenics-meta/ci/tasks/release-automation/create-osm-release/task.yml
+    tags:
+    - *toolsmiths_api_worker
+    params:
+      PRODUCT_NAME: *tanzunet_product_name
+      VERSION: ((.:version-number))
+      OSM_API_KEY: ((osm.api_key))
+  - put: docs-bbr-automation
+    params:
+      repository: updated-docs-repo
+      rebase: true
+  - task: create-docs-pull-request
+    file: backup-and-restore-ci/tasks/create-pr/task.yml
+    params:
+      GITHUB_TOKEN: ((github.access_token))
+      BASE: master
+      BRANCH: automated-release-notes
+    input_mapping:
+      repo: docs-bbr-automation
+  - put: bbr-pivnet
+    params:
+      metadata_file: pivnet-release-with-metadata/release.yml
+      s3_filepath_prefix: product-files/bosh-backup-restore
+      file_glob: pivnet-release-with-metadata/bbr*
+  - put: bbr-release
+    params:
+      name: bbr-final-release-version/number
+      tag: bbr-final-release-version/number
+      tag_prefix: v
+      body: release-notes/release-notes.md
+      commitish: bosh-backup-and-restore/.git/refs/heads/master
+      globs:
+      - github-release-with-metadata/bbr*
+  - put: bbr-final-release-version
+    params: { file: bbr-final-release-version/number }
+
+- name: publish-ga
+  serial: true
+  plan:
+  - in_parallel:
+    - get: cryogenics-meta
+    - get: bbr-final-release-version
+      passed: [build-and-publish-final]
+  - load_var: release-version-number
+    file: bbr-final-release-version/number
+  - task: download-osl-file
+    tags:
+    - *toolsmiths_api_worker
+    file: cryogenics-meta/ci/tasks/release-automation/download-osl-file/task.yml
+    params:
+      PRODUCT_NAME: *tanzunet_product_name
+      VERSION: ((.:release-version-number))
+      OSM_API_KEY: ((osm.api_key))
+      OUTPUT_DIR: osl
+  - load_var: osl-file-name
+    file: osl/name
+  - task: add-osl-file-to-release
+    file: cryogenics-meta/ci/tasks/release-automation/add-osl-file-to-pivnet/task.yml
+    params:
+      PRODUCT_NAME: *tanzunet_product_name
+      OSL_FILE_NAME: ((.:osl-file-name))
+      VERSION: ((.:release-version-number))
+      PIVNET_TOKEN: ((pivnet.api_token))
+      AWS_PIVNET_BUCKET_PATH: ((pivnet_bucket.bucket_name))
+      AWS_ACCESS_KEY_ID: ((pivnet_bucket.access_key_id))
+      AWS_SECRET_ACCESS_KEY: ((pivnet_bucket.secret_access_key))
+      AWS_PRODUCT_NAME: ((pivnet_bucket.user))
+
+
+- name: update-homebrew-formula
+  serial: true
+  plan:
+  - in_parallel:
+    - get: backup-and-restore-ci
+    - get: homebrew-tap
+    - get: bbr-final-release
+      trigger: true
+  - task: update-homebrew-formula
+    file: backup-and-restore-ci/tasks/bbr-update-homebrew-formula/task.yml
+    input_mapping:
+      bbr-release: bbr-final-release
+  - put: homebrew-tap
+    params:
+      repository: updated-homebrew-tap
+      rebase: true
