@@ -1,0 +1,21 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source: {repository: pcfplatformrecovery/backup-and-restore}
+
+inputs:
+- name: bosh-backup-and-restore
+
+run:
+  path: bosh-backup-and-restore/ci/tasks/bbr-unit/task.sh
+
+params:
+  DOCKER_HOST:
+  DOCKER_HOST_IP:
+  DOCKER_HOST_SSH_KEY:
+  GOPATH: &go_path gopath
+
+caches:
+- path: *go_path

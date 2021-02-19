@@ -1,0 +1,16 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source: {repository: pcfplatformrecovery/backup-and-restore}
+
+inputs:
+- name: homebrew-tap
+- name: bbr-release
+
+outputs:
+- name: updated-homebrew-tap
+
+run:
+  path: bosh-backup-and-restore/ci/tasks/bbr-update-homebrew-formula/task.sh

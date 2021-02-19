@@ -1,0 +1,24 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source: {repository: pcfplatformrecovery/backup-and-restore}
+
+inputs:
+- name: release
+- name: release-tar
+- name: version-folder
+- name: template-folder
+
+params:
+  TEMPLATE_PATH:
+  VERSION_PATH:
+  RELEASE_TYPE: Maintenance
+
+outputs:
+- name: pivnet-release-with-metadata
+- name: github-release-with-metadata
+
+run:
+  path: bosh-backup-and-restore/ci/tasks/generate-bbr-release-metadata/task.sh

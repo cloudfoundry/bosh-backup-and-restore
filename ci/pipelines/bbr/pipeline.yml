@@ -142,14 +142,6 @@ resources:
     git_crypt_key: ((github-bbr.crypt_key))
     branch: master
 
-- name: backup-and-restore-ci
-  type: git
-  icon: github
-  source:
-    uri: git@github.com:cloudfoundry-incubator/backup-and-restore-ci.git
-    private_key: ((github.ssh_key))
-    branch: master
-
 - name: homebrew-tap
   type: git
   icon: github
@@ -296,9 +288,8 @@ jobs:
       params:
         submodules: none
         disable_git_lfs: true
-    - get: backup-and-restore-ci
   - task: test
-    file: backup-and-restore-ci/tasks/bbr-unit/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-unit/task.yml
     params:
       DOCKER_HOST_IP: ((docker_host.ip))
       DOCKER_HOST: ((docker_host.uri))
@@ -315,36 +306,35 @@ jobs:
     - get: bosh-backup-and-restore
       trigger: true
       passed: [unit-integration]
-    - get: backup-and-restore-ci
     - get: bosh-backup-and-restore-meta
   - in_parallel:
     - task: upload-redis-test-release-maru-lite
-      file: backup-and-restore-ci/tasks/bbr-upload-system-test-releases/task.yml
+      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: redis-test-release
         <<: *maru-lite-bosh-env
     - task: upload-many-bbr-jobs-release-lite-bosh-uaa
-      file: backup-and-restore-ci/tasks/bbr-upload-system-test-releases/task.yml
+      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: many-bbr-jobs-release
         <<: *maru-lite-bosh-env
     - task: upload-many-bbr-jobs-release-maru
-      file: backup-and-restore-ci/tasks/bbr-upload-system-test-releases/task.yml
+      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: many-bbr-jobs-release
         <<: *maru-bosh-env
     - task: upload-redis-test-release-maru-bosh
-      file: backup-and-restore-ci/tasks/bbr-upload-system-test-releases/task.yml
+      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: redis-test-release
         <<: *maru-bosh-env
     - task: upload-redis-test-release-lite-bosh-uaa
-      file: backup-and-restore-ci/tasks/bbr-upload-system-test-releases/task.yml
+      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: redis-test-release
         <<: *maru-lite-bosh-env
     - task: upload-lock-ordering-release-lite-bosh-uaa
-      file: backup-and-restore-ci/tasks/bbr-upload-system-test-releases/task.yml
+      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: lock-ordering-release
         <<: *maru-lite-bosh-env
@@ -365,9 +355,8 @@ jobs:
     - get: bbr-director-test-releases
       trigger: true
     - get: xenial-stemcell
-    - get: backup-and-restore-ci
   - task: generate-bosh-deployment-source-file
-    file: backup-and-restore-ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
     params:
       BBL_STATE: maru
   - put: test-bosh-director-deployment
@@ -392,12 +381,11 @@ jobs:
       passed: [unit-integration, upload-deployment-test-releases]
       trigger: true
     - get: bosh-backup-and-restore-meta
-    - get: backup-and-restore-ci
     - get: bbr-deployment-test-releases
       passed: [upload-deployment-test-releases]
       trigger: true
   - task: system-deployment-with-uaa
-    file: backup-and-restore-ci/tasks/bbr-system-deployment/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-system-deployment/task.yml
     params:
       <<: *maru-lite-bosh-env
 
@@ -413,12 +401,11 @@ jobs:
       passed: [deploy-fake-director]
       trigger: true
     - get: bosh-backup-and-restore-meta
-    - get: backup-and-restore-ci
     - get: bbr-director-test-releases
       passed: [deploy-fake-director]
       trigger: true
   - task: system-test-director
-    file: backup-and-restore-ci/tasks/bbr-system-director/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-system-director/task.yml
     privileged: true
     params:
       CREDHUB_SERVER: "((infrastructure/bosh-director.credhub_server))"
@@ -445,10 +432,9 @@ jobs:
     - get: bbr-director-test-releases
       passed: [system-test-director]
       trigger: true
-    - get: backup-and-restore-ci
     - get: bosh-backup-and-restore-meta
   - task: generate-bosh-deployment-source-file
-    file: backup-and-restore-ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
     params:
       BBL_STATE: maru
   - put: test-bosh-director-deployment
@@ -473,32 +459,30 @@ jobs:
     - get: bbr-final-release-version
       params: {pre: rc}
     - get: bosh-backup-and-restore-meta
-    - get: backup-and-restore-ci
   - task: build
-    file: backup-and-restore-ci/tasks/bbr-build/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-build/task.yml
   - put: rc
     params: {file: bbr-build/bbr-*.tar}
 
 - name: test-build-s3-config-validator
   plan:
   - in_parallel:
-    - get: backup-and-restore-ci
     - get: s3-config-validator-version
       params: {pre: build}
     - get: bbr-s3-config-validator
       trigger: true
   - task: unit-test
-    file: backup-and-restore-ci/tasks/bbr-s3-config-validator-unit-test/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-unit-test/task.yml
     params:
       AWS_ACCESS_KEY: ((s3_validator_test_bucket.access_key))
       AWS_SECRET_KEY: ((s3_validator_test_bucket.secret_key))
   - task: e2e-test
-    file: backup-and-restore-ci/tasks/bbr-s3-config-validator-e2e-test/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-e2e-test/task.yml
     params:
       AWS_ACCESS_KEY: ((s3_validator_test_bucket.access_key))
       AWS_SECRET_KEY: ((s3_validator_test_bucket.secret_key))
   - task: build
-    file: backup-and-restore-ci/tasks/bbr-s3-config-validator-build/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-build/task.yml
   - put: s3-config-validator-version
     params: { file: s3-config-validator-version/number }
   - put: bbr-s3-config-validator-test-artifacts
@@ -509,7 +493,6 @@ jobs:
   serial_groups: [pas-2-10-aws-s3]
   plan:
   - in_parallel:
-    - get: backup-and-restore-ci
     - put: env-pool
       resource: pcf-2-10-pool
       params:
@@ -531,15 +514,14 @@ jobs:
       tags:
       - *toolsmiths_api_worker
       trigger: true
-    - get: backup-and-restore-ci
     - get: bbr-s3-config-validator-test-artifacts
       passed: [claim-env-pas-2-10]
   - task: enable-backup-prepare-pas
-    file: backup-and-restore-ci/tasks/bbr-s3-config-validator-enable-backup-prepare-pas/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-enable-backup-prepare-pas/task.yml
     params:
       SKIP_APPLY_CHANGES: true
   - task: enable-aws-s3-filestore
-    file: backup-and-restore-ci/tasks/bbr-s3-config-validator-enable-aws-s3-filestore/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-enable-aws-s3-filestore/task.yml
     params:
       ENDPOINT: ((s3_validator_aws.endpoint))
       BUILDPACKS_BUCKET: ((s3_validator_aws.live_bucket))
@@ -564,11 +546,10 @@ jobs:
       tags:
       - *toolsmiths_api_worker
       trigger: true
-    - get: backup-and-restore-ci
     - get: bbr-s3-config-validator-test-artifacts
       passed: [configure-aws-s3-filestore]
   - task: move-and-run-validator
-    file: backup-and-restore-ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.yml
 
 - name: unclaim-env-pas-2-10
   serial: true
@@ -622,20 +603,19 @@ jobs:
       params:
         submodules: none
         disable_git_lfs: true
-    - get: backup-and-restore-ci
     - get: homebrew-tap
     - get: bbr-s3-config-validator-artifact
     - get: bbr-final-release-version
       params: {bump: patch}
   - task: check-for-changes
-    file: backup-and-restore-ci/tasks/check-for-changes/task.yml
+    file: bosh-backup-and-restore/ci/tasks/check-for-changes/task.yml
     input_mapping:
       repo: bosh-backup-and-restore
   - task: build-binaries
-    file: backup-and-restore-ci/tasks/build-binaries/task.yml
+    file: bosh-backup-and-restore/ci/tasks/build-binaries/task.yml
   - in_parallel:
     - task: generate-artifact-and-metadata
-      file: backup-and-restore-ci/tasks/generate-bbr-release-metadata/task.yml
+      file: bosh-backup-and-restore/ci/tasks/generate-bbr-release-metadata/task.yml
       input_mapping:
         version-folder: bbr-final-release-version
         template-folder: bosh-backup-and-restore-meta
@@ -645,14 +625,14 @@ jobs:
         TEMPLATE_PATH: templates/release.yml.erb
         VERSION_PATH: number
     - task: generate-release-notes
-      file: backup-and-restore-ci/tasks/generate-release-notes/task.yml
+      file: bosh-backup-and-restore/ci/tasks/generate-release-notes/task.yml
       input_mapping:
         repo: bosh-backup-and-restore
         template-folder: bosh-backup-and-restore-meta
       params:
         TEMPLATE_PATH: templates/release-notes.md.erb
     - task: generate-docs
-      file: backup-and-restore-ci/tasks/generate-docs/task.yml
+      file: bosh-backup-and-restore/ci/tasks/generate-docs/task.yml
       input_mapping:
         version-folder: bbr-final-release-version
         repo: bosh-backup-and-restore
@@ -676,7 +656,7 @@ jobs:
       repository: updated-docs-repo
       rebase: true
   - task: create-docs-pull-request
-    file: backup-and-restore-ci/tasks/create-pr/task.yml
+    file: cryogenics-meta/ci/tasks/create-pr/task.yml
     params:
       GITHUB_TOKEN: ((github.access_token))
       BASE: master
@@ -737,12 +717,11 @@ jobs:
   serial: true
   plan:
   - in_parallel:
-    - get: backup-and-restore-ci
     - get: homebrew-tap
     - get: bbr-final-release
       trigger: true
   - task: update-homebrew-formula
-    file: backup-and-restore-ci/tasks/bbr-update-homebrew-formula/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-update-homebrew-formula/task.yml
     input_mapping:
       bbr-release: bbr-final-release
   - put: homebrew-tap

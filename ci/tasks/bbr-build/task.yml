@@ -1,0 +1,18 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source: {repository: pcfplatformrecovery/backup-and-restore}
+
+inputs:
+- name: bosh-backup-and-restore
+- name: bosh-backup-and-restore-meta
+- name: bbr-final-release-version
+
+outputs:
+- name: bbr-build
+- name: bbr-release
+
+run:
+  path: bosh-backup-and-restore/ci/tasks/bbr-build/task.sh

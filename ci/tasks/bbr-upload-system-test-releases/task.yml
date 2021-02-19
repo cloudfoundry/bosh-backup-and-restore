@@ -1,0 +1,23 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source: {repository: pcfplatformrecovery/backup-and-restore}
+
+inputs:
+- name: bbr-deployment-test-releases
+- name: bosh-backup-and-restore-meta
+
+params:
+  RELEASE_NAME:
+  BOSH_ENVIRONMENT:
+  BOSH_CLIENT:
+  BOSH_CLIENT_SECRET:
+  BOSH_CA_CERT:
+  BOSH_GW_HOST:
+  BOSH_GW_PRIVATE_KEY:
+  BOSH_GW_USER:
+
+run:
+  path: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.sh
