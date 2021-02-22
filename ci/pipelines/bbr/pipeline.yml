@@ -422,7 +422,7 @@ jobs:
   - task: generate-bosh-deployment-source-file
     file: bosh-backup-and-restore/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
     params:
-      BBL_STATE: maru
+      <<: *maru-bosh-env
   - put: test-bosh-director-deployment
     params:
       delete:
