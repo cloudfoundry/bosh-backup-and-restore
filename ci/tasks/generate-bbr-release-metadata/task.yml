@@ -10,6 +10,7 @@ inputs:
 - name: release-tar
 - name: version-folder
 - name: template-folder
+- name: bosh-backup-and-restore
 
 params:
   TEMPLATE_PATH:

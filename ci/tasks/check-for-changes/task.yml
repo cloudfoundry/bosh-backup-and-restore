@@ -7,6 +7,7 @@ image_resource:
 
 inputs:
 - name: repo
+- name: bosh-backup-and-restore
 
 run:
   path: bosh-backup-and-restore/ci/tasks/check-for-changes/task.sh

@@ -10,6 +10,7 @@ inputs:
 - name: docs-repo
 - name: template-folder
 - name: version-folder
+- name: bosh-backup-and-restore
 
 outputs:
 - name: updated-docs-repo

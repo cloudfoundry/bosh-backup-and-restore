@@ -8,6 +8,7 @@ image_resource:
 inputs:
 - name: homebrew-tap
 - name: bbr-release
+- name: bosh-backup-and-restore
 
 outputs:
 - name: updated-homebrew-tap

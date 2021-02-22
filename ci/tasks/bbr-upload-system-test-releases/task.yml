@@ -8,6 +8,7 @@ image_resource:
 inputs:
 - name: bbr-deployment-test-releases
 - name: bosh-backup-and-restore-meta
+- name: bosh-backup-and-restore
 
 params:
   RELEASE_NAME:

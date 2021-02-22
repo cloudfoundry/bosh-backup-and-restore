@@ -8,6 +8,7 @@ image_resource:
 inputs:
 - name: repo
 - name: template-folder
+- name: bosh-backup-and-restore
 
 outputs:
 - name: release-notes

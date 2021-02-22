@@ -7,6 +7,7 @@ image_resource:
 
 inputs:
 - name: env-pool
+- name: bosh-backup-and-restore
 
 params:
   SKIP_APPLY_CHANGES: false

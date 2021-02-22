@@ -8,6 +8,7 @@ image_resource:
 
 inputs:
 - name: bbr-s3-config-validator
+- name: bosh-backup-and-restore
 
 params:
   AWS_SECRET_KEY:

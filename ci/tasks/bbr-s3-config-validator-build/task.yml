@@ -9,6 +9,7 @@ image_resource:
 inputs:
 - name: bbr-s3-config-validator
 - name: s3-config-validator-version
+- name: bosh-backup-and-restore
 
 outputs:
 - name: bbr-s3-config-validator-test-artifacts
