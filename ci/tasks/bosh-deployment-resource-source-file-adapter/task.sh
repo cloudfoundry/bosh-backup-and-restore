@@ -11,5 +11,5 @@ client_secret: ${BOSH_CLIENT_SECRET}
 EOF
 ) -- "ca_cert" "$BOSH_CA_CERT" > source-file/source-file.yml
 
-yq write --inplace -- source-file/source-file.yml jumpbox_ssh_key "$( cat "$BOSH_GW_PRIVATE_KEY" )"
+yq write --inplace -- source-file/source-file.yml jumpbox_ssh_key "$BOSH_GW_PRIVATE_KEY"
 
