@@ -1,0 +1,18 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source: {repository: pcfplatformrecovery/backup-and-restore}
+
+inputs:
+- name: bosh-backup-and-restore-meta
+
+outputs:
+- name: source-file
+
+params:
+  BBL_STATE:
+
+run:
+  path: bosh-backup-and-restore/ci/tasks/bosh-deployment-resource-source-file-adapter/task.sh

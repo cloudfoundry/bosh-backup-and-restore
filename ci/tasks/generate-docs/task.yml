@@ -1,0 +1,22 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source: {repository: pcfplatformrecovery/backup-and-restore}
+
+inputs:
+- name: repo
+- name: docs-repo
+- name: template-folder
+- name: version-folder
+
+outputs:
+- name: updated-docs-repo
+
+params:
+  TEMPLATE_PATH:
+  VERSION_PATH:
+
+run:
+  path: bosh-backup-and-restore/ci/tasks/generate-docs/task.sh

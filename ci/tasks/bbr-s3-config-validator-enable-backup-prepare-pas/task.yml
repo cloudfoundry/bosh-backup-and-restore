@@ -1,0 +1,15 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source: {repository: pcfplatformrecovery/backup-and-restore-minimal}
+
+inputs:
+- name: env-pool
+
+params:
+  SKIP_APPLY_CHANGES: false
+
+run:
+  path: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-enable-backup-prepare-pas/task.sh

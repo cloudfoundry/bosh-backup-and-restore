@@ -1,0 +1,23 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source: {repository: pcfplatformrecovery/backup-and-restore}
+
+inputs:
+- name: bosh-backup-and-restore
+- name: bosh-backup-and-restore-meta
+
+params:
+  BOSH_DEPLOYMENT:
+  BOSH_GW_HOST:
+  BOSH_GW_PRIVATE_KEY:
+  BOSH_GW_USER:
+
+  DIRECTOR_HOST:
+  DIRECTOR_SSH_USERNAME:
+  DIRECTOR_SSH_KEY:
+
+run:
+  path: bosh-backup-and-restore/ci/tasks/bbr-system-director/task.sh

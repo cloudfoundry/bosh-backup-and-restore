@@ -1,0 +1,19 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source: {repository: pcfplatformrecovery/backup-and-restore}
+
+inputs:
+- name: repo
+- name: template-folder
+
+outputs:
+- name: release-notes
+
+params:
+  TEMPLATE_PATH:
+
+run:
+  path: bosh-backup-and-restore/ci/tasks/generate-release-notes/task.sh

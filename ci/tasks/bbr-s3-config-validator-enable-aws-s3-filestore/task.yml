@@ -1,0 +1,25 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source: {repository: pcfplatformrecovery/backup-and-restore-minimal}
+
+inputs:
+- name: env-pool
+
+params:
+  ENDPOINT:
+  BUILDPACKS_BUCKET:
+  DROPLETS_BUCKET:
+  PACKAGES_BUCKET:
+  RESOURCES_BUCKET:
+  BACKUP_REGION:
+  BACKUP_BUCKET:
+  ACCESS_KEY:
+  SECRET_KEY:
+  REGION:
+  SKIP_APPLY_CHANGES: false
+
+run:
+  path: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-enable-aws-s3-filestore/task.sh
