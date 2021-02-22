@@ -121,17 +121,6 @@ resources:
     branch: master
     disable_git_lfs: true
 
-- name: bbr-s3-config-validator
-  type: git
-  icon: github
-  source:
-    uri: git@github.com:cloudfoundry-incubator/bosh-backup-and-restore
-    private_key: ((github.ssh_key))
-    branch: master
-    paths:
-      - s3-config-validator
-      - ci
-
 - name: bosh-backup-and-restore-meta
   type: git
   icon: github
@@ -464,10 +453,10 @@ jobs:
 - name: test-build-s3-config-validator
   plan:
   - in_parallel:
+    - get: bosh-backup-and-restore
+      trigger: true
     - get: s3-config-validator-version
       params: {pre: build}
-    - get: bbr-s3-config-validator
-      trigger: true
   - task: unit-test
     file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-unit-test/task.yml
     params:
@@ -497,6 +486,8 @@ jobs:
     - get: bbr-s3-config-validator-test-artifacts
       passed: [test-build-s3-config-validator]
       trigger: true
+    - get: bosh-backup-and-restore
+      passed: [test-build-s3-config-validator]
 
 - name: configure-aws-s3-filestore
   serial: true
@@ -508,6 +499,8 @@ jobs:
       resource: pcf-2-10-pool
       trigger: true
     - get: bbr-s3-config-validator-test-artifacts
+      passed: [claim-env-pas-2-10]
+    - get: bosh-backup-and-restore
       passed: [claim-env-pas-2-10]
   - task: enable-backup-prepare-pas
     file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-enable-backup-prepare-pas/task.yml
@@ -538,6 +531,8 @@ jobs:
       resource: pcf-2-10-pool
       trigger: true
     - get: bbr-s3-config-validator-test-artifacts
+      passed: [configure-aws-s3-filestore]
+    - get: bosh-backup-and-restore
       passed: [configure-aws-s3-filestore]
   - task: move-and-run-validator
     file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.yml
