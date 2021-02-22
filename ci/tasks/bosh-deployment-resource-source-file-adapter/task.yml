@@ -12,7 +12,13 @@ outputs:
 - name: source-file
 
 params:
-  BBL_STATE:
+  BOSH_ENVIRONMENT:
+  BOSH_CLIENT:
+  BOSH_CLIENT_SECRET:
+  BOSH_CA_CERT:
+  BOSH_GW_HOST:
+  BOSH_GW_USER:
+  BOSH_GW_PRIVATE_KEY:
 
 run:
   path: bosh-backup-and-restore/ci/tasks/bosh-deployment-resource-source-file-adapter/task.sh
