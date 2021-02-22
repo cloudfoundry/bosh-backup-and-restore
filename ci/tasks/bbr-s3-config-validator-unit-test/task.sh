@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+cd bosh-backup-and-restore/s3-config-validator/src
+
 ginkgo \
   -r \
   --randomizeAllSpecs \
