@@ -130,6 +130,7 @@ resources:
     branch: master
     paths:
       - s3-config-validator
+      - ci
 
 - name: bosh-backup-and-restore-meta
   type: git
