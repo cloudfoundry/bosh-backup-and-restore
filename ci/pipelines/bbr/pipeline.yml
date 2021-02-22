@@ -120,8 +120,6 @@ resources:
     private_key: ((github.ssh_key))
     branch: master
     disable_git_lfs: true
-    ignore_paths:
-    - ci
 
 - name: bbr-s3-config-validator
   type: git
