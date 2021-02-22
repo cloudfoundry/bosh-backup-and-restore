@@ -6,7 +6,6 @@ image_resource:
   source: {repository: pcfplatformrecovery/backup-and-restore}
 
 inputs:
-- name: bosh-backup-and-restore-meta
 - name: bosh-backup-and-restore
 
 outputs:
