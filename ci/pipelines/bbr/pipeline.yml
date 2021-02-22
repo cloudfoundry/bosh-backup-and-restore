@@ -274,8 +274,6 @@ resources:
   source:
     api_token: ((toolsmiths.api_token))
     pool_name: us_2_10
-  tags:
-    - *toolsmiths_api_worker
 
 - name: cryogenics-meta
   type: git
@@ -514,8 +512,6 @@ jobs:
       resource: pcf-2-10-pool
       params:
         action: claim
-      tags:
-      - *toolsmiths_api_worker
     - get: bbr-s3-config-validator-test-artifacts
       passed: [test-build-s3-config-validator]
       trigger: true
@@ -528,8 +524,6 @@ jobs:
     - get: env-pool
       passed: [claim-env-pas-2-10]
       resource: pcf-2-10-pool
-      tags:
-      - *toolsmiths_api_worker
       trigger: true
     - get: backup-and-restore-ci
     - get: bbr-s3-config-validator-test-artifacts
@@ -561,8 +555,6 @@ jobs:
     - get: env-pool
       passed: [configure-aws-s3-filestore]
       resource: pcf-2-10-pool
-      tags:
-      - *toolsmiths_api_worker
       trigger: true
     - get: backup-and-restore-ci
     - get: bbr-s3-config-validator-test-artifacts
@@ -577,15 +569,11 @@ jobs:
   - get: env-pool
     passed: [validate-aws-s3-config]
     resource: pcf-2-10-pool
-    tags:
-    - *toolsmiths_api_worker
     trigger: true
   - put: pcf-2-10-pool
     params:
       action: unclaim
       env_file: env-pool/metadata
-    tags:
-    - *toolsmiths_api_worker
 
 - name: update-tracker
   serial_groups: [version]
