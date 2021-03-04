@@ -13,14 +13,6 @@ resources:
     access_token: ((github.access_token))
     labels: ["dependencies"]
 
-- name: backup-and-restore-ci
-  type: git
-  icon: github
-  source:
-    uri: git@github.com:cloudfoundry-incubator/backup-and-restore-ci.git
-    private_key: ((github.ssh_key))
-    branch: master
-
 jobs:
 - name: test-and-merge
   serial: true
@@ -32,7 +24,6 @@ jobs:
     params:
       path: bosh-backup-and-restore
       status: pending
-  - get: backup-and-restore-ci
   - task: find-pr-story
     attempts: 5
     file: bosh-backup-and-restore/ci/tasks/find-pr-story/task.yml
@@ -48,7 +39,7 @@ jobs:
       TRACKER_PROJECT_ID: ((tracker.project_id))
   - task: bbr-unit
     attempts: 5
-    file: backup-and-restore-ci/tasks/bbr-unit/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-unit/task.yml
     params:
       DOCKER_HOST_IP: ((docker_host.ip))
       DOCKER_HOST: ((docker_host.uri))
