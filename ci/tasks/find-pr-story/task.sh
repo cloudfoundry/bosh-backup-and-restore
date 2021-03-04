@@ -14,14 +14,12 @@ GIT_PR_ID=$(cat bosh-backup-and-restore/.git/resource/pr)
 
 echo "Fetching tracker story for $GIT_REPOSITORY PR #$GIT_PR_ID..."
 
-PR_URL="https://github.com/$GIT_REPOSITORY/pull/$GIT_PR_ID"
-
 res=$(
     curl \
         -H "X-TrackerToken: $API_TOKEN" \
-        "https://www.pivotaltracker.com/services/v5/projects/$PROJECT_ID/stories?with_label=github-pull-request" \
+        "https://www.pivotaltracker.com/services/v5/projects/$PROJECT_ID/stories?with_label=github-pull-request&limit=9999" \
         -s \
-        | jq -r '.[] | select(.description | contains("'$GIT_PR_ID'")) | .id'
+        | jq -r '.[] | select(.description | contains("https://github.com/'$GIT_REPOSITORY'/pull/'$GIT_PR_ID'")) | .id'
     )
 
 if [ -z "$res" ]
