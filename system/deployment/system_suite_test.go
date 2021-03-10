@@ -84,7 +84,7 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	By("copying bbr and bosh.crt to the jumpbox")
-	JumpboxInstance.Copy(commandPath, workspaceDir)
+	JumpboxInstance.Copy(commandPath, workspaceDir+"/bbr")
 	JumpboxInstance.Copy(boshCaCertPath, workspaceDir+"/bosh.crt")
 })
 
