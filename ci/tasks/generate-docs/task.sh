@@ -19,7 +19,7 @@ pushd docs-repo
 
   git add bbr-rn.html.md.erb
   git config --global user.name "Cryogenics CI"
-  git config --global user.email "cf-lazarus@pivotal.io"
+  git config --global user.email "mapbu-cryogenics@groups.vmware.com"
   git commit -m "Release Notes for version: ${VERSION}"
 popd
 
