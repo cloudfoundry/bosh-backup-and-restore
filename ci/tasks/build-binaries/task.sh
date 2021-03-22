@@ -9,7 +9,7 @@ BBR_RELEASE="$PWD/bbr-release/releases"
 
 function main {
   pushd "$BBR_REPO"
-    make release
+    VERSION="$VERSION" make release
   popd
 
   copy_release_files "$BBR_REPO/releases/." "${BBR_RELEASE}"
