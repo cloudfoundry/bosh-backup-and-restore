@@ -10,10 +10,11 @@ inputs:
 - name: bosh-backup-and-restore-meta
 - name: bbr-final-release-version
 - name: bbr-s3-config-validator-artifact
+- name: ci
 
 outputs:
 - name: bbr-release
 - name: bbr-build
 
 run:
-  path: bosh-backup-and-restore/ci/tasks/build-binaries/task.sh
+  path: ci/ci/tasks/build-binaries/task.sh
