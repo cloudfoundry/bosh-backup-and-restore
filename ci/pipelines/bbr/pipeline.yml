@@ -121,6 +121,16 @@ resources:
     branch: master
     disable_git_lfs: true
 
+- name: ci
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:cloudfoundry-incubator/bosh-backup-and-restore.git
+    private_key: ((github.ssh_key))
+    branch: master
+    paths:
+    - ci
+
 - name: bosh-backup-and-restore-meta
   type: git
   icon: github
@@ -589,12 +599,13 @@ jobs:
     - get: bbr-s3-config-validator-artifact
     - get: bbr-final-release-version
       params: {bump: patch}
+    - get: ci
   - task: check-for-changes
     file: bosh-backup-and-restore/ci/tasks/check-for-changes/task.yml
     input_mapping:
       repo: bosh-backup-and-restore
   - task: build-binaries
-    file: bosh-backup-and-restore/ci/tasks/build-binaries/task.yml
+    file: ci/ci/tasks/build-binaries/task.yml
   - in_parallel:
     - task: generate-artifact-and-metadata
       file: bosh-backup-and-restore/ci/tasks/generate-bbr-release-metadata/task.yml
@@ -702,6 +713,7 @@ jobs:
     - get: homebrew-tap
     - get: bbr-final-release
       trigger: true
+    - get: bosh-backup-and-restore
   - task: update-homebrew-formula
     file: bosh-backup-and-restore/ci/tasks/bbr-update-homebrew-formula/task.yml
     input_mapping:
