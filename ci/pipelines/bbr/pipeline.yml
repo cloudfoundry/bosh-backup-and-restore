@@ -644,6 +644,15 @@ jobs:
       PRODUCT_NAME: *tanzunet_product_name
       VERSION: ((.:version-number))
       OSM_API_KEY: ((osm.api_key))
+  - task: create-story
+    file: cryogenics-meta/ci/tasks/tracker-automation/create-story/task.yml
+    params:
+      TRACKER_API_TOKEN: ((tracker.api_token))
+      TRACKER_PROJECT_ID: ((tracker.project_id))
+      STORY_TITLE: '**[BBR]** Publish ((.:version-number))'
+      STORY_ESTIMATE: 1
+      STORY_LABELS: 'bbr'
+      STORY_BLOCKERS: '{"description":"OSL file"}'
   - put: docs-bbr-automation
     params:
       repository: updated-docs-repo
