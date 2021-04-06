@@ -1,0 +1,17 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source: {repository: pcfplatformrecovery/backup-and-restore}
+
+inputs:
+- name: terraform-github-release
+- name: ci
+
+outputs:
+- name: dockerbuild-env
+
+run:
+  path: ci/ci/tasks/check-terraform-version/task.sh
+
