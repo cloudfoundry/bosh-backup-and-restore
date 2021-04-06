@@ -14,7 +14,7 @@ bump_golang() {
 }
 
 commit_changes() {
-    pushd backup-and-restore-minimal-repo
+    pushd backup-and-restore-minimal
         if [[ -n $(git status --porcelain $minimal_dockerfile) ]]; then
             git add $minimal_dockerfile
             git config --global user.name "Cryogenics CI"
@@ -33,4 +33,4 @@ commit_changes() {
 bump_golang
 commit_changes
 
-git clone backup-and-restore-minimal-repo bumped-backup-and-restore-minimal
+git clone backup-and-restore-minimal bumped-backup-and-restore-minimal
