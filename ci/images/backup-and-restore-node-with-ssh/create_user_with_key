@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -eu
+
+username=$1
+key=$2
+
+groupadd -f vcap
+useradd --shell /bin/bash --create-home "$username"
+usermod -aG sudo,vcap,bosh_sshers "$username"
+
+mkdir -p "/home/$1/.ssh"
+echo "$key" > "/home/$1/.ssh/authorized_keys"
