@@ -1,0 +1,312 @@
+---
+resources:
+- name: terraform-github-release
+  type: github-release
+  source:
+    user: hashicorp
+    repository: terraform
+    access_token: ((github-access-token))
+    tag_filter: v0.14.2
+
+- name: bbr-pcf-pipeline-tasks
+  type: git
+  source:
+    uri: https://github.com/pivotal-cf/bbr-pcf-pipeline-tasks.git
+    branch: master
+    paths: [docker/Dockerfile]
+
+- name: bbr-pcf-pipeline-tasks-final
+  type: docker-image
+  source:
+    tag: final
+    repository: pcfplatformrecovery/bbr-pcf-pipeline-tasks
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
+
+- name: bbr-pcf-pipeline-tasks-rc
+  type: docker-image
+  source:
+    tag: release-candidate
+    repository: pcfplatformrecovery/bbr-pcf-pipeline-tasks
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
+
+- name: ubuntu-xenial
+  type: docker-image
+  source:
+    repository: ubuntu
+    tag: xenial
+
+- name: bosh-lite-stemcell
+  type: s3
+  source:
+    bucket: bosh-core-stemcells
+    region: us-east-1
+    regexp: (315\.\d+)/bosh-stemcell-(315\.\d+)-warden-boshlite-ubuntu-xenial-go_agent.tgz
+
+- name: backup-and-restore-minimal-repo
+  type: git
+  source:
+    private_key: ((github.ssh_key))
+    uri: git@github.com:cloudfoundry-incubator/backup-and-restore-ci.git
+    branch: master
+    paths:
+    - "ci-docker-images/backup-and-restore-minimal/*"
+    - "tasks/bump-dependencies/*"
+
+- name: backup-and-restore-repo
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/backup-and-restore-ci.git
+    private_key: ((github.ssh_key))
+    branch: master
+    paths: ["ci-docker-images/backup-and-restore/*"]
+
+- name: backup-and-restore-cf-for-k8s-repo
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/backup-and-restore-ci.git
+    private_key: ((github.ssh_key))
+    branch: master
+    paths: ["ci-docker-images/backup-and-restore-cf-for-k8s/*"]
+
+- name: backup-and-restore-ci
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/backup-and-restore-ci.git
+    private_key: ((github.ssh_key))
+    branch: master
+
+- name: backup-and-restore-node-with-ssh-repo
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/backup-and-restore-ci.git
+    private_key: ((github.ssh_key))
+    branch: master
+    paths: ["ci-docker-images/backup-and-restore-node-with-ssh/*"]
+
+- name: k-drats
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry-incubator/backup-and-restore-ci.git
+    private_key: ((github.ssh_key))
+    branch: master
+    paths: ["ci-docker-images/k-drats/*"]
+
+- name: backup-and-restore-minimal-docker-image
+  type: docker-image
+  source:
+    repository: pcfplatformrecovery/backup-and-restore-minimal
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
+
+- name: backup-and-restore-cf-for-k8s-docker-image
+  type: docker-image
+  source:
+    repository: pcfplatformrecovery/backup-and-restore-cf-for-k8s
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
+
+- name: backup-and-restore-docker-image
+  type: docker-image
+  source:
+    repository: pcfplatformrecovery/backup-and-restore
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
+
+- name: bosh-lite-stemcell-docker-image
+  type: docker-image
+  source:
+    repository: pcfplatformrecovery/backup-and-restore-bosh-stemcell
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
+
+- name: backup-and-restore-node-with-ssh-docker-image
+  type: docker-image
+  source:
+    repository: pcfplatformrecovery/backup-and-restore-node-with-ssh
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
+
+- name: cf-deployment-concourse-tasks-docker-image
+  type: docker-image
+  source:
+    repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
+
+- name: k-drats-docker-image
+  type: docker-image
+  source:
+    repository: pcfplatformrecovery/k-drats
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
+
+- name: golang-docker-image
+  type: docker-image
+  source:
+    repository: golang
+    username: ((dockerhub-username))
+    password: ((dockerhub-password))
+    tag: 1
+
+jobs:
+- name: build-k-drats
+  serial: true
+  plan:
+  - in_parallel:
+    - get: k-drats
+      trigger: true
+    - get: cf-deployment-concourse-tasks-docker-image
+      trigger: true
+  - put: k-drats-docker-image
+    params:
+      build: k-drats/ci-docker-images/k-drats/
+
+- name: build-backup-and-restore-cf-for-k8s
+  serial: true
+  plan:
+  - get: backup-and-restore-cf-for-k8s-repo
+    trigger: true
+  - put: backup-and-restore-cf-for-k8s-docker-image
+    params:
+      build: backup-and-restore-cf-for-k8s-repo/ci-docker-images/backup-and-restore-cf-for-k8s/
+
+- name: build-backup-and-restore-minimal
+  serial: true
+  plan:
+  - in_parallel:
+    - get: backup-and-restore-minimal-repo
+      trigger: true
+    - get: golang-docker-image
+      trigger: true
+  - task: bump-golang-version
+    file: backup-and-restore-minimal-repo/tasks/bump-dependencies/task.yml
+  - put: backup-and-restore-minimal-repo
+    params:
+      rebase: true
+      repository: bumped-backup-and-restore-minimal
+  - put: backup-and-restore-minimal-docker-image
+    params:
+      build: backup-and-restore-minimal-repo/ci-docker-images/backup-and-restore-minimal/
+
+- name: build-backup-and-restore
+  serial: true
+  plan:
+  - get: terraform-github-release
+    trigger: true
+  - get: backup-and-restore-repo
+    trigger: true
+  - get: backup-and-restore-ci
+  - get: backup-and-restore-minimal-docker-image
+    trigger: true
+    passed: [build-backup-and-restore-minimal]
+    params:
+      skip_download: true
+  - task: get-terraform-version
+    file: backup-and-restore-ci/tasks/check-terraform-version/task.yml
+  - put: backup-and-restore-docker-image
+    params:
+      build_args_file: dockerbuild-env/env-file.json
+      build: backup-and-restore-repo/ci-docker-images/backup-and-restore/
+      tag_as_latest: true
+      additional_tags: dockerbuild-env/terraform-version
+
+- name: build-bosh-lite-stemcell
+  serial: true
+  plan:
+  - get: bosh-lite-stemcell
+    trigger: true
+    params:
+      unpack: true
+  - put: bosh-lite-stemcell-docker-image
+    params:
+      import_file: bosh-lite-stemcell/image
+      tag_file: bosh-lite-stemcell/version
+      tag_as_latest: true
+
+- name: build-backup-and-restore-node-with-ssh
+  serial: true
+  plan:
+  - get: backup-and-restore-node-with-ssh-repo
+    trigger: true
+  - get: bosh-lite-stemcell-docker-image
+    trigger: true
+    passed: [build-bosh-lite-stemcell]
+    params:
+      skip_download: true
+  - put: backup-and-restore-node-with-ssh-docker-image
+    params:
+      build: backup-and-restore-node-with-ssh-repo/ci-docker-images/backup-and-restore-node-with-ssh/
+
+- name: build-bbr-pcf-pipeline-tasks-rc
+  serial: true
+  plan:
+  - get: ubuntu-xenial
+    trigger: true
+  - get: bbr-pcf-pipeline-tasks
+    trigger: true
+  - put: bbr-pcf-pipeline-tasks-rc
+    params:
+      build: bbr-pcf-pipeline-tasks/docker
+
+- name: test-bbr-pcf-pipeline-tasks-rc
+  serial: true
+  plan:
+  - get: bbr-pcf-pipeline-tasks-rc
+    trigger: true
+    passed: [build-bbr-pcf-pipeline-tasks-rc]
+    params:
+      skip_download: true
+  - task: test-for-required-binaries
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfplatformrecovery/bbr-pcf-pipeline-tasks
+          tag: release-candidate
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          set -e
+          which om
+          which jq
+          which bosh
+          which ssh
+          which fly
+          which nc
+
+- name: promote-bbr-pcf-pipeline-tasks-rc
+  serial: true
+  plan:
+  - get: bbr-pcf-pipeline-tasks-rc
+    trigger: true
+    passed: [test-bbr-pcf-pipeline-tasks-rc]
+    params:
+      save: true
+  - task: write-tag-file
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: pcfplatformrecovery/bbr-pcf-pipeline-tasks
+          tag: release-candidate
+      outputs:
+      - name: tag_file
+      run:
+        path: bash
+        args:
+        - -c
+        - |
+          set -e
+          mkdir -p tag_file/
+          echo "final" > tag_file/tag
+  - put: bbr-pcf-pipeline-tasks-final
+    params:
+      load: bbr-pcf-pipeline-tasks-rc
+      tag_file: tag_file/tag
+
