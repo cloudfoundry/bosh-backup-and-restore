@@ -91,6 +91,11 @@ resource_types:
     repository: cftoolsmiths/toolsmiths-envs-resource
     tag: latest
 
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+
 resources:
 - name: bbr-director-test-releases
   type: git
@@ -173,7 +178,6 @@ resources:
     user: cloudfoundry-incubator
     repository: bosh-backup-and-restore
     access_token: ((github.access_token))
-    drafts: true
 
 - name: bbr-final-release
   type: github-release
@@ -271,6 +275,11 @@ resources:
     uri: git@github.com:pivotal-cf/cryogenics-meta.git
     private_key: ((github.ssh_key))
     branch: main
+
+- name: slack-cryo-notification
+  type: slack-notification
+  source:
+    url: ((slack.webhook))
 
 jobs:
 - name: unit-integration
@@ -665,22 +674,31 @@ jobs:
       BRANCH: automated-release-notes
     input_mapping:
       repo: docs-bbr-automation
-  - put: bbr-pivnet
-    params:
-      metadata_file: pivnet-release-with-metadata/release.yml
-      s3_filepath_prefix: product-files/bosh-backup-restore
-      file_glob: pivnet-release-with-metadata/bbr*
-  - put: bbr-release
-    params:
-      name: bbr-final-release-version/number
-      tag: bbr-final-release-version/number
-      tag_prefix: v
-      body: release-notes/release-notes.md
-      commitish: bosh-backup-and-restore/.git/refs/heads/master
-      globs:
-      - github-release-with-metadata/bbr*
+  - in_parallel:
+    - put: bbr-pivnet
+      params:
+        metadata_file: pivnet-release-with-metadata/release.yml
+        s3_filepath_prefix: product-files/bosh-backup-restore
+        file_glob: pivnet-release-with-metadata/bbr*
+    - put: bbr-release
+      params:
+        name: bbr-final-release-version/number
+        tag: bbr-final-release-version/number
+        tag_prefix: v
+        body: release-notes/release-notes.md
+        commitish: bosh-backup-and-restore/.git/refs/heads/master
+        globs:
+        - github-release-with-metadata/bbr*
   - put: bbr-final-release-version
     params: { file: bbr-final-release-version/number }
+  - load_var: github-release-url
+    file: bbr-release/url
+  - put: slack-cryo-notification
+    params:
+      text: |
+        A new release for $BUILD_PIPELINE_NAME has been published!
+        Release `((.:version-number))` is now available <((.:github-release-url))|here>
+        View the pipeline <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|here>
 
 - name: publish-ga
   serial: true
