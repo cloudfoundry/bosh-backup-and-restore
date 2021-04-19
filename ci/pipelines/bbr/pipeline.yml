@@ -197,15 +197,6 @@ resources:
     initial_version: 1.9.0
     driver: gcs
 
-- name: bbr-last-published-version
-  type: semver
-  icon: google
-  source:
-    bucket: release-versions
-    key: bbr-final
-    json_key: ((gcp/service_accounts/bucket_owner.json_key))
-    driver: gcs
-
 - name: docs-bbr-main
   type: git
   icon: github
@@ -617,7 +608,6 @@ jobs:
     - get: bbr-s3-config-validator-artifact
     - get: bbr-final-release-version
       params: {bump: patch}
-    - get: bbr-last-published-version
     - get: ci
   - task: check-for-changes
     file: bosh-backup-and-restore/ci/tasks/check-for-changes/task.yml
@@ -637,14 +627,12 @@ jobs:
         TEMPLATE_PATH: templates/release.yml.erb
         VERSION_PATH: number
     - do:
-      - load_var: last-published-version
-        file: bbr-last-published-version/number
       - task: create-release-notes
         file: cryogenics-meta/ci/tasks/release-automation/release-notes/task.yml
         input_mapping:
           git-repo: bosh-backup-and-restore
         params:
-          FROM_TAG: 'v((.:last-published-version))'
+          USE_LATEST_PUBLISHED_TAG: true
       - task: format-release-notes
         file: cryogenics-meta/ci/tasks/release-automation/format-release-notes/task.yml
         input_mapping:
