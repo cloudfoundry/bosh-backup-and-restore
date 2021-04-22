@@ -3,13 +3,9 @@ module github.com/cloudfoundry-incubator/bosh-backup-and-restore
 go 1.14
 
 require (
-	code.cloudfoundry.org/clock v1.0.0 // indirect
-	code.cloudfoundry.org/tlsconfig v0.0.0-20200131000646-bbe0f8da39b3 // indirect
-	github.com/bmatcuk/doublestar v1.3.3 // indirect
-	github.com/charlievieth/fs v0.0.1 // indirect
 	github.com/cheggaaa/pb v1.0.29 // indirect
 	github.com/cloudfoundry/bosh-cli v6.4.1+incompatible
-	github.com/cloudfoundry/bosh-utils v0.0.0-20201107100218-f523638849f6
+	github.com/cloudfoundry/bosh-utils v0.0.252
 	github.com/cloudfoundry/config-server v0.1.21 // indirect
 	github.com/cloudfoundry/socks5-proxy v0.2.2
 	github.com/cppforlife/go-patch v0.2.0
@@ -19,18 +15,14 @@ require (
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.0 // indirect
-	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
-	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/onsi/ginkgo v1.16.1
 	github.com/onsi/gomega v1.11.0
 	github.com/pivotal-cf-experimental/cf-webmock v0.0.0-20190222120028-6bf93e3bc5ed
-	github.com/pivotal-cf/paraphernalia v0.0.0-20180203224945-a64ae2051c20 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/tedsuo/ifrit v0.0.0-20191009134036-9a97d0632f00 // indirect
 	github.com/urfave/cli v1.22.5
 	github.com/vito/go-interact v1.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20210415154028-4f45737414dc
