@@ -21,7 +21,7 @@ BOSH Backup and Restore build status [![BBR Build Status Badge](https://ci.cryo.
 
 We use [go modules](https://blog.golang.org/using-go-modules) to manage our dependencies, so run:
 
-1. `git clone git@github.com:cloudfoundry-incubator/bosh-backup-and-restore.
+1. `git clone git@github.com:cloudfoundry-incubator/bosh-backup-and-restore.`
 1. `go mod download`
 
 Unit tests make use of Docker containers to test networking. Ensure that Docker is running in your environment, before attempting to run tests.
