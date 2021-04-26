@@ -27,6 +27,8 @@ We use [go modules](https://blog.golang.org/using-go-modules) to manage our depe
 Unit tests make use of Docker containers to test networking. Ensure that Docker is running in your environment, before attempting to run tests.
 These can be run with the command: `make test`.
 
+Note: if you see timeout errors occurring in the SSH suite of unit tests this may be due to the number of nodes the tests are running on. You can run `ginkgo -nodes=<number> -r` to reduce the number of nodes and decrease the concurrent requests being made to the Docker Daemon which will slow when under load.
+
 ## Additional information
 
 **Docs:** http://docs.cloudfoundry.org/bbr/index.html
