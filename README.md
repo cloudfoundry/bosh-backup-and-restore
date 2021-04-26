@@ -15,7 +15,7 @@ On macOS, you can install BBR using [Homebrew](http://brew.sh/):
 
 ## CI Status
 
-BOSH Backup and Restore build status [![BBR Build Status Badge](https://ci.cryo.cf-app.com/teams/bosh-backup-restore/pipelines/bbr/jobs/build-rc/badge)](https://ci.cryo.cf-app.com/teams/bosh-backup-restore/pipelines/bbr)
+BOSH Backup and Restore build status [![BBR Build Status Badge](https://ci.cryo.cf-app.com/api/v1/teams/bosh-backup-restore/pipelines/bbr/jobs/build-rc/badge)](https://ci.cryo.cf-app.com/teams/bosh-backup-restore/pipelines/bbr)
 
 ## Developing BBR locally
 
