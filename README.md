@@ -15,20 +15,17 @@ On macOS, you can install BBR using [Homebrew](http://brew.sh/):
 
 ## CI Status
 
-BOSH Backup and Restore build status [![BBR Build Status Badge](https://backup-and-restore.ci.cf-app.com/api/v1/teams/main/pipelines/bbr/jobs/build-rc/badge)](https://backup-and-restore.ci.cf-app.com/teams/main/pipelines/bbr)
+BOSH Backup and Restore build status [![BBR Build Status Badge](https://ci.cryo.cf-app.com/teams/bosh-backup-restore/pipelines/bbr/jobs/build-rc/badge)](https://ci.cryo.cf-app.com/teams/bosh-backup-restore/pipelines/bbr)
 
 ## Developing BBR locally
 
-We use [dep](https://github.com/golang/dep) to manage our dependencies, so run:
+We use [go modules](https://blog.golang.org/using-go-modules) to manage our dependencies, so run:
 
-1. `git clone git@github.com:cloudfoundry-incubator/bosh-backup-and-restore.git $GOPATH/src/github.com/cloudfoundry-incubator/bosh-backup-and-restore`
-1. `cd $GOPATH/src/github.com/cloudfoundry-incubator/bosh-backup-and-restore`
-1. `go get -u github.com/cloudfoundry/bosh-cli`
-1. `go get -u github.com/maxbrunsfeld/counterfeiter`
-1. `go get -u github.com/onsi/ginkgo/ginkgo`
-1. `make setup`
+1. `git clone git@github.com:cloudfoundry-incubator/bosh-backup-and-restore.
+1. `go mod download`
 
-You're good to go. Run tests locally with `make test`.
+Unit tests make use of Docker containers to test networking. Ensure that Docker is running in your environment, before attempting to run tests.
+These can be run with the command: `make test`.
 
 ## Additional information
 
