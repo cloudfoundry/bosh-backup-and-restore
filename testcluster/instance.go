@@ -22,7 +22,7 @@ type Instance struct {
 	dockerID string
 }
 
-const timeout = 20 * time.Second
+const timeout = 40 * time.Second
 
 func PullDockerImage() {
 	startTime := time.Now()
