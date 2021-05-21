@@ -635,18 +635,8 @@ jobs:
       status: success
   - load_var: pr-url
     file: bosh-backup-and-restore/.git/resource/url
-  - task: build-task-image_merge-pr
-    privileged: true
-    file: cryogenics-meta/ci/tasks/merge-pr/task-build-dockerfile.yml
-    input_mapping:
-      context: cryogenics-meta
-    params:
-      CONTEXT: ./ci/tasks/merge-pr/
-    output_mapping:
-      image: merge-pr-image
   - task: merge-pr
-    image: merge-pr-image
-    file: cryogenics-meta/ci/tasks/merge-pr/task.yml
+    file: cryogenics-concourse-tasks/github-automation/merge-pr/task.yml
     input_mapping:
       source-repo: bosh-backup-and-restore
     params:
