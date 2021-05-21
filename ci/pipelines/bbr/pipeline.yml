@@ -39,10 +39,10 @@ groups:
   - publish-ga
   - update-homebrew-formula
   - test-build-s3-config-validator
-  - claim-env-pas-2-10
+  - claim-env-pas-2-11
   - configure-aws-s3-filestore
   - validate-aws-s3-config
-  - unclaim-env-pas-2-10
+  - unclaim-env-pas-2-11
 
 - name: build
   jobs:
@@ -58,10 +58,10 @@ groups:
 - name: s3-validator
   jobs:
   - test-build-s3-config-validator
-  - claim-env-pas-2-10
+  - claim-env-pas-2-11
   - configure-aws-s3-filestore
   - validate-aws-s3-config
-  - unclaim-env-pas-2-10
+  - unclaim-env-pas-2-11
 
 - name: shipit
   jobs:
@@ -278,11 +278,11 @@ resources:
     json_key: ((gcp/service_accounts/bbr_bucket_owner.json_key))
     regexp: bbr-s3-config-validator.(.*).tgz
 
-- name: pcf-2-10-pool
+- name: pcf-2-11-pool
   type: pcf-pool
   source:
     api_token: ((toolsmiths.api_token))
-    pool_name: us_2_10
+    pool_name: us_2_11_lts2
 
 - name: cryogenics-meta
   type: git
@@ -545,12 +545,12 @@ jobs:
     params:
       file: bbr-s3-config-validator-test-artifacts/*
 
-- name: claim-env-pas-2-10
-  serial_groups: [pas-2-10-aws-s3]
+- name: claim-env-pas-2-11
+  serial_groups: [pas-2-11-aws-s3]
   plan:
   - in_parallel:
     - put: env-pool
-      resource: pcf-2-10-pool
+      resource: pcf-2-11-pool
       params:
         action: claim
     - get: bbr-s3-config-validator-test-artifacts
@@ -561,17 +561,17 @@ jobs:
 
 - name: configure-aws-s3-filestore
   serial: true
-  serial_groups: [pas-2-10-aws-s3]
+  serial_groups: [pas-2-11-aws-s3]
   plan:
   - in_parallel:
     - get: env-pool
-      passed: [claim-env-pas-2-10]
-      resource: pcf-2-10-pool
+      passed: [claim-env-pas-2-11]
+      resource: pcf-2-11-pool
       trigger: true
     - get: bbr-s3-config-validator-test-artifacts
-      passed: [claim-env-pas-2-10]
+      passed: [claim-env-pas-2-11]
     - get: bosh-backup-and-restore
-      passed: [claim-env-pas-2-10]
+      passed: [claim-env-pas-2-11]
   - task: enable-backup-prepare-pas
     file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-enable-backup-prepare-pas/task.yml
     params:
@@ -593,12 +593,12 @@ jobs:
 
 - name: validate-aws-s3-config
   serial: true
-  serial_groups: [pas-2-10-aws-s3]
+  serial_groups: [pas-2-11-aws-s3]
   plan:
   - in_parallel:
     - get: env-pool
       passed: [configure-aws-s3-filestore]
-      resource: pcf-2-10-pool
+      resource: pcf-2-11-pool
       trigger: true
     - get: bbr-s3-config-validator-test-artifacts
       passed: [configure-aws-s3-filestore]
@@ -608,15 +608,15 @@ jobs:
   - task: move-and-run-validator
     file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.yml
 
-- name: unclaim-env-pas-2-10
+- name: unclaim-env-pas-2-11
   serial: true
-  serial_groups: [pas-2-10-aws-s3]
+  serial_groups: [pas-2-11-aws-s3]
   plan:
   - get: env-pool
     passed: [validate-aws-s3-config]
-    resource: pcf-2-10-pool
+    resource: pcf-2-11-pool
     trigger: true
-  - put: pcf-2-10-pool
+  - put: pcf-2-11-pool
     params:
       action: unclaim
       env_file: env-pool/metadata
