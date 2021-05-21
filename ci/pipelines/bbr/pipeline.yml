@@ -26,6 +26,7 @@ tanzunet_product_name: &tanzunet_product_name p-bosh-backup-and-restore
 groups:
 - name: all
   jobs:
+  - set-pipeline
   - upload-deployment-test-releases
   - unit-integration
   - deploy-fake-director
@@ -64,6 +65,7 @@ groups:
 
 - name: shipit
   jobs:
+  - build-rc
   - build-and-publish-final
   - publish-ga
   - update-homebrew-formula
@@ -96,6 +98,11 @@ resource_types:
   source:
     repository: cfcommunity/slack-notification-resource
 
+- name: pull-request
+  type: docker-image
+  source:
+    repository: teliaoss/github-pr-resource
+
 resources:
 - name: bbr-director-test-releases
   type: git
@@ -118,8 +125,16 @@ resources:
     - many-bbr-jobs-release
 
 - name: bosh-backup-and-restore
-  type: git
   icon: github
+  type: pull-request
+  source:
+    repository: cloudfoundry-incubator/bosh-backup-and-restore
+    access_token: ((github.access_token))
+    disable_forks: true
+
+- name: bosh-backup-and-restore-master
+  icon: github
+  type: git
   source:
     uri: git@github.com:cloudfoundry-incubator/bosh-backup-and-restore.git
     private_key: ((github.ssh_key))
@@ -276,12 +291,50 @@ resources:
     private_key: ((github.ssh_key))
     branch: main
 
+- name: cryogenics-concourse-tasks
+  type: git
+  source:
+    uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
+    private_key: ((github.ssh_key))
+    branch: main
+
 - name: slack-cryo-notification
   type: slack-notification
   source:
     url: ((slack.webhook))
 
 jobs:
+- name: set-pipeline
+  plan:
+  - in_parallel:
+    - get: bosh-backup-and-restore
+      trigger: true
+      version: every # This is important to ensure every commit in a PR is tested and not just latest
+    - get: cryogenics-concourse-tasks
+  - set_pipeline: bbr
+    file: bosh-backup-and-restore/ci/pipelines/bbr/pipeline.yml
+  - put: bosh-backup-and-restore
+    params:
+      path: bosh-backup-and-restore
+      status: pending
+  - task: find-pr-story
+    attempts: 5
+    file: cryogenics-concourse-tasks/tracker-automation/find-pr-story/task.yml
+    input_mapping:
+      pr: bosh-backup-and-restore
+    params:
+      TRACKER_API_TOKEN: ((tracker.api_token))
+      TRACKER_PROJECT_ID: ((tracker.project_id))
+      GIT_REPOSITORY: cloudfoundry-incubator/bosh-backup-and-restore
+  - task: start-story
+    attempts: 5
+    file: cryogenics-concourse-tasks/tracker-automation/start-story/task.yml
+    input_mapping:
+      pr: bosh-backup-and-restore
+    params:
+      TRACKER_API_TOKEN: ((tracker.api_token))
+      TRACKER_PROJECT_ID: ((tracker.project_id))
+      ESTIMATE: 1
 - name: unit-integration
   serial: true
   plan:
@@ -290,9 +343,7 @@ jobs:
       trigger: true
     - get: bosh-backup-and-restore
       trigger: true
-      params:
-        submodules: none
-        disable_git_lfs: true
+      passed: [set-pipeline]
   - task: test
     file: bosh-backup-and-restore/ci/tasks/bbr-unit/task.yml
     params:
@@ -306,6 +357,7 @@ jobs:
   - in_parallel:
     - get: six-hours
       passed: [unit-integration]
+      trigger: true
     - get: bbr-deployment-test-releases
       trigger: true
     - get: bosh-backup-and-restore
@@ -452,11 +504,8 @@ jobs:
   serial_groups: [version]
   plan:
   - in_parallel:
-    - get: six-hours
-      trigger: true
-      passed: [system-test-deployment, system-test-director]
     - get: bosh-backup-and-restore
-      passed: [system-test-deployment, system-test-director]
+      resource: bosh-backup-and-restore-master
       trigger: true
       params:
         submodules: none
@@ -476,6 +525,8 @@ jobs:
       trigger: true
     - get: s3-config-validator-version
       params: {pre: build}
+    - get: six-hours
+      trigger: true
   - task: unit-test
     file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-unit-test/task.yml
     params:
@@ -553,6 +604,7 @@ jobs:
       passed: [configure-aws-s3-filestore]
     - get: bosh-backup-and-restore
       passed: [configure-aws-s3-filestore]
+      trigger: true
   - task: move-and-run-validator
     file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.yml
 
@@ -574,19 +626,32 @@ jobs:
   plan:
   - get: cryogenics-meta
   - get: bosh-backup-and-restore
-    passed: [build-rc]
+    passed: [system-test-deployment, system-test-director, validate-aws-s3-config]
     trigger: true
+  - get: cryogenics-concourse-tasks
+  - put: bosh-backup-and-restore
     params:
-      submodules: none
-      disable_git_lfs: true
+      path: bosh-backup-and-restore
+      status: success
+  - load_var: pr-url
+    file: bosh-backup-and-restore/.git/resource/url
+  - task: merge-pr
+    file: cryogenics-concourse-tasks/github-automation/merge-pr/task.yml
+    input_mapping:
+      source-repo: bosh-backup-and-restore
+    params:
+      DELETE: TRUE
+      AUTHOR: dependabot # ONLY merge PRs with this author
+      GH_TOKEN: ((github.access_token))
+      PR_REF: ((.:pr-url))
   - task: deliver-stories
-    file: cryogenics-meta/ci/tasks/tracker-automation/deliver-stories/task.yml
+    file: cryogenics-concourse-tasks/tracker-automation/deliver-stories/task.yml
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
       TRACKER_PROJECT_ID: ((tracker.project_id))
       GIT_REPOSITORY: cloudfoundry-incubator/bosh-backup-and-restore
   - task: accept-stories
-    file: cryogenics-meta/ci/tasks/tracker-automation/accept-stories/task.yml
+    file: cryogenics-concourse-tasks/tracker-automation/accept-stories/task.yml
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
       TRACKER_PROJECT_ID: ((tracker.project_id))
@@ -599,7 +664,7 @@ jobs:
     - get: docs-bbr-main
     - get: cryogenics-meta
     - get: bosh-backup-and-restore-meta
-    - get: bosh-backup-and-restore
+    - get: bosh-backup-and-restore-master
       passed: [build-rc]
       params:
         submodules: none
@@ -660,7 +725,7 @@ jobs:
       VERSION: ((.:version-number))
       OSM_API_KEY: ((osm.api_key))
   - task: create-story
-    file: cryogenics-meta/ci/tasks/tracker-automation/create-story/task.yml
+    file: cryogenics-concourse-tasks/tracker-automation/create-story/task.yml
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
       TRACKER_PROJECT_ID: ((tracker.project_id))
