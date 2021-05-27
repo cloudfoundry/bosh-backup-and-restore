@@ -282,6 +282,7 @@ resources:
   type: pcf-pool
   source:
     api_token: ((toolsmiths.api_token))
+    hostname: environments.toolsmiths.cf-app.com
     pool_name: us_2_11_lts2
 
 - name: cryogenics-meta
