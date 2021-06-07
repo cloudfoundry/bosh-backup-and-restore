@@ -568,6 +568,7 @@ jobs:
     - get: bosh-backup-and-restore
       version: every
       passed: [test-build-s3-config-validator]
+      trigger: true
 
 - name: configure-aws-s3-filestore
   serial: true
@@ -582,6 +583,7 @@ jobs:
       passed: [claim-env-pas-2-11]
     - get: bosh-backup-and-restore
       passed: [claim-env-pas-2-11]
+      version: every
   - task: enable-backup-prepare-pas
     file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-enable-backup-prepare-pas/task.yml
     params:
@@ -615,6 +617,7 @@ jobs:
     - get: bosh-backup-and-restore
       passed: [configure-aws-s3-filestore]
       trigger: true
+      version: every
   - task: move-and-run-validator
     file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.yml
 
