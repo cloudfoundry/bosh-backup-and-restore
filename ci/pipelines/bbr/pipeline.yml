@@ -27,41 +27,29 @@ groups:
 - name: all
   jobs:
   - set-pipeline
-  - upload-deployment-test-releases
   - unit-integration
-  - deploy-fake-director
   - system-test-deployment
   - system-test-director
-  - delete-system-director
   - build-rc
   - update-tracker
   - build-and-publish-final
   - publish-ga
   - update-homebrew-formula
   - test-build-s3-config-validator
-  - claim-env-pas-2-11
-  - configure-aws-s3-filestore
   - validate-aws-s3-config
-  - unclaim-env-pas-2-11
 
 - name: build
   jobs:
-  - upload-deployment-test-releases
   - unit-integration
-  - deploy-fake-director
   - system-test-deployment
   - system-test-director
-  - delete-system-director
   - build-rc
   - update-tracker
 
 - name: s3-validator
   jobs:
   - test-build-s3-config-validator
-  - claim-env-pas-2-11
-  - configure-aws-s3-filestore
   - validate-aws-s3-config
-  - unclaim-env-pas-2-11
 
 - name: shipit
   jobs:
@@ -125,7 +113,7 @@ resources:
     - many-bbr-jobs-release
 
 - name: bosh-backup-and-restore
-  icon: github
+  icon: source-pull
   type: pull-request
   source:
     repository: cloudfoundry-incubator/bosh-backup-and-restore
@@ -336,6 +324,7 @@ jobs:
       TRACKER_API_TOKEN: ((tracker.api_token))
       TRACKER_PROJECT_ID: ((tracker.project_id))
       ESTIMATE: 1
+
 - name: unit-integration
   serial: true
   plan:
@@ -353,13 +342,62 @@ jobs:
       DOCKER_HOST: ((docker_host.uri))
       DOCKER_HOST_SSH_KEY: ((docker_host.ssh_key))
 
-- name: upload-deployment-test-releases
+
+- name: system-test-director
+  serial: true
+  serial_groups: [system-test-director]
+  plan:
+  - in_parallel:
+    - get: bosh-backup-and-restore
+      passed: [unit-integration]
+      trigger: true
+      version: every
+    - get: bosh-deployment
+    - get: bosh-backup-and-restore-meta
+    - get: bbr-director-test-releases
+    - get: xenial-stemcell
+    - get: six-hours
+      trigger: true
+      passed: [unit-integration]
+  - task: generate-bosh-deployment-source-file
+    file: bosh-backup-and-restore/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
+    params:
+      <<: *maru-bosh-env
+  - put: deploy-fake-director
+    resource: test-bosh-director-deployment
+    params:
+      manifest: bosh-backup-and-restore/fixtures/fake-director.yml
+      stemcells: [xenial-stemcell/*.tgz]
+      source_file: source-file/source-file.yml
+      vars:
+        deployment-name: test-bosh-director
+        jumpbox-public-key: ((test_bosh_director.public_key))
+        test_release_path: /tmp/build/put/bbr-director-test-releases/test-bosh-backup-and-restore-release
+        internal_ip: *test-bosh-director-ip
+  - task: system-test-director
+    file: bosh-backup-and-restore/ci/tasks/bbr-system-director/task.yml
+    privileged: true
+    params:
+      CREDHUB_SERVER: "((infrastructure/bosh-director.credhub_server))"
+      CREDHUB_CLIENT: "((infrastructure/bosh-director.credhub_client))"
+      CREDHUB_SECRET: "((infrastructure/bosh-director.credhub_secret))"
+      CREDHUB_CA_CERT: "((infrastructure/bosh-director.credhub_ca_cert))"
+      DIRECTOR_HOST: *test-bosh-director-ip
+      DIRECTOR_SSH_KEY: ((test_bosh_director.private_key))
+      DIRECTOR_SSH_USERNAME: jumpbox
+      BOSH_DEPLOYMENT: *test-bosh-director-deployment
+      <<: *maru-bosh-env
+  - put: delete-system-director
+    resource: test-bosh-director-deployment
+    params:
+      delete:
+        enabled: true
+      source_file: source-file/source-file.yml
+
+- name: system-test-deployment
   serial: true
   plan:
   - in_parallel:
-    - get: six-hours
-      passed: [unit-integration]
-      trigger: true
     - get: bbr-deployment-test-releases
       trigger: true
     - get: bosh-backup-and-restore
@@ -367,6 +405,9 @@ jobs:
       passed: [unit-integration]
       version: every
     - get: bosh-backup-and-restore-meta
+    - get: six-hours
+      trigger: true
+      passed: [unit-integration]
   - in_parallel:
     - task: upload-redis-test-release-maru-lite
       file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
@@ -398,114 +439,10 @@ jobs:
       params:
         RELEASE_NAME: lock-ordering-release
         <<: *maru-lite-bosh-env
-
-- name: deploy-fake-director
-  serial: true
-  serial_groups: [system-test-director]
-  plan:
-  - in_parallel:
-    - get: six-hours
-      trigger: true
-      passed: [upload-deployment-test-releases]
-    - get: bosh-backup-and-restore
-      passed: [unit-integration, upload-deployment-test-releases]
-      trigger: true
-      version: every
-    - get: bosh-deployment
-    - get: bosh-backup-and-restore-meta
-    - get: bbr-director-test-releases
-      trigger: true
-    - get: xenial-stemcell
-  - task: generate-bosh-deployment-source-file
-    file: bosh-backup-and-restore/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
-    params:
-      <<: *maru-bosh-env
-  - put: test-bosh-director-deployment
-    params:
-      manifest: bosh-backup-and-restore/fixtures/fake-director.yml
-      stemcells: [xenial-stemcell/*.tgz]
-      source_file: source-file/source-file.yml
-      vars:
-        deployment-name: test-bosh-director
-        jumpbox-public-key: ((test_bosh_director.public_key))
-        test_release_path: /tmp/build/put/bbr-director-test-releases/test-bosh-backup-and-restore-release
-        internal_ip: *test-bosh-director-ip
-
-- name: system-test-deployment
-  serial: true
-  plan:
-  - in_parallel:
-    - get: six-hours
-      trigger: true
-      passed: [upload-deployment-test-releases]
-    - get: bosh-backup-and-restore
-      passed: [unit-integration, upload-deployment-test-releases]
-      trigger: true
-      version: every
-    - get: bosh-backup-and-restore-meta
-    - get: bbr-deployment-test-releases
-      passed: [upload-deployment-test-releases]
-      trigger: true
   - task: system-deployment-with-uaa
     file: bosh-backup-and-restore/ci/tasks/bbr-system-deployment/task.yml
     params:
       <<: *maru-lite-bosh-env
-
-- name: system-test-director
-  serial: true
-  serial_groups: [system-test-director]
-  plan:
-  - in_parallel:
-    - get: six-hours
-      trigger: true
-      passed: [deploy-fake-director]
-    - get: bosh-backup-and-restore
-      passed: [deploy-fake-director]
-      trigger: true
-      version: every
-    - get: bosh-backup-and-restore-meta
-    - get: bbr-director-test-releases
-      passed: [deploy-fake-director]
-      trigger: true
-  - task: system-test-director
-    file: bosh-backup-and-restore/ci/tasks/bbr-system-director/task.yml
-    privileged: true
-    params:
-      CREDHUB_SERVER: "((infrastructure/bosh-director.credhub_server))"
-      CREDHUB_CLIENT: "((infrastructure/bosh-director.credhub_client))"
-      CREDHUB_SECRET: "((infrastructure/bosh-director.credhub_secret))"
-      CREDHUB_CA_CERT: "((infrastructure/bosh-director.credhub_ca_cert))"
-      DIRECTOR_HOST: *test-bosh-director-ip
-      DIRECTOR_SSH_KEY: ((test_bosh_director.private_key))
-      DIRECTOR_SSH_USERNAME: jumpbox
-      BOSH_DEPLOYMENT: *test-bosh-director-deployment
-      <<: *maru-bosh-env
-
-- name: delete-system-director
-  serial: true
-  serial_groups: [system-test-director]
-  plan:
-  - in_parallel:
-    - get: six-hours
-      trigger: true
-      passed: [system-test-director]
-    - get: bosh-backup-and-restore
-      passed: [system-test-director]
-      trigger: true
-      version: every
-    - get: bbr-director-test-releases
-      passed: [system-test-director]
-      trigger: true
-    - get: bosh-backup-and-restore-meta
-  - task: generate-bosh-deployment-source-file
-    file: bosh-backup-and-restore/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
-    params:
-      <<: *maru-bosh-env
-  - put: test-bosh-director-deployment
-    params:
-      delete:
-        enabled: true
-      source_file: source-file/source-file.yml
 
 - name: build-rc
   serial_groups: [version]
@@ -528,14 +465,14 @@ jobs:
 - name: test-build-s3-config-validator
   plan:
   - in_parallel:
+    - get: six-hours
+      trigger: true
     - get: bosh-backup-and-restore
       trigger: true
       version: every
       passed: [ set-pipeline ]
     - get: s3-config-validator-version
       params: {pre: build}
-    - get: six-hours
-      trigger: true
   - task: unit-test
     file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-unit-test/task.yml
     params:
@@ -554,10 +491,13 @@ jobs:
     params:
       file: bbr-s3-config-validator-test-artifacts/*
 
-- name: claim-env-pas-2-11
-  serial_groups: [pas-2-11-aws-s3]
+- name: validate-aws-s3-config
+  serial: true
   plan:
   - in_parallel:
+    - get: six-hours
+      trigger: true
+      passed: [ test-build-s3-config-validator ]
     - put: env-pool
       resource: pcf-2-11-pool
       params:
@@ -569,21 +509,6 @@ jobs:
       version: every
       passed: [test-build-s3-config-validator]
       trigger: true
-
-- name: configure-aws-s3-filestore
-  serial: true
-  serial_groups: [pas-2-11-aws-s3]
-  plan:
-  - in_parallel:
-    - get: env-pool
-      passed: [claim-env-pas-2-11]
-      resource: pcf-2-11-pool
-      trigger: true
-    - get: bbr-s3-config-validator-test-artifacts
-      passed: [claim-env-pas-2-11]
-    - get: bosh-backup-and-restore
-      passed: [claim-env-pas-2-11]
-      version: every
   - task: enable-backup-prepare-pas
     file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-enable-backup-prepare-pas/task.yml
     params:
@@ -602,34 +527,10 @@ jobs:
       SECRET_KEY: ((s3_validator_aws.secret_key))
       REGION: ((s3_validator_aws.region))
       SKIP_APPLY_CHANGES: false
-
-- name: validate-aws-s3-config
-  serial: true
-  serial_groups: [pas-2-11-aws-s3]
-  plan:
-  - in_parallel:
-    - get: env-pool
-      passed: [configure-aws-s3-filestore]
-      resource: pcf-2-11-pool
-      trigger: true
-    - get: bbr-s3-config-validator-test-artifacts
-      passed: [configure-aws-s3-filestore]
-    - get: bosh-backup-and-restore
-      passed: [configure-aws-s3-filestore]
-      trigger: true
-      version: every
   - task: move-and-run-validator
     file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.yml
-
-- name: unclaim-env-pas-2-11
-  serial: true
-  serial_groups: [pas-2-11-aws-s3]
-  plan:
-  - get: env-pool
-    passed: [validate-aws-s3-config]
-    resource: pcf-2-11-pool
-    trigger: true
-  - put: pcf-2-11-pool
+  ensure:
+    put: pcf-2-11-pool
     params:
       action: unclaim
       env_file: env-pool/metadata
