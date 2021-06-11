@@ -538,12 +538,13 @@ jobs:
 - name: update-tracker
   serial_groups: [version]
   plan:
-  - get: cryogenics-meta
-  - get: bosh-backup-and-restore
-    passed: [system-test-deployment, system-test-director, validate-aws-s3-config]
-    trigger: true
-    version: every
-  - get: cryogenics-concourse-tasks
+  - in_parallel:
+    - get: cryogenics-meta
+    - get: bosh-backup-and-restore
+      passed: [system-test-deployment, system-test-director, validate-aws-s3-config]
+      trigger: true
+      version: every
+    - get: cryogenics-concourse-tasks
   - put: bosh-backup-and-restore
     params:
       path: bosh-backup-and-restore
