@@ -593,7 +593,7 @@ jobs:
   - task: check-for-changes
     file: bosh-backup-and-restore/ci/tasks/check-for-changes/task.yml
     input_mapping:
-      repo: bosh-backup-and-restore
+      repo: bosh-backup-and-restore-master
   - task: build-binaries
     file: ci/ci/tasks/build-binaries/task.yml
   - in_parallel:
