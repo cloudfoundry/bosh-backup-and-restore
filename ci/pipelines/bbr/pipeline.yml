@@ -591,14 +591,14 @@ jobs:
       params: {bump: patch}
     - get: ci
   - task: check-for-changes
-    file: bosh-backup-and-restore/ci/tasks/check-for-changes/task.yml
+    file: bosh-backup-and-restore-master/ci/tasks/check-for-changes/task.yml
     input_mapping:
       repo: bosh-backup-and-restore-master
   - task: build-binaries
     file: ci/ci/tasks/build-binaries/task.yml
   - in_parallel:
     - task: generate-artifact-and-metadata
-      file: bosh-backup-and-restore/ci/tasks/generate-bbr-release-metadata/task.yml
+      file: bosh-backup-and-restore-master/ci/tasks/generate-bbr-release-metadata/task.yml
       input_mapping:
         version-folder: bbr-final-release-version
         template-folder: bosh-backup-and-restore-meta
@@ -611,7 +611,7 @@ jobs:
       - task: create-release-notes
         file: cryogenics-meta/ci/tasks/release-automation/release-notes/task.yml
         input_mapping:
-          git-repo: bosh-backup-and-restore
+          git-repo: bosh-backup-and-restore-master
         params:
           USE_LATEST_PUBLISHED_TAG: true
       - task: format-release-notes
@@ -621,10 +621,10 @@ jobs:
         params:
           TEMPLATE_PATH: ci/release-templates/release-notes-auto.md.erb
     - task: generate-docs
-      file: bosh-backup-and-restore/ci/tasks/generate-docs/task.yml
+      file: bosh-backup-and-restore-master/ci/tasks/generate-docs/task.yml
       input_mapping:
         version-folder: bbr-final-release-version
-        repo: bosh-backup-and-restore
+        repo: bosh-backup-and-restore-master
         docs-repo: docs-bbr-main
         template-folder: bosh-backup-and-restore-meta
       params:
@@ -673,7 +673,7 @@ jobs:
         tag: bbr-final-release-version/number
         tag_prefix: v
         body: release-notes/release-notes.md
-        commitish: bosh-backup-and-restore/.git/refs/heads/master
+        commitish: bosh-backup-and-restore-master/.git/refs/heads/master
         globs:
         - github-release-with-metadata/bbr*
   - put: bbr-final-release-version
