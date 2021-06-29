@@ -598,7 +598,7 @@ jobs:
     file: ci/ci/tasks/build-binaries/task.yml
   - in_parallel:
     - task: generate-artifact-and-metadata
-      file: bosh-backup-and-restore-master/ci/tasks/generate-bbr-release-metadata/task.yml
+      file: ci/ci/tasks/generate-bbr-release-metadata/task.yml
       input_mapping:
         version-folder: bbr-final-release-version
         template-folder: bosh-backup-and-restore-meta
@@ -621,7 +621,7 @@ jobs:
         params:
           TEMPLATE_PATH: ci/release-templates/release-notes-auto.md.erb
     - task: generate-docs
-      file: bosh-backup-and-restore-master/ci/tasks/generate-docs/task.yml
+      file: ci/ci/tasks/generate-docs/task.yml
       input_mapping:
         version-folder: bbr-final-release-version
         repo: bosh-backup-and-restore-master
