@@ -6,7 +6,7 @@ image_resource:
   source: {repository: pcfplatformrecovery/backup-and-restore}
 
 inputs:
-- name: bosh-backup-and-restore
+- name: bosh-backup-and-restore-master
 - name: bosh-backup-and-restore-meta
 - name: bbr-final-release-version
 - name: bbr-s3-config-validator-artifact
