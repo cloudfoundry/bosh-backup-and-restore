@@ -641,7 +641,7 @@ jobs:
       VERSION: ((.:version-number))
       OSM_API_KEY: ((osm.api_key))
   - task: create-story
-    file: cryogenics-concourse-tasks/tracker-automation/create-story/task.yml
+    file: cryogenics-meta/tracker-automation/create-story/task.yml
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
       TRACKER_PROJECT_ID: ((tracker.project_id))
