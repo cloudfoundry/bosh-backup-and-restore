@@ -10,7 +10,6 @@ inputs:
 - name: docs-repo
 - name: template-folder
 - name: version-folder
-- name: bosh-backup-and-restore
 
 outputs:
 - name: updated-docs-repo
@@ -20,4 +19,4 @@ params:
   VERSION_PATH:
 
 run:
-  path: bosh-backup-and-restore/ci/tasks/generate-docs/task.sh
+  path: repo/ci/tasks/generate-docs/task.sh

@@ -3,7 +3,7 @@
 set -eu
 
 VERSION=$(cat bbr-final-release-version/number)
-BBR_REPO="$PWD/bosh-backup-and-restore"
+BBR_REPO="$PWD/bosh-backup-and-restore-master"
 BBR_BUILD="$PWD/bbr-build"
 BBR_RELEASE="$PWD/bbr-release/releases"
 
