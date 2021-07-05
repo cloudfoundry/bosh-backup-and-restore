@@ -1,16 +1,16 @@
 FROM pcfplatformrecovery/backup-and-restore-minimal
 
 ENV YQ_VERSION 2.4.0
-ENV CLOUD_SDK_VERSION 250.0.0
-ENV CREDHUB_CLI_VERSION 2.5.2
-ENV BBL_VERSION v8.2.12
-ENV VELERO_VERSION v1.3.2
-ENV KUBE_VERSION="v1.17.4"
-ENV GH_VERSION 1.4.0
+ENV CLOUD_SDK_VERSION 347.0.0
+ENV CREDHUB_CLI_VERSION 2.9.0
+ENV BBL_VERSION v8.4.41
+ENV VELERO_VERSION v1.6.1
+ENV GH_VERSION 1.12.1
 ENV PIVNET_VERSION 3.0.0
+ENV RUBY_VERSION 2.7.3
 
 # fixes error "Error response from daemon: client is newer than server"
-ENV DOCKER_API_VERSION 1.23
+ENV DOCKER_API_VERSION 1.41
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -59,8 +59,8 @@ RUN git clone https://github.com/rbenv/rbenv-each.git ${RBENV_ROOT}/plugins/rben
 
 ENV PATH ${RBENV_ROOT}/bin:${RBENV_ROOT}/shims:$PATH
 
-RUN rbenv install 2.6.0
-RUN rbenv global 2.6.0
+RUN rbenv install ${RUBY_VERSION}
+RUN rbenv global ${RUBY_VERSION}
 
 RUN echo 'gem: --no-document' > $HOME/.gemrc
 RUN rbenv each gem install bundler
@@ -127,7 +127,7 @@ RUN \
   chmod +x /usr/local/bin/velero
 
 # kubectl
-ADD https://storage.googleapis.com/kubernetes-release/release/$KUBE_VERSION/bin/linux/amd64/kubectl /usr/bin/kubectl
+ADD https://storage.googleapis.com/kubernetes-release/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl /usr/bin/kubectl
 RUN chmod +x /usr/bin/kubectl
 
 RUN useradd --create-home --shell /bin/bash --home-dir /home/test test
