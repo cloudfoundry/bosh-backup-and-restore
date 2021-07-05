@@ -127,7 +127,7 @@ RUN \
   chmod +x /usr/local/bin/velero
 
 # kubectl
-ADD https://storage.googleapis.com/kubernetes-release/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl /usr/bin/kubectl
+ADD https://storage.googleapis.com/kubernetes-release/release/v1.21.2/bin/linux/amd64/kubectl /usr/bin/kubectl
 RUN chmod +x /usr/bin/kubectl
 
 RUN useradd --create-home --shell /bin/bash --home-dir /home/test test
