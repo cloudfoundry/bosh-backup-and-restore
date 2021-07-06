@@ -207,13 +207,6 @@ resources:
     uri: git@github.com:cloudfoundry/docs-bbr.git
     private_key: ((github.ssh_key))
 
-- name: docs-bbr-automation
-  type: git
-  icon: github
-  source:
-    uri: git@github.com:cloudfoundry/docs-bbr.git
-    private_key: ((github.ssh_key))
-    branch: automated-release-notes
 
 - name: xenial-stemcell
   type: bosh-io-stemcell
@@ -640,18 +633,23 @@ jobs:
       STORY_ESTIMATE: 1
       STORY_LABELS: 'bbr'
       STORY_BLOCKERS: '{"description":"OSL file"}'
-  - put: docs-bbr-automation
+  - put: docs-bbr-main
     params:
-      repository: updated-docs-repo
-      rebase: true
-  - task: create-docs-pull-request
-    file: cryogenics-meta/ci/tasks/create-pr/task.yml
-    params:
-      GITHUB_TOKEN: ((github.access_token))
-      BASE: master
-      BRANCH: automated-release-notes
-    input_mapping:
-      repo: docs-bbr-automation
+      repository: docs-repo
+      rebase: false
+      merge: false
+      force: true
+      branch: ((.:version-number))-release-notes
+    on_success:
+      try:
+        task: create-docs-pull-request
+        file: cryogenics-meta/ci/tasks/create-pr/task.yml
+        params:
+          GITHUB_TOKEN: ((github.access_token))
+          BASE: master
+          BRANCH: ((.:version-number))-release-notes
+        input_mapping:
+          repo: docs-bbr-main
   - in_parallel:
     - put: bbr-pivnet
       params:
