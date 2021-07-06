@@ -656,6 +656,7 @@ jobs:
         metadata_file: pivnet-release-with-metadata/release.yml
         s3_filepath_prefix: product-files/bosh-backup-restore
         file_glob: pivnet-release-with-metadata/bbr*
+        override: true
     - put: bbr-release
       params:
         name: bbr-final-release-version/number
