@@ -596,6 +596,8 @@ jobs:
       repo: bosh-backup-and-restore-master
   - task: build-binaries
     file: ci/ci/tasks/build-binaries/task.yml
+  - load_var: version-number
+    file: bbr-final-release-version/number
   - in_parallel:
     - task: generate-artifact-and-metadata
       file: ci/ci/tasks/generate-bbr-release-metadata/task.yml
@@ -630,8 +632,6 @@ jobs:
       params:
         TEMPLATE_PATH: templates/bbr-docs.md.erb
         VERSION_PATH: number
-  - load_var: version-number
-    file: bbr-final-release-version/number
   - task: create-osm-release
     file: cryogenics-meta/ci/tasks/release-automation/create-osm-release/task.yml
     tags:
