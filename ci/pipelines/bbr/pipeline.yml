@@ -621,17 +621,16 @@ jobs:
         input_mapping:
           template-folder: cryogenics-meta
         params:
-          TEMPLATE_PATH: ci/release-templates/release-notes-auto.md.erb
-    - task: generate-docs
-      file: ci/ci/tasks/generate-docs/task.yml
-      input_mapping:
-        version-folder: bbr-final-release-version
-        repo: bosh-backup-and-restore-master
-        docs-repo: docs-bbr-main
-        template-folder: bosh-backup-and-restore-meta
-      params:
-        TEMPLATE_PATH: templates/bbr-docs.md.erb
-        VERSION_PATH: number
+          VERSION: ((.:version-number))
+          TEMPLATE_PATH: ci/release-templates/docs-release-notes-auto.md.erb
+      - task: commit-release-notes
+        file: docs-bbr-main/ci/tasks/commit-new-release-notes.yml
+        input_mapping:
+          docs-repo: docs-bbr-main
+        params:
+          VERSION: ((.:version-number))
+          GIT_AUTHOR_NAME: "Cryogenics CI"
+          GIT_AUTHOR_EMAIL: "mapbu-cryogenics@groups.vmware.com"
   - task: create-story
     file: cryogenics-meta/ci/tasks/tracker-automation/create-story/task.yml
     params:
