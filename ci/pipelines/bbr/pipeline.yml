@@ -632,14 +632,6 @@ jobs:
       params:
         TEMPLATE_PATH: templates/bbr-docs.md.erb
         VERSION_PATH: number
-  - task: create-osm-release
-    file: cryogenics-meta/ci/tasks/release-automation/create-osm-release/task.yml
-    tags:
-    - *toolsmiths_api_worker
-    params:
-      PRODUCT_NAME: *tanzunet_product_name
-      VERSION: ((.:version-number))
-      OSM_API_KEY: ((osm.api_key))
   - task: create-story
     file: cryogenics-meta/ci/tasks/tracker-automation/create-story/task.yml
     params:
@@ -686,6 +678,14 @@ jobs:
         A new release for $BUILD_PIPELINE_NAME has been published!
         Release `((.:version-number))` is now available <((.:github-release-url))|here>
         View the pipeline <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|here>
+  - task: create-osm-release
+    file: cryogenics-meta/ci/tasks/release-automation/create-osm-release/task.yml
+    tags:
+    - *toolsmiths_api_worker
+    params:
+      PRODUCT_NAME: *tanzunet_product_name
+      VERSION: ((.:version-number))
+      OSM_API_KEY: ((osm.api_key))
 
 - name: publish-ga
   serial: true
