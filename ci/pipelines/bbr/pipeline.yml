@@ -624,15 +624,6 @@ jobs:
           VERSION: ((.:version-number))
           GIT_AUTHOR_NAME: "Cryogenics CI"
           GIT_AUTHOR_EMAIL: "mapbu-cryogenics@groups.vmware.com"
-  - task: create-story
-    file: cryogenics-meta/ci/tasks/tracker-automation/create-story/task.yml
-    params:
-      TRACKER_API_TOKEN: ((tracker.api_token))
-      TRACKER_PROJECT_ID: ((tracker.project_id))
-      STORY_TITLE: '**[BBR]** Publish ((.:version-number))'
-      STORY_ESTIMATE: 1
-      STORY_LABELS: 'bbr'
-      STORY_BLOCKERS: '{"description":"OSL file"}'
   - put: docs-bbr-main
     params:
       repository: docs-repo
@@ -677,6 +668,15 @@ jobs:
         A new release for $BUILD_PIPELINE_NAME has been published!
         Release `((.:version-number))` is now available <((.:github-release-url))|here>
         View the pipeline <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|here>
+  - task: create-story
+    file: cryogenics-meta/ci/tasks/tracker-automation/create-story/task.yml
+    params:
+      TRACKER_API_TOKEN: ((tracker.api_token))
+      TRACKER_PROJECT_ID: ((tracker.project_id))
+      STORY_TITLE: '**[BBR]** Publish ((.:version-number))'
+      STORY_ESTIMATE: 1
+      STORY_LABELS: 'bbr'
+      STORY_BLOCKERS: '{"description":"OSL file"}'
   - task: create-osm-release
     file: cryogenics-meta/ci/tasks/release-automation/create-osm-release/task.yml
     tags:
