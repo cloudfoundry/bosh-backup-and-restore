@@ -33,6 +33,7 @@ groups:
   - build-rc
   - update-tracker
   - build-and-publish-final
+  - request-osl
   - publish-ga
   - update-homebrew-formula
   - test-build-s3-config-validator
@@ -55,6 +56,7 @@ groups:
   jobs:
   - build-rc
   - build-and-publish-final
+  - request-osl
   - publish-ga
   - update-homebrew-formula
 
@@ -677,6 +679,19 @@ jobs:
       STORY_ESTIMATE: 1
       STORY_LABELS: 'bbr'
       STORY_BLOCKERS: '{"description":"OSL file"}'
+
+- name: request-osl
+  serial_groups: [version]
+  plan:
+  - get: cryogenics-meta
+    passed:
+    - build-and-publish-final
+  - get: bbr-final-release-version
+    trigger: true
+    passed:
+    - build-and-publish-final
+  - load_var: version-number
+    file: bbr-final-release-version/number
   - task: create-osm-release
     file: cryogenics-meta/ci/tasks/release-automation/create-osm-release/task.yml
     tags:
@@ -691,8 +706,11 @@ jobs:
   plan:
   - in_parallel:
     - get: cryogenics-meta
+      passed:
+        - request-osl
     - get: bbr-final-release-version
-      passed: [build-and-publish-final]
+      passed:
+        - request-osl
   - load_var: release-version-number
     file: bbr-final-release-version/number
   - task: download-osl-file
