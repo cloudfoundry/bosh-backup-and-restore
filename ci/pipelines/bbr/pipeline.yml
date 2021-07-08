@@ -648,6 +648,7 @@ jobs:
           GITHUB_TOKEN: ((github.access_token))
           BASE: master
           BRANCH: ((.:version-number))-release-notes
+          TITLE: ((.:version-number)) release notes
         input_mapping:
           repo: docs-bbr-main
   - in_parallel:
