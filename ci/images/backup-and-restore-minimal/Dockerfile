@@ -72,3 +72,7 @@ RUN \
   wget -q -O cf.deb "https://cli.run.pivotal.io/stable?release=debian64&version=${cf_cli_version}&source=github-rel" && \
   dpkg -i cf.deb && \
   rm cf.deb
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  libxml2-utils \
+  && rm -rf /var/lib/apt/lists/*
