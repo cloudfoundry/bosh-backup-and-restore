@@ -36,7 +36,7 @@ RUN \
 ENV GOPATH /go
 ENV PATH /go/bin:/usr/local/go/bin:$PATH
 RUN \
-  wget https://golang.org/dl/go${go_version}.linux-amd64.tar.gz -P /tmp && \
+  wget --quiet https://golang.org/dl/go${go_version}.linux-amd64.tar.gz -P /tmp && \
   tar xzvf /tmp/go${go_version}.linux-amd64.tar.gz -C /usr/local && \
   mkdir ${GOPATH} && \
   rm -rf /tmp/*
@@ -46,22 +46,22 @@ RUN go get github.com/onsi/gomega
 
 # dep
 RUN \
-  wget https://github.com/golang/dep/releases/download/v0.5.0/dep-linux-amd64 --output-document="/usr/bin/dep" && \
+  wget --quiet https://github.com/golang/dep/releases/download/v0.5.0/dep-linux-amd64 --output-document="/usr/bin/dep" && \
   chmod +x /usr/bin/dep
 
 # OM-cli
 RUN \
-  wget https://github.com/pivotal-cf/om/releases/download/${om_cli_version}/om-linux --output-document="/usr/bin/om" && \
+  wget --quiet https://github.com/pivotal-cf/om/releases/download/${om_cli_version}/om-linux --output-document="/usr/bin/om" && \
   chmod +x /usr/bin/om
 
 # OM-cli-6
 RUN \
-  wget https://github.com/pivotal-cf/om/releases/download/${om_cli_6_version}/om-linux-6.2.0 --output-document="/usr/bin/om-6" && \
+  wget --quiet https://github.com/pivotal-cf/om/releases/download/${om_cli_6_version}/om-linux-6.2.0 --output-document="/usr/bin/om-6" && \
   chmod +x /usr/bin/om-6
 
 # bosh-cli
 RUN \
-  wget https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-${bosh_cli_version}-linux-amd64 --output-document="/usr/bin/bosh" && \
+  wget --quiet https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-${bosh_cli_version}-linux-amd64 --output-document="/usr/bin/bosh" && \
   chmod +x /usr/bin/bosh && \
   cp /usr/bin/bosh /usr/bin/bosh-cli && \
   chmod +x /usr/bin/bosh-cli
