@@ -69,9 +69,17 @@ RUN \
 # cf-cli
 WORKDIR /tmp
 RUN \
-  wget -q -O cf.deb "https://cli.run.pivotal.io/stable?release=debian64&version=${cf_cli_version}&source=github-rel" && \
+  wget --quiet -O cf.deb "https://cli.run.pivotal.io/stable?release=debian64&version=${cf_cli_version}&source=github-rel" && \
   dpkg -i cf.deb && \
   rm cf.deb
+
+# cf-v6-cli for use with older versions of CF
+WORKDIR /tmp
+RUN \
+    wget --quiet -O cf6.tgz "https://packages.cloudfoundry.org/stable?release=linux64-binary&source=github&version=v6" && \
+    tar --extract --file=cf6.tgz cf && \
+    mv cf /usr/bin/cf6 && \
+    rm cf6.tgz
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   libxml2-utils \
