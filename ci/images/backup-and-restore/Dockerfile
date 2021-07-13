@@ -31,6 +31,7 @@ RUN apt-get update && apt-get install -y \
   ruby-dev \
   wbritish \
   ca-certificates \
+  gettext-base \
   && rm -rf /var/lib/apt/lists/*
 
 # Install azure cli
