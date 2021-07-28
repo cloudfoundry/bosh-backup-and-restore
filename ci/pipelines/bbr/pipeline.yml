@@ -268,13 +268,6 @@ resources:
     hostname: environments.toolsmiths.cf-app.com
     pool_name: us_2_11_lts2
 
-- name: cryogenics-meta
-  type: git
-  source:
-    uri: git@github.com:pivotal-cf/cryogenics-meta.git
-    private_key: ((github.ssh_key))
-    branch: main
-
 - name: cryogenics-ci
   type: git
   source:
@@ -534,7 +527,6 @@ jobs:
   serial_groups: [version]
   plan:
   - in_parallel:
-    - get: cryogenics-meta
     - get: bosh-backup-and-restore
       passed: [system-test-deployment, system-test-director, validate-aws-s3-config]
       trigger: true
@@ -573,7 +565,7 @@ jobs:
   plan:
   - in_parallel:
     - get: docs-bbr-main
-    - get: cryogenics-meta
+    - get: cryogenics-ci
     - get: bosh-backup-and-restore-meta
     - get: bosh-backup-and-restore-master
       passed: [build-rc]
@@ -606,15 +598,15 @@ jobs:
         VERSION_PATH: number
     - do:
       - task: create-release-notes
-        file: cryogenics-meta/ci/tasks/release-automation/release-notes/task.yml
+        file: cryogenics-ci/tasks/release-automation/release-notes/task.yml
         input_mapping:
           git-repo: bosh-backup-and-restore-master
         params:
           USE_LATEST_PUBLISHED_TAG: true
       - task: format-release-notes
-        file: cryogenics-meta/ci/tasks/release-automation/format-release-notes/task.yml
+        file: cryogenics-ci/tasks/release-automation/format-release-notes/task.yml
         input_mapping:
-          template-folder: cryogenics-meta
+          template-folder: cryogenics-ci
         params:
           VERSION: ((.:version-number))
           TEMPLATE_PATH: ci/release-templates/docs-release-notes-auto.md.erb
@@ -636,7 +628,7 @@ jobs:
     on_success:
       try:
         task: create-docs-pull-request
-        file: cryogenics-meta/ci/tasks/create-pr/task.yml
+        file: cryogenics-ci/tasks/create-pr/task.yml
         params:
           GITHUB_TOKEN: ((github.access_token))
           BASE: master
@@ -671,7 +663,7 @@ jobs:
         Release `((.:version-number))` is now available <((.:github-release-url))|here>
         View the pipeline <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|here>
   - task: create-story
-    file: cryogenics-meta/ci/tasks/tracker-automation/create-story/task.yml
+    file: cryogenics-ci/tasks/tracker-automation/create-story/task.yml
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
       TRACKER_PROJECT_ID: ((tracker.project_id))
@@ -683,7 +675,7 @@ jobs:
 - name: request-osl
   serial_groups: [version]
   plan:
-  - get: cryogenics-meta
+  - get: cryogenics-ci
     passed:
     - build-and-publish-final
   - get: bbr-final-release-version
@@ -693,7 +685,7 @@ jobs:
   - load_var: version-number
     file: bbr-final-release-version/number
   - task: create-osm-release
-    file: cryogenics-meta/ci/tasks/release-automation/create-osm-release/task.yml
+    file: cryogenics-ci/tasks/release-automation/create-osm-release/task.yml
     tags:
     - *toolsmiths_api_worker
     params:
@@ -705,7 +697,7 @@ jobs:
   serial: true
   plan:
   - in_parallel:
-    - get: cryogenics-meta
+    - get: cryogenics-ci
       passed:
         - request-osl
     - get: bbr-final-release-version
@@ -716,7 +708,7 @@ jobs:
   - task: download-osl-file
     tags:
     - *toolsmiths_api_worker
-    file: cryogenics-meta/ci/tasks/release-automation/download-osl-file/task.yml
+    file: cryogenics-ci/tasks/release-automation/download-osl-file/task.yml
     params:
       PRODUCT_NAME: *tanzunet_product_name
       VERSION: ((.:release-version-number))
@@ -725,7 +717,7 @@ jobs:
   - load_var: osl-file-name
     file: osl/name
   - task: add-osl-file-to-release
-    file: cryogenics-meta/ci/tasks/release-automation/add-osl-file-to-pivnet/task.yml
+    file: cryogenics-ci/tasks/release-automation/add-osl-file-to-pivnet/task.yml
     params:
       PRODUCT_NAME: *tanzunet_product_name
       OSL_FILE_NAME: ((.:osl-file-name))
