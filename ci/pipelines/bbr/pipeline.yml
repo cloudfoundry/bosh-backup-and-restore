@@ -275,7 +275,7 @@ resources:
     private_key: ((github.ssh_key))
     branch: main
 
-- name: cryogenics-concourse-tasks
+- name: cryogenics-ci
   type: git
   source:
     uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
@@ -294,7 +294,7 @@ jobs:
     - get: bosh-backup-and-restore
       trigger: true
       version: every # This is important to ensure every commit in a PR is tested and not just latest
-    - get: cryogenics-concourse-tasks
+    - get: cryogenics-ci
   - set_pipeline: bbr
     file: bosh-backup-and-restore/ci/pipelines/bbr/pipeline.yml
   - put: bosh-backup-and-restore
@@ -303,7 +303,7 @@ jobs:
       status: pending
   - task: find-pr-story
     attempts: 5
-    file: cryogenics-concourse-tasks/tracker-automation/find-pr-story/task.yml
+    file: cryogenics-ci/tracker-automation/find-pr-story/task.yml
     input_mapping:
       pr: bosh-backup-and-restore
     params:
@@ -312,7 +312,7 @@ jobs:
       GIT_REPOSITORY: cloudfoundry-incubator/bosh-backup-and-restore
   - task: start-story
     attempts: 5
-    file: cryogenics-concourse-tasks/tracker-automation/start-story/task.yml
+    file: cryogenics-ci/tracker-automation/start-story/task.yml
     input_mapping:
       pr: bosh-backup-and-restore
     params:
@@ -539,7 +539,7 @@ jobs:
       passed: [system-test-deployment, system-test-director, validate-aws-s3-config]
       trigger: true
       version: every
-    - get: cryogenics-concourse-tasks
+    - get: cryogenics-ci
   - put: bosh-backup-and-restore
     params:
       path: bosh-backup-and-restore
@@ -547,7 +547,7 @@ jobs:
   - load_var: pr-url
     file: bosh-backup-and-restore/.git/resource/url
   - task: merge-pr
-    file: cryogenics-concourse-tasks/github-automation/merge-pr/task.yml
+    file: cryogenics-ci/github-automation/merge-pr/task.yml
     input_mapping:
       source-repo: bosh-backup-and-restore
     params:
@@ -556,13 +556,13 @@ jobs:
       GH_TOKEN: ((github.access_token))
       PR_REF: ((.:pr-url))
   - task: deliver-stories
-    file: cryogenics-concourse-tasks/tracker-automation/deliver-stories/task.yml
+    file: cryogenics-ci/tracker-automation/deliver-stories/task.yml
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
       TRACKER_PROJECT_ID: ((tracker.project_id))
       GIT_REPOSITORY: cloudfoundry-incubator/bosh-backup-and-restore
   - task: accept-stories
-    file: cryogenics-concourse-tasks/tracker-automation/accept-stories/task.yml
+    file: cryogenics-ci/tracker-automation/accept-stories/task.yml
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
       TRACKER_PROJECT_ID: ((tracker.project_id))
