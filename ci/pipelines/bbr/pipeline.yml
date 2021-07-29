@@ -296,9 +296,10 @@ jobs:
       status: pending
   - task: find-pr-story
     attempts: 5
-    file: cryogenics-ci/tracker-automation/find-pr-story/task.yml
+    file: cryogenics-ci/tasks/pivotaltracker/find-pr-story/task.yml
     input_mapping:
       pr: bosh-backup-and-restore
+      cryogenics-concourse-tasks: cryogenics-ci
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
       TRACKER_PROJECT_ID: ((tracker.project_id))
