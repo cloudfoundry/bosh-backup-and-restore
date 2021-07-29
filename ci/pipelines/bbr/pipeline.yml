@@ -375,6 +375,7 @@ jobs:
       DIRECTOR_SSH_KEY: ((test_bosh_director.private_key))
       DIRECTOR_SSH_USERNAME: jumpbox
       BOSH_DEPLOYMENT: *test-bosh-director-deployment
+      GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
       <<: *maru-bosh-env
   - put: delete-system-director
     resource: test-bosh-director-deployment
