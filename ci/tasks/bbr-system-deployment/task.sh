@@ -3,8 +3,9 @@
 set -eu
 
 eval "$(ssh-agent)"
-chmod 400 bosh-backup-and-restore-meta/keys/github
-ssh-add bosh-backup-and-restore-meta/keys/github
+echo -e "${GITHUB_SDK_PRIVATE_KEY}" > "${PWD}/github-sdk.key"
+chmod 400 "${PWD}/github-sdk.key"
+ssh-add "${PWD}/github-sdk.key"
 
 echo -e "${BOSH_GW_PRIVATE_KEY}" > "${PWD}/ssh.key"
 chmod 0600 "${PWD}/ssh.key"

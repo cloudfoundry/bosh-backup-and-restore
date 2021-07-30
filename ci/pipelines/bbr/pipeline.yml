@@ -432,6 +432,7 @@ jobs:
   - task: system-deployment-with-uaa
     file: bosh-backup-and-restore/ci/tasks/bbr-system-deployment/task.yml
     params:
+      GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
       <<: *maru-lite-bosh-env
 
 - name: build-rc
@@ -446,9 +447,10 @@ jobs:
         disable_git_lfs: true
     - get: bbr-final-release-version
       params: {pre: rc}
-    - get: bosh-backup-and-restore-meta
   - task: build
     file: bosh-backup-and-restore/ci/tasks/bbr-build/task.yml
+    params:
+      GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
   - put: rc
     params: {file: bbr-build/bbr-*.tar}
 
