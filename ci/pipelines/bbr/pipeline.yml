@@ -306,7 +306,7 @@ jobs:
       GIT_REPOSITORY: cloudfoundry-incubator/bosh-backup-and-restore
   - task: start-story
     attempts: 5
-    file: cryogenics-ci/tracker-automation/start-story/task.yml
+    file: cryogenics-ci/tasks/pivotaltracker/start-story/task.yml
     input_mapping:
       cryogenics-concourse-tasks: cryogenics-ci
     params:
