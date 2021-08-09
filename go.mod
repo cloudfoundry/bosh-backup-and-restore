@@ -7,7 +7,7 @@ require (
 	github.com/cloudfoundry/bosh-cli v6.4.1+incompatible
 	github.com/cloudfoundry/bosh-utils v0.0.265
 	github.com/cloudfoundry/config-server v0.1.21 // indirect
-	github.com/cloudfoundry/socks5-proxy v0.2.13
+	github.com/cloudfoundry/socks5-proxy v0.2.15
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
