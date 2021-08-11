@@ -141,15 +141,6 @@ resources:
     paths:
     - ci
 
-- name: bosh-backup-and-restore-meta
-  type: git
-  icon: github
-  source:
-    uri: git@github.com:pivotal-cf/bosh-backup-and-restore-meta.git
-    private_key: ((github.ssh_key))
-    git_crypt_key: ((github-bbr.crypt_key))
-    branch: master
-
 - name: homebrew-tap
   type: git
   icon: github
@@ -342,7 +333,6 @@ jobs:
       trigger: true
       version: every
     - get: bosh-deployment
-    - get: bosh-backup-and-restore-meta
     - get: bbr-director-test-releases
     - get: xenial-stemcell
     - get: six-hours
@@ -394,7 +384,6 @@ jobs:
       trigger: true
       passed: [unit-integration]
       version: every
-    - get: bosh-backup-and-restore-meta
     - get: six-hours
       trigger: true
       passed: [unit-integration]
@@ -593,11 +582,11 @@ jobs:
       file: ci/ci/tasks/generate-bbr-release-metadata/task.yml
       input_mapping:
         version-folder: bbr-final-release-version
-        template-folder: bosh-backup-and-restore-meta
+        template-folder: bosh-backup-and-restore-master
         release: bbr-build
         release-tar: bbr-release
       params:
-        TEMPLATE_PATH: templates/release.yml.erb
+        TEMPLATE_PATH: ci/tasks/generate-bbr-release-metadata/release.yml.erb
         VERSION_PATH: number
     - do:
       - task: create-release-notes
