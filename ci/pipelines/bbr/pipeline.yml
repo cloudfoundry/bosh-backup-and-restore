@@ -570,7 +570,6 @@ jobs:
   - in_parallel:
     - get: docs-bbr-main
     - get: cryogenics-ci
-    - get: bosh-backup-and-restore-meta
     - get: bosh-backup-and-restore-master
       passed: [build-rc]
       params:
