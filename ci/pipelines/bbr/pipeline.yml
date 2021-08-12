@@ -535,6 +535,7 @@ jobs:
     file: cryogenics-ci/github-automation/merge-pr/task.yml
     input_mapping:
       source-repo: bosh-backup-and-restore
+      cryogenics-concourse-tasks: cryogenics-ci
     params:
       DELETE: TRUE
       AUTHOR: dependabot # ONLY merge PRs with this author
