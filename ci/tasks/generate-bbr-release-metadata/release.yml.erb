@@ -1,0 +1,61 @@
+---
+release:
+  version: <%= ENV.fetch('VERSION') %>
+  release_type: <%= ENV.fetch('RELEASE_TYPE') %> Release
+  eula_slug: "vmware_eula"
+  description: |
+    BOSH Backup and Restore binary
+  release_notes_url: https://docs.pivotal.io/bbr/bbr-rn.html
+  availability: Admins Only
+product_files:
+- file: <%= ENV.fetch('RELEASE_TAR') %>
+  upload_as: BOSH Backup and Restore
+  description: |
+    BBR and BBR-s3-config-validator binaries for Linux and Darwin.
+  file_type: "Software"
+  docs_url: "https://docs.pivotal.io/bbr/index.html"
+  platforms: ["Linux", "Darwin"]
+  included_files: ["bbr", "bbr-mac", "checksum256", "bbr-s3-config-validator", "bbr-s3-config-validator.README.md"]
+
+- file: <%= ENV.fetch('BBR_LINUX_BINARY') %>
+  upload_as: BOSH Backup and Restore Linux
+  description: |
+    BBR binary for Linux
+  file_type: "Software"
+  docs_url: "https://docs.pivotal.io/bbr/index.html"
+  platforms: ["Linux"]
+  included_files: ["<%= ENV.fetch('BBR_LINUX_BINARY') %>"]
+
+- file: <%= ENV.fetch('BBR_DARWIN_BINARY') %>
+  upload_as: BOSH Backup and Restore Darwin
+  description: |
+    BBR binary for Darwin
+  file_type: "Software"
+  docs_url: "https://docs.pivotal.io/bbr/index.html"
+  platforms: ["Darwin"]
+  included_files: ["<%= ENV.fetch('BBR_DARWIN_BINARY') %>"]
+
+- file: <%= ENV.fetch('BBR_S3_VALIDATOR_BINARY') %>
+  upload_as: BOSH Backup and Restore S3 Configuration Validator Linux
+  description: |
+    BBR-s3-config-validator binary for Linux
+  file_type: "Software"
+  docs_url: "https://docs.pivotal.io/bbr/index.html"
+  platforms: ["Linux"]
+  included_files: ["<%= ENV.fetch('BBR_S3_VALIDATOR_BINARY') %>"]
+
+- file: <%= ENV.fetch('BBR_S3_VALIDATOR_README') %>
+  upload_as: BOSH Backup and Restore S3 Configuration Validator README
+  description: |
+    BBR-s3-config-validator README
+  file_type: "Documentation"
+  docs_url: "https://docs.pivotal.io/bbr/index.html"
+  platforms: ["Linux"]
+  included_files: ["<%= ENV.fetch('BBR_S3_VALIDATOR_README') %>"]
+
+dependency_specifiers:
+- specifier: 1.11.*
+  product_slug: ops-manager
+- specifier: 1.11.*
+  product_slug: elastic-runtime
+

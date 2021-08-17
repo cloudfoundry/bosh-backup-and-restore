@@ -7,7 +7,6 @@ image_resource:
 
 inputs:
 - name: bosh-backup-and-restore
-- name: bosh-backup-and-restore-meta
 
 params:
   BOSH_DEPLOYMENT:
@@ -18,6 +17,8 @@ params:
   DIRECTOR_HOST:
   DIRECTOR_SSH_USERNAME:
   DIRECTOR_SSH_KEY:
+
+  GITHUB_SDK_PRIVATE_KEY:
 
 run:
   path: bosh-backup-and-restore/ci/tasks/bbr-system-director/task.sh

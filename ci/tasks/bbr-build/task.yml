@@ -7,8 +7,10 @@ image_resource:
 
 inputs:
 - name: bosh-backup-and-restore
-- name: bosh-backup-and-restore-meta
 - name: bbr-final-release-version
+
+params:
+  GITHUB_SDK_PRIVATE_KEY:
 
 outputs:
 - name: bbr-build

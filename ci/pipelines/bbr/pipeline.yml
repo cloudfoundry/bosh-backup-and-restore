@@ -141,15 +141,6 @@ resources:
     paths:
     - ci
 
-- name: bosh-backup-and-restore-meta
-  type: git
-  icon: github
-  source:
-    uri: git@github.com:pivotal-cf/bosh-backup-and-restore-meta.git
-    private_key: ((github.ssh_key))
-    git_crypt_key: ((github-bbr.crypt_key))
-    branch: master
-
 - name: homebrew-tap
   type: git
   icon: github
@@ -268,14 +259,7 @@ resources:
     hostname: environments.toolsmiths.cf-app.com
     pool_name: us_2_11_lts2
 
-- name: cryogenics-meta
-  type: git
-  source:
-    uri: git@github.com:pivotal-cf/cryogenics-meta.git
-    private_key: ((github.ssh_key))
-    branch: main
-
-- name: cryogenics-concourse-tasks
+- name: cryogenics-ci
   type: git
   source:
     uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
@@ -294,7 +278,7 @@ jobs:
     - get: bosh-backup-and-restore
       trigger: true
       version: every # This is important to ensure every commit in a PR is tested and not just latest
-    - get: cryogenics-concourse-tasks
+    - get: cryogenics-ci
   - set_pipeline: bbr
     file: bosh-backup-and-restore/ci/pipelines/bbr/pipeline.yml
   - put: bosh-backup-and-restore
@@ -303,18 +287,19 @@ jobs:
       status: pending
   - task: find-pr-story
     attempts: 5
-    file: cryogenics-concourse-tasks/tracker-automation/find-pr-story/task.yml
+    file: cryogenics-ci/tasks/pivotaltracker/find-pr-story/task.yml
     input_mapping:
       pr: bosh-backup-and-restore
+      cryogenics-concourse-tasks: cryogenics-ci
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
       TRACKER_PROJECT_ID: ((tracker.project_id))
       GIT_REPOSITORY: cloudfoundry-incubator/bosh-backup-and-restore
   - task: start-story
     attempts: 5
-    file: cryogenics-concourse-tasks/tracker-automation/start-story/task.yml
+    file: cryogenics-ci/tasks/pivotaltracker/start-story/task.yml
     input_mapping:
-      pr: bosh-backup-and-restore
+      cryogenics-concourse-tasks: cryogenics-ci
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
       TRACKER_PROJECT_ID: ((tracker.project_id))
@@ -348,7 +333,6 @@ jobs:
       trigger: true
       version: every
     - get: bosh-deployment
-    - get: bosh-backup-and-restore-meta
     - get: bbr-director-test-releases
     - get: xenial-stemcell
     - get: six-hours
@@ -381,6 +365,7 @@ jobs:
       DIRECTOR_SSH_KEY: ((test_bosh_director.private_key))
       DIRECTOR_SSH_USERNAME: jumpbox
       BOSH_DEPLOYMENT: *test-bosh-director-deployment
+      GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
       <<: *maru-bosh-env
   - put: delete-system-director
     resource: test-bosh-director-deployment
@@ -399,7 +384,6 @@ jobs:
       trigger: true
       passed: [unit-integration]
       version: every
-    - get: bosh-backup-and-restore-meta
     - get: six-hours
       trigger: true
       passed: [unit-integration]
@@ -437,6 +421,7 @@ jobs:
   - task: system-deployment-with-uaa
     file: bosh-backup-and-restore/ci/tasks/bbr-system-deployment/task.yml
     params:
+      GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
       <<: *maru-lite-bosh-env
 
 - name: build-rc
@@ -451,9 +436,10 @@ jobs:
         disable_git_lfs: true
     - get: bbr-final-release-version
       params: {pre: rc}
-    - get: bosh-backup-and-restore-meta
   - task: build
     file: bosh-backup-and-restore/ci/tasks/bbr-build/task.yml
+    params:
+      GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
   - put: rc
     params: {file: bbr-build/bbr-*.tar}
 
@@ -534,12 +520,11 @@ jobs:
   serial_groups: [version]
   plan:
   - in_parallel:
-    - get: cryogenics-meta
     - get: bosh-backup-and-restore
       passed: [system-test-deployment, system-test-director, validate-aws-s3-config]
       trigger: true
       version: every
-    - get: cryogenics-concourse-tasks
+    - get: cryogenics-ci
   - put: bosh-backup-and-restore
     params:
       path: bosh-backup-and-restore
@@ -547,22 +532,27 @@ jobs:
   - load_var: pr-url
     file: bosh-backup-and-restore/.git/resource/url
   - task: merge-pr
-    file: cryogenics-concourse-tasks/github-automation/merge-pr/task.yml
+    file: cryogenics-ci/github-automation/merge-pr/task.yml
     input_mapping:
       source-repo: bosh-backup-and-restore
+      cryogenics-concourse-tasks: cryogenics-ci
     params:
       DELETE: TRUE
       AUTHOR: dependabot # ONLY merge PRs with this author
       GH_TOKEN: ((github.access_token))
       PR_REF: ((.:pr-url))
   - task: deliver-stories
-    file: cryogenics-concourse-tasks/tracker-automation/deliver-stories/task.yml
+    file: cryogenics-ci/tracker-automation/deliver-stories/task.yml
+    input_mapping:
+      cryogenics-concourse-tasks: cryogenics-ci
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
       TRACKER_PROJECT_ID: ((tracker.project_id))
       GIT_REPOSITORY: cloudfoundry-incubator/bosh-backup-and-restore
   - task: accept-stories
-    file: cryogenics-concourse-tasks/tracker-automation/accept-stories/task.yml
+    file: cryogenics-ci/tracker-automation/accept-stories/task.yml
+    input_mapping:
+      cryogenics-concourse-tasks: cryogenics-ci
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
       TRACKER_PROJECT_ID: ((tracker.project_id))
@@ -573,8 +563,7 @@ jobs:
   plan:
   - in_parallel:
     - get: docs-bbr-main
-    - get: cryogenics-meta
-    - get: bosh-backup-and-restore-meta
+    - get: cryogenics-ci
     - get: bosh-backup-and-restore-master
       passed: [build-rc]
       params:
@@ -598,23 +587,23 @@ jobs:
       file: ci/ci/tasks/generate-bbr-release-metadata/task.yml
       input_mapping:
         version-folder: bbr-final-release-version
-        template-folder: bosh-backup-and-restore-meta
+        template-folder: bosh-backup-and-restore-master
         release: bbr-build
         release-tar: bbr-release
       params:
-        TEMPLATE_PATH: templates/release.yml.erb
+        TEMPLATE_PATH: ci/tasks/generate-bbr-release-metadata/release.yml.erb
         VERSION_PATH: number
     - do:
       - task: create-release-notes
-        file: cryogenics-meta/ci/tasks/release-automation/release-notes/task.yml
+        file: cryogenics-ci/tasks/release-automation/release-notes/task.yml
         input_mapping:
           git-repo: bosh-backup-and-restore-master
         params:
           USE_LATEST_PUBLISHED_TAG: true
       - task: format-release-notes
-        file: cryogenics-meta/ci/tasks/release-automation/format-release-notes/task.yml
+        file: cryogenics-ci/tasks/release-automation/format-release-notes/task.yml
         input_mapping:
-          template-folder: cryogenics-meta
+          template-folder: cryogenics-ci
         params:
           VERSION: ((.:version-number))
           TEMPLATE_PATH: ci/release-templates/docs-release-notes-auto.md.erb
@@ -636,7 +625,7 @@ jobs:
     on_success:
       try:
         task: create-docs-pull-request
-        file: cryogenics-meta/ci/tasks/create-pr/task.yml
+        file: cryogenics-ci/tasks/create-pr/task.yml
         params:
           GITHUB_TOKEN: ((github.access_token))
           BASE: master
@@ -671,7 +660,7 @@ jobs:
         Release `((.:version-number))` is now available <((.:github-release-url))|here>
         View the pipeline <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|here>
   - task: create-story
-    file: cryogenics-meta/ci/tasks/tracker-automation/create-story/task.yml
+    file: cryogenics-ci/tasks/tracker-automation/create-story/task.yml
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
       TRACKER_PROJECT_ID: ((tracker.project_id))
@@ -683,7 +672,7 @@ jobs:
 - name: request-osl
   serial_groups: [version]
   plan:
-  - get: cryogenics-meta
+  - get: cryogenics-ci
     passed:
     - build-and-publish-final
   - get: bbr-final-release-version
@@ -693,7 +682,7 @@ jobs:
   - load_var: version-number
     file: bbr-final-release-version/number
   - task: create-osm-release
-    file: cryogenics-meta/ci/tasks/release-automation/create-osm-release/task.yml
+    file: cryogenics-ci/tasks/release-automation/create-osm-release/task.yml
     tags:
     - *toolsmiths_api_worker
     params:
@@ -705,7 +694,7 @@ jobs:
   serial: true
   plan:
   - in_parallel:
-    - get: cryogenics-meta
+    - get: cryogenics-ci
       passed:
         - request-osl
     - get: bbr-final-release-version
@@ -716,7 +705,7 @@ jobs:
   - task: download-osl-file
     tags:
     - *toolsmiths_api_worker
-    file: cryogenics-meta/ci/tasks/release-automation/download-osl-file/task.yml
+    file: cryogenics-ci/tasks/release-automation/download-osl-file/task.yml
     params:
       PRODUCT_NAME: *tanzunet_product_name
       VERSION: ((.:release-version-number))
@@ -725,7 +714,7 @@ jobs:
   - load_var: osl-file-name
     file: osl/name
   - task: add-osl-file-to-release
-    file: cryogenics-meta/ci/tasks/release-automation/add-osl-file-to-pivnet/task.yml
+    file: cryogenics-ci/tasks/release-automation/add-osl-file-to-pivnet/task.yml
     params:
       PRODUCT_NAME: *tanzunet_product_name
       OSL_FILE_NAME: ((.:osl-file-name))
