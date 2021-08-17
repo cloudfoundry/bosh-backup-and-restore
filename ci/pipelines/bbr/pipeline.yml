@@ -543,12 +543,16 @@ jobs:
       PR_REF: ((.:pr-url))
   - task: deliver-stories
     file: cryogenics-ci/tracker-automation/deliver-stories/task.yml
+    input_mapping:
+      cryogenics-concourse-tasks: cryogenics-ci
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
       TRACKER_PROJECT_ID: ((tracker.project_id))
       GIT_REPOSITORY: cloudfoundry-incubator/bosh-backup-and-restore
   - task: accept-stories
     file: cryogenics-ci/tracker-automation/accept-stories/task.yml
+    input_mapping:
+      cryogenics-concourse-tasks: cryogenics-ci
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
       TRACKER_PROJECT_ID: ((tracker.project_id))
