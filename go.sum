@@ -100,8 +100,8 @@ github.com/onsi/gomega v1.2.0/go.mod h1:C1qb7wdrVGGVU+Z6iS04AVkA3Q65CEZX59MT0QO5
 github.com/onsi/gomega v1.7.1/go.mod h1:XdKZgCCFLUoM/7CFJVPcG8C1xQ1AJ0vpAezJrB7JYyY=
 github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1ybHNo=
 github.com/onsi/gomega v1.11.0/go.mod h1:azGKhqFUon9Vuj0YmTfLSmx0FUwqXYSTl5re8lQLTUg=
-github.com/onsi/gomega v1.15.0 h1:WjP/FQ/sk43MRmnEcT+MlDw2TFvkrXlprrPST/IudjU=
-github.com/onsi/gomega v1.15.0/go.mod h1:cIuvLEne0aoVhAgh/O6ac0Op8WWw9H6eYCriF+tEHG0=
+github.com/onsi/gomega v1.16.0 h1:6gjqkI8iiRHMvdccRJM8rVKjCWk6ZIm6FTm3ddIe4/c=
+github.com/onsi/gomega v1.16.0/go.mod h1:HnhC7FXeEQY45zxNK3PPoIUhzk/80Xly9PcubAlGdZY=
 github.com/pivotal-cf-experimental/cf-webmock v0.0.0-20190222120028-6bf93e3bc5ed h1:K0oJgdpc9IIEOfHTSltxdDiMMt+niA8vzKSzCRL+Aig=
 github.com/pivotal-cf-experimental/cf-webmock v0.0.0-20190222120028-6bf93e3bc5ed/go.mod h1:DEHca28ocAPwhwC1trOrUzwjjSnQhxHAtNrvU9RNcj8=
 github.com/pivotal-cf/paraphernalia v0.0.0-20180203224945-a64ae2051c20 h1:DR5eMfe2+6GzLkVyWytdtgUxgbPiOfvKDuqityTV3y8=
