@@ -25,7 +25,7 @@ resources:
   type: git
   source:
     uri: https://github.com/pivotal-cf/bbr-pcf-pipeline-tasks.git
-    branch: master
+    branch: main
     paths: [docker/Dockerfile]
 
 - name: ci
@@ -110,6 +110,15 @@ resources:
     password: ((dockerhub.password))
     tag: 1
 
+- name: every-monday
+  type: time
+  icon: timer-outline
+  source:
+    start: 9:00 AM
+    stop: 5:00 PM
+    days: [Monday]
+    location: Europe/London
+
 jobs:
 - name: build-backup-and-restore-minimal
   serial: true
@@ -184,6 +193,8 @@ jobs:
   serial: true
   plan:
   - get: ubuntu-xenial
+    trigger: true
+  - get: every-monday
     trigger: true
   - get: bbr-pcf-pipeline-tasks
     trigger: true
