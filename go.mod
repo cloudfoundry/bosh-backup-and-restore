@@ -3,7 +3,6 @@ module github.com/cloudfoundry-incubator/bosh-backup-and-restore
 go 1.14
 
 require (
-	code.cloudfoundry.org/clock v1.0.0 // indirect
 	github.com/cheggaaa/pb v1.0.29 // indirect
 	github.com/cloudfoundry/bosh-cli v6.4.1+incompatible
 	github.com/cloudfoundry/bosh-utils v0.0.273
