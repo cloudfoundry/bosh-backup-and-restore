@@ -94,6 +94,11 @@ resource_types:
     repository: teliaoss/github-pr-resource
 
 resources:
+- name: every-3-weeks
+  type: time
+  source: 
+    interval: 504h # 24*7*3
+
 - name: bbr-director-test-releases
   type: git
   source:
@@ -562,6 +567,8 @@ jobs:
   serial_groups: [version]
   plan:
   - in_parallel:
+    - get: every-3-weeks
+      trigger: true
     - get: docs-bbr-main
     - get: cryogenics-ci
     - get: bosh-backup-and-restore-master
