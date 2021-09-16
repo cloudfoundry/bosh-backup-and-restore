@@ -605,6 +605,7 @@ jobs:
         file: cryogenics-ci/tasks/release-automation/release-notes/task.yml
         input_mapping:
           git-repo: bosh-backup-and-restore-master
+          cryogenics-concourse-tasks: cryogenics-ci
         params:
           USE_LATEST_PUBLISHED_TAG: true
       - task: format-release-notes
