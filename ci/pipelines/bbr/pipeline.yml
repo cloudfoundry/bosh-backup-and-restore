@@ -612,9 +612,10 @@ jobs:
         file: cryogenics-ci/tasks/release-automation/format-release-notes/task.yml
         input_mapping:
           template-folder: cryogenics-ci
+          cryogenics-concourse-tasks: cryogenics-ci
         params:
           VERSION: ((.:version-number))
-          TEMPLATE_PATH: ci/release-templates/docs-release-notes-auto.md.erb
+          TEMPLATE_PATH: tasks/release-automation/release-notes-templates/docs-release-notes-auto.md.erb
       - task: commit-release-notes
         file: docs-bbr-main/ci/tasks/commit-new-release-notes.yml
         input_mapping:
@@ -641,6 +642,7 @@ jobs:
           TITLE: ((.:version-number)) release notes
         input_mapping:
           repo: docs-bbr-main
+          cryogenics-concourse-tasks: cryogenics-ci
   - in_parallel:
     - put: bbr-pivnet
       params:
@@ -669,6 +671,8 @@ jobs:
         View the pipeline <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|here>
   - task: create-story
     file: cryogenics-ci/tasks/tracker-automation/create-story/task.yml
+    input_mapping:
+      cryogenics-concourse-tasks: cryogenics-ci
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
       TRACKER_PROJECT_ID: ((tracker.project_id))
