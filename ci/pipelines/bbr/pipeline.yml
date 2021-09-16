@@ -188,14 +188,6 @@ resources:
     repository: bosh-backup-and-restore
     access_token: ((github.access_token))
 
-- name: bbr-final-release
-  type: github-release
-  icon: github
-  source:
-    user: cloudfoundry-incubator
-    repository: bosh-backup-and-restore
-    access_token: ((github.access_token))
-
 - name: bbr-final-release-version
   type: semver
   icon: google
@@ -745,19 +737,20 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ((pivnet_bucket.secret_access_key))
       AWS_PRODUCT_NAME: ((pivnet_bucket.user))
 
-
 - name: update-homebrew-formula
   serial: true
   plan:
   - in_parallel:
     - get: homebrew-tap
-    - get: bbr-final-release
+    - get: bbr-release
+      passed:
+        - build-and-publish-final
       trigger: true
     - get: bosh-backup-and-restore
   - task: update-homebrew-formula
     file: bosh-backup-and-restore/ci/tasks/bbr-update-homebrew-formula/task.yml
     input_mapping:
-      bbr-release: bbr-final-release
+      bbr-release: bbr-release
   - put: homebrew-tap
     params:
       repository: updated-homebrew-tap
