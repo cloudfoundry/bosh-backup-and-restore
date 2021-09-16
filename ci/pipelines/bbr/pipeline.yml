@@ -61,6 +61,12 @@ groups:
   - update-homebrew-formula
 
 resource_types:
+- name: gitgat
+  type: docker-image
+  source:
+    repository: cryogenics/concourse-gitgat-resource
+    tag: latest
+
 - name: pivnet
   type: docker-image
   source:
@@ -95,9 +101,11 @@ resource_types:
 
 resources:
 - name: every-3-weeks
-  type: time
-  source: 
-    interval: 504h # 24*7*3
+  type: gitgat
+  source:
+    uri: https://github.com/cloudfoundry-incubator/bosh-backup-and-restore
+    branch: master
+    since: 3 weeks
 
 - name: bbr-director-test-releases
   type: git
