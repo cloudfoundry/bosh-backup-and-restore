@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -eu
+set -euo pipefail
 set -x
 
 VERSION=$(cat bbr-final-release-version/number)
@@ -18,8 +18,6 @@ function create_bbr_tarball_in() {
 
   local bbr_tarball_folder
   bbr_tarball_folder="$(mktemp -d)"
-
-  ls bbr-rc-artefacts/releases
 
   cp 'bbr-rc-artefacts/releases/bbr' "$bbr_tarball_folder"
   cp 'bbr-rc-artefacts/releases/bbr-mac' "$bbr_tarball_folder"
