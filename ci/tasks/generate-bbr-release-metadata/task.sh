@@ -3,9 +3,10 @@
 set -euo pipefail
 set -x
 
+[ -d version ]
 [ -d promoted-artefacts ]
-[ -d pivnet-artefacts ]
 [ -d repo ]
+[ -d pivnet-artefacts ]
 
 : "${TEMPLATE_PATH:?}"
 : "${RELEASE_TYPE:?}"
