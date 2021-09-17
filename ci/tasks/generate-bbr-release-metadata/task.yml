@@ -6,20 +6,16 @@ image_resource:
   source: {repository: pcfplatformrecovery/backup-and-restore}
 
 inputs:
-- name: release
-- name: release-tar
-- name: version-folder
-- name: template-folder
-- name: bosh-backup-and-restore-master
+- name: version
+- name: promoted-artefacts
+- name: repo
 
 params:
   TEMPLATE_PATH:
-  VERSION_PATH:
   RELEASE_TYPE: Maintenance
 
 outputs:
-- name: pivnet-release-with-metadata
-- name: github-release-with-metadata
+- name: pivnet-artefacts
 
 run:
-  path: bosh-backup-and-restore-master/ci/tasks/generate-bbr-release-metadata/task.sh
+  path: repo/ci/tasks/generate-bbr-release-metadata/task.sh
