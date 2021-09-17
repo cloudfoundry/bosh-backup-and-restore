@@ -3,7 +3,7 @@
 set -eu
 set -x
 
-VERSION=$(cat bbr-final-release-version/bbr-final)
+VERSION=$(cat bbr-final-release-version/number)
 
 function main {
   local release_folder='bbr-final-release-artefacts'
