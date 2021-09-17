@@ -606,6 +606,10 @@ jobs:
     input_mapping:
       bbr-rc-artefacts: rc
       s3-config-validator-rc-artefacts: bbr-s3-config-validator-artifact
+    on_success:
+      put: bbr-final-release-version
+      params:
+        bump: patch
   - task: create-release-notes
     file: cryogenics-ci/tasks/release-automation/release-notes/task.yml
     input_mapping:
