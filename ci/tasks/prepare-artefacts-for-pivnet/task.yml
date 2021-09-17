@@ -18,4 +18,4 @@ outputs:
 - name: pivnet-artefacts
 
 run:
-  path: repo/ci/tasks/generate-bbr-release-metadata/task.sh
+  path: repo/ci/tasks/prepare-artefacts-for-pivnet/task.sh

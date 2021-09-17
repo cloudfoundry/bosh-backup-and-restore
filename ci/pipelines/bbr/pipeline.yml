@@ -690,13 +690,13 @@ jobs:
   - load_var: version-number
     file: bbr-final-release-version/number
   - task: generate-artifact-and-metadata
-    file: ci/ci/tasks/generate-bbr-release-metadata/task.yml
+    file: ci/ci/tasks/prepare-artefacts-for-pivnet/task.yml
     input_mapping:
       version: bbr-final-release-version
       promoted-artefacts: bbr-release
       repo: ci
     params:
-      TEMPLATE_PATH: ci/tasks/generate-bbr-release-metadata/release.yml.erb
+      TEMPLATE_PATH: ci/tasks/prepare-artefacts-for-pivnet/release.yml.erb
       VERSION_PATH: number
   - put: bbr-pivnet
     params:
