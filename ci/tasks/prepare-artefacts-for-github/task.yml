@@ -1,0 +1,21 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source: {repository: pcfplatformrecovery/backup-and-restore}
+
+inputs:
+- name: release
+- name: release-tar
+- name: version-folder
+- name: bosh-backup-and-restore-master
+
+params:
+  VERSION_PATH:
+
+outputs:
+- name: github-release-with-metadata
+
+run:
+  path: bosh-backup-and-restore-master/ci/tasks/prepare-artefacts-for-github/task.sh

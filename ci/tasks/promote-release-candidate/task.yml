@@ -1,0 +1,18 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source: {repository: pcfplatformrecovery/backup-and-restore}
+
+inputs:
+- name: bbr-final-release-version
+- name: bbr-rc-artefacts
+- name: s3-config-validator-rc-artefacts
+- name: ci
+
+outputs:
+- name: bbr-final-release-artefacts
+
+run:
+  path: ci/ci/tasks/promote-release-candidate/task.sh
