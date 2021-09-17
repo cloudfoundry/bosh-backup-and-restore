@@ -663,6 +663,16 @@ jobs:
       commitish: bosh-backup-and-restore-master/.git/refs/heads/master
       globs:
       - bbr-final-release-artefacts/bbr*
+    on_success:
+      do:
+      - load_var: github-release-url
+        file: bbr-release/url
+      - put: slack-cryo-notification
+        params:
+          text: |
+            A new release for $BUILD_PIPELINE_NAME has been published!
+            Release `((.:version-number))` is now available <((.:github-release-url))|here>
+            View the pipeline <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|here>
 
 - name: build-and-publish-final
   serial_groups: [version]
@@ -751,25 +761,8 @@ jobs:
         s3_filepath_prefix: product-files/bosh-backup-restore
         file_glob: pivnet-release-with-metadata/bbr*
         override: true
-    - put: bbr-release
-      params:
-        name: bbr-final-release-version/number
-        tag: bbr-final-release-version/number
-        tag_prefix: v
-        body: release-notes/release-notes.md
-        commitish: bosh-backup-and-restore-master/.git/refs/heads/master
-        globs:
-        - github-release-with-metadata/bbr*
-  - put: bbr-final-release-version
-    params: { file: bbr-final-release-version/number }
   - load_var: github-release-url
     file: bbr-release/url
-  - put: slack-cryo-notification
-    params:
-      text: |
-        A new release for $BUILD_PIPELINE_NAME has been published!
-        Release `((.:version-number))` is now available <((.:github-release-url))|here>
-        View the pipeline <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|here>
   - task: create-story
     file: cryogenics-ci/tasks/tracker-automation/create-story/task.yml
     input_mapping:
