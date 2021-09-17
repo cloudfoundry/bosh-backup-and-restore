@@ -7,7 +7,7 @@ image_resource:
 
 inputs:
 - name: bosh-backup-and-restore
-- name: bbr-final-release-version
+- name: version
 
 params:
   GITHUB_SDK_PRIVATE_KEY:
