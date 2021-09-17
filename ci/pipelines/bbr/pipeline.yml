@@ -843,7 +843,7 @@ jobs:
     - get: homebrew-tap
     - get: bbr-release
       passed:
-        - build-and-publish-final
+        - publish-to-github
       trigger: true
     - get: bosh-backup-and-restore
   - task: update-homebrew-formula
