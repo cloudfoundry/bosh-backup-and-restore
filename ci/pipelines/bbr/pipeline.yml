@@ -604,15 +604,6 @@ jobs:
         unpack: true
   - load_var: version-number
     file: bbr-final-release-version/number
-  - task: promote-rc-binaries
-    file: ci/ci/tasks/promote-release-candidate/task.yml
-    input_mapping:
-      bbr-rc-artefacts: rc
-      s3-config-validator-rc-artefacts: bbr-s3-config-validator-artifact
-    on_success:
-      put: bbr-final-release-version
-      params:
-        bump: patch
   - task: create-release-notes
     file: cryogenics-ci/tasks/release-automation/release-notes/task.yml
     input_mapping:
@@ -655,6 +646,17 @@ jobs:
         input_mapping:
           repo: docs-bbr-main
           cryogenics-concourse-tasks: cryogenics-ci
+  - task: promote-rc-binaries
+    file: ci/ci/tasks/promote-release-candidate/task.yml
+    input_mapping:
+      version: bbr-final-release-version
+      bbr-rc-artefacts: rc
+      s3-config-validator-rc-artefacts: bbr-s3-config-validator-artifact
+      repo: ci
+    on_success:
+      put: bbr-final-release-version
+      params:
+        bump: patch
   - put: bbr-release
     params:
       name: bbr-final-release-version/number
@@ -663,7 +665,7 @@ jobs:
       body: release-notes/release-notes.md
       commitish: bosh-backup-and-restore-master/.git/refs/heads/master
       globs:
-      - bbr-final-release-artefacts/bbr*
+      - promoted-artefacts/bbr*
     on_success:
       do:
       - load_var: github-release-url

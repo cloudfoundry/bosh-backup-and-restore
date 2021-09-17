@@ -3,10 +3,17 @@
 set -euo pipefail
 set -x
 
-VERSION=$(cat bbr-final-release-version/number)
+VERSION=$(cat version/number)
+
+[ -d 'version' ]
+[ -d 'bbr-rc-artefacts' ]
+[ -d 's3-config-validator-rc-artefacts' ]
+[ -d 's3-config-validator-rc-artefacts' ]
+[ -d 'repo' ]
+[ -d 'promoted-artefacts' ]
 
 function main {
-  local release_folder='bbr-final-release-artefacts'
+  local release_folder='promoted-artefacts'
 
   copy_bbr_binaries_to "$release_folder"
   copy_s3_config_validator_artefacts_to "$release_folder"

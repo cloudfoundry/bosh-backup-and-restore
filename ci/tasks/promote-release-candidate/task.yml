@@ -6,13 +6,13 @@ image_resource:
   source: {repository: pcfplatformrecovery/backup-and-restore}
 
 inputs:
-- name: bbr-final-release-version
+- name: version
 - name: bbr-rc-artefacts
 - name: s3-config-validator-rc-artefacts
-- name: ci
+- name: repo
 
 outputs:
-- name: bbr-final-release-artefacts
+- name: promoted-artefacts
 
 run:
-  path: ci/ci/tasks/promote-release-candidate/task.sh
+  path: repo/ci/tasks/promote-release-candidate/task.sh
