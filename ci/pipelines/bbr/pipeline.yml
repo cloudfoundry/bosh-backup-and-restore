@@ -135,7 +135,7 @@ resources:
     - lock-ordering-release
     - many-bbr-jobs-release
 
-- name: bosh-backup-and-restore
+- name: latest-pull-request
   icon: source-pull
   type: pull-request
   source:
@@ -285,21 +285,21 @@ jobs:
 - name: set-pipeline
   plan:
   - in_parallel:
-    - get: bosh-backup-and-restore
+    - get: latest-pull-request
       trigger: true
       version: every # This is important to ensure every commit in a PR is tested and not just latest
     - get: cryogenics-ci
   - set_pipeline: bbr
     file: bosh-backup-and-restore/ci/pipelines/bbr/pipeline.yml
-  - put: bosh-backup-and-restore
+  - put: latest-pull-request
     params:
-      path: bosh-backup-and-restore
+      path: latest-pull-request
       status: pending
   - task: find-pr-story
     attempts: 5
     file: cryogenics-ci/tasks/pivotaltracker/find-pr-story/task.yml
     input_mapping:
-      pr: bosh-backup-and-restore
+      pr: latest-pull-request
       cryogenics-concourse-tasks: cryogenics-ci
     params:
       TRACKER_API_TOKEN: ((tracker.api_token))
@@ -319,7 +319,7 @@ jobs:
   serial: true
   plan:
   - in_parallel:
-    - get: bosh-backup-and-restore
+    - get: latest-pull-request
       trigger: true
       passed: [set-pipeline]
       version: every
@@ -336,7 +336,7 @@ jobs:
   serial_groups: [system-test-director]
   plan:
   - in_parallel:
-    - get: bosh-backup-and-restore
+    - get: latest-pull-request
       passed: [unit-integration]
       trigger: true
       version: every
@@ -385,7 +385,7 @@ jobs:
   - in_parallel:
     - get: bbr-deployment-test-releases
       trigger: true
-    - get: bosh-backup-and-restore
+    - get: latest-pull-request
       trigger: true
       passed: [unit-integration]
       version: every
@@ -429,7 +429,7 @@ jobs:
 - name: test-build-s3-config-validator
   plan:
   - in_parallel:
-    - get: bosh-backup-and-restore
+    - get: latest-pull-request
       trigger: true
       version: every
       passed: [ set-pipeline ]
@@ -449,7 +449,7 @@ jobs:
     file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-build/task.yml
     input_mapping:
       version: build-version
-      repo: bosh-backup-and-restore
+      repo: latest-pull-request
   - put: build-version
     params: { file: build-version/number }
   - put: s3-config-validator-artefacts
@@ -467,7 +467,7 @@ jobs:
     - get: s3-config-validator-artefacts
       passed: [test-build-s3-config-validator]
       trigger: true
-    - get: bosh-backup-and-restore
+    - get: latest-pull-request
       version: every
       passed: [test-build-s3-config-validator]
   - task: enable-backup-prepare-pas
@@ -500,21 +500,21 @@ jobs:
   serial_groups: [version]
   plan:
   - in_parallel:
-    - get: bosh-backup-and-restore
+    - get: latest-pull-request
       passed: [system-test-deployment, system-test-director, validate-aws-s3-config]
       trigger: true
       version: every
     - get: cryogenics-ci
-  - put: bosh-backup-and-restore
+  - put: latest-pull-request
     params:
-      path: bosh-backup-and-restore
+      path: latest-pull-request
       status: success
   - load_var: pr-url
     file: bosh-backup-and-restore/.git/resource/url
   - task: merge-pr
     file: cryogenics-ci/github-automation/merge-pr/task.yml
     input_mapping:
-      source-repo: bosh-backup-and-restore
+      source-repo: latest-pull-request
       cryogenics-concourse-tasks: cryogenics-ci
     params:
       DELETE: TRUE
@@ -542,26 +542,23 @@ jobs:
   serial_groups: [version]
   plan:
   - in_parallel:
-    - get: bosh-backup-and-restore
-      resource: bosh-backup-and-restore-master
+    - get: bosh-backup-and-restore-master
       trigger: true
-      params:
-        submodules: none
-        disable_git_lfs: true
     - get: release-candidate-version
       params:
         pre: rc
   - task: build-bbr
-    file: bosh-backup-and-restore/ci/tasks/bbr-build/task.yml
+    file: bosh-backup-and-restore-master/ci/tasks/bbr-build/task.yml
     params:
       GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
     input_mapping:
       version: release-candidate-version
+      bosh-backup-and-restore: bosh-backup-and-restore-master
   - task: build-s3-config-validator
-    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-build/task.yml
+    file: bosh-backup-and-restore-master/ci/tasks/bbr-s3-config-validator-build/task.yml
     input_mapping:
       version: release-candidate-version
-      repo: bosh-backup-and-restore
+      repo: bosh-backup-and-restore-master
   - put: bbr-artefacts
     params: {file: bbr-build/bbr-*.tar}
   - put: s3-config-validator-artefacts
