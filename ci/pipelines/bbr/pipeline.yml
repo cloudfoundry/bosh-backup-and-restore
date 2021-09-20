@@ -470,7 +470,6 @@ jobs:
     - get: bosh-backup-and-restore
       version: every
       passed: [test-build-s3-config-validator]
-      trigger: true
   - task: enable-backup-prepare-pas
     file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-enable-backup-prepare-pas/task.yml
     params:
