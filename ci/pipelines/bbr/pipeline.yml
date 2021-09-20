@@ -32,9 +32,8 @@ groups:
   - system-test-director
   - build-rc
   - update-tracker
-  - promote-latest-rc
   - publish-to-github
-  - publish-to-tanzunet
+  - upload-to-tanzunet
   - request-osl
   - publish-ga
   - update-homebrew-formula
@@ -57,9 +56,8 @@ groups:
 - name: shipit
   jobs:
   - build-rc
-  - promote-latest-rc
   - publish-to-github
-  - publish-to-tanzunet
+  - upload-to-tanzunet
   - request-osl
   - publish-ga
   - update-homebrew-formula
@@ -178,16 +176,6 @@ resources:
     access_key_id: ((aws_credentials.access_key_id))
     secret_access_key: ((aws_credentials.secret_access_key))
 
-- name: bbr-draft-release
-  type: github-release
-  icon: github
-  source:
-    repository: bosh-backup-and-restore
-    user: cloudfoundry-incubator
-    access_token: ((github.access_token))
-    release: false
-    drafts: true
-
 - name: bbr-release
   type: github-release
   icon: github
@@ -196,7 +184,6 @@ resources:
     user: cloudfoundry-incubator
     access_token: ((github.access_token))
     release: true
-    pre_release: false
 
 - name: release-version
   type: semver
@@ -541,7 +528,7 @@ jobs:
       path: latest-pull-request
       status: success
   - load_var: pr-url
-    file: bosh-backup-and-restore/.git/resource/url
+    file: latest-pull-request/.git/resource/url
   - task: merge-pr
     file: cryogenics-ci/github-automation/merge-pr/task.yml
     input_mapping:
@@ -596,30 +583,33 @@ jobs:
     params:
       file: bbr-s3-config-validator-test-artifacts/*
 
-- name: promote-latest-rc
+- name: publish-to-github
   serial: true
   plan:
   - in_parallel:
     - get: every-3-weeks
       trigger: true
+    - get: cryogenics-ci
+    - get: main
+      passed: [build-rc]
+    - get: cf-docs
+    - get: bbr-artefacts
+      passed:
+        - build-rc
+      params:
+        unpack: true
+    - get: s3-config-validator-artefacts
+      params:
+        unpack: true
+      passed:
+        - build-rc
     - get: release-candidate-version
       params: 
         bump: final
       passed:
         - build-rc
-    - get: bbr-artefacts
-      params:
-        unpack: true
-      passed:
-        - build-rc
-    - get: s3-config-validator-artefacts
-      passed:
-        - build-rc
-      params:
-        unpack: true
-    - get: main
-      passed:
-        - build-rc
+  - load_var: version-number
+    file: release-candidate-version/number
   - task: promote-rc-binaries
     file: main/ci/tasks/promote-release-candidate/task.yml
     input_mapping:
@@ -638,35 +628,6 @@ jobs:
     params:
       bump: patch
       pre: build
-  - put: bbr-draft-release
-    params:
-      name: release-version/number
-      tag: release-version/number
-      tag_prefix: v
-      commitish: main/.git/refs/heads/master
-      globs:
-      - promoted-artefacts/bbr*
-
-- name: publish-to-github
-  serial: true
-  plan:
-  - in_parallel:
-    - get: cryogenics-ci
-    - get: main
-      passed: [promote-latest-rc]
-      params:
-        submodules: none
-        disable_git_lfs: true
-    - get: cf-docs
-    - get: release-version
-      passed:
-        - promote-latest-rc
-    - get: bbr-draft-release
-      trigger: true
-      passed:
-        - promote-latest-rc
-  - load_var: version-number
-    file: release-version/number
   - task: create-release-notes
     file: cryogenics-ci/tasks/release-automation/release-notes/task.yml
     input_mapping:
@@ -715,6 +676,8 @@ jobs:
       tag: release-version/number
       tag_prefix: v
       body: release-notes/release-notes.md
+      globs:
+      - promoted-artefacts/bbr*
     on_success:
       do:
       - load_var: github-release-url
@@ -726,7 +689,7 @@ jobs:
             Release `((.:version-number))` is now available <((.:github-release-url))|here>
             View the pipeline <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|here>
 
-- name: publish-to-tanzunet
+- name: upload-to-tanzunet
   serial: true
   plan:
   - in_parallel:
@@ -739,6 +702,9 @@ jobs:
       - publish-to-github
     - get: bbr-release
       trigger: true
+      params:
+        globs:
+          - bbr-*
       passed:
       - publish-to-github
   - load_var: version-number
@@ -797,7 +763,7 @@ jobs:
   - get: release-version
     trigger: true
     passed:
-    - publish-to-tanzunet
+    - upload-to-tanzunet
   - load_var: version-number
     file: release-version/number
   - task: create-osm-release
