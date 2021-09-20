@@ -160,7 +160,7 @@ resources:
     branch: master
     private_key: ((homebrew_ci_bot.private_key))
 
-- name: bbr-pivnet
+- name: tanzunet
   type: pivnet
   icon: alpha-p-box
   source:
@@ -720,7 +720,7 @@ jobs:
     params:
       TEMPLATE_PATH: main/tasks/prepare-artefacts-for-pivnet/release.yml.erb
       VERSION_PATH: number
-  - put: bbr-pivnet
+  - put: tanzunet
     params:
       metadata_file: pivnet-release-with-metadata/release.yml
       s3_filepath_prefix: product-files/bosh-backup-restore
