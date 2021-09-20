@@ -254,15 +254,6 @@ resources:
     deployment: *test-bosh-director-deployment
     skip_check: true
 
-- name: six-hours
-  type: time
-  icon: timer-outline
-  source:
-    interval: 6h
-    start: 9:00 AM
-    stop: 5:00 PM
-    days: [Monday, Tuesday, Wednesday, Thursday, Friday]
-
 - name: bbr-s3-config-validator-test-artifacts
   type: gcs
   source:
@@ -327,8 +318,6 @@ jobs:
   serial: true
   plan:
   - in_parallel:
-    - get: six-hours
-      trigger: true
     - get: bosh-backup-and-restore
       trigger: true
       passed: [set-pipeline]
@@ -353,9 +342,6 @@ jobs:
     - get: bosh-deployment
     - get: bbr-director-test-releases
     - get: xenial-stemcell
-    - get: six-hours
-      trigger: true
-      passed: [unit-integration]
   - task: generate-bosh-deployment-source-file
     file: bosh-backup-and-restore/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
     params:
@@ -402,9 +388,6 @@ jobs:
       trigger: true
       passed: [unit-integration]
       version: every
-    - get: six-hours
-      trigger: true
-      passed: [unit-integration]
   - in_parallel:
     - task: upload-redis-test-release-maru-lite
       file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
@@ -445,8 +428,6 @@ jobs:
 - name: test-build-s3-config-validator
   plan:
   - in_parallel:
-    - get: six-hours
-      trigger: true
     - get: bosh-backup-and-restore
       trigger: true
       version: every
@@ -478,9 +459,6 @@ jobs:
   serial: true
   plan:
   - in_parallel:
-    - get: six-hours
-      trigger: true
-      passed: [ test-build-s3-config-validator ]
     - put: env-pool
       resource: pcf-2-11-pool
       params:
