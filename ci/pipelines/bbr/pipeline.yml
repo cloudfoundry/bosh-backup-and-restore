@@ -268,13 +268,6 @@ resources:
   source:
     bucket: cryo-bbr-s3-config-validator-test-artifacts
     json_key: ((gcp/service_accounts/bbr_bucket_owner.json_key))
-    regexp: .*.tgz
-
-- name: bbr-s3-config-validator-artifact
-  type: gcs
-  source:
-    bucket: cryo-bbr-s3-config-validator-test-artifacts
-    json_key: ((gcp/service_accounts/bbr_bucket_owner.json_key))
     regexp: bbr-s3-config-validator.(.*).tgz
 
 - name: pcf-2-11-pool
@@ -613,7 +606,9 @@ jobs:
         unpack: true
       passed:
         - build-rc
-    - get: bbr-s3-config-validator-artifact
+    - get: bbr-s3-config-validator-test-artifacts
+      passed:
+        - build-rc
       params:
         unpack: true
     - get: bosh-backup-and-restore-master
@@ -624,7 +619,7 @@ jobs:
     input_mapping:
       version: release-candidate-version
       bbr-rc-artefacts: rc
-      s3-config-validator-rc-artefacts: bbr-s3-config-validator-artifact
+      s3-config-validator-rc-artefacts: bbr-s3-config-validator-test-artifacts
       repo: bosh-backup-and-restore-master
   - put: bbr-final-release-version
     params:
