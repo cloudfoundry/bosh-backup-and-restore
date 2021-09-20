@@ -152,16 +152,6 @@ resources:
     branch: master
     disable_git_lfs: true
 
-- name: ci
-  type: git
-  icon: github
-  source:
-    uri: git@github.com:cloudfoundry-incubator/bosh-backup-and-restore.git
-    private_key: ((github.ssh_key))
-    branch: master
-    paths:
-    - ci
-
 - name: homebrew-tap
   type: git
   icon: github
@@ -613,7 +603,6 @@ jobs:
   - in_parallel:
     - get: every-3-weeks
       trigger: true
-    - get: ci
     - get: release-candidate-version
       params: 
         bump: final
@@ -628,13 +617,15 @@ jobs:
       params:
         unpack: true
     - get: bosh-backup-and-restore-master
+      passed:
+        - build-rc
   - task: promote-rc-binaries
-    file: ci/ci/tasks/promote-release-candidate/task.yml
+    file: bosh-backup-and-restore-master/ci/tasks/promote-release-candidate/task.yml
     input_mapping:
       version: release-candidate-version
       bbr-rc-artefacts: rc
       s3-config-validator-rc-artefacts: bbr-s3-config-validator-artifact
-      repo: ci
+      repo: bosh-backup-and-restore-master
   - put: bbr-final-release-version
     params:
       file: release-candidate-version/number
@@ -662,7 +653,6 @@ jobs:
         submodules: none
         disable_git_lfs: true
     - get: docs-bbr-main
-    - get: ci
     - get: bbr-final-release-version
       passed:
         - promote-latest-rc
@@ -739,20 +729,22 @@ jobs:
     - get: bbr-final-release-version
       passed:
       - publish-to-github
-    - get: ci
+    - get: bosh-backup-and-restore-master
+      passed:
+      - publish-to-github
     - get: bbr-release
       passed:
       - publish-to-github
   - load_var: version-number
     file: bbr-final-release-version/number
   - task: generate-artifact-and-metadata
-    file: ci/ci/tasks/prepare-artefacts-for-pivnet/task.yml
+    file: bosh-backup-and-restore-master/ci/tasks/prepare-artefacts-for-pivnet/task.yml
     input_mapping:
       version: bbr-final-release-version
       promoted-artefacts: bbr-release
-      repo: ci
+      repo: bosh-backup-and-restore-master
     params:
-      TEMPLATE_PATH: ci/tasks/prepare-artefacts-for-pivnet/release.yml.erb
+      TEMPLATE_PATH: bosh-backup-and-restore-master/tasks/prepare-artefacts-for-pivnet/release.yml.erb
       VERSION_PATH: number
   - put: bbr-pivnet
     params:
@@ -772,12 +764,30 @@ jobs:
       STORY_LABELS: 'bbr'
       STORY_BLOCKERS: '{"description":"OSL file"}'
 
+- name: update-homebrew-formula
+  serial: true
+  plan:
+  - in_parallel:
+    - get: bbr-release
+      passed:
+        - publish-to-github
+      trigger: true
+    - get: bosh-backup-and-restore-master
+      passed:
+      - publish-to-github
+  - task: update-homebrew-formula
+    file: bosh-backup-and-restore-master/ci/tasks/bbr-update-homebrew-formula/task.yml
+    input_mapping:
+      bbr-release: bbr-release
+  - put: homebrew-tap
+    params:
+      repository: updated-homebrew-tap
+      rebase: true
+
 - name: request-osl
   serial_groups: [version]
   plan:
   - get: cryogenics-ci
-    passed:
-    - publish-to-pivnet
   - get: bbr-final-release-version
     trigger: true
     passed:
@@ -798,8 +808,6 @@ jobs:
   plan:
   - in_parallel:
     - get: cryogenics-ci
-      passed:
-        - request-osl
     - get: bbr-final-release-version
       passed:
         - request-osl
@@ -827,21 +835,3 @@ jobs:
       AWS_ACCESS_KEY_ID: ((pivnet_bucket.access_key_id))
       AWS_SECRET_ACCESS_KEY: ((pivnet_bucket.secret_access_key))
       AWS_PRODUCT_NAME: ((pivnet_bucket.user))
-
-- name: update-homebrew-formula
-  serial: true
-  plan:
-  - in_parallel:
-    - get: bbr-release
-      passed:
-        - publish-to-github
-      trigger: true
-    - get: ci
-  - task: update-homebrew-formula
-    file: ci/ci/tasks/bbr-update-homebrew-formula/task.yml
-    input_mapping:
-      bbr-release: bbr-release
-  - put: homebrew-tap
-    params:
-      repository: updated-homebrew-tap
-      rebase: true
