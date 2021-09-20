@@ -254,8 +254,9 @@ resources:
     deployment: *test-bosh-director-deployment
     skip_check: true
 
-- name: bbr-s3-config-validator-test-artifacts
+- name: s3-config-validator-artefacts
   type: gcs
+  icon: google
   source:
     bucket: cryo-bbr-s3-config-validator-test-artifacts
     json_key: ((gcp/service_accounts/bbr_bucket_owner.json_key))
@@ -451,9 +452,9 @@ jobs:
       repo: bosh-backup-and-restore
   - put: build-version
     params: { file: build-version/number }
-  - put: bbr-s3-config-validator-test-artifacts
+  - put: s3-config-validator-artefacts
     params:
-      file: bbr-s3-config-validator-test-artifacts/*
+      file: s3-config-validator-artefacts/*
 
 - name: validate-aws-s3-config
   serial: true
@@ -463,7 +464,7 @@ jobs:
       resource: pcf-2-11-pool
       params:
         action: claim
-    - get: bbr-s3-config-validator-test-artifacts
+    - get: s3-config-validator-artefacts
       passed: [test-build-s3-config-validator]
       trigger: true
     - get: bosh-backup-and-restore
@@ -564,7 +565,7 @@ jobs:
       repo: bosh-backup-and-restore
   - put: bbr-artefacts
     params: {file: bbr-build/bbr-*.tar}
-  - put: bbr-s3-config-validator-test-artifacts
+  - put: s3-config-validator-artefacts
     params:
       file: bbr-s3-config-validator-test-artifacts/*
 
@@ -584,7 +585,7 @@ jobs:
         unpack: true
       passed:
         - build-rc
-    - get: bbr-s3-config-validator-test-artifacts
+    - get: s3-config-validator-artefacts
       passed:
         - build-rc
       params:
@@ -596,8 +597,8 @@ jobs:
     file: bosh-backup-and-restore-master/ci/tasks/promote-release-candidate/task.yml
     input_mapping:
       version: release-candidate-version
-      s3-config-validator-rc-artefacts: bbr-s3-config-validator-test-artifacts
       bbr-rc-artefacts: bbr-artefacts
+      s3-config-validator-rc-artefacts: s3-config-validator-artefacts
       repo: bosh-backup-and-restore-master
   - put: bbr-final-release-version
     params:
