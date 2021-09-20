@@ -285,7 +285,6 @@ jobs:
 - name: set-pipeline
   plan:
   - in_parallel:
-    - get: main
     - get: latest-pull-request
       trigger: true
       version: every # This is important to ensure every commit in a PR is tested and not just latest
@@ -325,12 +324,13 @@ jobs:
       passed: [set-pipeline]
       version: every
   - task: test
-    file: bosh-backup-and-restore/ci/tasks/bbr-unit/task.yml
+    file: latest-pull-request/ci/tasks/bbr-unit/task.yml
     params:
       DOCKER_HOST_IP: ((docker_host.ip))
       DOCKER_HOST: ((docker_host.uri))
       DOCKER_HOST_SSH_KEY: ((docker_host.ssh_key))
-
+    input_mapping:
+      bosh-backup-and-restore: latest-pull-request
 
 - name: system-test-director
   serial: true
@@ -345,13 +345,15 @@ jobs:
     - get: bbr-director-test-releases
     - get: xenial-stemcell
   - task: generate-bosh-deployment-source-file
-    file: bosh-backup-and-restore/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
+    file: latest-pull-request/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
+    input_mapping:
+      bosh-backup-and-restore: latest-pull-request
     params:
       <<: *maru-bosh-env
   - put: deploy-fake-director
     resource: test-bosh-director-deployment
     params:
-      manifest: bosh-backup-and-restore/fixtures/fake-director.yml
+      manifest: latest-pull-request/fixtures/fake-director.yml
       stemcells: [xenial-stemcell/*.tgz]
       source_file: source-file/source-file.yml
       vars:
@@ -360,8 +362,10 @@ jobs:
         test_release_path: /tmp/build/put/bbr-director-test-releases/test-bosh-backup-and-restore-release
         internal_ip: *test-bosh-director-ip
   - task: system-test-director
-    file: bosh-backup-and-restore/ci/tasks/bbr-system-director/task.yml
+    file: latest-pull-request/ci/tasks/bbr-system-director/task.yml
     privileged: true
+    input_mapping:
+      bosh-backup-and-restore: latest-pull-request
     params:
       CREDHUB_SERVER: "((infrastructure/bosh-director.credhub_server))"
       CREDHUB_CLIENT: "((infrastructure/bosh-director.credhub_client))"
@@ -392,37 +396,51 @@ jobs:
       version: every
   - in_parallel:
     - task: upload-redis-test-release-maru-lite
-      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
+      file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
+      input_mapping:
+        bosh-backup-and-restore: latest-pull-request
       params:
         RELEASE_NAME: redis-test-release
         <<: *maru-lite-bosh-env
     - task: upload-many-bbr-jobs-release-lite-bosh-uaa
-      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
+      file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
+      input_mapping:
+        bosh-backup-and-restore: latest-pull-request
       params:
         RELEASE_NAME: many-bbr-jobs-release
         <<: *maru-lite-bosh-env
     - task: upload-many-bbr-jobs-release-maru
-      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
+      file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
+      input_mapping:
+        bosh-backup-and-restore: latest-pull-request
       params:
         RELEASE_NAME: many-bbr-jobs-release
         <<: *maru-bosh-env
     - task: upload-redis-test-release-maru-bosh
-      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
+      file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
+      input_mapping:
+        bosh-backup-and-restore: latest-pull-request
       params:
         RELEASE_NAME: redis-test-release
         <<: *maru-bosh-env
     - task: upload-redis-test-release-lite-bosh-uaa
-      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
+      file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
+      input_mapping:
+        bosh-backup-and-restore: latest-pull-request
       params:
         RELEASE_NAME: redis-test-release
         <<: *maru-lite-bosh-env
     - task: upload-lock-ordering-release-lite-bosh-uaa
-      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
+      file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
+      input_mapping:
+        bosh-backup-and-restore: latest-pull-request
       params:
         RELEASE_NAME: lock-ordering-release
         <<: *maru-lite-bosh-env
   - task: system-deployment-with-uaa
-    file: bosh-backup-and-restore/ci/tasks/bbr-system-deployment/task.yml
+    file: latest-pull-request/ci/tasks/bbr-system-deployment/task.yml
+    input_mapping:
+      bosh-backup-and-restore: latest-pull-request
     params:
       GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
       <<: *maru-lite-bosh-env
@@ -437,17 +455,21 @@ jobs:
     - get: build-version
       params: {pre: build}
   - task: unit-test
-    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-unit-test/task.yml
+    file: latest-pull-request/ci/tasks/bbr-s3-config-validator-unit-test/task.yml
     params:
       AWS_ACCESS_KEY: ((s3_validator_test_bucket.access_key))
       AWS_SECRET_KEY: ((s3_validator_test_bucket.secret_key))
+    input_mapping:
+      bosh-backup-and-restore: latest-pull-request
   - task: e2e-test
-    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-e2e-test/task.yml
+    file: latest-pull-request/ci/tasks/bbr-s3-config-validator-e2e-test/task.yml
     params:
       AWS_ACCESS_KEY: ((s3_validator_test_bucket.access_key))
       AWS_SECRET_KEY: ((s3_validator_test_bucket.secret_key))
+    input_mapping:
+      bosh-backup-and-restore: latest-pull-request
   - task: build
-    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-build/task.yml
+    file: latest-pull-request/ci/tasks/bbr-s3-config-validator-build/task.yml
     input_mapping:
       version: build-version
       repo: latest-pull-request
@@ -455,7 +477,7 @@ jobs:
     params: { file: build-version/number }
   - put: s3-config-validator-artefacts
     params:
-      file: s3-config-validator-artefacts/*
+      file: bbr-s3-config-validator-test-artifacts/*
 
 - name: validate-aws-s3-config
   serial: true
@@ -472,11 +494,15 @@ jobs:
       version: every
       passed: [test-build-s3-config-validator]
   - task: enable-backup-prepare-pas
-    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-enable-backup-prepare-pas/task.yml
+    file: latest-pull-request/ci/tasks/bbr-s3-config-validator-enable-backup-prepare-pas/task.yml
+    input_mapping:
+      bosh-backup-and-restore: latest-pull-request
     params:
       SKIP_APPLY_CHANGES: true
   - task: enable-aws-s3-filestore
-    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-enable-aws-s3-filestore/task.yml
+    file: latest-pull-request/ci/tasks/bbr-s3-config-validator-enable-aws-s3-filestore/task.yml
+    input_mapping:
+      bosh-backup-and-restore: latest-pull-request
     params:
       ENDPOINT: ((s3_validator_aws.endpoint))
       BUILDPACKS_BUCKET: ((s3_validator_aws.live_bucket))
@@ -490,7 +516,11 @@ jobs:
       REGION: ((s3_validator_aws.region))
       SKIP_APPLY_CHANGES: false
   - task: move-and-run-validator
-    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.yml
+    file: latest-pull-request/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.yml
+    input_mapping:
+      bosh-backup-and-restore: latest-pull-request
+      env-pool: env-pool
+      bbr-s3-config-validator-test-artifacts: s3-config-validator-artefacts
   ensure:
     put: pcf-2-11-pool
     params:
@@ -696,7 +726,7 @@ jobs:
             Release `((.:version-number))` is now available <((.:github-release-url))|here>
             View the pipeline <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|here>
 
-- name: publish-to-pivnet
+- name: publish-to-tanzunet
   serial: true
   plan:
   - in_parallel:
@@ -766,7 +796,7 @@ jobs:
   - get: release-version
     trigger: true
     passed:
-    - publish-to-pivnet
+    - publish-to-tanzunet
   - load_var: version-number
     file: release-version/number
   - task: create-osm-release
