@@ -32,6 +32,7 @@ groups:
   - system-test-director
   - build-rc
   - update-tracker
+  - promote-latest-rc
   - publish-to-github
   - publish-to-pivnet
   - request-osl
@@ -56,6 +57,7 @@ groups:
 - name: shipit
   jobs:
   - build-rc
+  - promote-latest-rc
   - publish-to-github
   - publish-to-pivnet
   - request-osl
@@ -63,6 +65,10 @@ groups:
   - update-homebrew-formula
 
 resource_types:
+- name: github-release
+  type: registry-image
+  source: {repository: concourse/github-release-resource}
+
 - name: gitgat
   type: docker-image
   source:
@@ -182,22 +188,44 @@ resources:
     access_key_id: ((aws_credentials.access_key_id))
     secret_access_key: ((aws_credentials.secret_access_key))
 
+- name: bbr-draft-release
+  type: github-release
+  icon: github
+  source:
+    repository: bosh-backup-and-restore
+    user: cloudfoundry-incubator
+    access_token: ((github.access_token))
+    release: false
+    drafts: true
+
 - name: bbr-release
   type: github-release
   icon: github
   source:
-    user: cloudfoundry-incubator
     repository: bosh-backup-and-restore
+    user: cloudfoundry-incubator
     access_token: ((github.access_token))
+    release: true
+    pre_release: false
 
 - name: bbr-final-release-version
   type: semver
   icon: google
   source:
     bucket: release-versions
-    key: bbr-final
+    key: bosh-backup-and-restore/final
     json_key: ((gcp/service_accounts/bucket_owner.json_key))
-    initial_version: 1.9.0
+    initial_version: 1.9.13
+    driver: gcs
+
+- name: release-candidate-version
+  type: semver
+  icon: google
+  source:
+    bucket: release-versions
+    key: bosh-backup-and-restore/release-candidate
+    json_key: ((gcp/service_accounts/bucket_owner.json_key))
+    initial_version: 1.9.13-rc.1
     driver: gcs
 
 - name: docs-bbr-main
@@ -454,6 +482,9 @@ jobs:
       AWS_SECRET_KEY: ((s3_validator_test_bucket.secret_key))
   - task: build
     file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-build/task.yml
+    input_mapping:
+      version: s3-config-validator-version
+      repo: bosh-backup-and-restore
   - put: s3-config-validator-version
     params: { file: s3-config-validator-version/number }
   - put: bbr-s3-config-validator-test-artifacts
@@ -556,44 +587,38 @@ jobs:
       params:
         submodules: none
         disable_git_lfs: true
-    - get: bbr-final-release-version
+    - get: release-candidate-version
       params:
         pre: rc
   - task: build-bbr
     file: bosh-backup-and-restore/ci/tasks/bbr-build/task.yml
     params:
       GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
+    input_mapping:
+      version: release-candidate-version
   - task: build-s3-config-validator
     file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-build/task.yml
     input_mapping:
-      s3-config-validator-version: bbr-final-release-version
-  - put: bbr-final-release-version
-    params: { file: bbr-final-release-version/number }
+      version: release-candidate-version
+      repo: bosh-backup-and-restore
   - put: rc
     params: {file: bbr-build/bbr-*.tar}
   - put: bbr-s3-config-validator-test-artifacts
     params:
       file: bbr-s3-config-validator-test-artifacts/*
 
-- name: publish-to-github
+- name: promote-latest-rc
   serial: true
   plan:
   - in_parallel:
     - get: every-3-weeks
       trigger: true
-    - get: bbr-final-release-version
+    - get: ci
+    - get: release-candidate-version
       params: 
         bump: final
       passed:
         - build-rc
-    - get: cryogenics-ci
-    - get: bosh-backup-and-restore-master
-      passed: [build-rc]
-      params:
-        submodules: none
-        disable_git_lfs: true
-    - get: docs-bbr-main
-    - get: ci
     - get: rc
       params:
         unpack: true
@@ -602,6 +627,49 @@ jobs:
     - get: bbr-s3-config-validator-artifact
       params:
         unpack: true
+    - get: bosh-backup-and-restore-master
+  - task: promote-rc-binaries
+    file: ci/ci/tasks/promote-release-candidate/task.yml
+    input_mapping:
+      version: release-candidate-version
+      bbr-rc-artefacts: rc
+      s3-config-validator-rc-artefacts: bbr-s3-config-validator-artifact
+      repo: ci
+  - put: bbr-final-release-version
+    params:
+      file: release-candidate-version/number
+  - put: release-candidate-version
+    params:
+      bump: patch
+      pre: rc
+  - put: bbr-draft-release
+    params:
+      name: bbr-final-release-version/number
+      tag: bbr-final-release-version/number
+      tag_prefix: v
+      commitish: bosh-backup-and-restore-master/.git/refs/heads/master
+      globs:
+      - promoted-artefacts/bbr*
+
+- name: publish-to-github
+  serial: true
+  plan:
+  - in_parallel:
+    - get: cryogenics-ci
+    - get: bosh-backup-and-restore-master
+      passed: [promote-latest-rc]
+      params:
+        submodules: none
+        disable_git_lfs: true
+    - get: docs-bbr-main
+    - get: ci
+    - get: bbr-final-release-version
+      passed:
+        - promote-latest-rc
+    - get: bbr-draft-release
+      trigger: true
+      passed:
+        - promote-latest-rc
   - load_var: version-number
     file: bbr-final-release-version/number
   - task: create-release-notes
@@ -646,26 +714,12 @@ jobs:
         input_mapping:
           repo: docs-bbr-main
           cryogenics-concourse-tasks: cryogenics-ci
-  - task: promote-rc-binaries
-    file: ci/ci/tasks/promote-release-candidate/task.yml
-    input_mapping:
-      version: bbr-final-release-version
-      bbr-rc-artefacts: rc
-      s3-config-validator-rc-artefacts: bbr-s3-config-validator-artifact
-      repo: ci
-    on_success:
-      put: bbr-final-release-version
-      params:
-        bump: patch
   - put: bbr-release
     params:
       name: bbr-final-release-version/number
       tag: bbr-final-release-version/number
       tag_prefix: v
       body: release-notes/release-notes.md
-      commitish: bosh-backup-and-restore-master/.git/refs/heads/master
-      globs:
-      - promoted-artefacts/bbr*
     on_success:
       do:
       - load_var: github-release-url
@@ -778,7 +832,6 @@ jobs:
   serial: true
   plan:
   - in_parallel:
-    - get: homebrew-tap
     - get: bbr-release
       passed:
         - publish-to-github
