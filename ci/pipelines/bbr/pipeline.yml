@@ -750,13 +750,13 @@ jobs:
       promoted-artefacts: bbr-release
       repo: main
     params:
-      TEMPLATE_PATH: main/tasks/prepare-artefacts-for-pivnet/release.yml.erb
+      TEMPLATE_PATH: ci/tasks/prepare-artefacts-for-pivnet/release.yml.erb
       VERSION_PATH: number
   - put: tanzunet
     params:
-      metadata_file: pivnet-release-with-metadata/release.yml
+      metadata_file: pivnet-artefacts/release.yml
       s3_filepath_prefix: product-files/bosh-backup-restore
-      file_glob: pivnet-artefacts/*
+      file_glob: pivnet-artefacts/bbr-*
       override: true
   - task: create-story
     file: cryogenics-ci/tasks/tracker-automation/create-story/task.yml
