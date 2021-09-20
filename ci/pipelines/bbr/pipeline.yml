@@ -218,6 +218,16 @@ resources:
     initial_version: 1.9.13-rc.1
     driver: gcs
 
+- name: build-version
+  type: semver
+  icon: google
+  source:
+    bucket: release-versions
+    key: bosh-backup-and-restore/build
+    json_key: ((gcp/service_accounts/bucket_owner.json_key))
+    initial_version: 1.9.13-build.516
+    driver: gcs
+
 - name: docs-bbr-main
   type: git
   icon: github
@@ -252,16 +262,6 @@ resources:
     start: 9:00 AM
     stop: 5:00 PM
     days: [Monday, Tuesday, Wednesday, Thursday, Friday]
-
-- name: s3-config-validator-version
-  type: semver
-  icon: google
-  source:
-    bucket: cryo-bbr-s3-config-validator-test-artifacts
-    key: version
-    json_key: ((gcp/service_accounts/bbr_bucket_owner.json_key))
-    initial_version: 0.0.1
-    driver: gcs
 
 - name: bbr-s3-config-validator-test-artifacts
   type: gcs
@@ -458,7 +458,7 @@ jobs:
       trigger: true
       version: every
       passed: [ set-pipeline ]
-    - get: s3-config-validator-version
+    - get: build-version
       params: {pre: build}
   - task: unit-test
     file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-unit-test/task.yml
@@ -473,10 +473,10 @@ jobs:
   - task: build
     file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-build/task.yml
     input_mapping:
-      version: s3-config-validator-version
+      version: build-version
       repo: bosh-backup-and-restore
-  - put: s3-config-validator-version
-    params: { file: s3-config-validator-version/number }
+  - put: build-version
+    params: { file: build-version/number }
   - put: bbr-s3-config-validator-test-artifacts
     params:
       file: bbr-s3-config-validator-test-artifacts/*
@@ -633,6 +633,10 @@ jobs:
     params:
       bump: patch
       pre: rc
+  - put: build-version
+    params:
+      bump: patch
+      pre: build
   - put: bbr-draft-release
     params:
       name: bbr-final-release-version/number
