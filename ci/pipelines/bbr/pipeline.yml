@@ -285,12 +285,13 @@ jobs:
 - name: set-pipeline
   plan:
   - in_parallel:
+    - get: main
     - get: latest-pull-request
       trigger: true
       version: every # This is important to ensure every commit in a PR is tested and not just latest
     - get: cryogenics-ci
   - set_pipeline: bbr
-    file: bosh-backup-and-restore/ci/pipelines/bbr/pipeline.yml
+    file: latest-pull-request/ci/pipelines/bbr/pipeline.yml
   - put: latest-pull-request
     params:
       path: latest-pull-request
