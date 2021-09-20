@@ -34,7 +34,7 @@ groups:
   - update-tracker
   - promote-latest-rc
   - publish-to-github
-  - publish-to-pivnet
+  - publish-to-tanzunet
   - request-osl
   - publish-ga
   - update-homebrew-formula
@@ -59,7 +59,7 @@ groups:
   - build-rc
   - promote-latest-rc
   - publish-to-github
-  - publish-to-pivnet
+  - publish-to-tanzunet
   - request-osl
   - publish-ga
   - update-homebrew-formula
