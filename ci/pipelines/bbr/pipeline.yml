@@ -738,6 +738,7 @@ jobs:
       passed:
       - publish-to-github
     - get: bbr-release
+      trigger: true
       passed:
       - publish-to-github
   - load_var: version-number
