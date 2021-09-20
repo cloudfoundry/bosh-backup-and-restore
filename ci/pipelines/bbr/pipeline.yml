@@ -771,6 +771,8 @@ jobs:
     file: release-version/number
   - task: create-osm-release
     file: cryogenics-ci/tasks/release-automation/create-osm-release/task.yml
+    input_mapping:
+      repo: cryogenics-ci
     tags:
     - *toolsmiths_api_worker
     params:
