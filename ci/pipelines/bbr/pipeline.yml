@@ -168,7 +168,7 @@ resources:
     product_slug: *tanzunet_product_name
     copy_metadata: true
 
-- name: rc
+- name: bbr-artefacts
   type: s3
   icon: aws
   source:
@@ -562,7 +562,7 @@ jobs:
     input_mapping:
       version: release-candidate-version
       repo: bosh-backup-and-restore
-  - put: rc
+  - put: bbr-artefacts
     params: {file: bbr-build/bbr-*.tar}
   - put: bbr-s3-config-validator-test-artifacts
     params:
@@ -579,7 +579,7 @@ jobs:
         bump: final
       passed:
         - build-rc
-    - get: rc
+    - get: bbr-artefacts
       params:
         unpack: true
       passed:
@@ -596,8 +596,8 @@ jobs:
     file: bosh-backup-and-restore-master/ci/tasks/promote-release-candidate/task.yml
     input_mapping:
       version: release-candidate-version
-      bbr-rc-artefacts: rc
       s3-config-validator-rc-artefacts: bbr-s3-config-validator-test-artifacts
+      bbr-rc-artefacts: bbr-artefacts
       repo: bosh-backup-and-restore-master
   - put: bbr-final-release-version
     params:
