@@ -143,7 +143,7 @@ resources:
     access_token: ((github.access_token))
     disable_forks: true
 
-- name: bosh-backup-and-restore-master
+- name: main
   icon: github
   type: git
   source:
@@ -542,23 +542,23 @@ jobs:
   serial_groups: [version]
   plan:
   - in_parallel:
-    - get: bosh-backup-and-restore-master
+    - get: main
       trigger: true
     - get: release-candidate-version
       params:
         pre: rc
   - task: build-bbr
-    file: bosh-backup-and-restore-master/ci/tasks/bbr-build/task.yml
+    file: main/ci/tasks/bbr-build/task.yml
     params:
       GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
     input_mapping:
       version: release-candidate-version
-      bosh-backup-and-restore: bosh-backup-and-restore-master
+      bosh-backup-and-restore: main
   - task: build-s3-config-validator
-    file: bosh-backup-and-restore-master/ci/tasks/bbr-s3-config-validator-build/task.yml
+    file: main/ci/tasks/bbr-s3-config-validator-build/task.yml
     input_mapping:
       version: release-candidate-version
-      repo: bosh-backup-and-restore-master
+      repo: main
   - put: bbr-artefacts
     params: {file: bbr-build/bbr-*.tar}
   - put: s3-config-validator-artefacts
@@ -586,16 +586,16 @@ jobs:
         - build-rc
       params:
         unpack: true
-    - get: bosh-backup-and-restore-master
+    - get: main
       passed:
         - build-rc
   - task: promote-rc-binaries
-    file: bosh-backup-and-restore-master/ci/tasks/promote-release-candidate/task.yml
+    file: main/ci/tasks/promote-release-candidate/task.yml
     input_mapping:
       version: release-candidate-version
       bbr-rc-artefacts: bbr-artefacts
       s3-config-validator-rc-artefacts: s3-config-validator-artefacts
-      repo: bosh-backup-and-restore-master
+      repo: main
   - put: bbr-final-release-version
     params:
       file: release-candidate-version/number
@@ -612,7 +612,7 @@ jobs:
       name: bbr-final-release-version/number
       tag: bbr-final-release-version/number
       tag_prefix: v
-      commitish: bosh-backup-and-restore-master/.git/refs/heads/master
+      commitish: main/.git/refs/heads/master
       globs:
       - promoted-artefacts/bbr*
 
@@ -621,7 +621,7 @@ jobs:
   plan:
   - in_parallel:
     - get: cryogenics-ci
-    - get: bosh-backup-and-restore-master
+    - get: main
       passed: [promote-latest-rc]
       params:
         submodules: none
@@ -639,7 +639,7 @@ jobs:
   - task: create-release-notes
     file: cryogenics-ci/tasks/release-automation/release-notes/task.yml
     input_mapping:
-      git-repo: bosh-backup-and-restore-master
+      git-repo: main
       cryogenics-concourse-tasks: cryogenics-ci
     params:
       USE_LATEST_PUBLISHED_TAG: true
@@ -703,7 +703,7 @@ jobs:
     - get: bbr-final-release-version
       passed:
       - publish-to-github
-    - get: bosh-backup-and-restore-master
+    - get: main
       passed:
       - publish-to-github
     - get: bbr-release
@@ -712,13 +712,13 @@ jobs:
   - load_var: version-number
     file: bbr-final-release-version/number
   - task: generate-artifact-and-metadata
-    file: bosh-backup-and-restore-master/ci/tasks/prepare-artefacts-for-pivnet/task.yml
+    file: main/ci/tasks/prepare-artefacts-for-pivnet/task.yml
     input_mapping:
       version: bbr-final-release-version
       promoted-artefacts: bbr-release
-      repo: bosh-backup-and-restore-master
+      repo: main
     params:
-      TEMPLATE_PATH: bosh-backup-and-restore-master/tasks/prepare-artefacts-for-pivnet/release.yml.erb
+      TEMPLATE_PATH: main/tasks/prepare-artefacts-for-pivnet/release.yml.erb
       VERSION_PATH: number
   - put: bbr-pivnet
     params:
@@ -746,11 +746,11 @@ jobs:
       passed:
         - publish-to-github
       trigger: true
-    - get: bosh-backup-and-restore-master
+    - get: main
       passed:
       - publish-to-github
   - task: update-homebrew-formula
-    file: bosh-backup-and-restore-master/ci/tasks/bbr-update-homebrew-formula/task.yml
+    file: main/ci/tasks/bbr-update-homebrew-formula/task.yml
     input_mapping:
       bbr-release: bbr-release
   - put: homebrew-tap
