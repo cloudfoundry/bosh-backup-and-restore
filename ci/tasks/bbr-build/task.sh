@@ -2,12 +2,14 @@
 
 set -eu
 
+[ -d 'version' ]
+
 eval "$(ssh-agent)"
 echo -e "${GITHUB_SDK_PRIVATE_KEY}" > "${PWD}/github-sdk.key"
 chmod 400 "${PWD}/github-sdk.key"
 ssh-add "${PWD}/github-sdk.key"
 
-VERSION=$(cat bbr-final-release-version/number)
+VERSION=$(cat version/number)
 export VERSION
 
 BBR_REPO="bosh-backup-and-restore"

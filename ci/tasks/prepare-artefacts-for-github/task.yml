@@ -9,17 +9,13 @@ inputs:
 - name: release
 - name: release-tar
 - name: version-folder
-- name: template-folder
 - name: bosh-backup-and-restore-master
 
 params:
-  TEMPLATE_PATH:
   VERSION_PATH:
-  RELEASE_TYPE: Maintenance
 
 outputs:
-- name: pivnet-release-with-metadata
 - name: github-release-with-metadata
 
 run:
-  path: bosh-backup-and-restore-master/ci/tasks/generate-bbr-release-metadata/task.sh
+  path: bosh-backup-and-restore-master/ci/tasks/prepare-artefacts-for-github/task.sh

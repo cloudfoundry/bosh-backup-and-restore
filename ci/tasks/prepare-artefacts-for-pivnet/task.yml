@@ -6,15 +6,16 @@ image_resource:
   source: {repository: pcfplatformrecovery/backup-and-restore}
 
 inputs:
-- name: bosh-backup-and-restore
 - name: version
+- name: promoted-artefacts
+- name: repo
 
 params:
-  GITHUB_SDK_PRIVATE_KEY:
+  TEMPLATE_PATH:
+  RELEASE_TYPE: Maintenance
 
 outputs:
-- name: bbr-build
-- name: bbr-release
+- name: pivnet-artefacts
 
 run:
-  path: bosh-backup-and-restore/ci/tasks/bbr-build/task.sh
+  path: repo/ci/tasks/prepare-artefacts-for-pivnet/task.sh

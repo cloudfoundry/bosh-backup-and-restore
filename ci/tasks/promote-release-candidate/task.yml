@@ -6,15 +6,13 @@ image_resource:
   source: {repository: pcfplatformrecovery/backup-and-restore}
 
 inputs:
-- name: bosh-backup-and-restore
 - name: version
-
-params:
-  GITHUB_SDK_PRIVATE_KEY:
+- name: bbr-rc-artefacts
+- name: s3-config-validator-rc-artefacts
+- name: repo
 
 outputs:
-- name: bbr-build
-- name: bbr-release
+- name: promoted-artefacts
 
 run:
-  path: bosh-backup-and-restore/ci/tasks/bbr-build/task.sh
+  path: repo/ci/tasks/promote-release-candidate/task.sh
