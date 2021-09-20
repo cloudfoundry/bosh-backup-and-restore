@@ -198,7 +198,7 @@ resources:
     release: true
     pre_release: false
 
-- name: bbr-final-release-version
+- name: release-version
   type: semver
   icon: google
   source:
@@ -596,7 +596,7 @@ jobs:
       bbr-rc-artefacts: bbr-artefacts
       s3-config-validator-rc-artefacts: s3-config-validator-artefacts
       repo: main
-  - put: bbr-final-release-version
+  - put: release-version
     params:
       file: release-candidate-version/number
   - put: release-candidate-version
@@ -609,8 +609,8 @@ jobs:
       pre: build
   - put: bbr-draft-release
     params:
-      name: bbr-final-release-version/number
-      tag: bbr-final-release-version/number
+      name: release-version/number
+      tag: release-version/number
       tag_prefix: v
       commitish: main/.git/refs/heads/master
       globs:
@@ -627,7 +627,7 @@ jobs:
         submodules: none
         disable_git_lfs: true
     - get: docs-bbr-main
-    - get: bbr-final-release-version
+    - get: release-version
       passed:
         - promote-latest-rc
     - get: bbr-draft-release
@@ -635,7 +635,7 @@ jobs:
       passed:
         - promote-latest-rc
   - load_var: version-number
-    file: bbr-final-release-version/number
+    file: release-version/number
   - task: create-release-notes
     file: cryogenics-ci/tasks/release-automation/release-notes/task.yml
     input_mapping:
@@ -680,8 +680,8 @@ jobs:
           cryogenics-concourse-tasks: cryogenics-ci
   - put: bbr-release
     params:
-      name: bbr-final-release-version/number
-      tag: bbr-final-release-version/number
+      name: release-version/number
+      tag: release-version/number
       tag_prefix: v
       body: release-notes/release-notes.md
     on_success:
@@ -700,7 +700,7 @@ jobs:
   plan:
   - in_parallel:
     - get: cryogenics-ci
-    - get: bbr-final-release-version
+    - get: release-version
       passed:
       - publish-to-github
     - get: main
@@ -710,11 +710,11 @@ jobs:
       passed:
       - publish-to-github
   - load_var: version-number
-    file: bbr-final-release-version/number
+    file: release-version/number
   - task: generate-artifact-and-metadata
     file: main/ci/tasks/prepare-artefacts-for-pivnet/task.yml
     input_mapping:
-      version: bbr-final-release-version
+      version: release-version
       promoted-artefacts: bbr-release
       repo: main
     params:
@@ -762,12 +762,12 @@ jobs:
   serial_groups: [version]
   plan:
   - get: cryogenics-ci
-  - get: bbr-final-release-version
+  - get: release-version
     trigger: true
     passed:
     - publish-to-pivnet
   - load_var: version-number
-    file: bbr-final-release-version/number
+    file: release-version/number
   - task: create-osm-release
     file: cryogenics-ci/tasks/release-automation/create-osm-release/task.yml
     tags:
@@ -782,11 +782,11 @@ jobs:
   plan:
   - in_parallel:
     - get: cryogenics-ci
-    - get: bbr-final-release-version
+    - get: release-version
       passed:
         - request-osl
   - load_var: release-version-number
-    file: bbr-final-release-version/number
+    file: release-version/number
   - task: download-osl-file
     tags:
     - *toolsmiths_api_worker
