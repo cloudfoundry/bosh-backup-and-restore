@@ -582,6 +582,9 @@ jobs:
     input_mapping:
       version: release-candidate-version
       repo: main
+  - put: release-candidate-version
+    params:
+      file: release-candidate-version/number
   - put: bbr-artefacts
     params: {file: bbr-build/bbr-*.tar}
   - put: s3-config-validator-artefacts
