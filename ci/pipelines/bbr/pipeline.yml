@@ -565,12 +565,17 @@ jobs:
     - get: release-candidate-version
       params:
         pre: rc
+    - get: next-release-version
+      resource: release-candidate-version
+      params:
+        bump: final
   - task: build-bbr
     file: main/ci/tasks/bbr-build/task.yml
     params:
       GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
     input_mapping:
-      version: release-candidate-version
+      release-version: next-release-version
+      release-candidate-version: release-candidate-version
       bosh-backup-and-restore: main
   - task: build-s3-config-validator
     file: main/ci/tasks/bbr-s3-config-validator-build/task.yml
