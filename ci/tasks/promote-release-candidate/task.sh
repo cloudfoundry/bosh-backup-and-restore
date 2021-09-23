@@ -8,7 +8,6 @@ VERSION=$(cat version/number)
 [ -d 'version' ]
 [ -d 'bbr-rc-artefacts' ]
 [ -d 's3-config-validator-rc-artefacts' ]
-[ -d 's3-config-validator-rc-artefacts' ]
 [ -d 'repo' ]
 [ -d 'promoted-artefacts' ]
 
@@ -26,14 +25,16 @@ function create_bbr_tarball_in() {
   local bbr_tarball_folder
   bbr_tarball_folder="$(mktemp -d)"
 
-  cp 'bbr-rc-artefacts/releases/bbr' "$bbr_tarball_folder"
-  cp 'bbr-rc-artefacts/releases/bbr-mac' "$bbr_tarball_folder"
-  cp 'bbr-rc-artefacts/releases/checksum.sha256' "$bbr_tarball_folder"
+  mkdir -p "$bbr_tarball_folder/releases/"
 
-  cp 's3-config-validator-rc-artefacts/bbr-s3-config-validator' "$bbr_tarball_folder"
-  cp 's3-config-validator-rc-artefacts/README.md' "$bbr_tarball_folder/bbr-s3-config-validator.README.md"
+  cp 'bbr-rc-artefacts/releases/bbr' "$bbr_tarball_folder/releases/"
+  cp 'bbr-rc-artefacts/releases/bbr-mac' "$bbr_tarball_folder/releases/"
+  cp 'bbr-rc-artefacts/releases/checksum.sha256' "$bbr_tarball_folder/releases/"
 
-  echo "$(cat s3-config-validator-rc-artefacts/bbr-s3-config-validator.sha256)  bbr-s3-config-validator" >> "$bbr_tarball_folder/checksum.sha256"
+  cp 's3-config-validator-rc-artefacts/bbr-s3-config-validator' "$bbr_tarball_folder/releases/"
+  cp 's3-config-validator-rc-artefacts/README.md' "$bbr_tarball_folder/releases/bbr-s3-config-validator.README.md"
+
+  echo "$(cat s3-config-validator-rc-artefacts/bbr-s3-config-validator.sha256)  bbr-s3-config-validator" >> "$bbr_tarball_folder/releases/checksum.sha256"
 
   tar -cf "$release_folder/bbr-${VERSION}.tar" -C "$bbr_tarball_folder" .
 }
