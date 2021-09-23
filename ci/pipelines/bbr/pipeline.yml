@@ -433,6 +433,8 @@ jobs:
       <<: *maru-lite-bosh-env
 
 - name: test-build-s3-config-validator
+  serial_groups:
+    - only_1_job_should_bump_the_BUILD_VERSION_at_a_time_to_avoid_race_condition
   plan:
   - in_parallel:
     - get: latest-pull-request
@@ -515,7 +517,6 @@ jobs:
       env_file: env-pool/metadata
 
 - name: update-tracker
-  serial_groups: [version]
   plan:
   - in_parallel:
     - get: latest-pull-request
@@ -557,7 +558,8 @@ jobs:
       GIT_REPOSITORY: cloudfoundry-incubator/bosh-backup-and-restore
 
 - name: build-rc
-  serial_groups: [version]
+  serial_groups:
+    - only_1_job_should_bump_the_RELEASE_CANDIDATE_VERSION_at_a_time_to_avoid_race_condition
   plan:
   - in_parallel:
     - get: main
@@ -593,6 +595,9 @@ jobs:
 
 - name: publish-to-github
   serial: true
+  serial_groups:
+    - only_1_job_should_bump_the_BUILD_VERSION_at_a_time_to_avoid_race_condition
+    - only_1_job_should_bump_the_RELEASE_CANDIDATE_VERSION_at_a_time_to_avoid_race_condition
   plan:
   - in_parallel:
     - get: every-3-weeks
@@ -768,7 +773,6 @@ jobs:
       rebase: true
 
 - name: request-osl
-  serial_groups: [version]
   plan:
   - get: cryogenics-ci
   - get: release-version
