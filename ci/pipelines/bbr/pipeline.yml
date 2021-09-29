@@ -215,14 +215,6 @@ resources:
     initial_version: 1.9.13-build.516
     driver: gcs
 
-- name: cf-docs
-  type: git
-  icon: github
-  source:
-    uri: git@github.com:cloudfoundry/docs-bbr.git
-    private_key: ((github.ssh_key))
-
-
 - name: xenial-stemcell
   type: bosh-io-stemcell
   source:
@@ -605,7 +597,6 @@ jobs:
     - get: cryogenics-ci
     - get: main
       passed: [build-rc]
-    - get: cf-docs
     - get: bbr-artefacts
       passed:
         - build-rc
@@ -656,33 +647,6 @@ jobs:
     params:
       VERSION: ((.:version-number))
       TEMPLATE_PATH: tasks/release-automation/release-notes-templates/docs-release-notes-auto.md.erb
-  - task: commit-release-notes
-    file: cf-docs/ci/tasks/commit-new-release-notes.yml
-    input_mapping:
-      docs-repo: cf-docs
-    params:
-      VERSION: ((.:version-number))
-      GIT_AUTHOR_NAME: "Cryogenics CI"
-      GIT_AUTHOR_EMAIL: "mapbu-cryogenics@groups.vmware.com"
-  - put: cf-docs
-    params:
-      repository: docs-repo
-      rebase: false
-      merge: false
-      force: true
-      branch: ((.:version-number))-release-notes
-    on_success:
-      try:
-        task: create-docs-pull-request
-        file: cryogenics-ci/tasks/create-pr/task.yml
-        params:
-          GITHUB_TOKEN: ((github.access_token))
-          BASE: master
-          BRANCH: ((.:version-number))-release-notes
-          TITLE: ((.:version-number)) release notes
-        input_mapping:
-          repo: cf-docs
-          cryogenics-concourse-tasks: cryogenics-ci
   - put: bbr-release
     params:
       name: release-version/number
