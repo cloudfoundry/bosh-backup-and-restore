@@ -56,6 +56,7 @@ groups:
 - name: shipit
   jobs:
   - build-rc
+  - run-drats
   - publish-to-github
   - upload-to-tanzunet
   - request-osl
@@ -259,6 +260,33 @@ resources:
   type: slack-notification
   source:
     url: ((slack.webhook))
+
+- name: cf-deployment-concourse-tasks
+  type: git
+  source:
+    branch: main
+    uri: https://github.com/cloudfoundry/cf-deployment-concourse-tasks.git
+    tag_filter: v12.*
+
+- name: cf-deployment
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/cf-deployment.git
+    branch: main
+
+- name: cf-deployment-env
+  icon: pool
+  type: pcf-pool
+  source:
+    api_token: ((toolsmiths.api_token))
+    hostname: environments.toolsmiths.cf-app.com
+    pool_name: cf-deployment
+
+- name: disaster-recovery-acceptance-tests
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests
+    branch: main
 
 jobs:
 - name: set-pipeline
@@ -585,6 +613,80 @@ jobs:
     params:
       file: bbr-s3-config-validator-test-artifacts/*
 
+- name: run-drats
+  serial: true
+  plan:
+  - get: cf-deployment
+  - get: cf-deployment-concourse-tasks
+  - get: disaster-recovery-acceptance-tests
+  - get: bbr-artefacts
+    trigger: true
+    passed:
+      - build-rc
+  - put: cf-deployment-env
+    params:
+      action: claim
+  - task: deploy-backup-restore-components
+    file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
+    input_mapping:
+      toolsmiths-env: cf-deployment-env
+      ops-files: cf-deployment
+    params:
+      OPS_FILES: >
+        operations/scale-to-one-az.yml
+        operations/use-compiled-releases.yml
+        operations/backup-and-restore/enable-backup-restore.yml
+        operations/enable-nfs-volume-service.yml
+        operations/experimental/disable-interpolate-service-bindings.yml
+        operations/experimental/enable-traffic-to-internal-networks.yml
+        operations/experimental/enable-smb-volume-service.yml
+        operations/backup-and-restore/skip-backup-restore-droplets-and-packages.yml
+  - task: bosh-run-errand-nfsbrokerpush
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      toolsmiths-env: cf-deployment-env
+    params:
+      ERRAND_NAME: nfsbrokerpush
+  - task: bosh-run-errand-smbbrokerpush
+    file: cf-deployment-concourse-tasks/run-errand/task.yml
+    input_mapping:
+      toolsmiths-env: cf-deployment-env
+    params:
+      ERRAND_NAME: smbbrokerpush
+  - load_var: pooled-env
+    file: cf-deployment-env/metadata
+    format: json
+  - task: update-integration-config
+    file: disaster-recovery-acceptance-tests/ci/tasks/update-integration-config/task.yml
+    input_mapping:
+      integration-configs: disaster-recovery-acceptance-tests
+    params:
+      SYSTEM_DOMAIN: ((.:pooled-env.name)).cf-app.com
+      JUMPBOX_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
+      CREDHUB_CLIENT: ((.:pooled-env.bosh.credhub_client))
+      CREDHUB_SECRET: ((.:pooled-env.bosh.credhub_secret))
+      CREDHUB_CA_CERT: ((.:pooled-env.bosh.credhub_ca_cert))
+      CREDHUB_SERVER: ((.:pooled-env.bosh.credhub_server))
+      CREDHUB_PROXY: ((.:pooled-env.bosh.bosh_all_proxy))
+      BOSH_ENVIRONMENT: ((.:pooled-env.bosh.bosh_environment))
+      BOSH_CA_CERT: ((.:pooled-env.bosh.bosh_ca_cert))
+      BOSH_ALL_PROXY: ((.:pooled-env.bosh.bosh_all_proxy))
+      BOSH_CLIENT: ((.:pooled-env.bosh.bosh_client))
+      BOSH_CLIENT_SECRET: ((.:pooled-env.bosh.bosh_client_secret))
+  - task: acceptance-tests
+    file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
+    privileged: true
+    input_mapping:
+      drats-integration-config: updated-integration-configs
+      bbr-binary-release: bbr-artefacts
+    params:
+      CONFIG_FILE_PATH: ci/integration_config.json
+      CF_DIAL_TIMEOUT: 300
+  - put: cf-deployment-env
+    params:
+      action: unclaim
+      env_file: cf-deployment-env/metadata
+
 - name: publish-to-github
   serial: true
   serial_groups:
@@ -599,7 +701,7 @@ jobs:
       passed: [build-rc]
     - get: bbr-artefacts
       passed:
-        - build-rc
+        - run-drats
       params:
         unpack: true
     - get: s3-config-validator-artefacts
