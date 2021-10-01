@@ -31,6 +31,7 @@ groups:
   - system-test-deployment
   - system-test-director
   - build-rc
+  - run-drats
   - update-tracker
   - publish-to-github
   - upload-to-tanzunet
