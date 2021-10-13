@@ -937,18 +937,22 @@ jobs:
   - load_var: release-version-number
     file: release-version/number
   - task: download-osl-file
-    tags:
-    - *toolsmiths_api_worker
     file: cryogenics-ci/tasks/release-automation/download-osl-file/task.yml
+    input_mapping:
+      cryogenics-meta: cryogenics-ci
     params:
       PRODUCT_NAME: *tanzunet_product_name
       VERSION: ((.:release-version-number))
       OSM_API_KEY: ((osm.api_key))
       OUTPUT_DIR: osl
+    tags:
+    - *toolsmiths_api_worker
   - load_var: osl-file-name
     file: osl/name
   - task: add-osl-file-to-release
     file: cryogenics-ci/tasks/release-automation/add-osl-file-to-pivnet/task.yml
+    input_mapping:
+      cryogenics-meta: cryogenics-ci
     params:
       PRODUCT_NAME: *tanzunet_product_name
       OSL_FILE_NAME: ((.:osl-file-name))
