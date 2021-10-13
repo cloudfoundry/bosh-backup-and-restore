@@ -32,6 +32,7 @@ groups:
   - system-test-director
   - build-rc
   - run-drats
+  - run-b-drats
   - update-tracker
   - publish-to-github
   - upload-to-tanzunet
@@ -58,6 +59,7 @@ groups:
   jobs:
   - build-rc
   - run-drats
+  - run-b-drats
   - publish-to-github
   - upload-to-tanzunet
   - request-osl
@@ -222,6 +224,11 @@ resources:
   source:
     name: bosh-google-kvm-ubuntu-xenial-go_agent
 
+- name: bionic-stemcell
+  type: bosh-io-stemcell
+  source:
+    name: bosh-google-kvm-ubuntu-bionic-go_agent
+
 - name: bosh-deployment
   type: git
   icon: github
@@ -288,6 +295,12 @@ resources:
   source:
     uri: https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests
     branch: main
+
+- name: b-drats
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry-incubator/bosh-disaster-recovery-acceptance-tests
+    branch: 179721127-make-b-drats-toolsmiths-compatible
 
 jobs:
 - name: set-pipeline
@@ -688,6 +701,59 @@ jobs:
       action: unclaim
       env_file: cf-deployment-env/metadata
 
+- name: run-b-drats
+  serial: true
+  plan:
+    - in_parallel:
+      - get: b-drats
+      - get: bbr-artefacts
+        trigger: true
+        params:
+          unpack: true
+        passed: 
+          - build-rc
+      - get: cryogenics-ci
+      - get: bionic-stemcell
+    - do:
+      - put: env-pool
+        resource: pcf-2-11-pool
+        params:
+          action: claim
+      - in_parallel:
+        - task: create-b-drats-config
+          file: cryogenics-ci/tasks/toolsmiths/generate-b-drats-config-from-tas-env/task.yml
+          input_mapping:
+            repo: cryogenics-ci
+            env: env-pool
+            stemcell: bionic-stemcell
+          params:
+            INCLUDE_DEPLOYMENT_TESTCASE: true
+            INCLUDE_TRUNCATE_DB_BLOBSTORE_TESTCASE: false
+            INCLUDE_CREDHUB_TESTCASE: false
+            TIMEOUT_IN_MINUTES: 720
+          output_mapping:
+            config: b-drats-config
+        - load_var: env-metadata
+          file: env-pool/metadata
+          format: json
+      - task: run-b-drats
+        file: b-drats/ci/tasks/run-b-drats/task.yml
+        privileged: true
+        input_mapping:
+          bosh-disaster-recovery-acceptance-tests: b-drats
+          bbr-binary-release: bbr-artefacts
+          b-drats-integration-config: b-drats-config
+        params:
+          JUMPBOX_IP: ((.:env-metadata.ops_manager_public_ip))
+          JUMPBOX_PRIVATE_KEY: ((.:env-metadata.ops_manager_private_key))
+          JUMPBOX_USER: ubuntu
+          BBR_BINARY: bbr-binary-release/releases/bbr
+      ensure:
+        put: pcf-2-11-pool
+        params:
+          action: unclaim
+          env_file: env-pool/metadata
+
 - name: publish-to-github
   serial: true
   serial_groups:
@@ -703,6 +769,7 @@ jobs:
     - get: bbr-artefacts
       passed:
         - run-drats
+        - run-b-drats
       params:
         unpack: true
     - get: s3-config-validator-artefacts
