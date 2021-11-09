@@ -4,7 +4,11 @@ release:
   release_type: <%= ENV.fetch('RELEASE_TYPE') %> Release
   eula_slug: "vmware_eula"
   description: |
-    BOSH Backup and Restore binary
+    BOSH Backup and Restore binary and S3 Config Validator
+
+    BBR can be used to back up and restore many bosh releases and bosh directors. This includes TAS, and the bosh director that ships with Ops Manager. You should always use the latest version of the BBR CLI to back up and restore from any version of Ops Manager or TAS.
+
+    If you are upgrading TAS, we recommend you take a backup immediately before upgrading, and immediately after a successful upgrade. This is because backups from the old version of TAS may not be compatible with the new version of TAS.
   release_notes_url: https://docs.pivotal.io/bbr/bbr-rn.html
   availability: Admins Only
 product_files:
@@ -53,9 +57,5 @@ product_files:
   platforms: ["Linux"]
   included_files: ["<%= ENV.fetch('BBR_S3_VALIDATOR_README') %>"]
 
-dependency_specifiers:
-- specifier: 1.11.*
-  product_slug: ops-manager
-- specifier: 1.11.*
-  product_slug: elastic-runtime
+dependency_specifiers: []
 
