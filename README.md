@@ -1,4 +1,5 @@
-(test)
+[![BBR Build Status Badge](https://ci.cryo.cf-app.com/api/v1/teams/bosh-backup-restore/pipelines/bbr/jobs/build-rc/badge)](https://ci.cryo.cf-app.com/teams/bosh-backup-restore/pipelines/bbr)
+
 # BOSH Backup and Restore
 
 BOSH Backup and Restore is a CLI utility for orchestrating the backup and restore of [BOSH](https://bosh.io/) deployments and BOSH directors. It orchestrates triggering the backup or restore process on the deployment or director, and transfers the backup artifact to and from the deployment or director.
@@ -14,10 +15,6 @@ On macOS, you can install BBR using [Homebrew](http://brew.sh/):
 1. `brew tap cloudfoundry/tap`
 1. `brew install bbr`
 
-## CI Status
-
-BOSH Backup and Restore build status [![BBR Build Status Badge](https://ci.cryo.cf-app.com/api/v1/teams/bosh-backup-restore/pipelines/bbr/jobs/build-rc/badge)](https://ci.cryo.cf-app.com/teams/bosh-backup-restore/pipelines/bbr)
-
 ## Developing BBR locally
 
 We use [go modules](https://blog.golang.org/using-go-modules) to manage our dependencies, so run:
@@ -32,9 +29,7 @@ Note: if you see timeout errors occurring in the SSH suite of unit tests this ma
 
 ## Additional information
 
-**Docs:** http://docs.cloudfoundry.org/bbr/index.html
-
-**Slack:** `#bbr` on https://slack.cloudfoundry.org
+**Slack:** `#bbr` channel on https://slack.cloudfoundry.org (link [here](https://cloudfoundry.slack.com/archives/C6D6N3PBL))
 
 **Talks:**
 - [_Burning Down the House: How to Plan for and Deal with Disaster Recovery in CF_](https://www.youtube.com/watch?v=rQSLNHAHgA8) at Cloud Foundry Summit Europe 2017
