@@ -307,7 +307,7 @@ jobs:
       trigger: true
       version: every # This is important to ensure every commit in a PR is tested and not just latest
     - get: cryogenics-ci
-  - set_pipeline: bbr
+  - set_pipeline: bbr-cli
     file: latest-pull-request/ci/pipelines/bbr/pipeline.yml
   - put: latest-pull-request
     params:
