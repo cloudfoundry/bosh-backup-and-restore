@@ -42,20 +42,17 @@ groups:
   - test-build-s3-config-validator
   - validate-aws-s3-config
 
-- name: build
+- name: pull-requests
   jobs:
+  - set-pipeline
   - unit-integration
-  - system-test-deployment
-  - system-test-director
-  - build-rc
-  - update-tracker
-
-- name: s3-validator
-  jobs:
   - test-build-s3-config-validator
   - validate-aws-s3-config
+  - system-test-deployment
+  - system-test-director
+  - update-tracker
 
-- name: shipit
+- name: release
   jobs:
   - build-rc
   - run-drats
