@@ -26,7 +26,6 @@ tanzunet_product_name: &tanzunet_product_name p-bosh-backup-and-restore
 groups:
 - name: all
   jobs:
-  - set-pipeline
   - unit-integration
   - system-test-deployment
   - system-test-director
@@ -44,7 +43,6 @@ groups:
 
 - name: pull-requests
   jobs:
-  - set-pipeline
   - unit-integration
   - test-build-s3-config-validator
   - validate-aws-s3-config
@@ -104,7 +102,7 @@ resource_types:
 - name: pull-request
   type: docker-image
   source:
-    repository: teliaoss/github-pr-resource
+    repository: cryogenics/pr-queue-resource
 
 resources:
 - name: every-3-weeks
@@ -138,6 +136,7 @@ resources:
   icon: source-pull
   type: pull-request
   source:
+    base_branch: master
     repository: cloudfoundry-incubator/bosh-backup-and-restore
     access_token: ((github.access_token))
     disable_forks: true
@@ -300,47 +299,12 @@ resources:
     branch: 179721127-make-b-drats-toolsmiths-compatible
 
 jobs:
-- name: set-pipeline
-  plan:
-  - in_parallel:
-    - get: latest-pull-request
-      trigger: true
-      version: every # This is important to ensure every commit in a PR is tested and not just latest
-    - get: cryogenics-ci
-  - set_pipeline: bbr-cli
-    file: latest-pull-request/ci/pipelines/bbr/pipeline.yml
-  - put: latest-pull-request
-    params:
-      path: latest-pull-request
-      status: pending
-  - task: find-pr-story
-    attempts: 5
-    file: cryogenics-ci/tasks/pivotaltracker/find-pr-story/task.yml
-    input_mapping:
-      pr: latest-pull-request
-      cryogenics-concourse-tasks: cryogenics-ci
-    params:
-      TRACKER_API_TOKEN: ((tracker.api_token))
-      TRACKER_PROJECT_ID: ((tracker.project_id))
-      GIT_REPOSITORY: cloudfoundry-incubator/bosh-backup-and-restore
-  - task: start-story
-    attempts: 5
-    file: cryogenics-ci/tasks/pivotaltracker/start-story/task.yml
-    input_mapping:
-      cryogenics-concourse-tasks: cryogenics-ci
-    params:
-      TRACKER_API_TOKEN: ((tracker.api_token))
-      TRACKER_PROJECT_ID: ((tracker.project_id))
-      ESTIMATE: 1
-
 - name: unit-integration
   serial: true
   plan:
   - in_parallel:
     - get: latest-pull-request
       trigger: true
-      passed: [set-pipeline]
-      version: every
   - task: test
     file: latest-pull-request/ci/tasks/bbr-unit/task.yml
     params:
@@ -358,7 +322,6 @@ jobs:
     - get: latest-pull-request
       passed: [unit-integration]
       trigger: true
-      version: every
     - get: bosh-deployment
     - get: bbr-director-test-releases
     - get: xenial-stemcell
@@ -411,7 +374,6 @@ jobs:
     - get: latest-pull-request
       trigger: true
       passed: [unit-integration]
-      version: every
   - in_parallel:
     - task: upload-redis-test-release-maru-lite
       file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
@@ -470,8 +432,6 @@ jobs:
   - in_parallel:
     - get: latest-pull-request
       trigger: true
-      version: every
-      passed: [ set-pipeline ]
     - get: build-version
       params: {pre: build}
   - task: unit-test
@@ -511,7 +471,6 @@ jobs:
       passed: [test-build-s3-config-validator]
       trigger: true
     - get: latest-pull-request
-      version: every
       passed: [test-build-s3-config-validator]
   - task: enable-backup-prepare-pas
     file: latest-pull-request/ci/tasks/bbr-s3-config-validator-enable-backup-prepare-pas/task.yml
@@ -553,40 +512,10 @@ jobs:
     - get: latest-pull-request
       passed: [system-test-deployment, system-test-director, validate-aws-s3-config]
       trigger: true
-      version: every
     - get: cryogenics-ci
   - put: latest-pull-request
     params:
-      path: latest-pull-request
-      status: success
-  - load_var: pr-url
-    file: latest-pull-request/.git/resource/url
-  - task: merge-pr
-    file: cryogenics-ci/github-automation/merge-pr/task.yml
-    input_mapping:
-      source-repo: latest-pull-request
-      cryogenics-concourse-tasks: cryogenics-ci
-    params:
-      DELETE: TRUE
-      AUTHOR: dependabot # ONLY merge PRs with this author
-      GH_TOKEN: ((github.access_token))
-      PR_REF: ((.:pr-url))
-  - task: deliver-stories
-    file: cryogenics-ci/tracker-automation/deliver-stories/task.yml
-    input_mapping:
-      cryogenics-concourse-tasks: cryogenics-ci
-    params:
-      TRACKER_API_TOKEN: ((tracker.api_token))
-      TRACKER_PROJECT_ID: ((tracker.project_id))
-      GIT_REPOSITORY: cloudfoundry-incubator/bosh-backup-and-restore
-  - task: accept-stories
-    file: cryogenics-ci/tracker-automation/accept-stories/task.yml
-    input_mapping:
-      cryogenics-concourse-tasks: cryogenics-ci
-    params:
-      TRACKER_API_TOKEN: ((tracker.api_token))
-      TRACKER_PROJECT_ID: ((tracker.project_id))
-      GIT_REPOSITORY: cloudfoundry-incubator/bosh-backup-and-restore
+      merge: true
 
 - name: build-rc
   serial_groups:
