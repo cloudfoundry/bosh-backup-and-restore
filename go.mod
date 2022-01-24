@@ -7,7 +7,7 @@ require (
 	github.com/cloudfoundry/bosh-cli v6.4.1+incompatible
 	github.com/cloudfoundry/bosh-utils v0.0.297
 	github.com/cloudfoundry/config-server v0.1.21 // indirect
-	github.com/cloudfoundry/socks5-proxy v0.2.38
+	github.com/cloudfoundry/socks5-proxy v0.2.39
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.0 // indirect
@@ -27,6 +27,5 @@ require (
 	github.com/urfave/cli v1.22.5
 	github.com/vito/go-interact v1.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20220112180741-5e0467b6c7ce
-	golang.org/x/term v0.0.0-20210406210042-72f3dc4e9b72 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )
