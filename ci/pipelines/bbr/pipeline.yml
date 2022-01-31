@@ -137,7 +137,7 @@ resources:
   type: pull-request
   source:
     base_branch: master
-    repository: cloudfoundry-incubator/bosh-backup-and-restore
+    repository: cloudfoundry/bosh-backup-and-restore
     access_token: ((github.access_token))
     disable_forks: true
 
