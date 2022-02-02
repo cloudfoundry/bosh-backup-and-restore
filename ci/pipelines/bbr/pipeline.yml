@@ -108,14 +108,14 @@ resources:
 - name: every-3-weeks
   type: gitgat
   source:
-    uri: https://github.com/cloudfoundry-incubator/bosh-backup-and-restore
+    uri: https://github.com/cloudfoundry/bosh-backup-and-restore
     branch: master
     since: 3 weeks
 
 - name: bbr-director-test-releases
   type: git
   source:
-    uri: git@github.com:cloudfoundry-incubator/bosh-backup-and-restore-test-releases.git
+    uri: git@github.com:cloudfoundry/bosh-backup-and-restore-test-releases.git
     private_key: ((github.ssh_key))
     branch: master
     paths:
@@ -124,7 +124,7 @@ resources:
 - name: bbr-deployment-test-releases
   type: git
   source:
-    uri: git@github.com:cloudfoundry-incubator/bosh-backup-and-restore-test-releases.git
+    uri: git@github.com:cloudfoundry/bosh-backup-and-restore-test-releases.git
     private_key: ((github.ssh_key))
     branch: master
     paths:
@@ -145,7 +145,7 @@ resources:
   icon: github
   type: git
   source:
-    uri: git@github.com:cloudfoundry-incubator/bosh-backup-and-restore.git
+    uri: git@github.com:cloudfoundry/bosh-backup-and-restore.git
     private_key: ((github.ssh_key))
     branch: master
     disable_git_lfs: true
@@ -181,7 +181,7 @@ resources:
   icon: github
   source:
     repository: bosh-backup-and-restore
-    user: cloudfoundry-incubator
+    user: cloudfoundry
     access_token: ((github.access_token))
     release: true
 
@@ -289,13 +289,13 @@ resources:
 - name: disaster-recovery-acceptance-tests
   type: git
   source:
-    uri: https://github.com/cloudfoundry-incubator/disaster-recovery-acceptance-tests
+    uri: https://github.com/cloudfoundry/disaster-recovery-acceptance-tests
     branch: main
 
 - name: b-drats
   type: git
   source:
-    uri: https://github.com/cloudfoundry-incubator/bosh-disaster-recovery-acceptance-tests
+    uri: https://github.com/cloudfoundry/bosh-disaster-recovery-acceptance-tests
     branch: 179721127-make-b-drats-toolsmiths-compatible
 
 jobs:
