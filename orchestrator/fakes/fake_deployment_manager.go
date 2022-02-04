@@ -43,15 +43,16 @@ func (fake *FakeDeploymentManager) Find(arg1 string) (orchestrator.Deployment, e
 	fake.findArgsForCall = append(fake.findArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.FindStub
+	fakeReturns := fake.findReturns
 	fake.recordInvocation("Find", []interface{}{arg1})
 	fake.findMutex.Unlock()
-	if fake.FindStub != nil {
-		return fake.FindStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.findReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -107,15 +108,16 @@ func (fake *FakeDeploymentManager) SaveManifest(arg1 string, arg2 orchestrator.B
 		arg1 string
 		arg2 orchestrator.Backup
 	}{arg1, arg2})
+	stub := fake.SaveManifestStub
+	fakeReturns := fake.saveManifestReturns
 	fake.recordInvocation("SaveManifest", []interface{}{arg1, arg2})
 	fake.saveManifestMutex.Unlock()
-	if fake.SaveManifestStub != nil {
-		return fake.SaveManifestStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.saveManifestReturns
 	return fakeReturns.result1
 }
 

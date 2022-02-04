@@ -369,10 +369,10 @@ var _ = Describe("Job", func() {
 
 			It("uses the remote runnerto run the script", func() {
 				Expect(remoteRunner.CreateDirectoryCallCount()).To(Equal(1))
-				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(1))
+				Expect(remoteRunner.RunScriptWithEnvGetStdoutCallCount()).To(Equal(1))
 
 				Expect(remoteRunner.CreateDirectoryArgsForCall(0)).To(Equal("/var/vcap/store/bbr-backup/jobname"))
-				specifiedScriptPath, specifiedEnvVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
+				specifiedScriptPath, specifiedEnvVars, _ := remoteRunner.RunScriptWithEnvGetStdoutArgsForCall(0)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/jobname/bin/bbr/backup"))
 				Expect(specifiedEnvVars).To(SatisfyAll(
 					HaveLen(2),
@@ -383,7 +383,7 @@ var _ = Describe("Job", func() {
 
 			Context("backup script runs successfully", func() {
 				BeforeEach(func() {
-					remoteRunner.RunScriptWithEnvReturns("stdout", nil)
+					remoteRunner.RunScriptWithEnvGetStdoutReturns("stdout", nil)
 				})
 
 				It("succeeds", func() {
@@ -393,7 +393,7 @@ var _ = Describe("Job", func() {
 
 			Context("backup script fails", func() {
 				BeforeEach(func() {
-					remoteRunner.RunScriptWithEnvReturns("", fmt.Errorf("some weird error"))
+					remoteRunner.RunScriptWithEnvGetStdoutReturns("", fmt.Errorf("some weird error"))
 				})
 
 				It("fails", func() {
@@ -430,9 +430,9 @@ var _ = Describe("Job", func() {
 			})
 
 			It("uses the remote runner to run the script", func() {
-				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(1))
+				Expect(remoteRunner.RunScriptWithEnvGetStdoutCallCount()).To(Equal(1))
 
-				specifiedScriptPath, specifiedEnvVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
+				specifiedScriptPath, specifiedEnvVars, _ := remoteRunner.RunScriptWithEnvGetStdoutArgsForCall(0)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/jobname/bin/bbr/restore"))
 				Expect(specifiedEnvVars).To(SatisfyAll(
 					HaveLen(2),
@@ -443,7 +443,7 @@ var _ = Describe("Job", func() {
 
 			Context("restore script runs successfully", func() {
 				BeforeEach(func() {
-					remoteRunner.RunScriptWithEnvReturns("", nil)
+					remoteRunner.RunScriptWithEnvGetStdoutReturns("", nil)
 				})
 
 				It("succeeds", func() {
@@ -453,7 +453,7 @@ var _ = Describe("Job", func() {
 
 			Context("restore script fails", func() {
 				BeforeEach(func() {
-					remoteRunner.RunScriptWithEnvReturns("", fmt.Errorf("it went wrong"))
+					remoteRunner.RunScriptWithEnvGetStdoutReturns("", fmt.Errorf("it went wrong"))
 				})
 
 				It("fails", func() {
@@ -572,15 +572,15 @@ var _ = Describe("Job", func() {
 				})
 
 				It("uses remote runner to run the script", func() {
-					Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(1))
-					cmd, envVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
+					Expect(remoteRunner.RunScriptWithEnvGetStdoutCallCount()).To(Equal(1))
+					cmd, envVars, _ := remoteRunner.RunScriptWithEnvGetStdoutArgsForCall(0)
 					Expect(cmd).To(Equal("/var/vcap/jobs/jobname/bin/bbr/post-backup-unlock"))
 					Expect(envVars).To(HaveKeyWithValue("BBR_AFTER_BACKUP_SCRIPTS_SUCCESSFUL", "true"))
 				})
 
 				Context("post-backup-unlock script runs successfully", func() {
 					BeforeEach(func() {
-						remoteRunner.RunScriptWithEnvReturns("stdout", nil)
+						remoteRunner.RunScriptWithEnvGetStdoutReturns("stdout", nil)
 					})
 
 					It("succeeds", func() {
@@ -598,8 +598,8 @@ var _ = Describe("Job", func() {
 				})
 
 				It("uses remote runner to run the script", func() {
-					Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(1))
-					cmd, envVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
+					Expect(remoteRunner.RunScriptWithEnvGetStdoutCallCount()).To(Equal(1))
+					cmd, envVars, _ := remoteRunner.RunScriptWithEnvGetStdoutArgsForCall(0)
 					Expect(cmd).To(Equal("/var/vcap/jobs/jobname/bin/bbr/post-backup-unlock"))
 					Expect(envVars).To(HaveKeyWithValue("BBR_AFTER_BACKUP_SCRIPTS_SUCCESSFUL", "false"))
 				})
@@ -608,7 +608,7 @@ var _ = Describe("Job", func() {
 
 			Context("post-backup-unlock script fails", func() {
 				BeforeEach(func() {
-					remoteRunner.RunScriptWithEnvReturns("", fmt.Errorf("it failed"))
+					remoteRunner.RunScriptWithEnvGetStdoutReturns("", fmt.Errorf("it failed"))
 				})
 
 				It("fails", func() {

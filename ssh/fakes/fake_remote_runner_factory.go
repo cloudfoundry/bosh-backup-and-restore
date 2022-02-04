@@ -47,15 +47,17 @@ func (fake *FakeRemoteRunnerFactory) Spy(arg1 string, arg2 string, arg3 string, 
 		arg5 []string
 		arg6 ssh.Logger
 	}{arg1, arg2, arg3, arg4, arg5Copy, arg6})
+	stub := fake.Stub
+	returns := fake.returns
 	fake.recordInvocation("RemoteRunnerFactory", []interface{}{arg1, arg2, arg3, arg4, arg5Copy, arg6})
 	fake.mutex.Unlock()
-	if fake.Stub != nil {
-		return fake.Stub(arg1, arg2, arg3, arg4, arg5, arg6)
+	if stub != nil {
+		return stub(arg1, arg2, arg3, arg4, arg5, arg6)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	return fake.returns.result1, fake.returns.result2
+	return returns.result1, returns.result2
 }
 
 func (fake *FakeRemoteRunnerFactory) CallCount() int {

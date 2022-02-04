@@ -43,15 +43,16 @@ func (fake *FakeArtifactCopier) DownloadBackupFromDeployment(arg1 orchestrator.B
 		arg1 orchestrator.Backup
 		arg2 orchestrator.Deployment
 	}{arg1, arg2})
+	stub := fake.DownloadBackupFromDeploymentStub
+	fakeReturns := fake.downloadBackupFromDeploymentReturns
 	fake.recordInvocation("DownloadBackupFromDeployment", []interface{}{arg1, arg2})
 	fake.downloadBackupFromDeploymentMutex.Unlock()
-	if fake.DownloadBackupFromDeploymentStub != nil {
-		return fake.DownloadBackupFromDeploymentStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.downloadBackupFromDeploymentReturns
 	return fakeReturns.result1
 }
 
@@ -104,15 +105,16 @@ func (fake *FakeArtifactCopier) UploadBackupToDeployment(arg1 orchestrator.Backu
 		arg1 orchestrator.Backup
 		arg2 orchestrator.Deployment
 	}{arg1, arg2})
+	stub := fake.UploadBackupToDeploymentStub
+	fakeReturns := fake.uploadBackupToDeploymentReturns
 	fake.recordInvocation("UploadBackupToDeployment", []interface{}{arg1, arg2})
 	fake.uploadBackupToDeploymentMutex.Unlock()
-	if fake.UploadBackupToDeploymentStub != nil {
-		return fake.UploadBackupToDeploymentStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.uploadBackupToDeploymentReturns
 	return fakeReturns.result1
 }
 

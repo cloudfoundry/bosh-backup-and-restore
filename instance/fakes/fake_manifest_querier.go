@@ -47,15 +47,16 @@ func (fake *FakeManifestQuerier) FindReleaseName(arg1 string, arg2 string) (stri
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.FindReleaseNameStub
+	fakeReturns := fake.findReleaseNameReturns
 	fake.recordInvocation("FindReleaseName", []interface{}{arg1, arg2})
 	fake.findReleaseNameMutex.Unlock()
-	if fake.FindReleaseNameStub != nil {
-		return fake.FindReleaseNameStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.findReleaseNameReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -111,15 +112,16 @@ func (fake *FakeManifestQuerier) IsJobBackupOneRestoreAll(arg1 string, arg2 stri
 		arg1 string
 		arg2 string
 	}{arg1, arg2})
+	stub := fake.IsJobBackupOneRestoreAllStub
+	fakeReturns := fake.isJobBackupOneRestoreAllReturns
 	fake.recordInvocation("IsJobBackupOneRestoreAll", []interface{}{arg1, arg2})
 	fake.isJobBackupOneRestoreAllMutex.Unlock()
-	if fake.IsJobBackupOneRestoreAllStub != nil {
-		return fake.IsJobBackupOneRestoreAllStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.isJobBackupOneRestoreAllReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

@@ -170,15 +170,16 @@ func (fake *FakeBackup) AddChecksum(arg1 orchestrator.ArtifactIdentifier, arg2 o
 		arg1 orchestrator.ArtifactIdentifier
 		arg2 orchestrator.BackupChecksum
 	}{arg1, arg2})
+	stub := fake.AddChecksumStub
+	fakeReturns := fake.addChecksumReturns
 	fake.recordInvocation("AddChecksum", []interface{}{arg1, arg2})
 	fake.addChecksumMutex.Unlock()
-	if fake.AddChecksumStub != nil {
-		return fake.AddChecksumStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.addChecksumReturns
 	return fakeReturns.result1
 }
 
@@ -230,15 +231,16 @@ func (fake *FakeBackup) AddFinishTime(arg1 time.Time) error {
 	fake.addFinishTimeArgsForCall = append(fake.addFinishTimeArgsForCall, struct {
 		arg1 time.Time
 	}{arg1})
+	stub := fake.AddFinishTimeStub
+	fakeReturns := fake.addFinishTimeReturns
 	fake.recordInvocation("AddFinishTime", []interface{}{arg1})
 	fake.addFinishTimeMutex.Unlock()
-	if fake.AddFinishTimeStub != nil {
-		return fake.AddFinishTimeStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.addFinishTimeReturns
 	return fakeReturns.result1
 }
 
@@ -290,15 +292,16 @@ func (fake *FakeBackup) CalculateChecksum(arg1 orchestrator.ArtifactIdentifier) 
 	fake.calculateChecksumArgsForCall = append(fake.calculateChecksumArgsForCall, struct {
 		arg1 orchestrator.ArtifactIdentifier
 	}{arg1})
+	stub := fake.CalculateChecksumStub
+	fakeReturns := fake.calculateChecksumReturns
 	fake.recordInvocation("CalculateChecksum", []interface{}{arg1})
 	fake.calculateChecksumMutex.Unlock()
-	if fake.CalculateChecksumStub != nil {
-		return fake.CalculateChecksumStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.calculateChecksumReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -353,15 +356,16 @@ func (fake *FakeBackup) CreateArtifact(arg1 orchestrator.ArtifactIdentifier) (io
 	fake.createArtifactArgsForCall = append(fake.createArtifactArgsForCall, struct {
 		arg1 orchestrator.ArtifactIdentifier
 	}{arg1})
+	stub := fake.CreateArtifactStub
+	fakeReturns := fake.createArtifactReturns
 	fake.recordInvocation("CreateArtifact", []interface{}{arg1})
 	fake.createArtifactMutex.Unlock()
-	if fake.CreateArtifactStub != nil {
-		return fake.CreateArtifactStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.createArtifactReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -416,15 +420,16 @@ func (fake *FakeBackup) CreateMetadataFileWithStartTime(arg1 time.Time) error {
 	fake.createMetadataFileWithStartTimeArgsForCall = append(fake.createMetadataFileWithStartTimeArgsForCall, struct {
 		arg1 time.Time
 	}{arg1})
+	stub := fake.CreateMetadataFileWithStartTimeStub
+	fakeReturns := fake.createMetadataFileWithStartTimeReturns
 	fake.recordInvocation("CreateMetadataFileWithStartTime", []interface{}{arg1})
 	fake.createMetadataFileWithStartTimeMutex.Unlock()
-	if fake.CreateMetadataFileWithStartTimeStub != nil {
-		return fake.CreateMetadataFileWithStartTimeStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.createMetadataFileWithStartTimeReturns
 	return fakeReturns.result1
 }
 
@@ -482,15 +487,16 @@ func (fake *FakeBackup) DeploymentMatches(arg1 string, arg2 []orchestrator.Insta
 		arg1 string
 		arg2 []orchestrator.Instance
 	}{arg1, arg2Copy})
+	stub := fake.DeploymentMatchesStub
+	fakeReturns := fake.deploymentMatchesReturns
 	fake.recordInvocation("DeploymentMatches", []interface{}{arg1, arg2Copy})
 	fake.deploymentMatchesMutex.Unlock()
-	if fake.DeploymentMatchesStub != nil {
-		return fake.DeploymentMatchesStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.deploymentMatchesReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -545,15 +551,16 @@ func (fake *FakeBackup) FetchChecksum(arg1 orchestrator.ArtifactIdentifier) (orc
 	fake.fetchChecksumArgsForCall = append(fake.fetchChecksumArgsForCall, struct {
 		arg1 orchestrator.ArtifactIdentifier
 	}{arg1})
+	stub := fake.FetchChecksumStub
+	fakeReturns := fake.fetchChecksumReturns
 	fake.recordInvocation("FetchChecksum", []interface{}{arg1})
 	fake.fetchChecksumMutex.Unlock()
-	if fake.FetchChecksumStub != nil {
-		return fake.FetchChecksumStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.fetchChecksumReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -608,15 +615,16 @@ func (fake *FakeBackup) GetArtifactByteSize(arg1 orchestrator.ArtifactIdentifier
 	fake.getArtifactByteSizeArgsForCall = append(fake.getArtifactByteSizeArgsForCall, struct {
 		arg1 orchestrator.ArtifactIdentifier
 	}{arg1})
+	stub := fake.GetArtifactByteSizeStub
+	fakeReturns := fake.getArtifactByteSizeReturns
 	fake.recordInvocation("GetArtifactByteSize", []interface{}{arg1})
 	fake.getArtifactByteSizeMutex.Unlock()
-	if fake.GetArtifactByteSizeStub != nil {
-		return fake.GetArtifactByteSizeStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getArtifactByteSizeReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -671,15 +679,16 @@ func (fake *FakeBackup) GetArtifactSize(arg1 orchestrator.ArtifactIdentifier) (s
 	fake.getArtifactSizeArgsForCall = append(fake.getArtifactSizeArgsForCall, struct {
 		arg1 orchestrator.ArtifactIdentifier
 	}{arg1})
+	stub := fake.GetArtifactSizeStub
+	fakeReturns := fake.getArtifactSizeReturns
 	fake.recordInvocation("GetArtifactSize", []interface{}{arg1})
 	fake.getArtifactSizeMutex.Unlock()
-	if fake.GetArtifactSizeStub != nil {
-		return fake.GetArtifactSizeStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getArtifactSizeReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -734,15 +743,16 @@ func (fake *FakeBackup) ReadArtifact(arg1 orchestrator.ArtifactIdentifier) (io.R
 	fake.readArtifactArgsForCall = append(fake.readArtifactArgsForCall, struct {
 		arg1 orchestrator.ArtifactIdentifier
 	}{arg1})
+	stub := fake.ReadArtifactStub
+	fakeReturns := fake.readArtifactReturns
 	fake.recordInvocation("ReadArtifact", []interface{}{arg1})
 	fake.readArtifactMutex.Unlock()
-	if fake.ReadArtifactStub != nil {
-		return fake.ReadArtifactStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.readArtifactReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -797,15 +807,16 @@ func (fake *FakeBackup) SaveManifest(arg1 string) error {
 	fake.saveManifestArgsForCall = append(fake.saveManifestArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.SaveManifestStub
+	fakeReturns := fake.saveManifestReturns
 	fake.recordInvocation("SaveManifest", []interface{}{arg1})
 	fake.saveManifestMutex.Unlock()
-	if fake.SaveManifestStub != nil {
-		return fake.SaveManifestStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.saveManifestReturns
 	return fakeReturns.result1
 }
 
@@ -856,15 +867,16 @@ func (fake *FakeBackup) Valid() (bool, error) {
 	ret, specificReturn := fake.validReturnsOnCall[len(fake.validArgsForCall)]
 	fake.validArgsForCall = append(fake.validArgsForCall, struct {
 	}{})
+	stub := fake.ValidStub
+	fakeReturns := fake.validReturns
 	fake.recordInvocation("Valid", []interface{}{})
 	fake.validMutex.Unlock()
-	if fake.ValidStub != nil {
-		return fake.ValidStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.validReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

@@ -23,7 +23,7 @@ type RemoteRunner interface {
 	SizeInBytes(path string) (int, error)
 	ChecksumDirectory(path string) (map[string]string, error)
 	RunScript(path, label string) (string, error)
-	RunScriptWithEnv(path string, env map[string]string, label string) (string, error)
+	RunScriptWithEnvGetStdout(path string, env map[string]string, label string) (string, error)
 	FindFiles(pattern string) ([]string, error)
 	IsWindows() (bool, error)
 }
@@ -107,10 +107,10 @@ func (r SshRemoteRunner) ChecksumDirectory(path string) (map[string]string, erro
 }
 
 func (r SshRemoteRunner) RunScript(path, label string) (string, error) {
-	return r.RunScriptWithEnv(path, map[string]string{}, label)
+	return r.RunScriptWithEnvGetStdout(path, map[string]string{}, label)
 }
 
-func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, label string) (string, error) {
+func (r SshRemoteRunner) RunScriptWithEnvGetStdout(path string, env map[string]string, label string) (string, error) {
 	var varsList = ""
 	for varName, value := range env {
 		varsList = varsList + varName + "=" + value + " "

@@ -218,15 +218,16 @@ func (fake *FakeJob) Backup() error {
 	ret, specificReturn := fake.backupReturnsOnCall[len(fake.backupArgsForCall)]
 	fake.backupArgsForCall = append(fake.backupArgsForCall, struct {
 	}{})
+	stub := fake.BackupStub
+	fakeReturns := fake.backupReturns
 	fake.recordInvocation("Backup", []interface{}{})
 	fake.backupMutex.Unlock()
-	if fake.BackupStub != nil {
-		return fake.BackupStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.backupReturns
 	return fakeReturns.result1
 }
 
@@ -270,15 +271,16 @@ func (fake *FakeJob) BackupArtifactDirectory() string {
 	ret, specificReturn := fake.backupArtifactDirectoryReturnsOnCall[len(fake.backupArtifactDirectoryArgsForCall)]
 	fake.backupArtifactDirectoryArgsForCall = append(fake.backupArtifactDirectoryArgsForCall, struct {
 	}{})
+	stub := fake.BackupArtifactDirectoryStub
+	fakeReturns := fake.backupArtifactDirectoryReturns
 	fake.recordInvocation("BackupArtifactDirectory", []interface{}{})
 	fake.backupArtifactDirectoryMutex.Unlock()
-	if fake.BackupArtifactDirectoryStub != nil {
-		return fake.BackupArtifactDirectoryStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.backupArtifactDirectoryReturns
 	return fakeReturns.result1
 }
 
@@ -322,15 +324,16 @@ func (fake *FakeJob) BackupArtifactName() string {
 	ret, specificReturn := fake.backupArtifactNameReturnsOnCall[len(fake.backupArtifactNameArgsForCall)]
 	fake.backupArtifactNameArgsForCall = append(fake.backupArtifactNameArgsForCall, struct {
 	}{})
+	stub := fake.BackupArtifactNameStub
+	fakeReturns := fake.backupArtifactNameReturns
 	fake.recordInvocation("BackupArtifactName", []interface{}{})
 	fake.backupArtifactNameMutex.Unlock()
-	if fake.BackupArtifactNameStub != nil {
-		return fake.BackupArtifactNameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.backupArtifactNameReturns
 	return fakeReturns.result1
 }
 
@@ -374,15 +377,16 @@ func (fake *FakeJob) BackupShouldBeLockedBefore() []orchestrator.JobSpecifier {
 	ret, specificReturn := fake.backupShouldBeLockedBeforeReturnsOnCall[len(fake.backupShouldBeLockedBeforeArgsForCall)]
 	fake.backupShouldBeLockedBeforeArgsForCall = append(fake.backupShouldBeLockedBeforeArgsForCall, struct {
 	}{})
+	stub := fake.BackupShouldBeLockedBeforeStub
+	fakeReturns := fake.backupShouldBeLockedBeforeReturns
 	fake.recordInvocation("BackupShouldBeLockedBefore", []interface{}{})
 	fake.backupShouldBeLockedBeforeMutex.Unlock()
-	if fake.BackupShouldBeLockedBeforeStub != nil {
-		return fake.BackupShouldBeLockedBeforeStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.backupShouldBeLockedBeforeReturns
 	return fakeReturns.result1
 }
 
@@ -426,15 +430,16 @@ func (fake *FakeJob) HasBackup() bool {
 	ret, specificReturn := fake.hasBackupReturnsOnCall[len(fake.hasBackupArgsForCall)]
 	fake.hasBackupArgsForCall = append(fake.hasBackupArgsForCall, struct {
 	}{})
+	stub := fake.HasBackupStub
+	fakeReturns := fake.hasBackupReturns
 	fake.recordInvocation("HasBackup", []interface{}{})
 	fake.hasBackupMutex.Unlock()
-	if fake.HasBackupStub != nil {
-		return fake.HasBackupStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.hasBackupReturns
 	return fakeReturns.result1
 }
 
@@ -478,15 +483,16 @@ func (fake *FakeJob) HasMetadataRestoreName() bool {
 	ret, specificReturn := fake.hasMetadataRestoreNameReturnsOnCall[len(fake.hasMetadataRestoreNameArgsForCall)]
 	fake.hasMetadataRestoreNameArgsForCall = append(fake.hasMetadataRestoreNameArgsForCall, struct {
 	}{})
+	stub := fake.HasMetadataRestoreNameStub
+	fakeReturns := fake.hasMetadataRestoreNameReturns
 	fake.recordInvocation("HasMetadataRestoreName", []interface{}{})
 	fake.hasMetadataRestoreNameMutex.Unlock()
-	if fake.HasMetadataRestoreNameStub != nil {
-		return fake.HasMetadataRestoreNameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.hasMetadataRestoreNameReturns
 	return fakeReturns.result1
 }
 
@@ -530,15 +536,16 @@ func (fake *FakeJob) HasNamedBackupArtifact() bool {
 	ret, specificReturn := fake.hasNamedBackupArtifactReturnsOnCall[len(fake.hasNamedBackupArtifactArgsForCall)]
 	fake.hasNamedBackupArtifactArgsForCall = append(fake.hasNamedBackupArtifactArgsForCall, struct {
 	}{})
+	stub := fake.HasNamedBackupArtifactStub
+	fakeReturns := fake.hasNamedBackupArtifactReturns
 	fake.recordInvocation("HasNamedBackupArtifact", []interface{}{})
 	fake.hasNamedBackupArtifactMutex.Unlock()
-	if fake.HasNamedBackupArtifactStub != nil {
-		return fake.HasNamedBackupArtifactStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.hasNamedBackupArtifactReturns
 	return fakeReturns.result1
 }
 
@@ -582,15 +589,16 @@ func (fake *FakeJob) HasNamedRestoreArtifact() bool {
 	ret, specificReturn := fake.hasNamedRestoreArtifactReturnsOnCall[len(fake.hasNamedRestoreArtifactArgsForCall)]
 	fake.hasNamedRestoreArtifactArgsForCall = append(fake.hasNamedRestoreArtifactArgsForCall, struct {
 	}{})
+	stub := fake.HasNamedRestoreArtifactStub
+	fakeReturns := fake.hasNamedRestoreArtifactReturns
 	fake.recordInvocation("HasNamedRestoreArtifact", []interface{}{})
 	fake.hasNamedRestoreArtifactMutex.Unlock()
-	if fake.HasNamedRestoreArtifactStub != nil {
-		return fake.HasNamedRestoreArtifactStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.hasNamedRestoreArtifactReturns
 	return fakeReturns.result1
 }
 
@@ -634,15 +642,16 @@ func (fake *FakeJob) HasRestore() bool {
 	ret, specificReturn := fake.hasRestoreReturnsOnCall[len(fake.hasRestoreArgsForCall)]
 	fake.hasRestoreArgsForCall = append(fake.hasRestoreArgsForCall, struct {
 	}{})
+	stub := fake.HasRestoreStub
+	fakeReturns := fake.hasRestoreReturns
 	fake.recordInvocation("HasRestore", []interface{}{})
 	fake.hasRestoreMutex.Unlock()
-	if fake.HasRestoreStub != nil {
-		return fake.HasRestoreStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.hasRestoreReturns
 	return fakeReturns.result1
 }
 
@@ -686,15 +695,16 @@ func (fake *FakeJob) InstanceIdentifier() string {
 	ret, specificReturn := fake.instanceIdentifierReturnsOnCall[len(fake.instanceIdentifierArgsForCall)]
 	fake.instanceIdentifierArgsForCall = append(fake.instanceIdentifierArgsForCall, struct {
 	}{})
+	stub := fake.InstanceIdentifierStub
+	fakeReturns := fake.instanceIdentifierReturns
 	fake.recordInvocation("InstanceIdentifier", []interface{}{})
 	fake.instanceIdentifierMutex.Unlock()
-	if fake.InstanceIdentifierStub != nil {
-		return fake.InstanceIdentifierStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.instanceIdentifierReturns
 	return fakeReturns.result1
 }
 
@@ -738,15 +748,16 @@ func (fake *FakeJob) Name() string {
 	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
 	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
 	}{})
+	stub := fake.NameStub
+	fakeReturns := fake.nameReturns
 	fake.recordInvocation("Name", []interface{}{})
 	fake.nameMutex.Unlock()
-	if fake.NameStub != nil {
-		return fake.NameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.nameReturns
 	return fakeReturns.result1
 }
 
@@ -791,15 +802,16 @@ func (fake *FakeJob) PostBackupUnlock(arg1 bool) error {
 	fake.postBackupUnlockArgsForCall = append(fake.postBackupUnlockArgsForCall, struct {
 		arg1 bool
 	}{arg1})
+	stub := fake.PostBackupUnlockStub
+	fakeReturns := fake.postBackupUnlockReturns
 	fake.recordInvocation("PostBackupUnlock", []interface{}{arg1})
 	fake.postBackupUnlockMutex.Unlock()
-	if fake.PostBackupUnlockStub != nil {
-		return fake.PostBackupUnlockStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.postBackupUnlockReturns
 	return fakeReturns.result1
 }
 
@@ -850,15 +862,16 @@ func (fake *FakeJob) PostRestoreUnlock() error {
 	ret, specificReturn := fake.postRestoreUnlockReturnsOnCall[len(fake.postRestoreUnlockArgsForCall)]
 	fake.postRestoreUnlockArgsForCall = append(fake.postRestoreUnlockArgsForCall, struct {
 	}{})
+	stub := fake.PostRestoreUnlockStub
+	fakeReturns := fake.postRestoreUnlockReturns
 	fake.recordInvocation("PostRestoreUnlock", []interface{}{})
 	fake.postRestoreUnlockMutex.Unlock()
-	if fake.PostRestoreUnlockStub != nil {
-		return fake.PostRestoreUnlockStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.postRestoreUnlockReturns
 	return fakeReturns.result1
 }
 
@@ -902,15 +915,16 @@ func (fake *FakeJob) PreBackupLock() error {
 	ret, specificReturn := fake.preBackupLockReturnsOnCall[len(fake.preBackupLockArgsForCall)]
 	fake.preBackupLockArgsForCall = append(fake.preBackupLockArgsForCall, struct {
 	}{})
+	stub := fake.PreBackupLockStub
+	fakeReturns := fake.preBackupLockReturns
 	fake.recordInvocation("PreBackupLock", []interface{}{})
 	fake.preBackupLockMutex.Unlock()
-	if fake.PreBackupLockStub != nil {
-		return fake.PreBackupLockStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.preBackupLockReturns
 	return fakeReturns.result1
 }
 
@@ -954,15 +968,16 @@ func (fake *FakeJob) PreRestoreLock() error {
 	ret, specificReturn := fake.preRestoreLockReturnsOnCall[len(fake.preRestoreLockArgsForCall)]
 	fake.preRestoreLockArgsForCall = append(fake.preRestoreLockArgsForCall, struct {
 	}{})
+	stub := fake.PreRestoreLockStub
+	fakeReturns := fake.preRestoreLockReturns
 	fake.recordInvocation("PreRestoreLock", []interface{}{})
 	fake.preRestoreLockMutex.Unlock()
-	if fake.PreRestoreLockStub != nil {
-		return fake.PreRestoreLockStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.preRestoreLockReturns
 	return fakeReturns.result1
 }
 
@@ -1006,15 +1021,16 @@ func (fake *FakeJob) Release() string {
 	ret, specificReturn := fake.releaseReturnsOnCall[len(fake.releaseArgsForCall)]
 	fake.releaseArgsForCall = append(fake.releaseArgsForCall, struct {
 	}{})
+	stub := fake.ReleaseStub
+	fakeReturns := fake.releaseReturns
 	fake.recordInvocation("Release", []interface{}{})
 	fake.releaseMutex.Unlock()
-	if fake.ReleaseStub != nil {
-		return fake.ReleaseStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.releaseReturns
 	return fakeReturns.result1
 }
 
@@ -1058,15 +1074,16 @@ func (fake *FakeJob) Restore() error {
 	ret, specificReturn := fake.restoreReturnsOnCall[len(fake.restoreArgsForCall)]
 	fake.restoreArgsForCall = append(fake.restoreArgsForCall, struct {
 	}{})
+	stub := fake.RestoreStub
+	fakeReturns := fake.restoreReturns
 	fake.recordInvocation("Restore", []interface{}{})
 	fake.restoreMutex.Unlock()
-	if fake.RestoreStub != nil {
-		return fake.RestoreStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.restoreReturns
 	return fakeReturns.result1
 }
 
@@ -1110,15 +1127,16 @@ func (fake *FakeJob) RestoreArtifactDirectory() string {
 	ret, specificReturn := fake.restoreArtifactDirectoryReturnsOnCall[len(fake.restoreArtifactDirectoryArgsForCall)]
 	fake.restoreArtifactDirectoryArgsForCall = append(fake.restoreArtifactDirectoryArgsForCall, struct {
 	}{})
+	stub := fake.RestoreArtifactDirectoryStub
+	fakeReturns := fake.restoreArtifactDirectoryReturns
 	fake.recordInvocation("RestoreArtifactDirectory", []interface{}{})
 	fake.restoreArtifactDirectoryMutex.Unlock()
-	if fake.RestoreArtifactDirectoryStub != nil {
-		return fake.RestoreArtifactDirectoryStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.restoreArtifactDirectoryReturns
 	return fakeReturns.result1
 }
 
@@ -1162,15 +1180,16 @@ func (fake *FakeJob) RestoreArtifactName() string {
 	ret, specificReturn := fake.restoreArtifactNameReturnsOnCall[len(fake.restoreArtifactNameArgsForCall)]
 	fake.restoreArtifactNameArgsForCall = append(fake.restoreArtifactNameArgsForCall, struct {
 	}{})
+	stub := fake.RestoreArtifactNameStub
+	fakeReturns := fake.restoreArtifactNameReturns
 	fake.recordInvocation("RestoreArtifactName", []interface{}{})
 	fake.restoreArtifactNameMutex.Unlock()
-	if fake.RestoreArtifactNameStub != nil {
-		return fake.RestoreArtifactNameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.restoreArtifactNameReturns
 	return fakeReturns.result1
 }
 
@@ -1214,15 +1233,16 @@ func (fake *FakeJob) RestoreShouldBeLockedBefore() []orchestrator.JobSpecifier {
 	ret, specificReturn := fake.restoreShouldBeLockedBeforeReturnsOnCall[len(fake.restoreShouldBeLockedBeforeArgsForCall)]
 	fake.restoreShouldBeLockedBeforeArgsForCall = append(fake.restoreShouldBeLockedBeforeArgsForCall, struct {
 	}{})
+	stub := fake.RestoreShouldBeLockedBeforeStub
+	fakeReturns := fake.restoreShouldBeLockedBeforeReturns
 	fake.recordInvocation("RestoreShouldBeLockedBefore", []interface{}{})
 	fake.restoreShouldBeLockedBeforeMutex.Unlock()
-	if fake.RestoreShouldBeLockedBeforeStub != nil {
-		return fake.RestoreShouldBeLockedBeforeStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.restoreShouldBeLockedBeforeReturns
 	return fakeReturns.result1
 }
 

@@ -35,15 +35,17 @@ func (fake *FakeSSHOptsGenerator) Spy(arg1 uuid.Generator) (director.SSHOpts, st
 	fake.argsForCall = append(fake.argsForCall, struct {
 		arg1 uuid.Generator
 	}{arg1})
+	stub := fake.Stub
+	returns := fake.returns
 	fake.recordInvocation("SSHOptsGenerator", []interface{}{arg1})
 	fake.mutex.Unlock()
-	if fake.Stub != nil {
-		return fake.Stub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	return fake.returns.result1, fake.returns.result2, fake.returns.result3
+	return returns.result1, returns.result2, returns.result3
 }
 
 func (fake *FakeSSHOptsGenerator) CallCount() int {
