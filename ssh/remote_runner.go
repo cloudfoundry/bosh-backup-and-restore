@@ -116,7 +116,7 @@ func (r SshRemoteRunner) RunScriptWithEnvGetStdout(path string, env map[string]s
 		varsList = varsList + varName + "=" + value + " "
 	}
 
-	return r.runOnInstanceWithLabel("sudo "+varsList+path, label)
+	return r.runOnInstanceWithLabelGetStdout("sudo "+varsList+path, label)
 }
 
 func (r SshRemoteRunner) FindFiles(pattern string) ([]string, error) {
@@ -151,10 +151,10 @@ func (r SshRemoteRunner) IsWindows() (bool, error) {
 }
 
 func (r SshRemoteRunner) runOnInstance(cmd string) (string, error) {
-	return r.runOnInstanceWithLabel(cmd, "")
+	return r.runOnInstanceWithLabelGetStdout(cmd, "")
 }
 
-func (r SshRemoteRunner) runOnInstanceWithLabel(cmd, label string) (string, error) {
+func (r SshRemoteRunner) runOnInstanceWithLabelGetStdout(cmd, label string) (string, error) {
 	stdout, stderr, exitCode, runErr := r.connection.Run(cmd)
 
 	err := r.logAndCheckErrors(stdout, stderr, exitCode, runErr, label)
