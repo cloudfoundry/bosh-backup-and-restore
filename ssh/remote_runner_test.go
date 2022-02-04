@@ -377,6 +377,13 @@ var _ = Describe("SshRemoteRunner", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
+		Context("when the script is not there", func() {
+			It("returns a helpful error", func() {
+				err := sshRemoteRunner.RunScriptWithEnv("/tmp/example-script", map[string]string{}, "")
+
+				Expect(err).To(MatchError(ContainSubstring("command not found")))
+			})
+		})
 	})
 
 	Describe("FindFiles", func() {
