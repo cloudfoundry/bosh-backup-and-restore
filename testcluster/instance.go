@@ -52,7 +52,12 @@ func NewInstanceWithKeepAlive(aliveInterval int) *Instance {
 }
 
 func (mockInstance *Instance) Address() string {
-	return strings.TrimSpace(strings.Replace(dockerRunAndWaitForSuccess("port", mockInstance.dockerID, "22"), "0.0.0.0", mockInstance.dockerHostIp(), -1))
+	localMapsForContainerPort22 := dockerRunAndWaitForSuccess("port", mockInstance.dockerID, "22")
+	localIPv4MapForContainerPort22Slice := strings.Split(localMapsForContainerPort22, "\n")
+	Expect(localIPv4MapForContainerPort22Slice).NotTo(BeNil())
+	Expect(len(localIPv4MapForContainerPort22Slice)).NotTo(BeZero())
+	localIPv4MapForContainerPort22 := localIPv4MapForContainerPort22Slice[0]
+	return strings.TrimSpace(strings.Replace(localIPv4MapForContainerPort22, "0.0.0.0", mockInstance.dockerHostIp(), -1))
 }
 
 func (mockInstance *Instance) IP() string {
