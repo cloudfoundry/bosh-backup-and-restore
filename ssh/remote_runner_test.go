@@ -367,7 +367,7 @@ var _ = Describe("SshRemoteRunner", func() {
 
 	Describe("RunScriptWithEnv", func() {
 		When("the script exists", func() {
-			It("runs the script with the specified env variables", func() {
+			It("runs the script successfully", func() {
 
 				runCommand("echo 'true' > /tmp/example-script")
 				makeAccessibleOnlyByRoot("/tmp/example-script")
@@ -394,6 +394,17 @@ var _ = Describe("SshRemoteRunner", func() {
 				err := sshRemoteRunner.RunScriptWithEnv("/tmp/example-script", map[string]string{}, "")
 
 				Expect(err).To(MatchError(ContainSubstring("command not found")))
+			})
+		})
+
+		When("the ssh connection fails", func() {
+			BeforeEach(func() {
+				destroyInstance(testInstance)
+			})
+
+			It("returns an error", func() {
+				err := sshRemoteRunner.RunScriptWithEnv("whatever", map[string]string{}, "")
+				Expect(err).To(MatchError(ContainSubstring("ssh.Dial failed")))
 			})
 		})
 	})

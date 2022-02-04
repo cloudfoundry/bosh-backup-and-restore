@@ -129,7 +129,11 @@ func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, la
 		varsList = varsList + varName + "=" + value + " "
 	}
 
-	stderr, exitCode, _ := r.connection.Stream("sudo " + varsList + path, io.Discard)
+	stderr, exitCode, err := r.connection.Stream("sudo " + varsList + path, io.Discard)
+
+	if err != nil {
+		return errors.Wrap(err, "connection.Stream failed")
+	}
 
 	if exitCode != 0 {
 		return exitError(stderr, exitCode)
