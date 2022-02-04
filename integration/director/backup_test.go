@@ -416,7 +416,9 @@ backup_should_be_locked_before:
 			})
 
 			By("printing an error", func() {
-				Expect(session.Err).To(gbytes.Say("no such host"))
+				Expect(session.Err).To(SatisfyAny(
+					gbytes.Say("no such host"),
+					gbytes.Say("No address associated with hostname")))
 			})
 
 			By("not printing a recommendation to run bbr backup-cleanup", func() {
