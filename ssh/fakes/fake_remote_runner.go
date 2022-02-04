@@ -130,6 +130,19 @@ type FakeRemoteRunner struct {
 		result1 string
 		result2 error
 	}
+	RunScriptWithEnvStub        func(string, map[string]string, string) error
+	runScriptWithEnvMutex       sync.RWMutex
+	runScriptWithEnvArgsForCall []struct {
+		arg1 string
+		arg2 map[string]string
+		arg3 string
+	}
+	runScriptWithEnvReturns struct {
+		result1 error
+	}
+	runScriptWithEnvReturnsOnCall map[int]struct {
+		result1 error
+	}
 	RunScriptWithEnvGetStdoutStub        func(string, map[string]string, string) (string, error)
 	runScriptWithEnvGetStdoutMutex       sync.RWMutex
 	runScriptWithEnvGetStdoutArgsForCall []struct {
@@ -787,6 +800,69 @@ func (fake *FakeRemoteRunner) RunScriptReturnsOnCall(i int, result1 string, resu
 	}{result1, result2}
 }
 
+func (fake *FakeRemoteRunner) RunScriptWithEnv(arg1 string, arg2 map[string]string, arg3 string) error {
+	fake.runScriptWithEnvMutex.Lock()
+	ret, specificReturn := fake.runScriptWithEnvReturnsOnCall[len(fake.runScriptWithEnvArgsForCall)]
+	fake.runScriptWithEnvArgsForCall = append(fake.runScriptWithEnvArgsForCall, struct {
+		arg1 string
+		arg2 map[string]string
+		arg3 string
+	}{arg1, arg2, arg3})
+	stub := fake.RunScriptWithEnvStub
+	fakeReturns := fake.runScriptWithEnvReturns
+	fake.recordInvocation("RunScriptWithEnv", []interface{}{arg1, arg2, arg3})
+	fake.runScriptWithEnvMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeRemoteRunner) RunScriptWithEnvCallCount() int {
+	fake.runScriptWithEnvMutex.RLock()
+	defer fake.runScriptWithEnvMutex.RUnlock()
+	return len(fake.runScriptWithEnvArgsForCall)
+}
+
+func (fake *FakeRemoteRunner) RunScriptWithEnvCalls(stub func(string, map[string]string, string) error) {
+	fake.runScriptWithEnvMutex.Lock()
+	defer fake.runScriptWithEnvMutex.Unlock()
+	fake.RunScriptWithEnvStub = stub
+}
+
+func (fake *FakeRemoteRunner) RunScriptWithEnvArgsForCall(i int) (string, map[string]string, string) {
+	fake.runScriptWithEnvMutex.RLock()
+	defer fake.runScriptWithEnvMutex.RUnlock()
+	argsForCall := fake.runScriptWithEnvArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeRemoteRunner) RunScriptWithEnvReturns(result1 error) {
+	fake.runScriptWithEnvMutex.Lock()
+	defer fake.runScriptWithEnvMutex.Unlock()
+	fake.RunScriptWithEnvStub = nil
+	fake.runScriptWithEnvReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeRemoteRunner) RunScriptWithEnvReturnsOnCall(i int, result1 error) {
+	fake.runScriptWithEnvMutex.Lock()
+	defer fake.runScriptWithEnvMutex.Unlock()
+	fake.RunScriptWithEnvStub = nil
+	if fake.runScriptWithEnvReturnsOnCall == nil {
+		fake.runScriptWithEnvReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.runScriptWithEnvReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeRemoteRunner) RunScriptWithEnvGetStdout(arg1 string, arg2 map[string]string, arg3 string) (string, error) {
 	fake.runScriptWithEnvGetStdoutMutex.Lock()
 	ret, specificReturn := fake.runScriptWithEnvGetStdoutReturnsOnCall[len(fake.runScriptWithEnvGetStdoutArgsForCall)]
@@ -1004,6 +1080,8 @@ func (fake *FakeRemoteRunner) Invocations() map[string][][]interface{} {
 	defer fake.removeDirectoryMutex.RUnlock()
 	fake.runScriptMutex.RLock()
 	defer fake.runScriptMutex.RUnlock()
+	fake.runScriptWithEnvMutex.RLock()
+	defer fake.runScriptWithEnvMutex.RUnlock()
 	fake.runScriptWithEnvGetStdoutMutex.RLock()
 	defer fake.runScriptWithEnvGetStdoutMutex.RUnlock()
 	fake.sizeInBytesMutex.RLock()

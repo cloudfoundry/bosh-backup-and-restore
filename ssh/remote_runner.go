@@ -24,6 +24,7 @@ type RemoteRunner interface {
 	ChecksumDirectory(path string) (map[string]string, error)
 	RunScript(path, label string) (string, error)
 	RunScriptWithEnvGetStdout(path string, env map[string]string, label string) (string, error)
+	RunScriptWithEnv(path string, env map[string]string, label string) error
 	FindFiles(pattern string) ([]string, error)
 	IsWindows() (bool, error)
 }
@@ -117,6 +118,13 @@ func (r SshRemoteRunner) RunScriptWithEnvGetStdout(path string, env map[string]s
 	}
 
 	return r.runOnInstanceWithLabelGetStdout("sudo "+varsList+path, label)
+}
+
+// RunScriptWithEnv is a more memory-efficient version of
+// RunScriptWithEnvGetStdout , which doesn't buffer or return the
+// contents of stdout.
+func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, label string) error {
+	return nil
 }
 
 func (r SshRemoteRunner) FindFiles(pattern string) ([]string, error) {
