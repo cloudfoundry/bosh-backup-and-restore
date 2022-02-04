@@ -124,7 +124,12 @@ func (r SshRemoteRunner) RunScriptWithEnvGetStdout(path string, env map[string]s
 // RunScriptWithEnvGetStdout , which doesn't buffer or return the
 // contents of stdout.
 func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, label string) error {
-	stderr, exitCode, _ := r.connection.Stream("sudo "+path, io.Discard)
+	var varsList = ""
+	for varName, value := range env {
+		varsList = varsList + varName + "=" + value + " "
+	}
+
+	stderr, exitCode, _ := r.connection.Stream("sudo " + varsList + path, io.Discard)
 
 	if exitCode != 0 {
 		return exitError(stderr, exitCode)

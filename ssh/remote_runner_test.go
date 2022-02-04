@@ -366,7 +366,7 @@ var _ = Describe("SshRemoteRunner", func() {
 	})
 
 	Describe("RunScriptWithEnv", func() {
-		Context("When the script exists", func() {
+		When("the script exists", func() {
 			It("runs the script with the specified env variables", func() {
 
 				runCommand("echo 'true' > /tmp/example-script")
@@ -376,8 +376,20 @@ var _ = Describe("SshRemoteRunner", func() {
 
 				Expect(err).NotTo(HaveOccurred())
 			})
+
+			When("we provide environment variables to the script", func() {
+				It("can access those environment variables", func() {
+					runCommand("echo '[ \"$ENV1\" = \"foo\" ]' > /tmp/example-script")
+					makeAccessibleOnlyByRoot("/tmp/example-script")
+
+					err := sshRemoteRunner.RunScriptWithEnv("/tmp/example-script", map[string]string{"ENV1": "foo"}, "")
+
+					Expect(err).NotTo(HaveOccurred())
+				})
+			})
 		})
-		Context("when the script is not there", func() {
+
+		When("the script is not there", func() {
 			It("returns a helpful error", func() {
 				err := sshRemoteRunner.RunScriptWithEnv("/tmp/example-script", map[string]string{}, "")
 
