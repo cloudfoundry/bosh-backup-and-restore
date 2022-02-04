@@ -161,7 +161,9 @@ restore_should_be_locked_before:
 		})
 
 		It("prints an error", func() {
-			Expect(session.Err).To(gbytes.Say("no such host"))
+			Expect(session.Err).To(SatisfyAny(
+				gbytes.Say("no such host"),
+				gbytes.Say("No address associated with hostname")))
 			Expect(string(session.Err.Contents())).NotTo(ContainSubstring("main.go"))
 		})
 
