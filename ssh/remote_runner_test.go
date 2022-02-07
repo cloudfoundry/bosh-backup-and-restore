@@ -3,6 +3,7 @@ package ssh_test
 import (
 	"bytes"
 	"io"
+	"fmt"
 	"log"
 
 	"io/ioutil"
@@ -10,6 +11,7 @@ import (
 	"os"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo"
@@ -24,6 +26,7 @@ var sshConnection ssh.SSHConnection
 
 var _ = Describe("SshRemoteRunner", func() {
 	var sshRemoteRunner ssh.RemoteRunner
+	var hostPublicKey gossh.PublicKey
 
 	BeforeEach(func() {
 		user = "test-user"
@@ -32,7 +35,8 @@ var _ = Describe("SshRemoteRunner", func() {
 		testInstance = testcluster.NewInstanceWithKeepAlive(2)
 		testInstance.CreateUser(user, publicKeyForDocker(userPrivateKey))
 
-		hostPublicKey, _, _, _, err := gossh.ParseAuthorizedKey([]byte(testInstance.HostPublicKey()))
+		var err error
+		hostPublicKey, _, _, _, err = gossh.ParseAuthorizedKey([]byte(testInstance.HostPublicKey()))
 		Expect(err).NotTo(HaveOccurred())
 
 		combinedLog := log.New(io.MultiWriter(GinkgoWriter, bytes.NewBufferString("")), "[bosh-package] ", log.Lshortfile)
@@ -368,13 +372,31 @@ var _ = Describe("SshRemoteRunner", func() {
 	Describe("RunScriptWithEnv", func() {
 		When("the script exists", func() {
 			It("runs the script successfully", func() {
-
 				runCommand("echo 'true' > /tmp/example-script")
 				makeAccessibleOnlyByRoot("/tmp/example-script")
 
 				err := sshRemoteRunner.RunScriptWithEnv("/tmp/example-script", map[string]string{}, "")
 
 				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("logs the output of the script", func() {
+				fakeLogger := &fakes.FakeLogger{}
+				fakeLog := ""
+				fakeLogger.DebugStub = func(tag, msg string, args ...interface{}) {
+					fakeLog += "\n" + tag + ": " + fmt.Sprintf(msg, args...)
+				}
+				sshRemoteRunner, err := ssh.NewSshRemoteRunner(testInstance.Address(), user, userPrivateKey, gossh.FixedHostKey(hostPublicKey),
+					[]string{hostPublicKey.Type()}, fakeLogger)
+				Expect(err).NotTo(HaveOccurred())
+
+				runCommand("echo 'echo \"This script is running!\"' > /tmp/example-script")
+				makeAccessibleOnlyByRoot("/tmp/example-script")
+
+				err = sshRemoteRunner.RunScriptWithEnv("/tmp/example-script", map[string]string{}, "logtest")
+
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fakeLog).To(ContainSubstring("bbr: [logtest] stdout: This script is running!"))
 			})
 
 			When("we provide environment variables to the script", func() {

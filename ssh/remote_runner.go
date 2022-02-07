@@ -129,7 +129,16 @@ func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, la
 		varsList = varsList + varName + "=" + value + " "
 	}
 
-	stderr, exitCode, err := r.connection.Stream("sudo " + varsList + path, io.Discard)
+	// Note that this logWriter passes its input directly to the
+	// logger, and does not store it in memory.
+	logWriter := writerWith{
+		write: func(stdout []byte) (n int, err error) {
+			n = len(stdout)
+			r.logger.Debug("bbr", "[%s] stdout: %s", label, string(stdout))
+			return
+		}}
+
+	stderr, exitCode, err := r.connection.Stream("sudo " + varsList + path, logWriter)
 
 	if err != nil {
 		return errors.Wrap(err, "connection.Stream failed")
@@ -140,6 +149,15 @@ func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, la
 	}
 
 	return nil
+}
+
+// writerWith implements the Writer interface with whatever function
+// you supply when you construct the object.
+type writerWith struct{
+	write func(p []byte) (n int, err error)
+}
+func (w writerWith) Write(p []byte) (int, error) {
+	return w.write(p)
 }
 
 func (r SshRemoteRunner) FindFiles(pattern string) ([]string, error) {
