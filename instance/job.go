@@ -124,7 +124,7 @@ func (j Job) Backup() error {
 		}
 
 		env := artifactDirectoryVariables(j.BackupArtifactDirectory())
-		_, err = j.remoteRunner.RunScriptWithEnvGetStdout(
+		err = j.remoteRunner.RunScriptWithEnv(
 			string(j.backupScript),
 			env,
 			fmt.Sprintf("backup %s on %s", j.name, j.instanceIdentifier),
@@ -178,7 +178,7 @@ func (j Job) PostBackupUnlock(afterSuccessfulBackup bool) error {
 		env := map[string]string{
 			"BBR_AFTER_BACKUP_SCRIPTS_SUCCESSFUL": strconv.FormatBool(afterSuccessfulBackup),
 		}
-		_, err := j.remoteRunner.RunScriptWithEnvGetStdout(
+		err := j.remoteRunner.RunScriptWithEnv(
 			string(j.postBackupScript),
 			env,
 			fmt.Sprintf("post-backup unlock %s on %s", j.name, j.instanceIdentifier),
@@ -230,7 +230,7 @@ func (j Job) Restore() error {
 		j.Logger.Info("bbr", "Restoring %s on %s...", j.name, j.instanceIdentifier)
 
 		env := artifactDirectoryVariables(j.RestoreArtifactDirectory())
-		_, err := j.remoteRunner.RunScriptWithEnvGetStdout(
+		err := j.remoteRunner.RunScriptWithEnv(
 			string(j.restoreScript), env,
 			fmt.Sprintf("restore %s on %s", j.name, j.instanceIdentifier),
 		)
