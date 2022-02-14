@@ -372,7 +372,7 @@ var _ = Describe("Job", func() {
 				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(1))
 
 				Expect(remoteRunner.CreateDirectoryArgsForCall(0)).To(Equal("/var/vcap/store/bbr-backup/jobname"))
-				specifiedScriptPath, specifiedEnvVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
+				specifiedScriptPath, specifiedEnvVars, _, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/jobname/bin/bbr/backup"))
 				Expect(specifiedEnvVars).To(SatisfyAll(
 					HaveLen(2),
@@ -432,7 +432,7 @@ var _ = Describe("Job", func() {
 			It("uses the remote runner to run the script", func() {
 				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(1))
 
-				specifiedScriptPath, specifiedEnvVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
+				specifiedScriptPath, specifiedEnvVars, _, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/jobname/bin/bbr/restore"))
 				Expect(specifiedEnvVars).To(SatisfyAll(
 					HaveLen(2),
@@ -573,7 +573,7 @@ var _ = Describe("Job", func() {
 
 				It("uses remote runner to run the script", func() {
 					Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(1))
-					cmd, envVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
+					cmd, envVars, _, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 					Expect(cmd).To(Equal("/var/vcap/jobs/jobname/bin/bbr/post-backup-unlock"))
 					Expect(envVars).To(HaveKeyWithValue("BBR_AFTER_BACKUP_SCRIPTS_SUCCESSFUL", "true"))
 				})
@@ -599,7 +599,7 @@ var _ = Describe("Job", func() {
 
 				It("uses remote runner to run the script", func() {
 					Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(1))
-					cmd, envVars, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
+					cmd, envVars, _, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 					Expect(cmd).To(Equal("/var/vcap/jobs/jobname/bin/bbr/post-backup-unlock"))
 					Expect(envVars).To(HaveKeyWithValue("BBR_AFTER_BACKUP_SCRIPTS_SUCCESSFUL", "false"))
 				})

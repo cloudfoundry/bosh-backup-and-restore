@@ -262,7 +262,7 @@ backup_should_be_locked_before:
 
 				It("attaches the metadata to the corresponding jobs", func() {
 					By("executing the metadata scripts passing the correct arguments", func() {
-						cmd, env, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
+						cmd, env, _, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 						Expect(cmd).To(Equal("/var/vcap/jobs/consul_agent/bin/bbr/metadata"))
 						Expect(env).To(Equal(map[string]string{"BBR_VERSION": bbrVersion}))
 					})
@@ -300,7 +300,7 @@ backup_should_be_locked_before:
 
 					It("attaches the metadata to the corresponding jobs", func() {
 						By("executing the metadata scripts passing the correct arguments", func() {
-							cmd, env, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
+							cmd, env, _ , _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 							Expect(cmd).To(Equal("/var/vcap/jobs/consul_agent/bin/bbr/metadata"))
 							Expect(env).To(Equal(map[string]string{"BBR_VERSION": bbrVersion}))
 						})
@@ -390,7 +390,7 @@ skip_bbr_scripts: true
 
 				It("ignores the job", func() {
 					By("executing the metadata scripts passing the correct arguments", func() {
-						cmd, env, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
+						cmd, env, _, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 						Expect(cmd).To(Equal("/var/vcap/jobs/consul_agent/bin/bbr/metadata"))
 						Expect(env).To(Equal(map[string]string{"BBR_VERSION": bbrVersion}))
 					})

@@ -2,6 +2,7 @@ package instance
 
 import (
 	"fmt"
+	"io"
 	"path/filepath"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
@@ -105,6 +106,7 @@ func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifie
 		string(script),
 		map[string]string{"BBR_VERSION": j.bbrVersion},
 		fmt.Sprintf("find metadata for %s on %s", script.JobName(), instanceIdentifier),
+		io.Discard,
 	)
 	if err != nil {
 		return nil, errors.Wrapf(

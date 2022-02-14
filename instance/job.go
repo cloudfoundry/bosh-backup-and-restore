@@ -2,6 +2,7 @@ package instance
 
 import (
 	"fmt"
+	"io"
 	"strconv"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
@@ -128,6 +129,7 @@ func (j Job) Backup() error {
 			string(j.backupScript),
 			env,
 			fmt.Sprintf("backup %s on %s", j.name, j.instanceIdentifier),
+			io.Discard,
 		)
 
 		if err != nil {
@@ -182,6 +184,7 @@ func (j Job) PostBackupUnlock(afterSuccessfulBackup bool) error {
 			string(j.postBackupScript),
 			env,
 			fmt.Sprintf("post-backup unlock %s on %s", j.name, j.instanceIdentifier),
+			io.Discard,
 		)
 		if err != nil {
 			j.Logger.Error("bbr", "Error unlocking %s on %s.", j.name, j.instanceIdentifier)
@@ -233,6 +236,7 @@ func (j Job) Restore() error {
 		_, err := j.remoteRunner.RunScriptWithEnv(
 			string(j.restoreScript), env,
 			fmt.Sprintf("restore %s on %s", j.name, j.instanceIdentifier),
+			io.Discard,
 		)
 		if err != nil {
 			j.Logger.Error("bbr", "Error restoring %s on %s.", j.name, j.instanceIdentifier)

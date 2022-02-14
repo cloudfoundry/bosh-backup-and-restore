@@ -80,15 +80,16 @@ func (fake *FakeSSHConnection) Run(arg1 string) ([]byte, []byte, int, error) {
 	fake.runArgsForCall = append(fake.runArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.RunStub
+	fakeReturns := fake.runReturns
 	fake.recordInvocation("Run", []interface{}{arg1})
 	fake.runMutex.Unlock()
-	if fake.RunStub != nil {
-		return fake.RunStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3, ret.result4
 	}
-	fakeReturns := fake.runReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3, fakeReturns.result4
 }
 
@@ -150,15 +151,16 @@ func (fake *FakeSSHConnection) Stream(arg1 string, arg2 io.Writer) ([]byte, int,
 		arg1 string
 		arg2 io.Writer
 	}{arg1, arg2})
+	stub := fake.StreamStub
+	fakeReturns := fake.streamReturns
 	fake.recordInvocation("Stream", []interface{}{arg1, arg2})
 	fake.streamMutex.Unlock()
-	if fake.StreamStub != nil {
-		return fake.StreamStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3
 	}
-	fakeReturns := fake.streamReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
@@ -217,15 +219,16 @@ func (fake *FakeSSHConnection) StreamStdin(arg1 string, arg2 io.Reader) ([]byte,
 		arg1 string
 		arg2 io.Reader
 	}{arg1, arg2})
+	stub := fake.StreamStdinStub
+	fakeReturns := fake.streamStdinReturns
 	fake.recordInvocation("StreamStdin", []interface{}{arg1, arg2})
 	fake.streamStdinMutex.Unlock()
-	if fake.StreamStdinStub != nil {
-		return fake.StreamStdinStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2, ret.result3, ret.result4
 	}
-	fakeReturns := fake.streamStdinReturns
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3, fakeReturns.result4
 }
 
@@ -285,15 +288,16 @@ func (fake *FakeSSHConnection) Username() string {
 	ret, specificReturn := fake.usernameReturnsOnCall[len(fake.usernameArgsForCall)]
 	fake.usernameArgsForCall = append(fake.usernameArgsForCall, struct {
 	}{})
+	stub := fake.UsernameStub
+	fakeReturns := fake.usernameReturns
 	fake.recordInvocation("Username", []interface{}{})
 	fake.usernameMutex.Unlock()
-	if fake.UsernameStub != nil {
-		return fake.UsernameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.usernameReturns
 	return fakeReturns.result1
 }
 
