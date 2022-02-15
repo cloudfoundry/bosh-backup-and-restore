@@ -1,6 +1,7 @@
 package ssh
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"strconv"
@@ -116,14 +117,18 @@ func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, la
 		varsList = varsList + varName + "=" + value + " "
 	}
 
-	stdoutput, stderr, exitCode, runErr := r.connection.Run("sudo "+varsList+path)
+	stdoutBuffer := &bytes.Buffer{}
 
-	err := r.logAndCheckErrors(stdoutput, stderr, exitCode, runErr, label)
+	stderr, exitCode, runErr := r.connection.Stream("sudo "+varsList+path, stdoutBuffer)
+
+	stdoutBytes := stdoutBuffer.Bytes()
+
+	err := r.logAndCheckErrors(stdoutBytes, stderr, exitCode, runErr, label)
 	if err != nil {
 		return "", err
 	}
 
-	return string(stdoutput), nil
+	return string(stdoutBytes), nil
 }
 
 func (r SshRemoteRunner) FindFiles(pattern string) ([]string, error) {
