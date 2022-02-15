@@ -116,7 +116,14 @@ func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, la
 		varsList = varsList + varName + "=" + value + " "
 	}
 
-	return r.runOnInstanceWithLabel("sudo "+varsList+path, label)
+	stdoutput, stderr, exitCode, runErr := r.connection.Run("sudo "+varsList+path)
+
+	err := r.logAndCheckErrors(stdoutput, stderr, exitCode, runErr, label)
+	if err != nil {
+		return "", err
+	}
+
+	return string(stdoutput), nil
 }
 
 func (r SshRemoteRunner) FindFiles(pattern string) ([]string, error) {
