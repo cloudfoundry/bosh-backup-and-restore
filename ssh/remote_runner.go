@@ -123,9 +123,14 @@ func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, la
 
 	stdoutBytes := stdoutBuffer.Bytes()
 
-	err := r.logAndCheckErrors(stdoutBytes, stderr, exitCode, runErr, label)
-	if err != nil {
-		return "", err
+	r.logOutput(stdoutBytes, stderr, label)
+
+	if runErr != nil {
+		return "", runErr
+	}
+
+	if exitCode != 0 {
+		return "", exitError(stderr, exitCode)
 	}
 
 	return string(stdoutBytes), nil
