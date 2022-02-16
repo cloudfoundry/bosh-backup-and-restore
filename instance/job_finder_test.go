@@ -252,12 +252,14 @@ var _ = Describe("JobFinderFromScripts", func() {
 			Context("when metadata is valid", func() {
 				BeforeEach(func() {
 					remoteRunner.FindFilesReturns([]string{"/var/vcap/jobs/consul_agent/bin/bbr/metadata"}, nil)
-					remoteRunner.RunScriptWithEnvReturns(`---
+					remoteRunner.RunScriptWithEnvStub = func(_ string, _ map[string]string, _ string, stdout io.Writer) (string, error) {
+						stdout.Write([]byte(`---
 backup_name: consul_backup
 restore_name: consul_backup
 backup_should_be_locked_before:
 - job_name: bosh
-  release: bosh`, nil)
+  release: bosh`))
+						return "", nil}
 				})
 
 				It("attaches the metadata to the corresponding jobs", func() {
@@ -370,7 +372,9 @@ backup_should_be_locked_before:
 			Context("when a metadata script returns invalid metadata YAML", func() {
 				BeforeEach(func() {
 					remoteRunner.FindFilesReturns([]string{"/var/vcap/jobs/consul_agent/bin/bbr/metadata"}, nil)
-					remoteRunner.RunScriptWithEnvReturns(`this metadata is missing all the keys`, nil)
+					remoteRunner.RunScriptWithEnvStub = func(_ string, _ map[string]string, _ string, stdout io.Writer) (string, error) {
+						stdout.Write([]byte(`this metadata is missing all the keys`))
+						return "", nil}
 				})
 
 				It("prints the location of the error", func() {
@@ -383,9 +387,10 @@ backup_should_be_locked_before:
 			Context("when the bbr job is disabled", func() {
 				BeforeEach(func() {
 					remoteRunner.FindFilesReturns([]string{"/var/vcap/jobs/consul_agent/bin/bbr/metadata"}, nil)
-					remoteRunner.RunScriptWithEnvReturns(`---
-skip_bbr_scripts: true
-`, nil)
+					remoteRunner.RunScriptWithEnvStub = func(_ string, _ map[string]string, _ string, stdout io.Writer) (string, error) {
+						stdout.Write([]byte(`---
+skip_bbr_scripts: true`))
+						return "", nil}
 				})
 
 				It("ignores the job", func() {
