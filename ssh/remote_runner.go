@@ -119,11 +119,29 @@ func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, la
 
 	stdoutBuffer := &bytes.Buffer{}
 
-	stderr, exitCode, runErr := r.connection.Stream("sudo "+varsList+path, stdoutBuffer)
+	stderr, exitCode, runErr := r.connection.Stream("sudo "+varsList+path, anonymousWriter{write: func(p []byte) (int, error) {
+		n, buffErr := stdoutBuffer.Write(p)
+
+		if label != "" {
+			r.logger.Debug("bbr", "[%s] stdout: %s", label, string(p))
+		} else {
+			r.logger.Debug("bbr", "stdout: %s", string(p))
+		}
+
+		if buffErr != nil {
+			return n, buffErr
+		}
+
+		return len(p), nil
+	}})
+
+	if label != "" {
+		r.logger.Debug("bbr", "[%s] stderr: %s", label, string(stderr))
+	} else {
+		r.logger.Debug("bbr", "stderr: %s", string(stderr))
+	}
 
 	stdoutBytes := stdoutBuffer.Bytes()
-
-	r.logOutput(stdoutBytes, stderr, label)
 
 	if runErr != nil {
 		return "", runErr
@@ -134,6 +152,18 @@ func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, la
 	}
 
 	return string(stdoutBytes), nil
+}
+
+// anonymousWriter implements the Writer interface using a private
+// 'write' function that you must set at construction time.
+//
+// This is useful for if you want a writer to behave like an anonymous
+// function that can close over local state.
+type anonymousWriter struct {
+	write func(p []byte) (n int, err error)
+}
+func (w anonymousWriter) Write(p []byte) (n int, err error) {
+	return w.write(p)
 }
 
 func (r SshRemoteRunner) FindFiles(pattern string) ([]string, error) {
