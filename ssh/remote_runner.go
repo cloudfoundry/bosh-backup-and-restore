@@ -122,11 +122,7 @@ func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, la
 	stderr, exitCode, runErr := r.connection.Stream("sudo "+varsList+path, anonymousWriter{write: func(p []byte) (int, error) {
 		n, buffErr := stdoutBuffer.Write(p)
 
-		if label != "" {
-			r.logger.Debug("bbr", "[%s] stdout: %s", label, string(p))
-		} else {
-			r.logger.Debug("bbr", "stdout: %s", string(p))
-		}
+		r.logger.Debug("bbr", "stdout: %s", string(p))
 
 		if buffErr != nil {
 			return n, buffErr
@@ -135,11 +131,7 @@ func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, la
 		return len(p), nil
 	}})
 
-	if label != "" {
-		r.logger.Debug("bbr", "[%s] stderr: %s", label, string(stderr))
-	} else {
-		r.logger.Debug("bbr", "stderr: %s", string(stderr))
-	}
+	r.logger.Debug("bbr", "stderr: %s", string(stderr))
 
 	stdoutBytes := stdoutBuffer.Bytes()
 
