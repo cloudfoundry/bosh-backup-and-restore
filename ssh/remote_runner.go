@@ -198,13 +198,9 @@ func (r SshRemoteRunner) IsWindows() (bool, error) {
 }
 
 func (r SshRemoteRunner) runOnInstance(cmd string) (string, error) {
-	return r.runOnInstanceWithLabel(cmd, "")
-}
-
-func (r SshRemoteRunner) runOnInstanceWithLabel(cmd, label string) (string, error) {
 	stdout, stderr, exitCode, runErr := r.connection.Run(cmd)
 
-	err := r.logAndCheckErrors(stdout, stderr, exitCode, runErr, label)
+	err := r.logAndCheckErrors(stdout, stderr, exitCode, runErr, "")
 	if err != nil {
 		return "", err
 	}
