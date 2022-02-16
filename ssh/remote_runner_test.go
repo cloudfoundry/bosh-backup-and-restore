@@ -322,11 +322,13 @@ var _ = Describe("SshRemoteRunner", func() {
 				runCommand("echo 'env' > /tmp/example-script")
 				makeAccessibleOnlyByRoot("/tmp/example-script")
 
-				stdout, err := sshRemoteRunner.RunScriptWithEnv("/tmp/example-script", map[string]string{"env1": "foo", "env2": "bar"}, "", io.Discard)
+				stdoutBuffer := &bytes.Buffer{}
+
+				_, err := sshRemoteRunner.RunScriptWithEnv("/tmp/example-script", map[string]string{"env1": "foo", "env2": "bar"}, "", stdoutBuffer)
 
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(stdout).To(SatisfyAll(
+				Expect(stdoutBuffer.Bytes()).To(SatisfyAll(
 					ContainSubstring("env1=foo"),
 					ContainSubstring("env2=bar"),
 				))

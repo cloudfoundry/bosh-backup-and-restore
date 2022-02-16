@@ -128,6 +128,11 @@ func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, la
 			return n, buffErr
 		}
 
+		n, outErr := stdout.Write(p)
+		if outErr != nil {
+			return n, outErr
+		}
+
 		return len(p), nil
 	}})
 
