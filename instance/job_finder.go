@@ -103,7 +103,7 @@ func (j *JobFinderFromScripts) findBBRScripts(instanceIdentifierForLogging Insta
 
 func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifier, script Script, remoteRunner ssh.RemoteRunner) (*Metadata, error) {
 	metadataBuffer := &bytes.Buffer{}
-	_, err := remoteRunner.RunScriptWithEnv(
+	err := remoteRunner.RunScriptWithEnv(
 		string(script),
 		map[string]string{"BBR_VERSION": j.bbrVersion},
 		fmt.Sprintf("find metadata for %s on %s", script.JobName(), instanceIdentifier),

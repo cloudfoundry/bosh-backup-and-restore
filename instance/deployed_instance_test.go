@@ -514,13 +514,13 @@ var _ = Describe("DeployedInstance", func() {
 					),
 				})
 
-				remoteRunner.RunScriptWithEnvStub = func(cmd string, envVars map[string]string, label string, stdout io.Writer) (string, error) {
+				remoteRunner.RunScriptWithEnvStub = func(cmd string, envVars map[string]string, label string, stdout io.Writer) error {
 					if strings.Contains(cmd, "jobs/bar") {
-						return "", fmt.Errorf("no space left on device")
+						return fmt.Errorf("no space left on device")
 					} else if strings.Contains(cmd, "jobs/baz") {
-						return "", fmt.Errorf("huge failure")
+						return fmt.Errorf("huge failure")
 					} else {
-						return "not relevant", nil
+						return nil
 					}
 				}
 			})
@@ -762,13 +762,13 @@ var _ = Describe("DeployedInstance", func() {
 					),
 				})
 
-				remoteRunner.RunScriptWithEnvStub = func(cmd string, envVars map[string]string, label string, stdout io.Writer) (string, error) {
+				remoteRunner.RunScriptWithEnvStub = func(cmd string, envVars map[string]string, label string, stdout io.Writer) error {
 					if strings.Contains(cmd, "jobs/bar") {
-						return "", fmt.Errorf("no space left on device")
+						return fmt.Errorf("no space left on device")
 					} else if strings.Contains(cmd, "jobs/baz") {
-						return "", fmt.Errorf("huge failure")
+						return fmt.Errorf("huge failure")
 					} else {
-						return "not relevant", nil
+						return nil
 					}
 				}
 			})

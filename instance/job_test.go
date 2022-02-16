@@ -383,7 +383,7 @@ var _ = Describe("Job", func() {
 
 			Context("backup script runs successfully", func() {
 				BeforeEach(func() {
-					remoteRunner.RunScriptWithEnvReturns("stdout", nil)
+					remoteRunner.RunScriptWithEnvReturns(nil)
 				})
 
 				It("succeeds", func() {
@@ -393,7 +393,7 @@ var _ = Describe("Job", func() {
 
 			Context("backup script fails", func() {
 				BeforeEach(func() {
-					remoteRunner.RunScriptWithEnvReturns("", fmt.Errorf("some weird error"))
+					remoteRunner.RunScriptWithEnvReturns(fmt.Errorf("some weird error"))
 				})
 
 				It("fails", func() {
@@ -443,7 +443,7 @@ var _ = Describe("Job", func() {
 
 			Context("restore script runs successfully", func() {
 				BeforeEach(func() {
-					remoteRunner.RunScriptWithEnvReturns("", nil)
+					remoteRunner.RunScriptWithEnvReturns(nil)
 				})
 
 				It("succeeds", func() {
@@ -453,7 +453,7 @@ var _ = Describe("Job", func() {
 
 			Context("restore script fails", func() {
 				BeforeEach(func() {
-					remoteRunner.RunScriptWithEnvReturns("", fmt.Errorf("it went wrong"))
+					remoteRunner.RunScriptWithEnvReturns(fmt.Errorf("it went wrong"))
 				})
 
 				It("fails", func() {
@@ -515,7 +515,7 @@ var _ = Describe("Job", func() {
 
 			Context("pre-backup-lock script runs successfully", func() {
 				BeforeEach(func() {
-					remoteRunner.RunScriptReturns("stdout", nil)
+					remoteRunner.RunScriptReturns(nil)
 				})
 
 				It("succeeds", func() {
@@ -525,7 +525,7 @@ var _ = Describe("Job", func() {
 
 			Context("pre-backup-lock script errors", func() {
 				BeforeEach(func() {
-					remoteRunner.RunScriptReturns("", fmt.Errorf("some strange error"))
+					remoteRunner.RunScriptReturns(fmt.Errorf("some strange error"))
 				})
 
 				It("fails", func() {
@@ -580,7 +580,7 @@ var _ = Describe("Job", func() {
 
 				Context("post-backup-unlock script runs successfully", func() {
 					BeforeEach(func() {
-						remoteRunner.RunScriptWithEnvReturns("stdout", nil)
+						remoteRunner.RunScriptWithEnvReturns(nil)
 					})
 
 					It("succeeds", func() {
@@ -608,7 +608,7 @@ var _ = Describe("Job", func() {
 
 			Context("post-backup-unlock script fails", func() {
 				BeforeEach(func() {
-					remoteRunner.RunScriptWithEnvReturns("", fmt.Errorf("it failed"))
+					remoteRunner.RunScriptWithEnvReturns(fmt.Errorf("it failed"))
 				})
 
 				It("fails", func() {
@@ -675,7 +675,7 @@ var _ = Describe("Job", func() {
 
 			Context("pre-restore-lock script runs successfully", func() {
 				BeforeEach(func() {
-					remoteRunner.RunScriptReturns("stdout", nil)
+					remoteRunner.RunScriptReturns(nil)
 				})
 
 				It("succeeds", func() {
@@ -685,7 +685,7 @@ var _ = Describe("Job", func() {
 
 			Context("pre-restore-lock script fails", func() {
 				BeforeEach(func() {
-					remoteRunner.RunScriptReturns("", fmt.Errorf("some strange error"))
+					remoteRunner.RunScriptReturns(fmt.Errorf("some strange error"))
 				})
 
 				It("fails", func() {
@@ -731,7 +731,7 @@ var _ = Describe("Job", func() {
 
 			Context("post-restore-unlock script runs successfully", func() {
 				BeforeEach(func() {
-					remoteRunner.RunScriptReturns("stdout", nil)
+					remoteRunner.RunScriptReturns(nil)
 				})
 
 				It("succeeds", func() {
@@ -741,7 +741,7 @@ var _ = Describe("Job", func() {
 
 			Context("post-restore-unlock script fails", func() {
 				BeforeEach(func() {
-					remoteRunner.RunScriptReturns("", fmt.Errorf("oh no"))
+					remoteRunner.RunScriptReturns(fmt.Errorf("oh no"))
 				})
 
 				It("fails", func() {
