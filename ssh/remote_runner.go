@@ -1,7 +1,6 @@
 package ssh
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"strconv"
@@ -111,24 +110,26 @@ func (r SshRemoteRunner) RunScript(path, label string) (string, error) {
 	return r.RunScriptWithEnv(path, map[string]string{}, label, io.Discard)
 }
 
+// RunScriptWithEnv runs the script at 'path' on our remote
+// environment. The script is run with the environment variables
+// specified in 'env'. All logging is annotated with 'label'.
+//
+// Instead of returning the contents of stdout as a string, we stream
+// it to the Writer 'stdout' during the call. This means that if a
+// given script outputs very large amounts of data to stdout, we don't
+// cache it all in memory and run the risk of crashing the CLI.
 func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, label string, stdout io.Writer) (string, error) {
 	var varsList = ""
 	for varName, value := range env {
 		varsList = varsList + varName + "=" + value + " "
 	}
 
-	stdoutBuffer := &bytes.Buffer{}
-
 	stderr, exitCode, runErr := r.connection.Stream("sudo "+varsList+path, anonymousWriter{write: func(p []byte) (int, error) {
-		n, buffErr := stdoutBuffer.Write(p)
+		n, outErr := stdout.Write(p)
 
 		r.logger.Debug("bbr", "stdout: %s", string(p))
 
-		if buffErr != nil {
-			return n, buffErr
-		}
 
-		n, outErr := stdout.Write(p)
 		if outErr != nil {
 			return n, outErr
 		}
@@ -138,8 +139,6 @@ func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, la
 
 	r.logger.Debug("bbr", "stderr: %s", string(stderr))
 
-	stdoutBytes := stdoutBuffer.Bytes()
-
 	if runErr != nil {
 		return "", runErr
 	}
@@ -148,7 +147,7 @@ func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, la
 		return "", exitError(stderr, exitCode)
 	}
 
-	return string(stdoutBytes), nil
+	return "", nil
 }
 
 // anonymousWriter implements the Writer interface using a private
