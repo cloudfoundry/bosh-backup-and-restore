@@ -1,12 +1,12 @@
 package bosh
 
 import (
+	"encoding/pem"
 	"log"
+	"net/http/httptest"
 
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
-
-	"io/ioutil"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -28,9 +28,12 @@ var _ = Describe("BuildClient", func() {
 	BeforeEach(func() {
 		director = mockbosh.NewTLS()
 
-		content, err := ioutil.ReadFile("../fixtures/test.crt")
-		Expect(err).NotTo(HaveOccurred())
-		caCert = string(content)
+		x509Cert := httptest.NewTLSServer(nil).Certificate()
+		pem := pem.EncodeToMemory(&pem.Block{
+			Type:  "CERTIFICATE",
+			Bytes: x509Cert.Raw,
+		})
+		caCert = string(pem)
 	})
 
 	AfterEach(func() {

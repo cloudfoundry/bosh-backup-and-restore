@@ -9,7 +9,8 @@ watch:
 	ginkgo watch -r -skipPackage integration,system,backup,s3-config-validator
 
 test-unit:
-	ginkgo -p -r -skipPackage integration,system,s3-config-validator
+	ginkgo -p -r -skipPackage integration,system,s3-config-validator,ssh
+	ginkgo -r ssh
 
 test-integration:
 	ginkgo -r -trace integration
