@@ -1,14 +1,17 @@
 package deployment
 
 import (
+	"encoding/pem"
 	"fmt"
+	"io/ioutil"
+	"net/http/httptest"
+	"os"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
 
 	"testing"
-
-	"io/ioutil"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
@@ -20,7 +23,7 @@ func TestDeploymentIntegration(t *testing.T) {
 }
 
 //Default cert for golang ssh
-var sslCertPath = "../../../fixtures/test.crt"
+var sslCertPath string
 var sslCertValue string
 
 var binary integration.Binary
@@ -32,12 +35,23 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	binary = integration.NewBinary(commandPath)
 
-	contents, err := ioutil.ReadFile("../../fixtures/test.crt")
+	x509Cert := httptest.NewTLSServer(nil).Certificate()
+	pem := pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: x509Cert.Raw,
+	})
+	sslCertValue = string(pem)
+
+	sslCertFile, err := ioutil.TempFile(os.TempDir(), "golang-httptest-certificate-")
 	Expect(err).NotTo(HaveOccurred())
-	sslCertValue = string(contents)
+	sslCertPath = sslCertFile.Name()
+	_, err = sslCertFile.Write(pem)
+	Expect(err).NotTo(HaveOccurred())
+
 })
 
 var _ = AfterSuite(func() {
+	os.Remove(sslCertPath)
 	gexec.CleanupBuildArtifacts()
 	testcluster.WaitForContainersToDie()
 })
