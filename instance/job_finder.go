@@ -1,6 +1,7 @@
 package instance
 
 import (
+	"bytes"
 	"fmt"
 	"path/filepath"
 
@@ -101,10 +102,12 @@ func (j *JobFinderFromScripts) findBBRScripts(instanceIdentifierForLogging Insta
 }
 
 func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifier, script Script, remoteRunner ssh.RemoteRunner) (*Metadata, error) {
-	metadataContent, err := remoteRunner.RunScriptWithEnv(
+	metadataBuffer := &bytes.Buffer{}
+	err := remoteRunner.RunScriptWithEnv(
 		string(script),
 		map[string]string{"BBR_VERSION": j.bbrVersion},
 		fmt.Sprintf("find metadata for %s on %s", script.JobName(), instanceIdentifier),
+		metadataBuffer,
 	)
 	if err != nil {
 		return nil, errors.Wrapf(
@@ -114,7 +117,7 @@ func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifie
 			instanceIdentifier,
 		)
 	}
-	jobMetadata, err := j.parseJobMetadata(metadataContent)
+	jobMetadata, err := j.parseJobMetadata(string(metadataBuffer.Bytes()))
 	if err != nil {
 		return nil, errors.Wrapf(
 			err,

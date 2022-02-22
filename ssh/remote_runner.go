@@ -22,8 +22,8 @@ type RemoteRunner interface {
 	SizeOf(path string) (string, error)
 	SizeInBytes(path string) (int, error)
 	ChecksumDirectory(path string) (map[string]string, error)
-	RunScript(path, label string) (string, error)
-	RunScriptWithEnv(path string, env map[string]string, label string) (string, error)
+	RunScript(path, label string) error
+	RunScriptWithEnv(path string, env map[string]string, label string, stdout io.Writer) error
 	FindFiles(pattern string) ([]string, error)
 	IsWindows() (bool, error)
 }
@@ -106,17 +106,60 @@ func (r SshRemoteRunner) ChecksumDirectory(path string) (map[string]string, erro
 	return convertShasToMap(stdout), nil
 }
 
-func (r SshRemoteRunner) RunScript(path, label string) (string, error) {
-	return r.RunScriptWithEnv(path, map[string]string{}, label)
+func (r SshRemoteRunner) RunScript(path, label string) error {
+	return r.RunScriptWithEnv(path, map[string]string{}, label, io.Discard)
 }
 
-func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, label string) (string, error) {
+// RunScriptWithEnv runs the script at 'path' on our remote
+// environment. The script is run with the environment variables
+// specified in 'env'. All logging is annotated with 'label'.
+//
+// Instead of returning the contents of stdout as a string, we stream
+// it to the Writer 'stdout' during the call. This means that if a
+// given script outputs very large amounts of data to stdout, we don't
+// cache it all in memory and run the risk of crashing the CLI.
+func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, label string, stdout io.Writer) error {
 	var varsList = ""
 	for varName, value := range env {
 		varsList = varsList + varName + "=" + value + " "
 	}
 
-	return r.runOnInstanceWithLabel("sudo "+varsList+path, label)
+	stderr, exitCode, runErr := r.connection.Stream("sudo "+varsList+path, anonymousWriter{write: func(p []byte) (int, error) {
+		n, outErr := stdout.Write(p)
+
+		r.logger.Debug("bbr", "stdout: %s", string(p))
+
+
+		if outErr != nil {
+			return n, outErr
+		}
+
+		return len(p), nil
+	}})
+
+	r.logger.Debug("bbr", "stderr: %s", string(stderr))
+
+	if runErr != nil {
+		return runErr
+	}
+
+	if exitCode != 0 {
+		return exitError(stderr, exitCode)
+	}
+
+	return nil
+}
+
+// anonymousWriter implements the Writer interface using a private
+// 'write' function that you must set at construction time.
+//
+// This is useful for if you want a writer to behave like an anonymous
+// function that can close over local state.
+type anonymousWriter struct {
+	write func(p []byte) (n int, err error)
+}
+func (w anonymousWriter) Write(p []byte) (n int, err error) {
+	return w.write(p)
 }
 
 func (r SshRemoteRunner) FindFiles(pattern string) ([]string, error) {
@@ -151,13 +194,9 @@ func (r SshRemoteRunner) IsWindows() (bool, error) {
 }
 
 func (r SshRemoteRunner) runOnInstance(cmd string) (string, error) {
-	return r.runOnInstanceWithLabel(cmd, "")
-}
-
-func (r SshRemoteRunner) runOnInstanceWithLabel(cmd, label string) (string, error) {
 	stdout, stderr, exitCode, runErr := r.connection.Run(cmd)
 
-	err := r.logAndCheckErrors(stdout, stderr, exitCode, runErr, label)
+	err := r.logAndCheckErrors(stdout, stderr, exitCode, runErr, "")
 	if err != nil {
 		return "", err
 	}

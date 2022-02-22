@@ -53,15 +53,16 @@ func (fake *FakeSSHSession) Close() error {
 	ret, specificReturn := fake.closeReturnsOnCall[len(fake.closeArgsForCall)]
 	fake.closeArgsForCall = append(fake.closeArgsForCall, struct {
 	}{})
+	stub := fake.CloseStub
+	fakeReturns := fake.closeReturns
 	fake.recordInvocation("Close", []interface{}{})
 	fake.closeMutex.Unlock()
-	if fake.CloseStub != nil {
-		return fake.CloseStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.closeReturns
 	return fakeReturns.result1
 }
 
@@ -106,15 +107,16 @@ func (fake *FakeSSHSession) Run(arg1 string) error {
 	fake.runArgsForCall = append(fake.runArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.RunStub
+	fakeReturns := fake.runReturns
 	fake.recordInvocation("Run", []interface{}{arg1})
 	fake.runMutex.Unlock()
-	if fake.RunStub != nil {
-		return fake.RunStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.runReturns
 	return fakeReturns.result1
 }
 
@@ -173,15 +175,16 @@ func (fake *FakeSSHSession) SendRequest(arg1 string, arg2 bool, arg3 []byte) (bo
 		arg2 bool
 		arg3 []byte
 	}{arg1, arg2, arg3Copy})
+	stub := fake.SendRequestStub
+	fakeReturns := fake.sendRequestReturns
 	fake.recordInvocation("SendRequest", []interface{}{arg1, arg2, arg3Copy})
 	fake.sendRequestMutex.Unlock()
-	if fake.SendRequestStub != nil {
-		return fake.SendRequestStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.sendRequestReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
