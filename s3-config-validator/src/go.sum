@@ -1,5 +1,5 @@
-github.com/aws/aws-sdk-go v1.42.49 h1:g7H76HJWcer7W2bKL+UHEEhj2jg51rQPcR1OO8ntWBY=
-github.com/aws/aws-sdk-go v1.42.49/go.mod h1:OGr6lGMAKGlG9CVrYnWYDKIyb829c6EVBRjxqjmPepc=
+github.com/aws/aws-sdk-go v1.43.3 h1:qvCkC4FviA9rR4UvRk4ldr6f3mIJE0VaI3KrsDx1gTk=
+github.com/aws/aws-sdk-go v1.43.3/go.mod h1:OGr6lGMAKGlG9CVrYnWYDKIyb829c6EVBRjxqjmPepc=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=
 github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e/go.mod h1:nSuG5e5PlCu98SY8svDHJxuZscDgtXS6KTTbou5AhLI=
 github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1/go.mod h1:Q3SI9o4m/ZMnBNeIyt5eFwwo7qiLfzFZmjNmxjkiQlU=
