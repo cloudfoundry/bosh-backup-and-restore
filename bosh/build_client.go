@@ -3,10 +3,10 @@ package bosh
 import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
-	"github.com/cloudfoundry/bosh-cli/director"
+	"github.com/cloudfoundry/bosh-cli/v6/director"
 	"github.com/pkg/errors"
 
-	boshuaa "github.com/cloudfoundry/bosh-cli/uaa"
+	boshuaa "github.com/cloudfoundry/bosh-cli/v6/uaa"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
