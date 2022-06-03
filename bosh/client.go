@@ -17,7 +17,6 @@ import (
 
 func SupportedHostKeyAlgorithms() []string {
 	return []string{
-		gossh.KeyAlgoRSA,
 		gossh.KeyAlgoRSASHA256,
 		gossh.KeyAlgoRSASHA512,
 		gossh.KeyAlgoDSA,
@@ -25,6 +24,8 @@ func SupportedHostKeyAlgorithms() []string {
 		gossh.KeyAlgoECDSA384,
 		gossh.KeyAlgoECDSA521,
 		gossh.KeyAlgoED25519,
+		// Deprecated algorithms:
+		// gossh.KeyAlgoRSA, - https://www.openssh.com/txt/release-8.7
 	}
 }
 
@@ -124,8 +125,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 				return nil, errors.Wrap(err, "ssh.NewConnection.ParseAuthorizedKey failed")
 			}
 
-			hostKeyAlgorithms := append([]string{hostPublicKey.Type()}, SupportedHostKeyAlgorithms()...)
-			remoteRunner, err := c.RemoteRunnerFactory(host.Host, host.Username, privateKey, gossh.FixedHostKey(hostPublicKey), hostKeyAlgorithms, c.Logger)
+			remoteRunner, err := c.RemoteRunnerFactory(host.Host, host.Username, privateKey, gossh.FixedHostKey(hostPublicKey), SupportedHostKeyAlgorithms(), c.Logger)
 			if err != nil {
 				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
 				return nil, errors.Wrap(err, "failed to connect using ssh")

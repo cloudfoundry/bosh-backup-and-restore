@@ -38,7 +38,6 @@ var _ = Describe("Director", func() {
 	var logStream *bytes.Buffer
 
 	var hostsPublicKey = "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAklOUpkDHrfHY17SbrmTIpNLTGK9Tjom/BWDSUGPl+nafzlHDTYW7hdI4yZ5ew18JH4JW9jbhUFrviQzM7xlELEVf4h9lFX5QVkbPppSwg0cda3Pbv7kOdJ/MTyBlWXFCR+HAo3FXRitBqxiX1nKhXpHAZsMciLq8V6RjsNAQwdsdMFvSlVK/7XAt3FaoJoAsncM1Q9x5+3V0Ww68/eIFmb1zuUFljQJKprrX88XypNDvjYNby6vw/Pb0rwert/EnmZ+AW4OZPnTPI89ZPmVMLuayrD2cE86Z/il8b+gw3r3+1nKatmIkjn2so1d01QraTlMqVSsbxNrRFi9wrf+M7Q== schacon@mylaptop.local"
-	var hostKeyAlgorithm []string
 	var acceptedHostKeyAlgorithms []string
 
 	var b bosh.BoshClient
@@ -61,10 +60,7 @@ var _ = Describe("Director", func() {
 
 		logStream = bytes.NewBufferString("")
 
-		hostPublicKey, _, _, _, err := gossh.ParseAuthorizedKey([]byte(hostsPublicKey))
-		Expect(err).NotTo(HaveOccurred())
-		hostKeyAlgorithm = []string{hostPublicKey.Type()}
-		acceptedHostKeyAlgorithms = append(hostKeyAlgorithm, bosh.SupportedHostKeyAlgorithms()...)
+		acceptedHostKeyAlgorithms = bosh.SupportedHostKeyAlgorithms()
 
 		combinedLog := log.New(io.MultiWriter(GinkgoWriter, logStream), "[bosh-package] ", log.Lshortfile)
 		boshLogger = boshlog.New(boshlog.LevelDebug, combinedLog)
