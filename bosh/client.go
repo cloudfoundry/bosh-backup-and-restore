@@ -15,19 +15,6 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-func SupportedHostKeyAlgorithms() []string {
-	return []string{
-		gossh.KeyAlgoRSA,
-		gossh.KeyAlgoRSASHA256,
-		gossh.KeyAlgoRSASHA512,
-		gossh.KeyAlgoDSA,
-		gossh.KeyAlgoECDSA256,
-		gossh.KeyAlgoECDSA384,
-		gossh.KeyAlgoECDSA521,
-		gossh.KeyAlgoED25519,
-	}
-}
-
 //go:generate counterfeiter -o fakes/fake_bosh_client.go . BoshClient
 type BoshClient interface {
 	FindInstances(deploymentName string) ([]orchestrator.Instance, error)
@@ -124,8 +111,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 				return nil, errors.Wrap(err, "ssh.NewConnection.ParseAuthorizedKey failed")
 			}
 
-			hostKeyAlgorithms := append([]string{hostPublicKey.Type()}, SupportedHostKeyAlgorithms()...)
-			remoteRunner, err := c.RemoteRunnerFactory(host.Host, host.Username, privateKey, gossh.FixedHostKey(hostPublicKey), hostKeyAlgorithms, c.Logger)
+			remoteRunner, err := c.RemoteRunnerFactory(host.Host, host.Username, privateKey, gossh.FixedHostKey(hostPublicKey), []string{hostPublicKey.Type()}, c.Logger)
 			if err != nil {
 				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
 				return nil, errors.Wrap(err, "failed to connect using ssh")
