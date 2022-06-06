@@ -171,7 +171,7 @@ func supportedEncryptionAlgorithms(key gossh.PublicKey) []string {
 	if key.Type() != gossh.KeyAlgoRSA {
 		return []string{key.Type()}
 	}
-	return []string{gossh.KeyAlgoRSASHA512, gossh.KeyAlgoRSASHA256, key.Type()}
+	return []string{gossh.KeyAlgoRSASHA512, gossh.KeyAlgoRSASHA256, gossh.KeyAlgoRSA}
 }
 
 func isInstanceABootstrapNode(jobName, ip string, vms []director.VMInfo) bool {
