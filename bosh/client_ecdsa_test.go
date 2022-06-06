@@ -37,8 +37,8 @@ var _ = Describe("Director", func() {
 
 	var logStream *bytes.Buffer
 
-	var hostsPublicKeyRSA = "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAklOUpkDHrfHY17SbrmTIpNLTGK9Tjom/BWDSUGPl+nafzlHDTYW7hdI4yZ5ew18JH4JW9jbhUFrviQzM7xlELEVf4h9lFX5QVkbPppSwg0cda3Pbv7kOdJ/MTyBlWXFCR+HAo3FXRitBqxiX1nKhXpHAZsMciLq8V6RjsNAQwdsdMFvSlVK/7XAt3FaoJoAsncM1Q9x5+3V0Ww68/eIFmb1zuUFljQJKprrX88XypNDvjYNby6vw/Pb0rwert/EnmZ+AW4OZPnTPI89ZPmVMLuayrD2cE86Z/il8b+gw3r3+1nKatmIkjn2so1d01QraTlMqVSsbxNrRFi9wrf+M7Q== schacon@mylaptop.local"
-	var hostKeyAlgorithmRSA = []string{ "rsa-sha2-512", "rsa-sha2-256", "ssh-rsa" }
+	var hostsPublicKeyECDSA = "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAG7e2+yL/XbsA++iPk8CBijcIh0rt0LocxRrB2O2FlYGMxltHfoLBm8LEyyHgc1faLiqeZSDqbE8R7GTwlRWAp6zwHX6WZ1ucrWIYjeJwJfsFQbyO+hAJUmp3OPMAlngeWwLNS7RF4ZIH2qyAsOigyJdseNmfhmciXwybXAkDWX4zHVwg== schacon@mylaptop.local"
+	var hostKeyAlgorithmECDSA = []string{ "ecdsa-sha2-nistp521" }
 
 	var b bosh.BoshClient
 
@@ -90,7 +90,7 @@ var _ = Describe("Director", func() {
 						Username:      "username",
 						Host:          "10.0.0.0",
 						IndexOrID:     "jobID",
-						HostPublicKey: hostsPublicKeyRSA,
+						HostPublicKey: hostsPublicKeyECDSA,
 					},
 				}}, nil)
 
@@ -170,7 +170,7 @@ var _ = Describe("Director", func() {
 				Expect(host).To(Equal("10.0.0.0"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
-				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmRSA))
+				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmECDSA))
 				Expect(logger).To(Equal(boshLogger))
 			})
 		})
@@ -187,7 +187,7 @@ var _ = Describe("Director", func() {
 						Username:      "username",
 						Host:          "10.0.0.0:3457",
 						IndexOrID:     "index",
-						HostPublicKey: hostsPublicKeyRSA,
+						HostPublicKey: hostsPublicKeyECDSA,
 					},
 				}}, nil)
 				remoteRunnerFactory.Returns(remoteRunner, nil)
@@ -199,7 +199,7 @@ var _ = Describe("Director", func() {
 				Expect(host).To(Equal("10.0.0.0:3457"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
-				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmRSA))
+				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmECDSA))
 				Expect(logger).To(Equal(boshLogger))
 			})
 		})
@@ -226,13 +226,13 @@ var _ = Describe("Director", func() {
 						Username:      "username",
 						Host:          "10.0.0.1",
 						IndexOrID:     "id1",
-						HostPublicKey: hostsPublicKeyRSA,
+						HostPublicKey: hostsPublicKeyECDSA,
 					},
 					{
 						Username:      "username",
 						Host:          "10.0.0.2",
 						IndexOrID:     "id2",
-						HostPublicKey: hostsPublicKeyRSA,
+						HostPublicKey: hostsPublicKeyECDSA,
 					},
 				}}, nil)
 				remoteRunnerFactory.Returns(remoteRunner, nil)
@@ -332,14 +332,14 @@ var _ = Describe("Director", func() {
 				Expect(host).To(Equal("10.0.0.1"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
-				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmRSA))
+				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmECDSA))
 				Expect(logger).To(Equal(boshLogger))
 
 				host, username, privateKey, _, hostPublicKeyAlgorithm, logger = remoteRunnerFactory.ArgsForCall(1)
 				Expect(host).To(Equal("10.0.0.2"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
-				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmRSA))
+				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmECDSA))
 				Expect(logger).To(Equal(boshLogger))
 			})
 
@@ -371,13 +371,13 @@ var _ = Describe("Director", func() {
 						Username:      "username",
 						Host:          "10.0.0.1",
 						IndexOrID:     "linux1",
-						HostPublicKey: hostsPublicKeyRSA,
+						HostPublicKey: hostsPublicKeyECDSA,
 					},
 					{
 						Username:      "username",
 						Host:          "10.0.0.2",
 						IndexOrID:     "windows2",
-						HostPublicKey: hostsPublicKeyRSA,
+						HostPublicKey: hostsPublicKeyECDSA,
 					},
 				}}, nil)
 
@@ -479,13 +479,13 @@ var _ = Describe("Director", func() {
 								Username:      "username",
 								Host:          "10.0.0.1",
 								IndexOrID:     "id1",
-								HostPublicKey: hostsPublicKeyRSA,
+								HostPublicKey: hostsPublicKeyECDSA,
 							},
 							{
 								Username:      "username",
 								Host:          "10.0.0.2",
 								IndexOrID:     "id2",
-								HostPublicKey: hostsPublicKeyRSA,
+								HostPublicKey: hostsPublicKeyECDSA,
 							},
 						}}, nil
 					} else {
@@ -494,13 +494,13 @@ var _ = Describe("Director", func() {
 								Username:      "username",
 								Host:          "10.0.0.3",
 								IndexOrID:     "id3",
-								HostPublicKey: hostsPublicKeyRSA,
+								HostPublicKey: hostsPublicKeyECDSA,
 							},
 							{
 								Username:      "username",
 								Host:          "10.0.0.4",
 								IndexOrID:     "id4",
-								HostPublicKey: hostsPublicKeyRSA,
+								HostPublicKey: hostsPublicKeyECDSA,
 							},
 						}}, nil
 					}
@@ -625,21 +625,21 @@ var _ = Describe("Director", func() {
 				Expect(host).To(Equal("10.0.0.1"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
-				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmRSA))
+				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmECDSA))
 				Expect(logger).To(Equal(boshLogger))
 
 				host, username, privateKey, _, hostPublicKeyAlgorithm, logger = remoteRunnerFactory.ArgsForCall(1)
 				Expect(host).To(Equal("10.0.0.3"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
-				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmRSA))
+				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmECDSA))
 				Expect(logger).To(Equal(boshLogger))
 
 				host, username, privateKey, _, hostPublicKeyAlgorithm, logger = remoteRunnerFactory.ArgsForCall(2)
 				Expect(host).To(Equal("10.0.0.4"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
-				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmRSA))
+				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmECDSA))
 				Expect(logger).To(Equal(boshLogger))
 			})
 
@@ -713,7 +713,7 @@ var _ = Describe("Director", func() {
 							Username:      "username",
 							Host:          "10.0.0.0",
 							IndexOrID:     "jobID",
-							HostPublicKey: hostsPublicKeyRSA,
+							HostPublicKey: hostsPublicKeyECDSA,
 						},
 					}}, nil)
 					remoteRunnerFactory.Returns(remoteRunner, nil)
@@ -739,7 +739,7 @@ var _ = Describe("Director", func() {
 							Username:      "username",
 							Host:          "10.0.0.0",
 							IndexOrID:     "otherJobID",
-							HostPublicKey: hostsPublicKeyRSA,
+							HostPublicKey: hostsPublicKeyECDSA,
 						},
 					}}, nil)
 					remoteRunnerFactory.Returns(remoteRunner, nil)
@@ -826,7 +826,7 @@ var _ = Describe("Director", func() {
 							Username:      "username",
 							Host:          "10.0.0.0",
 							IndexOrID:     "index",
-							HostPublicKey: hostsPublicKeyRSA,
+							HostPublicKey: hostsPublicKeyECDSA,
 						},
 					}}, nil)
 					remoteRunnerFactory.Returns(nil, errors.New(expectedError))
@@ -880,7 +880,7 @@ var _ = Describe("Director", func() {
 									Username:      "username",
 									Host:          "10.0.0.0",
 									IndexOrID:     "jobID",
-									HostPublicKey: hostsPublicKeyRSA,
+									HostPublicKey: hostsPublicKeyECDSA,
 								},
 							}}, nil
 						} else {
@@ -920,7 +920,7 @@ var _ = Describe("Director", func() {
 							Username:      "username",
 							Host:          "10.0.0.0",
 							IndexOrID:     "jobID",
-							HostPublicKey: hostsPublicKeyRSA,
+							HostPublicKey: hostsPublicKeyECDSA,
 						},
 					}}, nil)
 
@@ -958,7 +958,7 @@ var _ = Describe("Director", func() {
 								Username:      "username",
 								Host:          "10.0.0.0_" + slug.Name(),
 								IndexOrID:     "jobID",
-								HostPublicKey: hostsPublicKeyRSA,
+								HostPublicKey: hostsPublicKeyECDSA,
 							},
 						}}, nil
 					}
@@ -998,7 +998,7 @@ var _ = Describe("Director", func() {
 								Username:      "username",
 								Host:          "10.0.0.0_" + slug.Name(),
 								IndexOrID:     "index",
-								HostPublicKey: hostsPublicKeyRSA,
+								HostPublicKey: hostsPublicKeyECDSA,
 							},
 						}}, nil
 					}
