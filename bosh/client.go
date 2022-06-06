@@ -168,7 +168,10 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 }
 
 func supportedEncryptionAlgorithms(key gossh.PublicKey) []string {
-	return []string{ gossh.KeyAlgoRSASHA512, gossh.KeyAlgoRSASHA256, key.Type() }
+	if key.Type() != gossh.KeyAlgoRSA {
+		return []string{key.Type()}
+	}
+	return []string{gossh.KeyAlgoRSASHA512, gossh.KeyAlgoRSASHA256, key.Type()}
 }
 
 func isInstanceABootstrapNode(jobName, ip string, vms []director.VMInfo) bool {
