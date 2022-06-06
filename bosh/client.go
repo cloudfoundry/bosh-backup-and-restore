@@ -111,7 +111,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 				return nil, errors.Wrap(err, "ssh.NewConnection.ParseAuthorizedKey failed")
 			}
 
-			remoteRunner, err := c.RemoteRunnerFactory(host.Host, host.Username, privateKey, gossh.FixedHostKey(hostPublicKey), []string{hostPublicKey.Type()}, c.Logger)
+			remoteRunner, err := c.RemoteRunnerFactory(host.Host, host.Username, privateKey, gossh.FixedHostKey(hostPublicKey), supportedEncryptionAlgorithms(hostPublicKey), c.Logger)
 			if err != nil {
 				cleanupAlreadyMadeConnections(deployment, slugs, sshOpts)
 				return nil, errors.Wrap(err, "failed to connect using ssh")
@@ -165,6 +165,10 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 	}
 
 	return instances, nil
+}
+
+func supportedEncryptionAlgorithms(key gossh.PublicKey) []string {
+	return []string{key.Type()}
 }
 
 func isInstanceABootstrapNode(jobName, ip string, vms []director.VMInfo) bool {
