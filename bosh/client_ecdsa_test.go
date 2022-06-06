@@ -38,7 +38,7 @@ var _ = Describe("Director", func() {
 	var logStream *bytes.Buffer
 
 	var hostsPublicKeyECDSA = "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAG7e2+yL/XbsA++iPk8CBijcIh0rt0LocxRrB2O2FlYGMxltHfoLBm8LEyyHgc1faLiqeZSDqbE8R7GTwlRWAp6zwHX6WZ1ucrWIYjeJwJfsFQbyO+hAJUmp3OPMAlngeWwLNS7RF4ZIH2qyAsOigyJdseNmfhmciXwybXAkDWX4zHVwg== schacon@mylaptop.local"
-	var hostKeyAlgorithmECDSA = []string{ "ecdsa-sha2-nistp521" }
+	var hostKeyAlgorithmECDSA = []string{"ecdsa-sha2-nistp521"}
 
 	var b bosh.BoshClient
 
@@ -1059,4 +1059,3 @@ var _ = Describe("Director", func() {
 		})
 	})
 })
-
