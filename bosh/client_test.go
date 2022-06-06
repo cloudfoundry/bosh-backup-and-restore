@@ -663,6 +663,38 @@ var _ = Describe("Director", func() {
 			})
 		})
 
+		When("the server uses an ECDSA public key", func() {
+			var hostsPublicKeyECDSA = "ecdsa-sha2-nistp521 AAAAE2VjZHNhLXNoYTItbmlzdHA1MjEAAAAIbmlzdHA1MjEAAACFBAG7e2+yL/XbsA++iPk8CBijcIh0rt0LocxRrB2O2FlYGMxltHfoLBm8LEyyHgc1faLiqeZSDqbE8R7GTwlRWAp6zwHX6WZ1ucrWIYjeJwJfsFQbyO+hAJUmp3OPMAlngeWwLNS7RF4ZIH2qyAsOigyJdseNmfhmciXwybXAkDWX4zHVwg== schacon@mylaptop.local"
+			var hostKeyAlgorithmECDSA = []string{"ecdsa-sha2-nistp521"}
+
+			BeforeEach(func() {
+				boshDirector.FindDeploymentReturns(boshDeployment, nil)
+				boshDeployment.VMInfosReturns([]director.VMInfo{{
+					JobName: "job1",
+					ID:      "jobID",
+					Index:   newIndex(0),
+				}}, nil)
+				optsGenerator.Returns(stubbedSshOpts, "private_key", nil)
+				boshDeployment.SetUpSSHReturns(director.SSHResult{Hosts: []director.Host{
+					{
+						Username:      "username",
+						Host:          "10.0.0.0",
+						IndexOrID:     "jobID",
+						HostPublicKey: hostsPublicKeyECDSA,
+					},
+				}}, nil)
+
+				remoteRunnerFactory.Returns(remoteRunner, nil)
+			})
+
+			It("uses the ECDSA algorithm to create its remote runners", func() {
+				Expect(remoteRunnerFactory.CallCount()).To(Equal(1))
+				_, _, _, _, hostPublicKeyAlgorithm, _ := remoteRunnerFactory.ArgsForCall(0)
+				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmECDSA))
+			})
+
+		})
+
 		Context("failures", func() {
 			var expectedError = "er ma gerd"
 
