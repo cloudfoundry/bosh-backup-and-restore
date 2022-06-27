@@ -1,13 +1,4 @@
 ---
-maru-bosh-env: &maru-bosh-env
-  BOSH_ENVIRONMENT: "((infrastructure/bosh-director.director_url))"
-  BOSH_CLIENT: "((infrastructure/bosh-director.director_username))"
-  BOSH_CLIENT_SECRET: "((infrastructure/bosh-director.director_password))"
-  BOSH_CA_CERT: "((infrastructure/bosh-director.director_ca_cert))"
-  BOSH_GW_HOST: "((infrastructure/bosh-director.jumpbox_host)):22"
-  BOSH_GW_USER: jumpbox
-  BOSH_GW_PRIVATE_KEY: "((infrastructure/bosh-director.jumpbox_ssh_key))"
-
 maru-lite-bosh-env: &maru-lite-bosh-env
   BOSH_ENVIRONMENT: "((infrastructure/bosh-lite-director.director_url))"
   BOSH_CLIENT: "((infrastructure/bosh-lite-director.director_username))"
@@ -27,8 +18,10 @@ groups:
 - name: all
   jobs:
   - unit-integration
+  - claim-env
   - system-test-deployment
   - system-test-director
+  - unclaim-env
   - build-rc
   - run-drats
   - run-b-drats
@@ -44,8 +37,10 @@ groups:
   - unit-integration
   - test-build-s3-config-validator
   - validate-aws-s3-config
+  - claim-env
   - system-test-deployment
   - system-test-director
+  - unclaim-env
   - update-tracker
 
 - name: release
@@ -242,6 +237,14 @@ resources:
     json_key: ((gcp/service_accounts/bbr_bucket_owner.json_key))
     regexp: bbr-s3-config-validator.(.*).tgz
 
+- name: environment
+  type: pcf-pool
+  source:
+    api_token: ((toolsmiths.api_token))
+    hostname: environments.toolsmiths.cf-app.com
+    pool_name: cf-deployment
+
+
 - name: pcf-2-11-pool
   type: pcf-pool
   source:
@@ -295,6 +298,16 @@ resources:
     branch: 179721127-make-b-drats-toolsmiths-compatible
 
 jobs:
+- name: claim-env
+  plan:
+  - in_parallel:
+    - get: latest-pull-request
+      passed: [unit-integration]
+      trigger: true
+    - put: environment
+      params:
+        action: claim
+
 - name: unit-integration
   serial: true
   plan:
@@ -315,18 +328,35 @@ jobs:
   serial_groups: [system-test-director]
   plan:
   - in_parallel:
-    - get: latest-pull-request
-      passed: [unit-integration]
+    - get: environment
+      passed: [claim-env]
       trigger: true
+    - get: latest-pull-request
+      passed: [claim-env]
     - get: bosh-deployment
     - get: bbr-director-test-releases
     - get: xenial-stemcell
+  - load_var: pooled-env
+    file: environment/metadata
+    format: json
   - task: generate-bosh-deployment-source-file
     file: latest-pull-request/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
     input_mapping:
       bosh-backup-and-restore: latest-pull-request
     params:
-      <<: *maru-bosh-env
+      SYSTEM_DOMAIN: ((.:pooled-env.name)).cf-app.com
+      JUMPBOX_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
+      CREDHUB_CLIENT: ((.:pooled-env.bosh.credhub_client))
+      CREDHUB_SECRET: ((.:pooled-env.bosh.credhub_secret))
+      CREDHUB_CA_CERT: ((.:pooled-env.bosh.credhub_ca_cert))
+      CREDHUB_SERVER: ((.:pooled-env.bosh.credhub_server))
+      CREDHUB_PROXY: ((.:pooled-env.bosh.bosh_all_proxy))
+      BOSH_ENVIRONMENT: ((.:pooled-env.bosh.bosh_environment))
+      BOSH_CA_CERT: ((.:pooled-env.bosh.bosh_ca_cert))
+      BOSH_ALL_PROXY: ((.:pooled-env.bosh.bosh_all_proxy))
+      BOSH_CLIENT: ((.:pooled-env.bosh.bosh_client))
+      BOSH_CLIENT_SECRET: ((.:pooled-env.bosh.bosh_client_secret))
+
   - put: deploy-fake-director
     resource: test-bosh-director-deployment
     params:
@@ -344,16 +374,24 @@ jobs:
     input_mapping:
       bosh-backup-and-restore: latest-pull-request
     params:
-      CREDHUB_SERVER: "((infrastructure/bosh-director.credhub_server))"
-      CREDHUB_CLIENT: "((infrastructure/bosh-director.credhub_client))"
-      CREDHUB_SECRET: "((infrastructure/bosh-director.credhub_secret))"
-      CREDHUB_CA_CERT: "((infrastructure/bosh-director.credhub_ca_cert))"
       DIRECTOR_HOST: *test-bosh-director-ip
       DIRECTOR_SSH_KEY: ((test_bosh_director.private_key))
       DIRECTOR_SSH_USERNAME: jumpbox
       BOSH_DEPLOYMENT: *test-bosh-director-deployment
       GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
-      <<: *maru-bosh-env
+      SYSTEM_DOMAIN: ((.:pooled-env.name)).cf-app.com
+      JUMPBOX_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
+      CREDHUB_CLIENT: ((.:pooled-env.bosh.credhub_client))
+      CREDHUB_SECRET: ((.:pooled-env.bosh.credhub_secret))
+      CREDHUB_CA_CERT: ((.:pooled-env.bosh.credhub_ca_cert))
+      CREDHUB_SERVER: ((.:pooled-env.bosh.credhub_server))
+      CREDHUB_PROXY: ((.:pooled-env.bosh.bosh_all_proxy))
+      BOSH_ENVIRONMENT: ((.:pooled-env.bosh.bosh_environment))
+      BOSH_CA_CERT: ((.:pooled-env.bosh.bosh_ca_cert))
+      BOSH_ALL_PROXY: ((.:pooled-env.bosh.bosh_all_proxy))
+      BOSH_CLIENT: ((.:pooled-env.bosh.bosh_client))
+      BOSH_CLIENT_SECRET: ((.:pooled-env.bosh.bosh_client_secret))
+
   - put: delete-system-director
     resource: test-bosh-director-deployment
     params:
@@ -365,11 +403,16 @@ jobs:
   serial: true
   plan:
   - in_parallel:
+    - get: environment
+      passed: [claim-env]
+      trigger: true
     - get: bbr-deployment-test-releases
       trigger: true
     - get: latest-pull-request
-      trigger: true
-      passed: [unit-integration]
+      passed: [claim-env]
+  - load_var: pooled-env
+    file: environment/metadata
+    format: json
   - in_parallel:
     - task: upload-redis-test-release-maru-lite
       file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
@@ -391,14 +434,38 @@ jobs:
         bosh-backup-and-restore: latest-pull-request
       params:
         RELEASE_NAME: many-bbr-jobs-release
-        <<: *maru-bosh-env
+        SYSTEM_DOMAIN: ((.:pooled-env.name)).cf-app.com
+        JUMPBOX_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
+        CREDHUB_CLIENT: ((.:pooled-env.bosh.credhub_client))
+        CREDHUB_SECRET: ((.:pooled-env.bosh.credhub_secret))
+        CREDHUB_CA_CERT: ((.:pooled-env.bosh.credhub_ca_cert))
+        CREDHUB_SERVER: ((.:pooled-env.bosh.credhub_server))
+        CREDHUB_PROXY: ((.:pooled-env.bosh.bosh_all_proxy))
+        BOSH_ENVIRONMENT: ((.:pooled-env.bosh.bosh_environment))
+        BOSH_CA_CERT: ((.:pooled-env.bosh.bosh_ca_cert))
+        BOSH_ALL_PROXY: ((.:pooled-env.bosh.bosh_all_proxy))
+        BOSH_CLIENT: ((.:pooled-env.bosh.bosh_client))
+        BOSH_CLIENT_SECRET: ((.:pooled-env.bosh.bosh_client_secret))
+
     - task: upload-redis-test-release-maru-bosh
       file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
       input_mapping:
         bosh-backup-and-restore: latest-pull-request
       params:
-        RELEASE_NAME: redis-test-release
-        <<: *maru-bosh-env
+        RELEASE_NAME: redis-test-release 
+        SYSTEM_DOMAIN: ((.:pooled-env.name)).cf-app.com
+        JUMPBOX_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
+        CREDHUB_CLIENT: ((.:pooled-env.bosh.credhub_client))
+        CREDHUB_SECRET: ((.:pooled-env.bosh.credhub_secret))
+        CREDHUB_CA_CERT: ((.:pooled-env.bosh.credhub_ca_cert))
+        CREDHUB_SERVER: ((.:pooled-env.bosh.credhub_server))
+        CREDHUB_PROXY: ((.:pooled-env.bosh.bosh_all_proxy))
+        BOSH_ENVIRONMENT: ((.:pooled-env.bosh.bosh_environment))
+        BOSH_CA_CERT: ((.:pooled-env.bosh.bosh_ca_cert))
+        BOSH_ALL_PROXY: ((.:pooled-env.bosh.bosh_all_proxy))
+        BOSH_CLIENT: ((.:pooled-env.bosh.bosh_client))
+        BOSH_CLIENT_SECRET: ((.:pooled-env.bosh.bosh_client_secret))
+
     - task: upload-redis-test-release-lite-bosh-uaa
       file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
       input_mapping:
@@ -420,6 +487,18 @@ jobs:
     params:
       GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
       <<: *maru-lite-bosh-env
+
+- name: unclaim-env
+  plan:
+  - in_parallel:
+    - get: latest-pull-request
+      passed: [system-test-deployment, system-test-director]
+      trigger: true
+    - get: environment
+      passed: [system-test-deployment, system-test-director]
+      params:
+        action: unclaim
+        env_file: environment/metadata
 
 - name: test-build-s3-config-validator
   serial_groups:
@@ -506,7 +585,7 @@ jobs:
   plan:
   - in_parallel:
     - get: latest-pull-request
-      passed: [system-test-deployment, system-test-director, validate-aws-s3-config]
+      passed: [unclaim-env, validate-aws-s3-config]
       trigger: true
     - get: cryogenics-ci
   - put: latest-pull-request
