@@ -21,7 +21,13 @@ export DIRECTOR_SSH_KEY_PATH
 
 # Create tunnel to Director via Jumpbox
 ssh-add "$BOSH_GW_PRIVATE_KEY"
-sshuttle -r "${BOSH_GW_USER}@${BOSH_GW_HOST}" "$DIRECTOR_HOST/32" \
+
+if [[ "$DIRECTOR_HOST" =~ .*:.* ]]; then
+  export DIRECTOR_PORT="$(echo "${DIRECTOR_HOST}" | sed -nr 's/^(.*):(.*)$/\2/p')"
+  export DIRECTOR_HOST="$(echo "${DIRECTOR_HOST}" | sed -nr 's/^(.*):(.*)$/\1/p')"
+fi
+
+sshuttle -r "${BOSH_GW_USER}@${BOSH_GW_HOST}" "$DIRECTOR_HOST/32:$DIRECTOR_PORT" \
   --daemon \
   -e 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ServerAliveInterval=600'
 echo "Establishing tunnel to Director via Jumpbox..."
