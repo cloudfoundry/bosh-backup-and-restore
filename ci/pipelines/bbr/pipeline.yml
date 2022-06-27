@@ -345,6 +345,7 @@ jobs:
       bosh-backup-and-restore: latest-pull-request
     params:
       SYSTEM_DOMAIN: ((.:pooled-env.name)).cf-app.com
+      BOSH_GW_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
       JUMPBOX_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
       CREDHUB_CLIENT: ((.:pooled-env.bosh.credhub_client))
       CREDHUB_SECRET: ((.:pooled-env.bosh.credhub_secret))
@@ -380,6 +381,7 @@ jobs:
       BOSH_DEPLOYMENT: *test-bosh-director-deployment
       GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
       SYSTEM_DOMAIN: ((.:pooled-env.name)).cf-app.com
+      BOSH_GW_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
       JUMPBOX_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
       CREDHUB_CLIENT: ((.:pooled-env.bosh.credhub_client))
       CREDHUB_SECRET: ((.:pooled-env.bosh.credhub_secret))
@@ -435,6 +437,7 @@ jobs:
       params:
         RELEASE_NAME: many-bbr-jobs-release
         SYSTEM_DOMAIN: ((.:pooled-env.name)).cf-app.com
+        BOSH_GW_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
         JUMPBOX_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
         CREDHUB_CLIENT: ((.:pooled-env.bosh.credhub_client))
         CREDHUB_SECRET: ((.:pooled-env.bosh.credhub_secret))
@@ -454,6 +457,7 @@ jobs:
       params:
         RELEASE_NAME: redis-test-release 
         SYSTEM_DOMAIN: ((.:pooled-env.name)).cf-app.com
+        BOSH_GW_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
         JUMPBOX_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
         CREDHUB_CLIENT: ((.:pooled-env.bosh.credhub_client))
         CREDHUB_SECRET: ((.:pooled-env.bosh.credhub_secret))
@@ -677,6 +681,7 @@ jobs:
       integration-configs: disaster-recovery-acceptance-tests
     params:
       SYSTEM_DOMAIN: ((.:pooled-env.name)).cf-app.com
+      BOSH_GW_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
       JUMPBOX_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
       CREDHUB_CLIENT: ((.:pooled-env.bosh.credhub_client))
       CREDHUB_SECRET: ((.:pooled-env.bosh.credhub_secret))

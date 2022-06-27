@@ -1,0 +1,8 @@
+jobs:
+- name: claim-env
+  plan:
+  - in_parallel:
+    - get: pull-request
+  - put: environment
+    params:
+      action: claim
