@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ -z "${BOSH_GW_USER}" ]] && [[ -z "${BOSH_GW_HOST}" ]] && [[ -n "${BOSH_ALL_PROXY}" ]]; then
+    export BOSH_GW_USER="$(echo "${BOSH_ALL_PROXY}" | sed -nr 's/^.*:\/\/([^@]+)@([^?]+)?.*$/\1/p')"
+    export BOSH_GW_HOST="$(echo "${BOSH_ALL_PROXY}" | sed -nr 's/^.*:\/\/([^@]+)@([^?]+)?.*$/\2/p')"
+fi
 yq write <( cat <<EOF
 ---
 jumpbox_username: ${BOSH_GW_USER}
