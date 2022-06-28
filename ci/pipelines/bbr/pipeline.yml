@@ -257,7 +257,7 @@ resources:
   source:
     uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
     private_key: ((github.ssh_key))
-    branch: main
+    branch: "182318242-replace-maru-with-toolsmiths-env"
 
 - name: slack-cryo-notification
   type: slack-notification
@@ -336,27 +336,27 @@ jobs:
     - get: bosh-deployment
     - get: bbr-director-test-releases
     - get: xenial-stemcell
+    - get: cryogenics-ci
+  - task: alias-env
+    file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
+    input_mapping:
+      toolsmiths-env: environment
+      cryogenics-tasks: cryogenics-ci
   - load_var: pooled-env
-    file: environment/metadata
-    format: json
+    file: bosh-env/metadata.yml
+    format: yml
   - task: generate-bosh-deployment-source-file
     file: latest-pull-request/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
     input_mapping:
       bosh-backup-and-restore: latest-pull-request
     params:
-      SYSTEM_DOMAIN: ((.:pooled-env.name)).cf-app.com
-      BOSH_GW_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
-      JUMPBOX_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
-      CREDHUB_CLIENT: ((.:pooled-env.bosh.credhub_client))
-      CREDHUB_SECRET: ((.:pooled-env.bosh.credhub_secret))
-      CREDHUB_CA_CERT: ((.:pooled-env.bosh.credhub_ca_cert))
-      CREDHUB_SERVER: ((.:pooled-env.bosh.credhub_server))
-      CREDHUB_PROXY: ((.:pooled-env.bosh.bosh_all_proxy))
-      BOSH_ENVIRONMENT: ((.:pooled-env.bosh.bosh_environment))
-      BOSH_CA_CERT: ((.:pooled-env.bosh.bosh_ca_cert))
-      BOSH_ALL_PROXY: ((.:pooled-env.bosh.bosh_all_proxy))
-      BOSH_CLIENT: ((.:pooled-env.bosh.bosh_client))
-      BOSH_CLIENT_SECRET: ((.:pooled-env.bosh.bosh_client_secret))
+      BOSH_ENVIRONMENT: "((.:pooled-env.BOSH_ENVIRONMENT))"
+      BOSH_CLIENT: "((.:pooled-env.BOSH_CLIENT))"
+      BOSH_CLIENT_SECRET: "((.:pooled-env.BOSH_CLIENT_SECRET))"
+      BOSH_CA_CERT: "((.:pooled-env.BOSH_CA_CERT))"
+      BOSH_GW_HOST: "((.:pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP))"
+      BOSH_GW_USER: "((.:pooled-env.INSTANCE_JUMPBOX_USER))"
+      BOSH_GW_PRIVATE_KEY: "((.:pooled-env.INSTANCE_JUMPBOX_PRIVATE))"
 
   - put: deploy-fake-director
     resource: test-bosh-director-deployment
@@ -375,24 +375,22 @@ jobs:
     input_mapping:
       bosh-backup-and-restore: latest-pull-request
     params:
+      CREDHUB_SERVER: "((.:pooled-env.CREDHUB_SERVER))"
+      CREDHUB_CLIENT: "((.:pooled-env.CREDHUB_CLIENT))"
+      CREDHUB_SECRET: "((.:pooled-env.CREDHUB_SECRET))"
+      CREDHUB_CA_CERT: "((.:pooled-env.CREDHUB_CA_CERT))"
       DIRECTOR_HOST: *test-bosh-director-ip
       DIRECTOR_SSH_KEY: ((test_bosh_director.private_key))
       DIRECTOR_SSH_USERNAME: jumpbox
       BOSH_DEPLOYMENT: *test-bosh-director-deployment
       GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
-      SYSTEM_DOMAIN: ((.:pooled-env.name)).cf-app.com
-      BOSH_GW_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
-      JUMPBOX_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
-      CREDHUB_CLIENT: ((.:pooled-env.bosh.credhub_client))
-      CREDHUB_SECRET: ((.:pooled-env.bosh.credhub_secret))
-      CREDHUB_CA_CERT: ((.:pooled-env.bosh.credhub_ca_cert))
-      CREDHUB_SERVER: ((.:pooled-env.bosh.credhub_server))
-      CREDHUB_PROXY: ((.:pooled-env.bosh.bosh_all_proxy))
-      BOSH_ENVIRONMENT: ((.:pooled-env.bosh.bosh_environment))
-      BOSH_CA_CERT: ((.:pooled-env.bosh.bosh_ca_cert))
-      BOSH_ALL_PROXY: ((.:pooled-env.bosh.bosh_all_proxy))
-      BOSH_CLIENT: ((.:pooled-env.bosh.bosh_client))
-      BOSH_CLIENT_SECRET: ((.:pooled-env.bosh.bosh_client_secret))
+      BOSH_ENVIRONMENT: "((.:pooled-env.BOSH_ENVIRONMENT))"
+      BOSH_CLIENT: "((.:pooled-env.BOSH_CLIENT))"
+      BOSH_CLIENT_SECRET: "((.:pooled-env.BOSH_CLIENT_SECRET))"
+      BOSH_CA_CERT: "((.:pooled-env.BOSH_CA_CERT))"
+      BOSH_GW_HOST: "((.:pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP))"
+      BOSH_GW_USER: "((.:pooled-env.INSTANCE_JUMPBOX_USER))"
+      BOSH_GW_PRIVATE_KEY: "((.:pooled-env.INSTANCE_JUMPBOX_PRIVATE))"
 
   - put: delete-system-director
     resource: test-bosh-director-deployment
@@ -412,9 +410,16 @@ jobs:
       trigger: true
     - get: latest-pull-request
       passed: [claim-env]
+    - get: cryogenics-ci
+  - task: alias-env
+    file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
+    input_mapping:
+      toolsmiths-env: environment
+      cryogenics-tasks: cryogenics-ci
   - load_var: pooled-env
-    file: environment/metadata
-    format: json
+    file: bosh-env/metadata.yml
+    format: yml
+
   - in_parallel:
     - task: upload-redis-test-release-maru-lite
       file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
@@ -436,19 +441,13 @@ jobs:
         bosh-backup-and-restore: latest-pull-request
       params:
         RELEASE_NAME: many-bbr-jobs-release
-        SYSTEM_DOMAIN: ((.:pooled-env.name)).cf-app.com
-        BOSH_GW_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
-        JUMPBOX_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
-        CREDHUB_CLIENT: ((.:pooled-env.bosh.credhub_client))
-        CREDHUB_SECRET: ((.:pooled-env.bosh.credhub_secret))
-        CREDHUB_CA_CERT: ((.:pooled-env.bosh.credhub_ca_cert))
-        CREDHUB_SERVER: ((.:pooled-env.bosh.credhub_server))
-        CREDHUB_PROXY: ((.:pooled-env.bosh.bosh_all_proxy))
-        BOSH_ENVIRONMENT: ((.:pooled-env.bosh.bosh_environment))
-        BOSH_CA_CERT: ((.:pooled-env.bosh.bosh_ca_cert))
-        BOSH_ALL_PROXY: ((.:pooled-env.bosh.bosh_all_proxy))
-        BOSH_CLIENT: ((.:pooled-env.bosh.bosh_client))
-        BOSH_CLIENT_SECRET: ((.:pooled-env.bosh.bosh_client_secret))
+        BOSH_ENVIRONMENT: "((.:pooled-env.BOSH_ENVIRONMENT))"
+        BOSH_CLIENT: "((.:pooled-env.BOSH_CLIENT))"
+        BOSH_CLIENT_SECRET: "((.:pooled-env.BOSH_CLIENT_SECRET))"
+        BOSH_CA_CERT: "((.:pooled-env.BOSH_CA_CERT))"
+        BOSH_GW_HOST: "((.:pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP))"
+        BOSH_GW_USER: "((.:pooled-env.INSTANCE_JUMPBOX_USER))"
+        BOSH_GW_PRIVATE_KEY: "((.:pooled-env.INSTANCE_JUMPBOX_PRIVATE))"
 
     - task: upload-redis-test-release-maru-bosh
       file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
@@ -456,19 +455,13 @@ jobs:
         bosh-backup-and-restore: latest-pull-request
       params:
         RELEASE_NAME: redis-test-release 
-        SYSTEM_DOMAIN: ((.:pooled-env.name)).cf-app.com
-        BOSH_GW_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
-        JUMPBOX_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
-        CREDHUB_CLIENT: ((.:pooled-env.bosh.credhub_client))
-        CREDHUB_SECRET: ((.:pooled-env.bosh.credhub_secret))
-        CREDHUB_CA_CERT: ((.:pooled-env.bosh.credhub_ca_cert))
-        CREDHUB_SERVER: ((.:pooled-env.bosh.credhub_server))
-        CREDHUB_PROXY: ((.:pooled-env.bosh.bosh_all_proxy))
-        BOSH_ENVIRONMENT: ((.:pooled-env.bosh.bosh_environment))
-        BOSH_CA_CERT: ((.:pooled-env.bosh.bosh_ca_cert))
-        BOSH_ALL_PROXY: ((.:pooled-env.bosh.bosh_all_proxy))
-        BOSH_CLIENT: ((.:pooled-env.bosh.bosh_client))
-        BOSH_CLIENT_SECRET: ((.:pooled-env.bosh.bosh_client_secret))
+        BOSH_ENVIRONMENT: "((.:pooled-env.BOSH_ENVIRONMENT))"
+        BOSH_CLIENT: "((.:pooled-env.BOSH_CLIENT))"
+        BOSH_CLIENT_SECRET: "((.:pooled-env.BOSH_CLIENT_SECRET))"
+        BOSH_CA_CERT: "((.:pooled-env.BOSH_CA_CERT))"
+        BOSH_GW_HOST: "((.:pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP))"
+        BOSH_GW_USER: "((.:pooled-env.INSTANCE_JUMPBOX_USER))"
+        BOSH_GW_PRIVATE_KEY: "((.:pooled-env.INSTANCE_JUMPBOX_PRIVATE))"
 
     - task: upload-redis-test-release-lite-bosh-uaa
       file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
