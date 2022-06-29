@@ -257,7 +257,7 @@ resources:
   source:
     uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
     private_key: ((github.ssh_key))
-    branch: "182318242-replace-maru-with-toolsmiths-env"
+    branch: main
 
 - name: slack-cryo-notification
   type: slack-notification
