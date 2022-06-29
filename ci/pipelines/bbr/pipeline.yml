@@ -354,7 +354,7 @@ jobs:
       BOSH_CLIENT: "((.:pooled-env.BOSH_CLIENT))"
       BOSH_CLIENT_SECRET: "((.:pooled-env.BOSH_CLIENT_SECRET))"
       BOSH_CA_CERT: "((.:pooled-env.BOSH_CA_CERT))"
-      BOSH_GW_HOST: "((.:pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP))"
+      BOSH_GW_HOST: "((.:pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP)):22"
       BOSH_GW_USER: "((.:pooled-env.INSTANCE_JUMPBOX_USER))"
       BOSH_GW_PRIVATE_KEY: "((.:pooled-env.INSTANCE_JUMPBOX_PRIVATE))"
 
@@ -388,7 +388,7 @@ jobs:
       BOSH_CLIENT: "((.:pooled-env.BOSH_CLIENT))"
       BOSH_CLIENT_SECRET: "((.:pooled-env.BOSH_CLIENT_SECRET))"
       BOSH_CA_CERT: "((.:pooled-env.BOSH_CA_CERT))"
-      BOSH_GW_HOST: "((.:pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP))"
+      BOSH_GW_HOST: "((.:pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP)):22"
       BOSH_GW_USER: "((.:pooled-env.INSTANCE_JUMPBOX_USER))"
       BOSH_GW_PRIVATE_KEY: "((.:pooled-env.INSTANCE_JUMPBOX_PRIVATE))"
 
@@ -445,7 +445,7 @@ jobs:
         BOSH_CLIENT: "((.:pooled-env.BOSH_CLIENT))"
         BOSH_CLIENT_SECRET: "((.:pooled-env.BOSH_CLIENT_SECRET))"
         BOSH_CA_CERT: "((.:pooled-env.BOSH_CA_CERT))"
-        BOSH_GW_HOST: "((.:pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP))"
+        BOSH_GW_HOST: "((.:pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP)):22"
         BOSH_GW_USER: "((.:pooled-env.INSTANCE_JUMPBOX_USER))"
         BOSH_GW_PRIVATE_KEY: "((.:pooled-env.INSTANCE_JUMPBOX_PRIVATE))"
 
@@ -459,7 +459,7 @@ jobs:
         BOSH_CLIENT: "((.:pooled-env.BOSH_CLIENT))"
         BOSH_CLIENT_SECRET: "((.:pooled-env.BOSH_CLIENT_SECRET))"
         BOSH_CA_CERT: "((.:pooled-env.BOSH_CA_CERT))"
-        BOSH_GW_HOST: "((.:pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP))"
+        BOSH_GW_HOST: "((.:pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP)):22"
         BOSH_GW_USER: "((.:pooled-env.INSTANCE_JUMPBOX_USER))"
         BOSH_GW_PRIVATE_KEY: "((.:pooled-env.INSTANCE_JUMPBOX_PRIVATE))"
 
