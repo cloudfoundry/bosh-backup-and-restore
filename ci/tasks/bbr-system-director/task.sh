@@ -23,13 +23,18 @@ export DIRECTOR_SSH_KEY_PATH
 ssh-add "$BOSH_GW_PRIVATE_KEY"
 
 if [[ "$DIRECTOR_HOST" =~ .*:.* ]]; then
-  export DIRECTOR_PORT="$(echo "${DIRECTOR_HOST}" | sed -nr 's/^(.*):(.*)$/\2/p')"
-  export DIRECTOR_HOST="$(echo "${DIRECTOR_HOST}" | sed -nr 's/^(.*):(.*)$/\1/p')"
+  HOST="$(echo "${DIRECTOR_HOST}" | sed -nr 's/^(.*):(.*)$/\1/p')"
+  PORT="$(echo "${DIRECTOR_HOST}" | sed -nr 's/^(.*):(.*)$/\2/p')"
+
+  sshuttle -r "${BOSH_GW_USER}@${BOSH_GW_HOST}" "$HOST/32:$PORT" \
+    --daemon \
+    -e 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ServerAliveInterval=600'
+else
+  sshuttle -r "${BOSH_GW_USER}@${BOSH_GW_HOST}" "$DIRECTOR_HOST/32" \
+    --daemon \
+    -e 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ServerAliveInterval=600'
 fi
 
-sshuttle -r "${BOSH_GW_USER}@${BOSH_GW_HOST}" "$DIRECTOR_HOST/32:$DIRECTOR_PORT" \
-  --daemon \
-  -e 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ServerAliveInterval=600'
 echo "Establishing tunnel to Director via Jumpbox..."
 sleep 5
 
