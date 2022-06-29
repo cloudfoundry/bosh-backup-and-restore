@@ -1,13 +1,4 @@
 ---
-maru-lite-bosh-env: &maru-lite-bosh-env
-  BOSH_ENVIRONMENT: "((infrastructure/bosh-lite-director.director_url))"
-  BOSH_CLIENT: "((infrastructure/bosh-lite-director.director_username))"
-  BOSH_CLIENT_SECRET: "((infrastructure/bosh-lite-director.director_password))"
-  BOSH_CA_CERT: "((infrastructure/bosh-lite-director.director_ca_cert))"
-  BOSH_GW_USER: jumpbox
-  BOSH_GW_HOST: "((infrastructure/bosh-lite-director.jumpbox_host)):22"
-  BOSH_GW_PRIVATE_KEY: "((infrastructure/bosh-lite-director.jumpbox_ssh_key))"
-
 test-bosh-director-ip: &test-bosh-director-ip 10.0.255.5
 test-bosh-director-deployment: &test-bosh-director-deployment test-bosh-director
 
@@ -244,6 +235,12 @@ resources:
     hostname: environments.toolsmiths.cf-app.com
     pool_name: cf-deployment
 
+- name: additional-environment
+  type: pcf-pool
+  source:
+    api_token: ((toolsmiths.api_token))
+    hostname: environments.toolsmiths.cf-app.com
+    pool_name: cf-deployment
 
 - name: pcf-2-11-pool
   type: pcf-pool
@@ -420,6 +417,20 @@ jobs:
     file: bosh-env/metadata.yml
     format: yml
 
+  - put: additional-environment
+    params:
+      action: claim
+  - task: alias-additional-env
+    file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
+    input_mapping:
+      toolsmiths-env: additional-environment
+      cryogenics-tasks: cryogenics-ci
+    output_mapping:
+      bosh-env: additional-bosh-env
+  - load_var: additional-pooled-env
+    file: additional-bosh-env/metadata.yml
+    format: yml
+
   - in_parallel:
     - task: upload-redis-test-release-maru-lite
       file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
@@ -427,14 +438,28 @@ jobs:
         bosh-backup-and-restore: latest-pull-request
       params:
         RELEASE_NAME: redis-test-release
-        <<: *maru-lite-bosh-env
+        BOSH_ENVIRONMENT: "((.:additional-pooled-env.BOSH_ENVIRONMENT))"
+        BOSH_CLIENT: "((.:additional-pooled-env.BOSH_CLIENT))"
+        BOSH_CLIENT_SECRET: "((.:additional-pooled-env.BOSH_CLIENT_SECRET))"
+        BOSH_CA_CERT: "((.:additional-pooled-env.BOSH_CA_CERT))"
+        BOSH_GW_HOST: "((.:additional-pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP)):22"
+        BOSH_GW_USER: "((.:additional-pooled-env.INSTANCE_JUMPBOX_USER))"
+        BOSH_GW_PRIVATE_KEY: "((.:additional-pooled-env.INSTANCE_JUMPBOX_PRIVATE))"
+
     - task: upload-many-bbr-jobs-release-lite-bosh-uaa
       file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
       input_mapping:
         bosh-backup-and-restore: latest-pull-request
       params:
         RELEASE_NAME: many-bbr-jobs-release
-        <<: *maru-lite-bosh-env
+        BOSH_ENVIRONMENT: "((.:additional-pooled-env.BOSH_ENVIRONMENT))"
+        BOSH_CLIENT: "((.:additional-pooled-env.BOSH_CLIENT))"
+        BOSH_CLIENT_SECRET: "((.:additional-pooled-env.BOSH_CLIENT_SECRET))"
+        BOSH_CA_CERT: "((.:additional-pooled-env.BOSH_CA_CERT))"
+        BOSH_GW_HOST: "((.:additional-pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP)):22"
+        BOSH_GW_USER: "((.:additional-pooled-env.INSTANCE_JUMPBOX_USER))"
+        BOSH_GW_PRIVATE_KEY: "((.:additional-pooled-env.INSTANCE_JUMPBOX_PRIVATE))"
+
     - task: upload-many-bbr-jobs-release-maru
       file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
       input_mapping:
@@ -469,21 +494,46 @@ jobs:
         bosh-backup-and-restore: latest-pull-request
       params:
         RELEASE_NAME: redis-test-release
-        <<: *maru-lite-bosh-env
+        BOSH_ENVIRONMENT: "((.:additional-pooled-env.BOSH_ENVIRONMENT))"
+        BOSH_CLIENT: "((.:additional-pooled-env.BOSH_CLIENT))"
+        BOSH_CLIENT_SECRET: "((.:additional-pooled-env.BOSH_CLIENT_SECRET))"
+        BOSH_CA_CERT: "((.:additional-pooled-env.BOSH_CA_CERT))"
+        BOSH_GW_HOST: "((.:additional-pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP)):22"
+        BOSH_GW_USER: "((.:additional-pooled-env.INSTANCE_JUMPBOX_USER))"
+        BOSH_GW_PRIVATE_KEY: "((.:additional-pooled-env.INSTANCE_JUMPBOX_PRIVATE))"
+
     - task: upload-lock-ordering-release-lite-bosh-uaa
       file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
       input_mapping:
         bosh-backup-and-restore: latest-pull-request
       params:
         RELEASE_NAME: lock-ordering-release
-        <<: *maru-lite-bosh-env
+        BOSH_ENVIRONMENT: "((.:additional-pooled-env.BOSH_ENVIRONMENT))"
+        BOSH_CLIENT: "((.:additional-pooled-env.BOSH_CLIENT))"
+        BOSH_CLIENT_SECRET: "((.:additional-pooled-env.BOSH_CLIENT_SECRET))"
+        BOSH_CA_CERT: "((.:additional-pooled-env.BOSH_CA_CERT))"
+        BOSH_GW_HOST: "((.:additional-pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP)):22"
+        BOSH_GW_USER: "((.:additional-pooled-env.INSTANCE_JUMPBOX_USER))"
+        BOSH_GW_PRIVATE_KEY: "((.:additional-pooled-env.INSTANCE_JUMPBOX_PRIVATE))"
+
   - task: system-deployment-with-uaa
     file: latest-pull-request/ci/tasks/bbr-system-deployment/task.yml
     input_mapping:
       bosh-backup-and-restore: latest-pull-request
     params:
       GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
-      <<: *maru-lite-bosh-env
+      BOSH_ENVIRONMENT: "((.:additional-pooled-env.BOSH_ENVIRONMENT))"
+      BOSH_CLIENT: "((.:additional-pooled-env.BOSH_CLIENT))"
+      BOSH_CLIENT_SECRET: "((.:additional-pooled-env.BOSH_CLIENT_SECRET))"
+      BOSH_CA_CERT: "((.:additional-pooled-env.BOSH_CA_CERT))"
+      BOSH_GW_HOST: "((.:additional-pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP)):22"
+      BOSH_GW_USER: "((.:additional-pooled-env.INSTANCE_JUMPBOX_USER))"
+      BOSH_GW_PRIVATE_KEY: "((.:additional-pooled-env.INSTANCE_JUMPBOX_PRIVATE))"
+
+  - put: additional-environment
+    params:
+      action: unclaim
+      env_file: additional-environment/metadata
 
 - name: unclaim-env
   plan:
