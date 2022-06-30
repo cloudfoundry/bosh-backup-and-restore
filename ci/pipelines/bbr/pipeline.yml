@@ -220,6 +220,13 @@ resources:
     deployment: *test-bosh-director-deployment
     skip_check: true
 
+- name: additional-test-bosh-director-deployment
+  type: bosh-deployment-resource
+  source:
+    deployment: ci
+    skip_check: true
+
+
 - name: s3-config-validator-artefacts
   type: gcs
   icon: google
@@ -302,6 +309,9 @@ jobs:
       passed: [unit-integration]
       trigger: true
     - put: environment
+      params:
+        action: claim
+    - put: additional-environment
       params:
         action: claim
 
@@ -400,14 +410,18 @@ jobs:
   serial: true
   plan:
   - in_parallel:
+    - get: additional-environment
+      passed: [claim-env]
     - get: environment
       passed: [claim-env]
       trigger: true
+    - get: bbr-director-test-releases
     - get: bbr-deployment-test-releases
       trigger: true
     - get: latest-pull-request
       passed: [claim-env]
     - get: cryogenics-ci
+    - get: xenial-stemcell
   - task: alias-env
     file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
     input_mapping:
@@ -417,9 +431,6 @@ jobs:
     file: bosh-env/metadata.yml
     format: yml
 
-  - put: additional-environment
-    params:
-      action: claim
   - task: alias-additional-env
     file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
     input_mapping:
@@ -430,6 +441,33 @@ jobs:
   - load_var: additional-pooled-env
     file: additional-bosh-env/metadata.yml
     format: yml
+
+  - task: generate-bosh-deployment-source-file
+    file: latest-pull-request/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
+    input_mapping:
+      bosh-backup-and-restore: latest-pull-request
+    output_mapping:
+      source-file: additional-env-source-file
+    params:
+      BOSH_ENVIRONMENT: "((.:additional-pooled-env.BOSH_ENVIRONMENT))"
+      BOSH_CLIENT: "((.:additional-pooled-env.BOSH_CLIENT))"
+      BOSH_CLIENT_SECRET: "((.:additional-pooled-env.BOSH_CLIENT_SECRET))"
+      BOSH_CA_CERT: "((.:additional-pooled-env.BOSH_CA_CERT))"
+      BOSH_GW_HOST: "((.:additional-pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP)):22"
+      BOSH_GW_USER: "((.:additional-pooled-env.INSTANCE_JUMPBOX_USER))"
+      BOSH_GW_PRIVATE_KEY: "((.:additional-pooled-env.INSTANCE_JUMPBOX_PRIVATE))"
+
+  - put: deploy-fake-director
+    resource: additional-test-bosh-director-deployment
+    params:
+      manifest: latest-pull-request/fixtures/fake-director.yml
+      stemcells: [xenial-stemcell/*.tgz]
+      source_file: additional-env-source-file/source-file.yml
+      vars:
+        deployment-name: ci
+        jumpbox-public-key: ((test_bosh_director.public_key))
+        test_release_path: /tmp/build/put/bbr-director-test-releases/test-bosh-backup-and-restore-release
+        internal_ip: *test-bosh-director-ip
 
   - in_parallel:
     - task: upload-redis-test-release-maru-lite
@@ -530,10 +568,13 @@ jobs:
       BOSH_GW_USER: "((.:additional-pooled-env.INSTANCE_JUMPBOX_USER))"
       BOSH_GW_PRIVATE_KEY: "((.:additional-pooled-env.INSTANCE_JUMPBOX_PRIVATE))"
 
-  - put: additional-environment
+  - put: delete-system-deployment-director
+    resource: test-bosh-director-deployment
     params:
-      action: unclaim
-      env_file: additional-environment/metadata
+      delete:
+        enabled: true
+      source_file: additional-env-source-file/source-file.yml
+
 
 - name: unclaim-env
   plan:
@@ -543,9 +584,17 @@ jobs:
       trigger: true
     - get: environment
       passed: [system-test-deployment, system-test-director]
-      params:
-        action: unclaim
-        env_file: environment/metadata
+    - get: additional-environment
+      passed: [system-test-deployment]
+
+  - put: environment
+    params:
+      action: unclaim
+      env_file: environment/metadata
+  - put: additional-environment
+    params:
+      action: unclaim
+      env_file: additional-environment/metadata
 
 - name: test-build-s3-config-validator
   serial_groups:
