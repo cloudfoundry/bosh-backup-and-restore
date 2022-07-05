@@ -25,23 +25,23 @@ generate-fakes:
 	go generate ./...
 
 sys-test-director-ci:
-	TEST_ENV=cf \
+	TEST_ENV=ci \
 	ginkgo -r -v -trace system/director
 
 sys-test-deployment-ci:
-	TEST_ENV=cf \
+	TEST_ENV=ci \
 	ginkgo -r -v -trace system/deployment
 
 sys-test-windows-ci:
-	TEST_ENV=cf \
+	TEST_ENV=ci \
 	ginkgo -r -v -trace system/windows
 
 sys-test-all-deployments-ci:
-	TEST_ENV=cf \
+	TEST_ENV=ci \
 	ginkgo -r -v -trace system/all_deployments
 
 sys-test-bosh-all-proxy-ci:
-	TEST_ENV=cf \
+	TEST_ENV=ci \
 	ginkgo -r -v -trace system/bosh_all_proxy
 
 upload-test-releases:
