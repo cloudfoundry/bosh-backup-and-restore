@@ -8,8 +8,8 @@ releases:
   version: latest
 
 stemcells:
-- alias: xenial
-  os: ubuntu-xenial
+- alias: default
+  os: ubuntu-bionic
   version: latest
 
 instance_groups:
@@ -25,7 +25,7 @@ instance_groups:
         maxclients: 1000
   vm_type: minimal
   persistent_disk_type: 5GB
-  stemcell: xenial
+  stemcell: default
   azs:
   - z1
   networks:
@@ -38,7 +38,7 @@ instance_groups:
     release: lock-ordering
   vm_type: minimal
   persistent_disk_type: 5GB
-  stemcell: xenial
+  stemcell: default
   azs:
   - z1
   networks:
@@ -51,7 +51,7 @@ instance_groups:
     release: lock-ordering
   vm_type: minimal
   persistent_disk_type: 5GB
-  stemcell: xenial
+  stemcell: default
   azs:
   - z1
   networks:
@@ -64,7 +64,7 @@ instance_groups:
     release: lock-ordering
   vm_type: minimal
   persistent_disk_type: 5GB
-  stemcell: xenial
+  stemcell: default
   azs:
   - z1
   networks:
@@ -77,7 +77,7 @@ instance_groups:
     release: lock-ordering
   vm_type: minimal
   persistent_disk_type: 5GB
-  stemcell: xenial
+  stemcell: default
   azs:
   - z1
   networks:

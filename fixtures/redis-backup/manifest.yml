@@ -6,8 +6,8 @@ releases:
   version: 0+dev.43
 
 stemcells:
-- alias: xenial
-  os: ubuntu-xenial
+- alias: default
+  os: ubuntu-bionic
   version: latest
 
 instance_groups:
@@ -18,7 +18,7 @@ instance_groups:
   networks:
   - name: default
   persistent_disk_type: 5GB
-  stemcell: xenial
+  stemcell: default
   jobs:
   - name: redis-server
     release: redis-test
@@ -35,7 +35,7 @@ instance_groups:
   networks:
   - name: default
   persistent_disk_type: 5GB
-  stemcell: xenial
+  stemcell: default
   jobs:
   - name: redis-server
     release: redis-test
