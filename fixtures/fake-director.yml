@@ -12,8 +12,8 @@ releases:
   url: ((test_release_path))
 
 stemcells:
-- alias: default
-  os: ubuntu-bionic
+- alias: xenial
+  os: ubuntu-xenial
   version: latest
 
 instance_groups:
@@ -34,7 +34,7 @@ instance_groups:
     release: test-bosh-backup-and-restore
   vm_type: minimal
   persistent_disk_type: 5GB
-  stemcell: default
+  stemcell: xenial
   azs:
   - z1
   networks:
