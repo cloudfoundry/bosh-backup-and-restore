@@ -10,12 +10,9 @@ maru-bosh-env: &maru-bosh-env
   BOSH_GW_PRIVATE_KEY: "((.:pooled-env.INSTANCE_JUMPBOX_PRIVATE))"
 
 maru-lite-bosh-env: &maru-lite-bosh-env
-  #BOSH_ENVIRONMENT: ((.:additional-pooled-env.BOSH_ENVIRONMENT))
-  #BOSH_CLIENT: ((.:additional-pooled-env.BOSH_CLIENT))
-  #BOSH_CLIENT_SECRET: ((.:additional-pooled-env.BOSH_CLIENT_SECRET))
-  BOSH_ENVIRONMENT: *test-bosh-director-ip
-  BOSH_CLIENT: jumpbox
-  BOSH_CLIENT_SECRET: ((test_bosh_director.private_key))
+  BOSH_ENVIRONMENT: ((.:additional-pooled-env.BOSH_ENVIRONMENT))
+  BOSH_CLIENT: ((.:additional-pooled-env.BOSH_CLIENT))
+  BOSH_CLIENT_SECRET: ((.:additional-pooled-env.BOSH_CLIENT_SECRET))
   BOSH_CA_CERT: "((.:additional-pooled-env.BOSH_CA_CERT))"
   BOSH_GW_HOST: "((.:additional-pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP)):22"
   BOSH_GW_USER: "((.:additional-pooled-env.INSTANCE_JUMPBOX_USER))"
@@ -267,7 +264,7 @@ resources:
   source:
     uri: git@github.com:pivotal/cryogenics-concourse-tasks.git
     private_key: ((github.ssh_key))
-    branch: 182318213-compute-jumpbox-publickey
+    branch: main
 
 - name: slack-cryo-notification
   type: slack-notification
@@ -440,9 +437,6 @@ jobs:
       bosh-backup-and-restore: latest-pull-request
     params:
       <<: *maru-lite-bosh-env
-      BOSH_ENVIRONMENT: ((.:additional-pooled-env.BOSH_ENVIRONMENT))
-      BOSH_CLIENT: ((.:additional-pooled-env.BOSH_CLIENT))
-      BOSH_CLIENT_SECRET: ((.:additional-pooled-env.BOSH_CLIENT_SECRET))
   - put: deploy-fake-director
     resource: additional-test-bosh-director-deployment
     params:
