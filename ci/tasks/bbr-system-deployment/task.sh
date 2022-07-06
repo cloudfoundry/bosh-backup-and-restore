@@ -12,12 +12,12 @@ chmod 0600 "${PWD}/ssh.key"
 export BOSH_GW_PRIVATE_KEY="${PWD}/ssh.key"
 
 shopt -s nocasematch
-if [[ -n "${DIRECTOR_HOST}" ]]
+if [[ "${OPEN_TUNNEL}" == "TRUE" ]]
 then
 ssh-add "$BOSH_GW_PRIVATE_KEY"
 
-export DIRECTOR_PORT="$(echo "${DIRECTOR_HOST}" | sed -E 's/(https:\/\/)?([^:]*)(:.*)?/\3/g')"
-export DIRECTOR_HOST="$(echo "${DIRECTOR_HOST}" | sed -E 's/(https:\/\/)?([^:]*)(:.*)?/\2/g')"
+export DIRECTOR_HOST="$(echo "${DIRECTOR_HOST:=${BOSH_ENVIRONMENT}}" | sed -E 's/(https:\/\/)?([^:]*)(:.*)?/\2/g')"
+export DIRECTOR_PORT="$(echo "${DIRECTOR_PORT:=${BOSH_ENVIRONMENT}}" | sed -E 's/(https:\/\/)?([^:]*)(:.*)?/\3/g')"
 
 sshuttle -r "${BOSH_GW_USER}@${BOSH_GW_HOST}" "$DIRECTOR_HOST/32$DIRECTOR_PORT" \
   --daemon \
