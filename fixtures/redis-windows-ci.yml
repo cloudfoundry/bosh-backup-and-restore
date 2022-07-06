@@ -14,7 +14,7 @@ stemcells:
   os: windows2016
   version: latest
 - alias: ubuntu
-  os: ubuntu-bionic
+  os: ubuntu-xenial
   version: latest
 
 instance_groups:

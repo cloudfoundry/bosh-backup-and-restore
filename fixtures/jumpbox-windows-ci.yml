@@ -5,7 +5,7 @@ releases: []
 
 stemcells:
 - alias: default
-  os: ubuntu-bionic
+  os: ubuntu-xenial
   version: latest
 
 instance_groups:

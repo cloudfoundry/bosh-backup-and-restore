@@ -6,8 +6,8 @@ releases:
   version: latest
 
 stemcells:
-- alias: default
-  os: ubuntu-bionic
+- alias: xenial
+  os: ubuntu-xenial
   version: latest
 
 instance_groups:
@@ -23,7 +23,7 @@ instance_groups:
         maxclients: 1000
   vm_type: minimal
   persistent_disk_type: 5GB
-  stemcell: default
+  stemcell: xenial
   azs:
   - z1
   networks:
