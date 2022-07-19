@@ -526,7 +526,7 @@ jobs:
                      --target-tags="${env_name}-bosh-director" \
                      --action=allow \
                      --rules=tcp:22,tcp:6868,tcp:8443,tcp:8844,tcp:25555 \
-                     --source-tag=jumpbox \
+                     --source-tags=jumpbox \
                      --priority=999
 
   - task: system-deployment-with-uaa
