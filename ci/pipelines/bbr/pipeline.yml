@@ -1,23 +1,23 @@
 ---
+test-bosh-director-ip: &test-bosh-director-ip 10.0.255.5
 maru-bosh-env: &maru-bosh-env
-  BOSH_ENVIRONMENT: "((infrastructure/bosh-director.director_url))"
-  BOSH_CLIENT: "((infrastructure/bosh-director.director_username))"
-  BOSH_CLIENT_SECRET: "((infrastructure/bosh-director.director_password))"
-  BOSH_CA_CERT: "((infrastructure/bosh-director.director_ca_cert))"
-  BOSH_GW_HOST: "((infrastructure/bosh-director.jumpbox_host)):22"
-  BOSH_GW_USER: jumpbox
-  BOSH_GW_PRIVATE_KEY: "((infrastructure/bosh-director.jumpbox_ssh_key))"
+  BOSH_ENVIRONMENT: "((.:pooled-env.BOSH_ENVIRONMENT))"
+  BOSH_CLIENT: "((.:pooled-env.BOSH_CLIENT))"
+  BOSH_CLIENT_SECRET: "((.:pooled-env.BOSH_CLIENT_SECRET))"
+  BOSH_CA_CERT: "((.:pooled-env.BOSH_CA_CERT))"
+  BOSH_GW_HOST: "((.:pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP)):22"
+  BOSH_GW_USER: "((.:pooled-env.INSTANCE_JUMPBOX_USER))"
+  BOSH_GW_PRIVATE_KEY: "((.:pooled-env.INSTANCE_JUMPBOX_PRIVATE))"
 
 maru-lite-bosh-env: &maru-lite-bosh-env
-  BOSH_ENVIRONMENT: "((infrastructure/bosh-lite-director.director_url))"
-  BOSH_CLIENT: "((infrastructure/bosh-lite-director.director_username))"
-  BOSH_CLIENT_SECRET: "((infrastructure/bosh-lite-director.director_password))"
-  BOSH_CA_CERT: "((infrastructure/bosh-lite-director.director_ca_cert))"
-  BOSH_GW_USER: jumpbox
-  BOSH_GW_HOST: "((infrastructure/bosh-lite-director.jumpbox_host)):22"
-  BOSH_GW_PRIVATE_KEY: "((infrastructure/bosh-lite-director.jumpbox_ssh_key))"
+  BOSH_ENVIRONMENT: ((.:additional-pooled-env.BOSH_ENVIRONMENT))
+  BOSH_CLIENT: ((.:additional-pooled-env.BOSH_CLIENT))
+  BOSH_CLIENT_SECRET: ((.:additional-pooled-env.BOSH_CLIENT_SECRET))
+  BOSH_CA_CERT: "((.:additional-pooled-env.BOSH_CA_CERT))"
+  BOSH_GW_HOST: "((.:additional-pooled-env.INSTANCE_JUMPBOX_EXTERNAL_IP)):22"
+  BOSH_GW_USER: "((.:additional-pooled-env.INSTANCE_JUMPBOX_USER))"
+  BOSH_GW_PRIVATE_KEY: "((.:additional-pooled-env.INSTANCE_JUMPBOX_PRIVATE))"
 
-test-bosh-director-ip: &test-bosh-director-ip 10.0.255.5
 test-bosh-director-deployment: &test-bosh-director-deployment test-bosh-director
 
 toolsmiths_api_worker: &toolsmiths_api_worker nimbus-worker
@@ -27,8 +27,10 @@ groups:
 - name: all
   jobs:
   - unit-integration
+  - claim-env
   - system-test-deployment
   - system-test-director
+  - unclaim-env
   - build-rc
   - run-drats
   - run-b-drats
@@ -44,8 +46,10 @@ groups:
   - unit-integration
   - test-build-s3-config-validator
   - validate-aws-s3-config
+  - claim-env
   - system-test-deployment
   - system-test-director
+  - unclaim-env
   - update-tracker
 
 - name: release
@@ -234,6 +238,12 @@ resources:
     deployment: *test-bosh-director-deployment
     skip_check: true
 
+- name: additional-test-bosh-director-deployment
+  type: bosh-deployment-resource
+  source:
+    deployment: ci
+    skip_check: true
+
 - name: s3-config-validator-artefacts
   type: gcs
   icon: google
@@ -294,6 +304,20 @@ resources:
     uri: https://github.com/cloudfoundry/bosh-disaster-recovery-acceptance-tests
     branch: 179721127-make-b-drats-toolsmiths-compatible
 
+- name: environment
+  type: pcf-pool
+  source:
+    api_token: ((toolsmiths.api_token))
+    hostname: environments.toolsmiths.cf-app.com
+    pool_name: cf-deployment
+
+- name: additional-environment
+  type: pcf-pool
+  source:
+    api_token: ((toolsmiths.api_token))
+    hostname: environments.toolsmiths.cf-app.com
+    pool_name: cryo_cf-d
+
 jobs:
 - name: unit-integration
   serial: true
@@ -315,12 +339,23 @@ jobs:
   serial_groups: [system-test-director]
   plan:
   - in_parallel:
-    - get: latest-pull-request
-      passed: [unit-integration]
+    - get: environment
+      passed: [claim-env]
       trigger: true
+    - get: latest-pull-request
+      passed: [claim-env]
     - get: bosh-deployment
     - get: bbr-director-test-releases
     - get: xenial-stemcell
+    - get: cryogenics-ci
+  - task: alias-env
+    file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
+    input_mapping:
+      cryogenics-tasks: cryogenics-ci
+      toolsmiths-env: environment
+  - load_var: pooled-env
+    file: bosh-env/metadata.yml
+    format: yml
   - task: generate-bosh-deployment-source-file
     file: latest-pull-request/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
     input_mapping:
@@ -344,16 +379,17 @@ jobs:
     input_mapping:
       bosh-backup-and-restore: latest-pull-request
     params:
-      CREDHUB_SERVER: "((infrastructure/bosh-director.credhub_server))"
-      CREDHUB_CLIENT: "((infrastructure/bosh-director.credhub_client))"
-      CREDHUB_SECRET: "((infrastructure/bosh-director.credhub_secret))"
-      CREDHUB_CA_CERT: "((infrastructure/bosh-director.credhub_ca_cert))"
+      CREDHUB_SERVER: "((.:pooled-env.CREDHUB_SERVER))"
+      CREDHUB_CLIENT: "((.:pooled-env.CREDHUB_CLIENT))"
+      CREDHUB_SECRET: "((.:pooled-env.CREDHUB_SECRET))"
+      CREDHUB_CA_CERT: "((.:pooled-env.CREDHUB_CA_CERT))"
       DIRECTOR_HOST: *test-bosh-director-ip
       DIRECTOR_SSH_KEY: ((test_bosh_director.private_key))
       DIRECTOR_SSH_USERNAME: jumpbox
       BOSH_DEPLOYMENT: *test-bosh-director-deployment
       GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
       <<: *maru-bosh-env
+
   - put: delete-system-director
     resource: test-bosh-director-deployment
     params:
@@ -367,9 +403,51 @@ jobs:
   - in_parallel:
     - get: bbr-deployment-test-releases
       trigger: true
-    - get: latest-pull-request
+    - get: environment
+      passed: [claim-env]
       trigger: true
-      passed: [unit-integration]
+    - get: additional-environment
+      passed: [claim-env]
+    - get: latest-pull-request
+      passed: [claim-env]
+    - get: bbr-director-test-releases
+    - get: xenial-stemcell
+    - get: cryogenics-ci
+  - task: alias-env
+    file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
+    input_mapping:
+      cryogenics-tasks: cryogenics-ci
+      toolsmiths-env: environment
+  - load_var: pooled-env
+    file: bosh-env/metadata.yml
+    format: yml
+  - task: alias-additional-env
+    file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
+    input_mapping:
+      cryogenics-tasks: cryogenics-ci
+      toolsmiths-env: additional-environment
+    output_mapping:
+      bosh-env: additional-bosh-env
+  - load_var: additional-pooled-env
+    file: additional-bosh-env/metadata.yml
+    format: yml
+  - task: generate-bosh-deployment-source-file
+    file: latest-pull-request/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
+    input_mapping:
+      bosh-backup-and-restore: latest-pull-request
+    params:
+      <<: *maru-lite-bosh-env
+  - put: deploy-fake-director
+    resource: additional-test-bosh-director-deployment
+    params:
+      manifest: latest-pull-request/fixtures/fake-director.yml
+      stemcells: [xenial-stemcell/*.tgz]
+      source_file: source-file/source-file.yml
+      vars:
+        deployment-name: ci
+        jumpbox-public-key: ((test_bosh_director.public_key))
+        test_release_path: /tmp/build/put/bbr-director-test-releases/test-bosh-backup-and-restore-release
+        internal_ip: *test-bosh-director-ip
   - in_parallel:
     - task: upload-redis-test-release-maru-lite
       file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
@@ -413,6 +491,44 @@ jobs:
       params:
         RELEASE_NAME: lock-ordering-release
         <<: *maru-lite-bosh-env
+    - task: allow-connections-to-bosh-director-on-port-25555
+      config:
+        platform: linux
+          
+        image_resource:
+          type: registry-image
+          source:
+            repository: eu.gcr.io/mapbu-cryogenics/gcloud
+            username: _json_key
+            password: ((gcr.viewer_key))
+
+        params:
+          GCP_SERVICE_ACCOUNT_KEY: ((gcp/service_accounts/owner.json_key))
+
+        inputs:
+          - name: additional-environment
+
+        run:
+          path: /bin/bash
+          args:
+            - -c
+            - |
+              set -euo pipefail
+
+              gcloud -q auth activate-service-account --key-file=<(echo "$GCP_SERVICE_ACCOUNT_KEY")
+
+              env_name="$(cat additional-environment/name)"
+
+              echo 'Y' | gcloud compute firewall-rules delete "${env_name}-custom-jumpbox-to-director-ingress-allow" || true
+              gcloud compute firewall-rules create "${env_name}-custom-jumpbox-to-director-ingress-allow" \
+                     --network="${env_name}-network"     \
+                     --direction=ingress \
+                     --target-tags="${env_name}-bosh-director" \
+                     --action=allow \
+                     --rules=tcp:22,tcp:6868,tcp:8443,tcp:8844,tcp:25555 \
+                     --source-tags=jumpbox \
+                     --priority=999
+
   - task: system-deployment-with-uaa
     file: latest-pull-request/ci/tasks/bbr-system-deployment/task.yml
     input_mapping:
@@ -578,12 +694,14 @@ jobs:
         operations/experimental/enable-smb-volume-service.yml
         operations/backup-and-restore/skip-backup-restore-droplets-and-packages.yml
   - task: bosh-run-errand-nfsbrokerpush
+    attempts: 5
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       toolsmiths-env: cf-deployment-env
     params:
       ERRAND_NAME: nfsbrokerpush
   - task: bosh-run-errand-smbbrokerpush
+    attempts: 5
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       toolsmiths-env: cf-deployment-env
@@ -827,3 +945,41 @@ jobs:
     params:
       repository: updated-homebrew-tap
       rebase: true
+
+- name: claim-env
+  plan:
+  - in_parallel:
+      steps:
+      - get: latest-pull-request
+        trigger: true
+      - put: environment
+        params:
+          action: claim
+      - put: additional-environment
+        params:
+          action: claim
+
+- name: unclaim-env
+  plan:
+  - in_parallel:
+      steps:
+      - get: latest-pull-request
+        trigger: true
+        passed:
+        - system-test-deployment
+        - system-test-director
+      - get: environment
+        passed:
+        - system-test-deployment
+        - system-test-director
+      - get: additional-environment
+        passed:
+        - system-test-deployment
+  - put: environment
+    params:
+      action: unclaim
+      env_file: environment/metadata
+  - put: additional-environment
+    params:
+      action: unclaim
+      env_file: additional-environment/metadata
