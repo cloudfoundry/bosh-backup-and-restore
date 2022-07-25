@@ -694,12 +694,14 @@ jobs:
         operations/experimental/enable-smb-volume-service.yml
         operations/backup-and-restore/skip-backup-restore-droplets-and-packages.yml
   - task: bosh-run-errand-nfsbrokerpush
+    attempts: 5
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       toolsmiths-env: cf-deployment-env
     params:
       ERRAND_NAME: nfsbrokerpush
   - task: bosh-run-errand-smbbrokerpush
+    attempts: 5
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     input_mapping:
       toolsmiths-env: cf-deployment-env
