@@ -102,14 +102,6 @@ resources:
     username: ((dockerhub.username))
     password: ((dockerhub.password))
 
-- name: golang-docker-image
-  type: docker-image
-  source:
-    repository: golang
-    username: ((dockerhub.username))
-    password: ((dockerhub.password))
-    tag: 1
-
 - name: every-monday
   type: time
   icon: timer-outline
@@ -126,15 +118,6 @@ jobs:
   - in_parallel:
     - get: backup-and-restore-minimal
       trigger: true
-    - get: golang-docker-image
-      trigger: true
-    - get: ci
-  - task: bump-golang-version
-    file: ci/ci/tasks/bump-dependencies/task.yml
-  - put: backup-and-restore-minimal
-    params:
-      rebase: true
-      repository: bumped-backup-and-restore-minimal
   - put: backup-and-restore-minimal-docker-image
     params:
       build: backup-and-restore-minimal/ci/images/backup-and-restore-minimal/

@@ -1,6 +1,7 @@
+FROM golang:1.18.3 as go-binary
+
 FROM ubuntu:bionic
 
-ENV go_version 1.18.4
 ENV cf_cli_version 7.3.0
 ENV bosh_cli_version 6.0.0
 ENV om_cli_version 0.42.0
@@ -35,11 +36,7 @@ RUN \
 
 ENV GOPATH /go
 ENV PATH /go/bin:/usr/local/go/bin:$PATH
-RUN \
-  wget --quiet https://golang.org/dl/go${go_version}.linux-amd64.tar.gz -P /tmp && \
-  tar xzvf /tmp/go${go_version}.linux-amd64.tar.gz -C /usr/local && \
-  mkdir ${GOPATH} && \
-  rm -rf /tmp/*
+COPY --from=go-binary /usr/local/go /usr/local/go
 
 RUN go install github.com/onsi/ginkgo/ginkgo@latest
 
