@@ -79,7 +79,7 @@ RUN git clone https://github.com/AGWA/git-crypt.git && \
   make && sudo make install
 
 # Bash testing framework
-RUN go get github.com/progrium/basht
+RUN go install github.com/progrium/basht@latest
 
 RUN git config --global url."git@github.com:".insteadOf "https://github.com/" && \
   mkdir -p ~/.ssh && ssh-keyscan -H github.com > ~/.ssh/known_hosts
