@@ -13,3 +13,7 @@ updates:
     directory: "/s3-config-validator/src"
     schedule:
       interval: "daily"
+  - package-ecosystem: "docker"
+    directory: "/ci/images/backup-and-restore-minimal"
+    schedule:
+      interval: "daily"
