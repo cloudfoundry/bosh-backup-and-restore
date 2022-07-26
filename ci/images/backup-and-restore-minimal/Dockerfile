@@ -42,7 +42,6 @@ RUN \
   rm -rf /tmp/*
 
 RUN go install github.com/onsi/ginkgo/ginkgo@latest
-RUN go get github.com/onsi/gomega
 
 # dep
 RUN \
