@@ -41,8 +41,8 @@ RUN \
   mkdir ${GOPATH} && \
   rm -rf /tmp/*
 
-RUN go get github.com/onsi/ginkgo/ginkgo
-RUN go get github.com/onsi/gomega
+RUN go install github.com/onsi/ginkgo/ginkgo
+RUN go install github.com/onsi/gomega
 
 # dep
 RUN \
