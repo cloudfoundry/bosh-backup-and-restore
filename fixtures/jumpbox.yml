@@ -4,8 +4,8 @@ name: ((deployment-name))
 releases: []
 
 stemcells:
-- alias: xenial
-  os: ubuntu-xenial
+- alias: jammy
+  os: ubuntu-jammy
   version: latest
 
 instance_groups:
@@ -14,7 +14,7 @@ instance_groups:
   jobs: []
   vm_type: minimal
   persistent_disk_type: 5GB
-  stemcell: xenial
+  stemcell: jammy
   azs: [z1]
   networks:
   - name: default
