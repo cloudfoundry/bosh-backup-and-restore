@@ -215,15 +215,10 @@ resources:
     initial_version: 1.9.13-build.516
     driver: gcs
 
-- name: xenial-stemcell
+- name: jammy-stemcell
   type: bosh-io-stemcell
   source:
-    name: bosh-google-kvm-ubuntu-xenial-go_agent
-
-- name: bionic-stemcell
-  type: bosh-io-stemcell
-  source:
-    name: bosh-google-kvm-ubuntu-bionic-go_agent
+    name: bosh-google-kvm-ubuntu-jammy-go_agent
 
 - name: bosh-deployment
   type: git
@@ -346,7 +341,7 @@ jobs:
       passed: [claim-env]
     - get: bosh-deployment
     - get: bbr-director-test-releases
-    - get: xenial-stemcell
+    - get: jammy-stemcell
     - get: cryogenics-ci
   - task: alias-env
     file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
@@ -366,7 +361,7 @@ jobs:
     resource: test-bosh-director-deployment
     params:
       manifest: latest-pull-request/fixtures/fake-director.yml
-      stemcells: [xenial-stemcell/*.tgz]
+      stemcells: [jammy-stemcell/*.tgz]
       source_file: source-file/source-file.yml
       vars:
         deployment-name: test-bosh-director
@@ -411,7 +406,7 @@ jobs:
     - get: latest-pull-request
       passed: [claim-env]
     - get: bbr-director-test-releases
-    - get: xenial-stemcell
+    - get: jammy-stemcell
     - get: cryogenics-ci
   - task: alias-env
     file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
@@ -441,7 +436,7 @@ jobs:
     resource: additional-test-bosh-director-deployment
     params:
       manifest: latest-pull-request/fixtures/fake-director.yml
-      stemcells: [xenial-stemcell/*.tgz]
+      stemcells: [jammy-stemcell/*.tgz]
       source_file: source-file/source-file.yml
       vars:
         deployment-name: ci
@@ -753,7 +748,7 @@ jobs:
         passed: 
           - build-rc
       - get: cryogenics-ci
-      - get: bionic-stemcell
+      - get: jammy-stemcell
     - do:
       - put: env-pool
         resource: pcf-2-11-pool
@@ -765,7 +760,7 @@ jobs:
           input_mapping:
             repo: cryogenics-ci
             env: env-pool
-            stemcell: bionic-stemcell
+            stemcell: jammy-stemcell
           params:
             INCLUDE_DEPLOYMENT_TESTCASE: true
             INCLUDE_TRUNCATE_DB_BLOBSTORE_TESTCASE: false
