@@ -617,7 +617,11 @@ jobs:
   plan:
   - in_parallel:
     - get: latest-pull-request
-      passed: [system-test-deployment, system-test-director, validate-aws-s3-config]
+      passed:
+      - system-test-deployment
+      - system-test-director
+      - validate-aws-s3-config
+      - unit-integration
       trigger: true
     - get: cryogenics-ci
   - put: latest-pull-request
