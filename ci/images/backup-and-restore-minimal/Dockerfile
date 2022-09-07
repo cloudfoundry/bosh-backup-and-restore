@@ -1,4 +1,4 @@
-FROM golang:1.19.0 as go-binary
+FROM golang:1.19.1 as go-binary
 
 FROM ubuntu:bionic
 
