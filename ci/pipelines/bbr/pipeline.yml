@@ -43,6 +43,7 @@ groups:
 
 - name: pull-requests
   jobs:
+  - build-rc
   - unit-integration
   - test-build-s3-config-validator
   - validate-aws-s3-config
