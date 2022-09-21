@@ -150,6 +150,15 @@ resources:
     branch: master
     disable_git_lfs: true
 
+- name: bbr-ci
+  icon: github
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/bosh-backup-and-restore.git
+    private_key: ((github.ssh_key))
+    branch: master
+    disable_git_lfs: true
+
 - name: homebrew-tap
   type: git
   icon: github
@@ -633,7 +642,8 @@ jobs:
     - only_1_job_should_bump_the_RELEASE_CANDIDATE_VERSION_at_a_time_to_avoid_race_condition
   plan:
   - in_parallel:
-    - get: main
+    - get: bbr-ci
+    - get: latest-pull-request
       trigger: true
     - get: release-candidate-version
       params:
@@ -643,18 +653,18 @@ jobs:
       params:
         bump: final
   - task: build-bbr
-    file: main/ci/tasks/bbr-build/task.yml
+    file: bbr-ci/ci/tasks/bbr-build/task.yml
     params:
       GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
     input_mapping:
       release-version: next-release-version
       release-candidate-version: release-candidate-version
-      bosh-backup-and-restore: main
+      bosh-backup-and-restore: latest-pull-request
   - task: build-s3-config-validator
-    file: main/ci/tasks/bbr-s3-config-validator-build/task.yml
+    file: bbr-ci/ci/tasks/bbr-s3-config-validator-build/task.yml
     input_mapping:
       version: release-candidate-version
-      repo: main
+      repo: latest-pull-request
   - put: release-candidate-version
     params:
       file: release-candidate-version/number
@@ -804,7 +814,6 @@ jobs:
       trigger: true
     - get: cryogenics-ci
     - get: main
-      passed: [build-rc]
     - get: bbr-artefacts
       passed:
         - run-drats
