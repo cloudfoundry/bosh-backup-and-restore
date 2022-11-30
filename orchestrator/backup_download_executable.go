@@ -96,7 +96,7 @@ func (e BackupDownloadExecutable) compareChecksums(localBackup Backup, remoteBac
 	e.Logger.Debug("bbr", "Comparing shasums")
 
 	match, mismatchedFiles := localChecksum.Match(remoteChecksum)
-	if !match {
+	if !match && len(mismatchedFiles) > 0 {
 		e.Logger.Debug("bbr", "Checksums didn't match for:")
 		e.Logger.Debug("bbr", fmt.Sprintf("%v\n", mismatchedFiles))
 
