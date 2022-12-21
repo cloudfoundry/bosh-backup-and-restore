@@ -26,7 +26,6 @@ tanzunet_product_name: &tanzunet_product_name p-bosh-backup-and-restore
 groups:
 - name: all
   jobs:
-  - unit-integration
   - claim-env
   - system-test-deployment
   - system-test-director
@@ -43,7 +42,6 @@ groups:
 
 - name: pull-requests
   jobs:
-  - unit-integration
   - test-build-s3-config-validator
   - validate-aws-s3-config
   - claim-env
@@ -140,6 +138,9 @@ resources:
     repository: cloudfoundry/bosh-backup-and-restore
     access_token: ((github.access_token))
     disable_forks: true
+    autosync_pr: true
+    watch_checks_interval: "600"
+    assign_to: "@me"
 
 - name: main
   icon: github
@@ -311,24 +312,9 @@ resources:
   source:
     api_token: ((toolsmiths.api_token))
     hostname: environments.toolsmiths.cf-app.com
-    pool_name: cryo_cf-d
+    pool_name: cryo_cf-deployment
 
 jobs:
-- name: unit-integration
-  serial: true
-  plan:
-  - in_parallel:
-    - get: latest-pull-request
-      trigger: true
-  - task: test
-    file: latest-pull-request/ci/tasks/bbr-unit/task.yml
-    params:
-      DOCKER_HOST_IP: ((docker_host.ip))
-      DOCKER_HOST: ((docker_host.uri))
-      DOCKER_HOST_SSH_KEY: ((docker_host.ssh_key))
-    input_mapping:
-      bosh-backup-and-restore: latest-pull-request
-
 - name: system-test-director
   serial: true
   serial_groups: [system-test-director]
