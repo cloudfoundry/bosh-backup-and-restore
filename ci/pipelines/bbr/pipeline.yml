@@ -298,7 +298,7 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh-disaster-recovery-acceptance-tests
-    branch: 179721127-make-b-drats-toolsmiths-compatible
+    branch: master
 
 - name: environment
   type: pcf-pool
