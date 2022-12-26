@@ -464,8 +464,8 @@ github.com/cloudfoundry/bosh-s3cli v0.0.164/go.mod h1:zvjJ+j/9jtLhEykf780rJ5QnVV
 github.com/cloudfoundry/bosh-utils v0.0.340/go.mod h1:v8Jb3Zm9peXSOjffKp+HzL8tHHlmjEKHN1xmeetntcw=
 github.com/cloudfoundry/bosh-utils v0.0.342/go.mod h1:FtoztxRfpySJrnLSjVFdcIXAN+Mb6U2XPBr8MF7Qf24=
 github.com/cloudfoundry/bosh-utils v0.0.343/go.mod h1:hoGocXHw7P3Y71b1IX+KxbjVdJzrfqhHykziZwnij1k=
-github.com/cloudfoundry/bosh-utils v0.0.346 h1:MOLmyD5NVgS/4RBeSjr1ubzNcEQpupDymEGG+wU5zI4=
-github.com/cloudfoundry/bosh-utils v0.0.346/go.mod h1:0i5lpYYJqqyZXixBp71a3n9TDZSoo+dFslg5IUSFmsU=
+github.com/cloudfoundry/bosh-utils v0.0.347 h1:cBBCfqxqZDnZU3EfB6l8Wb0ZDrk/lsI7ylEqTUgbr7k=
+github.com/cloudfoundry/bosh-utils v0.0.347/go.mod h1:j3CokGve3VRY/iQuH+Got2UYe5dWEssuNRcQRBZ9T2Y=
 github.com/cloudfoundry/config-server v0.1.86 h1:IUJMguDU9+9s5xedjOR/2POm/PtkKScEgOYUeGO6fNA=
 github.com/cloudfoundry/config-server v0.1.86/go.mod h1:KTw56Aoi44jRUv/esXaKpwBbf0c8ZusmRPA8oIYpQqA=
 github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e h1:FQdRViaoDphGRfgrotl2QGsX1gbloe57dbGBS5CG6KY=
@@ -674,7 +674,7 @@ github.com/google/pprof v0.0.0-20210407192527-94a9f03dee38/go.mod h1:kpwsk12EmLe
 github.com/google/pprof v0.0.0-20210601050228-01bbb1931b22/go.mod h1:kpwsk12EmLew5upagYY7GY0pfYCcupk39gWOCRROcvE=
 github.com/google/pprof v0.0.0-20210609004039-a478d1d731e9/go.mod h1:kpwsk12EmLew5upagYY7GY0pfYCcupk39gWOCRROcvE=
 github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1/go.mod h1:kpwsk12EmLew5upagYY7GY0pfYCcupk39gWOCRROcvE=
-github.com/google/pprof v0.0.0-20221212185716-aee1124e3a93/go.mod h1:dDKJzRmX4S37WGHujM7tX//fmj1uioxKzKxz3lo4HJo=
+github.com/google/pprof v0.0.0-20221219190121-3cb0bae90811/go.mod h1:dDKJzRmX4S37WGHujM7tX//fmj1uioxKzKxz3lo4HJo=
 github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
 github.com/google/trillian v1.3.11/go.mod h1:0tPraVHrSDkA3BO6vKX67zgLXs6SsOAbHEivX+9mPgw=
 github.com/google/uuid v0.0.0-20161128191214-064e2069ce9c/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
