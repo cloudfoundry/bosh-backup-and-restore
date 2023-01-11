@@ -196,6 +196,11 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 	}
 
 	if err != nil {
+		// special case: EOF != ErrUnexpectedEOF. This is okay and should not abort the session
+		switch err {
+			case io.EOF:				
+				return 0, nil
+		}
 		switch err := err.(type) {
 		case *ssh.ExitError:
 			return err.ExitStatus(), nil
