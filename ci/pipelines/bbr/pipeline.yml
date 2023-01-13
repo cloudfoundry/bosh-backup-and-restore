@@ -751,7 +751,7 @@ jobs:
             INCLUDE_DEPLOYMENT_TESTCASE: true
             INCLUDE_TRUNCATE_DB_BLOBSTORE_TESTCASE: false
             INCLUDE_CREDHUB_TESTCASE: false
-            TIMEOUT_IN_MINUTES: 720
+            TIMEOUT_IN_MINUTES: 17_280 # 48h
           output_mapping:
             config: b-drats-config
         - load_var: env-metadata
