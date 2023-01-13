@@ -33,7 +33,7 @@ groups:
   - build-rc
   - run-drats
   - run-b-drats
-  - update-tracker
+  - merge-pr
   - publish-to-github
   - upload-to-tanzunet
   - update-homebrew-formula
@@ -48,7 +48,7 @@ groups:
   - system-test-deployment
   - system-test-director
   - unclaim-env
-  - update-tracker
+  - merge-pr
 
 - name: release
   jobs:
@@ -599,7 +599,7 @@ jobs:
       action: unclaim
       env_file: env-pool/metadata
 
-- name: update-tracker
+- name: merge-pr
   plan:
   - in_parallel:
     - get: latest-pull-request
@@ -751,7 +751,7 @@ jobs:
             INCLUDE_DEPLOYMENT_TESTCASE: true
             INCLUDE_TRUNCATE_DB_BLOBSTORE_TESTCASE: false
             INCLUDE_CREDHUB_TESTCASE: false
-            TIMEOUT_IN_MINUTES: 720
+            TIMEOUT_IN_MINUTES: 17_280 # 48h
           output_mapping:
             config: b-drats-config
         - load_var: env-metadata
