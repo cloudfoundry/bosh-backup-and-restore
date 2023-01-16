@@ -12,7 +12,7 @@ require (
 	github.com/onsi/gomega v1.24.2
 	github.com/pivotal-cf-experimental/cf-webmock v0.0.0-20190222120028-6bf93e3bc5ed
 	github.com/pkg/errors v0.9.1
-	github.com/urfave/cli v1.22.10
+	github.com/urfave/cli v1.22.11
 	golang.org/x/crypto v0.5.0
 	gopkg.in/yaml.v2 v2.4.0
 )
