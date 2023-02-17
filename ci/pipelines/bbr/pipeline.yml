@@ -672,7 +672,7 @@ jobs:
         operations/enable-nfs-volume-service.yml
         operations/experimental/disable-interpolate-service-bindings.yml
         operations/experimental/enable-traffic-to-internal-networks.yml
-        operations/experimental/enable-smb-volume-service.yml
+        operations/enable-smb-volume-service.yml
         operations/backup-and-restore/skip-backup-restore-droplets-and-packages.yml
   - task: bosh-run-errand-nfsbrokerpush
     attempts: 5
@@ -751,7 +751,7 @@ jobs:
             INCLUDE_DEPLOYMENT_TESTCASE: true
             INCLUDE_TRUNCATE_DB_BLOBSTORE_TESTCASE: false
             INCLUDE_CREDHUB_TESTCASE: false
-            TIMEOUT_IN_MINUTES: 17_280 # 48h
+            TIMEOUT_IN_MINUTES: 2_880 # 48h
           output_mapping:
             config: b-drats-config
         - load_var: env-metadata
@@ -769,6 +769,7 @@ jobs:
           JUMPBOX_PRIVATE_KEY: ((.:env-metadata.ops_manager_private_key))
           JUMPBOX_USER: ubuntu
           BBR_BINARY: bbr-binary-release/releases/bbr
+          SSH_ALIVE_INTERVAL: 60 # in seconds
       ensure:
         put: pcf-2-11-pool
         params:
