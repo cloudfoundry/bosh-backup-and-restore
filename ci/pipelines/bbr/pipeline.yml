@@ -770,6 +770,7 @@ jobs:
           JUMPBOX_USER: ubuntu
           BBR_BINARY: bbr-binary-release/releases/bbr
           SSH_ALIVE_INTERVAL: 60 # in seconds
+          GINKGO_TIMEOUT: 48h0m0s #! 48h to be consistent with TIMEOUT_IN_MINUTES in the b-drats test config from the previous task.
       ensure:
         put: tas-env
         params:
