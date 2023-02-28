@@ -248,12 +248,12 @@ resources:
     json_key: ((gcp/service_accounts/bbr_bucket_owner.json_key))
     regexp: bbr-s3-config-validator.(.*).tgz
 
-- name: pcf-2-11-pool
+- name: tas-env
   type: pcf-pool
   source:
     api_token: ((toolsmiths.api_token))
     hostname: environments.toolsmiths.cf-app.com
-    pool_name: us_2_11_lts2
+    pool_name: us_3_0
 
 - name: cryogenics-ci
   type: git
@@ -557,7 +557,7 @@ jobs:
   plan:
   - in_parallel:
     - put: env-pool
-      resource: pcf-2-11-pool
+      resource: tas-env
       params:
         action: claim
     - get: s3-config-validator-artefacts
@@ -594,7 +594,7 @@ jobs:
       env-pool: env-pool
       bbr-s3-config-validator-test-artifacts: s3-config-validator-artefacts
   ensure:
-    put: pcf-2-11-pool
+    put: tas-env
     params:
       action: unclaim
       env_file: env-pool/metadata
@@ -737,7 +737,7 @@ jobs:
       - get: jammy-stemcell
     - do:
       - put: env-pool
-        resource: pcf-2-11-pool
+        resource: tas-env
         params:
           action: claim
       - in_parallel:
@@ -771,7 +771,7 @@ jobs:
           BBR_BINARY: bbr-binary-release/releases/bbr
           SSH_ALIVE_INTERVAL: 60 # in seconds
       ensure:
-        put: pcf-2-11-pool
+        put: tas-env
         params:
           action: unclaim
           env_file: env-pool/metadata
