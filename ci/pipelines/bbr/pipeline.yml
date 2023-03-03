@@ -253,7 +253,7 @@ resources:
   source:
     api_token: ((toolsmiths.api_token))
     hostname: environments.toolsmiths.cf-app.com
-    pool_name: us_3_0
+    pool_name: cryo_3_0
 
 - name: cryogenics-ci
   type: git
