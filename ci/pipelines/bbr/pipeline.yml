@@ -248,12 +248,12 @@ resources:
     json_key: ((gcp/service_accounts/bbr_bucket_owner.json_key))
     regexp: bbr-s3-config-validator.(.*).tgz
 
-- name: pcf-2-11-pool
+- name: tas-env
   type: pcf-pool
   source:
     api_token: ((toolsmiths.api_token))
     hostname: environments.toolsmiths.cf-app.com
-    pool_name: us_2_11_lts2
+    pool_name: cryo_3_0
 
 - name: cryogenics-ci
   type: git
@@ -272,7 +272,7 @@ resources:
   source:
     branch: main
     uri: https://github.com/cloudfoundry/cf-deployment-concourse-tasks.git
-    tag_filter: v12.*
+    # tag_filter: v12.*
 
 - name: cf-deployment
   type: git
@@ -557,7 +557,7 @@ jobs:
   plan:
   - in_parallel:
     - put: env-pool
-      resource: pcf-2-11-pool
+      resource: tas-env
       params:
         action: claim
     - get: s3-config-validator-artefacts
@@ -594,7 +594,7 @@ jobs:
       env-pool: env-pool
       bbr-s3-config-validator-test-artifacts: s3-config-validator-artefacts
   ensure:
-    put: pcf-2-11-pool
+    put: tas-env
     params:
       action: unclaim
       env_file: env-pool/metadata
@@ -672,7 +672,7 @@ jobs:
         operations/enable-nfs-volume-service.yml
         operations/experimental/disable-interpolate-service-bindings.yml
         operations/experimental/enable-traffic-to-internal-networks.yml
-        operations/experimental/enable-smb-volume-service.yml
+        operations/enable-smb-volume-service.yml
         operations/backup-and-restore/skip-backup-restore-droplets-and-packages.yml
   - task: bosh-run-errand-nfsbrokerpush
     attempts: 5
@@ -737,7 +737,7 @@ jobs:
       - get: jammy-stemcell
     - do:
       - put: env-pool
-        resource: pcf-2-11-pool
+        resource: tas-env
         params:
           action: claim
       - in_parallel:
@@ -751,7 +751,7 @@ jobs:
             INCLUDE_DEPLOYMENT_TESTCASE: true
             INCLUDE_TRUNCATE_DB_BLOBSTORE_TESTCASE: false
             INCLUDE_CREDHUB_TESTCASE: false
-            TIMEOUT_IN_MINUTES: 17_280 # 48h
+            TIMEOUT_IN_MINUTES: 2_880 # 48h
           output_mapping:
             config: b-drats-config
         - load_var: env-metadata
@@ -769,8 +769,10 @@ jobs:
           JUMPBOX_PRIVATE_KEY: ((.:env-metadata.ops_manager_private_key))
           JUMPBOX_USER: ubuntu
           BBR_BINARY: bbr-binary-release/releases/bbr
+          SSH_ALIVE_INTERVAL: 60 # in seconds
+          GINKGO_TIMEOUT: 48h0m0s #! 48h to be consistent with TIMEOUT_IN_MINUTES in the b-drats test config from the previous task.
       ensure:
-        put: pcf-2-11-pool
+        put: tas-env
         params:
           action: unclaim
           env_file: env-pool/metadata
