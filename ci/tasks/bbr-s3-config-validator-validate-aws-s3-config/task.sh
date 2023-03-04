@@ -8,7 +8,7 @@ OPS_MAN_URL=$(< "$pool_metadata" jq -r .ops_manager.url)
 OPS_MAN_USER=$(< "$pool_metadata" jq -r .ops_manager.username)
 OPS_MAN_PASS=$(< "$pool_metadata" jq -r .ops_manager.password)
 
-OM_CMD="om-6 --target ${OPS_MAN_URL} --username ${OPS_MAN_USER} --password ${OPS_MAN_PASS} -k"
+OM_CMD="om --target ${OPS_MAN_URL} --username ${OPS_MAN_USER} --password ${OPS_MAN_PASS} -k"
 
 # Set BOSH env vars
 eval "$($OM_CMD bosh-env)"
