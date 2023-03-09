@@ -24,23 +24,7 @@ toolsmiths_api_worker: &toolsmiths_api_worker nimbus-worker
 tanzunet_product_name: &tanzunet_product_name p-bosh-backup-and-restore
 
 groups:
-- name: all
-  jobs:
-  - claim-env
-  - system-test-deployment
-  - system-test-director
-  - unclaim-env
-  - build-rc
-  - run-drats
-  - run-b-drats
-  - merge-pr
-  - publish-to-github
-  - upload-to-tanzunet
-  - update-homebrew-formula
-  - test-build-s3-config-validator
-  - validate-aws-s3-config
-
-- name: pull-requests
+- name: test
   jobs:
   - test-build-s3-config-validator
   - validate-aws-s3-config
@@ -55,6 +39,7 @@ groups:
   - build-rc
   - run-drats
   - run-b-drats
+  - check-for-changes
   - publish-to-github
   - upload-to-tanzunet
   - update-homebrew-formula
@@ -63,12 +48,6 @@ resource_types:
 - name: github-release
   type: registry-image
   source: {repository: concourse/github-release-resource}
-
-- name: gitgat
-  type: docker-image
-  source:
-    repository: cryogenics/concourse-gitgat-resource
-    tag: latest
 
 - name: pivnet
   type: docker-image
@@ -103,12 +82,10 @@ resource_types:
     repository: cryogenics/pr-queue-resource
 
 resources:
-- name: every-3-weeks
-  type: gitgat
+- name: every-month
+  type: time
   source:
-    uri: https://github.com/cloudfoundry/bosh-backup-and-restore
-    branch: master
-    since: 3 weeks
+    interval: 720h # (24h * 30 days) as It's basically golang and clamav bumps
 
 - name: bbr-director-test-releases
   type: git
@@ -777,6 +754,25 @@ jobs:
           action: unclaim
           env_file: env-pool/metadata
 
+- name: check-for-changes
+  plan:
+  - in_parallel:
+    - get: every-month
+      trigger: true
+    - get: main
+      passed:
+        - build-rc
+    - get: bbr-artefacts
+      passed:
+        - run-drats
+        - run-b-drats
+    - get: s3-config-validator-artefacts
+      passed:
+        - build-rc
+    - get: release-candidate-version
+      passed:
+        - build-rc
+
 - name: publish-to-github
   serial: true
   serial_groups:
@@ -784,27 +780,26 @@ jobs:
     - only_1_job_should_bump_the_RELEASE_CANDIDATE_VERSION_at_a_time_to_avoid_race_condition
   plan:
   - in_parallel:
-    - get: every-3-weeks
-      trigger: true
     - get: cryogenics-ci
     - get: main
-      passed: [build-rc]
+      trigger: true
+      passed:
+        - check-for-changes
     - get: bbr-artefacts
       passed:
-        - run-drats
-        - run-b-drats
+        - check-for-changes
       params:
         unpack: true
     - get: s3-config-validator-artefacts
       params:
         unpack: true
       passed:
-        - build-rc
+        - check-for-changes
     - get: release-candidate-version
       params: 
         bump: final
       passed:
-        - build-rc
+        - check-for-changes
   - load_var: version-number
     file: release-candidate-version/number
   - task: promote-rc-binaries
@@ -855,9 +850,9 @@ jobs:
       - put: slack-cryo-notification
         params:
           text: |
-            A new release for $BUILD_PIPELINE_NAME has been published!
-            Release `((.:version-number))` is now available <((.:github-release-url))|here>
-            View the pipeline <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|here>
+            *BBR CLI*: version `((.:version-number))` has been published 🎉
+            Next steps (cc <!subteam^S028XABEHAP>):
+              1. Review the release notes <((.:github-release-url))|here>.
 
 - name: upload-to-tanzunet
   serial: true
@@ -894,17 +889,6 @@ jobs:
       s3_filepath_prefix: product-files/bosh-backup-restore
       file_glob: pivnet-artefacts/bbr-*
       override: true
-  - task: create-story
-    file: cryogenics-ci/tasks/tracker-automation/create-story/task.yml
-    input_mapping:
-      cryogenics-concourse-tasks: cryogenics-ci
-    params:
-      TRACKER_API_TOKEN: ((tracker.api_token))
-      TRACKER_PROJECT_ID: ((tracker.project_id))
-      STORY_TITLE: '**[BBR]** Publish ((.:version-number))'
-      STORY_ESTIMATE: 1
-      STORY_LABELS: 'bbr'
-      STORY_BLOCKERS: '{"description":"OSL file"}'
 
 - name: update-homebrew-formula
   serial: true
