@@ -1,4 +1,11 @@
 ---
+#!  WARNING: this pipeline is automatically set and manual changes will go away. 
+#!
+#!  To setetetpipeline manually run: 
+#!    fly set-pipeline -p bbr-cli -c <(ytt -f ci/pipelines/bbr-cli/pipeline.yml --data-values-file ci/pipelines/bbr-cli/values.yml)
+
+#@ load("@ytt:data", "data")
+
 test-bosh-director-ip: &test-bosh-director-ip 10.0.255.5
 maru-bosh-env: &maru-bosh-env
   BOSH_ENVIRONMENT: "((.:pooled-env.BOSH_ENVIRONMENT))"
@@ -83,7 +90,7 @@ resources:
 - name: every-month
   type: time
   source:
-    interval: 720h # (24h * 30 days) as It's basically golang and clamav bumps
+    interval: 720h #! (24h * 30 days) as It's basically golang and clamav bumps
 
 - name: bbr-director-test-releases
   type: git
@@ -220,7 +227,7 @@ resources:
   source:
     api_token: ((toolsmiths.api_token))
     hostname: environments.toolsmiths.cf-app.com
-    pool_name: cryo_3_0
+    pool_name: #@ data.values.tas_versions[-1]["pool_name"]
 
 - name: cryogenics-ci
   type: git
@@ -239,7 +246,7 @@ resources:
   source:
     branch: main
     uri: https://github.com/cloudfoundry/cf-deployment-concourse-tasks.git
-    # tag_filter: v12.*
+    #! tag_filter: v12.*
 
 - name: cf-deployment
   type: git
@@ -718,7 +725,7 @@ jobs:
             INCLUDE_DEPLOYMENT_TESTCASE: true
             INCLUDE_TRUNCATE_DB_BLOBSTORE_TESTCASE: false
             INCLUDE_CREDHUB_TESTCASE: false
-            TIMEOUT_IN_MINUTES: 2_880 # 48h
+            TIMEOUT_IN_MINUTES: 2_880 #! 48h
           output_mapping:
             config: b-drats-config
         - load_var: env-metadata
@@ -736,7 +743,7 @@ jobs:
           JUMPBOX_PRIVATE_KEY: ((.:env-metadata.ops_manager_private_key))
           JUMPBOX_USER: ubuntu
           BBR_BINARY: bbr-binary-release/releases/bbr
-          SSH_ALIVE_INTERVAL: 60 # in seconds
+          SSH_ALIVE_INTERVAL: 60 #! in seconds
           GINKGO_TIMEOUT: 48h0m0s #! 48h to be consistent with TIMEOUT_IN_MINUTES in the b-drats test config from the previous task.
       ensure:
         put: tas-env
