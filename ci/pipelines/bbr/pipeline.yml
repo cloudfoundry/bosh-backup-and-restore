@@ -21,7 +21,6 @@ maru-lite-bosh-env: &maru-lite-bosh-env
 test-bosh-director-deployment: &test-bosh-director-deployment test-bosh-director
 
 toolsmiths_api_worker: &toolsmiths_api_worker nimbus-worker
-tanzunet_product_name: &tanzunet_product_name p-bosh-backup-and-restore
 
 groups:
 - name: test
@@ -41,7 +40,6 @@ groups:
   - run-b-drats
   - check-for-changes
   - publish-to-github
-  - upload-to-tanzunet
   - update-homebrew-formula
 
 resource_types:
@@ -135,14 +133,6 @@ resources:
     uri: git@github.com:cloudfoundry/homebrew-tap.git
     branch: master
     private_key: ((homebrew_ci_bot.private_key))
-
-- name: tanzunet
-  type: pivnet
-  icon: alpha-p-box
-  source:
-    api_token: ((pivnet.api_token))
-    product_slug: *tanzunet_product_name
-    copy_metadata: true
 
 - name: bbr-artefacts
   type: s3
@@ -853,42 +843,6 @@ jobs:
             *BBR CLI*: version `((.:version-number))` has been published 🎉
             Next steps (cc <!subteam^S028XABEHAP>):
               1. Review the release notes <((.:github-release-url))|here>.
-
-- name: upload-to-tanzunet
-  serial: true
-  plan:
-  - in_parallel:
-    - get: cryogenics-ci
-    - get: release-version
-      passed:
-      - publish-to-github
-    - get: main
-      passed:
-      - publish-to-github
-    - get: bbr-release
-      trigger: true
-      params:
-        globs:
-          - bbr-*
-      passed:
-      - publish-to-github
-  - load_var: version-number
-    file: release-version/number
-  - task: generate-artifact-and-metadata
-    file: main/ci/tasks/prepare-artefacts-for-pivnet/task.yml
-    input_mapping:
-      version: release-version
-      promoted-artefacts: bbr-release
-      repo: main
-    params:
-      TEMPLATE_PATH: ci/tasks/prepare-artefacts-for-pivnet/release.yml.erb
-      VERSION_PATH: number
-  - put: tanzunet
-    params:
-      metadata_file: pivnet-artefacts/release.yml
-      s3_filepath_prefix: product-files/bosh-backup-restore
-      file_glob: pivnet-artefacts/bbr-*
-      override: true
 
 - name: update-homebrew-formula
   serial: true
