@@ -39,7 +39,6 @@ groups:
   - system-test-director
   - unclaim-env
   - merge-pr
-
 - name: release
   jobs:
   - build-rc
@@ -48,6 +47,9 @@ groups:
   - check-for-changes
   - publish-to-github
   - update-homebrew-formula
+- name: bump
+  jobs:
+  - bump-golang
 
 resource_types:
 - name: github-release
@@ -87,6 +89,13 @@ resource_types:
     repository: cryogenics/pr-queue-resource
 
 resources:
+- name: golang-release
+  type: git
+  icon: tag
+  source:
+    uri: https://github.com/bosh-packages/golang-release.git
+    tag_filter: v*
+
 - name: every-month
   type: time
   source:
@@ -132,6 +141,13 @@ resources:
     private_key: ((github.ssh_key))
     branch: master
     disable_git_lfs: true
+
+- name: bosh-backup-and-restore-golang-bump-branch
+  icon: github
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/bosh-backup-and-restore.git
+    private_key: ((github.ssh_key))
 
 - name: homebrew-tap
   type: git
@@ -911,3 +927,59 @@ jobs:
     params:
       action: unclaim
       env_file: additional-environment/metadata
+
+- name: bump-golang
+  plan:
+  - in_parallel:
+    - get: cryogenics-concourse-tasks
+      resource: cryogenics-ci
+    - get: golang-release
+      trigger: true
+    - get: bosh-backup-and-restore
+      resource: main
+      params:
+        branch: master
+  - task: update-gomod-directive-for-bbr-cli
+    file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    params:
+      PATH_TO_GO_MODULE: .
+    input_mapping:
+      bosh-release-repo-with-vendored-golang: golang-release
+      golang-project-repo: bosh-backup-and-restore
+    output_mapping:
+  - task: update-gomod-directive-for-s3-validator
+    file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    params:
+      PATH_TO_GO_MODULE: s3-config-validator/src
+    input_mapping:
+      bosh-release-repo-with-vendored-golang: golang-release
+      golang-project-repo: bosh-backup-and-restore
+    output_mapping:
+      golang-project-repo: bosh-backup-and-restore
+  - load_var: golang-release-version
+    file: golang-release/.git/describe_ref
+  - put: bosh-backup-and-restore-golang-bump-branch
+    params:
+      repository: bosh-backup-and-restore
+      branch: &golang-vendor-branch bump-golang-based-on-golang-vendor-((.:golang-release-version))
+      force: true
+  - try:
+      task: create-golang-vendor-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      params:
+        BASE: master
+        BRANCH: *golang-vendor-branch
+        LABELS: dependencies
+        TITLE: Bump Golang based on golang-vendor-((.:golang-release-version))
+        MESSAGE: |
+          This is an automatically generated Pull Request from the Cryogenics CI Bot.
+
+          I have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and automatically bumped this package to benefit from the latest changes.
+
+          If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
+      input_mapping:
+        source-repo: bosh-backup-and-restore-golang-bump-branch
+
+
+
+
