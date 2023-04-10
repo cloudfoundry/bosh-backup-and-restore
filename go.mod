@@ -13,6 +13,6 @@ require (
 	github.com/pivotal-cf-experimental/cf-webmock v0.0.0-20190222120028-6bf93e3bc5ed
 	github.com/pkg/errors v0.9.1
 	github.com/urfave/cli v1.22.12
-	golang.org/x/crypto v0.7.0
+	golang.org/x/crypto v0.8.0
 	gopkg.in/yaml.v2 v2.4.0
 )
