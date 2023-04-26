@@ -20,6 +20,7 @@ type LiveBucket struct {
 	Secret   string       `json:"aws_secret_access_key"`
 	Endpoint string       `json:"endpoint"`
 	Backup   *BackupBucket `json:"backup,omitempty"`
+	UseIAMProfile bool `json:"use_iam_profile"`
 }
 
 type BackupBucket struct {
@@ -68,13 +69,16 @@ func validateConfig(config Config, versioned bool) error {
 			emptyFieldNames = append(emptyFieldNames, liveBucketName+".region")
 		}
 
-		if liveBucket.ID == "" {
-			emptyFieldNames = append(emptyFieldNames, liveBucketName+".aws_access_key_id")
+		if ! liveBucket.UseIAMProfile {
+			if liveBucket.ID == "" {
+				emptyFieldNames = append(emptyFieldNames, liveBucketName+".aws_access_key_id")
+			}
+
+			if liveBucket.Secret == "" {
+				emptyFieldNames = append(emptyFieldNames, liveBucketName+".aws_secret_access_key")
+			}
 		}
 
-		if liveBucket.Secret == "" {
-			emptyFieldNames = append(emptyFieldNames, liveBucketName+".aws_secret_access_key")
-		}
 		if !versioned {
 			if liveBucket.Backup.Name == "" {
 				emptyFieldNames = append(emptyFieldNames, liveBucketName+".backup.name")
