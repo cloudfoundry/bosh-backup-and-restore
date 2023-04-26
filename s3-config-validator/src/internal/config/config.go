@@ -105,11 +105,7 @@ func validateConfig(config Config, versioned bool) error {
 		return fmt.Errorf("invalid config: fields %v are empty", emptyFieldNames)
 	}
 	if len(bucketsWithTooManyCreds) > 0 {
-		explanation := ""
-		for _, bucket := range bucketsWithTooManyCreds {
-			explanation += fmt.Sprintf(" if %[1]s.use_iam_profile is true, then %[1]s.aws_access_key_id and %[1]s.aws_secret_access_key should be empty", bucket)
-		}
-		return fmt.Errorf("invalid config:%s", explanation)
+		return fmt.Errorf("invalid config: because use_iam_profile is set to true, there should be no aws_access_key_id or aws_secret_access_key in the following buckets: %v", bucketsWithTooManyCreds)
 	}
 	if len(missingUnversionedBackupBuckets) > 0 {
 		return fmt.Errorf("invalid config: backup buckets must be specified when taking unversioned backups. The following buckets are missing backup buckets: %v", missingUnversionedBackupBuckets)

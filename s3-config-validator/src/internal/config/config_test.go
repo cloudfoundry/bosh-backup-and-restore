@@ -148,9 +148,7 @@ var _ = Describe("Config", func() {
 
 						conf, err := config.Read(testFile, true)
 
-						Expect(err).To(MatchError("invalid config: if buildpacks.use_iam_profile" +
-							" is true, then buildpacks.aws_access_key_id and"+
-							" buildpacks.aws_secret_access_key should be empty"))
+						Expect(err).To(MatchError("invalid config: because use_iam_profile is set to true, there should be no aws_access_key_id or aws_secret_access_key in the following buckets: [buildpacks]"))
 						Expect(conf).To(Equal(config.Config{}))
 					})
 				})
@@ -364,9 +362,7 @@ var _ = Describe("Config", func() {
 
 						conf, err := config.Read(testFile, false)
 
-						Expect(err).To(MatchError("invalid config: if buildpacks.use_iam_profile" +
-							" is true, then buildpacks.aws_access_key_id and"+
-							" buildpacks.aws_secret_access_key should be empty"))
+						Expect(err).To(MatchError("invalid config: because use_iam_profile is set to true, there should be no aws_access_key_id or aws_secret_access_key in the following buckets: [buildpacks]"))
 						Expect(conf).To(Equal(config.Config{}))
 					})
 				})
