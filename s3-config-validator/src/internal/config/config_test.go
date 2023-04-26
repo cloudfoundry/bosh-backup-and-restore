@@ -47,6 +47,7 @@ var _ = Describe("Config", func() {
         "region": ""
     }
 	}`
+
 		invalidIAMPlusCredsConfig := `{
     "buildpacks": {
         "aws_access_key_id": "test_access_key_id",
@@ -241,6 +242,17 @@ var _ = Describe("Config", func() {
     }
 	}`
 
+		invalidIAMPlusCredsConfig := `{
+    "buildpacks": {
+        "aws_access_key_id": "test_access_key_id",
+        "aws_secret_access_key": "test_secret_access_key",
+        "endpoint": "test_endpoint",
+        "name": "test_name",
+        "region": "test_region",
+        "use_iam_profile": true
+    }
+}`
+
 		Context("given a path to an existing, readable file", func() {
 			Context("contents are valid", func() {
 				It("reads the file contents", func() {
@@ -327,6 +339,20 @@ var _ = Describe("Config", func() {
 							" [buildpacks.name buildpacks.region buildpacks.aws_access_key_id" +
 							" buildpacks.aws_secret_access_key buildpacks.backup.name buildpacks.backup.region]" +
 							" are empty"))
+						Expect(conf).To(Equal(config.Config{}))
+					})
+				})
+
+				When("we try to use IAM and a Secret Access Key at the same time", func() {
+					It("returns a helpful error", func() {
+						testFile := CreateFile(invalidIAMPlusCredsConfig)
+						defer DeleteFile(testFile)
+
+						conf, err := config.Read(testFile, false)
+
+						Expect(err).To(MatchError("invalid config: if buildpacks.use_iam_profile" +
+							" is true, then buildpacks.aws_access_key_id and"+
+							" buildpacks.aws_secret_access_key should be empty"))
 						Expect(conf).To(Equal(config.Config{}))
 					})
 				})

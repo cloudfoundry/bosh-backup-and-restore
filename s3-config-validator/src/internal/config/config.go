@@ -85,12 +85,14 @@ func validateConfig(config Config, versioned bool) error {
 		}
 
 		if !versioned {
-			if liveBucket.Backup.Name == "" {
-				emptyFieldNames = append(emptyFieldNames, liveBucketName+".backup.name")
-			}
+			if liveBucket.Backup != nil {
+				if liveBucket.Backup.Name == "" {
+					emptyFieldNames = append(emptyFieldNames, liveBucketName+".backup.name")
+				}
 
-			if liveBucket.Backup.Region == "" {
-				emptyFieldNames = append(emptyFieldNames, liveBucketName+".backup.region")
+				if liveBucket.Backup.Region == "" {
+					emptyFieldNames = append(emptyFieldNames, liveBucketName+".backup.region")
+				}
 			}
 		}
 
