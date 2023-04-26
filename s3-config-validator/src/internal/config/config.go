@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"sort"
 )
 
 var errEmptyJSON = errors.New("invalid config: json was empty")
@@ -101,14 +102,22 @@ func validateConfig(config Config, versioned bool) error {
 
 	}
 
+	errorMessage := ""
 	if len(emptyFieldNames) > 0 {
-		return fmt.Errorf("invalid config: fields %v are empty", emptyFieldNames)
+		sort.Sort(sort.StringSlice(emptyFieldNames))
+		errorMessage += fmt.Sprintf("invalid config: fields %v are empty\n", emptyFieldNames)
 	}
 	if len(bucketsWithTooManyCreds) > 0 {
-		return fmt.Errorf("invalid config: because use_iam_profile is set to true, there should be no aws_access_key_id or aws_secret_access_key in the following buckets: %v", bucketsWithTooManyCreds)
+		sort.Sort(sort.StringSlice(bucketsWithTooManyCreds))
+		errorMessage += fmt.Sprintf("invalid config: because use_iam_profile is set to true, there should be no aws_access_key_id or aws_secret_access_key in the following buckets: %v\n", bucketsWithTooManyCreds)
 	}
 	if len(missingUnversionedBackupBuckets) > 0 {
-		return fmt.Errorf("invalid config: backup buckets must be specified when taking unversioned backups. The following buckets are missing backup buckets: %v", missingUnversionedBackupBuckets)
+		sort.Sort(sort.StringSlice(missingUnversionedBackupBuckets))
+		errorMessage += fmt.Sprintf("invalid config: backup buckets must be specified when taking unversioned backups. The following buckets are missing backup buckets: %v\n", missingUnversionedBackupBuckets)
+	}
+
+	if errorMessage != "" {
+		return fmt.Errorf(errorMessage)
 	}
 
 	return nil
