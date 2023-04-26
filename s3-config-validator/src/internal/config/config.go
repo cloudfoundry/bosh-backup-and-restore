@@ -60,6 +60,7 @@ func validateConfig(config Config, versioned bool) error {
 
 	var emptyFieldNames []string
 	var bucketsWithTooManyCreds []string
+	var missingUnversionedBackupBuckets []string
 
 	for liveBucketName, liveBucket := range config.Buckets {
 		if liveBucket.Name == "" {
@@ -85,7 +86,9 @@ func validateConfig(config Config, versioned bool) error {
 		}
 
 		if !versioned {
-			if liveBucket.Backup != nil {
+			if liveBucket.Backup == nil {
+				missingUnversionedBackupBuckets = append(missingUnversionedBackupBuckets, liveBucketName)
+			} else {
 				if liveBucket.Backup.Name == "" {
 					emptyFieldNames = append(emptyFieldNames, liveBucketName+".backup.name")
 				}
@@ -107,6 +110,9 @@ func validateConfig(config Config, versioned bool) error {
 			explanation += fmt.Sprintf(" if %[1]s.use_iam_profile is true, then %[1]s.aws_access_key_id and %[1]s.aws_secret_access_key should be empty", bucket)
 		}
 		return fmt.Errorf("invalid config:%s", explanation)
+	}
+	if len(missingUnversionedBackupBuckets) > 0 {
+		return fmt.Errorf("invalid config: backup buckets must be specified when taking unversioned backups. The following buckets are missing backup buckets: %v", missingUnversionedBackupBuckets)
 	}
 
 	return nil

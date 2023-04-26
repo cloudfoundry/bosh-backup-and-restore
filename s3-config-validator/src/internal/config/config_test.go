@@ -249,7 +249,21 @@ var _ = Describe("Config", func() {
         "endpoint": "test_endpoint",
         "name": "test_name",
         "region": "test_region",
-        "use_iam_profile": true
+        "use_iam_profile": true,
+        "backup": {
+            "name": "another_test_name",
+            "region": "another_test_region"
+        }
+    }
+}`
+
+		invalidMissingBackupConfig := `{
+    "buildpacks": {
+        "aws_access_key_id": "test_access_key_id",
+        "aws_secret_access_key": "test_secret_access_key",
+        "endpoint": "test_endpoint",
+        "name": "test_name",
+        "region": "test_region"
     }
 }`
 
@@ -353,6 +367,18 @@ var _ = Describe("Config", func() {
 						Expect(err).To(MatchError("invalid config: if buildpacks.use_iam_profile" +
 							" is true, then buildpacks.aws_access_key_id and"+
 							" buildpacks.aws_secret_access_key should be empty"))
+						Expect(conf).To(Equal(config.Config{}))
+					})
+				})
+
+				When("our unversioned bucket config is missing the backup buckets", func() {
+					It("returns a helpful error", func() {
+						testFile := CreateFile(invalidMissingBackupConfig)
+						defer DeleteFile(testFile)
+
+						conf, err := config.Read(testFile, false)
+
+						Expect(err).To(MatchError("invalid config: backup buckets must be specified when taking unversioned backups. The following buckets are missing backup buckets: [buildpacks]"))
 						Expect(conf).To(Equal(config.Config{}))
 					})
 				})
