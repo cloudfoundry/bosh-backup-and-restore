@@ -59,6 +59,7 @@ func validateConfig(config Config, versioned bool) error {
 	}
 
 	var emptyFieldNames []string
+	var bucketsWithTooManyCreds []string
 
 	for liveBucketName, liveBucket := range config.Buckets {
 		if liveBucket.Name == "" {
@@ -69,7 +70,11 @@ func validateConfig(config Config, versioned bool) error {
 			emptyFieldNames = append(emptyFieldNames, liveBucketName+".region")
 		}
 
-		if ! liveBucket.UseIAMProfile {
+		if liveBucket.UseIAMProfile {
+			if liveBucket.ID != "" || liveBucket.Secret != "" {
+				bucketsWithTooManyCreds = append(bucketsWithTooManyCreds, liveBucketName)
+			}
+		} else {
 			if liveBucket.ID == "" {
 				emptyFieldNames = append(emptyFieldNames, liveBucketName+".aws_access_key_id")
 			}
@@ -93,6 +98,13 @@ func validateConfig(config Config, versioned bool) error {
 
 	if len(emptyFieldNames) > 0 {
 		return fmt.Errorf("invalid config: fields %v are empty", emptyFieldNames)
+	}
+	if len(bucketsWithTooManyCreds) > 0 {
+		explanation := ""
+		for _, bucket := range bucketsWithTooManyCreds {
+			explanation += fmt.Sprintf(" if %[1]s.use_iam_profile is true, then %[1]s.aws_access_key_id and %[1]s.aws_secret_access_key should be empty", bucket)
+		}
+		return fmt.Errorf("invalid config:%s", explanation)
 	}
 
 	return nil
