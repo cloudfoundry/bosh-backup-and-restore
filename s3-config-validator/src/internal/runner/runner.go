@@ -45,23 +45,23 @@ func (b Bucket) String() string {
 func (r *ProbeRunner) Run() (succeeded bool) {
 	succeeded = true
 
-	fmt.Fprintf(r.Writer, "Validating %s ...\n", r.Bucket)
+	_, _ = fmt.Fprintf(r.Writer, "Validating %s ...\n", r.Bucket)
 
-	for _, probe := range r.ProbeSet {
-		fmt.Fprintf(r.Writer, " * %s ... ", probe.Name)
+	for _, namedProbe := range r.ProbeSet {
+		_, _ = fmt.Fprintf(r.Writer, " * %s ... ", namedProbe.Name)
 
-		err := probe.Probe(r.Bucket.Name)
+		err := namedProbe.Probe(r.Bucket.Name)
 
 		if err != nil {
 			succeeded = false
 
-			fmt.Fprintf(r.Writer, "No [reason: %s]\n", err.Error())
+			_, _ = fmt.Fprintf(r.Writer, "No [reason: %s]\n", err.Error())
 		} else {
-			fmt.Fprint(r.Writer, "Yes\n")
+			_, _ = fmt.Fprint(r.Writer, "Yes\n")
 		}
 	}
 
-	fmt.Fprintf(r.Writer, "\n")
+	_, _ = fmt.Fprintf(r.Writer, "\n")
 
 	return
 }
@@ -118,5 +118,5 @@ func NewProbeRunner(region, endpoint, id, secret string, bucket Bucket, readOnly
 }
 
 func newS3Client(region, endpoint, id, secret string, useIAMProfile bool) (*s3.S3Client, error) {
-	return s3.NewS3Client(region, endpoint, id, secret, false)
+	return s3.NewS3Client(region, endpoint, id, secret, useIAMProfile)
 }
