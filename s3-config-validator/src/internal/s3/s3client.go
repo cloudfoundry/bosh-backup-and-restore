@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
@@ -13,8 +14,8 @@ type S3Client struct {
 	S3Client *s3.S3
 }
 
-func NewS3Client(region, endpoint, id, secret string) (*S3Client, error) {
-	s3client, err := newS3Client(region, endpoint, id, secret)
+func NewS3Client(region, endpoint, id, secret string, useIAMProfile bool) (*S3Client, error) {
+	s3client, err := newS3Client(region, endpoint, id, secret, useIAMProfile)
 	if err != nil {
 		return &S3Client{}, err
 	}
@@ -24,8 +25,19 @@ func NewS3Client(region, endpoint, id, secret string) (*S3Client, error) {
 	}, nil
 }
 
-func newS3Client(region, endpoint, id, secret string) (client *s3.S3, err error) {
+var injectableCredIAMProvider = ec2rolecreds.NewCredentials
+
+func newS3Client(region, endpoint, id, secret string, useIAMProfile bool) (client *s3.S3, err error) {
 	creds := credentials.NewStaticCredentials(id, secret, "")
+
+	if useIAMProfile {
+		intermediateSession, err := session.NewSession(aws.NewConfig().WithRegion(region))
+		if err != nil {
+			return nil, err
+		}
+
+		creds = injectableCredIAMProvider(intermediateSession)
+	}
 
 	session, err := session.NewSession(&aws.Config{
 		Region:           &region,
@@ -115,8 +127,8 @@ func (p *S3Client) CanGetObjectVersions(bucket string) (errListObjects error) {
 	}, func(output *s3.ListObjectVersionsOutput, lastPage bool) bool {
 		for _, content := range output.Versions {
 			_, errGetObject := p.S3Client.HeadObject(&s3.HeadObjectInput{
-				Bucket: aws.String(bucket),
-				Key:    content.Key,
+				Bucket:    aws.String(bucket),
+				Key:       content.Key,
 				VersionId: content.VersionId,
 			})
 			if errGetObject != nil {

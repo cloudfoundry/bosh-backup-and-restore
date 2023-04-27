@@ -116,5 +116,5 @@ func NewProbeRunner(region, endpoint, id, secret string, bucket Bucket, readOnly
 }
 
 func newS3Client(region, endpoint, id, secret string) (*s3.S3Client, error) {
-	return s3.NewS3Client(region, endpoint, id, secret)
+	return s3.NewS3Client(region, endpoint, id, secret, false)
 }
