@@ -81,6 +81,7 @@ func NewProbeRunners(resource string, bucket config.LiveBucket, readOnly, versio
 		},
 		readOnly,
 		versioned,
+		bucket.UseIAMProfile,
 	)
 
 	if !versioned {
@@ -93,6 +94,7 @@ func NewProbeRunners(resource string, bucket config.LiveBucket, readOnly, versio
 			},
 			readOnly,
 			false,
+			bucket.UseIAMProfile,
 		)
 		return []ProbeRunner{liveProbeRunner, backupProbeRunner}
 	}
@@ -103,8 +105,8 @@ func NewProbeRunners(resource string, bucket config.LiveBucket, readOnly, versio
 
 var injectableS3Client = newS3Client
 
-func NewProbeRunner(region, endpoint, id, secret string, bucket Bucket, readOnly, versioned bool) ProbeRunner {
-	s3Client, _ := injectableS3Client(region, endpoint, id, secret)
+func NewProbeRunner(region, endpoint, id, secret string, bucket Bucket, readOnly, versioned, useIAMProfile bool) ProbeRunner {
+	s3Client, _ := injectableS3Client(region, endpoint, id, secret, useIAMProfile)
 
 	probeSet := probe.NewSet(s3Client, readOnly, versioned)
 
@@ -115,6 +117,6 @@ func NewProbeRunner(region, endpoint, id, secret string, bucket Bucket, readOnly
 	}
 }
 
-func newS3Client(region, endpoint, id, secret string) (*s3.S3Client, error) {
+func newS3Client(region, endpoint, id, secret string, useIAMProfile bool) (*s3.S3Client, error) {
 	return s3.NewS3Client(region, endpoint, id, secret, false)
 }

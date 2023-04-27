@@ -6,11 +6,11 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/s3"
 	"io"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/probe"
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/runner"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/probe"
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/runner"
 )
 
 func SucceedingProbe(string) error {
@@ -102,55 +102,100 @@ var _ = Describe("ProbeRunner", func() {
 
 type NewS3ClientArgs struct {
 	Region, Endpoint, Id, Secret string
+	UseIAMProfile                bool
 }
 
 var _ = Describe("Versioned", func() {
+	When("we are not using IAM Profiles", func() {
+		It("should construct a live probe runner with bucket secrets", func() {
+			var newS3ClientArgs []NewS3ClientArgs
 
-	It("should construct a live probe runner", func() {
-		var newS3ClientArgs []NewS3ClientArgs
-
-		SetNewS3Client(func(region, endpoint, id, secret string) (*s3.S3Client, error) {
-			newS3ClientArgs = append(newS3ClientArgs, NewS3ClientArgs{
-				Region:   region,
-				Endpoint: endpoint,
-				Id:       id,
-				Secret:   secret,
+			SetNewS3Client(func(region, endpoint, id, secret string, useIAMProfile bool) (*s3.S3Client, error) {
+				newS3ClientArgs = append(newS3ClientArgs, NewS3ClientArgs{
+					Region:        region,
+					Endpoint:      endpoint,
+					Id:            id,
+					Secret:        secret,
+					UseIAMProfile: useIAMProfile,
+				})
+				return NewS3ClientImpl(region, endpoint, id, secret, useIAMProfile)
 			})
-			return NewS3ClientImpl(region, endpoint, id, secret)
+
+			probeRunners := NewProbeRunners(
+				"test-versioned-resource",
+				config.LiveBucket{
+					Region:        "test-live-region",
+					Endpoint:      "test-live-endpoint",
+					ID:            "test-id",
+					Secret:        "test-secret",
+					Name:          "test-live-bucket",
+					Backup:        &config.BackupBucket{},
+					UseIAMProfile: false,
+				},
+				true,
+				true,
+			)
+
+			Expect(newS3ClientArgs).To(ConsistOf(
+				NewS3ClientArgs{
+					Region:   "test-live-region",
+					Endpoint: "test-live-endpoint",
+					Id:       "test-id",
+					Secret:   "test-secret",
+				}))
+
+			var buckets []Bucket
+			for _, probeRunner := range probeRunners {
+				buckets = append(buckets, probeRunner.Bucket)
+			}
+			Expect(buckets).To(ConsistOf(
+				Bucket{
+					Resource: "test-versioned-resource",
+					Name:     "test-live-bucket",
+					Type:     Live,
+				}))
 		})
+	})
 
-		probeRunners := NewProbeRunners(
-			"test-versioned-resource",
-			config.LiveBucket{
-				Region:   "test-live-region",
-				Endpoint: "test-live-endpoint",
-				ID:       "test-id",
-				Secret:   "test-secret",
-				Name:     "test-live-bucket",
-				Backup: &config.BackupBucket{},
-			},
-			true,
-			true,
-		)
+	When("we are using IAM Profiles", func() {
+		It("should construct a live probe runner without bucket secrets", func() {
+			var newS3ClientArgs []NewS3ClientArgs
 
-		Expect(newS3ClientArgs).To(ConsistOf(
-			NewS3ClientArgs{
-				Region:   "test-live-region",
-				Endpoint: "test-live-endpoint",
-				Id:       "test-id",
-				Secret:   "test-secret",
-			}))
+			SetNewS3Client(func(region, endpoint, id, secret string, useIAMProfile bool) (*s3.S3Client, error) {
+				newS3ClientArgs = append(newS3ClientArgs, NewS3ClientArgs{
+					Region:        region,
+					Endpoint:      endpoint,
+					Id:            id,
+					Secret:        secret,
+					UseIAMProfile: useIAMProfile,
+				})
+				return NewS3ClientImpl(region, endpoint, id, secret, useIAMProfile)
+			})
 
-		var buckets []Bucket
-		for _, probeRunner := range probeRunners {
-			buckets = append(buckets, probeRunner.Bucket)
-		}
-		Expect(buckets).To(ConsistOf(
-			Bucket{
-				Resource: "test-versioned-resource",
-				Name:     "test-live-bucket",
-				Type:     Live,
-			}))
+			NewProbeRunners(
+				"test-versioned-resource",
+				config.LiveBucket{
+					Region:        "test-live-region",
+					Endpoint:      "test-live-endpoint",
+					ID:            "",
+					Secret:        "",
+					Name:          "test-live-bucket",
+					Backup:        &config.BackupBucket{},
+					UseIAMProfile: true,
+				},
+				true,
+				true,
+			)
+
+			Expect(newS3ClientArgs).To(ConsistOf(
+				NewS3ClientArgs{
+					Region:        "test-live-region",
+					Endpoint:      "test-live-endpoint",
+					Id:            "",
+					Secret:        "",
+					UseIAMProfile: true,
+				}))
+		})
 	})
 })
 
@@ -159,14 +204,15 @@ var _ = Describe("Unversioned", func() {
 	It("should construct a live and a backup bucket probe runner", func() {
 		var newS3ClientArgs []NewS3ClientArgs
 
-		SetNewS3Client(func(region, endpoint, id, secret string) (*s3.S3Client, error) {
+		SetNewS3Client(func(region, endpoint, id, secret string, useIAMProfile bool) (*s3.S3Client, error) {
 			newS3ClientArgs = append(newS3ClientArgs, NewS3ClientArgs{
-				Region:   region,
-				Endpoint: endpoint,
-				Id:       id,
-				Secret:   secret,
+				Region:        region,
+				Endpoint:      endpoint,
+				Id:            id,
+				Secret:        secret,
+				UseIAMProfile: useIAMProfile,
 			})
-			return NewS3ClientImpl(region, endpoint, id, secret)
+			return NewS3ClientImpl(region, endpoint, id, secret, useIAMProfile)
 		})
 
 		probeRunners := NewProbeRunners(
