@@ -1,12 +1,13 @@
 package config_test
 
 import (
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/config"
 	"io/ioutil"
 	"os"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/config"
 )
 
 var _ = Describe("Config", func() {
@@ -52,11 +53,19 @@ var _ = Describe("Config", func() {
     "buildpacks": {
         "aws_access_key_id": "test_access_key_id",
         "aws_secret_access_key": "test_secret_access_key",
-        "endpoint": "test_endpoint",
         "name": "test_name",
         "region": "test_region",
         "use_iam_profile": true
     }
+}`
+
+		invalidIAMPlusEndpointConfig := `{
+  "buildpacks": {
+    "endpoint": "test_endpoint",
+    "name": "test_name",
+    "region": "test_region",
+    "use_iam_profile": true
+  }
 }`
 
 		Context("given a path to an existing, readable file", func() {
@@ -153,6 +162,17 @@ var _ = Describe("Config", func() {
 						Expect(conf).To(Equal(config.Config{}))
 					})
 				})
+
+				When("we try to use IAM and an Endpoint at the same time", func() {
+					It("should return a helpful error message", func() {
+						testFile := CreateFile(invalidIAMPlusEndpointConfig)
+						defer DeleteFile(testFile)
+
+						conf, err := config.Read(testFile, true)
+						Expect(conf).To(Equal(config.Config{}))
+						Expect(err).To(MatchError("invalid config: because use_iam_profile is set to true, the endpoint field must not be set in the following buckets: [buildpacks]\n"))
+					})
+				})
 			})
 		})
 
@@ -245,7 +265,6 @@ var _ = Describe("Config", func() {
     "buildpacks": {
         "aws_access_key_id": "test_access_key_id",
         "aws_secret_access_key": "test_secret_access_key",
-        "endpoint": "test_endpoint",
         "name": "test_name",
         "region": "test_region",
         "use_iam_profile": true,
@@ -254,6 +273,18 @@ var _ = Describe("Config", func() {
             "region": "another_test_region"
         }
     }
+}`
+		invalidIAMPlusEndpointConfig := `{
+  "buildpacks": {
+    "endpoint": "test_endpoint",
+    "name": "test_name",
+    "region": "test_region",
+    "use_iam_profile": true,
+    "backup": {
+      "name": "another_test_name",
+      "region": "another_test_region"
+    }
+  }
 }`
 
 		invalidMissingBackupConfig := `{
@@ -404,6 +435,18 @@ var _ = Describe("Config", func() {
 
 						Expect(err).To(MatchError("invalid config: because use_iam_profile is set to true, there should be no aws_access_key_id or aws_secret_access_key in the following buckets: [buildpacks]\n"))
 						Expect(conf).To(Equal(config.Config{}))
+					})
+				})
+
+				When("we try to use IAM and supply an endpoint", func() {
+					It("returns a helpful error", func() {
+						testFile := CreateFile(invalidIAMPlusEndpointConfig)
+						defer DeleteFile(testFile)
+
+						conf, err := config.Read(testFile, false)
+
+						Expect(conf).To(Equal(config.Config{}))
+						Expect(err).To(MatchError("invalid config: because use_iam_profile is set to true, the endpoint field must not be set in the following buckets: [buildpacks]\n"))
 					})
 				})
 
