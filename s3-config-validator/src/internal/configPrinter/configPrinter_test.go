@@ -85,7 +85,8 @@ var _ = Describe("PrintConfig", func() {
       "backup": {
         "name": "testBackupName",
         "region": "testBackupRegion"
-      }
+      },
+      "use_iam_profile": false
     }
   }`
 				PrintConfig(writer, validConfig)
@@ -106,7 +107,8 @@ var _ = Describe("PrintConfig", func() {
       "backup": {
         "name": "testBackupName",
         "region": "testBackupRegion"
-      }
+      },
+      "use_iam_profile": false
     },
     "Test Resource 2": {
       "name": "testName",
@@ -117,7 +119,8 @@ var _ = Describe("PrintConfig", func() {
       "backup": {
         "name": "testBackupName",
         "region": "testBackupRegion"
-      }
+      },
+      "use_iam_profile": false
     }
   }`
 				PrintConfig(writer, validConfigWithMultipleBuckets)
@@ -184,7 +187,8 @@ var _ = Describe("PrintConfig", func() {
       "region": "testRegion",
       "aws_access_key_id": "testID",
       "aws_secret_access_key": "testSecret",
-      "endpoint": "testEndpoint"
+      "endpoint": "testEndpoint",
+      "use_iam_profile": false
     }
   }`
 				PrintConfig(writer, validConfig)
@@ -201,14 +205,16 @@ var _ = Describe("PrintConfig", func() {
       "region": "testRegion",
       "aws_access_key_id": "testID",
       "aws_secret_access_key": "testSecret",
-      "endpoint": "testEndpoint"
+      "endpoint": "testEndpoint",
+      "use_iam_profile": false
     },
     "Test Resource 2": {
       "name": "testName",
       "region": "testRegion",
       "aws_access_key_id": "testID",
       "aws_secret_access_key": "testSecret",
-      "endpoint": "testEndpoint"
+      "endpoint": "testEndpoint",
+      "use_iam_profile": false
     }
   }`
 				PrintConfig(writer, validConfigWithMultipleBuckets)

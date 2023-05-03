@@ -26,11 +26,11 @@ type CommandParams struct {
 func main() {
 	commandParams := parseParams()
 
-	config, err := config.Read(commandParams.ConfigPath, commandParams.Versioned)
+	validatedConfig, err := config.Read(commandParams.ConfigPath, commandParams.Versioned)
 
 	printHeader(commandParams, commandParams.Versioned)
 
-	configPrinter.PrintConfig(os.Stdout, config)
+	configPrinter.PrintConfig(os.Stdout, validatedConfig)
 
 	if err != nil {
 		fmt.Printf("%v\n", err.Error())
@@ -39,7 +39,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if !isValid(config, commandParams.ReadOnlyValidation, commandParams.Versioned) {
+	if !isValid(validatedConfig, commandParams.ReadOnlyValidation, commandParams.Versioned) {
 		fmt.Println("Bad config")
 		printHints(commandParams)
 		os.Exit(1)
