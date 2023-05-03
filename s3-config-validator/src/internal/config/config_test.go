@@ -1,12 +1,13 @@
 package config_test
 
 import (
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/config"
 	"io/ioutil"
 	"os"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/config"
 )
 
 var _ = Describe("Config", func() {
@@ -47,6 +48,25 @@ var _ = Describe("Config", func() {
         "region": ""
     }
 	}`
+
+		invalidIAMPlusCredsConfig := `{
+    "buildpacks": {
+        "aws_access_key_id": "test_access_key_id",
+        "aws_secret_access_key": "test_secret_access_key",
+        "name": "test_name",
+        "region": "test_region",
+        "use_iam_profile": true
+    }
+}`
+
+		invalidIAMPlusEndpointConfig := `{
+  "buildpacks": {
+    "endpoint": "test_endpoint",
+    "name": "test_name",
+    "region": "test_region",
+    "use_iam_profile": true
+  }
+}`
 
 		Context("given a path to an existing, readable file", func() {
 			Context("contents are valid", func() {
@@ -110,7 +130,7 @@ var _ = Describe("Config", func() {
 
 						conf, err := config.Read(testFile, true)
 
-						Expect(err).To(MatchError("invalid config: fields [buildpacks.region] are empty"))
+						Expect(err).To(MatchError("invalid config: fields [buildpacks.region] are empty\n"))
 						Expect(conf).To(Equal(config.Config{}))
 					})
 				})
@@ -123,10 +143,34 @@ var _ = Describe("Config", func() {
 						conf, err := config.Read(testFile, true)
 
 						Expect(err).To(MatchError("invalid config: fields" +
-							" [buildpacks.name buildpacks.region buildpacks.aws_access_key_id" +
-							" buildpacks.aws_secret_access_key]" +
-							" are empty"))
+							" [buildpacks.aws_access_key_id" +
+							" buildpacks.aws_secret_access_key" +
+							" buildpacks.name buildpacks.region]" +
+							" are empty\n"))
 						Expect(conf).To(Equal(config.Config{}))
+					})
+				})
+
+				When("we try to use IAM and a Secret Access Key at the same time", func() {
+					It("returns a helpful error", func() {
+						testFile := CreateFile(invalidIAMPlusCredsConfig)
+						defer DeleteFile(testFile)
+
+						conf, err := config.Read(testFile, true)
+
+						Expect(err).To(MatchError("invalid config: because use_iam_profile is set to true, there should be no aws_access_key_id or aws_secret_access_key in the following buckets: [buildpacks]\n"))
+						Expect(conf).To(Equal(config.Config{}))
+					})
+				})
+
+				When("we try to use IAM and an Endpoint at the same time", func() {
+					It("should return a helpful error message", func() {
+						testFile := CreateFile(invalidIAMPlusEndpointConfig)
+						defer DeleteFile(testFile)
+
+						conf, err := config.Read(testFile, true)
+						Expect(conf).To(Equal(config.Config{}))
+						Expect(err).To(MatchError("invalid config: because use_iam_profile is set to true, the endpoint field must not be set in the following buckets: [buildpacks]\n"))
 					})
 				})
 			})
@@ -217,6 +261,79 @@ var _ = Describe("Config", func() {
     }
 	}`
 
+		invalidIAMPlusCredsConfig := `{
+    "buildpacks": {
+        "aws_access_key_id": "test_access_key_id",
+        "aws_secret_access_key": "test_secret_access_key",
+        "name": "test_name",
+        "region": "test_region",
+        "use_iam_profile": true,
+        "backup": {
+            "name": "another_test_name",
+            "region": "another_test_region"
+        }
+    }
+}`
+		invalidIAMPlusEndpointConfig := `{
+  "buildpacks": {
+    "endpoint": "test_endpoint",
+    "name": "test_name",
+    "region": "test_region",
+    "use_iam_profile": true,
+    "backup": {
+      "name": "another_test_name",
+      "region": "another_test_region"
+    }
+  }
+}`
+
+		invalidMissingBackupConfig := `{
+    "buildpacks": {
+        "aws_access_key_id": "test_access_key_id",
+        "aws_secret_access_key": "test_secret_access_key",
+        "endpoint": "test_endpoint",
+        "name": "test_name",
+        "region": "test_region"
+    }
+}`
+
+		configWithMultipleIssues := `{
+    "bucketMissingFieldNames": {
+	    "aws_access_key_id": "",
+	    "aws_secret_access_key": "",
+	    "backup": {
+		    "name": "backupname",
+		    "region": "backupregion"
+	    },
+	    "name": "",
+	    "region": ""
+    },
+    "bucketMissingBackupBuckets": {
+	    "aws_access_key_id": "id",
+	    "aws_secret_access_key": "secret",
+	    "name": "missingBackupBucketName",
+	    "region": "region"
+    },
+    "bucketWithTooManyCreds": {
+	    "aws_access_key_id": "id",
+	    "aws_secret_access_key": "secret",
+	    "use_iam_profile": true,
+	    "backup": {
+		    "name": "backupname",
+		    "region": "backupregion"
+	    },
+	    "name": "missingBackupBucketName",
+	    "region": "region"
+    },
+    "bucketWithAllTheProblems": {
+	    "aws_access_key_id": "id",
+	    "aws_secret_access_key": "secret",
+	    "use_iam_profile": true,
+	    "name": "",
+	    "region": ""
+    }
+}`
+
 		Context("given a path to an existing, readable file", func() {
 			Context("contents are valid", func() {
 				It("reads the file contents", func() {
@@ -287,7 +404,7 @@ var _ = Describe("Config", func() {
 
 						conf, err := config.Read(testFile, false)
 
-						Expect(err).To(MatchError("invalid config: fields [buildpacks.backup.name] are empty"))
+						Expect(err).To(MatchError("invalid config: fields [buildpacks.backup.name] are empty\n"))
 						Expect(conf).To(Equal(config.Config{}))
 					})
 				})
@@ -300,9 +417,61 @@ var _ = Describe("Config", func() {
 						conf, err := config.Read(testFile, false)
 
 						Expect(err).To(MatchError("invalid config: fields" +
-							" [buildpacks.name buildpacks.region buildpacks.aws_access_key_id" +
-							" buildpacks.aws_secret_access_key buildpacks.backup.name buildpacks.backup.region]" +
-							" are empty"))
+							" [buildpacks.aws_access_key_id" +
+							" buildpacks.aws_secret_access_key buildpacks" +
+							".backup.name buildpacks.backup.region" +
+							" buildpacks.name buildpacks.region]" +
+							" are empty\n"))
+						Expect(conf).To(Equal(config.Config{}))
+					})
+				})
+
+				When("we try to use IAM and a Secret Access Key at the same time", func() {
+					It("returns a helpful error", func() {
+						testFile := CreateFile(invalidIAMPlusCredsConfig)
+						defer DeleteFile(testFile)
+
+						conf, err := config.Read(testFile, false)
+
+						Expect(err).To(MatchError("invalid config: because use_iam_profile is set to true, there should be no aws_access_key_id or aws_secret_access_key in the following buckets: [buildpacks]\n"))
+						Expect(conf).To(Equal(config.Config{}))
+					})
+				})
+
+				When("we try to use IAM and supply an endpoint", func() {
+					It("returns a helpful error", func() {
+						testFile := CreateFile(invalidIAMPlusEndpointConfig)
+						defer DeleteFile(testFile)
+
+						conf, err := config.Read(testFile, false)
+
+						Expect(conf).To(Equal(config.Config{}))
+						Expect(err).To(MatchError("invalid config: because use_iam_profile is set to true, the endpoint field must not be set in the following buckets: [buildpacks]\n"))
+					})
+				})
+
+				When("our unversioned bucket config is missing the backup buckets", func() {
+					It("returns a helpful error", func() {
+						testFile := CreateFile(invalidMissingBackupConfig)
+						defer DeleteFile(testFile)
+
+						conf, err := config.Read(testFile, false)
+
+						Expect(err).To(MatchError("invalid config: backup buckets must be specified when taking unversioned backups. The following buckets are missing backup buckets: [buildpacks]\n"))
+						Expect(conf).To(Equal(config.Config{}))
+					})
+				})
+
+				When("our bucket config has a lot of problems", func() {
+					It("returns helpful error messages for all the problems", func() {
+						testFile := CreateFile(configWithMultipleIssues)
+						defer DeleteFile(testFile)
+
+						conf, err := config.Read(testFile, false)
+
+						Expect(err).To(MatchError(ContainSubstring("backup buckets must be specified")))
+						Expect(err).To(MatchError(ContainSubstring("because use_iam_profile is set to true")))
+						Expect(err).To(MatchError(ContainSubstring("fields [bucketMissingFieldNames.aws_access_key_id bucketMissingFieldNames.aws_secret_access_key bucketMissingFieldNames.name bucketMissingFieldNames.region bucketWithAllTheProblems.name bucketWithAllTheProblems.region] are empty")))
 						Expect(conf).To(Equal(config.Config{}))
 					})
 				})
