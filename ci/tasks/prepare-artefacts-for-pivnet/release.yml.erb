@@ -15,11 +15,11 @@ product_files:
 - file: <%= ENV.fetch('RELEASE_TAR') %>
   upload_as: BOSH Backup and Restore
   description: |
-    BBR and BBR-s3-config-validator binaries for Linux and Darwin.
+    BBR and BBR-s3-config-validator binaries for Linux, Darwin, and Darwin-arm64.
   file_type: "Software"
   docs_url: "https://docs.pivotal.io/bbr/index.html"
-  platforms: ["Linux", "Darwin"]
-  included_files: ["bbr", "bbr-mac", "checksum256", "bbr-s3-config-validator", "bbr-s3-config-validator.README.md"]
+  platforms: ["Linux", "Darwin", "Darwin-arm64]
+  included_files: ["bbr", "bbr-mac", "bbr-mac-arm64", "checksum256", "bbr-s3-config-validator", "bbr-s3-config-validator.README.md"]
 
 - file: <%= ENV.fetch('BBR_LINUX_BINARY') %>
   upload_as: BOSH Backup and Restore Linux
@@ -38,6 +38,15 @@ product_files:
   docs_url: "https://docs.pivotal.io/bbr/index.html"
   platforms: ["Darwin"]
   included_files: ["<%= ENV.fetch('BBR_DARWIN_BINARY') %>"]
+
+  - file: <%= ENV.fetch('BBR_DARWIN_ARM64_BINARY') %>
+  upload_as: BOSH Backup and Restore Darwin-arm64
+  description: |
+    BBR binary for Darwin-arm64
+  file_type: "Software"
+  docs_url: "https://docs.pivotal.io/bbr/index.html"
+  platforms: ["Darwin-arm64"]
+  included_files: ["<%= ENV.fetch('BBR_DARWIN_ARM64_BINARY') %>"]
 
 - file: <%= ENV.fetch('BBR_S3_VALIDATOR_BINARY') %>
   upload_as: BOSH Backup and Restore S3 Configuration Validator Linux

@@ -34,6 +34,7 @@ function generate_pivnet_metadata() {
 
   export BBR_LINUX_BINARY="$pivnet_artefacts/bbr-${VERSION}-linux-amd64"
   export BBR_DARWIN_BINARY="$pivnet_artefacts/bbr-${VERSION}-darwin-amd64"
+  export BBR_DARWIN_ARM64_BINARY="$pivnet_artefacts/bbr-${VERSION}-darwin-arm64"
   export RELEASE_TAR="$pivnet_artefacts/bbr-${VERSION}.tar"
   export BBR_S3_VALIDATOR_BINARY="$pivnet_artefacts/bbr-s3-config-validator-${VERSION}-linux-amd64"
   export BBR_S3_VALIDATOR_README="$pivnet_artefacts/bbr-s3-config-validator-${VERSION}.README.md"

@@ -45,6 +45,12 @@ function generate_build_dir {
   binary_name="bbr-$VERSION-darwin-amd64"
   mv "${BBR_REPO}/releases/bbr-mac" "bbr-build/${binary_name}"
   cat "${BBR_REPO}/releases/checksum.sha256" | cut -d' ' -f1  | sed -n '2p' > "bbr-build/${binary_name}.sha256"
+
+  echo -e "Moving mac-arm64 binary to the build directory..."
+  binary_name="bbr-$VERSION-darwin-aarm64"
+  mv "${BBR_REPO}/releases/bbr-mac-arm64" "bbr-build/${binary_name}"
+  cat "${BBR_REPO}/releases/checksum.sha256" | cut -d' ' -f1  | sed -n '2p' > "bbr-build/${binary_name}.sha256"
+
 }
 
 function add_s3_config_files {
