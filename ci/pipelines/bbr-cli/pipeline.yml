@@ -50,6 +50,7 @@ groups:
 - name: bump
   jobs:
   - bump-golang
+  - bump-ci-tasks
 
 resource_types:
 - name: github-release
@@ -89,6 +90,11 @@ resource_types:
     repository: cryogenics/pr-queue-resource
 
 resources:
+- name: cryogenics-essentials
+  type: registry-image
+  source:
+    repository: cryogenics/essentials
+
 - name: golang-release
   type: git
   icon: tag
@@ -140,6 +146,14 @@ resources:
     uri: git@github.com:cloudfoundry/bosh-backup-and-restore.git
     private_key: ((github.ssh_key))
     branch: master
+    disable_git_lfs: true
+
+- name: bosh-backup-and-restore-bump-ci-tasks
+  icon: github
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/bosh-backup-and-restore.git
+    private_key: ((github.ssh_key))
     disable_git_lfs: true
 
 - name: bosh-backup-and-restore-golang-bump-branch
@@ -379,7 +393,8 @@ jobs:
       trigger: true
     - get: additional-environment
       passed: [claim-env]
-    - get: latest-pull-request
+    - get: bosh-backup-and-restore
+      resource: latest-pull-request
       passed: [claim-env]
     - get: bbr-director-test-releases
     - get: jammy-stemcell
@@ -403,15 +418,13 @@ jobs:
     file: additional-bosh-env/metadata.yml
     format: yml
   - task: generate-bosh-deployment-source-file
-    file: latest-pull-request/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
-    input_mapping:
-      bosh-backup-and-restore: latest-pull-request
+    file: bosh-backup-and-restore/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
     params:
       <<: *maru-lite-bosh-env
   - put: deploy-fake-director
     resource: additional-test-bosh-director-deployment
     params:
-      manifest: latest-pull-request/fixtures/fake-director.yml
+      manifest: bosh-backup-and-restore/fixtures/fake-director.yml
       stemcells: [jammy-stemcell/*.tgz]
       source_file: source-file/source-file.yml
       vars:
@@ -421,89 +434,39 @@ jobs:
         internal_ip: *test-bosh-director-ip
   - in_parallel:
     - task: upload-redis-test-release-maru-lite
-      file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
-      input_mapping:
-        bosh-backup-and-restore: latest-pull-request
+      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: redis-test-release
         <<: *maru-lite-bosh-env
     - task: upload-many-bbr-jobs-release-lite-bosh-uaa
-      file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
-      input_mapping:
-        bosh-backup-and-restore: latest-pull-request
+      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: many-bbr-jobs-release
         <<: *maru-lite-bosh-env
     - task: upload-many-bbr-jobs-release-maru
-      file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
-      input_mapping:
-        bosh-backup-and-restore: latest-pull-request
+      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: many-bbr-jobs-release
         <<: *maru-bosh-env
     - task: upload-redis-test-release-maru-bosh
-      file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
-      input_mapping:
-        bosh-backup-and-restore: latest-pull-request
+      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: redis-test-release
         <<: *maru-bosh-env
     - task: upload-redis-test-release-lite-bosh-uaa
-      file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
-      input_mapping:
-        bosh-backup-and-restore: latest-pull-request
+      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: redis-test-release
         <<: *maru-lite-bosh-env
     - task: upload-lock-ordering-release-lite-bosh-uaa
-      file: latest-pull-request/ci/tasks/bbr-upload-system-test-releases/task.yml
-      input_mapping:
-        bosh-backup-and-restore: latest-pull-request
+      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: lock-ordering-release
         <<: *maru-lite-bosh-env
     - task: allow-connections-to-bosh-director-on-port-25555
-      config:
-        platform: linux
-          
-        image_resource:
-          type: registry-image
-          source:
-            repository: eu.gcr.io/mapbu-cryogenics/gcloud
-            username: _json_key
-            password: ((gcr.viewer_key))
-
-        params:
-          GCP_SERVICE_ACCOUNT_KEY: ((gcp/service_accounts/owner.json_key))
-
-        inputs:
-          - name: additional-environment
-
-        run:
-          path: /bin/bash
-          args:
-            - -c
-            - |
-              set -euo pipefail
-
-              gcloud -q auth activate-service-account --key-file=<(echo "$GCP_SERVICE_ACCOUNT_KEY")
-
-              env_name="$(cat additional-environment/name)"
-
-              echo 'Y' | gcloud compute firewall-rules delete "${env_name}-custom-jumpbox-to-director-ingress-allow" || true
-              gcloud compute firewall-rules create "${env_name}-custom-jumpbox-to-director-ingress-allow" \
-                     --network="${env_name}-network"     \
-                     --direction=ingress \
-                     --target-tags="${env_name}-bosh-director" \
-                     --action=allow \
-                     --rules=tcp:22,tcp:6868,tcp:8443,tcp:8844,tcp:25555 \
-                     --source-tags=jumpbox \
-                     --priority=999
-
+      file: bosh-backup-and-restore/ci/tasks/allow-connections-to-bosh-director-on-port-25555/task.yml
   - task: system-deployment-with-uaa
-    file: latest-pull-request/ci/tasks/bbr-system-deployment/task.yml
-    input_mapping:
-      bosh-backup-and-restore: latest-pull-request
+    file: bosh-backup-and-restore/ci/tasks/bbr-system-deployment/task.yml
     params:
       GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
       <<: *maru-lite-bosh-env
@@ -980,6 +943,40 @@ jobs:
       input_mapping:
         source-repo: bosh-backup-and-restore-golang-bump-branch
 
-
-
-
+- name: bump-ci-tasks
+  plan:
+    - in_parallel:
+      - get: cryogenics-essentials
+        trigger: true
+      - get: cryogenics-concourse-tasks
+        resource: cryogenics-ci
+      - get: main
+    - in_parallel:
+      - load_var: cryogenics-essentials-version
+        file: cryogenics-essentials/tag
+      - task: bump-tasks
+        file: cryogenics-concourse-tasks/deps-automation/bump-concourse-tasks/task.yml
+        input_mapping:
+          repo: main
+          image: cryogenics-essentials
+        output_mapping:
+          repo: main
+    - put: bosh-backup-and-restore-bump-ci-tasks
+      params:
+        repository: main
+        branch: &bump-ci-task-branch bump-cryogenics-essentials-to-v((.:cryogenics-essentials-version))
+        force: true
+    - task: create-pull-request
+      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      params:
+        BASE: master
+        BRANCH: *bump-ci-task-branch
+        LABELS: dependencies
+        TITLE: Bump cryogenics/essentials to v((.:cryogenics-essentials-version))
+        MESSAGE: |
+          This is an automatically generated Pull Request from the Cryogenics CI Bot.
+          I have detected a new version of [cryogenics/essentials](https://hub.docker.com/r/cryogenics/essentials/tags) and automatically bumped
+          this package to benefit from the latest changes.
+          If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
+      input_mapping:
+        source-repo: bosh-backup-and-restore-bump-ci-tasks
