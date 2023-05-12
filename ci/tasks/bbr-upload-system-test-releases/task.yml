@@ -3,7 +3,9 @@ platform: linux
 
 image_resource:
   type: registry-image
-  source: {repository: cryogenics/essentials-cf6}
+  source: 
+    repository: cryogenics/essentials
+    tag: 0.1.50
 
 inputs:
 - name: bbr-deployment-test-releases
