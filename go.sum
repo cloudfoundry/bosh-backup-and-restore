@@ -734,8 +734,8 @@ github.com/cloudfoundry/bosh-s3cli v0.0.185/go.mod h1:VToZSNHdTwmmuzYkSte5MCvKw1
 github.com/cloudfoundry/bosh-utils v0.0.354/go.mod h1:oNWd/33pH6Z/pPoBuGm59usyJe7IUk0gYIms2JY/ZuE=
 github.com/cloudfoundry/bosh-utils v0.0.355/go.mod h1:8W0PjJr6O4PHcw365d4yUgpiqJknGuMp52042C0xOuE=
 github.com/cloudfoundry/bosh-utils v0.0.361/go.mod h1:GUm5UedYfvfrNGVM9yoYimno5M/pxxNqvCInSU1MaNo=
-github.com/cloudfoundry/bosh-utils v0.0.363 h1:rxxy6JyWlVi57xOj/KYr1AJjDV267iigK5vKihA9y4w=
-github.com/cloudfoundry/bosh-utils v0.0.363/go.mod h1:xMuPtj7lK9hMpWpGGc6mi4F5CrxFDU5avnUPGn7j5yA=
+github.com/cloudfoundry/bosh-utils v0.0.364 h1:ZePxgI1B1w3QK1T9/oWxw0WhKZEYB5fxtqQhEscS3UE=
+github.com/cloudfoundry/bosh-utils v0.0.364/go.mod h1:8BO/6/Baa3NYbNKF3bGwBaqvRgfmLIfyhRzFXohB62Y=
 github.com/cloudfoundry/config-server v0.1.111 h1:5mSZunTBouKKzWefdudxLvzRO3hk/KlavJeIGqrLJT0=
 github.com/cloudfoundry/config-server v0.1.111/go.mod h1:WAL0TsTxk6kFnKIcrvAcgBBBdSn+n/HHlyHK0Hka8jI=
 github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e h1:FQdRViaoDphGRfgrotl2QGsX1gbloe57dbGBS5CG6KY=
@@ -744,7 +744,6 @@ github.com/cloudfoundry/gosigar v1.3.7/go.mod h1:fC3dw7I9If3YunF19RWX9xCGxZbCL5A
 github.com/cloudfoundry/socks5-proxy v0.2.84/go.mod h1:4RdVbyu9gLv8T+lg18pjn3FYCBRgPZwI8UXgD8Vxp3I=
 github.com/cloudfoundry/socks5-proxy v0.2.85/go.mod h1:Sxpx0eb2A4gXq2OEBFv02gyQkeTZl5DIlmykoMspFjQ=
 github.com/cloudfoundry/socks5-proxy v0.2.87/go.mod h1:Oxj8kz1QXpKcp6mIh//jyot1duyTGgCEWGzVfFaCAzw=
-github.com/cloudfoundry/socks5-proxy v0.2.89/go.mod h1:P8RBuLnqXzdb2kjkUqkV3rYfMyfdNPOUE9g0PVyTxbs=
 github.com/cloudfoundry/socks5-proxy v0.2.90 h1:0EOcMduuDtvgFqd8GkuJRN4/FseKgIxDnQBdEIHBpnU=
 github.com/cloudfoundry/socks5-proxy v0.2.90/go.mod h1:WJhaUELTA2JIXV9qRd2jgfUajaTNQtCaTk4u+MwG++4=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
@@ -1004,8 +1003,8 @@ github.com/google/pprof v0.0.0-20210609004039-a478d1d731e9/go.mod h1:kpwsk12EmLe
 github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1/go.mod h1:kpwsk12EmLew5upagYY7GY0pfYCcupk39gWOCRROcvE=
 github.com/google/pprof v0.0.0-20230207041349-798e818bf904/go.mod h1:uglQLonpP8qtYCYyzA+8c/9qtqgA3qsXGYqCPKARAFg=
 github.com/google/pprof v0.0.0-20230406165453-00490a63f317/go.mod h1:79YE0hCXdHag9sBkw2o+N/YnZtTkXi0UT9Nnixa5eYk=
-github.com/google/pprof v0.0.0-20230502171905-255e3b9b56de h1:6bMcLOeKoNo0+mTOb1ee3McF6CCKGixjLR3EDQY1Jik=
-github.com/google/pprof v0.0.0-20230502171905-255e3b9b56de/go.mod h1:79YE0hCXdHag9sBkw2o+N/YnZtTkXi0UT9Nnixa5eYk=
+github.com/google/pprof v0.0.0-20230510103437-eeec1cb781c3 h1:2XF1Vzq06X+inNqgJ9tRnGuw+ZVCB3FazXODD6JE1R8=
+github.com/google/pprof v0.0.0-20230510103437-eeec1cb781c3/go.mod h1:79YE0hCXdHag9sBkw2o+N/YnZtTkXi0UT9Nnixa5eYk=
 github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
 github.com/google/s2a-go v0.1.0/go.mod h1:OJpEgntRZo8ugHpF9hkoLJbS5dSI20XZeXJ9JVywLlM=
 github.com/google/s2a-go v0.1.1/go.mod h1:OJpEgntRZo8ugHpF9hkoLJbS5dSI20XZeXJ9JVywLlM=
