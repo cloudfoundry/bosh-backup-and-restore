@@ -1,16 +1,12 @@
----
 platform: linux
-
 image_resource:
   type: registry-image
-  source: 
+  source:
     repository: cryogenics/essentials
-    tag: 0.1.50
-
+    tag: 0.1.51
 inputs:
-- name: bbr-deployment-test-releases
-- name: bosh-backup-and-restore
-
+  - name: bbr-deployment-test-releases
+  - name: bosh-backup-and-restore
 params:
   RELEASE_NAME:
   BOSH_ENVIRONMENT:
@@ -20,6 +16,5 @@ params:
   BOSH_GW_HOST:
   BOSH_GW_PRIVATE_KEY:
   BOSH_GW_USER:
-
 run:
   path: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.sh

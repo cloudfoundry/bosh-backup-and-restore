@@ -2,15 +2,12 @@ platform: linux
 image_resource:
   source:
     repository: cryogenics/essentials
-    tag: latest
+    tag: 0.1.51
   type: registry-image
-
 params:
   GCP_SERVICE_ACCOUNT_KEY: ((gcp/service_accounts/owner.json_key))
-
 inputs:
   - name: additional-environment
   - name: bosh-backup-and-restore
-
 run:
   path: bosh-backup-and-restore/ci/tasks/allow-connections-to-bosh-director-on-port-25555/task.sh
