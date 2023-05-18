@@ -1,16 +1,12 @@
----
 platform: linux
-
 image_resource:
   type: registry-image
-  source: 
+  source:
     repository: cryogenics/essentials
-    tag: 0.1.50
-
+    tag: 0.1.51
 inputs:
-- name: env-pool
-- name: bbr-s3-config-validator-test-artifacts
-- name: bosh-backup-and-restore
-
+  - name: env-pool
+  - name: bbr-s3-config-validator-test-artifacts
+  - name: bosh-backup-and-restore
 run:
   path: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.sh
