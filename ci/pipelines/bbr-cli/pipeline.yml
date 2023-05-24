@@ -1,7 +1,7 @@
 ---
 #!  WARNING: this pipeline is automatically set and manual changes will go away. 
 #!
-#!  To setetetpipeline manually run: 
+#!  To set the pipeline manually run:
 #!    fly set-pipeline -p bbr-cli -c <(ytt -f ci/pipelines/bbr-cli/pipeline.yml --data-values-file ci/pipelines/bbr-cli/values.yml)
 
 #@ load("@ytt:data", "data")
