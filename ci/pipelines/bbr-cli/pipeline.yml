@@ -333,6 +333,7 @@ jobs:
     - get: bbr-director-test-releases
     - get: jammy-stemcell
     - get: cryogenics-ci
+      passed: [claim-env]
   - task: alias-env
     file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
     input_mapping:
@@ -399,6 +400,7 @@ jobs:
     - get: bbr-director-test-releases
     - get: jammy-stemcell
     - get: cryogenics-ci
+      passed: [claim-env]
   - task: alias-env
     file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
     input_mapping:
@@ -558,7 +560,6 @@ jobs:
     - get: latest-pull-request
       passed: [system-test-deployment, system-test-director, validate-aws-s3-config]
       trigger: true
-    - get: cryogenics-ci
   - put: latest-pull-request
     params:
       merge: true
@@ -757,6 +758,7 @@ jobs:
   plan:
   - in_parallel:
     - get: cryogenics-ci
+      passed: [run-b-drats]
     - get: main
       trigger: true
       passed:
@@ -859,6 +861,7 @@ jobs:
       steps:
       - get: latest-pull-request
         trigger: true
+      - get: cryogenics-ci
       - put: environment
         params:
           action: claim
