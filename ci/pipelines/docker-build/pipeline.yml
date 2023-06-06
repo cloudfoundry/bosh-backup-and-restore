@@ -1,4 +1,9 @@
 ---
+#! This pipeline is set manually
+#!
+#!  To set the pipeline, run:
+#!    fly set-pipeline -p docker-build -c pipeline.yml
+
 resources:
 - name: ubuntu-xenial
   type: docker-image
