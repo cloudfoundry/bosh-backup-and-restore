@@ -73,7 +73,7 @@ func NewProbeRunners(resource string, bucket config.LiveBucket, readOnly, versio
 	// this is a known issue: https://www.pivotaltracker.com/story/show/174547239
 
 	liveProbeRunner := NewProbeRunner(
-		bucket.Region, bucket.Endpoint, bucket.ID, bucket.Secret,
+		bucket.Region, bucket.Endpoint, bucket.ID, bucket.Secret, bucket.AwsAssumedRoleArn,
 		Bucket{
 			Resource: resource,
 			Name:     bucket.Name,
@@ -86,7 +86,7 @@ func NewProbeRunners(resource string, bucket config.LiveBucket, readOnly, versio
 
 	if !versioned {
 		backupProbeRunner := NewProbeRunner(
-			bucket.Backup.Region, bucket.Endpoint, bucket.ID, bucket.Secret,
+			bucket.Backup.Region, bucket.Endpoint, bucket.ID, bucket.Secret, bucket.AwsAssumedRoleArn,
 			Bucket{
 				Resource: resource,
 				Name:     bucket.Backup.Name,
@@ -105,8 +105,8 @@ func NewProbeRunners(resource string, bucket config.LiveBucket, readOnly, versio
 
 var injectableS3Client = newS3Client
 
-func NewProbeRunner(region, endpoint, id, secret string, bucket Bucket, readOnly, versioned, useIAMProfile bool) ProbeRunner {
-	s3Client, _ := injectableS3Client(region, endpoint, id, secret, useIAMProfile)
+func NewProbeRunner(region, endpoint, id, secret, role string, bucket Bucket, readOnly, versioned, useIAMProfile bool) ProbeRunner {
+	s3Client, _ := injectableS3Client(region, endpoint, id, secret, role, useIAMProfile)
 
 	probeSet := probe.NewSet(s3Client, readOnly, versioned)
 
@@ -117,6 +117,6 @@ func NewProbeRunner(region, endpoint, id, secret string, bucket Bucket, readOnly
 	}
 }
 
-func newS3Client(region, endpoint, id, secret string, useIAMProfile bool) (*s3.S3Client, error) {
-	return s3.NewS3Client(region, endpoint, id, secret, useIAMProfile)
+func newS3Client(region, endpoint, id, secret, role string, useIAMProfile bool) (*s3.S3Client, error) {
+	return s3.NewS3ClientWithRoleARN(region, endpoint, id, secret, role, useIAMProfile), nil
 }

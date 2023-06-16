@@ -1,7 +1,7 @@
 ---
 #!  WARNING: this pipeline is automatically set and manual changes will go away. 
 #!
-#!  To setetetpipeline manually run: 
+#!  To set the pipeline manually run:
 #!    fly set-pipeline -p bbr-cli -c <(ytt -f ci/pipelines/bbr-cli/pipeline.yml --data-values-file ci/pipelines/bbr-cli/values.yml)
 
 #@ load("@ytt:data", "data")
@@ -476,7 +476,7 @@ jobs:
 
 - name: test-build-s3-config-validator
   serial_groups:
-    - only_1_job_should_bump_the_BUILD_VERSION_at_a_time_to_avoid_race_condition
+  - only_1_job_should_bump_the_BUILD_VERSION_at_a_time_to_avoid_race_condition
   plan:
   - in_parallel:
     - get: latest-pull-request
@@ -486,15 +486,17 @@ jobs:
   - task: unit-test
     file: latest-pull-request/ci/tasks/bbr-s3-config-validator-unit-test/task.yml
     params:
-      AWS_ACCESS_KEY: ((s3_validator_test_bucket.access_key))
-      AWS_SECRET_KEY: ((s3_validator_test_bucket.secret_key))
+      AWS_ACCESS_KEY: ((aws_credentials.cg_access_key_id))
+      AWS_SECRET_KEY: ((aws_credentials.cg_secret_access_key))
+      AWS_ASSUMED_ROLE_ARN: ((aws_credentials.cg_assumed_role_arn))
     input_mapping:
       bosh-backup-and-restore: latest-pull-request
   - task: e2e-test
     file: latest-pull-request/ci/tasks/bbr-s3-config-validator-e2e-test/task.yml
     params:
-      AWS_ACCESS_KEY: ((s3_validator_test_bucket.access_key))
-      AWS_SECRET_KEY: ((s3_validator_test_bucket.secret_key))
+      AWS_ACCESS_KEY: ((aws_credentials.cg_access_key_id))
+      AWS_SECRET_KEY: ((aws_credentials.cg_secret_access_key))
+      AWS_ASSUMED_ROLE_ARN: ((aws_credentials.cg_assumed_role_arn))
     input_mapping:
       bosh-backup-and-restore: latest-pull-request
   - task: build

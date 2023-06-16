@@ -2,13 +2,13 @@ package binary_test
 
 import (
 	"fmt"
-	"github.com/onsi/gomega/gexec"
 	"io/ioutil"
 	"os"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 )
 
 func TestBinary(t *testing.T) {
@@ -20,6 +20,7 @@ var (
 	binary                     string
 	awsAccessKey               string
 	awsSecretKey               string
+	awsAssumeRoleARN           string
 	validUnversionedConfigFile *os.File
 	validVersionedConfigFile   *os.File
 )
@@ -32,13 +33,15 @@ var _ = BeforeSuite(func() {
 	checkRequiredEnvs([]string{
 		"AWS_ACCESS_KEY",
 		"AWS_SECRET_KEY",
+		"AWS_ASSUMED_ROLE_ARN",
 	})
 
 	awsAccessKey = os.Getenv("AWS_ACCESS_KEY")
 	awsSecretKey = os.Getenv("AWS_SECRET_KEY")
+	awsAssumeRoleARN = os.Getenv("AWS_ASSUMED_ROLE_ARN")
 
-	validVersionedConfigFile = createVersionedConfigFile("bbr-s3-validator-versioned-bucket", awsAccessKey, awsSecretKey, "eu-west-1")
-	validUnversionedConfigFile = createUnversionedConfigFile("bbr-s3-validator-e2e-all-permissions", awsAccessKey, awsSecretKey, "eu-west-1", "eu-west-1")
+	validVersionedConfigFile = createVersionedConfigFile("bbr-s3-validator-versioned-bucket", awsAccessKey, awsSecretKey, awsAssumeRoleARN, "eu-west-1")
+	validUnversionedConfigFile = createUnversionedConfigFile("bbr-s3-validator-e2e-all-permissions", awsAccessKey, awsSecretKey, awsAssumeRoleARN, "eu-west-1", "eu-west-1")
 })
 
 var _ = AfterSuite(func() {
@@ -66,7 +69,7 @@ func checkRequiredEnvs(envs []string) {
 	}
 }
 
-func createUnversionedConfigFile(bucketName, awsAccessKey, awsSecretKey, liveRegion, backupRegion string) *os.File {
+func createUnversionedConfigFile(bucketName, awsAccessKey, awsSecretKey, awsAssumeRoleARN, liveRegion, backupRegion string) *os.File {
 	configFile, err := ioutil.TempFile("/tmp", "bbr_s3_validator_e2e")
 	Expect(err).NotTo(HaveOccurred())
 
@@ -75,16 +78,17 @@ func createUnversionedConfigFile(bucketName, awsAccessKey, awsSecretKey, liveReg
 		"test-resource": {
 			"aws_access_key_id": "%[2]s",
 			"aws_secret_access_key": "%[3]s",
+			"aws_assumed_role_arn": "%[4]s",
 			"endpoint": "",
 			"name": "%[1]s",
-			"region": "%[4]s",
+			"region": "%[5]s",
 			"backup": {
 				"name": "%[1]s",
-				"region": "%[5]s"
+				"region": "%[6]s"
 			}
 		}
 	}
-	`, bucketName, awsAccessKey, awsSecretKey, liveRegion, backupRegion)
+	`, bucketName, awsAccessKey, awsSecretKey, awsAssumeRoleARN, liveRegion, backupRegion)
 
 	_, err = configFile.WriteString(fileContents)
 	Expect(err).NotTo(HaveOccurred())
@@ -92,7 +96,7 @@ func createUnversionedConfigFile(bucketName, awsAccessKey, awsSecretKey, liveReg
 	return configFile
 }
 
-func createVersionedConfigFile(bucketName, awsAccessKey, awsSecretKey, liveRegion string) *os.File {
+func createVersionedConfigFile(bucketName, awsAccessKey, awsSecretKey, awsAssumeRoleARN, liveRegion string) *os.File {
 	configFile, err := ioutil.TempFile("/tmp", "bbr_s3_validator_e2e")
 	Expect(err).NotTo(HaveOccurred())
 
@@ -101,12 +105,13 @@ func createVersionedConfigFile(bucketName, awsAccessKey, awsSecretKey, liveRegio
 		"test-resource": {
 			"aws_access_key_id": "%[2]s",
 			"aws_secret_access_key": "%[3]s",
+			"aws_assumed_role_arn": "%[4]s",
 			"endpoint": "",
 			"name": "%[1]s",
-			"region": "%[4]s"
+			"region": "%[5]s"
 		}
 	}
-	`, bucketName, awsAccessKey, awsSecretKey, liveRegion)
+	`, bucketName, awsAccessKey, awsSecretKey, awsAssumeRoleARN, liveRegion)
 
 	_, err = configFile.WriteString(fileContents)
 	Expect(err).NotTo(HaveOccurred())

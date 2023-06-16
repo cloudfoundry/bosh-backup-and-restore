@@ -15,13 +15,17 @@ type Config struct {
 }
 
 type LiveBucket struct {
-	Name          string        `json:"name"`
-	Region        string        `json:"region"`
-	ID            string        `json:"aws_access_key_id"`
-	Secret        string        `json:"aws_secret_access_key"`
-	Endpoint      string        `json:"endpoint"`
-	Backup        *BackupBucket `json:"backup,omitempty"`
-	UseIAMProfile bool          `json:"use_iam_profile"`
+	Name   string `json:"name"`
+	Region string `json:"region"`
+	ID     string `json:"aws_access_key_id"`
+	Secret string `json:"aws_secret_access_key"`
+	// # Warning
+	//
+	// AwsAssumedRoleArn is provided as is and isn't thoroughly tested
+	AwsAssumedRoleArn string        `json:"aws_assumed_role_arn,omitempty"`
+	Endpoint          string        `json:"endpoint"`
+	Backup            *BackupBucket `json:"backup,omitempty"`
+	UseIAMProfile     bool          `json:"use_iam_profile"`
 }
 
 type BackupBucket struct {
