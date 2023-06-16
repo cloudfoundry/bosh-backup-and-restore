@@ -2,7 +2,6 @@ package binary_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -63,14 +62,14 @@ func checkRequiredEnvs(envs []string) {
 		_, present := os.LookupEnv(env)
 
 		if !present {
-			fmt.Fprintf(os.Stderr, "Environment Variable %s must be set", env)
+			_, _ = fmt.Fprintf(os.Stderr, "Environment Variable %s must be set", env)
 			os.Exit(1)
 		}
 	}
 }
 
 func createUnversionedConfigFile(bucketName, awsAccessKey, awsSecretKey, awsAssumeRoleARN, liveRegion, backupRegion string) *os.File {
-	configFile, err := ioutil.TempFile("/tmp", "bbr_s3_validator_e2e")
+	configFile, err := os.CreateTemp("/tmp", "bbr_s3_validator_e2e")
 	Expect(err).NotTo(HaveOccurred())
 
 	fileContents := fmt.Sprintf(`
@@ -97,7 +96,7 @@ func createUnversionedConfigFile(bucketName, awsAccessKey, awsSecretKey, awsAssu
 }
 
 func createVersionedConfigFile(bucketName, awsAccessKey, awsSecretKey, awsAssumeRoleARN, liveRegion string) *os.File {
-	configFile, err := ioutil.TempFile("/tmp", "bbr_s3_validator_e2e")
+	configFile, err := os.CreateTemp("/tmp", "bbr_s3_validator_e2e")
 	Expect(err).NotTo(HaveOccurred())
 
 	fileContents := fmt.Sprintf(`

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"sort"
 )
 
@@ -34,7 +34,7 @@ type BackupBucket struct {
 }
 
 func Read(filePath string, versioned bool) (Config, error) {
-	data, err := ioutil.ReadFile(filePath)
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return Config{}, err
 	}

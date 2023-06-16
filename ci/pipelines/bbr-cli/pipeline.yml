@@ -27,8 +27,6 @@ maru-lite-bosh-env: &maru-lite-bosh-env
 
 test-bosh-director-deployment: &test-bosh-director-deployment test-bosh-director
 
-toolsmiths_api_worker: &toolsmiths_api_worker nimbus-worker
-
 groups:
 - name: test
   jobs:
@@ -505,7 +503,7 @@ jobs:
       version: build-version
       repo: latest-pull-request
   - put: build-version
-    params: { file: build-version/number }
+    params: {file: build-version/number}
   - put: s3-config-validator-artefacts
     params:
       file: bbr-s3-config-validator-test-artifacts/*
@@ -569,7 +567,7 @@ jobs:
 
 - name: build-rc
   serial_groups:
-    - only_1_job_should_bump_the_RELEASE_CANDIDATE_VERSION_at_a_time_to_avoid_race_condition
+  - only_1_job_should_bump_the_RELEASE_CANDIDATE_VERSION_at_a_time_to_avoid_race_condition
   plan:
   - in_parallel:
     - get: main
@@ -612,7 +610,7 @@ jobs:
   - get: bbr-artefacts
     trigger: true
     passed:
-      - build-rc
+    - build-rc
   - put: cf-deployment-env
     params:
       action: claim
@@ -682,57 +680,57 @@ jobs:
 - name: run-b-drats
   serial: true
   plan:
+  - in_parallel:
+    - get: b-drats
+    - get: bbr-artefacts
+      trigger: true
+      params:
+        unpack: true
+      passed:
+      - build-rc
+    - get: cryogenics-ci
+    - get: jammy-stemcell
+  - do:
+    - put: env-pool
+      resource: tas-env
+      params:
+        action: claim
     - in_parallel:
-      - get: b-drats
-      - get: bbr-artefacts
-        trigger: true
-        params:
-          unpack: true
-        passed: 
-          - build-rc
-      - get: cryogenics-ci
-      - get: jammy-stemcell
-    - do:
-      - put: env-pool
-        resource: tas-env
-        params:
-          action: claim
-      - in_parallel:
-        - task: create-b-drats-config
-          file: cryogenics-ci/tasks/toolsmiths/generate-b-drats-config-from-tas-env/task.yml
-          input_mapping:
-            repo: cryogenics-ci
-            env: env-pool
-            stemcell: jammy-stemcell
-          params:
-            INCLUDE_DEPLOYMENT_TESTCASE: true
-            INCLUDE_TRUNCATE_DB_BLOBSTORE_TESTCASE: false
-            INCLUDE_CREDHUB_TESTCASE: false
-            TIMEOUT_IN_MINUTES: 2_880 #! 48h
-          output_mapping:
-            config: b-drats-config
-        - load_var: env-metadata
-          file: env-pool/metadata
-          format: json
-      - task: run-b-drats
-        file: b-drats/ci/tasks/run-b-drats/task.yml
-        privileged: true
+      - task: create-b-drats-config
+        file: cryogenics-ci/tasks/toolsmiths/generate-b-drats-config-from-tas-env/task.yml
         input_mapping:
-          bosh-disaster-recovery-acceptance-tests: b-drats
-          bbr-binary-release: bbr-artefacts
-          b-drats-integration-config: b-drats-config
+          repo: cryogenics-ci
+          env: env-pool
+          stemcell: jammy-stemcell
         params:
-          JUMPBOX_IP: ((.:env-metadata.ops_manager_public_ip))
-          JUMPBOX_PRIVATE_KEY: ((.:env-metadata.ops_manager_private_key))
-          JUMPBOX_USER: ubuntu
-          BBR_BINARY: bbr-binary-release/releases/bbr
-          SSH_ALIVE_INTERVAL: 60 #! in seconds
-          GINKGO_TIMEOUT: 48h0m0s #! 48h to be consistent with TIMEOUT_IN_MINUTES in the b-drats test config from the previous task.
-      ensure:
-        put: tas-env
-        params:
-          action: unclaim
-          env_file: env-pool/metadata
+          INCLUDE_DEPLOYMENT_TESTCASE: true
+          INCLUDE_TRUNCATE_DB_BLOBSTORE_TESTCASE: false
+          INCLUDE_CREDHUB_TESTCASE: false
+          TIMEOUT_IN_MINUTES: 2_880 #! 48h
+        output_mapping:
+          config: b-drats-config
+      - load_var: env-metadata
+        file: env-pool/metadata
+        format: json
+    - task: run-b-drats
+      file: b-drats/ci/tasks/run-b-drats/task.yml
+      privileged: true
+      input_mapping:
+        bosh-disaster-recovery-acceptance-tests: b-drats
+        bbr-binary-release: bbr-artefacts
+        b-drats-integration-config: b-drats-config
+      params:
+        JUMPBOX_IP: ((.:env-metadata.ops_manager_public_ip))
+        JUMPBOX_PRIVATE_KEY: ((.:env-metadata.ops_manager_private_key))
+        JUMPBOX_USER: ubuntu
+        BBR_BINARY: bbr-binary-release/releases/bbr
+        SSH_ALIVE_INTERVAL: 60 #! in seconds
+        GINKGO_TIMEOUT: 48h0m0s #! 48h to be consistent with TIMEOUT_IN_MINUTES in the b-drats test config from the previous task.
+    ensure:
+      put: tas-env
+      params:
+        action: unclaim
+        env_file: env-pool/metadata
 
 - name: check-for-changes
   plan:
@@ -741,23 +739,23 @@ jobs:
       trigger: true
     - get: main
       passed:
-        - build-rc
+      - build-rc
     - get: bbr-artefacts
       passed:
-        - run-drats
-        - run-b-drats
+      - run-drats
+      - run-b-drats
     - get: s3-config-validator-artefacts
       passed:
-        - build-rc
+      - build-rc
     - get: release-candidate-version
       passed:
-        - build-rc
+      - build-rc
 
 - name: publish-to-github
   serial: true
   serial_groups:
-    - only_1_job_should_bump_the_BUILD_VERSION_at_a_time_to_avoid_race_condition
-    - only_1_job_should_bump_the_RELEASE_CANDIDATE_VERSION_at_a_time_to_avoid_race_condition
+  - only_1_job_should_bump_the_BUILD_VERSION_at_a_time_to_avoid_race_condition
+  - only_1_job_should_bump_the_RELEASE_CANDIDATE_VERSION_at_a_time_to_avoid_race_condition
   plan:
   - in_parallel:
     - get: cryogenics-ci
@@ -765,22 +763,22 @@ jobs:
     - get: main
       trigger: true
       passed:
-        - check-for-changes
+      - check-for-changes
     - get: bbr-artefacts
       passed:
-        - check-for-changes
+      - check-for-changes
       params:
         unpack: true
     - get: s3-config-validator-artefacts
       params:
         unpack: true
       passed:
-        - check-for-changes
+      - check-for-changes
     - get: release-candidate-version
-      params: 
+      params:
         bump: final
       passed:
-        - check-for-changes
+      - check-for-changes
   - load_var: version-number
     file: release-candidate-version/number
   - task: promote-rc-binaries
@@ -842,7 +840,7 @@ jobs:
     - get: homebrew-tap
     - get: bbr-release
       passed:
-        - publish-to-github
+      - publish-to-github
       trigger: true
     - get: main
       passed:
@@ -951,38 +949,38 @@ jobs:
 
 - name: bump-ci-tasks
   plan:
-    - in_parallel:
-      - get: cryogenics-essentials
-        trigger: true
-      - get: cryogenics-concourse-tasks
-        resource: cryogenics-ci
-      - get: main
-    - in_parallel:
-      - load_var: cryogenics-essentials-version
-        file: cryogenics-essentials/tag
-      - task: bump-tasks
-        file: cryogenics-concourse-tasks/deps-automation/bump-concourse-tasks/task.yml
-        input_mapping:
-          repo: main
-          image: cryogenics-essentials
-        output_mapping:
-          repo: main
-    - put: bosh-backup-and-restore-bump-ci-tasks
-      params:
-        repository: main
-        branch: &bump-ci-task-branch bump-cryogenics-essentials-to-v((.:cryogenics-essentials-version))
-        force: true
-    - task: create-pull-request
-      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-      params:
-        BASE: master
-        BRANCH: *bump-ci-task-branch
-        LABELS: dependencies
-        TITLE: Bump cryogenics/essentials to v((.:cryogenics-essentials-version))
-        MESSAGE: |
-          This is an automatically generated Pull Request from the Cryogenics CI Bot.
-          I have detected a new version of [cryogenics/essentials](https://hub.docker.com/r/cryogenics/essentials/tags) and automatically bumped
-          this package to benefit from the latest changes.
-          If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
+  - in_parallel:
+    - get: cryogenics-essentials
+      trigger: true
+    - get: cryogenics-concourse-tasks
+      resource: cryogenics-ci
+    - get: main
+  - in_parallel:
+    - load_var: cryogenics-essentials-version
+      file: cryogenics-essentials/tag
+    - task: bump-tasks
+      file: cryogenics-concourse-tasks/deps-automation/bump-concourse-tasks/task.yml
       input_mapping:
-        source-repo: bosh-backup-and-restore-bump-ci-tasks
+        repo: main
+        image: cryogenics-essentials
+      output_mapping:
+        repo: main
+  - put: bosh-backup-and-restore-bump-ci-tasks
+    params:
+      repository: main
+      branch: &bump-ci-task-branch bump-cryogenics-essentials-to-v((.:cryogenics-essentials-version))
+      force: true
+  - task: create-pull-request
+    file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+    params:
+      BASE: master
+      BRANCH: *bump-ci-task-branch
+      LABELS: dependencies
+      TITLE: Bump cryogenics/essentials to v((.:cryogenics-essentials-version))
+      MESSAGE: |
+        This is an automatically generated Pull Request from the Cryogenics CI Bot.
+        I have detected a new version of [cryogenics/essentials](https://hub.docker.com/r/cryogenics/essentials/tags) and automatically bumped
+        this package to benefit from the latest changes.
+        If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
+    input_mapping:
+      source-repo: bosh-backup-and-restore-bump-ci-tasks
