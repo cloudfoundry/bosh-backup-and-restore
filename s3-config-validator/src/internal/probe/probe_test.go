@@ -2,8 +2,10 @@ package probe_test
 
 import (
 	"errors"
-	. "github.com/onsi/ginkgo"
+
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/probe"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/s3/s3fakes"
 )
@@ -57,7 +59,6 @@ var _ = Describe("ProbeSet", func() {
 					Expect(fakeS3Client.CanListObjectVersionsArgsForCall(0)).To(Equal(bucket))
 					Expect(fakeS3Client.CanGetObjectVersionsCallCount()).To(Equal(1))
 					Expect(fakeS3Client.CanGetObjectVersionsArgsForCall(0)).To(Equal(bucket))
-
 
 					Expect(fakeS3Client.CanPutObjectsCallCount()).To(BeZero())
 					Expect(fakeS3Client.CanListObjectsCallCount()).To(BeZero())

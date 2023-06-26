@@ -14,9 +14,9 @@ build:
 
 test-unit:
 	cd src/ && \
-	ginkgo -r --keepGoing internal
+	go run github.com/onsi/ginkgo/v2/ginkgo -r --keep-going internal
 
 test-e2e:
 	cd src/test && \
-	ginkgo -r --keepGoing . \
+	go run github.com/onsi/ginkgo/v2/ginkgo -r --keep-going . \
 	| sed 's/"\(aws_.*\)"\: "\(.*\)"/"\1": "<redacted>"/g'
