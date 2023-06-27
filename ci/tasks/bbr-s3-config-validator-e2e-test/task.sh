@@ -4,14 +4,14 @@ set -euo pipefail
 
 cd bosh-backup-and-restore/s3-config-validator/src
 
-ginkgo \
+go run github.com/onsi/ginkgo/v2/ginkgo \
   -r \
-  --randomizeAllSpecs \
-  --keepGoing \
-  --failOnPending \
+  --randomize-all \
+  --keep-going \
+  --fail-on-pending \
   --cover \
   --race \
-  --progress \
+  --show-node-events \
   test \
   | sed 's/"\(aws_.*\)"\: "\(.*\)"/"\1": "<redacted>"/g'
 

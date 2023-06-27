@@ -1,16 +1,16 @@
 package s3_test
 
 import (
+	"context"
 	"net/http"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/s3"
-	. "github.com/onsi/ginkgo"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
-	"github.com/aws/aws-sdk-go/aws/client"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/s3"
 )
 
 const (
@@ -126,11 +126,25 @@ const (
 )
 
 var _ = Describe("S3Client", func() {
+	var creds aws.CredentialsProvider
+
 	Describe("given an S3 server", func() {
-		var fakeS3Server *ghttp.Server
+		var (
+			fakeS3Server       *ghttp.Server
+			credSpy            func(options *awss3.Options)
+			fakeS3ServerConfig func(options *awss3.Options)
+		)
 
 		BeforeEach(func() {
 			fakeS3Server = ghttp.NewServer()
+			fakeS3ServerConfig = func(options *awss3.Options) {
+				options.EndpointResolver = awss3.EndpointResolverFromURL(fakeS3Server.URL(), func(endpoint *aws.Endpoint) {
+					endpoint.HostnameImmutable = true
+				})
+			}
+			credSpy = func(o *awss3.Options) {
+				creds = o.Credentials
+			}
 		})
 
 		AfterEach(func() {
@@ -140,26 +154,24 @@ var _ = Describe("S3Client", func() {
 		When("creating an s3client", func() {
 			When("we are not using an IAMProfile", func() {
 				It("uses static credentials", func() {
-					clientObject, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
-					Expect(err).NotTo(HaveOccurred())
-					creds, err := clientObject.S3Client.Config.Credentials.Get()
+					_, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, credSpy, fakeS3ServerConfig)
 					Expect(err).NotTo(HaveOccurred())
 
-					Expect(creds.ProviderName).To(Equal("StaticProvider"))
+					actualCreds, err := creds.Retrieve(context.TODO())
+					Expect(err).ToNot(HaveOccurred())
+					Expect(actualCreds.SecretAccessKey).To(Equal("test-secret"))
+					Expect(actualCreds.AccessKeyID).To(Equal("test-id"))
+					Expect(actualCreds.Source).To(Equal("StaticCredentials"))
 				})
 			})
 
 			When("we are using an IAMProfile", func() {
 				It("uses EC2 Role credentials", func() {
-					roleCredentials := &credentials.Credentials{}
-					s3.SetCredIAMProvider(func(c client.ConfigProvider, options ...func(*ec2rolecreds.EC2RoleProvider)) *credentials.Credentials {
-						return roleCredentials
-					})
-
-					clientObject, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", true)
+					_, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", true, credSpy, fakeS3ServerConfig)
 					Expect(err).NotTo(HaveOccurred())
 
-					Expect(clientObject.S3Client.Config.Credentials).To(BeIdenticalTo(roleCredentials))
+					_, err = creds.Retrieve(context.TODO())
+					Expect(err).To(MatchError(ContainSubstring("operation error ec2imds: GetMetadata")))
 				})
 			})
 		})
@@ -177,14 +189,14 @@ var _ = Describe("S3Client", func() {
 					})
 
 					It("IsUnversioned succeeds", func() {
-						probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+						probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 						Expect(err).ToNot(HaveOccurred())
 
 						Expect(probe.IsUnversioned("test-bucket")).To(Succeed())
 					})
 
 					It("IsVersioned returns an error", func() {
-						probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+						probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 						Expect(err).ToNot(HaveOccurred())
 
 						Expect(probe.IsVersioned("test-bucket")).To(Not(Succeed()))
@@ -202,14 +214,14 @@ var _ = Describe("S3Client", func() {
 					})
 
 					It("IsUnversioned succeeds", func() {
-						probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+						probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 						Expect(err).ToNot(HaveOccurred())
 
 						Expect(probe.IsUnversioned("test-bucket")).To(Succeed())
 					})
 
 					It("IsVersioned returns an error", func() {
-						probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+						probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 						Expect(err).ToNot(HaveOccurred())
 
 						Expect(probe.IsVersioned("test-bucket")).To(Not(Succeed()))
@@ -227,14 +239,14 @@ var _ = Describe("S3Client", func() {
 					})
 
 					It("IsUnversioned returns an error", func() {
-						probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+						probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 						Expect(err).ToNot(HaveOccurred())
 
 						Expect(probe.IsUnversioned("test-bucket")).To(Not(Succeed()))
 					})
 
 					It("IsVersioned succeeds", func() {
-						probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+						probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 						Expect(err).ToNot(HaveOccurred())
 
 						Expect(probe.IsVersioned("test-bucket")).To(Succeed())
@@ -255,17 +267,17 @@ var _ = Describe("S3Client", func() {
 					})
 
 					It("IsUnversioned returns an error", func() {
-						probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+						probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 						Expect(err).ToNot(HaveOccurred())
 
-						Expect(probe.IsUnversioned("test-bucket")).To(MatchError("could not check if bucket test-bucket is versioned: AccessDenied: Access Denied\n\tstatus code: 403, request id: , host id: "))
+						Expect(probe.IsUnversioned("test-bucket")).To(MatchError("could not check if bucket test-bucket is versioned: operation error S3: GetBucketVersioning, https response error StatusCode: 403, RequestID: request-id, HostID: host-id, api error AccessDenied: Access Denied"))
 					})
 
 					It("IsVersioned returns an error", func() {
-						probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+						probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 						Expect(err).ToNot(HaveOccurred())
 
-						Expect(probe.IsVersioned("test-bucket")).To(MatchError("could not check if bucket test-bucket is versioned: AccessDenied: Access Denied\n\tstatus code: 403, request id: , host id: "))
+						Expect(probe.IsVersioned("test-bucket")).To(MatchError("could not check if bucket test-bucket is versioned: operation error S3: GetBucketVersioning, https response error StatusCode: 403, RequestID: request-id, HostID: host-id, api error AccessDenied: Access Denied"))
 					})
 				})
 			})
@@ -283,7 +295,7 @@ var _ = Describe("S3Client", func() {
 				})
 
 				It("returns no error", func() {
-					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(probe.CanListObjects("test-bucket")).To(Succeed())
@@ -301,10 +313,10 @@ var _ = Describe("S3Client", func() {
 				})
 
 				It("returns an error", func() {
-					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(probe.CanListObjects("test-bucket")).To(MatchError("could not list objects in bucket test-bucket: AccessDenied: Access Denied\n\tstatus code: 403, request id: , host id: "))
+					Expect(probe.CanListObjects("test-bucket")).To(MatchError("could not list objects in bucket test-bucket: operation error S3: ListObjectsV2, https response error StatusCode: 403, RequestID: request-id, HostID: host-id, api error AccessDenied: Access Denied"))
 				})
 			})
 		})
@@ -321,7 +333,7 @@ var _ = Describe("S3Client", func() {
 				})
 
 				It("returns no error", func() {
-					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(probe.CanListObjectVersions("test-bucket")).To(Succeed())
@@ -339,10 +351,10 @@ var _ = Describe("S3Client", func() {
 				})
 
 				It("returns an error", func() {
-					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(probe.CanListObjectVersions("test-bucket")).To(MatchError("could not list object versions in bucket test-bucket: AccessDenied: Access Denied\n\tstatus code: 403, request id: , host id: "))
+					Expect(probe.CanListObjectVersions("test-bucket")).To(MatchError("could not list object versions in bucket test-bucket: operation error S3: ListObjectVersions, https response error StatusCode: 403, RequestID: request-id, HostID: host-id, api error AccessDenied: Access Denied"))
 				})
 			})
 		})
@@ -371,7 +383,7 @@ var _ = Describe("S3Client", func() {
 				})
 
 				It("returns no error", func() {
-					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(probe.CanGetObjects("test-bucket")).To(Succeed())
@@ -401,7 +413,7 @@ var _ = Describe("S3Client", func() {
 				})
 
 				It("returns an error", func() {
-					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(probe.CanGetObjects("test-bucket")).To(MatchError("could not get all objects from bucket test-bucket"))
@@ -419,7 +431,7 @@ var _ = Describe("S3Client", func() {
 				})
 
 				It("returns an error", func() {
-					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(probe.CanGetObjects("test-bucket")).To(MatchError("could not get all objects from bucket test-bucket"))
@@ -451,7 +463,7 @@ var _ = Describe("S3Client", func() {
 				})
 
 				It("returns no error", func() {
-					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(probe.CanGetObjectVersions("test-bucket")).To(Succeed())
@@ -481,7 +493,7 @@ var _ = Describe("S3Client", func() {
 				})
 
 				It("returns an error", func() {
-					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(probe.CanGetObjectVersions("test-bucket")).To(MatchError("could not get all object versions from bucket test-bucket"))
@@ -499,7 +511,7 @@ var _ = Describe("S3Client", func() {
 				})
 
 				It("returns an error", func() {
-					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(probe.CanGetObjectVersions("test-bucket")).To(MatchError("could not get all object versions from bucket test-bucket"))
@@ -519,7 +531,7 @@ var _ = Describe("S3Client", func() {
 				})
 
 				It("returns no error", func() {
-					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 					Expect(err).ToNot(HaveOccurred())
 
 					Expect(probe.CanPutObjects("test-bucket")).To(Succeed())
@@ -537,10 +549,10 @@ var _ = Describe("S3Client", func() {
 				})
 
 				It("returns an error", func() {
-					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false)
+					probe, err := s3.NewS3Client("test-region", fakeS3Server.URL(), "test-id", "test-secret", false, fakeS3ServerConfig)
 					Expect(err).ToNot(HaveOccurred())
 
-					Expect(probe.CanPutObjects("test-bucket")).To(MatchError("could not put object into bucket test-bucket: AccessDenied: Access Denied\n\tstatus code: 403, request id: , host id: "))
+					Expect(probe.CanPutObjects("test-bucket")).To(MatchError("could not put object into bucket test-bucket: operation error S3: PutObject, https response error StatusCode: 403, RequestID: request-id, HostID: host-id, api error AccessDenied: Access Denied"))
 				})
 			})
 		})

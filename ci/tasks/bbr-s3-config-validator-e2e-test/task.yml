@@ -12,6 +12,7 @@ inputs:
 params:
   AWS_SECRET_KEY:
   AWS_ACCESS_KEY:
+  AWS_ASSUMED_ROLE_ARN:
 
 run:
   path: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-e2e-test/task.sh

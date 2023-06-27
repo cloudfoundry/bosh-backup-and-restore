@@ -2,15 +2,16 @@ package runner_test
 
 import (
 	"errors"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/config"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/s3"
 	"io"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/probe"
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/runner"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
+
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/config"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/probe"
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/runner"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/s3"
 )
 
 func SucceedingProbe(string) error {
@@ -110,7 +111,7 @@ var _ = Describe("Versioned", func() {
 		It("should construct a live probe runner with bucket secrets", func() {
 			var newS3ClientArgs []NewS3ClientArgs
 
-			SetNewS3Client(func(region, endpoint, id, secret string, useIAMProfile bool) (*s3.S3Client, error) {
+			SetNewS3Client(func(region, endpoint, id, secret, role string, useIAMProfile bool) (*s3.S3Client, error) {
 				newS3ClientArgs = append(newS3ClientArgs, NewS3ClientArgs{
 					Region:        region,
 					Endpoint:      endpoint,
@@ -118,7 +119,7 @@ var _ = Describe("Versioned", func() {
 					Secret:        secret,
 					UseIAMProfile: useIAMProfile,
 				})
-				return NewS3ClientImpl(region, endpoint, id, secret, useIAMProfile)
+				return NewS3ClientImpl(region, endpoint, id, secret, role, useIAMProfile)
 			})
 
 			probeRunners := NewProbeRunners(
@@ -161,7 +162,7 @@ var _ = Describe("Versioned", func() {
 		It("should construct a live probe runner without bucket secrets", func() {
 			var newS3ClientArgs []NewS3ClientArgs
 
-			SetNewS3Client(func(region, endpoint, id, secret string, useIAMProfile bool) (*s3.S3Client, error) {
+			SetNewS3Client(func(region, endpoint, id, secret, role string, useIAMProfile bool) (*s3.S3Client, error) {
 				newS3ClientArgs = append(newS3ClientArgs, NewS3ClientArgs{
 					Region:        region,
 					Endpoint:      endpoint,
@@ -169,7 +170,7 @@ var _ = Describe("Versioned", func() {
 					Secret:        secret,
 					UseIAMProfile: useIAMProfile,
 				})
-				return NewS3ClientImpl(region, endpoint, id, secret, useIAMProfile)
+				return NewS3ClientImpl(region, endpoint, id, secret, role, useIAMProfile)
 			})
 
 			NewProbeRunners(
@@ -204,7 +205,7 @@ var _ = Describe("Unversioned", func() {
 	It("should construct a live and a backup bucket probe runner", func() {
 		var newS3ClientArgs []NewS3ClientArgs
 
-		SetNewS3Client(func(region, endpoint, id, secret string, useIAMProfile bool) (*s3.S3Client, error) {
+		SetNewS3Client(func(region, endpoint, id, secret, role string, useIAMProfile bool) (*s3.S3Client, error) {
 			newS3ClientArgs = append(newS3ClientArgs, NewS3ClientArgs{
 				Region:        region,
 				Endpoint:      endpoint,
@@ -212,7 +213,7 @@ var _ = Describe("Unversioned", func() {
 				Secret:        secret,
 				UseIAMProfile: useIAMProfile,
 			})
-			return NewS3ClientImpl(region, endpoint, id, secret, useIAMProfile)
+			return NewS3ClientImpl(region, endpoint, id, secret, role, useIAMProfile)
 		})
 
 		probeRunners := NewProbeRunners(
