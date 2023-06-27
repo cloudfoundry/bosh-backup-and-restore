@@ -32,6 +32,7 @@ groups:
   jobs:
   - test-build-s3-config-validator
   - validate-aws-s3-config
+  - reminder-to-re-enable-validate-aws-s3-config
   - claim-env
   - system-test-deployment
   - system-test-director
@@ -104,6 +105,11 @@ resources:
   type: time
   source:
     interval: 720h #! (24h * 30 days) as It's basically golang and clamav bumps
+
+- name: every-week
+  type: time
+  source:
+    interval: 168h #! (24h * 7 days)
 
 - name: bbr-director-test-releases
   type: git
@@ -555,11 +561,34 @@ jobs:
       action: unclaim
       env_file: env-pool/metadata
 
+- name: reminder-to-re-enable-validate-aws-s3-config
+  plan:
+  - get: every-week
+    trigger: true
+  - task: reminder
+    config:
+      platform: linux
+      image_resource:
+        source:
+          repository: cryogenics/essentials
+        type: registry-image
+      run:
+        path: /usr/bin/bash
+        args:
+        - -c
+        - |
+          if [[ $(date -I | sed "s/-//g") -gt "20230915" ]]; then
+            echo "Check whether the current version of TAS supports assuming roles in S3 credentials"
+            echo "for the system blobstore. If it does, re-enable the validate-aws-s3-config job,"
+            echo "and re-add it to the 'passed' list of the merge-pr job."
+            echo "Otherwise, bump the date in the above condition a few months further in the future."
+            exit 1
+          fi
 - name: merge-pr
   plan:
   - in_parallel:
     - get: latest-pull-request
-      passed: [system-test-deployment, system-test-director, validate-aws-s3-config]
+      passed: [system-test-deployment, system-test-director]
       trigger: true
   - put: latest-pull-request
     params:
