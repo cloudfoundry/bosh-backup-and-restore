@@ -3,7 +3,7 @@ module github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-valid
 go 1.20
 
 require (
-	github.com/aws/aws-sdk-go v1.44.281
+	github.com/aws/aws-sdk-go v1.44.290
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.2
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.27.8
