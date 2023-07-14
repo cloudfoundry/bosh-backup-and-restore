@@ -863,8 +863,8 @@ github.com/cloudfoundry/bosh-s3cli v0.0.205/go.mod h1:8TDI0bl/dnTQvLmOgNEcVl+lNk
 github.com/cloudfoundry/bosh-utils v0.0.354/go.mod h1:oNWd/33pH6Z/pPoBuGm59usyJe7IUk0gYIms2JY/ZuE=
 github.com/cloudfoundry/bosh-utils v0.0.355/go.mod h1:8W0PjJr6O4PHcw365d4yUgpiqJknGuMp52042C0xOuE=
 github.com/cloudfoundry/bosh-utils v0.0.369/go.mod h1:rv+PVeycRL/JnyVgIT6JRkvxy3KbQUCQ//8y9AJUGLk=
-github.com/cloudfoundry/bosh-utils v0.0.370 h1:OL3EAWkzlEXH9/o/0G94Mc+enM1ezj5AhO0oyoaO2hw=
-github.com/cloudfoundry/bosh-utils v0.0.370/go.mod h1:seqKYzWZ1hfTXjAOZ9Se2CA+25nkPO0rXPNPXkasOmg=
+github.com/cloudfoundry/bosh-utils v0.0.372 h1:a7wvrgLv7j69JVlmpGuWt+TBvrjxEQ0xJt/3/WwSCFk=
+github.com/cloudfoundry/bosh-utils v0.0.372/go.mod h1:seqKYzWZ1hfTXjAOZ9Se2CA+25nkPO0rXPNPXkasOmg=
 github.com/cloudfoundry/config-server v0.1.127 h1:+gQ8x5v0vkMG7qM/i7U6tDnNO61ZV14DJHlWDjEzXEY=
 github.com/cloudfoundry/config-server v0.1.127/go.mod h1:KyBvAJCUAqOsjseoWkiZ4bgr9U2TzerdHtg7YJ8K7b0=
 github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e h1:FQdRViaoDphGRfgrotl2QGsX1gbloe57dbGBS5CG6KY=
