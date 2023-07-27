@@ -106,6 +106,8 @@ const (
 	BucketLocationConstraintUsGovWest1   BucketLocationConstraint = "us-gov-west-1"
 	BucketLocationConstraintUsWest1      BucketLocationConstraint = "us-west-1"
 	BucketLocationConstraintUsWest2      BucketLocationConstraint = "us-west-2"
+	BucketLocationConstraintApSouth2     BucketLocationConstraint = "ap-south-2"
+	BucketLocationConstraintEuSouth2     BucketLocationConstraint = "eu-south-2"
 )
 
 // Values returns all known values for BucketLocationConstraint. Note that this
@@ -139,6 +141,8 @@ func (BucketLocationConstraint) Values() []BucketLocationConstraint {
 		"us-gov-west-1",
 		"us-west-1",
 		"us-west-2",
+		"ap-south-2",
+		"eu-south-2",
 	}
 }
 
@@ -543,6 +547,8 @@ const (
 	InventoryOptionalFieldIntelligentTieringAccessTier InventoryOptionalField = "IntelligentTieringAccessTier"
 	InventoryOptionalFieldBucketKeyStatus              InventoryOptionalField = "BucketKeyStatus"
 	InventoryOptionalFieldChecksumAlgorithm            InventoryOptionalField = "ChecksumAlgorithm"
+	InventoryOptionalFieldObjectAccessControlList      InventoryOptionalField = "ObjectAccessControlList"
+	InventoryOptionalFieldObjectOwner                  InventoryOptionalField = "ObjectOwner"
 )
 
 // Values returns all known values for InventoryOptionalField. Note that this can
@@ -563,6 +569,8 @@ func (InventoryOptionalField) Values() []InventoryOptionalField {
 		"IntelligentTieringAccessTier",
 		"BucketKeyStatus",
 		"ChecksumAlgorithm",
+		"ObjectAccessControlList",
+		"ObjectOwner",
 	}
 }
 
@@ -845,6 +853,22 @@ const (
 func (ObjectVersionStorageClass) Values() []ObjectVersionStorageClass {
 	return []ObjectVersionStorageClass{
 		"STANDARD",
+	}
+}
+
+type OptionalObjectAttributes string
+
+// Enum values for OptionalObjectAttributes
+const (
+	OptionalObjectAttributesRestoreStatus OptionalObjectAttributes = "RestoreStatus"
+)
+
+// Values returns all known values for OptionalObjectAttributes. Note that this
+// can be expanded in the future, and so it is only as up to date as the client.
+// The ordering of this slice is not guaranteed to be stable across updates.
+func (OptionalObjectAttributes) Values() []OptionalObjectAttributes {
+	return []OptionalObjectAttributes{
+		"RestoreStatus",
 	}
 }
 
