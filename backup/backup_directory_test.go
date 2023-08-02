@@ -1066,7 +1066,7 @@ backup_activity:
 		Context("when the filename is invalid", func() {
 			var fakeBackupArtifact *fakes.FakeBackupArtifact
 
-			BeforeEach(func(){
+			BeforeEach(func() {
 				fakeBackupArtifact = new(fakes.FakeBackupArtifact)
 				fakeBackupArtifact.NameReturns("$IAMGARBAGE")
 			})

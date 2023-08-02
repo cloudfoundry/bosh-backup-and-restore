@@ -22,7 +22,7 @@ func TestDeploymentIntegration(t *testing.T) {
 	RunSpecs(t, "Deployment Integration Suite")
 }
 
-//Default cert for golang ssh
+// Default cert for golang ssh
 var sslCertPath string
 var sslCertValue string
 

@@ -259,7 +259,8 @@ restore_name: consul_backup
 backup_should_be_locked_before:
 - job_name: bosh
   release: bosh`))
-						return nil}
+						return nil
+					}
 				})
 
 				It("attaches the metadata to the corresponding jobs", func() {
@@ -302,7 +303,7 @@ backup_should_be_locked_before:
 
 					It("attaches the metadata to the corresponding jobs", func() {
 						By("executing the metadata scripts passing the correct arguments", func() {
-							cmd, env, _ , _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
+							cmd, env, _, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 							Expect(cmd).To(Equal("/var/vcap/jobs/consul_agent/bin/bbr/metadata"))
 							Expect(env).To(Equal(map[string]string{"BBR_VERSION": bbrVersion}))
 						})
@@ -374,7 +375,8 @@ backup_should_be_locked_before:
 					remoteRunner.FindFilesReturns([]string{"/var/vcap/jobs/consul_agent/bin/bbr/metadata"}, nil)
 					remoteRunner.RunScriptWithEnvStub = func(_ string, _ map[string]string, _ string, stdout io.Writer) error {
 						stdout.Write([]byte(`this metadata is missing all the keys`))
-						return nil}
+						return nil
+					}
 				})
 
 				It("prints the location of the error", func() {
@@ -390,7 +392,8 @@ backup_should_be_locked_before:
 					remoteRunner.RunScriptWithEnvStub = func(_ string, _ map[string]string, _ string, stdout io.Writer) error {
 						stdout.Write([]byte(`---
 skip_bbr_scripts: true`))
-						return nil}
+						return nil
+					}
 				})
 
 				It("ignores the job", func() {

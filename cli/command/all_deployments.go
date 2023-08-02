@@ -146,7 +146,7 @@ func createLogger(timestamp string, artifactPath string, deploymentName string, 
 	logFilePath := filepath.Join(artifactPath, fmt.Sprintf("%s_%s.log", deploymentName, timestamp))
 	logFile, err := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, defaultLogfilePermissions)
 	if err != nil {
-		return "",nil,nil,err
+		return "", nil, nil, err
 	}
 	buffer := new(bytes.Buffer)
 	multiWriter := io.MultiWriter(buffer, logFile)
