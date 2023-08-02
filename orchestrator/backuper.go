@@ -55,7 +55,7 @@ type AuthInfo struct {
 	UaaUrl string
 }
 
-//Backup checks if a deployment has backupable instances and backs them up.
+// Backup checks if a deployment has backupable instances and backs them up.
 func (b Backuper) Backup(deploymentName, artifactPath string) Error {
 	session := NewSession(deploymentName)
 	session.SetCurrentArtifactPath(artifactPath)

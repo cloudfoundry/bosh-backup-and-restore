@@ -129,7 +129,6 @@ func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, la
 
 		r.logger.Debug("bbr", "stdout: %s", string(p))
 
-
 		if outErr != nil {
 			return n, outErr
 		}
@@ -158,6 +157,7 @@ func (r SshRemoteRunner) RunScriptWithEnv(path string, env map[string]string, la
 type anonymousWriter struct {
 	write func(p []byte) (n int, err error)
 }
+
 func (w anonymousWriter) Write(p []byte) (n int, err error) {
 	return w.write(p)
 }

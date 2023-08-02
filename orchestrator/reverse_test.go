@@ -1,11 +1,12 @@
 package orchestrator_test
 
 import (
+	"strconv"
+	"time"
+
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"strconv"
-	"time"
 
 	orchestratorFakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
 )

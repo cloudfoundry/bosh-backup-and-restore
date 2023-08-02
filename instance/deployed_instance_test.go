@@ -596,7 +596,7 @@ var _ = Describe("DeployedInstance", func() {
 			It("uses the remote runner to run each restore script providing the correct ARTIFACT_DIRECTORY", func() {
 				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(3))
 
-				specifiedScriptPath, specifiedEnvVars, _ , _:= remoteRunner.RunScriptWithEnvArgsForCall(0)
+				specifiedScriptPath, specifiedEnvVars, _, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/foo/bin/bbr/restore"))
 				Expect(specifiedEnvVars).To(Equal(map[string]string{
 					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/foo/",
@@ -610,7 +610,7 @@ var _ = Describe("DeployedInstance", func() {
 					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/bar/",
 				}))
 
-				specifiedScriptPath, specifiedEnvVars, _, _= remoteRunner.RunScriptWithEnvArgsForCall(2)
+				specifiedScriptPath, specifiedEnvVars, _, _ = remoteRunner.RunScriptWithEnvArgsForCall(2)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/baz/bin/bbr/restore"))
 				Expect(specifiedEnvVars).To(Equal(map[string]string{
 					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/baz/",
@@ -698,7 +698,7 @@ var _ = Describe("DeployedInstance", func() {
 			It("uses the remote runner to create each job's backup folder and run each backup script providing the correct BBR_ARTIFACT_DIRECTORY and ARTIFACT_DIRECTORY", func() {
 				Expect(remoteRunner.RunScriptWithEnvCallCount()).To(Equal(3))
 
-				specifiedScriptPath, specifiedEnvVars, _ , _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
+				specifiedScriptPath, specifiedEnvVars, _, _ := remoteRunner.RunScriptWithEnvArgsForCall(0)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/foo/bin/bbr/restore"))
 				Expect(specifiedEnvVars).To(Equal(map[string]string{
 					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/foo/",
@@ -712,7 +712,7 @@ var _ = Describe("DeployedInstance", func() {
 					"BBR_ARTIFACT_DIRECTORY": "/var/vcap/store/bbr-backup/bar/",
 				}))
 
-				specifiedScriptPath, specifiedEnvVars, _ , _ = remoteRunner.RunScriptWithEnvArgsForCall(2)
+				specifiedScriptPath, specifiedEnvVars, _, _ = remoteRunner.RunScriptWithEnvArgsForCall(2)
 				Expect(specifiedScriptPath).To(Equal("/var/vcap/jobs/baz/bin/bbr/restore"))
 				Expect(specifiedEnvVars).To(Equal(map[string]string{
 					"ARTIFACT_DIRECTORY":     "/var/vcap/store/bbr-backup/special-backup/",
