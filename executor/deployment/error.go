@@ -2,11 +2,12 @@ package deployment
 
 import (
 	"fmt"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	"github.com/urfave/cli"
 	"io/ioutil"
 	"strings"
 	"time"
+
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/urfave/cli"
 )
 
 type ErrorHandleFunc func(deploymentsError AllDeploymentsError) error

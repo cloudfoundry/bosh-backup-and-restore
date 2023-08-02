@@ -14,14 +14,14 @@ type LogPercentage struct {
 }
 
 type LogPercentageWriter struct {
-	Writer              io.Writer
-	bytesWritten        int
+	Writer       io.Writer
+	bytesWritten int
 	LogPercentage
 }
 
 type LogPercentageReader struct {
-	Reader              io.Reader
-	bytesRead        int
+	Reader    io.Reader
+	bytesRead int
 	LogPercentage
 }
 
@@ -32,7 +32,7 @@ type Logger interface {
 
 func NewLogPercentageWriter(writer io.Writer, logger Logger, totalSize int, command, message string) *LogPercentageWriter {
 	return &LogPercentageWriter{
-		Writer:              writer,
+		Writer: writer,
 		LogPercentage: LogPercentage{
 			logger:              logger,
 			totalSize:           totalSize,
@@ -55,10 +55,9 @@ func (lw *LogPercentageWriter) Write(b []byte) (int, error) {
 	return n, nil
 }
 
-
 func NewLogPercentageReader(reader io.Reader, logger Logger, totalSize int, command, message string) *LogPercentageReader {
 	return &LogPercentageReader{
-		Reader:              reader,
+		Reader: reader,
 		LogPercentage: LogPercentage{
 			logger:              logger,
 			totalSize:           totalSize,

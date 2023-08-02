@@ -11,7 +11,7 @@ import (
 //go:generate counterfeiter -o fakes/fake_readwriter.go io.ReadWriter
 
 var _ = Describe("LogPercentageReadWriter", func() {
-	Describe("LogPercentageWriter", func(){
+	Describe("LogPercentageWriter", func() {
 		var fakeLogger *fakes.FakeLogger
 		var fakeReadWriter *fakes.FakeReadWriter
 		var logPercentageReadWriter *readwriter.LogPercentageWriter
@@ -122,7 +122,7 @@ var _ = Describe("LogPercentageReadWriter", func() {
 		})
 	})
 
-	Describe("LogPercentageReader", func(){
+	Describe("LogPercentageReader", func() {
 		var fakeLogger *fakes.FakeLogger
 		var fakeReadWriter *fakes.FakeReadWriter
 		var logPercentageReadWriter *readwriter.LogPercentageReader

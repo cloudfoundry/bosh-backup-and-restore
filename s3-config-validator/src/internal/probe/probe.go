@@ -53,8 +53,7 @@ func NewSet(s3 s3.Client, readOnly bool, versioned bool) Set {
 		probeSet = append(
 			probeSet,
 			NamedProbe{
-				Name:
-				"Can put objects",
+				Name:  "Can put objects",
 				Probe: s3.CanPutObjects,
 			},
 		)

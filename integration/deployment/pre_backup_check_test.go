@@ -2,10 +2,11 @@ package deployment
 
 import (
 	"fmt"
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 	"io/ioutil"
 	"os"
+
+	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 
 	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
 	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
