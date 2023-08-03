@@ -21,7 +21,8 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-//go:generate counterfeiter -o fakes/fake_ssh_connection.go . SSHConnection
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_ssh_connection.go . SSHConnection
 type SSHConnection interface {
 	Stream(cmd string, writer io.Writer) ([]byte, int, error)
 	StreamStdin(cmd string, reader io.Reader) ([]byte, []byte, int, error)
@@ -29,7 +30,7 @@ type SSHConnection interface {
 	Username() string
 }
 
-//go:generate counterfeiter -o fakes/fake_logger.go . Logger
+//counterfeiter:generate -o fakes/fake_logger.go . Logger
 type Logger interface {
 	Warn(tag, msg string, args ...interface{})
 	Debug(tag, msg string, args ...interface{})
@@ -146,7 +147,7 @@ func createDialContextFunc() boshhttp.DialContextFunc {
 	return dialFunc
 }
 
-//go:generate counterfeiter -o fakes/fake_ssh_session.go . SSHSession
+//counterfeiter:generate -o fakes/fake_ssh_session.go . SSHSession
 type SSHSession interface {
 	Run(cmd string) error
 	SendRequest(name string, wantReply bool, payload []byte) (bool, error)

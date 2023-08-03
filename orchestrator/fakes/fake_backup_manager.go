@@ -49,15 +49,16 @@ func (fake *FakeBackupManager) Create(arg1 string, arg2 string, arg3 orchestrato
 		arg2 string
 		arg3 orchestrator.Logger
 	}{arg1, arg2, arg3})
+	stub := fake.CreateStub
+	fakeReturns := fake.createReturns
 	fake.recordInvocation("Create", []interface{}{arg1, arg2, arg3})
 	fake.createMutex.Unlock()
-	if fake.CreateStub != nil {
-		return fake.CreateStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.createReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -113,15 +114,16 @@ func (fake *FakeBackupManager) Open(arg1 string, arg2 orchestrator.Logger) (orch
 		arg1 string
 		arg2 orchestrator.Logger
 	}{arg1, arg2})
+	stub := fake.OpenStub
+	fakeReturns := fake.openReturns
 	fake.recordInvocation("Open", []interface{}{arg1, arg2})
 	fake.openMutex.Unlock()
-	if fake.OpenStub != nil {
-		return fake.OpenStub(arg1, arg2)
+	if stub != nil {
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.openReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

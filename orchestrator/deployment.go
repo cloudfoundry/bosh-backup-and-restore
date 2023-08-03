@@ -11,7 +11,8 @@ import (
 
 const ArtifactDirectory = "/var/vcap/store/bbr-backup"
 
-//go:generate counterfeiter -o fakes/fake_deployment.go . Deployment
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_deployment.go . Deployment
 type Deployment interface {
 	IsBackupable() bool
 	BackupableInstances() []Instance
@@ -30,7 +31,7 @@ type Deployment interface {
 	ValidateLockingDependencies(orderer LockOrderer) error
 }
 
-//go:generate counterfeiter -o fakes/fake_lock_orderer.go . LockOrderer
+//counterfeiter:generate -o fakes/fake_lock_orderer.go . LockOrderer
 type LockOrderer interface {
 	Order(jobs []Job) ([][]Job, error)
 }

@@ -4,7 +4,8 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 )
 
-//go:generate counterfeiter -o fakes/fake_artifact_copier.go . ArtifactCopier
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_artifact_copier.go . ArtifactCopier
 type ArtifactCopier interface {
 	DownloadBackupFromDeployment(Backup, Deployment) error
 	UploadBackupToDeployment(Backup, Deployment) error

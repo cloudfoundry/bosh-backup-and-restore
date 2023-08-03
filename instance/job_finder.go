@@ -20,7 +20,8 @@ func (i InstanceIdentifier) String() string {
 	return fmt.Sprintf("%s/%s", i.InstanceGroupName, i.InstanceId)
 }
 
-//go:generate counterfeiter -o fakes/fake_job_finder.go . JobFinder
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_job_finder.go . JobFinder
 type JobFinder interface {
 	FindJobs(instanceIdentifier InstanceIdentifier, remoteRunner ssh.RemoteRunner, manifestQuerier ManifestQuerier) (orchestrator.Jobs, error)
 }

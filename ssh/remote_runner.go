@@ -11,7 +11,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-//go:generate counterfeiter -o fakes/fake_remote_runner.go . RemoteRunner
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_remote_runner.go . RemoteRunner
 type RemoteRunner interface {
 	ConnectedUsername() string
 	DirectoryExists(dir string) (bool, error)

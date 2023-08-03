@@ -173,15 +173,16 @@ func (fake *FakeInstance) ArtifactDirCreated() bool {
 	ret, specificReturn := fake.artifactDirCreatedReturnsOnCall[len(fake.artifactDirCreatedArgsForCall)]
 	fake.artifactDirCreatedArgsForCall = append(fake.artifactDirCreatedArgsForCall, struct {
 	}{})
+	stub := fake.ArtifactDirCreatedStub
+	fakeReturns := fake.artifactDirCreatedReturns
 	fake.recordInvocation("ArtifactDirCreated", []interface{}{})
 	fake.artifactDirCreatedMutex.Unlock()
-	if fake.ArtifactDirCreatedStub != nil {
-		return fake.ArtifactDirCreatedStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.artifactDirCreatedReturns
 	return fakeReturns.result1
 }
 
@@ -225,15 +226,16 @@ func (fake *FakeInstance) ArtifactDirExists() (bool, error) {
 	ret, specificReturn := fake.artifactDirExistsReturnsOnCall[len(fake.artifactDirExistsArgsForCall)]
 	fake.artifactDirExistsArgsForCall = append(fake.artifactDirExistsArgsForCall, struct {
 	}{})
+	stub := fake.ArtifactDirExistsStub
+	fakeReturns := fake.artifactDirExistsReturns
 	fake.recordInvocation("ArtifactDirExists", []interface{}{})
 	fake.artifactDirExistsMutex.Unlock()
-	if fake.ArtifactDirExistsStub != nil {
-		return fake.ArtifactDirExistsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.artifactDirExistsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -280,15 +282,16 @@ func (fake *FakeInstance) ArtifactsToBackup() []orchestrator.BackupArtifact {
 	ret, specificReturn := fake.artifactsToBackupReturnsOnCall[len(fake.artifactsToBackupArgsForCall)]
 	fake.artifactsToBackupArgsForCall = append(fake.artifactsToBackupArgsForCall, struct {
 	}{})
+	stub := fake.ArtifactsToBackupStub
+	fakeReturns := fake.artifactsToBackupReturns
 	fake.recordInvocation("ArtifactsToBackup", []interface{}{})
 	fake.artifactsToBackupMutex.Unlock()
-	if fake.ArtifactsToBackupStub != nil {
-		return fake.ArtifactsToBackupStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.artifactsToBackupReturns
 	return fakeReturns.result1
 }
 
@@ -332,15 +335,16 @@ func (fake *FakeInstance) ArtifactsToRestore() []orchestrator.BackupArtifact {
 	ret, specificReturn := fake.artifactsToRestoreReturnsOnCall[len(fake.artifactsToRestoreArgsForCall)]
 	fake.artifactsToRestoreArgsForCall = append(fake.artifactsToRestoreArgsForCall, struct {
 	}{})
+	stub := fake.ArtifactsToRestoreStub
+	fakeReturns := fake.artifactsToRestoreReturns
 	fake.recordInvocation("ArtifactsToRestore", []interface{}{})
 	fake.artifactsToRestoreMutex.Unlock()
-	if fake.ArtifactsToRestoreStub != nil {
-		return fake.ArtifactsToRestoreStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.artifactsToRestoreReturns
 	return fakeReturns.result1
 }
 
@@ -384,15 +388,16 @@ func (fake *FakeInstance) Backup() error {
 	ret, specificReturn := fake.backupReturnsOnCall[len(fake.backupArgsForCall)]
 	fake.backupArgsForCall = append(fake.backupArgsForCall, struct {
 	}{})
+	stub := fake.BackupStub
+	fakeReturns := fake.backupReturns
 	fake.recordInvocation("Backup", []interface{}{})
 	fake.backupMutex.Unlock()
-	if fake.BackupStub != nil {
-		return fake.BackupStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.backupReturns
 	return fakeReturns.result1
 }
 
@@ -436,15 +441,16 @@ func (fake *FakeInstance) Cleanup() error {
 	ret, specificReturn := fake.cleanupReturnsOnCall[len(fake.cleanupArgsForCall)]
 	fake.cleanupArgsForCall = append(fake.cleanupArgsForCall, struct {
 	}{})
+	stub := fake.CleanupStub
+	fakeReturns := fake.cleanupReturns
 	fake.recordInvocation("Cleanup", []interface{}{})
 	fake.cleanupMutex.Unlock()
-	if fake.CleanupStub != nil {
-		return fake.CleanupStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.cleanupReturns
 	return fakeReturns.result1
 }
 
@@ -488,15 +494,16 @@ func (fake *FakeInstance) CleanupPrevious() error {
 	ret, specificReturn := fake.cleanupPreviousReturnsOnCall[len(fake.cleanupPreviousArgsForCall)]
 	fake.cleanupPreviousArgsForCall = append(fake.cleanupPreviousArgsForCall, struct {
 	}{})
+	stub := fake.CleanupPreviousStub
+	fakeReturns := fake.cleanupPreviousReturns
 	fake.recordInvocation("CleanupPrevious", []interface{}{})
 	fake.cleanupPreviousMutex.Unlock()
-	if fake.CleanupPreviousStub != nil {
-		return fake.CleanupPreviousStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.cleanupPreviousReturns
 	return fakeReturns.result1
 }
 
@@ -540,15 +547,16 @@ func (fake *FakeInstance) HasMetadataRestoreNames() bool {
 	ret, specificReturn := fake.hasMetadataRestoreNamesReturnsOnCall[len(fake.hasMetadataRestoreNamesArgsForCall)]
 	fake.hasMetadataRestoreNamesArgsForCall = append(fake.hasMetadataRestoreNamesArgsForCall, struct {
 	}{})
+	stub := fake.HasMetadataRestoreNamesStub
+	fakeReturns := fake.hasMetadataRestoreNamesReturns
 	fake.recordInvocation("HasMetadataRestoreNames", []interface{}{})
 	fake.hasMetadataRestoreNamesMutex.Unlock()
-	if fake.HasMetadataRestoreNamesStub != nil {
-		return fake.HasMetadataRestoreNamesStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.hasMetadataRestoreNamesReturns
 	return fakeReturns.result1
 }
 
@@ -592,15 +600,16 @@ func (fake *FakeInstance) ID() string {
 	ret, specificReturn := fake.iDReturnsOnCall[len(fake.iDArgsForCall)]
 	fake.iDArgsForCall = append(fake.iDArgsForCall, struct {
 	}{})
+	stub := fake.IDStub
+	fakeReturns := fake.iDReturns
 	fake.recordInvocation("ID", []interface{}{})
 	fake.iDMutex.Unlock()
-	if fake.IDStub != nil {
-		return fake.IDStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.iDReturns
 	return fakeReturns.result1
 }
 
@@ -644,15 +653,16 @@ func (fake *FakeInstance) Index() string {
 	ret, specificReturn := fake.indexReturnsOnCall[len(fake.indexArgsForCall)]
 	fake.indexArgsForCall = append(fake.indexArgsForCall, struct {
 	}{})
+	stub := fake.IndexStub
+	fakeReturns := fake.indexReturns
 	fake.recordInvocation("Index", []interface{}{})
 	fake.indexMutex.Unlock()
-	if fake.IndexStub != nil {
-		return fake.IndexStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.indexReturns
 	return fakeReturns.result1
 }
 
@@ -696,15 +706,16 @@ func (fake *FakeInstance) IsBackupable() bool {
 	ret, specificReturn := fake.isBackupableReturnsOnCall[len(fake.isBackupableArgsForCall)]
 	fake.isBackupableArgsForCall = append(fake.isBackupableArgsForCall, struct {
 	}{})
+	stub := fake.IsBackupableStub
+	fakeReturns := fake.isBackupableReturns
 	fake.recordInvocation("IsBackupable", []interface{}{})
 	fake.isBackupableMutex.Unlock()
-	if fake.IsBackupableStub != nil {
-		return fake.IsBackupableStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.isBackupableReturns
 	return fakeReturns.result1
 }
 
@@ -748,15 +759,16 @@ func (fake *FakeInstance) IsRestorable() bool {
 	ret, specificReturn := fake.isRestorableReturnsOnCall[len(fake.isRestorableArgsForCall)]
 	fake.isRestorableArgsForCall = append(fake.isRestorableArgsForCall, struct {
 	}{})
+	stub := fake.IsRestorableStub
+	fakeReturns := fake.isRestorableReturns
 	fake.recordInvocation("IsRestorable", []interface{}{})
 	fake.isRestorableMutex.Unlock()
-	if fake.IsRestorableStub != nil {
-		return fake.IsRestorableStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.isRestorableReturns
 	return fakeReturns.result1
 }
 
@@ -800,15 +812,16 @@ func (fake *FakeInstance) Jobs() []orchestrator.Job {
 	ret, specificReturn := fake.jobsReturnsOnCall[len(fake.jobsArgsForCall)]
 	fake.jobsArgsForCall = append(fake.jobsArgsForCall, struct {
 	}{})
+	stub := fake.JobsStub
+	fakeReturns := fake.jobsReturns
 	fake.recordInvocation("Jobs", []interface{}{})
 	fake.jobsMutex.Unlock()
-	if fake.JobsStub != nil {
-		return fake.JobsStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.jobsReturns
 	return fakeReturns.result1
 }
 
@@ -851,9 +864,10 @@ func (fake *FakeInstance) MarkArtifactDirCreated() {
 	fake.markArtifactDirCreatedMutex.Lock()
 	fake.markArtifactDirCreatedArgsForCall = append(fake.markArtifactDirCreatedArgsForCall, struct {
 	}{})
+	stub := fake.MarkArtifactDirCreatedStub
 	fake.recordInvocation("MarkArtifactDirCreated", []interface{}{})
 	fake.markArtifactDirCreatedMutex.Unlock()
-	if fake.MarkArtifactDirCreatedStub != nil {
+	if stub != nil {
 		fake.MarkArtifactDirCreatedStub()
 	}
 }
@@ -875,15 +889,16 @@ func (fake *FakeInstance) Name() string {
 	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
 	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
 	}{})
+	stub := fake.NameStub
+	fakeReturns := fake.nameReturns
 	fake.recordInvocation("Name", []interface{}{})
 	fake.nameMutex.Unlock()
-	if fake.NameStub != nil {
-		return fake.NameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.nameReturns
 	return fakeReturns.result1
 }
 
@@ -927,15 +942,16 @@ func (fake *FakeInstance) Restore() error {
 	ret, specificReturn := fake.restoreReturnsOnCall[len(fake.restoreArgsForCall)]
 	fake.restoreArgsForCall = append(fake.restoreArgsForCall, struct {
 	}{})
+	stub := fake.RestoreStub
+	fakeReturns := fake.restoreReturns
 	fake.recordInvocation("Restore", []interface{}{})
 	fake.restoreMutex.Unlock()
-	if fake.RestoreStub != nil {
-		return fake.RestoreStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.restoreReturns
 	return fakeReturns.result1
 }
 

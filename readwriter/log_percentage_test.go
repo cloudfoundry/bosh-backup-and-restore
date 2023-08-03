@@ -8,7 +8,8 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/readwriter/fakes"
 )
 
-//go:generate counterfeiter -o fakes/fake_readwriter.go io.ReadWriter
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_readwriter.go io.ReadWriter
 
 var _ = Describe("LogPercentageReadWriter", func() {
 	Describe("LogPercentageWriter", func() {
