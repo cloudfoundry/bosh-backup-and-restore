@@ -17,15 +17,13 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/config"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"gopkg.in/yaml.v2"
 )
 
 var _ = Describe("BackupDirectory", func() {
 	var backupName string
-	var deploymentName string
 	var backupDirectoryManager = BackupDirectoryManager{}
 	var logger = boshlog.NewWriterLogger(boshlog.LevelDebug, GinkgoWriter)
 	var nowFunc = func() time.Time {
@@ -33,8 +31,7 @@ var _ = Describe("BackupDirectory", func() {
 	}
 
 	BeforeEach(func() {
-		deploymentName = fmt.Sprintf("my-cool-redis-%d", config.GinkgoConfig.ParallelNode)
-		backupName = deploymentName + "_20151021T010203Z"
+		backupName = fmt.Sprintf("my-cool-redis_%d_20151021T010203Z", GinkgoParallelProcess())
 	})
 
 	AfterEach(func() {

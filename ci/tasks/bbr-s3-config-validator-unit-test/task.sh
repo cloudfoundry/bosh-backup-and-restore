@@ -4,12 +4,12 @@ set -euo pipefail
 
 cd bosh-backup-and-restore/s3-config-validator/src
 
-ginkgo \
+go run github.com/onsi/ginkgo/v2/ginkgo \
   -r \
-  --randomizeAllSpecs \
-  --randomizeSuites \
-  --failOnPending \
-  --keepGoing \
+  --randomize-all \
+  --randomize-suites \
+  --fail-on-pending \
+  --keep-going \
   --cover \
   --race \
   --progress \

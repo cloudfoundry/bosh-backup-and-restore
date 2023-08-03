@@ -12,7 +12,7 @@ import (
 	"github.com/cloudfoundry/bosh-cli/v7/director"
 	boshfakes "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 )
