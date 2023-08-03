@@ -6,12 +6,12 @@ import (
 
 	"fmt"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockbosh"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockhttp"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
-	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
-	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
 )
 
 var _ = Describe("CLI Interface", func() {
