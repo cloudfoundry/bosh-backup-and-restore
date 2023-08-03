@@ -36,15 +36,16 @@ func (fake *FakeLockOrderer) Order(arg1 []orchestrator.Job) ([][]orchestrator.Jo
 	fake.orderArgsForCall = append(fake.orderArgsForCall, struct {
 		arg1 []orchestrator.Job
 	}{arg1Copy})
+	stub := fake.OrderStub
+	fakeReturns := fake.orderReturns
 	fake.recordInvocation("Order", []interface{}{arg1Copy})
 	fake.orderMutex.Unlock()
-	if fake.OrderStub != nil {
-		return fake.OrderStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.orderReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

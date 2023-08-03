@@ -1,11 +1,12 @@
 package executor
 
-//go:generate counterfeiter -o fakes/fake_executor.go . Executor
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_executor.go . Executor
 type Executor interface {
 	Run([][]Executable) []error
 }
 
-//go:generate counterfeiter -o fakes/fake_executable.go . Executable
+//counterfeiter:generate -o fakes/fake_executable.go . Executable
 type Executable interface {
 	Execute() error
 }

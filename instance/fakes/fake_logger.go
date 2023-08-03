@@ -47,9 +47,10 @@ func (fake *FakeLogger) Debug(arg1 string, arg2 string, arg3 ...interface{}) {
 		arg2 string
 		arg3 []interface{}
 	}{arg1, arg2, arg3})
+	stub := fake.DebugStub
 	fake.recordInvocation("Debug", []interface{}{arg1, arg2, arg3})
 	fake.debugMutex.Unlock()
-	if fake.DebugStub != nil {
+	if stub != nil {
 		fake.DebugStub(arg1, arg2, arg3...)
 	}
 }
@@ -80,9 +81,10 @@ func (fake *FakeLogger) Error(arg1 string, arg2 string, arg3 ...interface{}) {
 		arg2 string
 		arg3 []interface{}
 	}{arg1, arg2, arg3})
+	stub := fake.ErrorStub
 	fake.recordInvocation("Error", []interface{}{arg1, arg2, arg3})
 	fake.errorMutex.Unlock()
-	if fake.ErrorStub != nil {
+	if stub != nil {
 		fake.ErrorStub(arg1, arg2, arg3...)
 	}
 }
@@ -113,9 +115,10 @@ func (fake *FakeLogger) Info(arg1 string, arg2 string, arg3 ...interface{}) {
 		arg2 string
 		arg3 []interface{}
 	}{arg1, arg2, arg3})
+	stub := fake.InfoStub
 	fake.recordInvocation("Info", []interface{}{arg1, arg2, arg3})
 	fake.infoMutex.Unlock()
-	if fake.InfoStub != nil {
+	if stub != nil {
 		fake.InfoStub(arg1, arg2, arg3...)
 	}
 }
@@ -146,9 +149,10 @@ func (fake *FakeLogger) Warn(arg1 string, arg2 string, arg3 ...interface{}) {
 		arg2 string
 		arg3 []interface{}
 	}{arg1, arg2, arg3})
+	stub := fake.WarnStub
 	fake.recordInvocation("Warn", []interface{}{arg1, arg2, arg3})
 	fake.warnMutex.Unlock()
-	if fake.WarnStub != nil {
+	if stub != nil {
 		fake.WarnStub(arg1, arg2, arg3...)
 	}
 }

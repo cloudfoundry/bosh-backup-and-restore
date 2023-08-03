@@ -34,15 +34,16 @@ func (fake *FakeExecutor) Run(arg1 [][]executor.Executable) []error {
 	fake.runArgsForCall = append(fake.runArgsForCall, struct {
 		arg1 [][]executor.Executable
 	}{arg1Copy})
+	stub := fake.RunStub
+	fakeReturns := fake.runReturns
 	fake.recordInvocation("Run", []interface{}{arg1Copy})
 	fake.runMutex.Unlock()
-	if fake.RunStub != nil {
-		return fake.RunStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.runReturns
 	return fakeReturns.result1
 }
 

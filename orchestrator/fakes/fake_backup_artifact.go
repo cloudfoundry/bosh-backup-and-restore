@@ -136,15 +136,16 @@ func (fake *FakeBackupArtifact) Checksum() (orchestrator.BackupChecksum, error) 
 	ret, specificReturn := fake.checksumReturnsOnCall[len(fake.checksumArgsForCall)]
 	fake.checksumArgsForCall = append(fake.checksumArgsForCall, struct {
 	}{})
+	stub := fake.ChecksumStub
+	fakeReturns := fake.checksumReturns
 	fake.recordInvocation("Checksum", []interface{}{})
 	fake.checksumMutex.Unlock()
-	if fake.ChecksumStub != nil {
-		return fake.ChecksumStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.checksumReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -191,15 +192,16 @@ func (fake *FakeBackupArtifact) Delete() error {
 	ret, specificReturn := fake.deleteReturnsOnCall[len(fake.deleteArgsForCall)]
 	fake.deleteArgsForCall = append(fake.deleteArgsForCall, struct {
 	}{})
+	stub := fake.DeleteStub
+	fakeReturns := fake.deleteReturns
 	fake.recordInvocation("Delete", []interface{}{})
 	fake.deleteMutex.Unlock()
-	if fake.DeleteStub != nil {
-		return fake.DeleteStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.deleteReturns
 	return fakeReturns.result1
 }
 
@@ -243,15 +245,16 @@ func (fake *FakeBackupArtifact) HasCustomName() bool {
 	ret, specificReturn := fake.hasCustomNameReturnsOnCall[len(fake.hasCustomNameArgsForCall)]
 	fake.hasCustomNameArgsForCall = append(fake.hasCustomNameArgsForCall, struct {
 	}{})
+	stub := fake.HasCustomNameStub
+	fakeReturns := fake.hasCustomNameReturns
 	fake.recordInvocation("HasCustomName", []interface{}{})
 	fake.hasCustomNameMutex.Unlock()
-	if fake.HasCustomNameStub != nil {
-		return fake.HasCustomNameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.hasCustomNameReturns
 	return fakeReturns.result1
 }
 
@@ -295,15 +298,16 @@ func (fake *FakeBackupArtifact) InstanceID() string {
 	ret, specificReturn := fake.instanceIDReturnsOnCall[len(fake.instanceIDArgsForCall)]
 	fake.instanceIDArgsForCall = append(fake.instanceIDArgsForCall, struct {
 	}{})
+	stub := fake.InstanceIDStub
+	fakeReturns := fake.instanceIDReturns
 	fake.recordInvocation("InstanceID", []interface{}{})
 	fake.instanceIDMutex.Unlock()
-	if fake.InstanceIDStub != nil {
-		return fake.InstanceIDStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.instanceIDReturns
 	return fakeReturns.result1
 }
 
@@ -347,15 +351,16 @@ func (fake *FakeBackupArtifact) InstanceIndex() string {
 	ret, specificReturn := fake.instanceIndexReturnsOnCall[len(fake.instanceIndexArgsForCall)]
 	fake.instanceIndexArgsForCall = append(fake.instanceIndexArgsForCall, struct {
 	}{})
+	stub := fake.InstanceIndexStub
+	fakeReturns := fake.instanceIndexReturns
 	fake.recordInvocation("InstanceIndex", []interface{}{})
 	fake.instanceIndexMutex.Unlock()
-	if fake.InstanceIndexStub != nil {
-		return fake.InstanceIndexStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.instanceIndexReturns
 	return fakeReturns.result1
 }
 
@@ -399,15 +404,16 @@ func (fake *FakeBackupArtifact) InstanceName() string {
 	ret, specificReturn := fake.instanceNameReturnsOnCall[len(fake.instanceNameArgsForCall)]
 	fake.instanceNameArgsForCall = append(fake.instanceNameArgsForCall, struct {
 	}{})
+	stub := fake.InstanceNameStub
+	fakeReturns := fake.instanceNameReturns
 	fake.recordInvocation("InstanceName", []interface{}{})
 	fake.instanceNameMutex.Unlock()
-	if fake.InstanceNameStub != nil {
-		return fake.InstanceNameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.instanceNameReturns
 	return fakeReturns.result1
 }
 
@@ -451,15 +457,16 @@ func (fake *FakeBackupArtifact) Name() string {
 	ret, specificReturn := fake.nameReturnsOnCall[len(fake.nameArgsForCall)]
 	fake.nameArgsForCall = append(fake.nameArgsForCall, struct {
 	}{})
+	stub := fake.NameStub
+	fakeReturns := fake.nameReturns
 	fake.recordInvocation("Name", []interface{}{})
 	fake.nameMutex.Unlock()
-	if fake.NameStub != nil {
-		return fake.NameStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.nameReturns
 	return fakeReturns.result1
 }
 
@@ -503,15 +510,16 @@ func (fake *FakeBackupArtifact) Size() (string, error) {
 	ret, specificReturn := fake.sizeReturnsOnCall[len(fake.sizeArgsForCall)]
 	fake.sizeArgsForCall = append(fake.sizeArgsForCall, struct {
 	}{})
+	stub := fake.SizeStub
+	fakeReturns := fake.sizeReturns
 	fake.recordInvocation("Size", []interface{}{})
 	fake.sizeMutex.Unlock()
-	if fake.SizeStub != nil {
-		return fake.SizeStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.sizeReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -558,15 +566,16 @@ func (fake *FakeBackupArtifact) SizeInBytes() (int, error) {
 	ret, specificReturn := fake.sizeInBytesReturnsOnCall[len(fake.sizeInBytesArgsForCall)]
 	fake.sizeInBytesArgsForCall = append(fake.sizeInBytesArgsForCall, struct {
 	}{})
+	stub := fake.SizeInBytesStub
+	fakeReturns := fake.sizeInBytesReturns
 	fake.recordInvocation("SizeInBytes", []interface{}{})
 	fake.sizeInBytesMutex.Unlock()
-	if fake.SizeInBytesStub != nil {
-		return fake.SizeInBytesStub()
+	if stub != nil {
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.sizeInBytesReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -614,15 +623,16 @@ func (fake *FakeBackupArtifact) StreamFromRemote(arg1 io.Writer) error {
 	fake.streamFromRemoteArgsForCall = append(fake.streamFromRemoteArgsForCall, struct {
 		arg1 io.Writer
 	}{arg1})
+	stub := fake.StreamFromRemoteStub
+	fakeReturns := fake.streamFromRemoteReturns
 	fake.recordInvocation("StreamFromRemote", []interface{}{arg1})
 	fake.streamFromRemoteMutex.Unlock()
-	if fake.StreamFromRemoteStub != nil {
-		return fake.StreamFromRemoteStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.streamFromRemoteReturns
 	return fakeReturns.result1
 }
 
@@ -674,15 +684,16 @@ func (fake *FakeBackupArtifact) StreamToRemote(arg1 io.Reader) error {
 	fake.streamToRemoteArgsForCall = append(fake.streamToRemoteArgsForCall, struct {
 		arg1 io.Reader
 	}{arg1})
+	stub := fake.StreamToRemoteStub
+	fakeReturns := fake.streamToRemoteReturns
 	fake.recordInvocation("StreamToRemote", []interface{}{arg1})
 	fake.streamToRemoteMutex.Unlock()
-	if fake.StreamToRemoteStub != nil {
-		return fake.StreamToRemoteStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
 	}
-	fakeReturns := fake.streamToRemoteReturns
 	return fakeReturns.result1
 }
 

@@ -1,9 +1,10 @@
 package instance
 
-//go:generate counterfeiter -o fakes/fake_manifest_querier_creator.go . ManifestQuerierCreator
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_manifest_querier_creator.go . ManifestQuerierCreator
 type ManifestQuerierCreator func(manifest string) (ManifestQuerier, error)
 
-//go:generate counterfeiter -o fakes/fake_manifest_querier.go . ManifestQuerier
+//counterfeiter:generate -o fakes/fake_manifest_querier.go . ManifestQuerier
 type ManifestQuerier interface {
 	FindReleaseName(instanceGroupName, jobName string) (string, error)
 	IsJobBackupOneRestoreAll(instanceGroupName, jobName string) (bool, error)

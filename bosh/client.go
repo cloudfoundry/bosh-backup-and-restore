@@ -15,7 +15,8 @@ import (
 	gossh "golang.org/x/crypto/ssh"
 )
 
-//go:generate counterfeiter -o fakes/fake_bosh_client.go . BoshClient
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_bosh_client.go . BoshClient
 type BoshClient interface {
 	FindInstances(deploymentName string) ([]orchestrator.Instance, error)
 	GetManifest(deploymentName string) (string, error)
@@ -46,7 +47,7 @@ type Client struct {
 	manifestQuerierCreator instance.ManifestQuerierCreator
 }
 
-//go:generate counterfeiter -o fakes/fake_logger.go . Logger
+//counterfeiter:generate -o fakes/fake_logger.go . Logger
 type Logger interface {
 	Debug(tag, msg string, args ...interface{})
 	Info(tag, msg string, args ...interface{})
