@@ -2,7 +2,6 @@ package director
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -34,7 +33,7 @@ var _ = Describe("Restore", func() {
 	BeforeEach(func() {
 		waitForRestoreToFinish = true
 		var err error
-		restoreWorkspace, err = ioutil.TempDir(".", "restore-workspace-")
+		restoreWorkspace, err = os.MkdirTemp(".", "restore-workspace-")
 		Expect(err).NotTo(HaveOccurred())
 		artifactName = "director-backup-integration"
 
@@ -516,7 +515,7 @@ restore_should_be_locked_before:
 					logFilePath := files[0]
 					_, err = os.Stat(logFilePath)
 					Expect(os.IsNotExist(err)).To(BeFalse())
-					stackTrace, err := ioutil.ReadFile(logFilePath)
+					stackTrace, err := os.ReadFile(logFilePath)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 				})

@@ -7,7 +7,6 @@ import (
 	"os/signal"
 	"strings"
 
-	"io/ioutil"
 	"time"
 
 	"net/url"
@@ -74,7 +73,7 @@ func processErrorWithFooter(err orchestrator.Error, footer string) error {
 
 func writeStackTrace(errorWithStackTrace string) error {
 	if errorWithStackTrace != "" {
-		err := ioutil.WriteFile(fmt.Sprintf("bbr-%s.err.log", time.Now().UTC().Format(time.RFC3339)), []byte(errorWithStackTrace), defaultLogfilePermissions)
+		err := os.WriteFile(fmt.Sprintf("bbr-%s.err.log", time.Now().UTC().Format(time.RFC3339)), []byte(errorWithStackTrace), defaultLogfilePermissions)
 		if err != nil {
 			return err
 		}

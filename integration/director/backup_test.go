@@ -1,7 +1,6 @@
 package director
 
 import (
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -31,7 +30,7 @@ var _ = Describe("Backup", func() {
 	var waitForBackupToFinish bool
 
 	possibleBackupDirectories := func() []string {
-		dirs, err := ioutil.ReadDir(backupWorkspace)
+		dirs, err := os.ReadDir(backupWorkspace)
 		Expect(err).NotTo(HaveOccurred())
 		backupDirectoryPattern := regexp.MustCompile(`\b` + directorIP + `_(\d){8}T(\d){6}Z\b`)
 
@@ -54,7 +53,7 @@ var _ = Describe("Backup", func() {
 
 	BeforeEach(func() {
 		var err error
-		backupWorkspace, err = ioutil.TempDir(".", "backup-workspace-")
+		backupWorkspace, err = os.MkdirTemp(".", "backup-workspace-")
 		Expect(err).NotTo(HaveOccurred())
 		waitForBackupToFinish = true
 	})

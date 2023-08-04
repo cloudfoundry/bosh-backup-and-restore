@@ -2,7 +2,6 @@ package director
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -29,7 +28,7 @@ var _ = Describe("CLI Interface", func() {
 		director = mockbosh.NewTLS()
 		director.ExpectedBasicAuth("admin", "admin")
 		var err error
-		backupWorkspace, err = ioutil.TempDir(".", "backup-workspace-")
+		backupWorkspace, err = os.MkdirTemp(".", "backup-workspace-")
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -43,7 +42,7 @@ var _ = Describe("CLI Interface", func() {
 				)
 
 				BeforeEach(func() {
-					keyFile, err = ioutil.TempFile("", time.Now().String())
+					keyFile, err = os.CreateTemp("", time.Now().String())
 					Expect(err).NotTo(HaveOccurred())
 					fmt.Fprintf(keyFile, "this is not a valid key")
 
@@ -72,7 +71,7 @@ var _ = Describe("CLI Interface", func() {
 						logFilePath := files[0]
 						_, err = os.Stat(logFilePath)
 						Expect(os.IsNotExist(err)).To(BeFalse())
-						stackTrace, err := ioutil.ReadFile(logFilePath)
+						stackTrace, err := os.ReadFile(logFilePath)
 						Expect(err).ToNot(HaveOccurred())
 						Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 					})

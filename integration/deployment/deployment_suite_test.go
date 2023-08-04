@@ -3,7 +3,6 @@ package deployment
 import (
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
 	"net/http/httptest"
 	"os"
 
@@ -42,7 +41,7 @@ var _ = BeforeSuite(func() {
 	})
 	sslCertValue = string(pem)
 
-	sslCertFile, err := ioutil.TempFile(os.TempDir(), "golang-httptest-certificate-")
+	sslCertFile, err := os.CreateTemp("", "golang-httptest-certificate-")
 	Expect(err).NotTo(HaveOccurred())
 	sslCertPath = sslCertFile.Name()
 	_, err = sslCertFile.Write(pem)

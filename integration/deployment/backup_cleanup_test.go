@@ -2,7 +2,6 @@ package deployment
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -35,7 +34,7 @@ instance_groups:
 `
 
 		BeforeEach(func() {
-			cleanupWorkspace, _ = ioutil.TempDir(".", "cleanup-workspace-")
+			cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-")
 
 			instance1 = testcluster.NewInstance()
 
@@ -101,7 +100,7 @@ instance_groups:
 `
 
 			BeforeEach(func() {
-				cleanupWorkspace, _ = ioutil.TempDir(".", "cleanup-workspace-")
+				cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-")
 
 				instance1 = testcluster.NewInstance()
 				director = mockbosh.NewTLS()
@@ -172,7 +171,7 @@ instance_groups:
 					logFilePath := files[0]
 					Expect(filepath.Base(logFilePath)).To(MatchRegexp(fmt.Sprintf("%s_%s.log", deployment1, `(\d){8}T(\d){6}Z\b`)))
 
-					backupLogContent, err := ioutil.ReadFile(logFilePath)
+					backupLogContent, err := os.ReadFile(logFilePath)
 					Expect(err).ToNot(HaveOccurred())
 
 					output := string(backupLogContent)
@@ -191,7 +190,7 @@ instance_groups:
 			var session *gexec.Session
 
 			BeforeEach(func() {
-				cleanupWorkspace, _ = ioutil.TempDir(".", "cleanup-workspace-")
+				cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-")
 
 				director = mockbosh.NewTLS()
 				director.ExpectedBasicAuth("admin", "admin")
@@ -230,7 +229,7 @@ instance_groups:
 			var session *gexec.Session
 
 			BeforeEach(func() {
-				cleanupWorkspace, _ = ioutil.TempDir(".", "cleanup-workspace-")
+				cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-")
 
 				director = mockbosh.NewTLS()
 				director.ExpectedBasicAuth("admin", "admin")
@@ -279,7 +278,7 @@ instance_groups:
 `
 
 			BeforeEach(func() {
-				cleanupWorkspace, _ = ioutil.TempDir(".", "cleanup-workspace-")
+				cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-")
 
 				instance1 = testcluster.NewInstance()
 				director = mockbosh.NewTLS()
@@ -348,7 +347,7 @@ instance_groups:
 				logFilePath := files[0]
 				Expect(filepath.Base(logFilePath)).To(MatchRegexp(fmt.Sprintf("%s_%s.log", deployment1, `(\d){8}T(\d){6}Z\b`)))
 
-				backupLogContent, err := ioutil.ReadFile(logFilePath)
+				backupLogContent, err := os.ReadFile(logFilePath)
 				Expect(err).ToNot(HaveOccurred())
 
 				logContent := string(backupLogContent)
@@ -376,7 +375,7 @@ instance_groups:
 `
 
 			BeforeEach(func() {
-				cleanupWorkspace, _ = ioutil.TempDir(".", "cleanup-workspace-")
+				cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-")
 
 				instance1 = testcluster.NewInstance()
 				director = mockbosh.NewTLS()
@@ -437,7 +436,7 @@ instance_groups:
 					logFilePath := files[0]
 					Expect(filepath.Base(logFilePath)).To(MatchRegexp(fmt.Sprintf("%s_%s.log", deployment1, `(\d){8}T(\d){6}Z\b`)))
 
-					backupLogContent, err := ioutil.ReadFile(logFilePath)
+					backupLogContent, err := os.ReadFile(logFilePath)
 					Expect(err).ToNot(HaveOccurred())
 
 					output := string(backupLogContent)

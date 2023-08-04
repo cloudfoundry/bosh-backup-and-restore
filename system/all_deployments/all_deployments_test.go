@@ -2,7 +2,6 @@ package all_deployments_tests
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -22,7 +21,7 @@ var _ = Describe("All deployments", func() {
 	var redis3 = "redis-3"
 
 	BeforeEach(func() {
-		artifactPath, err = ioutil.TempDir("/tmp", "all_deployments")
+		artifactPath, err = os.MkdirTemp("/tmp", "all_deployments")
 	})
 
 	AfterEach(func() {
@@ -323,7 +322,7 @@ func assertCleanupLogfile(deployment string) {
 	logFilePath := files[0]
 	Expect(filepath.Base(logFilePath)).To(MatchRegexp(buildLogFileTimestampRegex(deployment)))
 
-	backupLogContent, err := ioutil.ReadFile(logFilePath)
+	backupLogContent, err := os.ReadFile(logFilePath)
 	output := string(backupLogContent)
 
 	Expect(output).To(ContainSubstring(fmt.Sprintf("INFO - Looking for scripts")))
@@ -339,7 +338,7 @@ func assertBackupLogfile(deployment string) {
 	logFilePath := files[0]
 	Expect(filepath.Base(logFilePath)).To(MatchRegexp(buildLogFileTimestampRegex(deployment)))
 
-	backupLogContent, err := ioutil.ReadFile(logFilePath)
+	backupLogContent, err := os.ReadFile(logFilePath)
 	output := string(backupLogContent)
 
 	Expect(output).To(ContainSubstring(fmt.Sprintf("Running pre-checks for backup of %s", deployment)))

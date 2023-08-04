@@ -2,7 +2,6 @@ package director
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -43,7 +42,7 @@ var _ = BeforeSuite(func() {
 	commandPath, err = gexec.Build("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr")
 	Expect(err).NotTo(HaveOccurred())
 
-	workspaceDir, err = ioutil.TempDir("", "bbr_system_test_director")
+	workspaceDir, err = os.MkdirTemp("", "bbr_system_test_director")
 	Expect(err).NotTo(HaveOccurred())
 
 	directorBackupFixturePath, err = filepath.Abs("../../fixtures/director-backup")

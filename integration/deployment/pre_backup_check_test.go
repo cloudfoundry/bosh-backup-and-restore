@@ -2,7 +2,6 @@ package deployment
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
@@ -43,7 +42,7 @@ instance_groups:
 		director = mockbosh.NewTLS()
 		director.ExpectedBasicAuth("admin", "admin")
 		var err error
-		backupWorkspace, err = ioutil.TempDir(".", "backup-workspace-")
+		backupWorkspace, err = os.MkdirTemp(".", "backup-workspace-")
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -200,7 +199,7 @@ backup_should_be_locked_before:
 					logFilePath := files[0]
 					_, err = os.Stat(logFilePath)
 					Expect(os.IsNotExist(err)).To(BeFalse())
-					stackTrace, err := ioutil.ReadFile(logFilePath)
+					stackTrace, err := os.ReadFile(logFilePath)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 				})

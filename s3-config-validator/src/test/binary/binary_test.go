@@ -1,7 +1,6 @@
 package binary_test
 
 import (
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
@@ -285,7 +284,7 @@ func dedent(text string) string {
 }
 
 func createFile(content string) string {
-	testConfigFile, _ := ioutil.TempFile("/tmp", "test_config.json")
+	testConfigFile, _ := os.CreateTemp("/tmp", "test_config.json")
 
 	_, err := testConfigFile.WriteString(content)
 	Expect(err).NotTo(HaveOccurred())

@@ -1,7 +1,6 @@
 package config_test
 
 import (
-	"io/ioutil"
 	"os"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -512,7 +511,7 @@ var _ = Describe("Config", func() {
 })
 
 func CreateFile(content string) string {
-	testConfigFile, _ := ioutil.TempFile("/tmp", "test_config.json")
+	testConfigFile, _ := os.CreateTemp("/tmp", "test_config.json")
 
 	_, err := testConfigFile.WriteString(content)
 	Expect(err).NotTo(HaveOccurred())

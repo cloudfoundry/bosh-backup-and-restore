@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -143,7 +142,7 @@ instances:
 					"file2": "Gopher names:\nGeorge\nGeoffrey\nGonzo",
 				})
 
-				Expect(ioutil.WriteFile(backupName+"/redis-0-broker.tar", contents, 0666)).NotTo(HaveOccurred())
+				Expect(os.WriteFile(backupName+"/redis-0-broker.tar", contents, 0666)).NotTo(HaveOccurred())
 
 				metadataContents := fmt.Sprintf(`---
 instances:
@@ -170,7 +169,7 @@ instances:
 					"file1": "This archive contains some text files.",
 				})
 
-				Expect(ioutil.WriteFile(backupName+"/foo_redis.tar", contents, 0666)).NotTo(HaveOccurred())
+				Expect(os.WriteFile(backupName+"/foo_redis.tar", contents, 0666)).NotTo(HaveOccurred())
 
 				createTestMetadata(backupName, fmt.Sprintf(`---
 custom_artifacts:
@@ -192,7 +191,7 @@ custom_artifacts:
 					"file1": "This archive contains some text files.",
 				})
 
-				Expect(ioutil.WriteFile(backupName+"/foo_redis.tar", contents, 0666)).NotTo(HaveOccurred())
+				Expect(os.WriteFile(backupName+"/foo_redis.tar", contents, 0666)).NotTo(HaveOccurred())
 
 				createTestMetadata(backupName, fmt.Sprintf(`---
 custom_artifacts:
@@ -214,7 +213,7 @@ custom_artifacts:
 					"file1": "This archive contains some text files.",
 					"file2": "Gopher names:\nGeorge\nGeoffrey\nGonzo",
 				})
-				Expect(ioutil.WriteFile(backupName+"/redis-0-broker.tar", contents, 0666)).NotTo(HaveOccurred())
+				Expect(os.WriteFile(backupName+"/redis-0-broker.tar", contents, 0666)).NotTo(HaveOccurred())
 				createTestMetadata(backupName, fmt.Sprintf(`---
 instances:
 - name: redis
@@ -239,7 +238,7 @@ instances:
 				contents := createTarWithContents(map[string]string{
 					"file1": "This archive contains some text files.",
 				})
-				Expect(ioutil.WriteFile(backupName+"/redis-0-broker.tar", contents, 0666)).NotTo(HaveOccurred())
+				Expect(os.WriteFile(backupName+"/redis-0-broker.tar", contents, 0666)).NotTo(HaveOccurred())
 				createTestMetadata(backupName, fmt.Sprintf(`---
 instances:
 - name: redis
@@ -282,7 +281,7 @@ instances:
 				contents := createTarWithContents(map[string]string{
 					"file1": "This archive contains some text files.",
 				})
-				Expect(ioutil.WriteFile(backupName+"/redis-1.tar", contents, 0666)).NotTo(HaveOccurred())
+				Expect(os.WriteFile(backupName+"/redis-1.tar", contents, 0666)).NotTo(HaveOccurred())
 			})
 
 			It("returns false", func() {
@@ -321,7 +320,7 @@ instances:
 
 				It("writer writes contents to the file", func() {
 					writer.Write([]byte("lalala a file"))
-					Expect(ioutil.ReadFile(backupName + "/redis-server-0-redis.tar")).To(Equal([]byte("lalala a file")))
+					Expect(os.ReadFile(backupName + "/redis-server-0-redis.tar")).To(Equal([]byte("lalala a file")))
 				})
 
 				It("does not fail", func() {
@@ -341,7 +340,7 @@ instances:
 
 			It("writer writes contents to the file", func() {
 				writer.Write([]byte("lalala a file"))
-				Expect(ioutil.ReadFile(backupName + "/my-backup-artifact.tar")).To(Equal([]byte("lalala a file")))
+				Expect(os.ReadFile(backupName + "/my-backup-artifact.tar")).To(Equal([]byte("lalala a file")))
 			})
 
 			It("does not fail", func() {
@@ -380,7 +379,7 @@ instances:
 		})
 
 		It("writes contents to a file", func() {
-			Expect(ioutil.ReadFile(backupName + "/manifest.yml")).To(Equal([]byte("contents")))
+			Expect(os.ReadFile(backupName + "/manifest.yml")).To(Equal([]byte("contents")))
 		})
 	})
 
@@ -406,7 +405,7 @@ instances:
 				Expect(err).NotTo(HaveOccurred())
 				_, err = os.Create(backupName + "/redis-server-0-redis.tar")
 				Expect(err).NotTo(HaveOccurred())
-				err = ioutil.WriteFile(backupName+"/redis-server-0-redis.tar", []byte("backup-content"), 0700)
+				err = os.WriteFile(backupName+"/redis-server-0-redis.tar", []byte("backup-content"), 0700)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -419,7 +418,7 @@ instances:
 			})
 
 			It("reads the correct file", func() {
-				contents, err := ioutil.ReadAll(reader)
+				contents, err := io.ReadAll(reader)
 
 				Expect(err).NotTo(HaveOccurred())
 				Expect(contents).To(ContainSubstring("backup-content"))
@@ -435,7 +434,7 @@ instances:
 				Expect(err).NotTo(HaveOccurred())
 				_, err = os.Create(backupName + "/foo-bar.tar")
 				Expect(err).NotTo(HaveOccurred())
-				err = ioutil.WriteFile(backupName+"/foo-bar.tar", []byte("backup-content"), 0700)
+				err = os.WriteFile(backupName+"/foo-bar.tar", []byte("backup-content"), 0700)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -448,7 +447,7 @@ instances:
 			})
 
 			It("reads the correct file", func() {
-				contents, err := ioutil.ReadAll(reader)
+				contents, err := io.ReadAll(reader)
 
 				Expect(err).NotTo(HaveOccurred())
 				Expect(contents).To(ContainSubstring("backup-content"))
@@ -601,7 +600,7 @@ instances:
   - name: redis
     checksums:
       filename: foobar`
-					Expect(ioutil.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
+					Expect(os.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
 				})
 			})
 
@@ -631,7 +630,7 @@ instances:
   - name: redis
     checksums:
       filename: foobar`
-					Expect(ioutil.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
+					Expect(os.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
 				})
 			})
 
@@ -665,7 +664,7 @@ instances:
     checksums:
       filename: foobar
 `
-					Expect(ioutil.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
+					Expect(os.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
 				})
 			})
 		})
@@ -687,7 +686,7 @@ custom_artifacts:
 - name: foo
   checksums:
     filename: foobar`
-					Expect(ioutil.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
+					Expect(os.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
 				})
 			})
 
@@ -713,7 +712,7 @@ custom_artifacts:
   checksums:
     filename: foobar
 `
-					Expect(ioutil.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
+					Expect(os.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
 				})
 			})
 
@@ -740,7 +739,7 @@ custom_artifacts:
 				It("appends all the named artifacts", func() {
 					Expect(backupName + "/metadata").To(BeARegularFile())
 
-					data, err := ioutil.ReadFile(backupName + "/metadata")
+					data, err := os.ReadFile(backupName + "/metadata")
 					Expect(err).NotTo(HaveOccurred())
 
 					var metadata generatedMetadata
@@ -937,7 +936,7 @@ instances:
 backup_activity:
   start_time: 2015/10/21 01:02:03 UTC`
 
-				Expect(ioutil.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
+				Expect(os.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
 			})
 		})
 
@@ -976,7 +975,7 @@ backup_activity:
   start_time: 2015/10/21 01:02:03 UTC
   finish_time: 2016/10/21 04:05:06 UTC`
 
-				Expect(ioutil.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
+				Expect(os.ReadFile(backupName + "/metadata")).To(MatchYAML(expectedMetadata))
 			})
 		})
 	})
@@ -994,7 +993,7 @@ backup_activity:
 			backupDir := os.TempDir()
 			jobName = "my-artifact"
 			filename := jobName + "-" + "0" + "-" + jobName + ".tar"
-			err := ioutil.WriteFile(filepath.Join(backupDir, filename), []byte("this-is-a-4k-file"), 0600)
+			err := os.WriteFile(filepath.Join(backupDir, filename), []byte("this-is-a-4k-file"), 0600)
 			Expect(err).NotTo(HaveOccurred())
 
 			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
@@ -1038,7 +1037,7 @@ backup_activity:
 			backupDir := os.TempDir()
 			jobName = "my-artifact-bytes"
 			filename := jobName + "-" + "0" + "-" + jobName + ".tar"
-			err := ioutil.WriteFile(filepath.Join(backupDir, filename), []byte("this-is-a-4k-file"), 0600)
+			err := os.WriteFile(filepath.Join(backupDir, filename), []byte("this-is-a-4k-file"), 0600)
 			Expect(err).NotTo(HaveOccurred())
 
 			fakeBackupArtifact = new(fakes.FakeBackupArtifact)

@@ -2,7 +2,6 @@ package deployment
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockbosh"
@@ -27,7 +26,7 @@ var _ = Describe("CLI Interface", func() {
 		director = mockbosh.NewTLS()
 		director.ExpectedBasicAuth("admin", "admin")
 		var err error
-		backupWorkspace, err = ioutil.TempDir(".", "backup-workspace-")
+		backupWorkspace, err = os.MkdirTemp(".", "backup-workspace-")
 		Expect(err).NotTo(HaveOccurred())
 	})
 

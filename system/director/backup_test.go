@@ -2,7 +2,6 @@ package director
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 
@@ -36,7 +35,7 @@ var _ = Describe("Backup", func() {
 
 	Context("when the operator specifies a valid artifact path", func() {
 		It("backs up the director", func() {
-			artifactDir, err := ioutil.TempDir("", "bbr_system_test_director")
+			artifactDir, err := os.MkdirTemp("", "bbr_system_test_director")
 			Expect(err).NotTo(HaveOccurred())
 
 			session := runBBRDirector("backup", "--artifact-path", artifactDir)

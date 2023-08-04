@@ -1,12 +1,12 @@
 package standalone
 
 import (
+	"os"
+
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/pkg/errors"
-
-	"io/ioutil"
 
 	gossh "golang.org/x/crypto/ssh"
 )
@@ -37,7 +37,7 @@ func NewDeploymentManager(
 }
 
 func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment, error) {
-	keyContents, err := ioutil.ReadFile(dm.privateKeyFile)
+	keyContents, err := os.ReadFile(dm.privateKeyFile)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed reading private key")
 	}

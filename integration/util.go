@@ -8,8 +8,6 @@ import (
 
 	"time"
 
-	"io/ioutil"
-
 	"archive/tar"
 	"crypto/sha256"
 	"io"
@@ -85,7 +83,7 @@ type metadata struct {
 
 func ParseMetadata(filePath string) metadata {
 	metadataContents := metadata{}
-	contents, _ := ioutil.ReadFile(filePath)
+	contents, _ := os.ReadFile(filePath)
 	yaml.Unmarshal(contents, &metadataContents)
 	return metadataContents
 }
@@ -135,7 +133,7 @@ func (t TarArchive) FileContents(fileName string) string {
 		}
 		info := header.FileInfo()
 		if !info.IsDir() && info.Name() == fileName {
-			contents, err := ioutil.ReadAll(reader)
+			contents, err := io.ReadAll(reader)
 			Expect(err).NotTo(HaveOccurred())
 			return string(contents)
 		}

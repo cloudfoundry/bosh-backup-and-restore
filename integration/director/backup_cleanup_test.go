@@ -1,7 +1,6 @@
 package director
 
 import (
-	"io/ioutil"
 	"os"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
@@ -19,7 +18,7 @@ var _ = Describe("Cleanup", func() {
 		var directorAddress string
 
 		BeforeEach(func() {
-			cleanupWorkspace, _ = ioutil.TempDir(".", "cleanup-workspace-")
+			cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-")
 
 			directorInstance = testcluster.NewInstance()
 			directorInstance.CreateUser("foobar", readFile(pathToPublicKeyFile))

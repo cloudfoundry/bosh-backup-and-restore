@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -108,7 +107,7 @@ func (i *MockHttp) Verify(req *http.Request, d *Server) {
 		Expect(req.Header.Get("Content-Type")).To(Equal(i.expectedContentType))
 	}
 
-	rawBody, err := ioutil.ReadAll(req.Body)
+	rawBody, err := io.ReadAll(req.Body)
 	Expect(err).NotTo(HaveOccurred())
 
 	if i.expectedBody != "" {
