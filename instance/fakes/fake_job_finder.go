@@ -37,15 +37,16 @@ func (fake *FakeJobFinder) FindJobs(arg1 instance.InstanceIdentifier, arg2 ssh.R
 		arg2 ssh.RemoteRunner
 		arg3 instance.ManifestQuerier
 	}{arg1, arg2, arg3})
+	stub := fake.FindJobsStub
+	fakeReturns := fake.findJobsReturns
 	fake.recordInvocation("FindJobs", []interface{}{arg1, arg2, arg3})
 	fake.findJobsMutex.Unlock()
-	if fake.FindJobsStub != nil {
-		return fake.FindJobsStub(arg1, arg2, arg3)
+	if stub != nil {
+		return stub(arg1, arg2, arg3)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.findJobsReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

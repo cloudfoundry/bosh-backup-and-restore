@@ -48,15 +48,16 @@ func (fake *FakeReadWriter) Read(arg1 []byte) (int, error) {
 	fake.readArgsForCall = append(fake.readArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.ReadStub
+	fakeReturns := fake.readReturns
 	fake.recordInvocation("Read", []interface{}{arg1Copy})
 	fake.readMutex.Unlock()
-	if fake.ReadStub != nil {
-		return fake.ReadStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.readReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -116,15 +117,16 @@ func (fake *FakeReadWriter) Write(arg1 []byte) (int, error) {
 	fake.writeArgsForCall = append(fake.writeArgsForCall, struct {
 		arg1 []byte
 	}{arg1Copy})
+	stub := fake.WriteStub
+	fakeReturns := fake.writeReturns
 	fake.recordInvocation("Write", []interface{}{arg1Copy})
 	fake.writeMutex.Unlock()
-	if fake.WriteStub != nil {
-		return fake.WriteStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.writeReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

@@ -8,7 +8,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh/fakes"
 	orchestrator_fakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 

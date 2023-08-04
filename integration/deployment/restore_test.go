@@ -5,9 +5,9 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockbosh"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockhttp"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
-	"github.com/pivotal-cf-experimental/cf-webmock/mockbosh"
-	"github.com/pivotal-cf-experimental/cf-webmock/mockhttp"
 
 	"archive/tar"
 	"bytes"
@@ -17,7 +17,7 @@ import (
 	"io"
 	"strings"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"

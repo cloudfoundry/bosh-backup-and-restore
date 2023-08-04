@@ -5,13 +5,14 @@ import (
 	"time"
 )
 
-//go:generate counterfeiter -o fakes/fake_backup_manager.go . BackupManager
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_backup_manager.go . BackupManager
 type BackupManager interface {
 	Create(string, string, Logger) (Backup, error)
 	Open(string, Logger) (Backup, error)
 }
 
-//go:generate counterfeiter -o fakes/fake_backup.go . Backup
+//counterfeiter:generate -o fakes/fake_backup.go . Backup
 type Backup interface {
 	GetArtifactSize(ArtifactIdentifier) (string, error)
 	GetArtifactByteSize(ArtifactIdentifier) (int, error)

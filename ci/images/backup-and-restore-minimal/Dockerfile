@@ -38,8 +38,6 @@ ENV GOPATH /go
 ENV PATH /go/bin:/usr/local/go/bin:$PATH
 COPY --from=go-binary /usr/local/go /usr/local/go
 
-RUN go install github.com/onsi/ginkgo/ginkgo@latest
-
 # dep
 RUN \
   wget --quiet https://github.com/golang/dep/releases/download/v0.5.0/dep-linux-amd64 --output-document="/usr/bin/dep" && \

@@ -26,9 +26,10 @@ func (fake *FakeLogger) Info(arg1 string, arg2 string, arg3 ...interface{}) {
 		arg2 string
 		arg3 []interface{}
 	}{arg1, arg2, arg3})
+	stub := fake.InfoStub
 	fake.recordInvocation("Info", []interface{}{arg1, arg2, arg3})
 	fake.infoMutex.Unlock()
-	if fake.InfoStub != nil {
+	if stub != nil {
 		fake.InfoStub(arg1, arg2, arg3...)
 	}
 }

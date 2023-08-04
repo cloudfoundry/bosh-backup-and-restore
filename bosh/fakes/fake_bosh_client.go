@@ -45,15 +45,16 @@ func (fake *FakeBoshClient) FindInstances(arg1 string) ([]orchestrator.Instance,
 	fake.findInstancesArgsForCall = append(fake.findInstancesArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.FindInstancesStub
+	fakeReturns := fake.findInstancesReturns
 	fake.recordInvocation("FindInstances", []interface{}{arg1})
 	fake.findInstancesMutex.Unlock()
-	if fake.FindInstancesStub != nil {
-		return fake.FindInstancesStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.findInstancesReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
@@ -108,15 +109,16 @@ func (fake *FakeBoshClient) GetManifest(arg1 string) (string, error) {
 	fake.getManifestArgsForCall = append(fake.getManifestArgsForCall, struct {
 		arg1 string
 	}{arg1})
+	stub := fake.GetManifestStub
+	fakeReturns := fake.getManifestReturns
 	fake.recordInvocation("GetManifest", []interface{}{arg1})
 	fake.getManifestMutex.Unlock()
-	if fake.GetManifestStub != nil {
-		return fake.GetManifestStub(arg1)
+	if stub != nil {
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.getManifestReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 

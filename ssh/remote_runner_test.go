@@ -12,7 +12,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	gossh "golang.org/x/crypto/ssh"
 )

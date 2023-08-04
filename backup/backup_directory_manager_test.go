@@ -7,14 +7,12 @@ import (
 	"io/ioutil"
 
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
-	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/config"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Context("BackupManager", func() {
 	var artifactPath string
-	var deploymentName string
 	var backupName string
 	var backupManager = BackupDirectoryManager{}
 	var err error
@@ -23,8 +21,7 @@ var _ = Context("BackupManager", func() {
 		artifactPath, err = ioutil.TempDir("", "test-backup-artifact-dir")
 		Expect(err).NotTo(HaveOccurred())
 
-		deploymentName = fmt.Sprintf("my-cool-redis-%d", config.GinkgoConfig.ParallelNode)
-		backupName = deploymentName + "_20151021T010203Z"
+		backupName = fmt.Sprintf("my-cool-redis_%d_20161021T010203Z", GinkgoParallelProcess())
 	})
 
 	AfterEach(func() {

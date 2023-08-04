@@ -10,7 +10,8 @@ type InstanceIdentifer interface {
 	ID() string
 }
 
-//go:generate counterfeiter -o fakes/fake_instance.go . Instance
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+//counterfeiter:generate -o fakes/fake_instance.go . Instance
 type Instance interface {
 	InstanceIdentifer
 	IsBackupable() bool
@@ -28,7 +29,7 @@ type Instance interface {
 	Jobs() []Job
 }
 
-//go:generate counterfeiter -o fakes/fake_job.go . Job
+//counterfeiter:generate -o fakes/fake_job.go . Job
 type Job interface {
 	HasBackup() bool
 	HasRestore() bool
@@ -65,7 +66,7 @@ type ArtifactIdentifier interface {
 	HasCustomName() bool
 }
 
-//go:generate counterfeiter -o fakes/fake_backup_artifact.go . BackupArtifact
+//counterfeiter:generate -o fakes/fake_backup_artifact.go . BackupArtifact
 type BackupArtifact interface {
 	ArtifactIdentifier
 	Size() (string, error)
