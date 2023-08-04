@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
@@ -32,7 +31,7 @@ var _ = Describe("BackupUploadExecutable", func() {
 		instance = new(fakes.FakeInstance)
 		logger = new(fakes.FakeLogger)
 
-		localBackupArtifactReader = ioutil.NopCloser(bytes.NewBufferString("this-is-some-backup-data"))
+		localBackupArtifactReader = io.NopCloser(bytes.NewBufferString("this-is-some-backup-data"))
 		backup.ReadArtifactReturns(localBackupArtifactReader, nil)
 		backup.FetchChecksumReturns(orchestrator.BackupChecksum{"file1": "abcd", "file2": "foo"}, nil)
 		remoteArtifact.ChecksumReturns(orchestrator.BackupChecksum{"file1": "abcd", "file2": "foo"}, nil)

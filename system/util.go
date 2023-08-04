@@ -2,7 +2,6 @@ package system
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 )
 
@@ -36,7 +35,7 @@ func DeploymentWithName(name string) Deployment {
 func WriteEnvVarToTempFile(key string) (string, error) {
 	contents := MustHaveEnv(key)
 
-	file, err := ioutil.TempFile("", "bbr-system-test")
+	file, err := os.CreateTemp("", "bbr-system-test")
 	if err != nil {
 		return "", err
 	}

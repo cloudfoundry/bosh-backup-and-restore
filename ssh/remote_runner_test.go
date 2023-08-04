@@ -5,8 +5,6 @@ import (
 	"io"
 	"log"
 
-	"io/ioutil"
-
 	"os"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
@@ -418,7 +416,7 @@ func destroyInstance(ssh *testcluster.Instance) {
 }
 
 func makeTmpFile(prefix string) *os.File {
-	tmpFile, err := ioutil.TempFile("", prefix)
+	tmpFile, err := os.CreateTemp("", prefix)
 	Expect(err).NotTo(HaveOccurred())
 	return tmpFile
 }

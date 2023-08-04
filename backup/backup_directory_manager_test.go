@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"io/ioutil"
-
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -18,7 +16,7 @@ var _ = Context("BackupManager", func() {
 	var err error
 
 	BeforeEach(func() {
-		artifactPath, err = ioutil.TempDir("", "test-backup-artifact-dir")
+		artifactPath, err = os.MkdirTemp("", "test-backup-artifact-dir")
 		Expect(err).NotTo(HaveOccurred())
 
 		backupName = fmt.Sprintf("my-cool-redis_%d_20161021T010203Z", GinkgoParallelProcess())
@@ -60,7 +58,7 @@ var _ = Context("BackupManager", func() {
 
 		Context("when the artifact path is not a directory", func() {
 			BeforeEach(func() {
-				file, err := ioutil.TempFile(os.TempDir(), "test-backup-artifact-not-a-dir")
+				file, err := os.CreateTemp("", "test-backup-artifact-not-a-dir")
 				Expect(err).NotTo(HaveOccurred())
 				artifactPath = file.Name()
 			})

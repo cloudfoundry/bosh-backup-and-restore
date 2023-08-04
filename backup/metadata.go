@@ -1,7 +1,7 @@
 package backup
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
@@ -32,7 +32,7 @@ type metadata struct {
 func readMetadata(filename string) (metadata, error) {
 	metadata := metadata{}
 
-	contents, err := ioutil.ReadFile(filename)
+	contents, err := os.ReadFile(filename)
 	if err != nil {
 		return metadata, errors.Wrap(err, "failed to read metadata")
 	}
@@ -49,7 +49,7 @@ func (data *metadata) save(filename string) error {
 		return errors.Wrap(err, "failed to marshal metadata")
 	}
 
-	return ioutil.WriteFile(filename, contents, 0666)
+	return os.WriteFile(filename, contents, 0666)
 }
 
 func (data *metadata) findOrCreateInstanceMetadata(name, index string) *instanceMetadata {

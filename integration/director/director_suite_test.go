@@ -1,16 +1,14 @@
 package director
 
 import (
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/gexec"
-
+	"os"
 	"testing"
-
-	"io/ioutil"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 )
 
 func TestDirectorIntegration(t *testing.T) {
@@ -35,7 +33,7 @@ var _ = AfterSuite(func() {
 })
 
 func readFile(fileName string) string {
-	contents, err := ioutil.ReadFile(fileName)
+	contents, err := os.ReadFile(fileName)
 	Expect(err).NotTo(HaveOccurred())
 	return string(contents)
 }

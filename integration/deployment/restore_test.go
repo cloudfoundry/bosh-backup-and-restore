@@ -2,7 +2,6 @@ package deployment
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockbosh"
@@ -59,7 +58,7 @@ instance_groups:
 		director = mockbosh.NewTLS()
 		director.ExpectedBasicAuth("admin", "admin")
 		var err error
-		restoreWorkspace, err = ioutil.TempDir(".", "restore-workspace-")
+		restoreWorkspace, err = os.MkdirTemp(".", "restore-workspace-")
 		verifyMocks = true
 		Expect(err).NotTo(HaveOccurred())
 	})
@@ -116,7 +115,7 @@ instances: []`))
 				logFilePath := files[0]
 				_, err = os.Stat(logFilePath)
 				Expect(os.IsNotExist(err)).To(BeFalse())
-				stackTrace, err := ioutil.ReadFile(logFilePath)
+				stackTrace, err := os.ReadFile(logFilePath)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 			})
@@ -160,7 +159,7 @@ instances: []`))
 				logFilePath := files[0]
 				_, err = os.Stat(logFilePath)
 				Expect(os.IsNotExist(err)).To(BeFalse())
-				stackTrace, err := ioutil.ReadFile(logFilePath)
+				stackTrace, err := os.ReadFile(logFilePath)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 			})
@@ -185,7 +184,7 @@ instances:
     checksums:
       redis-backup: this-is-not-a-checksum-this-is-only-a-tribute`))
 
-			backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
+			backupContents, err := os.ReadFile("../../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", backupContents)
 			session = binary.Run(
@@ -225,7 +224,7 @@ instances:
 				logFilePath := files[0]
 				_, err = os.Stat(logFilePath)
 				Expect(os.IsNotExist(err)).To(BeFalse())
-				stackTrace, err := ioutil.ReadFile(logFilePath)
+				stackTrace, err := os.ReadFile(logFilePath)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 			})
@@ -272,7 +271,7 @@ instances:
     checksums:
       ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
-			backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
+			backupContents, err := os.ReadFile("../../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar",
 				backupContents)
@@ -480,7 +479,7 @@ touch /tmp/restore-script-was-run`)
 					logFilePath := files[0]
 					_, err = os.Stat(logFilePath)
 					Expect(os.IsNotExist(err)).To(BeFalse())
-					stackTrace, err := ioutil.ReadFile(logFilePath)
+					stackTrace, err := os.ReadFile(logFilePath)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 				})
@@ -521,7 +520,7 @@ touch /tmp/restore-script-was-run`)
 					logFilePath := files[0]
 					_, err = os.Stat(logFilePath)
 					Expect(os.IsNotExist(err)).To(BeFalse())
-					stackTrace, err := ioutil.ReadFile(logFilePath)
+					stackTrace, err := os.ReadFile(logFilePath)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 				})
@@ -608,7 +607,7 @@ instances:
     checksums:
       ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
-			backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
+			backupContents, err := os.ReadFile("../../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", backupContents)
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-server-0-redis.tar", backupContents)
@@ -844,7 +843,7 @@ custom_artifacts:
   checksums:
     ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
-				backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
+				backupContents, err := os.ReadFile("../../fixtures/backup.tar")
 				Expect(err).NotTo(HaveOccurred())
 				createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tar", backupContents)
 
@@ -925,7 +924,7 @@ custom_artifacts:
   checksums: {}
 `))
 
-				backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
+				backupContents, err := os.ReadFile("../../fixtures/backup.tar")
 				Expect(err).NotTo(HaveOccurred())
 
 				createFileWithContents(
@@ -1041,7 +1040,7 @@ backup_activity:
   start_time: 2019/02/27 10:10:30 GMT
   finish_time: 2019/02/27 10:10:30 GMT`))
 
-			backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
+			backupContents, err := os.ReadFile("../../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-redis-backup-one-restore-all.tar", backupContents)
 
@@ -1104,7 +1103,7 @@ custom_artifacts:
   checksums:
     ./redis/redis-backup: this-is-damn-wrong`))
 
-			backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
+			backupContents, err := os.ReadFile("../../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tar", backupContents)
 
@@ -1136,7 +1135,7 @@ custom_artifacts:
 			logFilePath := files[0]
 			_, err = os.Stat(logFilePath)
 			Expect(os.IsNotExist(err)).To(BeFalse())
-			stackTrace, err := ioutil.ReadFile(logFilePath)
+			stackTrace, err := os.ReadFile(logFilePath)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 		})
@@ -1180,7 +1179,7 @@ instances:
     checksums:
       ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
-			backupContents, err := ioutil.ReadFile("../../fixtures/backup.tar")
+			backupContents, err := os.ReadFile("../../fixtures/backup.tar")
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", backupContents)
 		})

@@ -3,7 +3,6 @@ package deployment
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -61,7 +60,7 @@ var _ = Describe("Backup", func() {
 		director = mockbosh.NewTLS()
 		director.ExpectedBasicAuth("admin", "admin")
 		var err error
-		backupWorkspace, err = ioutil.TempDir(".", "backup-workspace-")
+		backupWorkspace, err = os.MkdirTemp(".", "backup-workspace-")
 		Expect(err).NotTo(HaveOccurred())
 		artifactPath = ""
 		manifest = `---
@@ -321,7 +320,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 					Context("and the artifact path is an existing directory", func() {
 						BeforeEach(func() {
 							var err error
-							artifactPath, err = ioutil.TempDir("", "artifact-path-")
+							artifactPath, err = os.MkdirTemp("", "artifact-path-")
 							Expect(err).NotTo(HaveOccurred())
 						})
 
@@ -712,7 +711,7 @@ exit 1`)
 
 				It("downloads the manifest", func() {
 					Expect(path.Join(backupDirectory(), "manifest.yml")).To(BeARegularFile())
-					Expect(ioutil.ReadFile(path.Join(backupDirectory(), "manifest.yml"))).To(Equal([]byte("this is a totally valid yaml")))
+					Expect(os.ReadFile(path.Join(backupDirectory(), "manifest.yml"))).To(Equal([]byte("this is a totally valid yaml")))
 				})
 			})
 		})
@@ -1469,10 +1468,10 @@ instance_groups:
 		director = mockbosh.NewTLS()
 		director.ExpectedBasicAuth("admin", "admin")
 		var err error
-		backupWorkspace, err = ioutil.TempDir(".", "backup-workspace-")
+		backupWorkspace, err = os.MkdirTemp(".", "backup-workspace-")
 		Expect(err).NotTo(HaveOccurred())
 
-		artifactPath, err = ioutil.TempDir("/tmp", "artifact-path-")
+		artifactPath, err = os.MkdirTemp("/tmp", "artifact-path-")
 		Expect(err).NotTo(HaveOccurred())
 
 		instance1 = testcluster.NewInstance()
@@ -1567,7 +1566,7 @@ instance_groups:
 					logFilePath := files[0]
 					Expect(filepath.Base(logFilePath)).To(MatchRegexp(fmt.Sprintf("%s_%s.log", deploymentName1, `(\d){8}T(\d){6}Z\b`)))
 
-					backupLogContent, err := ioutil.ReadFile(logFilePath)
+					backupLogContent, err := os.ReadFile(logFilePath)
 					output := string(backupLogContent)
 
 					Expect(output).To(ContainSubstring("INFO - Looking for scripts"))
@@ -1861,7 +1860,7 @@ exit 1`)
 				logFilePath := files[0]
 				Expect(filepath.Base(logFilePath)).To(MatchRegexp(fmt.Sprintf("%s_%s.log", deploymentName1, `(\d){8}T(\d){6}Z\b`)))
 
-				backupLogContent, err := ioutil.ReadFile(logFilePath)
+				backupLogContent, err := os.ReadFile(logFilePath)
 				output := string(backupLogContent)
 
 				Expect(output).To(ContainSubstring("INFO - Looking for scripts"))
@@ -1885,7 +1884,7 @@ func assertOutput(b *gbytes.Buffer, strings []string) {
 }
 
 func possibleBackupDirectories(deploymentName, backupWorkspace string) []string {
-	dirs, err := ioutil.ReadDir(backupWorkspace)
+	dirs, err := os.ReadDir(backupWorkspace)
 	Expect(err).NotTo(HaveOccurred())
 	backupDirectoryPattern := regexp.MustCompile(`\b` + deploymentName + `_(\d){8}T(\d){6}Z\b$`)
 

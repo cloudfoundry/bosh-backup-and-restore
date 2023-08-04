@@ -1,7 +1,7 @@
 package all_deployments_tests
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 	"time"
 
@@ -25,7 +25,7 @@ var _ = BeforeSuite(func() {
 	commandPath, err = gexec.Build("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr")
 	Expect(err).NotTo(HaveOccurred())
 
-	workingDir, err = ioutil.TempDir("/tmp", "workingDir")
+	workingDir, err = os.MkdirTemp("/tmp", "workingDir")
 
 })
 

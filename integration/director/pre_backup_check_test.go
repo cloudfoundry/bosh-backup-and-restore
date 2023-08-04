@@ -2,7 +2,6 @@ package director
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -22,7 +21,7 @@ var _ = Describe("Pre-backup checks", func() {
 
 	BeforeEach(func() {
 		var err error
-		backupWorkspace, err = ioutil.TempDir(".", "backup-workspace-")
+		backupWorkspace, err = os.MkdirTemp(".", "backup-workspace-")
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -143,7 +142,7 @@ restore_should_be_locked_before:
 					logFilePath := files[0]
 					_, err = os.Stat(logFilePath)
 					Expect(os.IsNotExist(err)).To(BeFalse())
-					stackTrace, err := ioutil.ReadFile(logFilePath)
+					stackTrace, err := os.ReadFile(logFilePath)
 					Expect(err).ToNot(HaveOccurred())
 					Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 				})
@@ -174,7 +173,7 @@ restore_should_be_locked_before:
 			logFilePath := files[0]
 			_, err = os.Stat(logFilePath)
 			Expect(os.IsNotExist(err)).To(BeFalse())
-			stackTrace, err := ioutil.ReadFile(logFilePath)
+			stackTrace, err := os.ReadFile(logFilePath)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(gbytes.BufferWithBytes(stackTrace)).To(gbytes.Say("main.go"))
 		})

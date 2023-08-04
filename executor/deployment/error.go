@@ -2,7 +2,7 @@ package deployment
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 	"time"
 
@@ -52,7 +52,7 @@ func (a AllDeploymentsError) ProcessWithFooter(footer string) error {
 
 func writeStackTrace(errorWithStackTrace string) error {
 	if errorWithStackTrace != "" {
-		err := ioutil.WriteFile(fmt.Sprintf("bbr-%s.err.log", time.Now().UTC().Format(time.RFC3339)), []byte(errorWithStackTrace), 0644)
+		err := os.WriteFile(fmt.Sprintf("bbr-%s.err.log", time.Now().UTC().Format(time.RFC3339)), []byte(errorWithStackTrace), 0644)
 		if err != nil {
 			return err
 		}

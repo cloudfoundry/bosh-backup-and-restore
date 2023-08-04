@@ -7,8 +7,6 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/standalone"
 
-	"io/ioutil"
-
 	instancefakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
@@ -249,7 +247,7 @@ var _ = Describe("DeployedInstance", func() {
 })
 
 func createTempFile(contents string) string {
-	tempFile, err := ioutil.TempFile("", "")
+	tempFile, err := os.CreateTemp("", "")
 	Expect(err).NotTo(HaveOccurred())
 	tempFile.Write([]byte(contents))
 	tempFile.Close()

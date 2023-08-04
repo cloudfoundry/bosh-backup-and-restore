@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -242,7 +241,7 @@ func (backupDirectory *BackupDirectory) AddFinishTime(finishTime time.Time) erro
 }
 
 func (backupDirectory *BackupDirectory) SaveManifest(manifest string) error {
-	return errors.Wrap(ioutil.WriteFile(backupDirectory.manifestFilename(), []byte(manifest), 0666), "failed to save manifest")
+	return errors.Wrap(os.WriteFile(backupDirectory.manifestFilename(), []byte(manifest), 0666), "failed to save manifest")
 }
 
 func (backupDirectory *BackupDirectory) Valid() (bool, error) {

@@ -1,7 +1,6 @@
 package deployment
 
 import (
-	"io/ioutil"
 	"os"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockbosh"
@@ -29,7 +28,7 @@ instance_groups:
 `
 
 	BeforeEach(func() {
-		cleanupWorkspace, _ = ioutil.TempDir(".", "cleanup-workspace-")
+		cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-")
 
 		instance = testcluster.NewInstance()
 
