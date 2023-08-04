@@ -6,14 +6,14 @@ push: test sys-test-local
 pre-commit: test sys-test-local
 
 watch:
-	ginkgo watch -r -skipPackage integration,system,backup,s3-config-validator
+	go run github.com/onsi/ginkgo/v2/ginkgo watch -r -skip-package integration,system,backup,s3-config-validator
 
 test-unit:
-	ginkgo -p -r -skipPackage integration,system,s3-config-validator,ssh
-	ginkgo -r ssh
+	go run github.com/onsi/ginkgo/v2/ginkgo -p -r -skip-package integration,system,s3-config-validator,ssh
+	go run github.com/onsi/ginkgo/v2/ginkgo -r ssh
 
 test-integration:
-	ginkgo -r -trace integration
+	go run github.com/onsi/ginkgo/v2/ginkgo -r -trace integration
 
 bin:
 	go build -o bbr ./cmd/bbr
@@ -26,23 +26,23 @@ generate-fakes:
 
 sys-test-director-ci:
 	TEST_ENV=ci \
-	ginkgo -r -v -trace system/director
+	go run github.com/onsi/ginkgo/v2/ginkgo -r -v -trace system/director
 
 sys-test-deployment-ci:
 	TEST_ENV=ci \
-	ginkgo -r -v -trace system/deployment
+	go run github.com/onsi/ginkgo/v2/ginkgo -r -v -trace system/deployment
 
 sys-test-windows-ci:
 	TEST_ENV=ci \
-	ginkgo -r -v -trace system/windows
+	go run github.com/onsi/ginkgo/v2/ginkgo -r -v -trace system/windows
 
 sys-test-all-deployments-ci:
 	TEST_ENV=ci \
-	ginkgo -r -v -trace system/all_deployments
+	go run github.com/onsi/ginkgo/v2/ginkgo -r -v -trace system/all_deployments
 
 sys-test-bosh-all-proxy-ci:
 	TEST_ENV=ci \
-	ginkgo -r -v -trace system/bosh_all_proxy
+	go run github.com/onsi/ginkgo/v2/ginkgo -r -v -trace system/bosh_all_proxy
 
 upload-test-releases:
 	fixtures/releases/upload-release redis-test-release && \
