@@ -9,12 +9,11 @@ require (
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.2
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
-	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/ginkgo/v2 v2.11.0
 	github.com/onsi/gomega v1.27.10
 	github.com/pkg/errors v0.9.1
 	github.com/urfave/cli v1.22.14
-	golang.org/x/crypto v0.11.0
+	golang.org/x/crypto v0.12.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -51,9 +50,9 @@ require (
 	github.com/vito/go-interact v1.0.1 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/net v0.12.0 // indirect
-	golang.org/x/sys v0.10.0 // indirect
-	golang.org/x/term v0.10.0 // indirect
-	golang.org/x/text v0.11.0 // indirect
+	golang.org/x/sys v0.11.0 // indirect
+	golang.org/x/term v0.11.0 // indirect
+	golang.org/x/text v0.12.0 // indirect
 	golang.org/x/tools v0.11.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
