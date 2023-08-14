@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/cloudfoundry/bosh-cli/v7 v7.3.1
 	github.com/cloudfoundry/bosh-utils v0.0.383
-	github.com/cloudfoundry/socks5-proxy v0.2.95
+	github.com/cloudfoundry/socks5-proxy v0.2.96
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.2
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
