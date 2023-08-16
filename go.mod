@@ -7,7 +7,7 @@ require (
 	github.com/cloudfoundry/bosh-utils v0.0.384
 	github.com/cloudfoundry/socks5-proxy v0.2.96
 	github.com/cppforlife/go-patch v0.2.0
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.2
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.7.0
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
 	github.com/onsi/ginkgo/v2 v2.11.0
 	github.com/onsi/gomega v1.27.10
