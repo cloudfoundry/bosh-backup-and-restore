@@ -3,7 +3,7 @@ module github.com/cloudfoundry-incubator/bosh-backup-and-restore
 go 1.20
 
 require (
-	github.com/cloudfoundry/bosh-cli/v7 v7.3.1
+	github.com/cloudfoundry/bosh-cli/v7 v7.4.0
 	github.com/cloudfoundry/bosh-utils v0.0.384
 	github.com/cloudfoundry/socks5-proxy v0.2.96
 	github.com/cppforlife/go-patch v0.2.0
@@ -23,8 +23,8 @@ require (
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/charlievieth/fs v0.0.3 // indirect
-	github.com/cheggaaa/pb/v3 v3.1.2 // indirect
-	github.com/cloudfoundry/config-server v0.1.127 // indirect
+	github.com/cheggaaa/pb/v3 v3.1.4 // indirect
+	github.com/cloudfoundry/config-server v0.1.132 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e // indirect
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
@@ -41,7 +41,7 @@ require (
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
-	github.com/mattn/go-runewidth v0.0.14 // indirect
+	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/pivotal-cf/paraphernalia v0.0.0-20180203224945-a64ae2051c20 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
