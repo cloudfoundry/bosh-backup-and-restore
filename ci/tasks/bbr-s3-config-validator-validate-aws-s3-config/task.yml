@@ -3,7 +3,7 @@ image_resource:
   type: registry-image
   source:
     repository: cryogenics/essentials
-    tag: 0.1.64
+    tag: 0.1.65
 inputs:
   - name: env-pool
   - name: bbr-s3-config-validator-test-artifacts
