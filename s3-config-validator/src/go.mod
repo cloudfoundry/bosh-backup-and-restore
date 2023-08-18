@@ -3,7 +3,7 @@ module github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-valid
 go 1.20
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.20.1
+	github.com/aws/aws-sdk-go-v2 v1.20.2
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.32
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.38.2
 	github.com/aws/aws-sdk-go-v2/service/sts v1.21.2
