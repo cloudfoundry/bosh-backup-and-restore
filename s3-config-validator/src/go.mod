@@ -3,7 +3,7 @@ module github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-valid
 go 1.20
 
 require (
-	github.com/aws/aws-sdk-go-v2 v1.20.2
+	github.com/aws/aws-sdk-go-v2 v1.20.3
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.33
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.38.3
 	github.com/aws/aws-sdk-go-v2/service/sts v1.21.3
@@ -22,7 +22,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.34 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.33 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.15.2 // indirect
-	github.com/aws/smithy-go v1.14.1 // indirect
+	github.com/aws/smithy-go v1.14.2 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
