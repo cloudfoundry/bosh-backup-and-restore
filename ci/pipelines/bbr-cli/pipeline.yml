@@ -38,6 +38,7 @@ groups:
   - system-test-director
   - unclaim-env
   - merge-pr
+  - govulncheck
 - name: release
   jobs:
   - build-rc
@@ -110,6 +111,11 @@ resources:
   type: time
   source:
     interval: 168h #! (24h * 7 days)
+
+- name: every-day
+  type: time
+  source:
+    interval: 24h
 
 - name: bbr-director-test-releases
   type: git
@@ -1013,3 +1019,38 @@ jobs:
         If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
     input_mapping:
       source-repo: bosh-backup-and-restore-bump-ci-tasks
+
+- name: govulncheck
+  plan:
+    - in_parallel:
+        - get: main
+          trigger: true
+        - get: every-day
+          trigger: true
+    - task: govulncheck
+      config:
+        platform: linux
+        image_resource:
+          type: registry-image
+          source:
+            repository: cryogenics/essentials
+        inputs:
+          - name: main
+            path: bosh-backup-and-restore
+        run:
+          path: /usr/bin/bash
+          args:
+            - -c
+            - |
+              set -ex
+              set -o pipefail
+
+              go install golang.org/x/vuln/cmd/govulncheck@latest
+
+              pushd "bosh-backup-and-restore"
+                for dir in $(find . -name go.mod | xargs -n1 dirname); do
+                  pushd "$dir"
+                    /root/go/bin/govulncheck -test ./...
+                  popd
+                done
+              popd
