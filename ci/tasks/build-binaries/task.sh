@@ -41,9 +41,19 @@ function generate_build_dir {
   mv "${BBR_REPO}/releases/bbr" "bbr-build/${binary_name}"
   cat "${BBR_REPO}/releases/checksum.sha256" | cut -d' ' -f1  | sed -n '1p' > "bbr-build/${binary_name}.sha256"
 
+  echo -e "\nMoving linux binary to the build directory..."
+  binary_name="bbr-${VERSION}-linux-arm64"
+  mv "${BBR_REPO}/releases/bbr" "bbr-build/${binary_name}"
+  cat "${BBR_REPO}/releases/checksum.sha256" | cut -d' ' -f1  | sed -n '1p' > "bbr-build/${binary_name}.sha256"
+
   echo -e "Moving mac binary to the build directory..."
   binary_name="bbr-$VERSION-darwin-amd64"
   mv "${BBR_REPO}/releases/bbr-mac" "bbr-build/${binary_name}"
+  cat "${BBR_REPO}/releases/checksum.sha256" | cut -d' ' -f1  | sed -n '2p' > "bbr-build/${binary_name}.sha256"
+
+  echo -e "Moving mac-arm64 binary to the build directory..."
+  binary_name="bbr-$VERSION-darwin-arm64"
+  mv "${BBR_REPO}/releases/bbr-mac-arm64" "bbr-build/${binary_name}"
   cat "${BBR_REPO}/releases/checksum.sha256" | cut -d' ' -f1  | sed -n '2p' > "bbr-build/${binary_name}.sha256"
 }
 

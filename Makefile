@@ -52,7 +52,9 @@ release:
 	go version
 	mkdir releases
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/bbr ./cmd/bbr
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags "-X main.version=${VERSION}" -o releases/bbr-arm64 ./cmd/bbr
 	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o releases/bbr-mac ./cmd/bbr
+	GOOS=darwin GOARCH=arm64 go build -ldflags "-X main.version=${VERSION}" -o releases/bbr-mac-arm64 ./cmd/bbr
 	cd releases && shasum -a 256 * > checksum.sha256
 
 clean-docker:
