@@ -21,8 +21,8 @@ github.com/cloudfoundry/config-server v0.1.132 h1:Dp/ITQ2WbLG7IyzBDe94FPgRMcmACq
 github.com/cloudfoundry/config-server v0.1.132/go.mod h1:/SlFsKwfLxjbvqRTmoRTgOphKLf/L04KcGcyy+/3QdU=
 github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e h1:FQdRViaoDphGRfgrotl2QGsX1gbloe57dbGBS5CG6KY=
 github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e/go.mod h1:PXmcacyJB/pJjSxEl15IU6rEIKXrhZQRzsr0UTkgNNs=
-github.com/cloudfoundry/socks5-proxy v0.2.97 h1:Mt/Qco7oi9NO5vbEh+xT63DkMrdmQMyh2i52hWCBkqY=
-github.com/cloudfoundry/socks5-proxy v0.2.97/go.mod h1:6qsLU3SzzMGC+3+0ptjYsJQLAByGlwH2R7DI/nE1eIA=
+github.com/cloudfoundry/socks5-proxy v0.2.98 h1:4GUMQiZyaVLwxW6CU0UnvAjGf3lDeYVG2bTbNGHlqmw=
+github.com/cloudfoundry/socks5-proxy v0.2.98/go.mod h1:6qsLU3SzzMGC+3+0ptjYsJQLAByGlwH2R7DI/nE1eIA=
 github.com/cppforlife/go-patch v0.2.0 h1:Y14MnCQjDlbw7WXT4k+u6DPAA9XnygN4BfrSpI/19RU=
 github.com/cppforlife/go-patch v0.2.0/go.mod h1:67a7aIi94FHDZdoeGSJRRFDp66l9MhaAG1yGxpUoFD8=
 github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4 h1:J+ghqo7ZubTzelkjo9hntpTtP/9lUCWH9icEmAW+B+Q=
