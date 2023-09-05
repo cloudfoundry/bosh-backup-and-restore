@@ -41,7 +41,7 @@ mv "$BBR_REPO"/releases/bbr bbr-build/"$LINUX"
 cat "$BBR_REPO"/releases/checksum.sha256 | cut -d' ' -f1  | sed -n '1p' > bbr-build/"$LINUX".sha256
 
 LINUX_ARM64="bbr-$RELEASE_CANDIDATE_VERSION-linux-arm64"
-mv "$BBR_REPO"/releases/bbr bbr-build/"$LINUX_ARM64"
+mv "$BBR_REPO"/releases/bbr-arm64 bbr-build/"$LINUX_ARM64"
 cat "$BBR_REPO"/releases/checksum.sha256 | cut -d' ' -f1  | sed -n '1p' > bbr-build/"$LINUX_ARM64".sha256
 
 echo "Moving mac binaries to the build directory..."
