@@ -536,6 +536,7 @@ restore_should_be_locked_before:
 			By("printing an error", func() {
 				Expect(session.Err).To(SatisfyAny(
 					gbytes.Say("no such host"),
+					gbytes.Say("server misbehaving"),
 					gbytes.Say("Temporary failure in name resolution")))
 			})
 		})
