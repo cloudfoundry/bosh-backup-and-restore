@@ -47,7 +47,15 @@ function copy_bbr_binaries_to {
   cp 'bbr-rc-artefacts/releases/bbr' "$release_folder/${binary_name}"
   grep 'bbr$' 'bbr-rc-artefacts/releases/checksum.sha256'  | cut -d' ' -f1 > "$release_folder/${binary_name}.sha256"
 
+  binary_name="bbr-${VERSION}-linux-arm64"
+  cp 'bbr-rc-artefacts/releases/bbr' "$release_folder/${binary_name}"
+  grep 'bbr$' 'bbr-rc-artefacts/releases/checksum.sha256'  | cut -d' ' -f1 > "$release_folder/${binary_name}.sha256"
+
   binary_name="bbr-$VERSION-darwin-amd64"
+  cp 'bbr-rc-artefacts/releases/bbr-mac' "$release_folder/${binary_name}"
+  grep 'bbr-mac$' 'bbr-rc-artefacts/releases/checksum.sha256'  | cut -d' ' -f1 > "$release_folder/${binary_name}.sha256"
+
+  binary_name="bbr-$VERSION-darwin-arm64"
   cp 'bbr-rc-artefacts/releases/bbr-mac' "$release_folder/${binary_name}"
   grep 'bbr-mac$' 'bbr-rc-artefacts/releases/checksum.sha256'  | cut -d' ' -f1 > "$release_folder/${binary_name}.sha256"
 }
