@@ -524,48 +524,25 @@ jobs:
   serial: true
   plan:
   - in_parallel:
-    - put: env-pool
-      resource: tas-env
-      params:
-        action: claim
     - get: s3-config-validator-artefacts
       passed: [test-build-s3-config-validator]
       trigger: true
     - get: latest-pull-request
       passed: [test-build-s3-config-validator]
-  - task: enable-backup-prepare-pas
-    file: latest-pull-request/ci/tasks/bbr-s3-config-validator-enable-backup-prepare-pas/task.yml
-    input_mapping:
-      bosh-backup-and-restore: latest-pull-request
-    params:
-      SKIP_APPLY_CHANGES: true
-  - task: enable-aws-s3-filestore
-    file: latest-pull-request/ci/tasks/bbr-s3-config-validator-enable-aws-s3-filestore/task.yml
-    input_mapping:
-      bosh-backup-and-restore: latest-pull-request
-    params:
-      ENDPOINT: ((s3_validator_aws.endpoint))
-      BUILDPACKS_BUCKET: ((s3_validator_aws.live_bucket))
-      DROPLETS_BUCKET: ((s3_validator_aws.live_bucket))
-      PACKAGES_BUCKET: ((s3_validator_aws.live_bucket))
-      RESOURCES_BUCKET: ((s3_validator_aws.live_bucket))
-      BACKUP_BUCKET: ((s3_validator_aws.backup_bucket))
-      BACKUP_REGION: ((s3_validator_aws.backup_region))
-      ACCESS_KEY: ((s3_validator_aws.secret_key_id))
-      SECRET_KEY: ((s3_validator_aws.secret_key))
-      REGION: ((s3_validator_aws.region))
-      SKIP_APPLY_CHANGES: false
   - task: move-and-run-validator
     file: latest-pull-request/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.yml
+    params:
+      ACCESS_KEY: ((aws_credentials.cg_access_key_id))
+      SECRET_KEY: ((aws_credentials.cg_secret_access_key))
+      ROLE_ARN: ((aws_credentials.cg_assumed_role_arn))
     input_mapping:
       bosh-backup-and-restore: latest-pull-request
-      env-pool: env-pool
       bbr-s3-config-validator-test-artifacts: s3-config-validator-artefacts
-  ensure:
-    put: tas-env
-    params:
-      action: unclaim
-      env_file: env-pool/metadata
+#! ensure:
+#!   put: tas-env
+#!   params:
+#!     action: unclaim
+#!     env_file: env-pool/metadata
 
 - name: reminder-to-re-enable-validate-aws-s3-config
   plan:
@@ -594,7 +571,7 @@ jobs:
   plan:
   - in_parallel:
     - get: latest-pull-request
-      passed: [system-test-deployment, system-test-director]
+      passed: [system-test-deployment, system-test-director, validate-aws-s3-config]
       trigger: true
   - put: latest-pull-request
     params:

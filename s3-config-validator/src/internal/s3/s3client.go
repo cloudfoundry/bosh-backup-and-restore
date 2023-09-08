@@ -54,9 +54,9 @@ func newS3ClientWithAssumedRole(region, endpoint, id, secret, role string, useIA
 			Credentials: staticCredentialsProvider,
 			Region:      region,
 		}
-		if endpoint != "" {
-			stsOptions.EndpointResolver = sts.EndpointResolverFromURL(endpoint)
-		}
+		//	if endpoint != "" {
+		//		stsOptions.EndpointResolver = sts.EndpointResolverFromURL(endpoint)
+		//	}
 		stsClient := sts.New(stsOptions)
 		creds = stscreds.NewAssumeRoleProvider(stsClient, role)
 	} else if useIAMProfile {
