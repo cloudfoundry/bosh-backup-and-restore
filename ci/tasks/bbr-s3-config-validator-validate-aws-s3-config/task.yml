@@ -5,8 +5,11 @@ image_resource:
     repository: cryogenics/essentials
     tag: 0.1.69
 inputs:
-  - name: env-pool
   - name: bbr-s3-config-validator-test-artifacts
   - name: bosh-backup-and-restore
+params:
+  ACCESS_KEY:
+  SECRET_KEY:
+  ROLE_ARN:
 run:
   path: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.sh

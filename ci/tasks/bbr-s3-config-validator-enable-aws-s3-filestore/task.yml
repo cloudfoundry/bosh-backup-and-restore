@@ -3,7 +3,9 @@ platform: linux
 
 image_resource:
   type: docker-image
-  source: {repository: pcfplatformrecovery/backup-and-restore-minimal}
+  source: 
+    repository: cryogenics/essentials
+    tag: 0.1.67
 
 inputs:
 - name: env-pool
