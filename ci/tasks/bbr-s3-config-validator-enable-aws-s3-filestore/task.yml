@@ -1,16 +1,12 @@
----
 platform: linux
-
 image_resource:
   type: docker-image
-  source: 
+  source:
     repository: cryogenics/essentials
-    tag: 0.1.67
-
+    tag: 0.1.70
 inputs:
-- name: env-pool
-- name: bosh-backup-and-restore
-
+  - name: env-pool
+  - name: bosh-backup-and-restore
 params:
   ENDPOINT:
   BUILDPACKS_BUCKET:
@@ -23,6 +19,5 @@ params:
   SECRET_KEY:
   REGION:
   SKIP_APPLY_CHANGES: false
-
 run:
   path: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-enable-aws-s3-filestore/task.sh
