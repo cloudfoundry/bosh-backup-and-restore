@@ -6,7 +6,7 @@ toolchain go1.21.0
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.21.0
-	github.com/aws/aws-sdk-go-v2/credentials v1.13.37
+	github.com/aws/aws-sdk-go-v2/credentials v1.13.38
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.38.5
 	github.com/aws/aws-sdk-go-v2/service/sts v1.22.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.7.0
