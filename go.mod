@@ -6,7 +6,7 @@ toolchain go1.21.0
 
 require (
 	github.com/cloudfoundry/bosh-cli/v7 v7.4.0
-	github.com/cloudfoundry/bosh-utils v0.0.395
+	github.com/cloudfoundry/bosh-utils v0.0.397
 	github.com/cloudfoundry/socks5-proxy v0.2.99
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.7.0
