@@ -102,45 +102,69 @@ groups:
 resource_types:
 - name: github-release
   type: registry-image
-  source: {repository: concourse/github-release-resource}
+  source: 
+    repository: concourse/github-release-resource
+    registry_mirror:
+      host: harbor-repo.vmware.com
 
 - name: pivnet
-  type: docker-image
+  type: registry-image
   source:
     repository: pivotalcf/pivnet-resource
     tag: latest-final
+    registry_mirror:
+      host: harbor-repo.vmware.com
 
 - name: bosh-deployment-resource
-  type: docker-image
+  type: registry-image
   source:
     repository: cloudfoundry/bosh-deployment-resource
+    registry_mirror:
+      host: harbor-repo.vmware.com
 
 - name: gcs
-  type: docker-image
+  type: registry-image
   source:
-    repository: frodenas/gcs-resource
+    repository: dockerhub-proxy-cache/frodenas/gcs-resource
+    registry_mirror:
+      host: harbor-repo.vmware.com
 
 - name: pcf-pool
   type: registry-image
   source:
     repository: cftoolsmiths/toolsmiths-envs-resource
     tag: latest
+    registry_mirror:
+      host: harbor-repo.vmware.com
 
 - name: slack-notification
-  type: docker-image
+  type: registry-image
   source:
     repository: cfcommunity/slack-notification-resource
+    registry_mirror:
+      host: harbor-repo.vmware.com
 
 - name: pull-request
-  type: docker-image
+  type: registry-image
   source:
     repository: cryogenics/pr-queue-resource
+    registry_mirror:
+      host: harbor-repo.vmware.com
 
 resources:
 - name: cryogenics-essentials
   type: registry-image
   source:
     repository: cryogenics/essentials
+    registry_mirror:
+      host: harbor-repo.vmware.com
+
+- name: pcfplatformrecovery-backup-and-restore
+  type: registry-image
+  source:
+    repository: dockerhub-proxy-cache/pcfplatformrecovery/backup-and-restore
+    registry_mirror:
+      host: harbor-repo.vmware.com
 
 - name: golang-release
   type: git
@@ -384,6 +408,8 @@ jobs:
     - get: jammy-stemcell
     - get: cryogenics-ci
       passed: [claim-env]
+    - get: cryogenics-essentials
+    - get: pcfplatformrecovery-backup-and-restore
   - task: alias-env
     file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
     input_mapping:
@@ -450,6 +476,7 @@ jobs:
       passed: [claim-env]
     - get: bbr-director-test-releases
     - get: jammy-stemcell
+    - get: pcfplatformrecovery-backup-and-restore 
     - get: cryogenics-ci
       passed: [claim-env]
   - task: alias-env
@@ -536,19 +563,23 @@ jobs:
       trigger: true
     - get: build-version
       params: {pre: build}
+    - get: cryogenics-essentials
   - task: unit-test
+    image: cryogenics-essentials
     file: latest-pull-request/ci/tasks/bbr-s3-config-validator-unit-test/task.yml
     params:
       <<: *AWS_ACCESS
     input_mapping:
       bosh-backup-and-restore: latest-pull-request
   - task: e2e-test
+    image: cryogenics-essentials
     file: latest-pull-request/ci/tasks/bbr-s3-config-validator-e2e-test/task.yml
     params:
       <<: *AWS_ACCESS
     input_mapping:
       bosh-backup-and-restore: latest-pull-request
   - task: build
+    image: cryogenics-essentials
     file: latest-pull-request/ci/tasks/bbr-s3-config-validator-build/task.yml
     input_mapping:
       version: build-version
@@ -596,20 +627,23 @@ jobs:
     - get: release-candidate-version
       params:
         pre: rc
+    - get: cryogenics-essentials
     - get: next-release-version
       resource: release-candidate-version
       params:
         bump: final
   - task: build-bbr
     file: main/ci/tasks/bbr-build/task.yml
+    image: cryogenics-essentials
     params:
-      GITHUB_SDK_PRIVATE_KEY: ((github-sdk.key))
+      GITHUB_SDK_PRIVATE_KEY: *github_ssh_key
     input_mapping:
       release-version: next-release-version
       release-candidate-version: release-candidate-version
       bosh-backup-and-restore: main
   - task: build-s3-config-validator
     file: main/ci/tasks/bbr-s3-config-validator-build/task.yml
+    image: cryogenics-essentials
     input_mapping:
       version: release-candidate-version
       repo: main
@@ -628,6 +662,7 @@ jobs:
   - get: cf-deployment
   - get: cf-deployment-concourse-tasks
   - get: disaster-recovery-acceptance-tests
+  - get: cryogenics-essentials
   - get: bbr-artefacts
     trigger: true
     passed:
@@ -636,6 +671,7 @@ jobs:
     params:
       action: claim
   - task: deploy-backup-restore-components
+    image: cryogenics-essentials 
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
       toolsmiths-env: cf-deployment-env
@@ -653,6 +689,7 @@ jobs:
   - task: bosh-run-errand-nfsbrokerpush
     attempts: 5
     file: cf-deployment-concourse-tasks/run-errand/task.yml
+    image: cryogenics-essentials 
     input_mapping:
       toolsmiths-env: cf-deployment-env
     params:
@@ -660,6 +697,7 @@ jobs:
   - task: bosh-run-errand-smbbrokerpush
     attempts: 5
     file: cf-deployment-concourse-tasks/run-errand/task.yml
+    image: cryogenics-essentials 
     input_mapping:
       toolsmiths-env: cf-deployment-env
     params:
@@ -669,6 +707,7 @@ jobs:
     format: json
   - task: update-integration-config
     file: disaster-recovery-acceptance-tests/ci/tasks/update-integration-config/task.yml
+    image: cryogenics-essentials 
     input_mapping:
       integration-configs: disaster-recovery-acceptance-tests
     params:
@@ -686,6 +725,7 @@ jobs:
       BOSH_CLIENT_SECRET: ((.:pooled-env.bosh.bosh_client_secret))
   - task: acceptance-tests
     file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
+    image: cryogenics-essentials 
     privileged: true
     input_mapping:
       drats-integration-config: updated-integration-configs
@@ -711,6 +751,8 @@ jobs:
       - build-rc
     - get: cryogenics-ci
     - get: jammy-stemcell
+    - get: cryogenics-essentials
+    - get: pcfplatformrecovery-backup-and-restore
   - do:
     - put: env-pool
       resource: tas-env
@@ -719,6 +761,7 @@ jobs:
     - in_parallel:
       - task: create-b-drats-config
         file: cryogenics-ci/tasks/toolsmiths/generate-b-drats-config-from-tas-env/task.yml
+        image: pcfplatformrecovery-backup-and-restore 
         input_mapping:
           repo: cryogenics-ci
           env: env-pool
@@ -735,6 +778,7 @@ jobs:
         format: json
     - task: run-b-drats
       file: b-drats/ci/tasks/run-b-drats/task.yml
+      image: cryogenics-essentials 
       privileged: true
       input_mapping:
         bosh-disaster-recovery-acceptance-tests: b-drats
@@ -800,9 +844,11 @@ jobs:
         bump: final
       passed:
       - check-for-changes
+    - get: cryogenics-essentials
   - load_var: version-number
     file: release-candidate-version/number
   - task: promote-rc-binaries
+    image: cryogenics-essentials 
     file: main/ci/tasks/promote-release-candidate/task.yml
     input_mapping:
       version: release-candidate-version
@@ -822,6 +868,7 @@ jobs:
       pre: build
   - task: create-release-notes
     file: cryogenics-ci/tasks/release-automation/release-notes/task.yml
+    image: cryogenics-essentials 
     input_mapping:
       git-repo: main
       cryogenics-concourse-tasks: cryogenics-ci
@@ -829,6 +876,7 @@ jobs:
       USE_LATEST_PUBLISHED_TAG: true
   - task: format-release-notes
     file: cryogenics-ci/tasks/release-automation/format-release-notes/task.yml
+    image: cryogenics-essentials 
     input_mapping:
       template-folder: cryogenics-ci
       cryogenics-concourse-tasks: cryogenics-ci
@@ -866,8 +914,10 @@ jobs:
     - get: main
       passed:
       - publish-to-github
+    - get: cryogenics-essentials
   - task: update-homebrew-formula
     file: main/ci/tasks/bbr-update-homebrew-formula/task.yml
+    image: cryogenics-essentials 
     input_mapping:
       bbr-release: bbr-release
       homebrew-tap: homebrew-tap
@@ -927,8 +977,10 @@ jobs:
       resource: main
       params:
         branch: master
+    - get: cryogenics-essentials
   - task: update-gomod-directive-for-bbr-cli
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    image: cryogenics-essentials
     params:
       PATH_TO_GO_MODULE: .
     input_mapping:
@@ -937,6 +989,7 @@ jobs:
     output_mapping:
   - task: update-gomod-directive-for-s3-validator
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
+    image: cryogenics-essentials
     params:
       PATH_TO_GO_MODULE: s3-config-validator/src
     input_mapping:
@@ -954,6 +1007,7 @@ jobs:
   - try:
       task: create-golang-vendor-pull-request
       file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+      image: cryogenics-essentials
       params:
         BASE: master
         BRANCH: *golang-vendor-branch
@@ -981,6 +1035,7 @@ jobs:
       file: cryogenics-essentials/tag
     - task: bump-tasks
       file: cryogenics-concourse-tasks/deps-automation/bump-concourse-tasks/task.yml
+      image: cryogenics-essentials
       input_mapping:
         repo: main
         image: cryogenics-essentials
@@ -993,6 +1048,7 @@ jobs:
       force: true
   - task: create-pull-request
     file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+    image: cryogenics-essentials
     params:
       BASE: master
       BRANCH: *bump-ci-task-branch
@@ -1020,6 +1076,8 @@ jobs:
           type: registry-image
           source:
             repository: cryogenics/essentials
+            registry_mirror:
+              host: harbor-repo.vmware.com
         inputs:
           - name: main
             path: bosh-backup-and-restore
