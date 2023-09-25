@@ -433,15 +433,17 @@ jobs:
       source_file: source-file/source-file.yml
       vars:
         deployment-name: test-bosh-director
-        jumpbox-public-key: ((test_bosh_director.public_key))
+        jumpbox-public-key: ((bbr-cli/test_bosh_director.public_key))
         test_release_path: /tmp/build/put/bbr-director-test-releases/test-bosh-backup-and-restore-release
         internal_ip: *test-bosh-director-ip
   - task: system-test-director
     file: latest-pull-request/ci/tasks/bbr-system-director/task.yml
+    image: cryogenics-essentials
     privileged: true
     input_mapping:
       bosh-backup-and-restore: latest-pull-request
     params:
+      USE_SHUTTLE: false
       CREDHUB_SERVER: "((.:pooled-env.CREDHUB_SERVER))"
       CREDHUB_CLIENT: "((.:pooled-env.CREDHUB_CLIENT))"
       CREDHUB_SECRET: "((.:pooled-env.CREDHUB_SECRET))"
