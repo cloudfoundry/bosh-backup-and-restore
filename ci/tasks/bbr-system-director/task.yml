@@ -20,5 +20,6 @@ params:
 
   GITHUB_SDK_PRIVATE_KEY:
 
+  USE_SHUTTLE: true
 run:
   path: bosh-backup-and-restore/ci/tasks/bbr-system-director/task.sh
