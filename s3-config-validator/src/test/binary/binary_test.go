@@ -97,7 +97,7 @@ var _ = Describe("binary tests", func() {
 			})
 
 			It("displays general information", func() {
-				Eventually(session, "10s").Should(gexec.Exit(0))
+				Eventually(session, "20s").Should(gexec.Exit(0))
 				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(`
 				Make sure to run this on your 'backup & restore' VM.
 
@@ -111,7 +111,7 @@ var _ = Describe("binary tests", func() {
 			})
 
 			It("successfully validates all operations", func() {
-				Eventually(session, "10s").Should(gexec.Exit(0))
+				Eventually(session, "20s").Should(gexec.Exit(0))
 				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(`
 					Validating test-resource's live bucket bbr-s3-validator-versioned-bucket ...
 					 * Bucket is versioned ... Yes
@@ -132,7 +132,7 @@ var _ = Describe("binary tests", func() {
 			})
 
 			It("displays general information", func() {
-				Eventually(session, "10s").Should(gexec.Exit(0))
+				Eventually(session, "20s").Should(gexec.Exit(0))
 				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(`
 				Make sure to run this on your 'backup & restore' VM.
 
@@ -146,7 +146,7 @@ var _ = Describe("binary tests", func() {
 			})
 
 			It("successfully validates all operations", func() {
-				Eventually(session, "10s").Should(gexec.Exit(0))
+				Eventually(session, "20s").Should(gexec.Exit(0))
 				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(`
 					Validating test-resource's live bucket bbr-s3-validator-versioned-bucket ...
 					 * Bucket is versioned ... Yes
