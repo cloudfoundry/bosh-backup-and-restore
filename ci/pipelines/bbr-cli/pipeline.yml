@@ -411,6 +411,7 @@ jobs:
     - get: cryogenics-essentials
     - get: pcfplatformrecovery-backup-and-restore
   - task: alias-env
+    image: cryogenics-essentials
     file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
     input_mapping:
       cryogenics-tasks: cryogenics-ci
@@ -481,7 +482,9 @@ jobs:
     - get: pcfplatformrecovery-backup-and-restore 
     - get: cryogenics-ci
       passed: [claim-env]
+    - get: cryogenics-essentials
   - task: alias-env
+    image: cryogenics-essentials
     file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
     input_mapping:
       cryogenics-tasks: cryogenics-ci
@@ -490,6 +493,7 @@ jobs:
     file: bosh-env/metadata.yml
     format: yml
   - task: alias-additional-env
+    image: cryogenics-essentials
     file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
     input_mapping:
       cryogenics-tasks: cryogenics-ci
@@ -518,30 +522,36 @@ jobs:
   - in_parallel:
     - task: upload-redis-test-release-to-bosh
       file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
+      image: cryogenics-essentials
       params:
         RELEASE_NAME: redis-test-release
         <<: *ts-2-bosh-env
     - task: upload-many-bbr-jobs-release-to-bosh-uaa
       file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
+      image: cryogenics-essentials
       params:
         RELEASE_NAME: many-bbr-jobs-release
         <<: *ts-2-bosh-env
     - task: upload-many-bbr-jobs-release-to-bosh
       file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
+      image: cryogenics-essentials
       params:
         RELEASE_NAME: many-bbr-jobs-release
         <<: *ts-bosh-env
     - task: upload-redis-test-release-to-bosh
       file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
+      image: cryogenics-essentials
       params:
         RELEASE_NAME: redis-test-release
         <<: *ts-bosh-env
     - task: upload-redis-test-release-to-bosh-uaa
       file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
+      image: cryogenics-essentials
       params:
         RELEASE_NAME: redis-test-release
         <<: *ts-2-bosh-env
     - task: upload-lock-ordering-release-to-bosh-uaa
+      image: cryogenics-essentials
       file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: lock-ordering-release
@@ -551,6 +561,7 @@ jobs:
         GCP_SERVICE_ACCOUNT_KEY: *gcp_service_account_key
       file: bosh-backup-and-restore/ci/tasks/allow-connections-to-bosh-director-on-port-25555/task.yml
   - task: system-deployment-with-uaa
+    image: cryogenics-essentials
     file: bosh-backup-and-restore/ci/tasks/bbr-system-deployment/task.yml
     params:
       GITHUB_SDK_PRIVATE_KEY: *github_ssh_key
