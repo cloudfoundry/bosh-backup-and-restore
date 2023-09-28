@@ -132,7 +132,7 @@ resource_types:
 - name: pcf-pool
   type: registry-image
   source:
-    repository: cftoolsmiths/toolsmiths-envs-resource
+    repository: dockerhub-proxy-cache/cftoolsmiths/toolsmiths-envs-resource
     tag: latest
     registry_mirror:
       host: harbor-repo.vmware.com
