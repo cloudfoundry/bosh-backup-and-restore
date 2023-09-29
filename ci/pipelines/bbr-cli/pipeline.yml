@@ -118,7 +118,7 @@ resource_types:
 - name: bosh-deployment-resource
   type: registry-image
   source:
-    repository: cloudfoundry/bosh-deployment-resource
+    repository: dockerhub-proxy-cache/cloudfoundry/bosh-deployment-resource
     registry_mirror:
       host: harbor-repo.vmware.com
 
@@ -612,7 +612,9 @@ jobs:
       trigger: true
     - get: latest-pull-request
       passed: [test-build-s3-config-validator]
+    - get: cryogenics-essentials
   - task: move-and-run-validator
+    image: cryogenics-essentials
     file: latest-pull-request/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.yml
     params:
       <<: *AWS_ACCESS_2
