@@ -219,7 +219,7 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: pcfplatformrecovery/bbr-pcf-pipeline-tasks
+          repository: harbor-repo.vmware.com/dockerhub-proxy-cache/pcfplatformrecovery/bbr-pcf-pipeline-tasks
           tag: release-candidate
       run:
         path: bash
@@ -248,7 +248,7 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: pcfplatformrecovery/bbr-pcf-pipeline-tasks
+          repository: harbor-repo.vmware.com/dockerhub-proxy-cache/pcfplatformrecovery/bbr-pcf-pipeline-tasks
           tag: release-candidate
       outputs:
       - name: tag_file
