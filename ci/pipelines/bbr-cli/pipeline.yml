@@ -559,6 +559,7 @@ jobs:
     - task: allow-connections-to-bosh-director-on-port-25555
       params:
         GCP_SERVICE_ACCOUNT_KEY: *gcp_service_account_key
+      image: cryogenics-essentials
       file: bosh-backup-and-restore/ci/tasks/allow-connections-to-bosh-director-on-port-25555/task.yml
   - task: system-deployment-with-uaa
     image: cryogenics-essentials
