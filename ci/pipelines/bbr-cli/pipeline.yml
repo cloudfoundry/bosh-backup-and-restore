@@ -55,6 +55,8 @@ toolsmiths_token: &toolsmiths_token ((toolsmiths.api_token))
 #! End of secrets
 #! **************
 
+number_of_claim_env_retries: &number_of_claim_env_retries 5
+
 #! These are just recurring mappings to vars loaded via load_var steps.
 ts-bosh-env: &ts-bosh-env
   BOSH_ENVIRONMENT: "((.:pooled-env.BOSH_ENVIRONMENT))"
@@ -684,6 +686,7 @@ jobs:
     passed:
     - build-rc
   - put: cf-deployment-env
+    attempts: *number_of_claim_env_retries
     params:
       action: claim
   - task: deploy-backup-restore-components
@@ -772,6 +775,7 @@ jobs:
   - do:
     - put: env-pool
       resource: tas-env
+      attempts: *number_of_claim_env_retries
       params:
         action: claim
     - in_parallel:
@@ -951,9 +955,11 @@ jobs:
         trigger: true
       - get: cryogenics-ci
       - put: environment
+        attempts: *number_of_claim_env_retries
         params:
           action: claim
       - put: additional-environment
+        attempts: *number_of_claim_env_retries
         params:
           action: claim
 
