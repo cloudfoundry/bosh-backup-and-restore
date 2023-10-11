@@ -48,8 +48,9 @@ test-bosh-director-ip: &test-bosh-director-ip 10.0.255.5
 test-bosh-director-ip-priv-key: &test-bosh-director-ip-priv-key ((test_bosh_director.private_key))
 test-bosh-director-ip-pub-key: &test-bosh-director-ip-pub-key ((test_bosh_director.public_key))
 
-#! toolsmiths_api_token was needed on 2023-09-25 for claiming TAS environments to run integration tests. The token was given to us by the #cf-toolsmiths team, and is in lastpass at Shared-Cryogenics/infrastructure-root/cryo-toolsmiths-api-token
-toolsmiths_token: &toolsmiths_token ((toolsmiths.api_token))
+shepherd_account_key: &shepherd_account_key ((shepherd.sa_key))
+  #! shepherd_account_key was needed on 2023-09-28 to claim shepherd environments. It was created using `shepherd create service-account` after logging in with WS1.
+
 
 #! **************
 #! End of secrets
@@ -85,7 +86,7 @@ groups:
   - claim-env
   - system-test-deployment
   - system-test-director
-  - unclaim-env
+  - release-env
   - merge-pr
   - govulncheck
 - name: release
@@ -131,13 +132,11 @@ resource_types:
     registry_mirror:
       host: harbor-repo.vmware.com
 
-- name: pcf-pool
-  type: registry-image
+- name: shepherd
   source:
-    repository: dockerhub-proxy-cache/cftoolsmiths/toolsmiths-envs-resource
-    tag: latest
-    registry_mirror:
-      host: harbor-repo.vmware.com
+    tag: v1
+    repository: us-west2-docker.pkg.dev/shepherd-268822/shepherd2/concourse-resource
+  type: registry-image
 
 - name: slack-notification
   type: registry-image
@@ -330,11 +329,17 @@ resources:
     regexp: bbr-s3-config-validator.(.*).tgz
 
 - name: tas-env
-  type: pcf-pool
+  icon: pool
+  type: shepherd
   source:
-    api_token: *toolsmiths_token
-    hostname: environments.toolsmiths.cf-app.com
-    pool_name: #@ data.values.tas_versions[-1]["pool_name"]
+    url: https://v2.shepherd.run
+    service-account-key: *shepherd_account_key
+    compatibility-mode: environments-app
+    lease:
+      namespace: cryogenics
+      pool:
+        namespace: official
+        name: #@ data.values.tas_versions[-1]["pool_name"]
 
 - name: cryogenics-ci
   type: git
@@ -362,11 +367,16 @@ resources:
 
 - name: cf-deployment-env
   icon: pool
-  type: pcf-pool
+  type: shepherd
   source:
-    api_token: *toolsmiths_token
-    hostname: environments.toolsmiths.cf-app.com
-    pool_name: cf-deployment
+    url: https://v2.shepherd.run
+    service-account-key: *shepherd_account_key
+    compatibility-mode: environments-app
+    lease:
+      namespace: cryogenics
+      pool:
+        namespace: official
+        name: cfd
 
 - name: disaster-recovery-acceptance-tests
   type: git
@@ -381,18 +391,30 @@ resources:
     branch: master
 
 - name: environment
-  type: pcf-pool
+  icon: pool
+  type: shepherd
   source:
-    api_token: *toolsmiths_token
-    hostname: environments.toolsmiths.cf-app.com
-    pool_name: cf-deployment
+    url: https://v2.shepherd.run
+    service-account-key: *shepherd_account_key
+    compatibility-mode: environments-app
+    lease:
+      namespace: cryogenics
+      pool:
+        namespace: official
+        name: cfd
 
 - name: additional-environment
-  type: pcf-pool
+  icon: pool
+  type: shepherd
   source:
-    api_token: *toolsmiths_token
-    hostname: environments.toolsmiths.cf-app.com
-    pool_name: cryo_cf-deployment
+    url: https://v2.shepherd.run
+    service-account-key: *shepherd_account_key
+    compatibility-mode: environments-app
+    lease:
+      namespace: cryogenics
+      pool:
+        namespace: official
+        name: cfd
 
 jobs:
 - name: system-test-director
@@ -686,9 +708,13 @@ jobs:
     passed:
     - build-rc
   - put: cf-deployment-env
+    timeout: 6h
     attempts: *number_of_claim_env_retries
     params:
-      action: claim
+      action: create
+      duration: 24h
+      resource: cf-deployment-env
+      timeout: 6h
   - task: deploy-backup-restore-components
     image: cryogenics-essentials 
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
@@ -754,8 +780,8 @@ jobs:
       CF_DIAL_TIMEOUT: 300
   - put: cf-deployment-env
     params:
-      action: unclaim
-      env_file: cf-deployment-env/metadata
+      action: release
+      resource: cf-deployment-env
 
 - name: run-b-drats
   serial: true
@@ -773,18 +799,21 @@ jobs:
     - get: cryogenics-essentials
     - get: pcfplatformrecovery-backup-and-restore
   - do:
-    - put: env-pool
-      resource: tas-env
+    - put: tas-env
+      timeout: 6h
       attempts: *number_of_claim_env_retries
       params:
-        action: claim
+        action: create
+        duration: 24h
+        resource: tas-env
+        timeout: 6h
     - in_parallel:
       - task: create-b-drats-config
         file: cryogenics-ci/tasks/toolsmiths/generate-b-drats-config-from-tas-env/task.yml
         image: pcfplatformrecovery-backup-and-restore 
         input_mapping:
           repo: cryogenics-ci
-          env: env-pool
+          env: tas-env
           stemcell: jammy-stemcell
         params:
           INCLUDE_DEPLOYMENT_TESTCASE: true
@@ -794,7 +823,7 @@ jobs:
         output_mapping:
           config: b-drats-config
       - load_var: env-metadata
-        file: env-pool/metadata
+        file: tas-env/metadata
         format: json
     - task: run-b-drats
       file: b-drats/ci/tasks/run-b-drats/task.yml
@@ -814,8 +843,8 @@ jobs:
     ensure:
       put: tas-env
       params:
-        action: unclaim
-        env_file: env-pool/metadata
+        action: release
+        resource: tas-env
 
 - name: check-for-changes
   plan:
@@ -955,15 +984,23 @@ jobs:
         trigger: true
       - get: cryogenics-ci
       - put: environment
+        timeout: 6h
         attempts: *number_of_claim_env_retries
         params:
-          action: claim
+          action: create
+          duration: 24h
+          resource: environment
+          timeout: 6h
       - put: additional-environment
+        timeout: 6h
         attempts: *number_of_claim_env_retries
         params:
-          action: claim
+          action: create
+          duration: 24h
+          resource: additional-environment
+          timeout: 6h
 
-- name: unclaim-env
+- name: release-env
   plan:
   - in_parallel:
       steps:
@@ -981,12 +1018,12 @@ jobs:
         - system-test-deployment
   - put: environment
     params:
-      action: unclaim
-      env_file: environment/metadata
+      action: release
+      resource: environment
   - put: additional-environment
     params:
-      action: unclaim
-      env_file: additional-environment/metadata
+      action: release
+      resource: additional-environment
 
 - name: bump-golang
   plan:
