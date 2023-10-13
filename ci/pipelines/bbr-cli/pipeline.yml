@@ -51,6 +51,10 @@ test-bosh-director-ip-pub-key: &test-bosh-director-ip-pub-key ((test_bosh_direct
 #! toolsmiths_api_token was needed on 2023-09-25 for claiming TAS environments to run integration tests. The token was given to us by the #cf-toolsmiths team, and is in lastpass at Shared-Cryogenics/infrastructure-root/cryo-toolsmiths-api-token
 toolsmiths_token: &toolsmiths_token ((toolsmiths.api_token))
 
+shepherd_account_key: &shepherd_account_key ((shepherd.sa_key))
+  #! shepherd_account_key was needed on 2023-09-28 to claim shepherd environments. It was created using `shepherd create service-account` after logging in with WS1.
+
+
 #! **************
 #! End of secrets
 #! **************
@@ -102,6 +106,12 @@ groups:
   - bump-ci-tasks
 
 resource_types:
+- name: shepherd
+  source:
+    tag: v1
+    repository: us-west2-docker.pkg.dev/shepherd-268822/shepherd2/concourse-resource
+  type: registry-image
+
 - name: github-release
   type: registry-image
   source: 
@@ -330,11 +340,17 @@ resources:
     regexp: bbr-s3-config-validator.(.*).tgz
 
 - name: tas-env
-  type: pcf-pool
+  type: shepherd
+  icon: pool
   source:
-    api_token: *toolsmiths_token
-    hostname: environments.toolsmiths.cf-app.com
-    pool_name: #@ data.values.tas_versions[-1]["pool_name"]
+    url: https://v2.shepherd.run
+    service-account-key: *shepherd_account_key
+    compatibility-mode: environments-app
+    lease:
+      namespace: cryogenics
+      pool:
+        namespace: official
+        name: #@ data.values.tas_versions[-1]["pool_name"]
 
 - name: cryogenics-ci
   type: git
@@ -773,18 +789,21 @@ jobs:
     - get: cryogenics-essentials
     - get: pcfplatformrecovery-backup-and-restore
   - do:
-    - put: env-pool
-      resource: tas-env
+    - put: tas-env
       attempts: *number_of_claim_env_retries
+      timeout: 6h
       params:
-        action: claim
+        action: create
+        duration: 24h
+        resource: tas-env
+        timeout: 6h
     - in_parallel:
       - task: create-b-drats-config
         file: cryogenics-ci/tasks/toolsmiths/generate-b-drats-config-from-tas-env/task.yml
         image: pcfplatformrecovery-backup-and-restore 
         input_mapping:
           repo: cryogenics-ci
-          env: env-pool
+          env: tas-env
           stemcell: jammy-stemcell
         params:
           INCLUDE_DEPLOYMENT_TESTCASE: true
@@ -794,7 +813,7 @@ jobs:
         output_mapping:
           config: b-drats-config
       - load_var: env-metadata
-        file: env-pool/metadata
+        file: tas-env/metadata
         format: json
     - task: run-b-drats
       file: b-drats/ci/tasks/run-b-drats/task.yml
@@ -814,8 +833,8 @@ jobs:
     ensure:
       put: tas-env
       params:
-        action: unclaim
-        env_file: env-pool/metadata
+        action: release
+        resource: tas-env
 
 - name: check-for-changes
   plan:
