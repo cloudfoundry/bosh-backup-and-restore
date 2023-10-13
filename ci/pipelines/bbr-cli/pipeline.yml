@@ -378,11 +378,16 @@ resources:
 
 - name: cf-deployment-env
   icon: pool
-  type: pcf-pool
+  type: shepherd
   source:
-    api_token: *toolsmiths_token
-    hostname: environments.toolsmiths.cf-app.com
-    pool_name: cf-deployment
+    url: https://v2.shepherd.run
+    service-account-key: *shepherd_account_key
+    compatibility-mode: environments-app
+    lease:
+      namespace: cryogenics
+      pool:
+        namespace: official
+        name: cfd
 
 - name: disaster-recovery-acceptance-tests
   type: git
@@ -397,11 +402,17 @@ resources:
     branch: master
 
 - name: environment
-  type: pcf-pool
+  icon: pool
+  type: shepherd
   source:
-    api_token: *toolsmiths_token
-    hostname: environments.toolsmiths.cf-app.com
-    pool_name: cf-deployment
+    url: https://v2.shepherd.run
+    service-account-key: *shepherd_account_key
+    compatibility-mode: environments-app
+    lease:
+      namespace: cryogenics
+      pool:
+        namespace: official
+        name: cfd
 
 - name: additional-environment
   type: pcf-pool
@@ -703,8 +714,12 @@ jobs:
     - build-rc
   - put: cf-deployment-env
     attempts: *number_of_claim_env_retries
+    timeout: 6h
     params:
-      action: claim
+      action: create
+      duration: 24h
+      resource: cf-deployment-env
+      timeout: 6h
   - task: deploy-backup-restore-components
     image: cryogenics-essentials 
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
@@ -770,8 +785,8 @@ jobs:
       CF_DIAL_TIMEOUT: 300
   - put: cf-deployment-env
     params:
-      action: unclaim
-      env_file: cf-deployment-env/metadata
+      action: release
+      resource: cf-deployment-env
 
 - name: run-b-drats
   serial: true
@@ -975,8 +990,12 @@ jobs:
       - get: cryogenics-ci
       - put: environment
         attempts: *number_of_claim_env_retries
+        timeout: 6h
         params:
-          action: claim
+          action: create
+          duration: 24h
+          resource: environment
+          timeout: 6h
       - put: additional-environment
         attempts: *number_of_claim_env_retries
         params:
@@ -1000,8 +1019,8 @@ jobs:
         - system-test-deployment
   - put: environment
     params:
-      action: unclaim
-      env_file: environment/metadata
+      action: release
+      resource: environment
   - put: additional-environment
     params:
       action: unclaim
