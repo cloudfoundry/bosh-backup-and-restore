@@ -152,7 +152,7 @@ resource_types:
 - name: slack-notification
   type: registry-image
   source:
-    repository: cfcommunity/slack-notification-resource
+    repository: dockerhub-proxy-cache/cfcommunity/slack-notification-resource
     registry_mirror:
       host: harbor-repo.vmware.com
 
