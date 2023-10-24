@@ -6,13 +6,13 @@ toolchain go1.21.0
 
 require (
 	github.com/cloudfoundry/bosh-cli/v7 v7.4.0
-	github.com/cloudfoundry/bosh-utils v0.0.407
+	github.com/cloudfoundry/bosh-utils v0.0.408
 	github.com/cloudfoundry/socks5-proxy v0.2.101
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.7.0
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
 	github.com/onsi/ginkgo/v2 v2.13.0
-	github.com/onsi/gomega v1.28.0
+	github.com/onsi/gomega v1.28.1
 	github.com/pkg/errors v0.9.1
 	github.com/urfave/cli v1.22.14
 	golang.org/x/crypto v0.14.0
@@ -21,7 +21,7 @@ require (
 
 require (
 	code.cloudfoundry.org/clock v1.1.0 // indirect
-	code.cloudfoundry.org/tlsconfig v0.0.0-20230929201433-6cd2b78aba25 // indirect
+	code.cloudfoundry.org/tlsconfig v0.0.0-20231017135636-f0e44068c22f // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/charlievieth/fs v0.0.3 // indirect
@@ -35,7 +35,7 @@ require (
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/go-logr/logr v1.2.4 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
-	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/pprof v0.0.0-20230926050212-f7f687d19a98 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
