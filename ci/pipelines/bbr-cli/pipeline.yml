@@ -15,6 +15,7 @@
 cerberus: &cerberus
   role_id: ((cerberus-auth.role_id))
   secret_id: ((cerberus-auth.secret_id))
+cerberus_url: &cerberus_url ((cerberus-auth.url))
 
 #! on 2023-10-24 required to have an expected public key available on the fake director deployed in deploy-fake-director. generated via ssh-keygen
 jumpbox-public-key: &jumpbox_public_key ((cerberus:bbr-cli/test_bosh_director.public_key))
@@ -89,7 +90,7 @@ var_sources:
   config:
     auth_backend: approle
     auth_params: *cerberus
-    url: https://vault.console.cerberus.vmware.com/add164e1-f7fe-4e62-a548-a65690758636/
+    url: *cerberus_url 
     path_prefix: secret
 groups:
 - name: test
