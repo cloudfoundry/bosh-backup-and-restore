@@ -6,7 +6,7 @@ toolchain go1.21.0
 
 require (
 	github.com/cloudfoundry/bosh-cli/v7 v7.4.0
-	github.com/cloudfoundry/bosh-utils v0.0.407
+	github.com/cloudfoundry/bosh-utils v0.0.408
 	github.com/cloudfoundry/socks5-proxy v0.2.101
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.7.0
@@ -21,7 +21,7 @@ require (
 
 require (
 	code.cloudfoundry.org/clock v1.1.0 // indirect
-	code.cloudfoundry.org/tlsconfig v0.0.0-20230929201433-6cd2b78aba25 // indirect
+	code.cloudfoundry.org/tlsconfig v0.0.0-20231017135636-f0e44068c22f // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/charlievieth/fs v0.0.3 // indirect
