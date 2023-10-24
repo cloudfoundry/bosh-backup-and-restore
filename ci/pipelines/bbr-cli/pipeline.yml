@@ -585,11 +585,30 @@ jobs:
       params:
         RELEASE_NAME: lock-ordering-release
         <<: *ts-2-bosh-env
+
     - task: allow-connections-to-bosh-director-on-port-25555
-      params:
-        GCP_SERVICE_ACCOUNT_KEY: *gcp_service_account_key
-      image: cryogenics-essentials
-      file: bosh-backup-and-restore/ci/tasks/allow-connections-to-bosh-director-on-port-25555/task.yml
+      config:
+        platform: linux
+        image_resource:
+          type: registry-image
+          source:
+            repository: cryogenics/essentials
+            registry_mirror:
+              host: harbor-repo.vmware.com
+        inputs:
+          - name: additional-environment
+        run:
+          path: /bin/bash
+          args:
+          - -c
+          - |
+              #!/bin/bash
+              . <(smith -l additional-environment/metadata bosh)
+              ENV_NAME=$(cat additional-environment/metadata | jq .name -r)
+              bosh cc > cc.yml
+              bosh ucc -n <( bosh int cc.yml -o <( echo -e "- type: replace\n  path: /vm_types/name=minimal/cloud_properties/tags?\n  value: [${ENV_NAME}-bosh-open]") )
+            
+      
   - task: system-deployment-with-uaa
     image: cryogenics-essentials
     file: bosh-backup-and-restore/ci/tasks/bbr-system-deployment/task.yml
