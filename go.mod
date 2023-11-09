@@ -12,7 +12,7 @@ require (
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.7.0
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
 	github.com/onsi/ginkgo/v2 v2.13.0
-	github.com/onsi/gomega v1.29.0
+	github.com/onsi/gomega v1.30.0
 	github.com/pkg/errors v0.9.1
 	github.com/urfave/cli v1.22.14
 	golang.org/x/crypto v0.15.0
