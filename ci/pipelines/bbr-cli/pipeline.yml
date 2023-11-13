@@ -17,6 +17,11 @@ cerberus: &cerberus
   secret_id: ((cerberus-auth.secret_id))
 cerberus_url: &cerberus_url ((cerberus-auth.url))
 
+#! On 2023-11-13 the osspi jobs were moved into this pipeine, the following were the secrets needed. Unsure how they are generated.
+gitlab_norsk_to_osspi_deploy_key: &gitlab_norsk_to_osspi_deploy_key ((cerberus:gitlab.norsk-to-osspi-deploy-key))
+osm_username: &osm_username ((cerberus:osm.username))
+osm_api_key_token: &osm_api_key_token ((cerberus:osm.api_key_token))
+
 #! On 2023-11-10 we needed a pivnet admin token to upload new releases to TanzuNet. Accounts with admin priveleges are obtained
 #! by asking the tanzuNet team. Auth tokens for the account can be generated via the webui.
 pivnet_admin_api_token: &pivnet_admin_api_token ((cerberus:pivnet/cf-lazarus-admin.api_token))
@@ -124,6 +129,7 @@ groups:
   - check-for-changes
   - publish-to-github
   - update-homebrew-formula
+  - osspi-bosh-backup-and-restore
 - name: release-tanzunet
   jobs:
   - upload-to-tanzunet
@@ -136,6 +142,12 @@ groups:
   - bump-ci-tasks
 
 resource_types:
+
+- name: gitlab
+  type: registry-image
+  source:
+    repository: devtools-docker.artifactory.eng.vmware.com/vmware/runway/resourcetypes/gitlab-resource
+    tag: 1.0.0
 
 - name: main
   type: git
@@ -216,6 +228,13 @@ resource_types:
       host: harbor-repo.vmware.com
 
 resources:
+- name: norsk-to-osspi
+  type: git
+  icon: gitlab
+  source:
+    uri: git@gitlab.eng.vmware.com:source-insight-tooling/norsk-to-osspi.git
+    private_key: *gitlab_norsk_to_osspi_deploy_key
+
 - name: cryogenics-essentials
   type: registry-image
   source:
@@ -982,7 +1001,7 @@ jobs:
     - get: main
       trigger: true
       passed:
-      - check-for-changes
+      - osspi-bosh-backup-and-restore
     - get: bbr-artefacts
       passed:
       - check-for-changes
@@ -1334,6 +1353,31 @@ jobs:
         SRP_CLIENT_ID: ((cerberus:srp/metadata-service-client.clientId))
         SRP_CLIENT_SECRET: ((cerberus:srp/metadata-service-client.clientSecret))
         SRP_URL: https://apigw.vmware.com/v1/s1/api/helix-beta
+
+- name: osspi-bosh-backup-and-restore
+  serial: true
+  plan:
+    - in_parallel:
+        - get: norsk-to-osspi
+        - get: main
+          params: { submodules: all }
+          trigger: true
+          passed:
+          - check-for-changes
+    - task: single-package-for-repo
+      file: norsk-to-osspi/tasks/osspi/run-single-package-for-repo.yaml
+      input_mapping:
+        repo1: norsk-to-osspi
+        repo2: main
+      params:
+        REPO: repo2
+        OSM_ENVIRONMENT: production
+        OSM_PACKAGE_GROUP_NAME: 'bosh-backup-and-restore-release'
+        OSM_PACKAGE_GROUP_VERSION: 'Latest'
+        API_KEY: *osm_api_key_token
+        USERNAME: *osm_username
+        PRODUCT: 'p-bosh-backup-and-restore'
+        VERSION: 'Latest'
 
 - name: upload-to-tanzunet
   serial: true
