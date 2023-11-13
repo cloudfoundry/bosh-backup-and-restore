@@ -17,6 +17,19 @@ cerberus: &cerberus
   secret_id: ((cerberus-auth.secret_id))
 cerberus_url: &cerberus_url ((cerberus-auth.url))
 
+#! On 2023-11-10 we needed a pivnet admin token to upload new releases to TanzuNet. Accounts with admin priveleges are obtained
+#! by asking the tanzuNet team. Auth tokens for the account can be generated via the webui.
+pivnet_admin_api_token: &pivnet_admin_api_token ((cerberus:pivnet/cf-lazarus-admin.api_token))
+
+#! On 2023-11-10 we needed the following creds to download an SRP image from dockerhub to perform source provenence
+#! Unsure where these are generated.
+srp_helper_harbor_credentials_username: &srp_helper_harbor_credentials_username ((cerberus:srp/srp-helper-harbor-credentials.username))
+srp_helper_harbor_credentials_password: &srp_helper_harbor_credentials_password ((cerberus:srp/srp-helper-harbor-credentials.password))
+
+#! On 2023-11-10 we needed we need an API key to OSM to automate OSM operations. This can be obatined by contacting the OSM team.
+#! they also are the only people able to rotate it.
+osm_api_key: &osm_api_key ((cerberus:osm.api_key))
+
 #! on 2023-10-24 required to have an expected public key available on the fake director deployed in deploy-fake-director. generated via ssh-keygen
 jumpbox-public-key: &jumpbox_public_key ((cerberus:bbr-cli/test_bosh_director.public_key))
 
@@ -103,7 +116,7 @@ groups:
   - unclaim-env
   - merge-pr
   - govulncheck
-- name: release
+- name: release-github
   jobs:
   - build-rc
   - run-drats
@@ -111,12 +124,40 @@ groups:
   - check-for-changes
   - publish-to-github
   - update-homebrew-formula
+- name: release-tanzunet
+  jobs:
+  - upload-to-tanzunet
+  - collect-source-provenance
+  - request-osl
+  - publish
 - name: bump
   jobs:
   - bump-golang
   - bump-ci-tasks
 
 resource_types:
+
+- name: main
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/bosh-backup-and-restore.git
+    private_key: *github_ssh_key
+    branch: master
+    disable_git_lfs: true
+
+- name: osm
+  type: registry-image
+  source:
+    repository: eu.gcr.io/mapbu-cryogenics/osm-resource
+    username: _json_key
+    password: ((cerberus:gcr.viewer_key))
+    tag: latest
+
+- name: build-metadata
+  type: registry-image
+  source:
+    repository: pcfopsmanager/build-metadata-resource
+
 - name: shepherd
   source:
     tag: v1
@@ -133,7 +174,7 @@ resource_types:
 - name: pivnet
   type: registry-image
   source:
-    repository: pivotalcf/pivnet-resource
+    repository: dockerhub-proxy-cache/pivotalcf/pivnet-resource
     tag: latest-final
     registry_mirror:
       host: harbor-repo.vmware.com
@@ -437,6 +478,29 @@ resources:
       pool:
         namespace: official
         name: cfd
+
+- name: build-metadata
+  type: build-metadata
+
+- name: srp-helper
+  type: registry-image
+  source:
+    repository: harbor.dhaka.cf-app.com/srp/srp-helper-task #! synced periodically from internal artifactory
+    username: *srp_helper_harbor_credentials_username
+    password: *srp_helper_harbor_credentials_password
+
+- name: osl
+  type: osm
+  source:
+    product: p-bosh-backup-and-restore
+    api_key: *osm_api_key
+
+- name: p-bosh-backup-and-restore
+  type: pivnet
+  source:
+    api_token: *pivnet_admin_api_token
+    product_slug: p-bosh-backup-and-restore
+    copy_metadata: true
 
 jobs:
 - name: system-test-director
@@ -1198,3 +1262,294 @@ jobs:
                   popd
                 done
               popd
+
+
+#! https://confluence.eng.vmware.com/pages/viewpage.action?pageId=1391547014
+- name: collect-source-provenance
+  plan:
+  - get: srp-helper
+  - get: main
+    trigger: true
+  - get: release-candidate-version
+  - get: build-metadata
+  - task: submit-metadata
+    image: srp-helper
+    config:
+      platform: linux
+      inputs:
+      - name: main
+      - name: build-metadata
+      - name: release-candidate-version
+      run:
+        path: /bin/bash
+        args:
+        - -c
+        - |
+          set -euo pipefail
+
+          mkdir ./provenance
+          VERSION=$(cat release-candidate-version/version)
+          BUILD_NUMBER=$(cat build-metadata/build-name)
+          BUILD_PIPELINE_NAME=$(cat build-metadata/build-pipeline-name)
+          BUILD_JOB_NAME=$(cat build-metadata/build-job-name)
+          BUILD_ID=$(cat build-metadata/build-id)
+
+          COMP_UID="uid.obj.build.concourse(instance='cryogenics',namespace='bosh-backup-restore',pipeline='$BUILD_PIPELINE_NAME',job='$BUILD_JOB_NAME',build_id='$BUILD_ID'),revision=''"
+
+          srp --version
+
+          srp provenance source \
+            --scm-type git \
+            --name "p-bosh-backup-and-restore" \
+            --path main/ \
+            --saveto ./provenance/source.json \
+            --build-number "$BUILD_NUMBER" \
+            --version "$VERSION" \
+            --all-ephemeral true \
+            --build-type release \
+            --comp-uid "$COMP_UID"
+
+          srp config auth \
+            --client-id $SRP_CLIENT_ID \
+            --client-secret $SRP_CLIENT_SECRET \
+            --url $SRP_URL \
+            --verbose
+
+          srp metadata status \
+            --url $SRP_URL
+
+          srp metadata submit \
+            -p ./provenance/source.json \
+            -u "uid.mtd.provenance_2_5.fragment(obj_uid=$COMP_UID)" \
+            --url $SRP_URL
+
+          srp metadata get \
+            --schema provenance \
+            --version v2.5f \
+            --pretty \
+            --url $SRP_URL \
+            --uid "uid.mtd.provenance_2_5.fragment(obj_uid=$COMP_UID)"
+
+      params:
+        SRP_CLIENT_ID: ((cerberus:srp/metadata-service-client.clientId))
+        SRP_CLIENT_SECRET: ((cerberus:srp/metadata-service-client.clientSecret))
+        SRP_URL: https://apigw.vmware.com/v1/s1/api/helix-beta
+
+- name: upload-to-tanzunet
+  serial: true
+  plan:
+  - in_parallel:
+    - get: release-version
+    - get: bbr-release
+      trigger: true
+      params:
+        globs:
+          - bbr-*
+  - load_var: version-number
+    file: release-version/number
+  - task: create-pivnet-metadata
+    params:
+      DEBUG: true
+    config:
+      platform: linux
+      image_resource:
+        source:
+          repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/ubuntu
+        type: registry-image
+
+      inputs:
+        - name: bbr-release
+        - name: release-version
+
+      outputs:
+        - name: release-metadata
+
+      run:
+        path: /bin/bash
+        args:
+          - -c
+          - |
+            [ -z "$DEBUG" ] || set -x
+
+            set -euo pipefail
+
+            : "${VERSION:="$(cat release-version/number)"}"
+
+            TODAY="$(date "+%Y-%m-%d")"
+
+            cat > release-metadata/release.yml <<EOF
+            ---
+            release:
+              version: "$VERSION"
+              release_type: Maintenance Release
+              eula_slug: vmware_eula
+              description: |
+                BOSH Backup and Restore binary and S3 Config Validator
+
+                BBR can be used to back up and restore many bosh releases and bosh directors. This includes TAS, and the bosh director that ships with Ops Manager. You should always use the latest version of the BBR CLI to back up and restore from any version of Ops Manager or TAS.
+
+                If you are upgrading TAS, we recommend you take a backup immediately before upgrading, and immediately after a successful upgrade. This is because backups from the old version of TAS may not be compatible with the new version of TAS.
+              release_notes_url: https://docs.pivotal.io/bbr/bbr-rn.html
+              availability: All Users
+              release_date: "$TODAY"
+            dependency_specifiers: []
+            product_files:
+            - file: bbr-release/bbr-${VERSION}.tar
+              upload_as: BOSH Backup and Restore
+              description: |
+                BBR and BBR-s3-config-validator binaries for Linux and Darwin.
+              file_type: "Software"
+              docs_url: "https://docs.pivotal.io/bbr/index.html"
+              platforms: ["Linux", "Darwin"]
+              included_files: ["bbr", "bbr-mac", "checksum256", "bbr-s3-config-validator", "bbr-s3-config-validator.README.md"]
+
+            - file: bbr-release/bbr-${VERSION}-linux-amd64
+              upload_as: BOSH Backup and Restore Linux
+              description: |
+                BBR binary for Linux
+              file_type: "Software"
+              docs_url: "https://docs.pivotal.io/bbr/index.html"
+              platforms: ["Linux"]
+
+            - file: bbr-release/bbr-${VERSION}-darwin-amd64
+              upload_as: BOSH Backup and Restore Darwin
+              description: |
+                BBR binary for Darwin
+              file_type: "Software"
+              docs_url: "https://docs.pivotal.io/bbr/index.html"
+              platforms: ["Darwin"]
+
+            - file: bbr-release/bbr-s3-config-validator-${VERSION}-linux-amd64
+              upload_as: BOSH Backup and Restore S3 Configuration Validator Linux
+              description: |
+                BBR-s3-config-validator binary for Linux
+              file_type: "Software"
+              docs_url: "https://docs.pivotal.io/bbr/index.html"
+              platforms: ["Linux"]
+
+            - file: bbr-release/bbr-s3-config-validator-${VERSION}.README.md
+              upload_as: BOSH Backup and Restore S3 Configuration Validator README
+              description: |
+                BBR-s3-config-validator README
+              file_type: "Documentation"
+              docs_url: "https://docs.pivotal.io/bbr/index.html"
+              platforms: ["Linux"]
+            EOF
+
+            [ -z "$DEBUG" ] || cat release-metadata/*
+  - put: p-bosh-backup-and-restore
+    params:
+      metadata_file: release-metadata/release.yml
+      s3_filepath_prefix: product-files/bosh-backup-restore
+      file_glob: bbr-release/bbr-*[^.sha256]
+      override: true
+
+- name: request-osl
+  plan:
+  - get: p-bosh-backup-and-restore
+    trigger: true
+    passed:
+      - upload-to-tanzunet
+  - load_var: pivnet-metadata
+    file: p-bosh-backup-and-restore/metadata.yaml
+    format: yaml
+  - get: release-version
+    params:
+      bump: final
+      #! Hack to convert number to string in YAML
+      build: |
+        ((.:pivnet-metadata.release.id))
+      build_without_version: true
+    passed:
+    - upload-to-tanzunet
+  - load_var: version
+    file: release-version/number
+    format: trim
+  - put: osl
+    params:
+      version: ((.:version))
+      user: fiain@vmware.com
+      license: VMW_Proprietary
+      release_type: GA
+      associated_bossd_release: 400400894
+
+- name: publish
+  serial: true
+  plan:
+  - in_parallel:
+    #! We have added this step just to be able to place the publish job in the
+    #! end of the pipeline because we wanted to use a time dimension to
+    #! represent the flow (therefore this job should be the last).
+    - get: p-bosh-backup-and-restore
+      passed:
+        - request-osl
+    - get: osl
+      trigger: true
+  - load_var: osl-metadata
+    file: osl/metadata.json
+    format: json
+  - task: create-pivnet-metadata
+    params:
+      VERSION: ((.:osl-metadata.version))
+      DEBUG: true
+    config:
+      platform: linux
+      image_resource:
+        source:
+          repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/ubuntu
+        type: registry-image
+      inputs:
+        - name: osl
+      outputs:
+        - name: release-metadata
+        - name: static-osl
+
+      run:
+        path: /bin/bash
+        args:
+          - -c
+          - |
+            [ -z "$DEBUG" ] || set -x
+
+            set -euo pipefail
+
+            : "${VERSION:?}"
+            : "${BUILD_METADATA:="${VERSION/${VERSION%+*}/}"}"
+
+            if [ -z "$BUILD_METADATA" ]
+            then
+              >&2 cat <<EOF
+            It seems the OSL Release Version \"$VERSION\" does not contain the Pivnet Release ID in its build metadata.
+            A version format similar to \"1.2.3+456\" was expected where \"456\" it the Pivnet Release ID.
+            This is required so that the OSL file can be attached to the right release.
+            Maybe you might want to manually attach the OSL to the Pivnet Release this time round?
+            EOF
+
+              exit 1
+            fi
+
+            cat > release-metadata/existing-release.yml << EOF
+            existing_release:
+              id: ${BUILD_METADATA/+/}
+            product_files:
+            - file: static-osl/open_source_license_bosh_backup_and_restore_${VERSION}_ga.txt
+              file_type: Open Source License
+              file_version: ${VERSION}
+            - file: static-osl/vmware-p-bosh-backup-and-restore-${VERSION}-odp.tar.gz
+              file_type: Open Source License
+              file_version: ${VERSION}
+            EOF
+
+            mv osl/*.txt static-osl/open_source_license_bosh_backup_and_restore_${VERSION}_ga.txt
+            mv osl/*.tar.gz static-osl/vmware-p-bosh-backup-and-restore-${VERSION}-odp.tar.gz
+
+            [ -z "$DEBUG" ] || cat release-metadata/*
+  - put: p-bosh-backup-and-restore
+    params:
+      file_glob: static-osl/*((.:osl-metadata.version))*
+      metadata_file: release-metadata/existing-release.yml
+      s3_filepath_prefix: product-files/bosh-backup-restore
+  - put: slack-cryo-notification
+    params:
+      text: |
+        *p-bosh-backup-and-restore:* The OSL and OBP files for version `((.:osl-metadata.version))` have been uploaded to <https://network.pivotal.io/products/p-bosh-backup-and-restore|Tanzunet> and the release has been published :partycat:
