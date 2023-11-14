@@ -6,12 +6,12 @@ toolchain go1.21.0
 
 require (
 	github.com/cloudfoundry/bosh-cli/v7 v7.4.1
-	github.com/cloudfoundry/bosh-utils v0.0.412
-	github.com/cloudfoundry/socks5-proxy v0.2.102
+	github.com/cloudfoundry/bosh-utils v0.0.413
+	github.com/cloudfoundry/socks5-proxy v0.2.103
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.7.0
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
-	github.com/onsi/ginkgo/v2 v2.13.0
+	github.com/onsi/ginkgo/v2 v2.13.1
 	github.com/onsi/gomega v1.30.0
 	github.com/pkg/errors v0.9.1
 	github.com/urfave/cli v1.22.14
@@ -50,11 +50,11 @@ require (
 	github.com/rogpeppe/go-internal v1.10.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/vito/go-interact v1.0.1 // indirect
-	golang.org/x/mod v0.13.0 // indirect
-	golang.org/x/net v0.17.0 // indirect
+	golang.org/x/mod v0.14.0 // indirect
+	golang.org/x/net v0.18.0 // indirect
 	golang.org/x/sys v0.14.0 // indirect
 	golang.org/x/term v0.14.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	golang.org/x/tools v0.14.0 // indirect
+	golang.org/x/tools v0.15.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
