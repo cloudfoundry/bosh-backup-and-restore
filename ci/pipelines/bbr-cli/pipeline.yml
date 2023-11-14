@@ -26,11 +26,6 @@ osm_api_key_token: &osm_api_key_token ((cerberus:osm.api_key_token))
 #! by asking the tanzuNet team. Auth tokens for the account can be generated via the webui.
 pivnet_admin_api_token: &pivnet_admin_api_token ((cerberus:pivnet/cf-lazarus-admin.api_token))
 
-#! On 2023-11-10 we needed the following creds to download an SRP image from dockerhub to perform source provenence
-#! Unsure where these are generated.
-srp_helper_harbor_credentials_username: &srp_helper_harbor_credentials_username ((cerberus:srp/srp-helper-harbor-credentials.username))
-srp_helper_harbor_credentials_password: &srp_helper_harbor_credentials_password ((cerberus:srp/srp-helper-harbor-credentials.password))
-
 #! On 2023-11-10 we needed we need an API key to OSM to automate OSM operations. This can be obatined by contacting the OSM team.
 #! they also are the only people able to rotate it.
 osm_api_key: &osm_api_key ((cerberus:osm.api_key))
@@ -133,7 +128,6 @@ groups:
 - name: release-tanzunet
   jobs:
   - upload-to-tanzunet
-  - collect-source-provenance
   - request-osl
   - publish
 - name: bump
@@ -164,11 +158,6 @@ resource_types:
     username: _json_key
     password: ((cerberus:gcr.viewer_key))
     tag: latest
-
-- name: build-metadata
-  type: registry-image
-  source:
-    repository: pcfopsmanager/build-metadata-resource
 
 - name: shepherd
   source:
@@ -497,16 +486,6 @@ resources:
       pool:
         namespace: official
         name: cfd
-
-- name: build-metadata
-  type: build-metadata
-
-- name: srp-helper
-  type: registry-image
-  source:
-    repository: harbor.dhaka.cf-app.com/srp/srp-helper-task #! synced periodically from internal artifactory
-    username: *srp_helper_harbor_credentials_username
-    password: *srp_helper_harbor_credentials_password
 
 - name: osl
   type: osm
@@ -1281,78 +1260,6 @@ jobs:
                   popd
                 done
               popd
-
-
-#! https://confluence.eng.vmware.com/pages/viewpage.action?pageId=1391547014
-- name: collect-source-provenance
-  plan:
-  - get: srp-helper
-  - get: main
-    trigger: true
-  - get: release-candidate-version
-  - get: build-metadata
-  - task: submit-metadata
-    image: srp-helper
-    config:
-      platform: linux
-      inputs:
-      - name: main
-      - name: build-metadata
-      - name: release-candidate-version
-      run:
-        path: /bin/bash
-        args:
-        - -c
-        - |
-          set -euo pipefail
-
-          mkdir ./provenance
-          VERSION=$(cat release-candidate-version/version)
-          BUILD_NUMBER=$(cat build-metadata/build-name)
-          BUILD_PIPELINE_NAME=$(cat build-metadata/build-pipeline-name)
-          BUILD_JOB_NAME=$(cat build-metadata/build-job-name)
-          BUILD_ID=$(cat build-metadata/build-id)
-
-          COMP_UID="uid.obj.build.concourse(instance='cryogenics',namespace='bosh-backup-restore',pipeline='$BUILD_PIPELINE_NAME',job='$BUILD_JOB_NAME',build_id='$BUILD_ID'),revision=''"
-
-          srp --version
-
-          srp provenance source \
-            --scm-type git \
-            --name "p-bosh-backup-and-restore" \
-            --path main/ \
-            --saveto ./provenance/source.json \
-            --build-number "$BUILD_NUMBER" \
-            --version "$VERSION" \
-            --all-ephemeral true \
-            --build-type release \
-            --comp-uid "$COMP_UID"
-
-          srp config auth \
-            --client-id $SRP_CLIENT_ID \
-            --client-secret $SRP_CLIENT_SECRET \
-            --url $SRP_URL \
-            --verbose
-
-          srp metadata status \
-            --url $SRP_URL
-
-          srp metadata submit \
-            -p ./provenance/source.json \
-            -u "uid.mtd.provenance_2_5.fragment(obj_uid=$COMP_UID)" \
-            --url $SRP_URL
-
-          srp metadata get \
-            --schema provenance \
-            --version v2.5f \
-            --pretty \
-            --url $SRP_URL \
-            --uid "uid.mtd.provenance_2_5.fragment(obj_uid=$COMP_UID)"
-
-      params:
-        SRP_CLIENT_ID: ((cerberus:srp/metadata-service-client.clientId))
-        SRP_CLIENT_SECRET: ((cerberus:srp/metadata-service-client.clientSecret))
-        SRP_URL: https://apigw.vmware.com/v1/s1/api/helix-beta
 
 - name: osspi-bosh-backup-and-restore
   serial: true
