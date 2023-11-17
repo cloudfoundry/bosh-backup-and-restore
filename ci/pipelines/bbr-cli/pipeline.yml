@@ -980,7 +980,7 @@ jobs:
     - get: main
       trigger: true
       passed:
-      - osspi-bosh-backup-and-restore
+      - check-for-changes
     - get: bbr-artefacts
       passed:
       - check-for-changes
@@ -1269,8 +1269,6 @@ jobs:
         - get: main
           params: { submodules: all }
           trigger: true
-          passed:
-          - check-for-changes
     - task: single-package-for-repo
       file: norsk-to-osspi/tasks/osspi/run-single-package-for-repo.yaml
       input_mapping:

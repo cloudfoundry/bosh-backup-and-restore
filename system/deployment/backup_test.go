@@ -138,7 +138,7 @@ var _ = Describe("backup", func() {
 				ManyBbrJobsDeployment.Name,
 			))
 
-			Eventually(session).Should(gexec.Exit(0))
+			Eventually(session, "30m").Should(gexec.Exit(0))
 		})
 	})
 
