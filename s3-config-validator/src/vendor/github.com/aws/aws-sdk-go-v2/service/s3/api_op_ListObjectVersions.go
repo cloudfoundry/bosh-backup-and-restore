@@ -19,9 +19,8 @@ import (
 // perform the s3:ListBucketVersions action. Be aware of the name difference. A
 // 200 OK response can contain valid or invalid XML. Make sure to design your
 // application to parse the contents of the response and handle it appropriately.
-// To use this operation, you must have READ access to the bucket. This action is
-// not supported by Amazon S3 on Outposts. The following operations are related to
-// ListObjectVersions :
+// To use this operation, you must have READ access to the bucket. The following
+// operations are related to ListObjectVersions :
 //   - ListObjectsV2 (https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html)
 //   - GetObject (https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html)
 //   - PutObject (https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutObject.html)
@@ -76,7 +75,7 @@ type ListObjectVersionsInput struct {
 	// will never contain more. If additional keys satisfy the search criteria, but
 	// were not returned because max-keys was exceeded, the response contains true . To
 	// return the additional keys, see key-marker and version-id-marker .
-	MaxKeys int32
+	MaxKeys *int32
 
 	// Specifies the optional fields that you want returned in the response. Fields
 	// that you do not specify are not returned.
@@ -136,13 +135,13 @@ type ListObjectVersionsOutput struct {
 	// follow-up paginated request by using the NextKeyMarker and NextVersionIdMarker
 	// response parameters as a starting place in another request to return the rest of
 	// the results.
-	IsTruncated bool
+	IsTruncated *bool
 
 	// Marks the last key returned in a truncated response.
 	KeyMarker *string
 
 	// Specifies the maximum number of objects to return.
-	MaxKeys int32
+	MaxKeys *int32
 
 	// The bucket name.
 	Name *string

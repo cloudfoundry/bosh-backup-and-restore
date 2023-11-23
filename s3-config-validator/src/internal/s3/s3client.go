@@ -180,12 +180,13 @@ func (p *S3Client) CanGetObjectVersions(bucket string) (errListObjects error) {
 
 func (p *S3Client) CanPutObjects(bucket string) (err error) {
 	fileContent := []byte("Test File, Please delete me if you are reading this")
+	fileContentLength := int64(len(fileContent))
 	_, err = p.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket:        aws.String(bucket),
 		Key:           aws.String("delete_me"),
 		ACL:           types.ObjectCannedACLPrivate,
 		Body:          bytes.NewReader(fileContent),
-		ContentLength: int64(len(fileContent)),
+		ContentLength: &fileContentLength,
 	})
 
 	if err != nil {
