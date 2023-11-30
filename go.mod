@@ -5,7 +5,7 @@ go 1.21
 toolchain go1.21.0
 
 require (
-	github.com/cloudfoundry/bosh-cli/v7 v7.4.1
+	github.com/cloudfoundry/bosh-cli/v7 v7.5.0
 	github.com/cloudfoundry/bosh-utils v0.0.414
 	github.com/cloudfoundry/socks5-proxy v0.2.103
 	github.com/cppforlife/go-patch v0.2.0
@@ -26,13 +26,13 @@ require (
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/charlievieth/fs v0.0.3 // indirect
 	github.com/cheggaaa/pb/v3 v3.1.4 // indirect
-	github.com/cloudfoundry/config-server v0.1.144 // indirect
+	github.com/cloudfoundry/config-server v0.1.157 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e // indirect
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/creack/pty v1.1.9 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/fatih/color v1.15.0 // indirect
+	github.com/fatih/color v1.16.0 // indirect
 	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
