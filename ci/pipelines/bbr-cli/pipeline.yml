@@ -75,6 +75,7 @@ shepherd_account_key: &shepherd_account_key ((cerberus:shepherd.sa_key))
 #! **************
 
 number_of_claim_env_retries: &number_of_claim_env_retries 5
+number_of_system_test_retries: &number_of_system_test_retries 3
 
 #! These are just recurring mappings to vars loaded via load_var steps.
 ts-bosh-env: &ts-bosh-env
@@ -689,6 +690,7 @@ jobs:
             
       
   - task: system-deployment-with-uaa
+    attempts: *number_of_system_test_retries
     image: cryogenics-essentials
     file: bosh-backup-and-restore/ci/tasks/bbr-system-deployment/task.yml
     params:
