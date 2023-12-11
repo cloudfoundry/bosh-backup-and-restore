@@ -39,10 +39,10 @@ github_ssh_key: &github_ssh_key ((cerberus:github.ssh_key))
 github_access_token: &github_access_token ((cerberus:github.access_token))
 
 aws-access: &aws-access
-#! the aws_access_key_id and secret_key were needed on 2023-09-25 to access blobstores and test buckets in the BBRSDK AWS project. Generated using AWS cloudgate here: https://console.cloudgate.vmware.com/ui/#/cloud/116462199383/ou/ou-kw69-imy2w5hl/account/686843836666
+  #! the aws_access_key_id and secret_key were needed on 2023-09-25 to access blobstores and test buckets in the BBRSDK AWS project. Generated using AWS cloudgate here: https://console.cloudgate.vmware.com/ui/#/cloud/116462199383/ou/ou-kw69-imy2w5hl/account/686843836666
   access_key_id: &aws_access_key ((cerberus:bbr/aws_s3_creds.access_key_id))
   secret_access_key: &aws_secret_key ((cerberus:bbr/aws_s3_creds.secret_access_key))
-#! aws_role_arn: ! the aws_assumed_role_arn was needed on 2023-09-25 to access blobstores and test buckets in the BBRSDK AWS project. Generated using AWS cloudgate here: https://console.cloudgate.vmware.com/ui/#/cloud/116462199383/ou/ou-kw69-imy2w5hl/account/686843836666
+  #! aws_role_arn: ! the aws_assumed_role_arn was needed on 2023-09-25 to access blobstores and test buckets in the BBRSDK AWS project. Generated using AWS cloudgate here: https://console.cloudgate.vmware.com/ui/#/cloud/116462199383/ou/ou-kw69-imy2w5hl/account/686843836666
   aws_role_arn: &aws_role_arn ((cerberus:bbr/aws_s3_creds.assumed_role_arn))
 AWS_ACCESS: &AWS_ACCESS
   AWS_ACCESS_KEY: *aws_access_key
@@ -68,7 +68,11 @@ test-bosh-director-ip-priv-key: &test-bosh-director-ip-priv-key ((cerberus:test_
 test-bosh-director-ip-pub-key: &test-bosh-director-ip-pub-key ((cerberus:test_bosh_director.public_key))
 
 shepherd_account_key: &shepherd_account_key ((cerberus:shepherd.sa_key))
-  #! shepherd_account_key was needed on 2023-09-28 to claim shepherd environments. It was created using `shepherd create service-account` after logging in with WS1.
+#! shepherd_account_key was needed on 2023-09-28 to claim shepherd environments. It was created using `shepherd create service-account` after logging in with WS1.
+
+#! github_email and github_user added on 2023-12-07 to commit go mod bumps
+github_email: &github_email ((cerberus:github.email))
+github_user: &github_user ((cerberus:github.user))
 
 #! **************
 #! End of secrets
@@ -104,7 +108,7 @@ var_sources:
   config:
     auth_backend: approle
     auth_params: *cerberus
-    url: *cerberus_url 
+    url: *cerberus_url
     path_prefix: secret
 groups:
 - name: test
@@ -135,6 +139,7 @@ groups:
   jobs:
   - bump-golang
   - bump-ci-tasks
+  - bump-go-module
 
 resource_types:
 
@@ -168,7 +173,7 @@ resource_types:
 
 - name: github-release
   type: registry-image
-  source: 
+  source:
     repository: concourse/github-release-resource
     registry_mirror:
       host: harbor-repo.vmware.com
@@ -227,6 +232,7 @@ resources:
 
 - name: cryogenics-essentials
   type: registry-image
+  icon: docker
   source:
     repository: cryogenics/essentials
     registry_mirror:
@@ -253,6 +259,7 @@ resources:
 
 - name: every-day
   type: time
+  icon: camera-timer
   source:
     interval: 24h
 
@@ -305,7 +312,7 @@ resources:
     private_key: *github_ssh_key
     disable_git_lfs: true
 
-- name: bosh-backup-and-restore-golang-bump-branch
+- name: bosh-backup-and-restore-write-branch
   icon: github
   type: git
   source:
@@ -504,19 +511,19 @@ resources:
 jobs:
 - name: system-test-director
   serial: true
-  serial_groups: [system-test-director]
+  serial_groups: [ system-test-director ]
   plan:
   - in_parallel:
     - get: environment
-      passed: [claim-env]
+      passed: [ claim-env ]
       trigger: true
     - get: latest-pull-request
-      passed: [claim-env]
+      passed: [ claim-env ]
     - get: bosh-deployment
     - get: bbr-director-test-releases
     - get: jammy-stemcell
     - get: cryogenics-ci
-      passed: [claim-env]
+      passed: [ claim-env ]
     - get: cryogenics-essentials
     - get: pcfplatformrecovery-backup-and-restore
   - task: alias-env
@@ -539,11 +546,11 @@ jobs:
     resource: test-bosh-director-deployment
     params:
       manifest: latest-pull-request/fixtures/fake-director.yml
-      stemcells: [jammy-stemcell/*.tgz]
+      stemcells: [ jammy-stemcell/*.tgz ]
       source_file: source-file/source-file.yml
       vars:
         deployment-name: test-bosh-director
-        jumpbox-public-key: *jumpbox_public_key 
+        jumpbox-public-key: *jumpbox_public_key
         test_release_path: /tmp/build/put/bbr-director-test-releases/test-bosh-backup-and-restore-release
         internal_ip: *test-bosh-director-ip
   - task: system-test-director
@@ -579,18 +586,18 @@ jobs:
     - get: bbr-deployment-test-releases
       trigger: true
     - get: environment
-      passed: [claim-env]
+      passed: [ claim-env ]
       trigger: true
     - get: additional-environment
-      passed: [claim-env]
+      passed: [ claim-env ]
     - get: bosh-backup-and-restore
       resource: latest-pull-request
-      passed: [claim-env]
+      passed: [ claim-env ]
     - get: bbr-director-test-releases
     - get: jammy-stemcell
-    - get: pcfplatformrecovery-backup-and-restore 
+    - get: pcfplatformrecovery-backup-and-restore
     - get: cryogenics-ci
-      passed: [claim-env]
+      passed: [ claim-env ]
     - get: cryogenics-essentials
   - task: alias-env
     image: cryogenics-essentials
@@ -621,7 +628,7 @@ jobs:
     resource: additional-test-bosh-director-deployment
     params:
       manifest: bosh-backup-and-restore/fixtures/fake-director.yml
-      stemcells: [jammy-stemcell/*.tgz]
+      stemcells: [ jammy-stemcell/*.tgz ]
       source_file: source-file/source-file.yml
       vars:
         deployment-name: ci
@@ -676,19 +683,19 @@ jobs:
             registry_mirror:
               host: harbor-repo.vmware.com
         inputs:
-          - name: additional-environment
+        - name: additional-environment
         run:
           path: /bin/bash
           args:
           - -c
           - |
-              #!/bin/bash
-              . <(smith -l additional-environment/metadata bosh)
-              ENV_NAME=$(cat additional-environment/metadata | jq .name -r)
-              bosh cc > cc.yml
-              bosh ucc -n <( bosh int cc.yml -o <( echo -e "- type: replace\n  path: /vm_types/name=minimal/cloud_properties/tags?\n  value: [${ENV_NAME}-bosh-open]") )
-            
-      
+            #!/bin/bash
+            . <(smith -l additional-environment/metadata bosh)
+            ENV_NAME=$(cat additional-environment/metadata | jq .name -r)
+            bosh cc > cc.yml
+            bosh ucc -n <( bosh int cc.yml -o <( echo -e "- type: replace\n  path: /vm_types/name=minimal/cloud_properties/tags?\n  value: [${ENV_NAME}-bosh-open]") )
+
+
   - task: system-deployment-with-uaa
     attempts: *number_of_system_test_retries
     image: cryogenics-essentials
@@ -705,7 +712,7 @@ jobs:
     - get: latest-pull-request
       trigger: true
     - get: build-version
-      params: {pre: build}
+      params: { pre: build }
     - get: cryogenics-essentials
   - task: unit-test
     image: cryogenics-essentials
@@ -728,7 +735,7 @@ jobs:
       version: build-version
       repo: latest-pull-request
   - put: build-version
-    params: {file: build-version/number}
+    params: { file: build-version/number }
   - put: s3-config-validator-artefacts
     params:
       file: bbr-s3-config-validator-test-artifacts/*
@@ -738,10 +745,10 @@ jobs:
   plan:
   - in_parallel:
     - get: s3-config-validator-artefacts
-      passed: [test-build-s3-config-validator]
+      passed: [ test-build-s3-config-validator ]
       trigger: true
     - get: latest-pull-request
-      passed: [test-build-s3-config-validator]
+      passed: [ test-build-s3-config-validator ]
     - get: cryogenics-essentials
   - task: move-and-run-validator
     image: cryogenics-essentials
@@ -756,7 +763,7 @@ jobs:
   plan:
   - in_parallel:
     - get: latest-pull-request
-      passed: [system-test-deployment, system-test-director, validate-aws-s3-config]
+      passed: [ system-test-deployment, system-test-director, validate-aws-s3-config ]
       trigger: true
   - put: latest-pull-request
     params:
@@ -796,7 +803,7 @@ jobs:
     params:
       file: release-candidate-version/number
   - put: bbr-artefacts
-    params: {file: bbr-build/bbr-*.tar}
+    params: { file: bbr-build/bbr-*.tar }
   - put: s3-config-validator-artefacts
     params:
       file: bbr-s3-config-validator-test-artifacts/*
@@ -821,7 +828,7 @@ jobs:
       resource: cf-deployment-env
       timeout: 6h
   - task: deploy-backup-restore-components
-    image: cryogenics-essentials 
+    image: cryogenics-essentials
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     input_mapping:
       toolsmiths-env: cf-deployment-env
@@ -839,7 +846,7 @@ jobs:
   - task: bosh-run-errand-nfsbrokerpush
     attempts: 5
     file: cf-deployment-concourse-tasks/run-errand/task.yml
-    image: cryogenics-essentials 
+    image: cryogenics-essentials
     input_mapping:
       toolsmiths-env: cf-deployment-env
     params:
@@ -847,7 +854,7 @@ jobs:
   - task: bosh-run-errand-smbbrokerpush
     attempts: 5
     file: cf-deployment-concourse-tasks/run-errand/task.yml
-    image: cryogenics-essentials 
+    image: cryogenics-essentials
     input_mapping:
       toolsmiths-env: cf-deployment-env
     params:
@@ -857,7 +864,7 @@ jobs:
     format: json
   - task: update-integration-config
     file: disaster-recovery-acceptance-tests/ci/tasks/update-integration-config/task.yml
-    image: cryogenics-essentials 
+    image: cryogenics-essentials
     input_mapping:
       integration-configs: disaster-recovery-acceptance-tests
     params:
@@ -875,7 +882,7 @@ jobs:
       BOSH_CLIENT_SECRET: ((.:pooled-env.bosh.bosh_client_secret))
   - task: acceptance-tests
     file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
-    image: cryogenics-essentials 
+    image: cryogenics-essentials
     privileged: true
     input_mapping:
       drats-integration-config: updated-integration-configs
@@ -915,7 +922,7 @@ jobs:
     - in_parallel:
       - task: create-b-drats-config
         file: cryogenics-ci/tasks/toolsmiths/generate-b-drats-config-from-tas-env/task.yml
-        image: pcfplatformrecovery-backup-and-restore 
+        image: pcfplatformrecovery-backup-and-restore
         input_mapping:
           repo: cryogenics-ci
           env: tas-env
@@ -932,7 +939,7 @@ jobs:
         format: json
     - task: run-b-drats
       file: b-drats/ci/tasks/run-b-drats/task.yml
-      image: cryogenics-essentials 
+      image: cryogenics-essentials
       privileged: true
       input_mapping:
         bosh-disaster-recovery-acceptance-tests: b-drats
@@ -978,7 +985,7 @@ jobs:
   plan:
   - in_parallel:
     - get: cryogenics-ci
-      passed: [run-b-drats]
+      passed: [ run-b-drats ]
     - get: main
       trigger: true
       passed:
@@ -1002,7 +1009,7 @@ jobs:
   - load_var: version-number
     file: release-candidate-version/number
   - task: promote-rc-binaries
-    image: cryogenics-essentials 
+    image: cryogenics-essentials
     file: main/ci/tasks/promote-release-candidate/task.yml
     input_mapping:
       version: release-candidate-version
@@ -1022,7 +1029,7 @@ jobs:
       pre: build
   - task: create-release-notes
     file: cryogenics-ci/tasks/release-automation/release-notes/task.yml
-    image: cryogenics-essentials 
+    image: cryogenics-essentials
     input_mapping:
       git-repo: main
       cryogenics-concourse-tasks: cryogenics-ci
@@ -1030,7 +1037,7 @@ jobs:
       USE_LATEST_PUBLISHED_TAG: true
   - task: format-release-notes
     file: cryogenics-ci/tasks/release-automation/format-release-notes/task.yml
-    image: cryogenics-essentials 
+    image: cryogenics-essentials
     input_mapping:
       template-folder: cryogenics-ci
       cryogenics-concourse-tasks: cryogenics-ci
@@ -1071,7 +1078,7 @@ jobs:
     - get: cryogenics-essentials
   - task: update-homebrew-formula
     file: main/ci/tasks/bbr-update-homebrew-formula/task.yml
-    image: cryogenics-essentials 
+    image: cryogenics-essentials
     input_mapping:
       bbr-release: bbr-release
       homebrew-tap: homebrew-tap
@@ -1163,7 +1170,7 @@ jobs:
       golang-project-repo: bosh-backup-and-restore
   - load_var: golang-release-version
     file: golang-release/.git/describe_ref
-  - put: bosh-backup-and-restore-golang-bump-branch
+  - put: bosh-backup-and-restore-write-branch
     params:
       repository: bosh-backup-and-restore
       branch: &golang-vendor-branch bump-golang-based-on-golang-vendor-((.:golang-release-version))
@@ -1184,7 +1191,54 @@ jobs:
 
           If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
       input_mapping:
-        source-repo: bosh-backup-and-restore-golang-bump-branch
+        source-repo: bosh-backup-and-restore-write-branch
+
+- name: bump-go-module
+  plan:
+  - in_parallel:
+    - get: cryogenics-concourse-tasks
+      resource: cryogenics-ci
+    - get: every-day
+      trigger: true
+    - get: bosh-backup-and-restore
+      resource: main
+      params:
+        branch: master
+    - get: cryogenics-essentials
+  - task: bump
+    file: cryogenics-concourse-tasks/deps-automation/bump-go-module/task.yml
+    image: cryogenics-essentials
+    input_mapping:
+      source-repo: bosh-backup-and-restore
+    params:
+      GIT_USERNAME: *github_user
+      GIT_EMAIL: *github_email
+  - try:
+      load_var: go-module-update-branch
+      file: destination-repo/.update-branch-name
+      on_success:
+        do:
+        - put: bosh-backup-and-restore-write-branch
+          params:
+            repository: destination-repo
+            branch: &go-module-branch ((.:go-module-update-branch))
+        - task: create-go-module-pull-request
+          file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
+          image: cryogenics-concourse-tasks
+          params:
+            BASE: master
+            BRANCH: *go-module-branch
+            LABELS: dependencies
+            TITLE: Bump go module ((.:go-module-update-branch))
+            MESSAGE: |
+              This is an automatically generated Pull Request from the Cryogenics CI Bot.
+
+              I have detected a new version of a go module and automatically bumped
+              it to benefit from the latest changes.
+
+              If this does not look right, please reach out to the [#mapbu-cryogenics](https://vmware.slack.com/archives/C01DXEYRKRU) team.
+            input_mapping:
+              source-repo: bosh-backup-and-restore-write-branch
 
 - name: bump-ci-tasks
   plan:
@@ -1228,63 +1282,63 @@ jobs:
 
 - name: govulncheck
   plan:
-    - in_parallel:
-        - get: main
-          trigger: true
-        - get: every-day
-          trigger: true
-    - task: govulncheck
-      config:
-        platform: linux
-        image_resource:
-          type: registry-image
-          source:
-            repository: cryogenics/essentials
-            registry_mirror:
-              host: harbor-repo.vmware.com
-        inputs:
-          - name: main
-            path: bosh-backup-and-restore
-        run:
-          path: /usr/bin/bash
-          args:
-            - -c
-            - |
-              set -ex
-              set -o pipefail
-
-              go install golang.org/x/vuln/cmd/govulncheck@latest
-
-              pushd "bosh-backup-and-restore"
-                for dir in $(find . -name go.mod | xargs -n1 dirname); do
-                  pushd "$dir"
-                    /root/go/bin/govulncheck -test ./...
-                  popd
-                done
+  - in_parallel:
+    - get: main
+      trigger: true
+    - get: every-day
+      trigger: true
+  - task: govulncheck
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: cryogenics/essentials
+          registry_mirror:
+            host: harbor-repo.vmware.com
+      inputs:
+      - name: main
+        path: bosh-backup-and-restore
+      run:
+        path: /usr/bin/bash
+        args:
+        - -c
+        - |
+          set -ex
+          set -o pipefail
+          
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          
+          pushd "bosh-backup-and-restore"
+            for dir in $(find . -name go.mod | xargs -n1 dirname); do
+              pushd "$dir"
+                /root/go/bin/govulncheck -test ./...
               popd
+            done
+          popd
 
 - name: osspi-bosh-backup-and-restore
   serial: true
   plan:
-    - in_parallel:
-        - get: norsk-to-osspi
-        - get: main
-          params: { submodules: all }
-          trigger: true
-    - task: single-package-for-repo
-      file: norsk-to-osspi/tasks/osspi/run-single-package-for-repo.yaml
-      input_mapping:
-        repo1: norsk-to-osspi
-        repo2: main
-      params:
-        REPO: repo2
-        OSM_ENVIRONMENT: production
-        OSM_PACKAGE_GROUP_NAME: 'bosh-backup-and-restore-release'
-        OSM_PACKAGE_GROUP_VERSION: 'Latest'
-        API_KEY: *osm_api_key_token
-        USERNAME: *osm_username
-        PRODUCT: 'p-bosh-backup-and-restore'
-        VERSION: 'Latest'
+  - in_parallel:
+    - get: norsk-to-osspi
+    - get: main
+      params: { submodules: all }
+      trigger: true
+  - task: single-package-for-repo
+    file: norsk-to-osspi/tasks/osspi/run-single-package-for-repo.yaml
+    input_mapping:
+      repo1: norsk-to-osspi
+      repo2: main
+    params:
+      REPO: repo2
+      OSM_ENVIRONMENT: production
+      OSM_PACKAGE_GROUP_NAME: 'bosh-backup-and-restore-release'
+      OSM_PACKAGE_GROUP_VERSION: 'Latest'
+      API_KEY: *osm_api_key_token
+      USERNAME: *osm_username
+      PRODUCT: 'p-bosh-backup-and-restore'
+      VERSION: 'Latest'
 
 - name: upload-to-tanzunet
   serial: true
@@ -1295,7 +1349,7 @@ jobs:
       trigger: true
       params:
         globs:
-          - bbr-*
+        - bbr-*
   - load_var: version-number
     file: release-version/number
   - task: create-pivnet-metadata
@@ -1309,85 +1363,85 @@ jobs:
         type: registry-image
 
       inputs:
-        - name: bbr-release
-        - name: release-version
+      - name: bbr-release
+      - name: release-version
 
       outputs:
-        - name: release-metadata
+      - name: release-metadata
 
       run:
         path: /bin/bash
         args:
-          - -c
-          - |
-            [ -z "$DEBUG" ] || set -x
-
-            set -euo pipefail
-
-            : "${VERSION:="$(cat release-version/number)"}"
-
-            TODAY="$(date "+%Y-%m-%d")"
-
-            cat > release-metadata/release.yml <<EOF
-            ---
-            release:
-              version: "$VERSION"
-              release_type: Maintenance Release
-              eula_slug: vmware_eula
-              description: |
-                BOSH Backup and Restore binary and S3 Config Validator
-
-                BBR can be used to back up and restore many bosh releases and bosh directors. This includes TAS, and the bosh director that ships with Ops Manager. You should always use the latest version of the BBR CLI to back up and restore from any version of Ops Manager or TAS.
-
-                If you are upgrading TAS, we recommend you take a backup immediately before upgrading, and immediately after a successful upgrade. This is because backups from the old version of TAS may not be compatible with the new version of TAS.
-              release_notes_url: https://docs.pivotal.io/bbr/bbr-rn.html
-              availability: All Users
-              release_date: "$TODAY"
-            dependency_specifiers: []
-            product_files:
-            - file: bbr-release/bbr-${VERSION}.tar
-              upload_as: BOSH Backup and Restore
-              description: |
-                BBR and BBR-s3-config-validator binaries for Linux and Darwin.
-              file_type: "Software"
-              docs_url: "https://docs.pivotal.io/bbr/index.html"
-              platforms: ["Linux", "Darwin"]
-              included_files: ["bbr", "bbr-mac", "checksum256", "bbr-s3-config-validator", "bbr-s3-config-validator.README.md"]
-
-            - file: bbr-release/bbr-${VERSION}-linux-amd64
-              upload_as: BOSH Backup and Restore Linux
-              description: |
-                BBR binary for Linux
-              file_type: "Software"
-              docs_url: "https://docs.pivotal.io/bbr/index.html"
-              platforms: ["Linux"]
-
-            - file: bbr-release/bbr-${VERSION}-darwin-amd64
-              upload_as: BOSH Backup and Restore Darwin
-              description: |
-                BBR binary for Darwin
-              file_type: "Software"
-              docs_url: "https://docs.pivotal.io/bbr/index.html"
-              platforms: ["Darwin"]
-
-            - file: bbr-release/bbr-s3-config-validator-${VERSION}-linux-amd64
-              upload_as: BOSH Backup and Restore S3 Configuration Validator Linux
-              description: |
-                BBR-s3-config-validator binary for Linux
-              file_type: "Software"
-              docs_url: "https://docs.pivotal.io/bbr/index.html"
-              platforms: ["Linux"]
-
-            - file: bbr-release/bbr-s3-config-validator-${VERSION}.README.md
-              upload_as: BOSH Backup and Restore S3 Configuration Validator README
-              description: |
-                BBR-s3-config-validator README
-              file_type: "Documentation"
-              docs_url: "https://docs.pivotal.io/bbr/index.html"
-              platforms: ["Linux"]
-            EOF
-
-            [ -z "$DEBUG" ] || cat release-metadata/*
+        - -c
+        - |
+          [ -z "$DEBUG" ] || set -x
+          
+          set -euo pipefail
+          
+          : "${VERSION:="$(cat release-version/number)"}"
+          
+          TODAY="$(date "+%Y-%m-%d")"
+          
+          cat > release-metadata/release.yml <<EOF
+          ---
+          release:
+            version: "$VERSION"
+            release_type: Maintenance Release
+            eula_slug: vmware_eula
+            description: |
+              BOSH Backup and Restore binary and S3 Config Validator
+          
+              BBR can be used to back up and restore many bosh releases and bosh directors. This includes TAS, and the bosh director that ships with Ops Manager. You should always use the latest version of the BBR CLI to back up and restore from any version of Ops Manager or TAS.
+          
+              If you are upgrading TAS, we recommend you take a backup immediately before upgrading, and immediately after a successful upgrade. This is because backups from the old version of TAS may not be compatible with the new version of TAS.
+            release_notes_url: https://docs.pivotal.io/bbr/bbr-rn.html
+            availability: All Users
+            release_date: "$TODAY"
+          dependency_specifiers: []
+          product_files:
+          - file: bbr-release/bbr-${VERSION}.tar
+            upload_as: BOSH Backup and Restore
+            description: |
+              BBR and BBR-s3-config-validator binaries for Linux and Darwin.
+            file_type: "Software"
+            docs_url: "https://docs.pivotal.io/bbr/index.html"
+            platforms: ["Linux", "Darwin"]
+            included_files: ["bbr", "bbr-mac", "checksum256", "bbr-s3-config-validator", "bbr-s3-config-validator.README.md"]
+          
+          - file: bbr-release/bbr-${VERSION}-linux-amd64
+            upload_as: BOSH Backup and Restore Linux
+            description: |
+              BBR binary for Linux
+            file_type: "Software"
+            docs_url: "https://docs.pivotal.io/bbr/index.html"
+            platforms: ["Linux"]
+          
+          - file: bbr-release/bbr-${VERSION}-darwin-amd64
+            upload_as: BOSH Backup and Restore Darwin
+            description: |
+              BBR binary for Darwin
+            file_type: "Software"
+            docs_url: "https://docs.pivotal.io/bbr/index.html"
+            platforms: ["Darwin"]
+          
+          - file: bbr-release/bbr-s3-config-validator-${VERSION}-linux-amd64
+            upload_as: BOSH Backup and Restore S3 Configuration Validator Linux
+            description: |
+              BBR-s3-config-validator binary for Linux
+            file_type: "Software"
+            docs_url: "https://docs.pivotal.io/bbr/index.html"
+            platforms: ["Linux"]
+          
+          - file: bbr-release/bbr-s3-config-validator-${VERSION}.README.md
+            upload_as: BOSH Backup and Restore S3 Configuration Validator README
+            description: |
+              BBR-s3-config-validator README
+            file_type: "Documentation"
+            docs_url: "https://docs.pivotal.io/bbr/index.html"
+            platforms: ["Linux"]
+          EOF
+          
+          [ -z "$DEBUG" ] || cat release-metadata/*
   - put: p-bosh-backup-and-restore
     params:
       metadata_file: release-metadata/release.yml
@@ -1400,7 +1454,7 @@ jobs:
   - get: p-bosh-backup-and-restore
     trigger: true
     passed:
-      - upload-to-tanzunet
+    - upload-to-tanzunet
   - load_var: pivnet-metadata
     file: p-bosh-backup-and-restore/metadata.yaml
     format: yaml
@@ -1433,7 +1487,7 @@ jobs:
     #! represent the flow (therefore this job should be the last).
     - get: p-bosh-backup-and-restore
       passed:
-        - request-osl
+      - request-osl
     - get: osl
       trigger: true
   - load_var: osl-metadata
@@ -1450,51 +1504,51 @@ jobs:
           repository: harbor-repo.vmware.com/dockerhub-proxy-cache/library/ubuntu
         type: registry-image
       inputs:
-        - name: osl
+      - name: osl
       outputs:
-        - name: release-metadata
-        - name: static-osl
+      - name: release-metadata
+      - name: static-osl
 
       run:
         path: /bin/bash
         args:
-          - -c
-          - |
-            [ -z "$DEBUG" ] || set -x
-
-            set -euo pipefail
-
-            : "${VERSION:?}"
-            : "${BUILD_METADATA:="${VERSION/${VERSION%+*}/}"}"
-
-            if [ -z "$BUILD_METADATA" ]
-            then
-              >&2 cat <<EOF
-            It seems the OSL Release Version \"$VERSION\" does not contain the Pivnet Release ID in its build metadata.
-            A version format similar to \"1.2.3+456\" was expected where \"456\" it the Pivnet Release ID.
-            This is required so that the OSL file can be attached to the right release.
-            Maybe you might want to manually attach the OSL to the Pivnet Release this time round?
-            EOF
-
-              exit 1
-            fi
-
-            cat > release-metadata/existing-release.yml << EOF
-            existing_release:
-              id: ${BUILD_METADATA/+/}
-            product_files:
-            - file: static-osl/open_source_license_bosh_backup_and_restore_${VERSION}_ga.txt
-              file_type: Open Source License
-              file_version: ${VERSION}
-            - file: static-osl/vmware-p-bosh-backup-and-restore-${VERSION}-odp.tar.gz
-              file_type: Open Source License
-              file_version: ${VERSION}
-            EOF
-
-            mv osl/*.txt static-osl/open_source_license_bosh_backup_and_restore_${VERSION}_ga.txt
-            mv osl/*.tar.gz static-osl/vmware-p-bosh-backup-and-restore-${VERSION}-odp.tar.gz
-
-            [ -z "$DEBUG" ] || cat release-metadata/*
+        - -c
+        - |
+          [ -z "$DEBUG" ] || set -x
+          
+          set -euo pipefail
+          
+          : "${VERSION:?}"
+          : "${BUILD_METADATA:="${VERSION/${VERSION%+*}/}"}"
+          
+          if [ -z "$BUILD_METADATA" ]
+          then
+            >&2 cat <<EOF
+          It seems the OSL Release Version \"$VERSION\" does not contain the Pivnet Release ID in its build metadata.
+          A version format similar to \"1.2.3+456\" was expected where \"456\" it the Pivnet Release ID.
+          This is required so that the OSL file can be attached to the right release.
+          Maybe you might want to manually attach the OSL to the Pivnet Release this time round?
+          EOF
+          
+            exit 1
+          fi
+          
+          cat > release-metadata/existing-release.yml << EOF
+          existing_release:
+            id: ${BUILD_METADATA/+/}
+          product_files:
+          - file: static-osl/open_source_license_bosh_backup_and_restore_${VERSION}_ga.txt
+            file_type: Open Source License
+            file_version: ${VERSION}
+          - file: static-osl/vmware-p-bosh-backup-and-restore-${VERSION}-odp.tar.gz
+            file_type: Open Source License
+            file_version: ${VERSION}
+          EOF
+          
+          mv osl/*.txt static-osl/open_source_license_bosh_backup_and_restore_${VERSION}_ga.txt
+          mv osl/*.tar.gz static-osl/vmware-p-bosh-backup-and-restore-${VERSION}-odp.tar.gz
+          
+          [ -z "$DEBUG" ] || cat release-metadata/*
   - put: p-bosh-backup-and-restore
     params:
       file_glob: static-osl/*((.:osl-metadata.version))*
