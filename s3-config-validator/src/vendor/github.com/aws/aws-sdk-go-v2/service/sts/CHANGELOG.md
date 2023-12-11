@@ -1,3 +1,12 @@
+# v1.26.4 (2023-12-07)
+
+* **Dependency Update**: Updated to the latest SDK module versions
+
+# v1.26.3 (2023-12-06)
+
+* **Bug Fix**: Restore pre-refactor auth behavior where all operations could technically be performed anonymously.
+* **Bug Fix**: STS `AssumeRoleWithSAML` and `AssumeRoleWithWebIdentity` would incorrectly attempt to use SigV4 authentication.
+
 # v1.26.2 (2023-12-01)
 
 * **Bug Fix**: Correct wrapping of errors in authentication workflow.
