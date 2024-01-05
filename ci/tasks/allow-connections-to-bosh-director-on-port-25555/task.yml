@@ -2,7 +2,7 @@ platform: linux
 image_resource:
   source:
     repository: cryogenics/essentials
-    tag: 0.1.88
+    tag: 0.1.89
   type: registry-image
 params:
   GCP_SERVICE_ACCOUNT_KEY: ((gcp/service_accounts/owner.json_key))
