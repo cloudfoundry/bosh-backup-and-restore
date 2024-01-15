@@ -1396,7 +1396,7 @@ jobs:
           
               If you are upgrading TAS, we recommend you take a backup immediately before upgrading, and immediately after a successful upgrade. This is because backups from the old version of TAS may not be compatible with the new version of TAS.
             release_notes_url: https://docs.pivotal.io/bbr/bbr-rn.html
-            availability: All Users
+            availability: Admins Only
             release_date: "$TODAY"
           dependency_specifiers: []
           product_files:
@@ -1558,4 +1558,6 @@ jobs:
   - put: slack-cryo-notification
     params:
       text: |
-        *p-bosh-backup-and-restore:* The OSL and OBP files for version `((.:osl-metadata.version))` have been uploaded to <https://network.pivotal.io/products/p-bosh-backup-and-restore|Tanzunet> and the release has been published :partycat:
+        *p-bosh-backup-and-restore:* The OSL and ODP files for version `((.:osl-metadata.version))` have been uploaded to Tanzunet!
+        Next steps (<!subteam^S028XABEHAP>):
+          1. make the release publicly available on <https://network.pivotal.io/products/p-bosh-backup-and-restore|Tanzunet>
