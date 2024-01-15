@@ -7,7 +7,7 @@ ENV BBL_VERSION v8.4.44
 ENV VELERO_VERSION v1.6.1
 ENV GH_VERSION 2.14.4
 ENV PIVNET_VERSION 3.0.0
-ENV RUBY_VERSION 2.7.3
+ENV RUBY_VERSION 3.3.0
 
 # fixes error "Error response from daemon: client is newer than server"
 ENV DOCKER_API_VERSION 1.41
