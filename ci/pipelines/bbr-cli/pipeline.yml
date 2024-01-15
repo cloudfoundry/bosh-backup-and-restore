@@ -506,7 +506,8 @@ resources:
   source:
     api_token: *pivnet_admin_api_token
     product_slug: p-bosh-backup-and-restore
-    copy_metadata: true
+    copy_metadata: false
+    verbose: false
 
 jobs:
 - name: system-test-director
