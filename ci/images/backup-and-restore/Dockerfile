@@ -32,6 +32,7 @@ RUN apt-get update && apt-get install -y \
   wbritish \
   ca-certificates \
   gettext-base \
+  libffi-dev \
   && rm -rf /var/lib/apt/lists/*
 
 # Install azure cli
@@ -52,10 +53,10 @@ RUN apt-get update && apt-get install -y \
 # INSTALL RUBY
 #
 ENV RBENV_ROOT /home/vcap/.rbenv
-RUN git clone https://github.com/sstephenson/rbenv.git ${RBENV_ROOT}
+RUN git clone https://github.com/rbenv/rbenv.git ${RBENV_ROOT}
 
 RUN mkdir -p ${RBENV_ROOT}/plugins
-RUN git clone https://github.com/sstephenson/ruby-build.git ${RBENV_ROOT}/plugins/ruby-build
+RUN git clone https://github.com/rbenv/ruby-build.git ${RBENV_ROOT}/plugins/ruby-build
 RUN git clone https://github.com/rbenv/rbenv-each.git ${RBENV_ROOT}/plugins/rbenv-each
 
 ENV PATH ${RBENV_ROOT}/bin:${RBENV_ROOT}/shims:$PATH
