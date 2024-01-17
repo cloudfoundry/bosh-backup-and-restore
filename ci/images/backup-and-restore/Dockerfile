@@ -19,20 +19,30 @@ ARG TERRAFORM_VERSION
 RUN apt-get update && apt-get install -y \
   apt-transport-https \
   awscli \
+  autoconf \
+  patch \
+  build-essential \
+  rustc \
+  libyaml-dev \
+  libreadline6-dev \
   libreadline-dev \
+  libffi-dev \
   zlib1g-dev \
+  libncurses5-dev \
+  libgdbm5 \
+  libgdbm-dev \
+  libdb-dev \
+  libssl-dev \
+  uuid-dev \
   default-mysql-client \
   dnsutils \
   file \
-  libssl-dev \
   lsb-release \
   netcat-openbsd \
   openjdk-8-jdk \
   ruby-dev \
-  wbritish \
   ca-certificates \
   gettext-base \
-  libffi-dev \
   && rm -rf /var/lib/apt/lists/*
 
 # Install azure cli
