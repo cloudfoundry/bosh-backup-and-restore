@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install -y \
   libffi-dev \
   zlib1g-dev \
   libncurses5-dev \
-  libgdbm5 \
+  libgdbm6 \
   libgdbm-dev \
   libdb-dev \
   libssl-dev \
