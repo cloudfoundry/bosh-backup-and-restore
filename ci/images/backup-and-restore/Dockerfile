@@ -19,17 +19,28 @@ ARG TERRAFORM_VERSION
 RUN apt-get update && apt-get install -y \
   apt-transport-https \
   awscli \
+  autoconf \
+  patch \
+  build-essential \
+  rustc \
+  libyaml-dev \
+  libreadline6-dev \
   libreadline-dev \
+  libffi-dev \
   zlib1g-dev \
+  libncurses5-dev \
+  libgdbm5 \
+  libgdbm-dev \
+  libdb-dev \
+  libssl-dev \
+  uuid-dev \
   default-mysql-client \
   dnsutils \
   file \
-  libssl-dev \
   lsb-release \
   netcat-openbsd \
   openjdk-8-jdk \
   ruby-dev \
-  wbritish \
   ca-certificates \
   gettext-base \
   && rm -rf /var/lib/apt/lists/*
@@ -52,10 +63,10 @@ RUN apt-get update && apt-get install -y \
 # INSTALL RUBY
 #
 ENV RBENV_ROOT /home/vcap/.rbenv
-RUN git clone https://github.com/sstephenson/rbenv.git ${RBENV_ROOT}
+RUN git clone https://github.com/rbenv/rbenv.git ${RBENV_ROOT}
 
 RUN mkdir -p ${RBENV_ROOT}/plugins
-RUN git clone https://github.com/sstephenson/ruby-build.git ${RBENV_ROOT}/plugins/ruby-build
+RUN git clone https://github.com/rbenv/ruby-build.git ${RBENV_ROOT}/plugins/ruby-build
 RUN git clone https://github.com/rbenv/rbenv-each.git ${RBENV_ROOT}/plugins/rbenv-each
 
 ENV PATH ${RBENV_ROOT}/bin:${RBENV_ROOT}/shims:$PATH
