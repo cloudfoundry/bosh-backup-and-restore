@@ -1,7 +1,7 @@
 FROM pcfplatformrecovery/backup-and-restore-minimal
 
 ENV YQ_VERSION 2.4.0
-ENV CLOUD_SDK_VERSION 347.0.0
+ENV CLOUD_SDK_VERSION 429.0.0
 ENV CREDHUB_CLI_VERSION 2.9.0
 ENV BBL_VERSION v8.4.44
 ENV VELERO_VERSION v1.6.1
@@ -78,16 +78,14 @@ RUN echo 'gem: --no-document' > $HOME/.gemrc
 RUN rbenv each gem install bundler
 
 # gcloud
-RUN ["/bin/bash", "-c", "set -o pipefail && \
-  export CLOUD_SDK_REPO=\"cloud-sdk-$(lsb_release -c -s)\" && \
-  echo \"deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main\" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
-  curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
-  apt-get update && apt-get install -y google-cloud-sdk=${CLOUD_SDK_VERSION}-0 && rm -rf /var/lib/apt/lists/*"]
+RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg &&  \
+  echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+  apt-get update && apt-get install -y python3 google-cloud-sdk=${CLOUD_SDK_VERSION}-0 && rm -rf /var/lib/apt/lists/*
 
 # git-crypt
 RUN git clone https://github.com/AGWA/git-crypt.git && \
   cd git-crypt/ && \
-  make && sudo make install
+  CXXFLAGS="$(TARGET_CXXFLAGS) -std=c++11 -DOPENSSL_API_COMPAT=0x30000000L" make && sudo make install
 
 # Bash testing framework
 RUN go install github.com/progrium/basht@latest
