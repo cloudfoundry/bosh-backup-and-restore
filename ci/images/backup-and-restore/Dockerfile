@@ -85,7 +85,7 @@ RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -
 # git-crypt
 RUN git clone https://github.com/AGWA/git-crypt.git && \
   cd git-crypt/ && \
-  make && sudo make install
+  CXXFLAGS="$(TARGET_CXXFLAGS) -std=c++11 -DOPENSSL_API_COMPAT=0x30000000L" make && sudo make install
 
 # Bash testing framework
 RUN go install github.com/progrium/basht@latest
