@@ -174,7 +174,7 @@ resource_types:
 - name: github-release
   type: registry-image
   source:
-    repository: concourse/github-release-resource
+    repository: dockerhub-proxy-cache/concourse/github-release-resource
     registry_mirror:
       host: harbor-repo.vmware.com
 
