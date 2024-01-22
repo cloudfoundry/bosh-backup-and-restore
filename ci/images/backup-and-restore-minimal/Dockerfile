@@ -1,6 +1,6 @@
 FROM golang:1.21.6 as go-binary
 
-FROM ubuntu:bionic
+FROM ubuntu:jammy
 
 ENV cf_cli_version 7.3.0
 ENV bosh_cli_version 7.2.3

@@ -1,13 +1,13 @@
 FROM pcfplatformrecovery/backup-and-restore-minimal
 
 ENV YQ_VERSION 2.4.0
-ENV CLOUD_SDK_VERSION 347.0.0
+ENV CLOUD_SDK_VERSION 429.0.0
 ENV CREDHUB_CLI_VERSION 2.9.0
 ENV BBL_VERSION v8.4.44
 ENV VELERO_VERSION v1.6.1
 ENV GH_VERSION 2.14.4
 ENV PIVNET_VERSION 3.0.0
-ENV RUBY_VERSION 2.7.3
+ENV RUBY_VERSION 3.3.0
 
 # fixes error "Error response from daemon: client is newer than server"
 ENV DOCKER_API_VERSION 1.41
@@ -19,17 +19,28 @@ ARG TERRAFORM_VERSION
 RUN apt-get update && apt-get install -y \
   apt-transport-https \
   awscli \
+  autoconf \
+  patch \
+  build-essential \
+  rustc \
+  libyaml-dev \
+  libreadline6-dev \
   libreadline-dev \
+  libffi-dev \
   zlib1g-dev \
+  libncurses5-dev \
+  libgdbm6 \
+  libgdbm-dev \
+  libdb-dev \
+  libssl-dev \
+  uuid-dev \
   default-mysql-client \
   dnsutils \
   file \
-  libssl-dev \
   lsb-release \
   netcat-openbsd \
   openjdk-8-jdk \
   ruby-dev \
-  wbritish \
   ca-certificates \
   gettext-base \
   && rm -rf /var/lib/apt/lists/*
@@ -52,10 +63,10 @@ RUN apt-get update && apt-get install -y \
 # INSTALL RUBY
 #
 ENV RBENV_ROOT /home/vcap/.rbenv
-RUN git clone https://github.com/sstephenson/rbenv.git ${RBENV_ROOT}
+RUN git clone https://github.com/rbenv/rbenv.git ${RBENV_ROOT}
 
 RUN mkdir -p ${RBENV_ROOT}/plugins
-RUN git clone https://github.com/sstephenson/ruby-build.git ${RBENV_ROOT}/plugins/ruby-build
+RUN git clone https://github.com/rbenv/ruby-build.git ${RBENV_ROOT}/plugins/ruby-build
 RUN git clone https://github.com/rbenv/rbenv-each.git ${RBENV_ROOT}/plugins/rbenv-each
 
 ENV PATH ${RBENV_ROOT}/bin:${RBENV_ROOT}/shims:$PATH
@@ -67,16 +78,14 @@ RUN echo 'gem: --no-document' > $HOME/.gemrc
 RUN rbenv each gem install bundler
 
 # gcloud
-RUN ["/bin/bash", "-c", "set -o pipefail && \
-  export CLOUD_SDK_REPO=\"cloud-sdk-$(lsb_release -c -s)\" && \
-  echo \"deb https://packages.cloud.google.com/apt $CLOUD_SDK_REPO main\" > /etc/apt/sources.list.d/google-cloud-sdk.list && \
-  curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
-  apt-get update && apt-get install -y google-cloud-sdk=${CLOUD_SDK_VERSION}-0 && rm -rf /var/lib/apt/lists/*"]
+RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg &&  \
+  echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+  apt-get update && apt-get install -y python3 google-cloud-sdk=${CLOUD_SDK_VERSION}-0 && rm -rf /var/lib/apt/lists/*
 
 # git-crypt
 RUN git clone https://github.com/AGWA/git-crypt.git && \
   cd git-crypt/ && \
-  make && sudo make install
+  CXXFLAGS="$(TARGET_CXXFLAGS) -std=c++11 -DOPENSSL_API_COMPAT=0x30000000L" make && sudo make install
 
 # Bash testing framework
 RUN go install github.com/progrium/basht@latest
