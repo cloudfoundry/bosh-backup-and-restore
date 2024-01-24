@@ -70,6 +70,7 @@ resources:
     private_key: *github_ssh_key
     uri: git@github.com:cloudfoundry-incubator/bosh-backup-and-restore.git
     paths: ["ci"]
+    branch: master
 
 - name: backup-and-restore
   type: git
@@ -93,6 +94,7 @@ resources:
     uri: git@github.com:cloudfoundry-incubator/bosh-backup-and-restore.git
     private_key: *github_ssh_key
     paths: ["ci/images/backup-and-restore-node-with-ssh/*"]
+    branch: master
 
 - name: backup-and-restore-node-with-ssh-docker-image
   type: docker-image
