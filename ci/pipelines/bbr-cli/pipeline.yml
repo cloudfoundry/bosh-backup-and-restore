@@ -229,6 +229,7 @@ resources:
   source:
     uri: git@gitlab.eng.vmware.com:source-insight-tooling/norsk-to-osspi.git
     private_key: *gitlab_norsk_to_osspi_deploy_key
+    branch: main
 
 - name: cryogenics-essentials
   type: registry-image
@@ -311,6 +312,9 @@ resources:
     uri: git@github.com:cloudfoundry/bosh-backup-and-restore.git
     private_key: *github_ssh_key
     disable_git_lfs: true
+    commit_filter:
+      exclude:
+      - ;resource comment; This resource is used exclusively for pushing new changes
 
 - name: bosh-backup-and-restore-write-branch
   icon: github
@@ -318,6 +322,9 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/bosh-backup-and-restore.git
     private_key: *github_ssh_key
+    commit_filter:
+      exclude:
+      - ;resource comment; This resource is used exclusively for pushing new changes
 
 - name: homebrew-tap
   type: git
