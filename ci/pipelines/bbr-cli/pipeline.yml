@@ -1402,7 +1402,7 @@ jobs:
               BBR can be used to back up and restore many bosh releases and bosh directors. This includes TAS, and the bosh director that ships with Ops Manager. You should always use the latest version of the BBR CLI to back up and restore from any version of Ops Manager or TAS.
           
               If you are upgrading TAS, we recommend you take a backup immediately before upgrading, and immediately after a successful upgrade. This is because backups from the old version of TAS may not be compatible with the new version of TAS.
-            release_notes_url: https://docs.pivotal.io/bbr/bbr-rn.html
+            release_notes_url:  https://docs.cloudfoundry.org/bbr/bbr-rn.html
             availability: Admins Only
             release_date: "$TODAY"
           dependency_specifiers: []
@@ -1412,7 +1412,7 @@ jobs:
             description: |
               BBR and BBR-s3-config-validator binaries for Linux and Darwin.
             file_type: "Software"
-            docs_url: "https://docs.pivotal.io/bbr/index.html"
+            docs_url: "https://docs.cloudfoundry.org/bbr/bbr-rn.html"
             platforms: ["Linux", "Darwin"]
             included_files: ["bbr", "bbr-mac", "checksum256", "bbr-s3-config-validator", "bbr-s3-config-validator.README.md"]
           
@@ -1421,7 +1421,7 @@ jobs:
             description: |
               BBR binary for Linux
             file_type: "Software"
-            docs_url: "https://docs.pivotal.io/bbr/index.html"
+            docs_url: "https://docs.cloudfoundry.org/bbr/bbr-rn.html"
             platforms: ["Linux"]
           
           - file: bbr-release/bbr-${VERSION}-darwin-amd64
@@ -1429,7 +1429,7 @@ jobs:
             description: |
               BBR binary for Darwin
             file_type: "Software"
-            docs_url: "https://docs.pivotal.io/bbr/index.html"
+            docs_url: "https://docs.cloudfoundry.org/bbr/bbr-rn.html"
             platforms: ["Darwin"]
           
           - file: bbr-release/bbr-s3-config-validator-${VERSION}-linux-amd64
@@ -1437,7 +1437,7 @@ jobs:
             description: |
               BBR-s3-config-validator binary for Linux
             file_type: "Software"
-            docs_url: "https://docs.pivotal.io/bbr/index.html"
+            docs_url: "https://docs.cloudfoundry.org/bbr/bbr-rn.html"
             platforms: ["Linux"]
           
           - file: bbr-release/bbr-s3-config-validator-${VERSION}.README.md
@@ -1445,7 +1445,7 @@ jobs:
             description: |
               BBR-s3-config-validator README
             file_type: "Documentation"
-            docs_url: "https://docs.pivotal.io/bbr/index.html"
+            docs_url: "https://docs.cloudfoundry.org/bbr/bbr-rn.html"
             platforms: ["Linux"]
           EOF
           

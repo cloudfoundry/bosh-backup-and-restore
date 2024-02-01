@@ -9,7 +9,7 @@ release:
     BBR can be used to back up and restore many bosh releases and bosh directors. This includes TAS, and the bosh director that ships with Ops Manager. You should always use the latest version of the BBR CLI to back up and restore from any version of Ops Manager or TAS.
 
     If you are upgrading TAS, we recommend you take a backup immediately before upgrading, and immediately after a successful upgrade. This is because backups from the old version of TAS may not be compatible with the new version of TAS.
-  release_notes_url: https://docs.pivotal.io/bbr/bbr-rn.html
+  release_notes_url: https://docs.cloudfoundry.org/bbr/bbr-rn.html
   availability: Admins Only
 product_files:
 - file: <%= ENV.fetch('RELEASE_TAR') %>
@@ -17,7 +17,7 @@ product_files:
   description: |
     BBR (amd64/arm64) and BBR-s3-config-validator binaries for Linux and Darwin.
   file_type: "Software"
-  docs_url: "https://docs.pivotal.io/bbr/index.html"
+  docs_url: "https://docs.cloudfoundry.org/bbr/bbr-rn.html"
   platforms: ["Linux", "Linux-arm64" "Darwin", "Darwin-arm64"]
   included_files: ["bbr", "bbr-arm64", "bbr-mac", "bbr-mac-arm64","checksum256", "bbr-s3-config-validator", "bbr-s3-config-validator.README.md"]
 
@@ -26,7 +26,7 @@ product_files:
   description: |
     BBR binary for Linux
   file_type: "Software"
-  docs_url: "https://docs.pivotal.io/bbr/index.html"
+  docs_url: "https://docs.cloudfoundry.org/bbr/bbr-rn.html"
   platforms: ["Linux"]
   included_files: ["<%= ENV.fetch('BBR_LINUX_BINARY') %>"]
 
@@ -35,7 +35,7 @@ product_files:
   description: |
     BBR binary for Linux
   file_type: "Software"
-  docs_url: "https://docs.pivotal.io/bbr/index.html"
+  docs_url: "https://docs.cloudfoundry.org/bbr/bbr-rn.html"
   platforms: ["Linux-ARM64"]
   included_files: ["<%= ENV.fetch('BBR_LINUX_ARM64_BINARY') %>"]
 
@@ -44,7 +44,7 @@ product_files:
   description: |
     BBR binary for Darwin
   file_type: "Software"
-  docs_url: "https://docs.pivotal.io/bbr/index.html"
+  docs_url: "https://docs.cloudfoundry.org/bbr/bbr-rn.html"
   platforms: ["Darwin"]
   included_files: ["<%= ENV.fetch('BBR_DARWIN_BINARY') %>"]
 
@@ -53,7 +53,7 @@ product_files:
   description: |
     BBR binary for Darwin
   file_type: "Software"
-  docs_url: "https://docs.pivotal.io/bbr/index.html"
+  docs_url: "hhttps://docs.cloudfoundry.org/bbr/bbr-rn.html"
   platforms: ["Darwin"]
   included_files: ["<%= ENV.fetch('BBR_DARWIN_ARM64_BINARY') %>"]
 
@@ -62,7 +62,7 @@ product_files:
   description: |
     BBR-s3-config-validator binary for Linux
   file_type: "Software"
-  docs_url: "https://docs.pivotal.io/bbr/index.html"
+  docs_url: "https://docs.cloudfoundry.org/bbr/bbr-rn.html"
   platforms: ["Linux"]
   included_files: ["<%= ENV.fetch('BBR_S3_VALIDATOR_BINARY') %>"]
 
@@ -71,7 +71,7 @@ product_files:
   description: |
     BBR-s3-config-validator README
   file_type: "Documentation"
-  docs_url: "https://docs.pivotal.io/bbr/index.html"
+  docs_url: "https://docs.cloudfoundry.org/bbr/bbr-rn.html"
   platforms: ["Linux"]
   included_files: ["<%= ENV.fetch('BBR_S3_VALIDATOR_README') %>"]
 
