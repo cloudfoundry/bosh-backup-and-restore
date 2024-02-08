@@ -3,7 +3,7 @@ image_resource:
   type: docker-image
   source:
     repository: cryogenics/essentials
-    tag: 0.1.98
+    tag: 0.1.100
 inputs:
   - name: bosh-backup-and-restore
 params:
