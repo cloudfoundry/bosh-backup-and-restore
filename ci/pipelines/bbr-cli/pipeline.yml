@@ -1166,6 +1166,7 @@ jobs:
       bosh-release-repo-with-vendored-golang: golang-release
       golang-project-repo: bosh-backup-and-restore
     output_mapping:
+      golang-project-repo: bosh-backup-and-restore
   - task: update-gomod-directive-for-s3-validator
     file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
     image: cryogenics-essentials
