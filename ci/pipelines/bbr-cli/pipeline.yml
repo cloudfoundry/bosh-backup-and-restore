@@ -1146,6 +1146,7 @@ jobs:
       resource: additional-environment
 
 - name: bump-golang
+  serial: true
   plan:
   - in_parallel:
     - get: cryogenics-concourse-tasks
@@ -1203,6 +1204,7 @@ jobs:
         source-repo: bosh-backup-and-restore-write-branch
 
 - name: bump-go-module
+  serial: true
   plan:
   - in_parallel:
     - get: cryogenics-concourse-tasks
@@ -1250,6 +1252,7 @@ jobs:
               source-repo: bosh-backup-and-restore-write-branch
 
 - name: bump-ci-tasks
+  serial: true
   plan:
   - in_parallel:
     - get: cryogenics-essentials
