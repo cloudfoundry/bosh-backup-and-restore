@@ -2,10 +2,10 @@ github.com/aws/aws-sdk-go-v2 v1.25.1 h1:P7hU6A5qEdmajGwvae/zDkOq+ULLC9tQBTwqqiwF
 github.com/aws/aws-sdk-go-v2 v1.25.1/go.mod h1:Evoc5AsmtveRt1komDwIsjHFyrP5tDuF1D1U+6z6pNo=
 github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.0 h1:2UO6/nT1lCZq1LqM67Oa4tdgP1CvL1sLSxvuD+VrOeE=
 github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.0/go.mod h1:5zGj2eA85ClyedTDK+Whsu+w9yimnVIZvhvBKrDquM8=
-github.com/aws/aws-sdk-go-v2/credentials v1.17.0 h1:lMW2x6sKBsiAJrpi1doOXqWFyEPoE886DTb1X0wb7So=
-github.com/aws/aws-sdk-go-v2/credentials v1.17.0/go.mod h1:uT41FIH8cCIxOdUYIL0PYyHlL1NoneDuDSCwg5VE/5o=
-github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.15.0 h1:xWCwjjvVz2ojYTP4kBKUuUh9ZrXfcAXpflhOUUeXg1k=
-github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.15.0/go.mod h1:j3fACuqXg4oMTQOR2yY7m0NmJY0yBK4L4sLsRXq1Ins=
+github.com/aws/aws-sdk-go-v2/credentials v1.17.2 h1:tCZXWtH0HiIEZ50NJ7/QEaXmuzEd36L+2JUiZkp2nsc=
+github.com/aws/aws-sdk-go-v2/credentials v1.17.2/go.mod h1:7Zo+D6q4auSIo3p4EItuTKTk7J+RqjASISZqLvmUgpc=
+github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.15.1 h1:lk1ZZFbdb24qpOwVC1AwYNrswUjAxeyey6kFBVANudQ=
+github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.15.1/go.mod h1:/xJ6x1NehNGCX4tvGzzj2bq5TBOT/Yxq+qbL9Jpx2Vk=
 github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.1 h1:evvi7FbTAoFxdP/mixmP7LIYzQWAmzBcwNB/es9XPNc=
 github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.1/go.mod h1:rH61DT6FDdikhPghymripNUCsf+uVF4Cnk4c4DBKH64=
 github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.1 h1:RAnaIrbxPtlXNVI/OIlh1sidTQ3e1qM6LRjs7N0bE0I=
