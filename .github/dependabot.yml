@@ -20,4 +20,4 @@ updates:
   groups:
     aws-sdk-go-v2-dependancy-group:
       patterns:
-        - "aws-sdk-go-v2*" # 2024-03-06 - these dependancies can have internally breaking changes so are best to bump all together
+        - "*aws-sdk-go-v2*" # 2024-03-06 - these dependancies can have internally breaking changes so are best to bump all together
