@@ -1253,9 +1253,7 @@ jobs:
     - get: main
       params: { submodules: all }
       trigger: true
-    - get: image-cryogenics-essentials
   - task: single-package-for-repo
-    image: image-cryogenics-essentials
     file: norsk-to-osspi/tasks/osspi/run-single-package-for-repo.yaml
     input_mapping:
       repo1: norsk-to-osspi
