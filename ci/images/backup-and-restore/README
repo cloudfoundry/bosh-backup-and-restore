@@ -1,0 +1,7 @@
+Unbuild as of 2024/03/28
+
+I have found no evidence for usage of this image in cryo ci. It could be that it is used by "someone"
+on the internet but we do not. I'm leaving the Dockerfiles in case we at some point need to
+republish this. But from what it looks the only usage is in p-drats tasks.yml used in p-drats
+ci. Since that is internal, I guess we can share cryo essentials image with those teams instead.
+Leaving the dockerfiles in if someone should require the original images.

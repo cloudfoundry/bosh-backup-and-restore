@@ -37,11 +37,11 @@ var _ = Describe("SshRemoteRunner", func() {
 		logger := boshlog.New(boshlog.LevelDebug, combinedLog)
 
 		sshConnection, err = ssh.NewConnection(testInstance.Address(), user, userPrivateKey, gossh.FixedHostKey(hostPublicKey),
-			[]string{hostPublicKey.Type()}, logger)
+			[]string{"rsa-sha2-256"}, logger)
 		Expect(err).NotTo(HaveOccurred())
 
 		sshRemoteRunner, err = ssh.NewSshRemoteRunner(testInstance.Address(), user, userPrivateKey, gossh.FixedHostKey(hostPublicKey),
-			[]string{hostPublicKey.Type()}, logger)
+			[]string{"rsa-sha2-256"}, logger)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
@@ -335,10 +335,14 @@ var _ = Describe("SshRemoteRunner", func() {
 
 		Context("when the script is not there", func() {
 			It("returns a helpful error", func() {
-				err := sshRemoteRunner.RunScriptWithEnv("/tmp/example-script", map[string]string{"env1": "foo", "env2": "bar"}, "", io.Discard)
+				// as of 2024/03/28 This has previously used `pcfplatformrecovery/backup-and-restore-node-with-ssh` from dockerhub. This image was based on a xenial 315.x stemcell. When the tests were updated to start a docker image based on jammy, the below started failing when the command used a /absolute/path/to/binary
+				// It failed because the error didn't match when an absolute path to a missing executable file was provided with an error about
+				//  [bbr] 2024/03/28 15:12:04 DEBUG - Trying to execute 'sudo env1=foo env2=bar /tmp/example-script' on remote
+				//  [bbr] 2024/03/28 15:12:06 DEBUG - stderr: sudo: a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper
+				// this only happens when the path is absolute and I have not found any explanation for this. I'm changing the below test setup assuming this is harmless, but just in case leave the confusing error logs here for future reference. FWIW the image is setup to allow passwordless sudo for ALL USERS.
+				err := sshRemoteRunner.RunScriptWithEnv(`example-script`, map[string]string{"env1": "foo", "env2": "bar"}, "", io.Discard)
 
 				Expect(err).To(MatchError(ContainSubstring("command not found")))
-
 			})
 		})
 
