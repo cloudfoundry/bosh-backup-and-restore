@@ -26,17 +26,28 @@ const timeout = 40 * time.Second
 
 func PullDockerImage() {
 	startTime := time.Now()
-	args := []string{"pull", "pcfplatformrecovery/backup-and-restore-node-with-ssh"}
+	args := []string{"pull", "cryogenics/jammy-stemcell-oci:latest"}
 	session := dockerRun(args...)
 	Eventually(session, 10*time.Minute).Should(gexec.Exit(0))
 	fmt.Fprintf(GinkgoWriter, "Completed docker run in %v, cmd: %v\n", time.Now().Sub(startTime), args)
 }
 
 func NewInstance() *Instance {
-	contents := dockerRunAndWaitForSuccess("run", "--publish", "22", "--detach", "pcfplatformrecovery/backup-and-restore-node-with-ssh")
+	contents := dockerRunAndWaitForSuccess("run", "--publish", "22", "--detach", "cryogenics/jammy-stemcell-oci:latest", "bash", "-c", `#!/bin/bash
+
+	mkdir -p /var/run/sshd
+	echo "%sudo ALL = (ALL) NOPASSWD: ALL" >> /etc/sudoers
+	mkdir -p /var/vcap/store
+	mkdir -p /var/vcap/jobs
+	ssh-keygen -A
+	/usr/sbin/sshd  # this will be restarted down the road, so we need a placekeep process to keep the container alive
+	while true; do sleep 1; done
+	`,
+	)
 
 	dockerID := strings.TrimSpace(contents)
-
+	dockerRunAndWaitForSuccess("cp", `../fixtures/create_user_with_key`, fmt.Sprintf("%s:/bin/create_user_with_key", dockerID))
+	dockerRunAndWaitForSuccess(`exec`, dockerID, "chmod", "+x", "/bin/create_user_with_key")
 	return &Instance{
 		dockerID: dockerID,
 	}
@@ -136,6 +147,7 @@ func (mockInstance *Instance) DieInBackground() {
 }
 
 func (mockInstance *Instance) HostPublicKey() string {
+	dockerRunAndWaitForSuccess("exec", mockInstance.dockerID, "bash", "-c", "until cat /etc/ssh/ssh_host_rsa_key.pub; do sleep 1; done")
 	return dockerRunAndWaitForSuccess("exec", mockInstance.dockerID, "perl", "-p", "-e", "s/\n/ /", "/etc/ssh/ssh_host_rsa_key.pub")
 }
 
