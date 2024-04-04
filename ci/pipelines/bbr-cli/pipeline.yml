@@ -138,6 +138,7 @@ groups:
   jobs:
   - upload-to-tanzunet
   - request-osl
+  - alert-team-on-release-creation
   - publish
 - name: bump
   jobs:
@@ -1400,6 +1401,50 @@ jobs:
       license: VMW_Proprietary
       release_type: GA
       associated_bossd_release: 400400894
+
+- name: alert-team-on-release-creation
+  plan:
+  - in_parallel:
+    - get: cryogenics-ci
+    - get: every-day
+      trigger: true
+    - get: p-bosh-backup-and-restore
+      passed:
+      - request-osl
+    - get: image-cryogenics-essentials
+  - load_var: pivnet-metadata
+    file: p-bosh-backup-and-restore/metadata.yaml
+    format: yaml
+  - get: release-version
+    params:
+      bump: final
+      #! Hack to convert number to string in YAML
+      build: |
+        ((.:pivnet-metadata.release.id))
+      build_without_version: true
+    passed:
+    - request-osl
+  - load_var: version
+    file: release-version/number
+    format: trim
+  - try:
+      do:
+      - task: check-if-clone-request-has-been-approved
+        image: image-cryogenics-essentials
+        file: cryogenics-ci/release-automation/check-if-clone-request-has-been-approved/task.yml
+        params:
+          VERSION: ((.:version))
+          OSM_API_KEY: *osm_api_key
+          PRODUCT_NAME: p-bosh-backup-and-restore
+      - load_var: osm-release-id
+        file: osm/release_id
+        format: trim
+      - put: slack-cryo-notification
+        params:
+          text: |
+            *p-bosh-backup-and-restore:* The OSM team have validated the cloning request for `((.:version))`.
+            Next steps (<!subteam^S028XABEHAP>):
+              1. Follow the <https://osm.eng.vmware.com/oss/#/release/((.:osm-release-id))|link> to generate the OSL.
 
 - name: publish
   serial: true
