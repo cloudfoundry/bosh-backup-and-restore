@@ -24,6 +24,7 @@ secrets:
 #! On 2023-11-13 the osspi jobs were moved into this pipeine, the following were the secrets needed. Unsure how they are generated.
 - &gitlab_norsk_to_osspi_deploy_key ((cerberus:gitlab.norsk-to-osspi-deploy-key))
 - &osm_username ((cerberus:osm.username))
+- &osm_cc_list ((cerberus:osm.cc_list))
 - &osm_api_key_token ((cerberus:osm.api_key_token))
 
 #! On 2023-11-10 we needed a pivnet admin token to upload new releases to TanzuNet. Accounts with admin priveleges are obtained
@@ -1397,7 +1398,8 @@ jobs:
   - put: osl
     params:
       version: ((.:version))
-      user: fiain@vmware.com
+      user: *osm_username
+      cc_list: *osm_cc_list
       license: VMW_Proprietary
       release_type: GA
       associated_bossd_release: 400400894
