@@ -28,6 +28,8 @@ var _ = Describe("Connection", func() {
 
 	var instance1 *testcluster.Instance
 	var logger ssh.Logger
+	var err error
+	var hostPublicKey gossh.PublicKey
 
 	BeforeEach(func() {
 		instance1 = testcluster.NewInstanceWithKeepAlive(2)
@@ -35,6 +37,9 @@ var _ = Describe("Connection", func() {
 		privateKey = defaultPrivateKey
 		hostname = instance1.Address()
 		user = "test-user"
+
+		hostPublicKey, _, _, _, err = gossh.ParseAuthorizedKey([]byte(instance1.HostPublicKey()))
+		Expect(err).NotTo(HaveOccurred())
 
 		combinedOutLog := log.New(io.MultiWriter(GinkgoWriter, bytes.NewBufferString("")), "[bosh-package] ", log.Lshortfile)
 		logger = boshlog.New(boshlog.LevelDebug, combinedOutLog)
@@ -46,10 +51,8 @@ var _ = Describe("Connection", func() {
 	})
 
 	JustBeforeEach(func() {
-		hostPublicKey, _, _, _, err := gossh.ParseAuthorizedKey([]byte(instance1.HostPublicKey()))
-		Expect(err).NotTo(HaveOccurred())
 
-		conn, connErr = ssh.NewConnection(hostname, user, privateKey, gossh.FixedHostKey(hostPublicKey), []string{hostPublicKey.Type()}, logger)
+		conn, connErr = ssh.NewConnection(hostname, user, privateKey, gossh.FixedHostKey(hostPublicKey), []string{"rsa-sha2-256"}, logger)
 	})
 
 	Describe("Connection Creation", func() {
@@ -326,8 +329,7 @@ var _ = Describe("Connection", func() {
 				echo "start"
 				sleep 4
 				echo "end"`)
-
-			conn, connErr = ssh.NewConnectionWithServerAliveInterval(hostname, user, privateKey, gossh.InsecureIgnoreHostKey(), nil, 1, logger)
+			conn, connErr = ssh.NewConnectionWithServerAliveInterval(hostname, user, privateKey, gossh.FixedHostKey(hostPublicKey), []string{"rsa-sha2-256"}, 1, logger)
 			Expect(connErr).NotTo(HaveOccurred())
 
 			stdOut, _, _, _ = conn.Run("/tmp/produce")
@@ -355,8 +357,8 @@ var _ = Describe("Connection", func() {
 				hostname,
 				user,
 				privateKey,
-				gossh.InsecureIgnoreHostKey(),
-				nil,
+				gossh.FixedHostKey(hostPublicKey),
+				[]string{"rsa-sha2-256"},
 				rapidKeepAliveSignalInterval,
 				logger)
 			Expect(connErr).NotTo(HaveOccurred())
