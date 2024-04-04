@@ -59,7 +59,7 @@ resources:
     paths: [docker/Dockerfile]
 
 - name: bbr-pcf-pipeline-tasks-final
-  type: docker-image
+  type: registry-image
   source:
     tag: final
     repository: pcfplatformrecovery/bbr-pcf-pipeline-tasks
@@ -106,15 +106,16 @@ jobs:
       inputs:
       - name: bbr-pcf-pipeline-tasks
       - name: ubuntu-lts
+      outputs:
+      - name: image
       params:
         CONTEXT: bbr-pcf-pipeline-tasks/docker
         BUILD_ARG_REGISTRY: us-west2-docker.pkg.dev/mapbu-cryogenics/dockerhub-proxy-cache
         IMAGE_ARG_BASE_IMAGE: ubuntu-lts/image.tar
-
-      outputs:
-      - name: image-bbr-pcf-pipeline-tasks
+        UNPACK_ROOTFS: true
+      output_mapping: {image: image-bbr-pcf-pipeline-tasks}
   - task: test-for-required-binaries
-    image: image-bbr-pcf-pipeline-tasks
+    image: image
     config:
       platform: linux
       run:
@@ -130,7 +131,7 @@ jobs:
           which fly
           which nc
   - task: write-tag-file
-    image: image-bbr-pcf-pipeline-tasks
+    image: image
     config:
       platform: linux
       outputs:
@@ -145,5 +146,5 @@ jobs:
           echo "final" > tag_file/tag
   - put: bbr-pcf-pipeline-tasks-final
     params:
-      load: bbr-pcf-pipeline-tasks-rc
-      tag_file: tag_file/tag
+      image: image/image.tar
+      additional_tags: tag_file/tag
