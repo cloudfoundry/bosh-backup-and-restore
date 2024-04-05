@@ -24,6 +24,7 @@ secrets:
 #! On 2023-11-13 the osspi jobs were moved into this pipeine, the following were the secrets needed. Unsure how they are generated.
 - &gitlab_norsk_to_osspi_deploy_key ((cerberus:gitlab.norsk-to-osspi-deploy-key))
 - &osm_username ((cerberus:osm.username))
+- &osm_cc_list ((cerberus:osm.cc_list))
 - &osm_api_key_token ((cerberus:osm.api_key_token))
 
 #! On 2023-11-10 we needed a pivnet admin token to upload new releases to TanzuNet. Accounts with admin priveleges are obtained
@@ -138,6 +139,7 @@ groups:
   jobs:
   - upload-to-tanzunet
   - request-osl
+  - alert-team-on-release-creation
   - publish
 - name: bump
   jobs:
@@ -1396,10 +1398,55 @@ jobs:
   - put: osl
     params:
       version: ((.:version))
-      user: fiain@vmware.com
+      user: *osm_username
+      cc_list: *osm_cc_list
       license: VMW_Proprietary
       release_type: GA
       associated_bossd_release: 400400894
+
+- name: alert-team-on-release-creation
+  plan:
+  - in_parallel:
+    - get: cryogenics-ci
+    - get: every-day
+      trigger: true
+    - get: p-bosh-backup-and-restore
+      passed:
+      - request-osl
+    - get: image-cryogenics-essentials
+  - load_var: pivnet-metadata
+    file: p-bosh-backup-and-restore/metadata.yaml
+    format: yaml
+  - get: release-version
+    params:
+      bump: final
+      #! Hack to convert number to string in YAML
+      build: |
+        ((.:pivnet-metadata.release.id))
+      build_without_version: true
+    passed:
+    - request-osl
+  - load_var: version
+    file: release-version/number
+    format: trim
+  - try:
+      do:
+      - task: check-if-clone-request-has-been-approved
+        image: image-cryogenics-essentials
+        file: cryogenics-ci/release-automation/check-if-clone-request-has-been-approved/task.yml
+        params:
+          VERSION: ((.:version))
+          OSM_API_KEY: *osm_api_key
+          PRODUCT_NAME: p-bosh-backup-and-restore
+      - load_var: osm-release-id
+        file: osm/release_id
+        format: trim
+      - put: slack-cryo-notification
+        params:
+          text: |
+            *p-bosh-backup-and-restore:* The OSM team have validated the cloning request for `((.:version))`.
+            Next steps (<!subteam^S028XABEHAP>):
+              1. Follow the <https://osm.eng.vmware.com/oss/#/release/((.:osm-release-id))|link> to generate the OSL.
 
 - name: publish
   serial: true
