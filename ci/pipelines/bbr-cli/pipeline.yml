@@ -1493,7 +1493,7 @@ jobs:
           - file: osl/download/open_source_license_bosh_backup_and_restore_${MAJOR_MINOR}_ga.txt
             file_type: Open Source License
             file_version: ${VERSION}
-          - file: osl/download/vmware-p-bosh-backup-and-restore-${VERSION}-odp.tar.gz
+          - file: osl/download/vmware_p_bosh_backup_and_restore_${VERSION}_odp.tar.gz
             file_type: Open Source License
             file_version: ${VERSION}
           EOF
