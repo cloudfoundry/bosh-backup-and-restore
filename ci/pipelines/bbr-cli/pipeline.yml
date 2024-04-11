@@ -1460,7 +1460,6 @@ jobs:
       - name: osl
       outputs:
       - name: release-metadata
-      - name: static-osl
 
       run:
         path: /bin/bash
@@ -1472,6 +1471,7 @@ jobs:
           set -euo pipefail
           
           : "${VERSION:?}"
+          : "${MAJOR_MINOR:="${VERSION%.*}"}"
           : "${BUILD_METADATA:="${VERSION/${VERSION%+*}/}"}"
           
           if [ -z "$BUILD_METADATA" ]
@@ -1490,21 +1490,18 @@ jobs:
           existing_release:
             id: ${BUILD_METADATA/+/}
           product_files:
-          - file: static-osl/open_source_license_bosh_backup_and_restore_${VERSION}_ga.txt
+          - file: osl/download/open_source_license_bosh_backup_and_restore_${MAJOR_MINOR}_ga.txt
             file_type: Open Source License
             file_version: ${VERSION}
-          - file: static-osl/vmware-p-bosh-backup-and-restore-${VERSION}-odp.tar.gz
+          - file: osl/download/vmware_p_bosh_backup_and_restore_${VERSION}_odp.tar.gz
             file_type: Open Source License
             file_version: ${VERSION}
           EOF
           
-          mv osl/*.txt static-osl/open_source_license_bosh_backup_and_restore_${VERSION}_ga.txt
-          mv osl/*.tar.gz static-osl/vmware-p-bosh-backup-and-restore-${VERSION}-odp.tar.gz
-          
           [ -z "$DEBUG" ] || cat release-metadata/*
   - put: p-bosh-backup-and-restore
     params:
-      file_glob: static-osl/*((.:osl-metadata.version))*
+      file_glob: osl/download/*
       metadata_file: release-metadata/existing-release.yml
       s3_filepath_prefix: product-files/bosh-backup-restore
   - put: slack-cryo-notification
