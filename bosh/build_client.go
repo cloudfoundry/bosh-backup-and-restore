@@ -2,6 +2,7 @@ package bosh
 
 import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ratelimiter"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/cloudfoundry/bosh-cli/v7/director"
 	"github.com/pkg/errors"
@@ -10,7 +11,7 @@ import (
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
-func BuildClient(targetUrl, username, password, caCert, bbrVersion string, logger boshlog.Logger) (Client, error) {
+func BuildClient(targetUrl, username, password, caCert, bbrVersion string, rateLimiter ratelimiter.RateLimiter, logger boshlog.Logger) (Client, error) {
 	var client Client
 
 	factoryConfig, err := director.NewConfigFromURL(targetUrl)
@@ -44,7 +45,7 @@ func BuildClient(targetUrl, username, password, caCert, bbrVersion string, logge
 		return client, errors.Wrap(err, "error building bosh director client")
 	}
 
-	return NewClient(boshDirector, director.NewSSHOpts, ssh.NewSshRemoteRunner, logger, instance.NewJobFinder(bbrVersion, logger), NewBoshManifestQuerier), nil
+	return NewClient(boshDirector, director.NewSSHOpts, ssh.NewSshRemoteRunner, rateLimiter, logger, instance.NewJobFinder(bbrVersion, logger), NewBoshManifestQuerier), nil
 }
 
 func getDirectorInfo(directorFactory director.Factory, factoryConfig director.FactoryConfig) (director.Info, error) {

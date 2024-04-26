@@ -15,6 +15,7 @@ import (
 	"net"
 	"os"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ratelimiter"
 	boshhttp "github.com/cloudfoundry/bosh-utils/httpclient"
 	proxy "github.com/cloudfoundry/socks5-proxy"
 	"github.com/pkg/errors"
@@ -40,17 +41,17 @@ type Logger interface {
 var dialFunc boshhttp.DialContextFunc
 var dialFuncMutex sync.RWMutex
 
-func NewConnection(hostName, userName, privateKey string, publicKeyCallback ssh.HostKeyCallback, publicKeyAlgorithm []string, logger Logger) (SSHConnection, error) {
-	return NewConnectionWithServerAliveInterval(hostName, userName, privateKey, publicKeyCallback, publicKeyAlgorithm, 60, logger)
+func NewConnection(hostName, userName, privateKey string, publicKeyCallback ssh.HostKeyCallback, publicKeyAlgorithm []string, rateLimiter ratelimiter.RateLimiter, logger Logger) (SSHConnection, error) {
+	return NewConnectionWithServerAliveInterval(hostName, userName, privateKey, publicKeyCallback, publicKeyAlgorithm, 60, rateLimiter, logger)
 }
 
-func NewConnectionWithServerAliveInterval(hostName, userName, privateKey string, publicKeyCallback ssh.HostKeyCallback, publicKeyAlgorithm []string, serverAliveInterval time.Duration, logger Logger) (SSHConnection, error) {
+func NewConnectionWithServerAliveInterval(hostName, userName, privateKey string, publicKeyCallback ssh.HostKeyCallback, publicKeyAlgorithm []string, serverAliveInterval time.Duration, rateLimiter ratelimiter.RateLimiter, logger Logger) (SSHConnection, error) {
 	parsedPrivateKey, err := ssh.ParsePrivateKey([]byte(privateKey))
 	if err != nil {
 		return nil, errors.Wrap(err, "ssh.NewConnection.ParsePrivateKey failed")
 	}
 
-	conn := Connection{
+	conn := &Connection{
 		host: defaultToSSHPort(hostName),
 		sshConfig: &ssh.ClientConfig{
 			User: userName,
@@ -63,8 +64,8 @@ func NewConnectionWithServerAliveInterval(hostName, userName, privateKey string,
 		logger:              logger,
 		serverAliveInterval: serverAliveInterval,
 		dialFunc:            createDialContextFunc(),
+		rateLimiter:         rateLimiter,
 	}
-
 	return conn, nil
 }
 
@@ -74,9 +75,10 @@ type Connection struct {
 	logger              Logger
 	serverAliveInterval time.Duration
 	dialFunc            boshhttp.DialContextFunc
+	rateLimiter         ratelimiter.RateLimiter
 }
 
-func (c Connection) Run(cmd string) (stdout, stderr []byte, exitCode int, err error) {
+func (c *Connection) Run(cmd string) (stdout, stderr []byte, exitCode int, err error) {
 	stdoutBuffer := bytes.NewBuffer([]byte{})
 
 	stderr, exitCode, err = c.Stream(cmd, stdoutBuffer)
@@ -84,7 +86,7 @@ func (c Connection) Run(cmd string) (stdout, stderr []byte, exitCode int, err er
 	return stdoutBuffer.Bytes(), stderr, exitCode, errors.Wrap(err, "ssh.Run failed")
 }
 
-func (c Connection) Stream(cmd string, stdoutWriter io.Writer) (stderr []byte, exitCode int, err error) {
+func (c *Connection) Stream(cmd string, stdoutWriter io.Writer) (stderr []byte, exitCode int, err error) {
 	errBuffer := bytes.NewBuffer([]byte{})
 
 	exitCode, err = c.runInSession(cmd, stdoutWriter, errBuffer, nil)
@@ -92,7 +94,7 @@ func (c Connection) Stream(cmd string, stdoutWriter io.Writer) (stderr []byte, e
 	return errBuffer.Bytes(), exitCode, errors.Wrap(err, "ssh.Stream failed")
 }
 
-func (c Connection) StreamStdin(cmd string, stdinReader io.Reader) (stdout, stderr []byte, exitCode int, err error) {
+func (c *Connection) StreamStdin(cmd string, stdinReader io.Reader) (stdout, stderr []byte, exitCode int, err error) {
 	stdoutBuffer := bytes.NewBuffer([]byte{})
 	stderrBuffer := bytes.NewBuffer([]byte{})
 
@@ -116,7 +118,9 @@ func (w *sessionClosingOnErrorWriter) Write(data []byte) (int, error) {
 	return n, err
 }
 
-func (c Connection) newClient() (*ssh.Client, error) {
+func (c *Connection) newClient() (*ssh.Client, error) {
+	c.rateLimiter.RateLimit()
+
 	conn, err := c.dialFunc(context.Background(), "tcp", c.host)
 	if err != nil {
 		return nil, err
@@ -171,7 +175,7 @@ func buildSSHSessionImpl(client *ssh.Client, stdin io.Reader, stdout, stderr io.
 
 var buildSSHSession = buildSSHSessionImpl
 
-func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.Reader) (int, error) {
+func (c *Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.Reader) (int, error) {
 	client, err := c.newClient()
 	if err != nil {
 		return -1, errors.Wrap(err, "ssh.Dial failed")
@@ -216,7 +220,7 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 	return 0, nil
 }
 
-func (c Connection) startKeepAliveLoop(session SSHSession) chan struct{} {
+func (c *Connection) startKeepAliveLoop(session SSHSession) chan struct{} {
 	terminate := make(chan struct{})
 	go func() {
 		for {
@@ -235,7 +239,7 @@ func (c Connection) startKeepAliveLoop(session SSHSession) chan struct{} {
 	return terminate
 }
 
-func (c Connection) Username() string {
+func (c *Connection) Username() string {
 	return c.sshConfig.User
 }
 

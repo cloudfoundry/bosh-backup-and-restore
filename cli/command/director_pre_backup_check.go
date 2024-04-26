@@ -26,24 +26,31 @@ func NewDirectorPreBackupCheckCommand() DirectorPreBackupCheckCommand {
 func (checkCommand DirectorPreBackupCheckCommand) Action(c *cli.Context) error {
 	directorName := extractNameFromAddress(c.Parent().String("host"))
 
+	rateLimiter, err := getConnectionRateLimiter(c)
+
+	if err != nil {
+		return err
+	}
+
 	backupChecker := factory.BuildDirectorBackupChecker(
 		c.Parent().String("host"),
 		c.Parent().String("username"),
 		c.Parent().String("private-key-path"),
 		c.App.Version,
 		c.GlobalBool("debug"),
+		rateLimiter,
 	)
 
-	err := backupChecker.Check(directorName)
+	orchErr := backupChecker.Check(directorName)
 
 	if err != nil {
 		fmt.Printf("Director cannot be backed up.\n")
 
-		if err.ContainsArtifactDirError() {
-			return processErrorWithFooter(err, backupCleanupAdvisedNotice)
+		if orchErr.ContainsArtifactDirError() {
+			return processErrorWithFooter(orchErr, backupCleanupAdvisedNotice)
 		}
 
-		return processError(err)
+		return processError(orchErr)
 	}
 
 	fmt.Printf("Director can be backed up.\n")

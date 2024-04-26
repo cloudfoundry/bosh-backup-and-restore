@@ -7,6 +7,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor/deployment"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ratelimiter"
 	"github.com/urfave/cli"
 )
 
@@ -50,17 +51,23 @@ func (d DeploymentBackupCommand) Action(c *cli.Context) error {
 	unsafeLockFree := c.Bool("unsafe-lock-free")
 	artifactPath := c.String("artifact-path")
 
+	rateLimiter, err := getConnectionRateLimiter(c)
+
+	if err != nil {
+		return err
+	}
+
 	if allDeployments {
 		if unsafeLockFree {
 			return processError(orchestrator.NewError(fmt.Errorf("Cannot use the --unsafe-lock-free flag in conjunction with the --all-deployments flag")))
 		}
-		return backupAll(target, username, password, caCert, artifactPath, withManifest, bbrVersion, debug)
+		return backupAll(target, username, password, caCert, artifactPath, withManifest, bbrVersion, debug, rateLimiter)
 	}
 
-	return backupSingleDeployment(deployment, target, username, password, caCert, artifactPath, withManifest, bbrVersion, unsafeLockFree, debug)
+	return backupSingleDeployment(deployment, target, username, password, caCert, artifactPath, withManifest, bbrVersion, unsafeLockFree, debug, rateLimiter)
 }
 
-func backupAll(target, username, password, caCert, artifactPath string, withManifest bool, bbrVersion string, debug bool) error {
+func backupAll(target, username, password, caCert, artifactPath string, withManifest bool, bbrVersion string, debug bool, rateLimiter ratelimiter.RateLimiter) error {
 	backupAction := func(deploymentName string) orchestrator.Error {
 		timestamp := time.Now().UTC().Format(artifactTimeStampFormat)
 		logFilePath, buffer, logger, logErr := createLogger(timestamp, artifactPath, deploymentName, debug)
@@ -76,6 +83,7 @@ func backupAll(target, username, password, caCert, artifactPath string, withMani
 			withManifest,
 			false,
 			bbrVersion,
+			rateLimiter,
 			logger,
 			timestamp,
 		)
@@ -106,7 +114,7 @@ func backupAll(target, username, password, caCert, artifactPath string, withMani
 	fmt.Println("Starting backup...")
 
 	logger, _ := factory.BuildBoshLoggerWithCustomBuffer(debug)
-	boshClient, err := factory.BuildBoshClient(target, username, password, caCert, bbrVersion, logger)
+	boshClient, err := factory.BuildBoshClient(target, username, password, caCert, bbrVersion, rateLimiter, logger)
 	if err != nil {
 		return processError(orchestrator.NewError(err))
 	}
@@ -119,11 +127,11 @@ func backupAll(target, username, password, caCert, artifactPath string, withMani
 		deployment.NewParallelExecutor())
 }
 
-func backupSingleDeployment(deployment, target, username, password, caCert, artifactPath string, withManifest bool, bbrVersion string, unsafeLockFree, debug bool) error {
+func backupSingleDeployment(deployment, target, username, password, caCert, artifactPath string, withManifest bool, bbrVersion string, unsafeLockFree, debug bool, rateLimiter ratelimiter.RateLimiter) error {
 	logger := factory.BuildBoshLogger(debug)
 	timeStamp := time.Now().UTC().Format(artifactTimeStampFormat)
 
-	backuper, err := factory.BuildDeploymentBackuper(target, username, password, caCert, withManifest, unsafeLockFree, bbrVersion, logger, timeStamp)
+	backuper, err := factory.BuildDeploymentBackuper(target, username, password, caCert, withManifest, unsafeLockFree, bbrVersion, rateLimiter, logger, timeStamp)
 	if err != nil {
 		return processError(orchestrator.NewError(err))
 	}
