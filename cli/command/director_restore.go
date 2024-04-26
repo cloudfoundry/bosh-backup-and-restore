@@ -38,12 +38,19 @@ func (cmd DirectorRestoreCommand) Action(c *cli.Context) error {
 	directorName := extractNameFromAddress(c.Parent().String("host"))
 	artifactPath := c.String("artifact-path")
 
+	rateLimiter, err := getConnectionRateLimiter(c)
+
+	if err != nil {
+		return err
+	}
+
 	restorer := factory.BuildDirectorRestorer(
 		c.Parent().String("host"),
 		c.Parent().String("username"),
 		c.Parent().String("private-key-path"),
 		c.App.Version,
 		c.GlobalBool("debug"),
+		rateLimiter,
 	)
 
 	restoreErr := restorer.Restore(directorName, artifactPath)

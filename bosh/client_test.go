@@ -12,6 +12,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	instancefakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ratelimiter"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	"github.com/cloudfoundry/bosh-cli/v7/director"
@@ -43,7 +44,7 @@ var _ = Describe("Director", func() {
 	var b bosh.BoshClient
 
 	JustBeforeEach(func() {
-		b = bosh.NewClient(boshDirector, optsGenerator.Spy, remoteRunnerFactory.Spy, boshLogger, fakeJobFinder, manifestQuerierCreator.Spy)
+		b = bosh.NewClient(boshDirector, optsGenerator.Spy, remoteRunnerFactory.Spy, ratelimiter.NoOpRateLimiter{}, boshLogger, fakeJobFinder, manifestQuerierCreator.Spy)
 	})
 
 	BeforeEach(func() {
@@ -166,7 +167,7 @@ var _ = Describe("Director", func() {
 
 			It("creates a remote runner for each host", func() {
 				Expect(remoteRunnerFactory.CallCount()).To(Equal(1))
-				host, username, privateKey, _, hostPublicKeyAlgorithm, logger := remoteRunnerFactory.ArgsForCall(0)
+				host, username, privateKey, _, hostPublicKeyAlgorithm, _, logger := remoteRunnerFactory.ArgsForCall(0)
 				Expect(host).To(Equal("10.0.0.0"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
@@ -195,7 +196,7 @@ var _ = Describe("Director", func() {
 
 			It("uses the specified port", func() {
 				Expect(remoteRunnerFactory.CallCount()).To(Equal(1))
-				host, username, privateKey, _, hostPublicKeyAlgorithm, logger := remoteRunnerFactory.ArgsForCall(0)
+				host, username, privateKey, _, hostPublicKeyAlgorithm, _, logger := remoteRunnerFactory.ArgsForCall(0)
 				Expect(host).To(Equal("10.0.0.0:3457"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
@@ -328,14 +329,14 @@ var _ = Describe("Director", func() {
 			It("creates a remote runner for each host", func() {
 				Expect(remoteRunnerFactory.CallCount()).To(Equal(2))
 
-				host, username, privateKey, _, hostPublicKeyAlgorithm, logger := remoteRunnerFactory.ArgsForCall(0)
+				host, username, privateKey, _, hostPublicKeyAlgorithm, _, logger := remoteRunnerFactory.ArgsForCall(0)
 				Expect(host).To(Equal("10.0.0.1"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
 				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmRSA))
 				Expect(logger).To(Equal(boshLogger))
 
-				host, username, privateKey, _, hostPublicKeyAlgorithm, logger = remoteRunnerFactory.ArgsForCall(1)
+				host, username, privateKey, _, hostPublicKeyAlgorithm, _, logger = remoteRunnerFactory.ArgsForCall(1)
 				Expect(host).To(Equal("10.0.0.2"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
@@ -621,21 +622,21 @@ var _ = Describe("Director", func() {
 			It("creates a remote runner for each host that has scripts, and the first instance of each group that doesn't", func() {
 				Expect(remoteRunnerFactory.CallCount()).To(Equal(3))
 
-				host, username, privateKey, _, hostPublicKeyAlgorithm, logger := remoteRunnerFactory.ArgsForCall(0)
+				host, username, privateKey, _, hostPublicKeyAlgorithm, _, logger := remoteRunnerFactory.ArgsForCall(0)
 				Expect(host).To(Equal("10.0.0.1"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
 				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmRSA))
 				Expect(logger).To(Equal(boshLogger))
 
-				host, username, privateKey, _, hostPublicKeyAlgorithm, logger = remoteRunnerFactory.ArgsForCall(1)
+				host, username, privateKey, _, hostPublicKeyAlgorithm, _, logger = remoteRunnerFactory.ArgsForCall(1)
 				Expect(host).To(Equal("10.0.0.3"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
 				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmRSA))
 				Expect(logger).To(Equal(boshLogger))
 
-				host, username, privateKey, _, hostPublicKeyAlgorithm, logger = remoteRunnerFactory.ArgsForCall(2)
+				host, username, privateKey, _, hostPublicKeyAlgorithm, _, logger = remoteRunnerFactory.ArgsForCall(2)
 				Expect(host).To(Equal("10.0.0.4"))
 				Expect(username).To(Equal("username"))
 				Expect(privateKey).To(Equal("private_key"))
@@ -689,7 +690,7 @@ var _ = Describe("Director", func() {
 
 			It("uses the ECDSA algorithm to create its remote runners", func() {
 				Expect(remoteRunnerFactory.CallCount()).To(Equal(1))
-				_, _, _, _, hostPublicKeyAlgorithm, _ := remoteRunnerFactory.ArgsForCall(0)
+				_, _, _, _, hostPublicKeyAlgorithm, _, _ := remoteRunnerFactory.ArgsForCall(0)
 				Expect(hostPublicKeyAlgorithm).To(Equal(hostKeyAlgorithmECDSA))
 			})
 
@@ -995,7 +996,7 @@ var _ = Describe("Director", func() {
 						}}, nil
 					}
 
-					remoteRunnerFactory.Stub = func(host, user, privateKey string, publicKeyCallback gossh.HostKeyCallback, publicKeyAlgorithm []string, logger ssh.Logger) (ssh.RemoteRunner, error) {
+					remoteRunnerFactory.Stub = func(host, user, privateKey string, publicKeyCallback gossh.HostKeyCallback, publicKeyAlgorithm []string, rateLimiter ratelimiter.RateLimiter, logger ssh.Logger) (ssh.RemoteRunner, error) {
 						if host == "10.0.0.0_job1" {
 							return remoteRunner, nil
 						}
