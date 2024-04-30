@@ -12,7 +12,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.17.2
 	github.com/onsi/gomega v1.33.0
 	github.com/pkg/errors v0.9.1
-	github.com/urfave/cli v1.22.14
+	github.com/urfave/cli v1.22.15
 	golang.org/x/crypto v0.22.0
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -27,7 +27,7 @@ require (
 	github.com/cloudfoundry/config-server v0.1.176 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20180221174514-54f73bdb8a8e // indirect
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
