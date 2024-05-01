@@ -1472,7 +1472,6 @@ jobs:
           set -euo pipefail
           
           : "${VERSION:?}"
-          : "${MAJOR_MINOR:="${VERSION%.*}"}"
           : "${BUILD_METADATA:="${VERSION/${VERSION%+*}/}"}"
           
           if [ -z "$BUILD_METADATA" ]
@@ -1491,7 +1490,7 @@ jobs:
           existing_release:
             id: ${BUILD_METADATA/+/}
           product_files:
-          - file: osl/download/open_source_license_bosh_backup_and_restore_${MAJOR_MINOR}_ga.txt
+          - file: osl/download/open_source_license_bosh_backup_and_restore_${VERSION}_ga.txt
             file_type: Open Source License
             file_version: ${VERSION}
           - file: osl/download/vmware_p_bosh_backup_and_restore_${VERSION}_odp.tar.gz
