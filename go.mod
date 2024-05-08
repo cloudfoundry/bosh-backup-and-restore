@@ -1,6 +1,6 @@
 module github.com/cloudfoundry-incubator/bosh-backup-and-restore
 
-go 1.22.2
+go 1.22.3
 
 require (
 	github.com/cloudfoundry/bosh-cli/v7 v7.5.6
