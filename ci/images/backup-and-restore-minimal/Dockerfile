@@ -1,4 +1,4 @@
-FROM golang:1.22.2 as go-binary
+FROM golang:1.22.3 as go-binary
 
 FROM ubuntu:jammy
 
