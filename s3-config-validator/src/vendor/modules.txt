@@ -1,4 +1,4 @@
-# github.com/aws/aws-sdk-go-v2 v1.26.1
+# github.com/aws/aws-sdk-go-v2 v1.26.2
 ## explicit; go 1.20
 github.com/aws/aws-sdk-go-v2/aws
 github.com/aws/aws-sdk-go-v2/aws/arn
@@ -26,22 +26,22 @@ github.com/aws/aws-sdk-go-v2/internal/timeconv
 ## explicit; go 1.20
 github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream
 github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream/eventstreamapi
-# github.com/aws/aws-sdk-go-v2/credentials v1.17.13
+# github.com/aws/aws-sdk-go-v2/credentials v1.17.14
 ## explicit; go 1.20
 github.com/aws/aws-sdk-go-v2/credentials
 github.com/aws/aws-sdk-go-v2/credentials/ec2rolecreds
 github.com/aws/aws-sdk-go-v2/credentials/stscreds
-# github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.1
+# github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.2
 ## explicit; go 1.20
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds
 github.com/aws/aws-sdk-go-v2/feature/ec2/imds/internal/config
-# github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.5
+# github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.6
 ## explicit; go 1.20
 github.com/aws/aws-sdk-go-v2/internal/configsources
-# github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.5
+# github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.6
 ## explicit; go 1.20
 github.com/aws/aws-sdk-go-v2/internal/endpoints/v2
-# github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.5
+# github.com/aws/aws-sdk-go-v2/internal/v4a v1.3.6
 ## explicit; go 1.20
 github.com/aws/aws-sdk-go-v2/internal/v4a
 github.com/aws/aws-sdk-go-v2/internal/v4a/internal/crypto
@@ -49,25 +49,25 @@ github.com/aws/aws-sdk-go-v2/internal/v4a/internal/v4
 # github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.2
 ## explicit; go 1.20
 github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding
-# github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.7
+# github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.8
 ## explicit; go 1.20
 github.com/aws/aws-sdk-go-v2/service/internal/checksum
-# github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.7
+# github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.8
 ## explicit; go 1.20
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url
-# github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.5
+# github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.6
 ## explicit; go 1.20
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared/arn
 github.com/aws/aws-sdk-go-v2/service/internal/s3shared/config
-# github.com/aws/aws-sdk-go-v2/service/s3 v1.54.0
+# github.com/aws/aws-sdk-go-v2/service/s3 v1.54.1
 ## explicit; go 1.20
 github.com/aws/aws-sdk-go-v2/service/s3
 github.com/aws/aws-sdk-go-v2/service/s3/internal/arn
 github.com/aws/aws-sdk-go-v2/service/s3/internal/customizations
 github.com/aws/aws-sdk-go-v2/service/s3/internal/endpoints
 github.com/aws/aws-sdk-go-v2/service/s3/types
-# github.com/aws/aws-sdk-go-v2/service/sts v1.28.7
+# github.com/aws/aws-sdk-go-v2/service/sts v1.28.8
 ## explicit; go 1.20
 github.com/aws/aws-sdk-go-v2/service/sts
 github.com/aws/aws-sdk-go-v2/service/sts/internal/endpoints
