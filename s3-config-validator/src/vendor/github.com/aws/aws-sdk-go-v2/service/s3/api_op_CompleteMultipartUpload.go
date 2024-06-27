@@ -280,6 +280,7 @@ type CompleteMultipartUploadInput struct {
 }
 
 func (in *CompleteMultipartUploadInput) bindEndpointParams(p *EndpointParameters) {
+
 	p.Bucket = in.Bucket
 	p.Key = in.Key
 
@@ -456,6 +457,12 @@ func (c *Client) addOperationCompleteMultipartUploadMiddlewares(stack *middlewar
 		return err
 	}
 	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addIsExpressUserAgent(stack); err != nil {
 		return err
 	}
 	if err = addOpCompleteMultipartUploadValidationMiddleware(stack); err != nil {

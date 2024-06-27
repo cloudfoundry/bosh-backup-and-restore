@@ -507,6 +507,7 @@ type PutObjectInput struct {
 }
 
 func (in *PutObjectInput) bindEndpointParams(p *EndpointParameters) {
+
 	p.Bucket = in.Bucket
 	p.Key = in.Key
 
@@ -708,6 +709,12 @@ func (c *Client) addOperationPutObjectMiddlewares(stack *middleware.Stack, optio
 		return err
 	}
 	if err = addTimeOffsetBuild(stack, c); err != nil {
+		return err
+	}
+	if err = addUserAgentRetryMode(stack, options); err != nil {
+		return err
+	}
+	if err = addIsExpressUserAgent(stack); err != nil {
 		return err
 	}
 	if err = addOpPutObjectValidationMiddleware(stack); err != nil {
