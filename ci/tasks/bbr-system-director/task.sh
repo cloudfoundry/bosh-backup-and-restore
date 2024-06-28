@@ -5,9 +5,6 @@ set -o pipefail
 
 # Add GitHub SSH key to avoid rate-limit
 eval "$(ssh-agent)"
-echo -e "${GITHUB_SDK_PRIVATE_KEY}" > "${PWD}/github-sdk.key"
-chmod 400 "${PWD}/github-sdk.key"
-ssh-add "${PWD}/github-sdk.key"
 
 # # Write Jumpbox SSH key to file
 echo -e "${BOSH_GW_PRIVATE_KEY}" > "${PWD}/ssh.key"

@@ -10,9 +10,6 @@ inputs:
 - name: release-candidate-version
 - name: release-version
 
-params:
-  GITHUB_SDK_PRIVATE_KEY:
-
 outputs:
 - name: bbr-build
 - name: bbr-release

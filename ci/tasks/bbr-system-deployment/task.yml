@@ -14,6 +14,5 @@ params:
   BOSH_GW_HOST:
   BOSH_GW_PRIVATE_KEY:
   BOSH_GW_USER:
-  GITHUB_SDK_PRIVATE_KEY:
 run:
   path: bosh-backup-and-restore/ci/tasks/bbr-system-deployment/task.sh
