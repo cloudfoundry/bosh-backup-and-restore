@@ -18,8 +18,6 @@ params:
   DIRECTOR_SSH_USERNAME:
   DIRECTOR_SSH_KEY:
 
-  GITHUB_SDK_PRIVATE_KEY:
-
   USE_SHUTTLE: true
 run:
   path: bosh-backup-and-restore/ci/tasks/bbr-system-director/task.sh
