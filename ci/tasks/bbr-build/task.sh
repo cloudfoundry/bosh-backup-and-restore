@@ -6,11 +6,6 @@ set -eu
 [ -d 'release-candidate-version' ]
 [ -d 'release-version' ]
 
-eval "$(ssh-agent)"
-echo -e "${GITHUB_SDK_PRIVATE_KEY}" > "${PWD}/github-sdk.key"
-chmod 400 "${PWD}/github-sdk.key"
-ssh-add "${PWD}/github-sdk.key"
-
 RELEASE_CANDIDATE_VERSION=$(cat release-candidate-version/number)
 VERSION=$(cat release-version/number)
 export VERSION

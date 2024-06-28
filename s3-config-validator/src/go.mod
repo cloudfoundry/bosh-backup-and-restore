@@ -1,6 +1,6 @@
 module github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src
 
-go 1.22.3
+go 1.22.5
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.27.2
