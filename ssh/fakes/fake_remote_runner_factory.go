@@ -4,12 +4,13 @@ package fakes
 import (
 	"sync"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ratelimiter"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	ssha "golang.org/x/crypto/ssh"
 )
 
 type FakeRemoteRunnerFactory struct {
-	Stub        func(string, string, string, ssha.HostKeyCallback, []string, ssh.Logger) (ssh.RemoteRunner, error)
+	Stub        func(string, string, string, ssha.HostKeyCallback, []string, ratelimiter.RateLimiter, ssh.Logger) (ssh.RemoteRunner, error)
 	mutex       sync.RWMutex
 	argsForCall []struct {
 		arg1 string
@@ -17,7 +18,8 @@ type FakeRemoteRunnerFactory struct {
 		arg3 string
 		arg4 ssha.HostKeyCallback
 		arg5 []string
-		arg6 ssh.Logger
+		arg6 ratelimiter.RateLimiter
+		arg7 ssh.Logger
 	}
 	returns struct {
 		result1 ssh.RemoteRunner
@@ -31,7 +33,7 @@ type FakeRemoteRunnerFactory struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeRemoteRunnerFactory) Spy(arg1 string, arg2 string, arg3 string, arg4 ssha.HostKeyCallback, arg5 []string, arg6 ssh.Logger) (ssh.RemoteRunner, error) {
+func (fake *FakeRemoteRunnerFactory) Spy(arg1 string, arg2 string, arg3 string, arg4 ssha.HostKeyCallback, arg5 []string, arg6 ratelimiter.RateLimiter, arg7 ssh.Logger) (ssh.RemoteRunner, error) {
 	var arg5Copy []string
 	if arg5 != nil {
 		arg5Copy = make([]string, len(arg5))
@@ -45,14 +47,15 @@ func (fake *FakeRemoteRunnerFactory) Spy(arg1 string, arg2 string, arg3 string, 
 		arg3 string
 		arg4 ssha.HostKeyCallback
 		arg5 []string
-		arg6 ssh.Logger
-	}{arg1, arg2, arg3, arg4, arg5Copy, arg6})
+		arg6 ratelimiter.RateLimiter
+		arg7 ssh.Logger
+	}{arg1, arg2, arg3, arg4, arg5Copy, arg6, arg7})
 	stub := fake.Stub
 	returns := fake.returns
 	fake.recordInvocation("RemoteRunnerFactory", []interface{}{arg1, arg2, arg3, arg4, arg5Copy, arg6})
 	fake.mutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4, arg5, arg6)
+		return stub(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -66,16 +69,16 @@ func (fake *FakeRemoteRunnerFactory) CallCount() int {
 	return len(fake.argsForCall)
 }
 
-func (fake *FakeRemoteRunnerFactory) Calls(stub func(string, string, string, ssha.HostKeyCallback, []string, ssh.Logger) (ssh.RemoteRunner, error)) {
+func (fake *FakeRemoteRunnerFactory) Calls(stub func(string, string, string, ssha.HostKeyCallback, []string, ratelimiter.RateLimiter, ssh.Logger) (ssh.RemoteRunner, error)) {
 	fake.mutex.Lock()
 	defer fake.mutex.Unlock()
 	fake.Stub = stub
 }
 
-func (fake *FakeRemoteRunnerFactory) ArgsForCall(i int) (string, string, string, ssha.HostKeyCallback, []string, ssh.Logger) {
+func (fake *FakeRemoteRunnerFactory) ArgsForCall(i int) (string, string, string, ssha.HostKeyCallback, []string, ratelimiter.RateLimiter, ssh.Logger) {
 	fake.mutex.RLock()
 	defer fake.mutex.RUnlock()
-	return fake.argsForCall[i].arg1, fake.argsForCall[i].arg2, fake.argsForCall[i].arg3, fake.argsForCall[i].arg4, fake.argsForCall[i].arg5, fake.argsForCall[i].arg6
+	return fake.argsForCall[i].arg1, fake.argsForCall[i].arg2, fake.argsForCall[i].arg3, fake.argsForCall[i].arg4, fake.argsForCall[i].arg5, fake.argsForCall[i].arg6, fake.argsForCall[i].arg7
 }
 
 func (fake *FakeRemoteRunnerFactory) Returns(result1 ssh.RemoteRunner, result2 error) {

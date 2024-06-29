@@ -30,13 +30,20 @@ func (d DeploymentPreBackupCheck) Cli() cli.Command {
 
 func (d DeploymentPreBackupCheck) Action(c *cli.Context) error {
 	username, password, target, caCert, bbrVersion, debug, deployment, allDeployments := getDeploymentParams(c)
+
+	rateLimiter, err := getConnectionRateLimiter(c)
+
+	if err != nil {
+		return err
+	}
+
 	var logger logger.Logger
 	if allDeployments {
 		logger, _ = factory.BuildBoshLoggerWithCustomBuffer(debug)
 	} else {
 		logger = factory.BuildBoshLogger(debug)
 	}
-	boshClient, err := factory.BuildBoshClient(target, username, password, caCert, bbrVersion, logger)
+	boshClient, err := factory.BuildBoshClient(target, username, password, caCert, bbrVersion, rateLimiter, logger)
 	if err != nil {
 		return processError(orchestrator.NewError(err))
 	}
