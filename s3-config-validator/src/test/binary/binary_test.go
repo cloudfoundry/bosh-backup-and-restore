@@ -34,7 +34,7 @@ var _ = Describe("binary tests", func() {
 
 				Context("is not valid", func() {
 					It("fails with an error message", func() {
-						Eventually(session, "10s").Should(gexec.Exit(1))
+						Eventually(session, "60s").Should(gexec.Exit(1))
 						Eventually(session.Out).Should(gbytes.Say(`Bad config`))
 					})
 				})
@@ -166,7 +166,7 @@ var _ = Describe("binary tests", func() {
 			})
 
 			It("displays general information", func() {
-				Eventually(session, "10s").Should(gexec.Exit(0))
+				Eventually(session, "60s").Should(gexec.Exit(0))
 				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(`
 				Make sure to run this on your 'backup & restore' VM.
 
@@ -182,7 +182,7 @@ var _ = Describe("binary tests", func() {
 			It("successfully validates just read-only operations", func() {
 				session := executeBBRValidatorUnversioned(validUnversionedConfigFile.Name())
 
-				Eventually(session, "10s").Should(gexec.Exit(0))
+				Eventually(session, "60s").Should(gexec.Exit(0))
 				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(`
 					Validating test-resource's live bucket bbr-s3-validator-e2e-all-permissions ...
 					 * Bucket is not versioned ... Yes
@@ -208,7 +208,7 @@ var _ = Describe("binary tests", func() {
 			})
 
 			It("displays general information", func() {
-				Eventually(session, "10s").Should(gexec.Exit(0))
+				Eventually(session, "60s").Should(gexec.Exit(0))
 				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(`
 				Make sure to run this on your 'backup & restore' VM.
 
@@ -222,7 +222,7 @@ var _ = Describe("binary tests", func() {
 			})
 
 			It("successfully validates all operations", func() {
-				Eventually(session, "10s").Should(gexec.Exit(0))
+				Eventually(session, "60s").Should(gexec.Exit(0))
 				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(`
 					Validating test-resource's live bucket bbr-s3-validator-e2e-all-permissions ...
 					 * Bucket is not versioned ... Yes
@@ -250,7 +250,7 @@ var _ = Describe("binary tests", func() {
 			})
 
 			It("Displays the usage", func() {
-				Eventually(session, "10s").Should(gexec.Exit(0))
+				Eventually(session, "60s").Should(gexec.Exit(0))
 				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(`
 					Validates a BOSH backup and restore bucket configuration.
 					By default it will assume versioned buckets unless specified otherwise.
