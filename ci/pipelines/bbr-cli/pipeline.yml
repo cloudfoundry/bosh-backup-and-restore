@@ -943,9 +943,8 @@ jobs:
       - put: gchat-cryo-notification
         params:
           text: |
-            *BBR CLI*: version `((.:version-number))` has been published 🎉
-            Next steps <users/all>:
-              1. Review the release notes <((.:github-release-url))|here>.
+            *BBR CLI*: version `((.:version-number))` has been published!
+            Next steps: Review the release notes <((.:github-release-url))|here>.
 
 - name: update-homebrew-formula
   serial: true
