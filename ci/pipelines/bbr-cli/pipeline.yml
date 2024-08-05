@@ -43,7 +43,7 @@ secrets:
 - &homebrew_ci_bot_private_key  ((github_deploy_key_homebrew-tap.private_key))
 
 #! as of 23/04/2024 gchat webhook is used to send us ci status messages. It was created in gchat space settings after logging in with personal creds
-- &gchat_webhook ((gchat-webhook-dap-bosh-ecosystem-dev-GChatVersion-TaylorsVersion))
+- &gchat_webhook ((gchat-webhook-dap-bosh-ecosystem-dev))
 
 #! They are static values stored in credhub.
 - &test-bosh-director-ip 10.0.255.5
