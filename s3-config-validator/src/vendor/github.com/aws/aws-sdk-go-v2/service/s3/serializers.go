@@ -4208,6 +4208,30 @@ func awsRestxml_serializeOpHttpBindingsHeadObjectInput(v *HeadObjectInput, encod
 		encoder.SetHeader(locationName).String(string(v.RequestPayer))
 	}
 
+	if v.ResponseCacheControl != nil {
+		encoder.SetQuery("response-cache-control").String(*v.ResponseCacheControl)
+	}
+
+	if v.ResponseContentDisposition != nil {
+		encoder.SetQuery("response-content-disposition").String(*v.ResponseContentDisposition)
+	}
+
+	if v.ResponseContentEncoding != nil {
+		encoder.SetQuery("response-content-encoding").String(*v.ResponseContentEncoding)
+	}
+
+	if v.ResponseContentLanguage != nil {
+		encoder.SetQuery("response-content-language").String(*v.ResponseContentLanguage)
+	}
+
+	if v.ResponseContentType != nil {
+		encoder.SetQuery("response-content-type").String(*v.ResponseContentType)
+	}
+
+	if v.ResponseExpires != nil {
+		encoder.SetQuery("response-expires").String(smithytime.FormatHTTPDate(*v.ResponseExpires))
+	}
+
 	if v.SSECustomerAlgorithm != nil && len(*v.SSECustomerAlgorithm) > 0 {
 		locationName := "X-Amz-Server-Side-Encryption-Customer-Algorithm"
 		encoder.SetHeader(locationName).String(*v.SSECustomerAlgorithm)
@@ -4522,6 +4546,10 @@ func (m *awsRestxml_serializeOpListBuckets) HandleSerialize(ctx context.Context,
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
 
+	if err := awsRestxml_serializeOpHttpBindingsListBucketsInput(input, restEncoder); err != nil {
+		return out, metadata, &smithy.SerializationError{Err: err}
+	}
+
 	if request.Request, err = restEncoder.Encode(request.Request); err != nil {
 		return out, metadata, &smithy.SerializationError{Err: err}
 	}
@@ -4532,6 +4560,14 @@ func (m *awsRestxml_serializeOpListBuckets) HandleSerialize(ctx context.Context,
 func awsRestxml_serializeOpHttpBindingsListBucketsInput(v *ListBucketsInput, encoder *httpbinding.Encoder) error {
 	if v == nil {
 		return fmt.Errorf("unsupported serialization of nil %T", v)
+	}
+
+	if v.ContinuationToken != nil {
+		encoder.SetQuery("continuation-token").String(*v.ContinuationToken)
+	}
+
+	if v.MaxBuckets != nil {
+		encoder.SetQuery("max-buckets").Integer(*v.MaxBuckets)
 	}
 
 	return nil

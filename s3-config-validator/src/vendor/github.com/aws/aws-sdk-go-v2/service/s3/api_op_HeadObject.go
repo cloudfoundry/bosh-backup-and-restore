@@ -30,13 +30,6 @@ import (
 //
 // Request headers are limited to 8 KB in size. For more information, see [Common Request Headers].
 //
-// Directory buckets - For directory buckets, you must make requests for this API
-// operation to the Zonal endpoint. These endpoints support virtual-hosted-style
-// requests in the format
-// https://bucket_name.s3express-az_id.region.amazonaws.com/key-name . Path-style
-// requests are not supported. For more information, see [Regional and Zonal endpoints]in the Amazon S3 User
-// Guide.
-//
 // Permissions
 //
 //   - General purpose bucket permissions - To use HEAD , you must have the
@@ -112,6 +105,12 @@ import (
 //
 // HTTP Host header syntax  Directory buckets - The HTTP Host header syntax is
 // Bucket_name.s3express-az_id.region.amazonaws.com .
+//
+// For directory buckets, you must make requests for this API operation to the
+// Zonal endpoint. These endpoints support virtual-hosted-style requests in the
+// format https://bucket_name.s3express-az_id.region.amazonaws.com/key-name .
+// Path-style requests are not supported. For more information, see [Regional and Zonal endpoints]in the Amazon
+// S3 User Guide.
 //
 // The following actions are related to HeadObject :
 //
@@ -289,6 +288,24 @@ type HeadObjectInput struct {
 	// [Downloading Objects in Requester Pays Buckets]: https://docs.aws.amazon.com/AmazonS3/latest/dev/ObjectsinRequesterPaysBuckets.html
 	RequestPayer types.RequestPayer
 
+	// Sets the Cache-Control header of the response.
+	ResponseCacheControl *string
+
+	// Sets the Content-Disposition header of the response.
+	ResponseContentDisposition *string
+
+	// Sets the Content-Encoding header of the response.
+	ResponseContentEncoding *string
+
+	// Sets the Content-Language header of the response.
+	ResponseContentLanguage *string
+
+	// Sets the Content-Type header of the response.
+	ResponseContentType *string
+
+	// Sets the Expires header of the response.
+	ResponseExpires *time.Time
+
 	// Specifies the algorithm to use when encrypting the object (for example, AES256).
 	//
 	// This functionality is not supported for directory buckets.
@@ -320,6 +337,7 @@ type HeadObjectInput struct {
 }
 
 func (in *HeadObjectInput) bindEndpointParams(p *EndpointParameters) {
+
 	p.Bucket = in.Bucket
 	p.Key = in.Key
 
