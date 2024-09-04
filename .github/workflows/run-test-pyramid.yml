@@ -13,7 +13,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - run: |
-        export PATH=/usr/libexec/docker/cli-plugins:$PATH
-        docker-compose run bbr-unit
-
+    - run: docker compose run bbr-unit
