@@ -112,8 +112,8 @@ groups:
   - update-homebrew-formula
 - name: bump
   jobs:
-  - bump-golang
-  - bump-go-module
+  - bump-deps-bbr-cli
+  - bump-deps-s3-config-validator
 
 - name: registry-images
   jobs:
@@ -143,6 +143,13 @@ resource_types:
   type: registry-image
   source:
     repository: frodenas/gcs-resource
+    username: *docker_username
+    password: *docker_password
+
+- name: golang-image
+  type: registry-image
+  source:
+    repository: golang
     username: *docker_username
     password: *docker_password
 
@@ -1066,111 +1073,53 @@ jobs:
       action: release
       resource: additional-environment
 
-- name: bump-golang
-  serial: true
+- name: bump-deps-bbr-cli
   plan:
   - in_parallel:
-    - get: cryogenics-concourse-tasks
-      resource: cryogenics-ci
+    - get: weekly
+      trigger: true
+    - get: bosh-backup-and-restore
     - get: golang-release
-      trigger: true
-    - get: bosh-backup-and-restore
-      resource: main
-      params:
-        branch: master
-    - get: image-cryogenics-essentials
-  - task: update-gomod-directive-for-bbr-cli
-    image: image-cryogenics-essentials
-    file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
-    params:
-      PATH_TO_GO_MODULE: .
+    - get: golang-image
+  - task: bump-deps
+    file: golang-release/ci/tasks/shared/bump-deps.yml
     input_mapping:
-      bosh-release-repo-with-vendored-golang: golang-release
-      golang-project-repo: bosh-backup-and-restore
+      input_repo: bosh-backup-and-restore
     output_mapping:
-      golang-project-repo: bosh-backup-and-restore
-  - task: update-gomod-directive-for-s3-validator
-    image: image-cryogenics-essentials
-    file: cryogenics-concourse-tasks/tasks/bosh/update-go-directive/task.yml
-    params:
-      PATH_TO_GO_MODULE: s3-config-validator/src
+      output_repo: bumped-bosh-backup-and-restore
+  - task: test-unit
+    file: bosh-agent/ci/tasks/test-unit/task.yml
     input_mapping:
-      bosh-release-repo-with-vendored-golang: golang-release
-      golang-project-repo: bosh-backup-and-restore
-    output_mapping:
-      golang-project-repo: bosh-backup-and-restore
-  - load_var: golang-release-version
-    file: golang-release/.git/describe_ref
-  - put: bosh-backup-and-restore-write-branch
+      bosh-backup-and-restore: bumped-bosh-backup-and-restore
+  - put: bosh-backup-and-restore
     params:
-      repository: bosh-backup-and-restore
-      branch: &golang-vendor-branch bump-golang-based-on-golang-vendor-((.:golang-release-version))
-      force: true
-  - try:
-      task: create-golang-vendor-pull-request
-      image: image-cryogenics-essentials
-      file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-      params:
-        BASE: master
-        BRANCH: *golang-vendor-branch
-        LABELS: dependencies
-        TITLE: Bump Golang based on golang-vendor-((.:golang-release-version))
-        MESSAGE: |
-          This is an automatically generated Pull Request from the Cryogenics CI Bot.
+      repository: bumped-bosh-backup-and-restore
+      rebase: true
 
-          I have detected a new version of [golang-release](https://github.com/bosh-packages/golang-release) and automatically bumped this package to benefit from the latest changes.
-
-          If this does not look right, please reach out to the mapbu-cryogenics team.
-      input_mapping:
-        source-repo: bosh-backup-and-restore-write-branch
-
-- name: bump-go-module
-  serial: true
+- name: bump-deps-s3-config-validator
   plan:
   - in_parallel:
-    - get: cryogenics-concourse-tasks
-      resource: cryogenics-ci
-    - get: every-day
+    - get: weekly
       trigger: true
     - get: bosh-backup-and-restore
-      resource: main
-      params:
-        branch: master
-    - get: image-cryogenics-essentials
-  - task: bump
-    image: image-cryogenics-essentials
-    file: cryogenics-concourse-tasks/deps-automation/bump-go-module/task.yml
+    - get: golang-release
+    - get: golang-image
+  - task: bump-deps
+    file: golang-release/ci/tasks/shared/bump-deps.yml
     input_mapping:
-      source-repo: bosh-backup-and-restore
+      input_repo: bosh-backup-and-restore
+    output_mapping:
+      output_repo: bumped-bosh-backup-and-restore
     params:
-      GIT_USERNAME: *github_user
-      GIT_EMAIL: *github_email
-  - try:
-      load_var: go-module-update-branch
-      file: destination-repo/.update-branch-name
-      on_success:
-        do:
-        - put: bosh-backup-and-restore-write-branch
-          params:
-            repository: destination-repo
-            branch: &go-module-branch ((.:go-module-update-branch))
-        - task: create-go-module-pull-request
-          image: image-cryogenics-essentials
-          file: cryogenics-concourse-tasks/github-automation/create-pr/task.yml
-          params:
-            BASE: master
-            BRANCH: *go-module-branch
-            LABELS: dependencies
-            TITLE: Bump go module ((.:go-module-update-branch))
-            MESSAGE: |
-              This is an automatically generated Pull Request from the Cryogenics CI Bot.
-
-              I have detected a new version of a go module and automatically bumped
-              it to benefit from the latest changes.
-
-              If this does not look right, please reach out to the mapbu-cryogenics team.
-            input_mapping:
-              source-repo: bosh-backup-and-restore-write-branch
+      SOURCE_PATH: s3-config-validator
+  - task: test-unit-s3-config-validator
+    file: bosh-agent/ci/tasks/test-unit-s3-config-validator/task.yml
+    input_mapping:
+      bosh-backup-and-restore: bumped-bosh-backup-and-restore
+  - put: bosh-backup-and-restore
+    params:
+      repository: bumped-bosh-backup-and-restore
+      rebase: true
 
 - name: govulncheck
   plan:
