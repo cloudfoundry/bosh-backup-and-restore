@@ -446,6 +446,7 @@ resources:
   type: time
   icon: timer-outline
   source:
+    initial_version: true
     start: 9:00 AM
     stop: 5:00 PM
     days: [Monday,Friday]
