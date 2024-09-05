@@ -1080,7 +1080,7 @@ jobs:
     output_mapping:
       output_repo: bosh-backup-and-restore
   - task: test-unit
-    file: bosh-agent/ci/tasks/test-unit/task.yml
+    file: bosh-backup-and-restore/ci/tasks/test-unit/task.yml
   - put: main
     params:
       repository: bosh-backup-and-restore
@@ -1104,7 +1104,7 @@ jobs:
     params:
       SOURCE_PATH: s3-config-validator
   - task: test-unit-s3-config-validator
-    file: bosh-agent/ci/tasks/test-unit-s3-config-validator/task.yml
+    file: bosh-backup-and-restore/ci/tasks/test-unit-s3-config-validator/task.yml
   - put: main
     params:
       repository: bosh-backup-and-restore
