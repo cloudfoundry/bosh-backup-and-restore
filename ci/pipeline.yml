@@ -1103,7 +1103,7 @@ jobs:
     output_mapping:
       output_repo: bosh-backup-and-restore
     params:
-      SOURCE_PATH: s3-config-validator
+      SOURCE_PATH: s3-config-validator/src/
   - task: test-unit-s3-config-validator
     file: bosh-backup-and-restore/ci/tasks/test-unit-s3-config-validator/task.yml
     image: golang-image
