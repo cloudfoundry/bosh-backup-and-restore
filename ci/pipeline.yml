@@ -146,13 +146,6 @@ resource_types:
     username: *docker_username
     password: *docker_password
 
-- name: golang-image
-  type: registry-image
-  source:
-    repository: golang
-    username: *docker_username
-    password: *docker_password
-
 - name: google-chat-notify-resource
   type: registry-image
   source:
@@ -235,16 +228,6 @@ resources:
     private_key: *github_deploy_key_bosh-backup-and-restore
     branch: master
     disable_git_lfs: true
-
-- name: bosh-backup-and-restore-write-branch
-  icon: github
-  type: git
-  source:
-    uri: git@github.com:cloudfoundry/bosh-backup-and-restore.git
-    private_key: *github_deploy_key_bosh-backup-and-restore
-    commit_filter:
-      exclude:
-      - ;resource comment; This resource is used exclusively for pushing new changes
 
 - name: homebrew-tap
   type: git
@@ -449,6 +432,13 @@ resources:
   type: registry-image
   source:
     repository: concourse/oci-build-task
+    username: *docker_username
+    password: *docker_password
+
+- name: golang-image
+  type: registry-image
+  source:
+    repository: golang
     username: *docker_username
     password: *docker_password
 
@@ -1076,9 +1066,10 @@ jobs:
 - name: bump-deps-bbr-cli
   plan:
   - in_parallel:
-    - get: weekly
+    - get: every-monday
       trigger: true
     - get: bosh-backup-and-restore
+      resource: main
     - get: golang-release
     - get: golang-image
   - task: bump-deps
@@ -1086,22 +1077,21 @@ jobs:
     input_mapping:
       input_repo: bosh-backup-and-restore
     output_mapping:
-      output_repo: bumped-bosh-backup-and-restore
+      output_repo: bosh-backup-and-restore
   - task: test-unit
     file: bosh-agent/ci/tasks/test-unit/task.yml
-    input_mapping:
-      bosh-backup-and-restore: bumped-bosh-backup-and-restore
-  - put: bosh-backup-and-restore
+  - put: main
     params:
-      repository: bumped-bosh-backup-and-restore
+      repository: bosh-backup-and-restore
       rebase: true
 
 - name: bump-deps-s3-config-validator
   plan:
   - in_parallel:
-    - get: weekly
+    - get: every-monday
       trigger: true
     - get: bosh-backup-and-restore
+      resource: main
     - get: golang-release
     - get: golang-image
   - task: bump-deps
@@ -1109,16 +1099,14 @@ jobs:
     input_mapping:
       input_repo: bosh-backup-and-restore
     output_mapping:
-      output_repo: bumped-bosh-backup-and-restore
+      output_repo: bosh-backup-and-restore
     params:
       SOURCE_PATH: s3-config-validator
   - task: test-unit-s3-config-validator
     file: bosh-agent/ci/tasks/test-unit-s3-config-validator/task.yml
-    input_mapping:
-      bosh-backup-and-restore: bumped-bosh-backup-and-restore
-  - put: bosh-backup-and-restore
+  - put: main
     params:
-      repository: bumped-bosh-backup-and-restore
+      repository: bosh-backup-and-restore
       rebase: true
 
 - name: govulncheck
