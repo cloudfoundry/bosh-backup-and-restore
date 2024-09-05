@@ -1,4 +1,4 @@
-test: test-unit test-integration
+test: test-unit test-ssh test-integration
 
 push: test sys-test-local
 	git push
@@ -10,6 +10,8 @@ watch:
 
 test-unit:
 	go run github.com/onsi/ginkgo/v2/ginkgo -p -r -skip-package integration,system,s3-config-validator,ssh
+
+test-ssh:
 	go run github.com/onsi/ginkgo/v2/ginkgo -r ssh
 
 test-integration:
