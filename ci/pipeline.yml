@@ -1081,6 +1081,7 @@ jobs:
       output_repo: bosh-backup-and-restore
   - task: test-unit
     file: bosh-backup-and-restore/ci/tasks/test-unit/task.yml
+    image: golang-image
   - put: main
     params:
       repository: bosh-backup-and-restore
@@ -1105,6 +1106,7 @@ jobs:
       SOURCE_PATH: s3-config-validator
   - task: test-unit-s3-config-validator
     file: bosh-backup-and-restore/ci/tasks/test-unit-s3-config-validator/task.yml
+    image: golang-image
   - put: main
     params:
       repository: bosh-backup-and-restore
