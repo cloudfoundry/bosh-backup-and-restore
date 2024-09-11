@@ -1,7 +1,6 @@
 ---
 #@ load("@ytt:data", "data")
 
-
 #! ************************************
 #! Secrets we need to run this pipeline
 #! ************************************
@@ -57,6 +56,9 @@ secrets:
 
 - &docker_username ((docker.username))
 - &docker_password ((docker.password))
+
+#! Access token for our service account user in Github Enterprise
+- &ghe_svc_account_personal_access_token ((svc-bosh-ecosystem-ghe-personal-access-token))
 
 #! **************
 #! End of secrets
@@ -231,6 +233,15 @@ resources:
     uri: git@github.com:cloudfoundry/homebrew-tap.git
     branch: master
     private_key: *homebrew_ci_bot_private_key
+
+- name: gormt-repo
+  type: git
+  icon: github
+  tags: [ broadcom ]
+  source:
+    uri: https://github.gwd.broadcom.net/TNZ/gormt.git
+    username: svc.bosh-ecosystem@broadcom.net
+    password: *ghe_svc_account_personal_access_token
 
 - name: bbr-artefacts
   type: s3
@@ -434,6 +445,13 @@ resources:
   type: registry-image
   source:
     repository: golang
+    username: *docker_username
+    password: *docker_password
+
+- name: bosh-ecosystem-registry-image
+  type: registry-image
+  source:
+    repository: bosh/bosh-ecosystem-concourse
     username: *docker_username
     password: *docker_password
 
@@ -1009,6 +1027,65 @@ jobs:
     params:
       repository: updated-homebrew-tap
       rebase: true
+
+- name: publish-to-rmt
+  plan:
+  - in_parallel:
+    - get: main
+      trigger: true
+      passed: [ publish-to-github ]
+    - get: bbr-artefacts
+      passed: [ publish-to-github ]
+      params:
+        unpack: true
+    - get: s3-config-validator-artefacts
+      params:
+        unpack: true
+      passed: [ publish-to-github ]
+    - get: release-version
+      passed: [ publish-to-github ]
+    - get: gormt-repo
+      tags: [ broadcom ]
+    - get: bosh-ecosystem-registry-image
+  - load_var: version-number
+    file: release-version/number
+  - task: build-release-config
+    file: main/ci/tasks/build-release-config/task.yml
+    image: bosh-ecosystem-registry-image
+    params:
+      RELEASE_CONTACT: "maya.rosecrance@broadcom.com"
+      RELEASE_TITLE: BOSH Backup and Restore
+      RELEASE_PRODUCT_NAME: BOSH Backup and Restore
+      RELEASE_DISPLAY_GROUP: BOSH Backup and Restore
+      RELEASE_TYPE: Release Update / MP
+      RELEASE_STATUS: GA
+      RELEASE_PRODUCT_SLUG: stemcells-ubuntu-jammy
+      RELEASE_VERSION: ((.:version-number))
+#  - task: create-rmt-release
+#    image: bosh-ecosystem-registry-image
+#    tags: [ broadcom ]
+#    file: gormt-repo/concourse_examples/tasks/create-release.yml
+#    params:
+#      RMT_RMT_EMAIL: maya.rosecrance@broadcom.com
+#      RMT_RMT_HOST: ((rmt-prod-host))
+#      RMT_RMT_USERNAME: ((rmt-prod-user.username))
+#      RMT_RMT_PASSWORD: ((rmt-prod-user.password))
+#      RMT_SFTP_HOST: ((sftp-prod-host))
+#      RMT_SFTP_USERNAME: ((sftp-prod-user.username))
+#      RMT_SFTP_PASSWORD: ((sftp-prod-user.password))
+#      RMT_VERBOSE: true
+#    on_failure:
+#      task: cleanup-rmt-please-instructions
+#      config:
+#        platform: linux
+#        image: bosh-ecosystem-registry-image
+#        run:
+#          path: bash
+#          args:
+#          - -exc
+#          - |
+#            echo "Make sure any failed releases in RMT are cleaned up!"
+
 
 - name: claim-env
   plan:

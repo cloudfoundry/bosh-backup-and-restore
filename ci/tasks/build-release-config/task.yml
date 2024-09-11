@@ -1,0 +1,26 @@
+---
+platform: linux
+
+inputs:
+- name: bosh-ecosystem-registry-image
+- name: main
+- name: bbr-artefacts
+- name: s3-config-validator-artefacts
+
+outputs:
+- name: release-config
+- name: release-files
+
+run:
+  path: main/ci/tasks/build-release-config/task.sh
+
+params:
+  RELEASE_CONTACT:
+  RELEASE_TITLE:
+  RELEASE_PRODUCT_NAME:
+  RELEASE_DISPLAY_GROUP:
+  RELEASE_TYPE:
+  RELEASE_STATUS:
+  RELEASE_SKU:
+  RELEASE_PRODUCT_SLUG:
+  RELEASE_VERSION:
