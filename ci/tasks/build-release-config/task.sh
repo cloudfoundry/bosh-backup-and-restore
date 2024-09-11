@@ -4,7 +4,7 @@ set -euo pipefail
 root_dir=$(pwd)
 
 today="$(date '+%m/%d/%Y')"
-one_year_from_now="$(date -v +1y '+%m/%d/%Y')"
+one_year_from_now="$(date --date='1 year hence' '+%m/%d/%Y')"
 
 cp bbr-artefacts/bbr-${RELEASE_VERSION}*.tar release-files/bbr-${RELEASE_VERSION}.tar
 tar -x -f bbr-artefacts/bbr-${RELEASE_VERSION}*.tar --to-stdout releases/bbr-mac > release-files/bbr-${RELEASE_VERSION}-darwin-amd64
