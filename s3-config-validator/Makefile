@@ -12,9 +12,22 @@ artifact: build
 build:
 	./build_all.sh
 
+ifeq ($(shell whoami), root)
+NON_ROOT_USER='bbr'
 test-unit:
-	cd src/ && \
-	go run github.com/onsi/ginkgo/v2/ginkgo -r --keep-going internal
+	cd src/ \
+	&& chmod -R g+w . \
+	&& useradd --groups root --create-home $(NON_ROOT_USER) \
+	&& set +x; \
+		su $(NON_ROOT_USER) -c 'go run github.com/onsi/ginkgo/v2/ginkgo -r --keep-going internal'; \
+		status=$$?; \
+		userdel --remove bbr \
+	&& exit $${status}
+else
+test-unit:
+	cd src/ \
+ 	&& go run github.com/onsi/ginkgo/v2/ginkgo -r --keep-going internal
+endif
 
 test-e2e:
 	cd src/test && \
