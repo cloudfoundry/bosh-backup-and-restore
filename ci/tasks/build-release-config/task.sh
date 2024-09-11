@@ -7,8 +7,8 @@ today="$(date '+%m/%d/%Y')"
 one_year_from_now="$(date --date='1 year hence' '+%m/%d/%Y')"
 
 cp bbr-artefacts/bbr-${RELEASE_VERSION}*.tar release-files/bbr-${RELEASE_VERSION}.tar
-tar -x -f bbr-artefacts/bbr-${RELEASE_VERSION}*.tar --to-stdout releases/bbr-mac > release-files/bbr-${RELEASE_VERSION}-darwin-amd64
-tar -x -f bbr-artefacts/bbr-${RELEASE_VERSION}*.tar --to-stdout releases/bbr > release-files/bbr-${RELEASE_VERSION}-linux-amd64
+tar -x -f bbr-artefacts/bbr-${RELEASE_VERSION}*.tar --to-stdout ./releases/bbr-mac > release-files/bbr-${RELEASE_VERSION}-darwin-amd64
+tar -x -f bbr-artefacts/bbr-${RELEASE_VERSION}*.tar --to-stdout ./releases/bbr > release-files/bbr-${RELEASE_VERSION}-linux-amd64
 
 cp s3-config-validator-artefacts/bbr-s3-config-validator release-files/bbr-s3-config-validator-${RELEASE_VERSION}-linux-amd64
 cp s3-config-validator-artefacts/README.md release-files/bbr-s3-config-validator-${RELEASE_VERSION}.README.md
