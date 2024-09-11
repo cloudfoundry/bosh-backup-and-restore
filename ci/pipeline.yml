@@ -1,9 +1,4 @@
 ---
-#!  WARNING: this pipeline is automatically set and manual changes will go away. 
-#!
-#!  To set the pipeline manually run:
-#!    fly -t bosh-ecosystem set-pipeline -p bbr-cli -c <(ytt -f ci/pipeline.yml --data-values-file ci/pipeline-values.yml)
-
 #@ load("@ytt:data", "data")
 
 
