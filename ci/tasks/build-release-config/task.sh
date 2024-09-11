@@ -30,10 +30,15 @@ end_of_support_date_mm/dd/yyyy: ${one_year_from_now}
 export_control_status: SCREENING_REQUIRED
 files:
 - file: ../release-files/bbr-${RELEASE_VERSION}-darwin-amd64
+  description: BOSH Backup and Restore Darwin
 - file: ../release-files/bbr-${RELEASE_VERSION}-linux-amd64
+  description: BOSH Backup and Restore Linux
 - file: ../release-files/bbr-${RELEASE_VERSION}.tar
+  description: BOSH Backup and Restore
 - file: ../release-files/bbr-s3-config-validator-${RELEASE_VERSION}-linux-amd64
+  description: BOSH Backup and Restore S3 Configuration Validator Linux
 - file: ../release-files/bbr-s3-config-validator-${RELEASE_VERSION}.README.md
+  description: BOSH Backup and Restore S3 Configuration Validator README
 RELEASE_METADATA
 
 echo "Release config:"
