@@ -60,6 +60,19 @@ secrets:
 #! Access token for our service account user in Github Enterprise
 - &ghe_svc_account_personal_access_token ((svc-bosh-ecosystem-ghe-personal-access-token))
 
+#! Deploy key necessary to clone the bosh-ecosystem-concourse repo
+- &ghe_bosh_ecosystem_concourse_deploy_key ((github_deploy_key_bosh_ecosystem_concourse.private_key))
+
+- &rmt_params
+  RMT_RMT_EMAIL: &RMT_RELEASE_CONTACT "maya.rosecrance@broadcom.com"
+  RMT_RMT_HOST: ((rmt-prod-host))
+  RMT_RMT_USERNAME: ((rmt-prod-user.username))
+  RMT_RMT_PASSWORD: ((rmt-prod-user.password))
+  RMT_SFTP_HOST: ((sftp-prod-host))
+  RMT_SFTP_USERNAME: ((sftp-prod-user.username))
+  RMT_SFTP_PASSWORD: ((sftp-prod-user.password))
+  RMT_VERBOSE: true
+
 #! **************
 #! End of secrets
 #! **************
@@ -244,6 +257,12 @@ resources:
     username: svc.bosh-ecosystem@broadcom.net
     password: *ghe_svc_account_personal_access_token
 
+- name: bosh-ecosystem-concourse
+  type: git
+  source:
+    uri: git@github.com:pivotal/bosh-ecosystem-concourse.git
+    private_key: *ghe_bosh_ecosystem_concourse_deploy_key
+
 - name: bbr-artefacts
   type: s3
   icon: aws
@@ -344,7 +363,7 @@ resources:
     private_key: *github_deploy_key_cryogenics-concourse-tasks
     branch: main
 
-- name: gchat-cryo-notification
+- name: gchat-notification
   type: google-chat-notify-resource
   source:
     url: *gchat_webhook
@@ -998,10 +1017,11 @@ jobs:
       do:
       - load_var: github-release-url
         file: bbr-release/url
-      - put: gchat-cryo-notification
+      - put: gchat-notification
+        inputs: []
         params:
           text: |
-            *BBR CLI*: version `((.:version-number))` has been published!
+            *BBR CLI*: version `((.:version-number))` has been published to github!
             Next steps: Review the release notes <((.:github-release-url))|here>.
 
 - name: update-homebrew-formula
@@ -1046,44 +1066,76 @@ jobs:
     - get: gormt-repo
       tags: [ broadcom ]
     - get: bosh-ecosystem-registry-image
+    - get: bosh-ecosystem-concourse
   - load_var: version-number
     file: release-version/number
+    reveal: true
   - task: build-release-config
     file: main/ci/tasks/build-release-config/task.yml
     image: bosh-ecosystem-registry-image
     params:
-      RELEASE_CONTACT: "maya.rosecrance@broadcom.com"
+      RELEASE_CONTACT: *RMT_RELEASE_CONTACT
       RELEASE_TITLE: BOSH Backup and Restore
       RELEASE_PRODUCT_NAME: BOSH Backup and Restore
       RELEASE_DISPLAY_GROUP: BOSH Backup and Restore
       RELEASE_TYPE: Release Update / MP
-      RELEASE_STATUS: GA
-      RELEASE_PRODUCT_SLUG: stemcells-ubuntu-jammy
+      RELEASE_STATUS: Dev/Internal
+      RELEASE_PRODUCT_SLUG: p-bosh-backup-and-restore
       RELEASE_VERSION: ((.:version-number))
-#  - task: create-rmt-release
-#    image: bosh-ecosystem-registry-image
-#    tags: [ broadcom ]
-#    file: gormt-repo/concourse_examples/tasks/create-release.yml
-#    params:
-#      RMT_RMT_EMAIL: maya.rosecrance@broadcom.com
-#      RMT_RMT_HOST: ((rmt-prod-host))
-#      RMT_RMT_USERNAME: ((rmt-prod-user.username))
-#      RMT_RMT_PASSWORD: ((rmt-prod-user.password))
-#      RMT_SFTP_HOST: ((sftp-prod-host))
-#      RMT_SFTP_USERNAME: ((sftp-prod-user.username))
-#      RMT_SFTP_PASSWORD: ((sftp-prod-user.password))
-#      RMT_VERBOSE: true
-#    on_failure:
-#      task: cleanup-rmt-please-instructions
-#      config:
-#        platform: linux
-#        image: bosh-ecosystem-registry-image
-#        run:
-#          path: bash
-#          args:
-#          - -exc
-#          - |
-#            echo "Make sure any failed releases in RMT are cleaned up!"
+  - task: create-internal-rmt-release
+    image: bosh-ecosystem-registry-image
+    tags: [ broadcom ]
+    file: gormt-repo/concourse_examples/tasks/create-release.yml
+    params:
+      <<: *rmt_params
+  - task: update-file-descriptions
+    attempts: 5
+    image: bosh-ecosystem-registry-image
+    tags: [ broadcom ]
+    file: gormt-repo/concourse_examples/tasks/release-file-update.yml
+    params:
+      <<: *rmt_params
+    input_mapping:
+      release-update-config: release-config
+  - task: release-get
+    attempts: 5
+    image: bosh-ecosystem-registry-image
+    tags: [ broadcom ]
+    file: gormt-repo/concourse_examples/tasks/release-get.yml
+    params:
+      <<: *rmt_params
+      OUTPUT_FORMAT: yaml
+    output_mapping:
+      release-retrieved: rmt-release-config
+  - task: make-config-updates-for-ga
+    image: bosh-ecosystem-registry-image
+    tags: [ broadcom ]
+    file: bosh-ecosystem-concourse/tasks/rmt/make-config-updates-for-ga.yml
+    params:
+      RMT_CONTACT_EMAIL: *RMT_RELEASE_CONTACT
+  - task: update-file-ga-status
+    attempts: 5
+    image: bosh-ecosystem-registry-image
+    tags: [ broadcom ]
+    file: gormt-repo/concourse_examples/tasks/release-file-update.yml
+    params:
+      <<: *rmt_params
+    input_mapping:
+      release-update-config: rmt-release-file-update-config
+  - task: update-release-ga-status
+    attempts: 5
+    image: bosh-ecosystem-registry-image
+    tags: [ broadcom ]
+    file: gormt-repo/concourse_examples/tasks/update-release.yml
+    params:
+      <<: *rmt_params
+    input_mapping:
+      release-update-config: rmt-release-update-config
+  - put: gchat-notification
+    inputs: []
+    params:
+      text: |
+          *BBR CLI*: version `((.:version-number))` has been published to RMT!
 
 
 - name: claim-env
