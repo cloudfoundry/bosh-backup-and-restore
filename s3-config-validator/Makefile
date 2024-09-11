@@ -1,4 +1,4 @@
-.PHONY: build test-unit test-e2e artifact
+.PHONY: artifact build test-e2e test-unit
 
 SHELL=/usr/bin/env bash -o pipefail
 
