@@ -70,8 +70,7 @@ var _ = Describe("Config", func() {
 		Context("given a path to an existing, readable file", func() {
 			Context("contents are valid", func() {
 				It("reads the file contents", func() {
-					filePath := CreateFile(validConfig)
-					defer DeleteFile(filePath)
+					filePath := writeConfig(validConfig)
 
 					conf, err := config.Read(filePath, true)
 
@@ -100,8 +99,7 @@ var _ = Describe("Config", func() {
 			Context("contents are invalid", func() {
 				When("given an invalid json", func() {
 					It("returns an error", func() {
-						testFile := CreateFile("not json")
-						defer DeleteFile(testFile)
+						testFile := writeConfig("not json")
 
 						conf, err := config.Read(testFile, true)
 
@@ -112,8 +110,7 @@ var _ = Describe("Config", func() {
 
 				When("given an empty json", func() {
 					It("returns an error", func() {
-						testFile := CreateFile("{}")
-						defer DeleteFile(testFile)
+						testFile := writeConfig("{}")
 
 						conf, err := config.Read(testFile, true)
 
@@ -124,8 +121,7 @@ var _ = Describe("Config", func() {
 
 				When("one field is empty", func() {
 					It("returns an error", func() {
-						testFile := CreateFile(singleEmptyValueConfig)
-						defer DeleteFile(testFile)
+						testFile := writeConfig(singleEmptyValueConfig)
 
 						conf, err := config.Read(testFile, true)
 
@@ -136,8 +132,7 @@ var _ = Describe("Config", func() {
 
 				When("all fields are empty", func() {
 					It("returns an error", func() {
-						testFile := CreateFile(allEmptyValueConfig)
-						defer DeleteFile(testFile)
+						testFile := writeConfig(allEmptyValueConfig)
 
 						conf, err := config.Read(testFile, true)
 
@@ -152,8 +147,7 @@ var _ = Describe("Config", func() {
 
 				When("we try to use IAM and a Secret Access Key at the same time", func() {
 					It("returns a helpful error", func() {
-						testFile := CreateFile(invalidIAMPlusCredsConfig)
-						defer DeleteFile(testFile)
+						testFile := writeConfig(invalidIAMPlusCredsConfig)
 
 						conf, err := config.Read(testFile, true)
 
@@ -164,8 +158,7 @@ var _ = Describe("Config", func() {
 
 				When("we try to use IAM and an Endpoint at the same time", func() {
 					It("should return a helpful error message", func() {
-						testFile := CreateFile(invalidIAMPlusEndpointConfig)
-						defer DeleteFile(testFile)
+						testFile := writeConfig(invalidIAMPlusEndpointConfig)
 
 						conf, err := config.Read(testFile, true)
 						Expect(conf).To(Equal(config.Config{}))
@@ -186,8 +179,7 @@ var _ = Describe("Config", func() {
 
 		Context("given a path to an existing, unreadable file", func() {
 			It("returns an error", func() {
-				filePath := CreateFile(validConfig)
-				defer DeleteFile(filePath)
+				filePath := writeConfig(validConfig)
 
 				var noRead os.FileMode = 0o300
 
@@ -336,8 +328,7 @@ var _ = Describe("Config", func() {
 		Context("given a path to an existing, readable file", func() {
 			Context("contents are valid", func() {
 				It("reads the file contents", func() {
-					filePath := CreateFile(validConfig)
-					defer DeleteFile(filePath)
+					filePath := writeConfig(validConfig)
 
 					conf, err := config.Read(filePath, false)
 
@@ -374,8 +365,7 @@ var _ = Describe("Config", func() {
 			Context("contents are invalid", func() {
 				When("given an invalid json", func() {
 					It("returns an error", func() {
-						testFile := CreateFile("not json")
-						defer DeleteFile(testFile)
+						testFile := writeConfig("not json")
 
 						conf, err := config.Read(testFile, false)
 
@@ -386,8 +376,7 @@ var _ = Describe("Config", func() {
 
 				When("given an empty json", func() {
 					It("returns an error", func() {
-						testFile := CreateFile("{}")
-						defer DeleteFile(testFile)
+						testFile := writeConfig("{}")
 
 						conf, err := config.Read(testFile, false)
 
@@ -398,8 +387,7 @@ var _ = Describe("Config", func() {
 
 				When("one field is empty", func() {
 					It("returns an error", func() {
-						testFile := CreateFile(singleEmptyValueConfig)
-						defer DeleteFile(testFile)
+						testFile := writeConfig(singleEmptyValueConfig)
 
 						conf, err := config.Read(testFile, false)
 
@@ -410,8 +398,7 @@ var _ = Describe("Config", func() {
 
 				When("all fields are empty", func() {
 					It("returns an error", func() {
-						testFile := CreateFile(allEmptyValueConfig)
-						defer DeleteFile(testFile)
+						testFile := writeConfig(allEmptyValueConfig)
 
 						conf, err := config.Read(testFile, false)
 
@@ -427,8 +414,7 @@ var _ = Describe("Config", func() {
 
 				When("we try to use IAM and a Secret Access Key at the same time", func() {
 					It("returns a helpful error", func() {
-						testFile := CreateFile(invalidIAMPlusCredsConfig)
-						defer DeleteFile(testFile)
+						testFile := writeConfig(invalidIAMPlusCredsConfig)
 
 						conf, err := config.Read(testFile, false)
 
@@ -439,8 +425,7 @@ var _ = Describe("Config", func() {
 
 				When("we try to use IAM and supply an endpoint", func() {
 					It("returns a helpful error", func() {
-						testFile := CreateFile(invalidIAMPlusEndpointConfig)
-						defer DeleteFile(testFile)
+						testFile := writeConfig(invalidIAMPlusEndpointConfig)
 
 						conf, err := config.Read(testFile, false)
 
@@ -451,8 +436,7 @@ var _ = Describe("Config", func() {
 
 				When("our unversioned bucket config is missing the backup buckets", func() {
 					It("returns a helpful error", func() {
-						testFile := CreateFile(invalidMissingBackupConfig)
-						defer DeleteFile(testFile)
+						testFile := writeConfig(invalidMissingBackupConfig)
 
 						conf, err := config.Read(testFile, false)
 
@@ -463,8 +447,7 @@ var _ = Describe("Config", func() {
 
 				When("our bucket config has a lot of problems", func() {
 					It("returns helpful error messages for all the problems", func() {
-						testFile := CreateFile(configWithMultipleIssues)
-						defer DeleteFile(testFile)
+						testFile := writeConfig(configWithMultipleIssues)
 
 						conf, err := config.Read(testFile, false)
 
@@ -488,8 +471,7 @@ var _ = Describe("Config", func() {
 
 		Context("given a path to an existing, unreadable file", func() {
 			It("returns an error", func() {
-				filePath := CreateFile(validConfig)
-				defer DeleteFile(filePath)
+				filePath := writeConfig(validConfig)
 
 				var noRead os.FileMode = 0o300
 
@@ -510,15 +492,12 @@ var _ = Describe("Config", func() {
 
 })
 
-func CreateFile(content string) string {
-	testConfigFile, _ := os.CreateTemp("/tmp", "test_config.json")
+func writeConfig(content string) string {
+	testConfigFile, err := os.CreateTemp(GinkgoT().TempDir(), "test_config.json")
+	Expect(err).NotTo(HaveOccurred())
 
-	_, err := testConfigFile.WriteString(content)
+	_, err = testConfigFile.WriteString(content)
 	Expect(err).NotTo(HaveOccurred())
 
 	return testConfigFile.Name()
-}
-
-func DeleteFile(filePath string) {
-	os.Remove(filePath)
 }
