@@ -1015,6 +1015,71 @@ jobs:
       repository: updated-homebrew-tap
       rebase: true
 
+- name: publish-to-rmt
+  plan:
+  - in_parallel:
+    - get: cryogenics-ci
+      passed: [ run-b-drats ]
+    - get: main
+      trigger: true
+      passed:
+      - publish-to-github
+    - get: bbr-artefacts
+      passed:
+      - publish-to-github
+      params:
+        unpack: true
+    - get: s3-config-validator-artefacts
+      params:
+        unpack: true
+      passed:
+      - publish-to-github
+    - get: release-version
+      passed:
+      - publish-to-github
+    - get: bosh-ecosystem-docker-image
+  - load_var: version-number
+    file: release-version/number
+  - task: build-release-config
+    file: main/ci/tasks/build-release-config/task.yml
+    image: bosh-ecosystem-docker-image
+    params:
+      RELEASE_CONTACT: "maya.rosecrance@broadcom.com"
+      RELEASE_TITLE: BOSH Backup and Restore
+      RELEASE_PRODUCT_NAME: BOSH Backup and Restore
+      RELEASE_DISPLAY_GROUP: BOSH Backup and Restore
+      RELEASE_TYPE: Release Update / MP
+      RELEASE_STATUS: GA
+      RELEASE_END_OF_SUPPORT: 03/31/2027
+      RELEASE_UPGRADE_SPECIFIER: "1.*"
+      RELEASE_FILE_OS: Ubuntu Jammy
+      RELEASE_PRODUCT_SLUG: stemcells-ubuntu-jammy
+  - task: create-rmt-release
+    image: bosh-ecosystem-docker-image
+    tags: [ broadcom ]
+    file: gormt-repo/concourse_examples/tasks/create-release.yml
+    params: &rmt_params
+      RMT_RMT_EMAIL: "maya.rosecrance@broadcom.com"
+      RMT_RMT_HOST: ((rmt-prod-host))
+      RMT_RMT_USERNAME: ((rmt-prod-user.username))
+      RMT_RMT_PASSWORD: ((rmt-prod-user.password))
+      RMT_SFTP_HOST: ((sftp-prod-host))
+      RMT_SFTP_USERNAME: ((sftp-prod-user.username))
+      RMT_SFTP_PASSWORD: ((sftp-prod-user.password))
+      RMT_VERBOSE: true
+    on_failure:
+      task: cleanup-rmt-please-instructions
+      config:
+        platform: linux
+        image: bosh-ecosystem-docker-image
+        run:
+          path: bash
+          args:
+          - -exc
+          - |
+            echo "Make sure any failed releases in RMT are cleaned up!"
+
+
 - name: claim-env
   plan:
   - in_parallel:
