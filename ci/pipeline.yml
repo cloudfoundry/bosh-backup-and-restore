@@ -106,6 +106,7 @@ groups:
   - run-b-drats
   - check-for-changes
   - publish-to-github
+  - publish-to-rmt
   - update-homebrew-formula
 - name: bump
   jobs:
@@ -1036,8 +1037,6 @@ jobs:
       passed: [ publish-to-github ]
     - get: bbr-artefacts
       passed: [ publish-to-github ]
-      params:
-        unpack: true
     - get: s3-config-validator-artefacts
       params:
         unpack: true
