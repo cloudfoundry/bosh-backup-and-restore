@@ -5,7 +5,7 @@ go 1.22.0
 require (
 	github.com/aws/aws-sdk-go-v2 v1.30.5
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.33
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.61.3
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.62.0
 	github.com/aws/aws-sdk-go-v2/service/sts v1.30.8
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.9.0
 	github.com/onsi/ginkgo/v2 v2.20.2
@@ -22,7 +22,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.3.19 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.11.19 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.17.17 // indirect
-	github.com/aws/smithy-go v1.20.4 // indirect
+	github.com/aws/smithy-go v1.21.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
