@@ -17,12 +17,12 @@ github.com/cloudfoundry/bosh-cli/v7 v7.7.2 h1:xbdNjAeTLOagYJxinaafGbbyzjfJrhrr4a
 github.com/cloudfoundry/bosh-cli/v7 v7.7.2/go.mod h1:TLawt0IKYB5Pn++KmYRkLs1PEyA7e0tvLBRF4TyC5jk=
 github.com/cloudfoundry/bosh-utils v0.0.496 h1:p5fRC6O2rzD/PZXIV8qgk9pDtqYSVD9UXVv2DzX4yIE=
 github.com/cloudfoundry/bosh-utils v0.0.496/go.mod h1:dbdArNcE9dXm32QLkgGZ3CpWzif9by8oLst0OhOB2xY=
-github.com/cloudfoundry/config-server v0.1.206 h1:EpE3fEjkDOjGunri/THVK5OyJJM3jqb2PPYXxiMBpXY=
-github.com/cloudfoundry/config-server v0.1.206/go.mod h1:WGwTdHI7NLwxRgYMe2UX1XtuHGpeiy9fyT49CEiWKLI=
+github.com/cloudfoundry/config-server v0.1.207 h1:JFz64Bw75BTnlKlPnjZMH3M6VDn8glvp1Lxthu3bx20=
+github.com/cloudfoundry/config-server v0.1.207/go.mod h1:ViZIKEruyh2BnO5K/LE0nCoQeBNvOR8ZNkwdUUbrJLo=
 github.com/cloudfoundry/go-socks5 v0.0.0-20240831012420-2590b55236ee h1:88ruSYvCUKX2YcF2CMYVTmPGITvNdRbzaBRk2c/iMds=
 github.com/cloudfoundry/go-socks5 v0.0.0-20240831012420-2590b55236ee/go.mod h1:72EEm1oq5oXqGfu9XGtaRPWEcAFYd/P10cMNln0QhA8=
-github.com/cloudfoundry/socks5-proxy v0.2.124 h1:lg8ZlqMC7W4u5yVlB91+P6/qWPF168WDTomULeZVpck=
-github.com/cloudfoundry/socks5-proxy v0.2.124/go.mod h1:EsINZ1fC6k9D46I/AAopu8I8+gt7BBH0w0g21UA5aeQ=
+github.com/cloudfoundry/socks5-proxy v0.2.125 h1:2dZ0v72RnvYRCrcOAq6V64jhXDZxOMBAUWc65/cFeCg=
+github.com/cloudfoundry/socks5-proxy v0.2.125/go.mod h1:znR/xrAWTGe+o/kquN7uMIQlLkdCG8s9Gf4PHU/UL2M=
 github.com/cppforlife/go-patch v0.2.0 h1:Y14MnCQjDlbw7WXT4k+u6DPAA9XnygN4BfrSpI/19RU=
 github.com/cppforlife/go-patch v0.2.0/go.mod h1:67a7aIi94FHDZdoeGSJRRFDp66l9MhaAG1yGxpUoFD8=
 github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4 h1:J+ghqo7ZubTzelkjo9hntpTtP/9lUCWH9icEmAW+B+Q=
@@ -60,8 +60,8 @@ github.com/google/go-cmp v0.3.1/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMyw
 github.com/google/go-cmp v0.4.0/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
-github.com/google/pprof v0.0.0-20240925223930-fa3061bff0bc h1:7bf8bGo4akhLJrmttkYLjxIz0yQmBi5umb+Nj1qRPpE=
-github.com/google/pprof v0.0.0-20240925223930-fa3061bff0bc/go.mod h1:vavhavw2zAxS5dIdcRluK6cSGGPlZynqzFM8NdvU144=
+github.com/google/pprof v0.0.0-20240929191954-255acd752d31 h1:LcRdQWywSgfi5jPsYZ1r2avbbs5IQ5wtyhMBCcokyo4=
+github.com/google/pprof v0.0.0-20240929191954-255acd752d31/go.mod h1:vavhavw2zAxS5dIdcRluK6cSGGPlZynqzFM8NdvU144=
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/errwrap v1.1.0 h1:OxrOeh75EUXMY8TBjag2fzXGZ40LB6IKw45YeGUDY2I=
 github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
