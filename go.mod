@@ -3,7 +3,7 @@ module github.com/cloudfoundry-incubator/bosh-backup-and-restore
 go 1.22.0
 
 require (
-	github.com/cloudfoundry/bosh-cli/v7 v7.7.2
+	github.com/cloudfoundry/bosh-cli/v7 v7.8.0
 	github.com/cloudfoundry/bosh-utils v0.0.498
 	github.com/cloudfoundry/socks5-proxy v0.2.125
 	github.com/cppforlife/go-patch v0.2.0
@@ -18,13 +18,13 @@ require (
 )
 
 require (
-	code.cloudfoundry.org/clock v1.13.0 // indirect
-	code.cloudfoundry.org/tlsconfig v0.5.0 // indirect
+	code.cloudfoundry.org/clock v1.14.0 // indirect
+	code.cloudfoundry.org/tlsconfig v0.6.0 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/charlievieth/fs v0.0.3 // indirect
 	github.com/cheggaaa/pb/v3 v3.1.5 // indirect
-	github.com/cloudfoundry/config-server v0.1.207 // indirect
+	github.com/cloudfoundry/config-server v0.1.208 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20240831012420-2590b55236ee // indirect
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
@@ -33,7 +33,7 @@ require (
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/google/pprof v0.0.0-20240929191954-255acd752d31 // indirect
+	github.com/google/pprof v0.0.0-20241001023024-f4c0cfd0cf1d // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
