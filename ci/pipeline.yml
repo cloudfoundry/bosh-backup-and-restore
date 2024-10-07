@@ -120,6 +120,7 @@ groups:
   - check-for-changes
   - publish-to-github
   - publish-dev-internal-to-rmt
+  - publish-ga-to-rmt
   - update-homebrew-formula
 - name: bump
   jobs:
@@ -344,6 +345,14 @@ resources:
     bucket: bbr-pipeline
     json_key: *gcp_service_accounts_bucket_owner
     regexp: validator-test-artifacts/bbr-s3-config-validator.(.*).tgz
+
+- name: rmt-release-id
+  type: gcs
+  icon: google
+  source:
+    bucket: bbr-pipeline
+    json_key: *gcp_service_accounts_bucket_owner
+    versioned_file: rmt-release/rmt-id
 
 - name: tas-env
   type: shepherd
@@ -1058,7 +1067,6 @@ jobs:
       rebase: true
 
 - name: publish-dev-internal-to-rmt
-  old_name: publish-to-rmt
   plan:
   - in_parallel:
     - get: main
@@ -1117,36 +1125,73 @@ jobs:
       OUTPUT_FORMAT: yaml
     output_mapping:
       release-retrieved: rmt-release-config
-#!  - task: make-config-updates-for-ga
-#!    image: bosh-ecosystem-registry-image
-#!    tags: [ broadcom ]
-#!    file: bosh-ecosystem-concourse/tasks/rmt/make-config-updates-for-ga.yml
-#!    params:
-#!      RMT_CONTACT_EMAIL: *RMT_RELEASE_CONTACT
-#!  - task: update-file-ga-status
-#!    attempts: 5
-#!    image: bosh-ecosystem-registry-image
-#!    tags: [ broadcom ]
-#!    file: gormt-repo/concourse_examples/tasks/release-file-update.yml
-#!    params:
-#!      <<: *rmt_params
-#!    input_mapping:
-#!      release-update-config: rmt-release-file-update-config
-#!  - task: update-release-ga-status
-#!    attempts: 5
-#!    image: bosh-ecosystem-registry-image
-#!    tags: [ broadcom ]
-#!    file: gormt-repo/concourse_examples/tasks/update-release.yml
-#!    params:
-#!      <<: *rmt_params
-#!    input_mapping:
-#!      release-update-config: rmt-release-update-config
-#!  - put: gchat-notification
-#!    inputs: []
-#!    params:
-#!      text: |
-#!          *BBR CLI*: version `((.:version-number))` has been published to RMT!
+  - put: rmt-release-id
+    params:
+      file: release-created/id
+  - put: gchat-notification
+    inputs: [ ]
+    params:
+      text: |
+        *BBR CLI*: version `((.:version-number))` has been published as an internal release to RMT.
+        This will not be GA until the "publish-ga-to-rmt" job has been triggered.
 
+
+- name: publish-ga-to-rmt
+  plan:
+    - in_parallel:
+        - get: main
+          passed: [ publish-dev-internal-to-rmt ]
+        - get: release-version
+          passed: [ publish-dev-internal-to-rmt ]
+        - get: gormt-repo
+          tags: [ broadcom ]
+        - get: bosh-ecosystem-registry-image
+        - get: bosh-ecosystem-concourse
+          tags: [ broadcom ]
+        - get: rmt-release-id
+    - load_var: version-number
+      file: release-version/number
+      reveal: true
+    - task: release-get
+      attempts: 5
+      image: bosh-ecosystem-registry-image
+      tags: [ broadcom ]
+      file: gormt-repo/concourse_examples/tasks/release-get.yml
+      params:
+        <<: *rmt_params
+        OUTPUT_FORMAT: yaml
+        EXISTING_RELEASE_ID: rmt-release-id/rmt-id
+      output_mapping:
+        release-retrieved: rmt-release-config
+    - task: make-config-updates-for-ga
+      image: bosh-ecosystem-registry-image
+      tags: [ broadcom ]
+      file: bosh-ecosystem-concourse/tasks/rmt/make-config-updates-for-ga.yml
+      params:
+        RMT_CONTACT_EMAIL: *RMT_RELEASE_CONTACT
+    - task: update-file-ga-status
+      attempts: 5
+      image: bosh-ecosystem-registry-image
+      tags: [ broadcom ]
+      file: gormt-repo/concourse_examples/tasks/release-file-update.yml
+      params:
+        <<: *rmt_params
+      input_mapping:
+        release-update-config: rmt-release-file-update-config
+    - task: update-release-ga-status
+      attempts: 5
+      image: bosh-ecosystem-registry-image
+      tags: [ broadcom ]
+      file: gormt-repo/concourse_examples/tasks/update-release.yml
+      params:
+        <<: *rmt_params
+      input_mapping:
+        release-update-config: rmt-release-update-config
+    - put: gchat-notification
+      inputs: []
+      params:
+        text: |
+            *BBR CLI*: version `((.:version-number))` has been published to RMT as GA!
 
 - name: claim-env
   plan:
