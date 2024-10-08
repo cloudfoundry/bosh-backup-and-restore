@@ -1149,6 +1149,7 @@ jobs:
         - get: bosh-ecosystem-concourse
           tags: [ broadcom ]
         - get: rmt-release-id
+          passed: [ publish-dev-internal-to-rmt ]
     - load_var: version-number
       file: release-version/number
       reveal: true
