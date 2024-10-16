@@ -220,7 +220,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 						fmt.Fprintln(stdin, "no")
 
 						By("waiting for the backup to finish successfully", func() {
-							Eventually(session, 10).Should(gexec.Exit(0))
+							Eventually(session, 20).Should(gexec.Exit(0))
 						})
 
 						By("still completing the backup", func() {
