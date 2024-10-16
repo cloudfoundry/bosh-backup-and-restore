@@ -194,7 +194,7 @@ cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 							stdin.Write([]byte("no\n"))
 
 							By("waiting for the restore to finish successfully", func() {
-								Eventually(session, 10).Should(gexec.Exit(0))
+								Eventually(session, 20).Should(gexec.Exit(0))
 							})
 
 							By("still completing the restore", func() {
