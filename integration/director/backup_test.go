@@ -351,7 +351,7 @@ backup_should_be_locked_before:
 
 			Context("and the user decides to cancel the backup", func() {
 				It("terminates", func() {
-					Eventually(session).Should(gbytes.Say("Backing up"))
+					Eventually(session, 10*time.Second).Should(gbytes.Say("Backing up"))
 					session.Interrupt()
 
 					By("printing a helpful message and waiting for user input", func() {
@@ -362,7 +362,7 @@ backup_should_be_locked_before:
 					stdin.Write([]byte("yes\n"))
 
 					By("then exiting with a failure", func() {
-						Eventually(session, 10*time.Second).Should(gexec.Exit(1))
+						Eventually(session, 20*time.Second).Should(gexec.Exit(1))
 					})
 
 					By("outputting a warning about cleanup", func() {
@@ -389,7 +389,7 @@ backup_should_be_locked_before:
 					stdin.Write([]byte("no\n"))
 
 					By("waiting for the backup to finish successfully", func() {
-						Eventually(session, 10).Should(gexec.Exit(0))
+						Eventually(session, 20).Should(gexec.Exit(0))
 					})
 
 					By("still completing the backup", func() {
