@@ -1,13 +1,14 @@
 module github.com/cloudfoundry-incubator/bosh-backup-and-restore
 
 go 1.22.0
+toolchain go1.23.2
 
 require (
 	github.com/cloudfoundry/bosh-cli/v7 v7.8.0
 	github.com/cloudfoundry/bosh-utils v0.0.500
 	github.com/cloudfoundry/socks5-proxy v0.2.127
 	github.com/cppforlife/go-patch v0.2.0
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.9.0
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.10.0
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.2
