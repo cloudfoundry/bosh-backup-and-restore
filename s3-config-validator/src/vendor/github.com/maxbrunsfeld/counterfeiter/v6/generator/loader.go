@@ -130,10 +130,14 @@ func (f *Fake) addImportsFor(typ types.Type) {
 		f.addImportsFor(t.Elem())
 	case *types.Chan:
 		f.addImportsFor(t.Elem())
-	case *types.Alias:
-		f.addImportsForNamedType(t)
 	case *types.Named:
-		f.addImportsForNamedType(t)
+		if t.Obj() != nil && t.Obj().Pkg() != nil {
+			typeArgs := t.TypeArgs()
+			for i := 0; i < typeArgs.Len(); i++ {
+				f.addImportsFor(typeArgs.At(i))
+			}
+			f.Imports.Add(t.Obj().Pkg().Name(), t.Obj().Pkg().Path())
+		}
 	case *types.Slice:
 		f.addImportsFor(t.Elem())
 	case *types.Array:
@@ -148,18 +152,5 @@ func (f *Fake) addImportsFor(typ types.Type) {
 		}
 	default:
 		log.Printf("!!! WARNING: Missing case for type %s\n", reflect.TypeOf(typ).String())
-	}
-}
-
-func (f *Fake) addImportsForNamedType(t interface {
-	Obj() *types.TypeName
-	TypeArgs() *types.TypeList
-}) {
-	if t.Obj() != nil && t.Obj().Pkg() != nil {
-		typeArgs := t.TypeArgs()
-		for i := 0; i < typeArgs.Len(); i++ {
-			f.addImportsFor(typeArgs.At(i))
-		}
-		f.Imports.Add(t.Obj().Pkg().Name(), t.Obj().Pkg().Path())
 	}
 }
