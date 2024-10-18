@@ -1,5 +1,5 @@
-code.cloudfoundry.org/clock v1.15.0 h1:d1jE0akCbESP4OO4I19/1VXOqgYNOJiGyxE37DqWH/8=
-code.cloudfoundry.org/clock v1.15.0/go.mod h1:0imaEbpkuzBkviBo38UUJnKuHCQvAQwiaDkmGu3H5hw=
+code.cloudfoundry.org/clock v1.16.0 h1:55I1lelxZn45V1DxDGCiwNc6dEXk1KQ2CuYKlSMo948=
+code.cloudfoundry.org/clock v1.16.0/go.mod h1:pYcfbpnOG23567+Mafw9J+aKfKbmD9fegEQxAsks8y0=
 code.cloudfoundry.org/tlsconfig v0.7.0 h1:/gD+YzQtjjmUjW0W/NamX9zX6cX679jV1QDEH34kfAc=
 code.cloudfoundry.org/tlsconfig v0.7.0/go.mod h1:S6L3WxtIy4a4wPnmtqUQXiIYlrIk7tUIXj5z+5QYqGY=
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
@@ -13,8 +13,8 @@ github.com/charlievieth/fs v0.0.3 h1:3lZQXTj4PbE81CVPwALSn+JoyCNXkZgORHN6h2XHGlg
 github.com/charlievieth/fs v0.0.3/go.mod h1:hD4sRzto1Hw8zCua76tNVKZxaeZZr1RiKftjAJQRLLo=
 github.com/cheggaaa/pb/v3 v3.1.5 h1:QuuUzeM2WsAqG2gMqtzaWithDJv0i+i6UlnwSCI4QLk=
 github.com/cheggaaa/pb/v3 v3.1.5/go.mod h1:CrxkeghYTXi1lQBEI7jSn+3svI3cuc19haAj6jM60XI=
-github.com/cloudfoundry/bosh-cli/v7 v7.8.0 h1:OVsGtkCBmZSk1MNWQmFiwWc6vqhthA7h2AtH5YVwKSU=
-github.com/cloudfoundry/bosh-cli/v7 v7.8.0/go.mod h1:GQn+hHQhCawYt0BU8ednzUOuERV4hmZn9YMcW5RwOvA=
+github.com/cloudfoundry/bosh-cli/v7 v7.8.1 h1:bmpOM80LSvnyXL/CpxCTDEzElDAn4CeJF0JDrFGpO3o=
+github.com/cloudfoundry/bosh-cli/v7 v7.8.1/go.mod h1:Ne/uBkoNl1AvE0JiSA3AaQg7VJacwXoVAWEiGK7OHsA=
 github.com/cloudfoundry/bosh-utils v0.0.500 h1:am7t3jymDRE9kjwQrDY9YzlPnx6RXPQw4OPuZxaIZuE=
 github.com/cloudfoundry/bosh-utils v0.0.500/go.mod h1:ei4cKypTn2mHQQ2fy/tD+43YAJ/IS35h/Ao+P9iR3Xc=
 github.com/cloudfoundry/config-server v0.1.210 h1:F8ZdR+II+v4OPjyCSiutpG5Asoe19SbuNNcFTwvk0Vk=
@@ -59,8 +59,8 @@ github.com/google/go-cmp v0.3.1/go.mod h1:8QqcDgzrUqlUb/G2PQTWiueGozuR1884gddMyw
 github.com/google/go-cmp v0.4.0/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
-github.com/google/pprof v0.0.0-20241009165004-a3522334989c h1:NDovD0SMpBYXlE1zJmS1q55vWB/fUQBcPAqAboZSccA=
-github.com/google/pprof v0.0.0-20241009165004-a3522334989c/go.mod h1:vavhavw2zAxS5dIdcRluK6cSGGPlZynqzFM8NdvU144=
+github.com/google/pprof v0.0.0-20241017200806-017d972448fc h1:NGyrhhFhwvRAZg02jnYVg3GBQy0qGBKmFQJwaPmpmxs=
+github.com/google/pprof v0.0.0-20241017200806-017d972448fc/go.mod h1:vavhavw2zAxS5dIdcRluK6cSGGPlZynqzFM8NdvU144=
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/errwrap v1.1.0 h1:OxrOeh75EUXMY8TBjag2fzXGZ40LB6IKw45YeGUDY2I=
 github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
@@ -69,8 +69,8 @@ github.com/hashicorp/go-multierror v1.1.1/go.mod h1:iw975J/qwKPdAO1clOe2L8331t/9
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
 github.com/jpillora/backoff v1.0.0 h1:uvFg412JmmHBHw7iwprIxkPMI+sGQ4kzOWsMeHnm2EA=
 github.com/jpillora/backoff v1.0.0/go.mod h1:J/6gKK9jxlEcS3zixgDgUAsiuZ7yrSoa/FX5e0EB2j4=
-github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
-github.com/kr/pretty v0.3.1/go.mod h1:hoEshYVHaxMs3cyo3Yncou5ZscifuDolrwPKZanG3xk=
+github.com/kr/pretty v0.3.0 h1:WgNl7dwNpEZ6jJ9k1snq4pZsg7DOEN8hP9Xw0Tsjwk0=
+github.com/kr/pretty v0.3.0/go.mod h1:640gp4NfQd8pI5XOwp5fnNeVWj67G7CFk/SaSQn7NBk=
 github.com/kr/pty v1.1.8 h1:AkaSdXYQOWeaO3neb8EM634ahkXXe3jYbVh/F9lq+GI=
 github.com/kr/pty v1.1.8/go.mod h1:O1sed60cT9XZ5uDucP5qwvh+TE3NnUj51EiZO/lmSfw=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
