@@ -17,12 +17,12 @@ github.com/cloudfoundry/bosh-cli/v7 v7.8.1 h1:bmpOM80LSvnyXL/CpxCTDEzElDAn4CeJF0
 github.com/cloudfoundry/bosh-cli/v7 v7.8.1/go.mod h1:Ne/uBkoNl1AvE0JiSA3AaQg7VJacwXoVAWEiGK7OHsA=
 github.com/cloudfoundry/bosh-utils v0.0.500 h1:am7t3jymDRE9kjwQrDY9YzlPnx6RXPQw4OPuZxaIZuE=
 github.com/cloudfoundry/bosh-utils v0.0.500/go.mod h1:ei4cKypTn2mHQQ2fy/tD+43YAJ/IS35h/Ao+P9iR3Xc=
-github.com/cloudfoundry/config-server v0.1.210 h1:F8ZdR+II+v4OPjyCSiutpG5Asoe19SbuNNcFTwvk0Vk=
-github.com/cloudfoundry/config-server v0.1.210/go.mod h1:OcLyJiYq/gCmMnJ//AniNWvWuGtm3PqyRWexAIUihUw=
+github.com/cloudfoundry/config-server v0.1.211 h1:wEcMmas2+djfwLuGlTATXq/nlveAsqN+Iqz/S3EqgS8=
+github.com/cloudfoundry/config-server v0.1.211/go.mod h1:vP74406b6+rfYgRbZlWbZrN3hBwEURWJKE8IF5AbBYg=
 github.com/cloudfoundry/go-socks5 v0.0.0-20240831012420-2590b55236ee h1:88ruSYvCUKX2YcF2CMYVTmPGITvNdRbzaBRk2c/iMds=
 github.com/cloudfoundry/go-socks5 v0.0.0-20240831012420-2590b55236ee/go.mod h1:72EEm1oq5oXqGfu9XGtaRPWEcAFYd/P10cMNln0QhA8=
-github.com/cloudfoundry/socks5-proxy v0.2.127 h1:6nMSG9TtaVHzbYmtmD6w41vsJega5CfnM3K2avPyKsg=
-github.com/cloudfoundry/socks5-proxy v0.2.127/go.mod h1:KosYtv5V+8LQ1ciPrl8a4mgSLLXq+QYccSyIg1zLn0Y=
+github.com/cloudfoundry/socks5-proxy v0.2.128 h1:8XpdSiQ8AtQr/erfTxTteB3gjibUcT7Ddu68gNXtNDM=
+github.com/cloudfoundry/socks5-proxy v0.2.128/go.mod h1:OemHTBWCFioI+I2sWZD9GGNxAi2lD6BZplb1Q8hXH6U=
 github.com/cppforlife/go-patch v0.2.0 h1:Y14MnCQjDlbw7WXT4k+u6DPAA9XnygN4BfrSpI/19RU=
 github.com/cppforlife/go-patch v0.2.0/go.mod h1:67a7aIi94FHDZdoeGSJRRFDp66l9MhaAG1yGxpUoFD8=
 github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4 h1:J+ghqo7ZubTzelkjo9hntpTtP/9lUCWH9icEmAW+B+Q=
