@@ -17,7 +17,6 @@ secrets:
 #! github_deploy_keys are generated in credhub and the public keys added to the individual repos
 - &github_deploy_key_bosh-backup-and-restore ((github_deploy_key_bosh-backup-and-restore.private_key))
 - &github_deploy_key_bosh-backup-and-restore-test-releases ((github_deploy_key_bosh-backup-and-restore-test-releases.private_key))
-- &github_deploy_key_cryogenics-concourse-tasks ((github_deploy_key_cryogenics-concourse-tasks.private_key))
 
 - &aws-access
 #! AWS access keys for the 686843836666 account
@@ -50,18 +49,11 @@ secrets:
 - &shepherd_account_key ((bosh-ecosystem-shepherd-service-account))
 #! shepherd_account_key was needed on 2023-09-28 to claim shepherd environments. It was created using `shepherd create service-account` after logging in with WS1.
 
-#! github_email and github_user added on 2023-12-07 to commit go mod bumps
-- &github_email tas-bosh-ecosystem.pdl@broadcom.com
-- &github_user "Bosh Ecosystem"
-
 - &docker_username ((docker.username))
 - &docker_password ((docker.password))
 
 #! Access token for our service account user in Github Enterprise
 - &ghe_svc_account_personal_access_token ((svc-bosh-ecosystem-ghe-personal-access-token))
-
-#! Deploy key necessary to clone the bosh-ecosystem-concourse repo
-- &ghe_bosh_ecosystem_concourse_deploy_key ((github_deploy_key_bosh_ecosystem_concourse.private_key))
 
 - &rmt_params
   RMT_RMT_EMAIL: &RMT_RELEASE_CONTACT "maya.rosecrance@broadcom.com"
@@ -110,10 +102,8 @@ groups:
   - system-test-deployment
   - system-test-director
   - unclaim-env
-  - merge-pr
+  - release-fan-in
   - govulncheck
-- name: release-github
-  jobs:
   - build-rc
   - run-drats
   - run-b-drats
@@ -122,8 +112,6 @@ groups:
   - publish-dev-internal-to-rmt
   - publish-ga-to-rmt
   - update-homebrew-formula
-- name: bump
-  jobs:
   - bump-deps-bbr-cli
   - bump-deps-s3-config-validator
 
@@ -132,12 +120,6 @@ groups:
   - build-bbr-pcf-pipeline-tasks
 
 resource_types:
-- name: gitlab
-  type: registry-image
-  source:
-    repository: devtools-docker.artifactory.eng.vmware.com/vmware/runway/resourcetypes/gitlab-resource
-    tag: 1.0.0
-
 - name: shepherd
   source:
     tag: v1
@@ -165,13 +147,6 @@ resource_types:
     username: *docker_username
     password: *docker_password
     tag: 0.0.1-SNAPSHOT
-
-- name: pull-request
-  type: registry-image
-  source:
-    repository: us-west2-docker.pkg.dev/mapbu-cryogenics/concourse-resources/pr-queue-resource
-    username: _json_key
-    password: *gcr_viewer_key
 
 resources:
 - name: image-cryogenics-essentials
@@ -220,19 +195,7 @@ resources:
     - lock-ordering-release
     - many-bbr-jobs-release
 
-- name: latest-pull-request
-  icon: source-pull
-  type: pull-request
-  source:
-    base_branch: master
-    repository: cloudfoundry/bosh-backup-and-restore
-    access_token: *github_access_token
-    disable_forks: true
-    autosync_pr: true
-    watch_checks_interval: "600"
-    assign_to: "@me"
-
-- name: main
+- name: bosh-backup-and-restore
   icon: github
   type: git
   source:
@@ -507,7 +470,7 @@ jobs:
     - get: environment
       passed: [ claim-env ]
       trigger: true
-    - get: latest-pull-request
+    - get: bosh-backup-and-restore
       passed: [ claim-env ]
     - get: bosh-deployment
     - get: bbr-director-test-releases
@@ -527,15 +490,13 @@ jobs:
     format: yml
   - task: generate-bosh-deployment-source-file
     image: image-cryogenics-essentials
-    file: latest-pull-request/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
-    input_mapping:
-      bosh-backup-and-restore: latest-pull-request
+    file: bosh-backup-and-restore/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
     params:
       <<: *ts-bosh-env
   - put: deploy-fake-director
     resource: test-bosh-director-deployment
     params:
-      manifest: latest-pull-request/fixtures/fake-director.yml
+      manifest: bosh-backup-and-restore/fixtures/fake-director.yml
       stemcells: [ jammy-stemcell/*.tgz ]
       source_file: source-file/source-file.yml
       vars:
@@ -545,10 +506,8 @@ jobs:
         internal_ip: *test-bosh-director-ip
   - task: system-test-director
     image: image-cryogenics-essentials
-    file: latest-pull-request/ci/tasks/bbr-system-director/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-system-director/task.yml
     privileged: true
-    input_mapping:
-      bosh-backup-and-restore: latest-pull-request
     params:
       USE_SHUTTLE: false
       DIRECTOR_HOST: *test-bosh-director-ip
@@ -576,7 +535,6 @@ jobs:
     - get: additional-environment
       passed: [ claim-env ]
     - get: bosh-backup-and-restore
-      resource: latest-pull-request
       passed: [ claim-env ]
     - get: bbr-director-test-releases
     - get: jammy-stemcell
@@ -688,31 +646,27 @@ jobs:
   - only_1_job_should_bump_the_BUILD_VERSION_at_a_time_to_avoid_race_condition
   plan:
   - in_parallel:
-    - get: latest-pull-request
+    - get: bosh-backup-and-restore
       trigger: true
     - get: build-version
       params: { pre: build }
     - get: image-cryogenics-essentials
   - task: unit-test
     image: image-cryogenics-essentials
-    file: latest-pull-request/ci/tasks/bbr-s3-config-validator-unit-test/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-unit-test/task.yml
     params:
       <<: *AWS_ACCESS
-    input_mapping:
-      bosh-backup-and-restore: latest-pull-request
   - task: e2e-test
     image: image-cryogenics-essentials
-    file: latest-pull-request/ci/tasks/bbr-s3-config-validator-e2e-test/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-e2e-test/task.yml
     params:
       <<: *AWS_ACCESS
-    input_mapping:
-      bosh-backup-and-restore: latest-pull-request
   - task: build
     image: image-cryogenics-essentials
-    file: latest-pull-request/ci/tasks/bbr-s3-config-validator-build/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-build/task.yml
     input_mapping:
       version: build-version
-      repo: latest-pull-request
+      repo: bosh-backup-and-restore
   - put: build-version
     params: { file: build-version/number }
   - put: s3-config-validator-artefacts
@@ -726,35 +680,32 @@ jobs:
     - get: s3-config-validator-artefacts
       passed: [ test-build-s3-config-validator ]
       trigger: true
-    - get: latest-pull-request
+    - get: bosh-backup-and-restore
       passed: [ test-build-s3-config-validator ]
     - get: image-cryogenics-essentials
   - task: move-and-run-validator
     image: image-cryogenics-essentials
-    file: latest-pull-request/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.yml
     params:
       <<: *AWS_ACCESS_2
     input_mapping:
-      bosh-backup-and-restore: latest-pull-request
       bbr-s3-config-validator-test-artifacts: s3-config-validator-artefacts
 
-- name: merge-pr
+- name: release-fan-in
   plan:
   - in_parallel:
-    - get: latest-pull-request
+    - get: bosh-backup-and-restore
       passed: [ system-test-deployment, system-test-director, validate-aws-s3-config ]
       trigger: true
-  - put: latest-pull-request
-    params:
-      merge: true
 
 - name: build-rc
   serial_groups:
   - only_1_job_should_bump_the_RELEASE_CANDIDATE_VERSION_at_a_time_to_avoid_race_condition
   plan:
   - in_parallel:
-    - get: main
+    - get: bosh-backup-and-restore
       trigger: true
+      passed: [release-fan-in]
     - get: release-candidate-version
       params:
         pre: rc
@@ -765,17 +716,17 @@ jobs:
         bump: final
   - task: build-bbr
     image: image-cryogenics-essentials
-    file: main/ci/tasks/bbr-build/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-build/task.yml
     input_mapping:
       release-version: next-release-version
       release-candidate-version: release-candidate-version
-      bosh-backup-and-restore: main
+      bosh-backup-and-restore: bosh-backup-and-restore
   - task: build-s3-config-validator
     image: image-cryogenics-essentials
-    file: main/ci/tasks/bbr-s3-config-validator-build/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-build/task.yml
     input_mapping:
       version: release-candidate-version
-      repo: main
+      repo: bosh-backup-and-restore
   - put: release-candidate-version
     params:
       file: release-candidate-version/number
@@ -940,7 +891,7 @@ jobs:
   - in_parallel:
     - get: every-month
       trigger: true
-    - get: main
+    - get: bosh-backup-and-restore
       passed:
       - build-rc
     - get: bbr-artefacts
@@ -964,7 +915,7 @@ jobs:
     - get: cryogenics-ci
       passed: [ run-b-drats ]
       tags: [ broadcom ]
-    - get: main
+    - get: bosh-backup-and-restore
       trigger: true
       passed:
       - check-for-changes
@@ -988,12 +939,12 @@ jobs:
     file: release-candidate-version/number
   - task: promote-rc-binaries
     image: image-cryogenics-essentials
-    file: main/ci/tasks/promote-release-candidate/task.yml
+    file: bosh-backup-and-restore/ci/tasks/promote-release-candidate/task.yml
     input_mapping:
       version: release-candidate-version
       bbr-rc-artefacts: bbr-artefacts
       s3-config-validator-rc-artefacts: s3-config-validator-artefacts
-      repo: main
+      repo: bosh-backup-and-restore
   - put: release-version
     params:
       file: release-candidate-version/number
@@ -1009,7 +960,7 @@ jobs:
     image: image-cryogenics-essentials
     file: cryogenics-ci/tasks/release-automation/release-notes/task.yml
     input_mapping:
-      git-repo: main
+      git-repo: bosh-backup-and-restore
       cryogenics-concourse-tasks: cryogenics-ci
     params:
       USE_LATEST_PUBLISHED_TAG: true
@@ -1050,17 +1001,17 @@ jobs:
       passed:
       - publish-to-github
       trigger: true
-    - get: main
+    - get: bosh-backup-and-restore
       passed:
       - publish-to-github
     - get: image-cryogenics-essentials
   - task: update-homebrew-formula
     image: image-cryogenics-essentials
-    file: main/ci/tasks/bbr-update-homebrew-formula/task.yml
+    file: bosh-backup-and-restore/ci/tasks/bbr-update-homebrew-formula/task.yml
     input_mapping:
       bbr-release: bbr-release
       homebrew-tap: homebrew-tap
-      bosh-backup-and-restore: main
+      bosh-backup-and-restore: bosh-backup-and-restore
   - put: homebrew-tap
     params:
       repository: updated-homebrew-tap
@@ -1069,7 +1020,7 @@ jobs:
 - name: publish-dev-internal-to-rmt
   plan:
   - in_parallel:
-    - get: main
+    - get: bosh-backup-and-restore
       trigger: true
       passed: [ publish-to-github ]
     - get: bbr-artefacts
@@ -1089,7 +1040,7 @@ jobs:
     file: release-version/number
     reveal: true
   - task: build-release-config
-    file: main/ci/tasks/build-release-config/task.yml
+    file: bosh-backup-and-restore/ci/tasks/build-release-config/task.yml
     image: bosh-ecosystem-registry-image
     params:
       RELEASE_CONTACT: *RMT_RELEASE_CONTACT
@@ -1139,7 +1090,7 @@ jobs:
 - name: publish-ga-to-rmt
   plan:
     - in_parallel:
-        - get: main
+        - get: bosh-backup-and-restore
           passed: [ publish-dev-internal-to-rmt ]
         - get: release-version
           passed: [ publish-dev-internal-to-rmt ]
@@ -1198,7 +1149,7 @@ jobs:
   plan:
   - in_parallel:
       steps:
-      - get: latest-pull-request
+      - get: bosh-backup-and-restore
         trigger: true
       - get: cryogenics-ci
         tags: [ broadcom ]
@@ -1223,7 +1174,7 @@ jobs:
   plan:
   - in_parallel:
       steps:
-      - get: latest-pull-request
+      - get: bosh-backup-and-restore
         trigger: true
         passed:
         - system-test-deployment
@@ -1250,7 +1201,6 @@ jobs:
     - get: every-monday
       trigger: true
     - get: bosh-backup-and-restore
-      resource: main
     - get: golang-release
     - get: golang-image
   - task: bump-deps
@@ -1262,7 +1212,7 @@ jobs:
   - task: test-unit
     file: bosh-backup-and-restore/ci/tasks/test-unit/task.yml
     image: golang-image
-  - put: main
+  - put: bosh-backup-and-restore
     params:
       repository: bosh-backup-and-restore
       rebase: true
@@ -1273,7 +1223,6 @@ jobs:
     - get: every-monday
       trigger: true
     - get: bosh-backup-and-restore
-      resource: main
     - get: golang-release
     - get: golang-image
   - task: bump-deps
@@ -1287,7 +1236,7 @@ jobs:
   - task: test-unit-s3-config-validator
     file: bosh-backup-and-restore/ci/tasks/test-unit-s3-config-validator/task.yml
     image: golang-image
-  - put: main
+  - put: bosh-backup-and-restore
     params:
       repository: bosh-backup-and-restore
       rebase: true
@@ -1295,7 +1244,7 @@ jobs:
 - name: govulncheck
   plan:
   - in_parallel:
-    - get: main
+    - get: bosh-backup-and-restore
       trigger: true
     - get: every-day
       trigger: true
@@ -1305,7 +1254,7 @@ jobs:
     config:
       platform: linux
       inputs:
-      - name: main
+      - name: bosh-backup-and-restore
         path: bosh-backup-and-restore
       run:
         path: /usr/bin/bash
