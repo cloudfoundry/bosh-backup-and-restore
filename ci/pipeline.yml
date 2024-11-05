@@ -109,8 +109,6 @@ groups:
   - run-b-drats
   - check-for-changes
   - publish-to-github
-  - publish-dev-internal-to-rmt
-  - publish-ga-to-rmt
   - update-homebrew-formula
   - bump-deps-bbr-cli
   - bump-deps-s3-config-validator
@@ -212,23 +210,6 @@ resources:
     branch: master
     private_key: *homebrew_ci_bot_private_key
 
-- name: gormt-repo
-  type: git
-  icon: github
-  tags: [ broadcom ]
-  source:
-    uri: https://github.gwd.broadcom.net/TNZ/gormt.git
-    username: svc.bosh-ecosystem@broadcom.net
-    password: *ghe_svc_account_personal_access_token
-
-- name: bosh-ecosystem-concourse
-  type: git
-  tags: [ broadcom ]
-  source:
-    uri: https://github.gwd.broadcom.net/TNZ/bosh-ecosystem-concourse.git
-    username: svc.bosh-ecosystem@broadcom.net
-    password: *ghe_svc_account_personal_access_token
-
 - name: bbr-artefacts
   type: s3
   icon: aws
@@ -308,14 +289,6 @@ resources:
     bucket: bbr-pipeline
     json_key: *gcp_service_accounts_bucket_owner
     regexp: validator-test-artifacts/bbr-s3-config-validator.(.*).tgz
-
-- name: rmt-release-id
-  type: gcs
-  icon: google
-  source:
-    bucket: bbr-pipeline
-    json_key: *gcp_service_accounts_bucket_owner
-    versioned_file: rmt-release/rmt-id
 
 - name: tas-env
   type: shepherd
@@ -441,13 +414,6 @@ resources:
   type: registry-image
   source:
     repository: golang
-    username: *docker_username
-    password: *docker_password
-
-- name: bosh-ecosystem-registry-image
-  type: registry-image
-  source:
-    repository: bosh/bosh-ecosystem-concourse
     username: *docker_username
     password: *docker_password
 
@@ -1016,134 +982,6 @@ jobs:
     params:
       repository: updated-homebrew-tap
       rebase: true
-
-- name: publish-dev-internal-to-rmt
-  plan:
-  - in_parallel:
-    - get: bosh-backup-and-restore
-      trigger: true
-      passed: [ publish-to-github ]
-    - get: bbr-artefacts
-      passed: [ publish-to-github ]
-    - get: s3-config-validator-artefacts
-      params:
-        unpack: true
-      passed: [ publish-to-github ]
-    - get: release-version
-      passed: [ publish-to-github ]
-    - get: gormt-repo
-      tags: [ broadcom ]
-    - get: bosh-ecosystem-registry-image
-    - get: bosh-ecosystem-concourse
-      tags: [ broadcom ]
-  - load_var: version-number
-    file: release-version/number
-    reveal: true
-  - task: build-release-config
-    file: bosh-backup-and-restore/ci/tasks/build-release-config/task.yml
-    image: bosh-ecosystem-registry-image
-    params:
-      RELEASE_CONTACT: *RMT_RELEASE_CONTACT
-      RELEASE_TITLE: BOSH Backup and Restore
-      RELEASE_PRODUCT_NAME: BOSH Backup and Restore
-      RELEASE_DISPLAY_GROUP: BOSH Backup and Restore
-      RELEASE_TYPE: Release Update / MP
-      RELEASE_STATUS: Dev/Internal
-      RELEASE_PRODUCT_SLUG: p-bosh-backup-and-restore
-      RELEASE_VERSION: ((.:version-number))
-  - task: create-internal-rmt-release
-    image: bosh-ecosystem-registry-image
-    tags: [ broadcom ]
-    file: gormt-repo/concourse_examples/tasks/create-release.yml
-    params:
-      <<: *rmt_params
-  - task: update-file-descriptions
-    attempts: 5
-    image: bosh-ecosystem-registry-image
-    tags: [ broadcom ]
-    file: gormt-repo/concourse_examples/tasks/release-file-update.yml
-    params:
-      <<: *rmt_params
-    input_mapping:
-      release-update-config: release-config
-  - task: release-get
-    attempts: 5
-    image: bosh-ecosystem-registry-image
-    tags: [ broadcom ]
-    file: gormt-repo/concourse_examples/tasks/release-get.yml
-    params:
-      <<: *rmt_params
-      OUTPUT_FORMAT: yaml
-    output_mapping:
-      release-retrieved: rmt-release-config
-  - put: rmt-release-id
-    params:
-      file: release-created/id
-  - put: gchat-notification
-    inputs: [ ]
-    params:
-      text: |
-        *BBR CLI*: version `((.:version-number))` has been published as an internal release to RMT.
-        This will not be GA until the "publish-ga-to-rmt" job has been triggered.
-
-
-- name: publish-ga-to-rmt
-  plan:
-    - in_parallel:
-        - get: bosh-backup-and-restore
-          passed: [ publish-dev-internal-to-rmt ]
-        - get: release-version
-          passed: [ publish-dev-internal-to-rmt ]
-        - get: gormt-repo
-          tags: [ broadcom ]
-        - get: bosh-ecosystem-registry-image
-        - get: bosh-ecosystem-concourse
-          tags: [ broadcom ]
-        - get: rmt-release-id
-          passed: [ publish-dev-internal-to-rmt ]
-    - load_var: version-number
-      file: release-version/number
-      reveal: true
-    - task: release-get
-      attempts: 5
-      image: bosh-ecosystem-registry-image
-      tags: [ broadcom ]
-      file: gormt-repo/concourse_examples/tasks/release-get.yml
-      params:
-        <<: *rmt_params
-        OUTPUT_FORMAT: yaml
-        EXISTING_RELEASE_ID: rmt-release-id/rmt-id
-      output_mapping:
-        release-retrieved: rmt-release-config
-    - task: make-config-updates-for-ga
-      image: bosh-ecosystem-registry-image
-      tags: [ broadcom ]
-      file: bosh-ecosystem-concourse/tasks/rmt/make-config-updates-for-ga.yml
-      params:
-        RMT_CONTACT_EMAIL: *RMT_RELEASE_CONTACT
-    - task: update-file-ga-status
-      attempts: 5
-      image: bosh-ecosystem-registry-image
-      tags: [ broadcom ]
-      file: gormt-repo/concourse_examples/tasks/release-file-update.yml
-      params:
-        <<: *rmt_params
-      input_mapping:
-        release-update-config: rmt-release-file-update-config
-    - task: update-release-ga-status
-      attempts: 5
-      image: bosh-ecosystem-registry-image
-      tags: [ broadcom ]
-      file: gormt-repo/concourse_examples/tasks/update-release.yml
-      params:
-        <<: *rmt_params
-      input_mapping:
-        release-update-config: rmt-release-update-config
-    - put: gchat-notification
-      inputs: []
-      params:
-        text: |
-            *BBR CLI*: version `((.:version-number))` has been published to RMT as GA!
 
 - name: claim-env
   plan:
