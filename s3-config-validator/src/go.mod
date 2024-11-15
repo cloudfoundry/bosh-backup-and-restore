@@ -4,9 +4,9 @@ go 1.22.0
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.32.4
-	github.com/aws/aws-sdk-go-v2/credentials v1.17.44
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.66.3
-	github.com/aws/aws-sdk-go-v2/service/sts v1.32.4
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.45
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.67.0
+	github.com/aws/aws-sdk-go-v2/service/sts v1.33.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.9.0
 	github.com/onsi/ginkgo/v2 v2.20.2
 	github.com/onsi/gomega v1.34.2
