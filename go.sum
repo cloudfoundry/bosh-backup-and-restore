@@ -1,7 +1,7 @@
-code.cloudfoundry.org/clock v1.20.0 h1:evna9D0iZm2LGEOTH1qooDdGcsTx4wfACdCArWpBpbU=
-code.cloudfoundry.org/clock v1.20.0/go.mod h1:lbTmT6tMYRsX878c49dSgbn0+jO1W2iYPOcOwYyV0Yk=
-code.cloudfoundry.org/tlsconfig v0.8.0 h1:2kg6Y8ix58T+84iDu1yAFEx6wsHfkg5Mah4twdtbeIs=
-code.cloudfoundry.org/tlsconfig v0.8.0/go.mod h1:S6L3WxtIy4a4wPnmtqUQXiIYlrIk7tUIXj5z+5QYqGY=
+code.cloudfoundry.org/clock v1.21.0 h1:RFRz2iYx9/UynpK7U97a5u5z91t6mr/izP7+0QGtrJw=
+code.cloudfoundry.org/clock v1.21.0/go.mod h1:hgxNVpH5uqC1CeVocIe9TKol+jJ3Estd5SNXPk7kMwQ=
+code.cloudfoundry.org/tlsconfig v0.9.0 h1:5gXZFMTYzuN02wuP3KNcHoKcTCqcKpL4k8Qo2q1jIl0=
+code.cloudfoundry.org/tlsconfig v0.9.0/go.mod h1:P1DZ9RcPeMguVWveDyZt5PTpLTB8yVv/riz+iRFdlZk=
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
 filippo.io/edwards25519 v1.1.0/go.mod h1:BxyFTGdWcka3PhytdK4V28tE5sGfRvvvRV7EaN4VDT4=
 github.com/BurntSushi/toml v1.4.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
@@ -17,8 +17,8 @@ github.com/cloudfoundry/bosh-cli/v7 v7.8.2 h1:xFw66c7EMV6QMEa5QZ4ypwzz2hMkXw9XEp
 github.com/cloudfoundry/bosh-cli/v7 v7.8.2/go.mod h1:T+Yk01mge4PFc4Epg1CyQHw25/8u2f9k7lWxsojSrvg=
 github.com/cloudfoundry/bosh-utils v0.0.500 h1:am7t3jymDRE9kjwQrDY9YzlPnx6RXPQw4OPuZxaIZuE=
 github.com/cloudfoundry/bosh-utils v0.0.500/go.mod h1:ei4cKypTn2mHQQ2fy/tD+43YAJ/IS35h/Ao+P9iR3Xc=
-github.com/cloudfoundry/config-server v0.1.215 h1:E3V9Pg4KSfNVPcMbDol/OwcI8herm8GzWIGfuY7vUjU=
-github.com/cloudfoundry/config-server v0.1.215/go.mod h1:fhRvcHUVvYzMgPANmc0IXVAPRdqdCCbkYoc7CmDxTyQ=
+github.com/cloudfoundry/config-server v0.1.216 h1:NfeB7G5iCtyoEWjaAFb1rWEM0lbnbqf8pzqNEvb/atE=
+github.com/cloudfoundry/config-server v0.1.216/go.mod h1:fhRvcHUVvYzMgPANmc0IXVAPRdqdCCbkYoc7CmDxTyQ=
 github.com/cloudfoundry/go-socks5 v0.0.0-20240831012420-2590b55236ee h1:88ruSYvCUKX2YcF2CMYVTmPGITvNdRbzaBRk2c/iMds=
 github.com/cloudfoundry/go-socks5 v0.0.0-20240831012420-2590b55236ee/go.mod h1:72EEm1oq5oXqGfu9XGtaRPWEcAFYd/P10cMNln0QhA8=
 github.com/cloudfoundry/socks5-proxy v0.2.131 h1:487I7xX9PKDhobm4spBTCIZHbLCKVyFVsTWYFc39D7M=
