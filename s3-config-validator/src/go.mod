@@ -22,7 +22,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.4.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.4 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.18.4 // indirect
-	github.com/aws/smithy-go v1.22.0 // indirect
+	github.com/aws/smithy-go v1.22.1 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
