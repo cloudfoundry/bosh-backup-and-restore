@@ -4,12 +4,12 @@ go 1.22.0
 
 require (
 	github.com/cloudfoundry/bosh-cli/v7 v7.8.2
-	github.com/cloudfoundry/bosh-utils v0.0.502
+	github.com/cloudfoundry/bosh-utils v0.0.503
 	github.com/cloudfoundry/socks5-proxy v0.2.131
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.9.0
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
-	github.com/onsi/ginkgo/v2 v2.21.0
+	github.com/onsi/ginkgo/v2 v2.22.0
 	github.com/onsi/gomega v1.35.1
 	github.com/pkg/errors v0.9.1
 	github.com/urfave/cli v1.22.16
@@ -19,7 +19,7 @@ require (
 
 require (
 	code.cloudfoundry.org/clock v1.21.0 // indirect
-	code.cloudfoundry.org/tlsconfig v0.9.0 // indirect
+	code.cloudfoundry.org/tlsconfig v0.10.0 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/charlievieth/fs v0.0.3 // indirect
