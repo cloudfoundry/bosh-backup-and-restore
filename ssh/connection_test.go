@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ratelimiter"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
@@ -52,7 +53,7 @@ var _ = Describe("Connection", func() {
 
 	JustBeforeEach(func() {
 
-		conn, connErr = ssh.NewConnection(hostname, user, privateKey, gossh.FixedHostKey(hostPublicKey), []string{"rsa-sha2-256"}, logger)
+		conn, connErr = ssh.NewConnection(hostname, user, privateKey, gossh.FixedHostKey(hostPublicKey), []string{"rsa-sha2-256"}, ratelimiter.NoOpRateLimiter{}, logger)
 	})
 
 	Describe("Connection Creation", func() {
@@ -329,7 +330,7 @@ var _ = Describe("Connection", func() {
 				echo "start"
 				sleep 4
 				echo "end"`)
-			conn, connErr = ssh.NewConnectionWithServerAliveInterval(hostname, user, privateKey, gossh.FixedHostKey(hostPublicKey), []string{"rsa-sha2-256"}, 1, logger)
+			conn, connErr = ssh.NewConnectionWithServerAliveInterval(hostname, user, privateKey, gossh.FixedHostKey(hostPublicKey), []string{"rsa-sha2-256"}, 1, ratelimiter.NoOpRateLimiter{}, logger)
 			Expect(connErr).NotTo(HaveOccurred())
 
 			stdOut, _, _, _ = conn.Run("/tmp/produce")
@@ -360,6 +361,7 @@ var _ = Describe("Connection", func() {
 				gossh.FixedHostKey(hostPublicKey),
 				[]string{"rsa-sha2-256"},
 				rapidKeepAliveSignalInterval,
+				ratelimiter.NoOpRateLimiter{},
 				logger)
 			Expect(connErr).NotTo(HaveOccurred())
 			stdErr, _, runError = conn.Stream(command, stdout)
