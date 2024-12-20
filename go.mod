@@ -3,13 +3,13 @@ module github.com/cloudfoundry-incubator/bosh-backup-and-restore
 go 1.22.0
 
 require (
-	github.com/cloudfoundry/bosh-cli/v7 v7.8.3
-	github.com/cloudfoundry/bosh-utils v0.0.514
+	github.com/cloudfoundry/bosh-cli/v7 v7.8.5
+	github.com/cloudfoundry/bosh-utils v0.0.516
 	github.com/cloudfoundry/socks5-proxy v0.2.135
 	github.com/cppforlife/go-patch v0.2.0
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.9.0
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.11.1
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
-	github.com/onsi/ginkgo/v2 v2.22.0
+	github.com/onsi/ginkgo/v2 v2.22.1
 	github.com/onsi/gomega v1.36.1
 	github.com/pkg/errors v0.9.1
 	github.com/urfave/cli v1.22.16
@@ -18,8 +18,8 @@ require (
 )
 
 require (
-	code.cloudfoundry.org/clock v1.24.0 // indirect
-	code.cloudfoundry.org/tlsconfig v0.12.0 // indirect
+	code.cloudfoundry.org/clock v1.25.0 // indirect
+	code.cloudfoundry.org/tlsconfig v0.13.0 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/charlievieth/fs v0.0.3 // indirect
@@ -27,7 +27,7 @@ require (
 	github.com/cloudfoundry/config-server v0.1.224 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20240831012420-2590b55236ee // indirect
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.6 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
@@ -37,8 +37,6 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
-	github.com/klauspost/compress v1.17.11 // indirect
-	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
@@ -48,7 +46,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/vito/go-interact v1.0.1 // indirect
 	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/net v0.32.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/term v0.27.0 // indirect
