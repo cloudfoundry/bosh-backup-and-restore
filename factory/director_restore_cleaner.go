@@ -5,6 +5,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orderer"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ratelimiter"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/standalone"
 )
@@ -13,7 +14,8 @@ func BuildDirectorRestoreCleaner(host,
 	username,
 	privateKeyPath,
 	bbrVersion string,
-	hasDebug bool) *orchestrator.RestoreCleaner {
+	hasDebug bool,
+	rateLimiter ratelimiter.RateLimiter) *orchestrator.RestoreCleaner {
 
 	logger := BuildLogger(hasDebug)
 
@@ -23,6 +25,7 @@ func BuildDirectorRestoreCleaner(host,
 		privateKeyPath,
 		instance.NewJobFinderOmitMetadataReleases(bbrVersion, logger),
 		ssh.NewSshRemoteRunner,
+		rateLimiter,
 	)
 
 	return orchestrator.NewRestoreCleaner(logger, deploymentManager, orderer.NewKahnRestoreLockOrderer(), executor.NewSerialExecutor())

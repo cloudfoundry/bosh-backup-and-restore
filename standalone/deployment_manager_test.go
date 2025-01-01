@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ratelimiter"
 	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/standalone"
 
 	instancefakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
@@ -35,7 +36,7 @@ var _ = Describe("DeploymentManager", func() {
 		fakeJobFinder = new(instancefakes.FakeJobFinder)
 		remoteRunner = new(sshfakes.FakeRemoteRunner)
 
-		deploymentManager = NewDeploymentManager(logger, hostName, username, privateKey, fakeJobFinder, remoteRunnerFactory.Spy)
+		deploymentManager = NewDeploymentManager(logger, hostName, username, privateKey, fakeJobFinder, remoteRunnerFactory.Spy, &ratelimiter.ConnectionRateLimiter{})
 	})
 
 	AfterEach(func() {
