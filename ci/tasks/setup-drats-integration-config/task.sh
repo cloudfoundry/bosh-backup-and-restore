@@ -77,6 +77,15 @@ for config in "${configs[@]}"; do
   integration_config=$(echo "${integration_config}" | jq ".${config}=\"${!config}\"")
 done
 
+tests_to_disable=( include_cf-credhub
+  include_cf-nfsbroker
+  include_cf-smbbroker )
+
+for test_to_disable in "${tests_to_disable[@]}"; do
+  integration_config=$(echo "${integration_config}" | jq ".\"${test_to_disable}\"=false")
+done
+
+
 echo "${integration_config}" > "integration-configs/${INTEGRATION_CONFIG_FILE_PATH}"
 
 cp -Tr integration-configs updated-integration-configs
