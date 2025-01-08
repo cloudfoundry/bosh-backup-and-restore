@@ -189,7 +189,7 @@ resources:
   source:
     bucket: bbr-pipeline
     json_key: *gcp_service_accounts_bucket_owner
-    versioned_file: bbr-cli/bbr-dev-release.tgz
+    versioned_file: bbr-cli/bbr-dev-release.tar
 
 - name: bbr-release
   type: github-release
