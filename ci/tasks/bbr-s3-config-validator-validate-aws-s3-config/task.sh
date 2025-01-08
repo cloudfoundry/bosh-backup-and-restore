@@ -46,6 +46,7 @@ cat << EOF > /var/vcap/jobs/s3-unversioned-blobstore-backup-restorer/config/buck
 }
 EOF
 
+chmod +x ./s3-config-validator-dev-release/bbr-s3-config-validator
 ./s3-config-validator-dev-release/bbr-s3-config-validator --unversioned --validate-put-object \
   | sed 's/"\(aws_.*\)"\: "\(.*\)"/"\1": "<redacted>"/g'
 
