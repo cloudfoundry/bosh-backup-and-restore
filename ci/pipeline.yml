@@ -649,7 +649,7 @@ jobs:
     format: json
   - task: update-integration-config
     image: image-cryogenics-essentials
-    file: disaster-recovery-acceptance-tests/ci/tasks/update-integration-config/task.yml
+    file: bosh-backup-and-restore/ci/tasks/setup-drats-integration-config/task.yml
     input_mapping:
       integration-configs: disaster-recovery-acceptance-tests
     params:
