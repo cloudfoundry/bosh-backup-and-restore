@@ -3,17 +3,18 @@
 set -euo pipefail
 set -x
 
-[ -d version ]
-[ -d repo ]
-
-VERSION="$(cat version/number)"
+if [ -d version ]; then
+  export VERSION=$(cat version/version)
+else
+  export VERSION=$(date +%s)
+fi
 
 ROOT_DIR=$PWD
 
-cd repo/s3-config-validator
+cd bosh-backup-and-restore/s3-config-validator
 
 make artifact
 
 cp -r \
-  build/artifact.tgz \
-  "${ROOT_DIR}/bbr-s3-config-validator-test-artifacts/bbr-s3-config-validator.$VERSION.tgz"
+  build/* \
+  "${ROOT_DIR}/bbr-s3-config-validator-build/"

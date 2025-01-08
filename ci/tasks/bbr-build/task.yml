@@ -7,8 +7,8 @@ image_resource:
 
 inputs:
 - name: bosh-backup-and-restore
-- name: release-candidate-version
-- name: release-version
+- name: version
+  optional: true
 
 outputs:
 - name: bbr-build

@@ -5,7 +5,7 @@ image_resource:
     repository: cryogenics/essentials
     tag: 0.1.111
 inputs:
-  - name: bbr-s3-config-validator-test-artifacts
+  - name: s3-config-validator-dev-release
   - name: bosh-backup-and-restore
 params:
   ACCESS_KEY:
