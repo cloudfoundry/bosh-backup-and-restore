@@ -50,7 +50,7 @@ function create_bbr_tarball() {
 }
 
 pushd bbr-build
-  tar xf bbr-1.9.74.tar
+  tar xf bbr-*.tar
 popd
 copy_bbr_binaries
 copy_s3_config_validator
