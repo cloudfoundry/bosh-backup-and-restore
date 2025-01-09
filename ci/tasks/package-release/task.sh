@@ -49,6 +49,9 @@ function create_bbr_tarball() {
   tar -cf "$release_folder/bbr-${VERSION}.tar" -C "$bbr_tarball_folder" .
 }
 
+pushd bbr-build
+  tar xf bbr-1.9.74.tar
+popd
 copy_bbr_binaries
 copy_s3_config_validator
 create_bbr_tarball
