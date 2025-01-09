@@ -815,7 +815,6 @@ jobs:
   plan:
   - in_parallel:
     - get: bosh-backup-and-restore
-      trigger: true
       passed:
       - run-drats
       - run-b-drats
