@@ -3,8 +3,8 @@ module github.com/cloudfoundry-incubator/bosh-backup-and-restore
 go 1.22.0
 
 require (
-	github.com/cloudfoundry/bosh-cli/v7 v7.9.0
-	github.com/cloudfoundry/bosh-utils v0.0.525
+	github.com/cloudfoundry/bosh-cli/v7 v7.9.1
+	github.com/cloudfoundry/bosh-utils v0.0.527
 	github.com/cloudfoundry/socks5-proxy v0.2.140
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.11.1
@@ -19,7 +19,7 @@ require (
 
 require (
 	code.cloudfoundry.org/clock v1.28.0 // indirect
-	code.cloudfoundry.org/tlsconfig v0.16.0 // indirect
+	code.cloudfoundry.org/tlsconfig v0.17.0 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/charlievieth/fs v0.0.3 // indirect
@@ -45,12 +45,12 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/vito/go-interact v1.0.1 // indirect
-	golang.org/x/mod v0.22.0 // indirect
+	golang.org/x/mod v0.23.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
-	golang.org/x/sync v0.10.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
-	golang.org/x/term v0.28.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/sync v0.11.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/term v0.29.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	golang.org/x/tools v0.29.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
