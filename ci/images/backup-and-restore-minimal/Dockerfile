@@ -55,7 +55,7 @@ RUN \
 
 # bosh-cli
 RUN \
-  wget --quiet https://s3.amazonaws.com/bosh-cli-artifacts/bosh-cli-${bosh_cli_version}-linux-amd64 --output-document="/usr/bin/bosh" && \
+  wget --quiet https://github.com/cloudfoundry/bosh-cli/releases/download/v${bosh_cli_version}/bosh-cli-${bosh_cli_version}-linux-amd64 --output-document="/usr/bin/bosh" && \
   chmod +x /usr/bin/bosh && \
   cp /usr/bin/bosh /usr/bin/bosh-cli && \
   chmod +x /usr/bin/bosh-cli
