@@ -5,7 +5,6 @@ FROM ubuntu:jammy
 ENV cf_cli_version 7.3.0
 ENV bosh_cli_version 7.2.3
 ENV om_cli_version 0.42.0
-ENV om_cli_6_version 6.2.0
 
 RUN apt-get update && apt-get install -y \
   apt-utils \
@@ -47,11 +46,6 @@ RUN \
 RUN \
   wget --quiet https://github.com/pivotal-cf/om/releases/download/${om_cli_version}/om-linux --output-document="/usr/bin/om" && \
   chmod +x /usr/bin/om
-
-# OM-cli-6
-RUN \
-  wget --quiet https://github.com/pivotal-cf/om/releases/download/${om_cli_6_version}/om-linux-6.2.0 --output-document="/usr/bin/om-6" && \
-  chmod +x /usr/bin/om-6
 
 # bosh-cli
 RUN \
