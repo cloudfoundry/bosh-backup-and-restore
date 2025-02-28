@@ -1,10 +1,10 @@
-FROM golang:1.23.2 as go-binary
+FROM golang:1.23.6 as go-binary
 
 FROM ubuntu:jammy
 
-ENV cf_cli_version 7.3.0
-ENV bosh_cli_version 7.2.3
-ENV om_cli_version 0.42.0
+ENV cf_cli_version 8.10.0
+ENV bosh_cli_version 7.9.3
+ENV om_cli_version 7.14.0
 
 RUN apt-get update && apt-get install -y \
   apt-utils \
