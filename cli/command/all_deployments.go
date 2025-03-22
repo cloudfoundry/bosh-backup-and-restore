@@ -15,6 +15,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor/deployment"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ratelimiter"
 	"github.com/urfave/cli"
 )
 
@@ -126,6 +127,18 @@ func getDeploymentParams(c *cli.Context) (string, string, string, string, string
 	allDeployments := c.Parent().Bool("all-deployments")
 
 	return username, password, target, caCert, bbrVersion, debug, deployment, allDeployments
+}
+
+func getConnectionRateLimiter(c *cli.Context) (ratelimiter.RateLimiter, error) {
+	enabled := c.Parent().Bool("rate-limiting")
+	maxConnections := c.Parent().Int("rate-limiting-max-connections")
+	duration := c.Parent().String("rate-limiting-duration")
+
+	if enabled {
+		return ratelimiter.NewConnectionRateLimiter(maxConnections, duration)
+	}
+	return ratelimiter.NewNoOpRateLimiter(), nil
+
 }
 
 type DeploymentExecutable struct {
