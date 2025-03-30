@@ -24,11 +24,18 @@ func (d DirectorBackupCleanupCommand) Action(c *cli.Context) error {
 
 	directorName := extractNameFromAddress(c.Parent().String("host"))
 
+	rateLimiter, err := getConnectionRateLimiter(c)
+
+	if err != nil {
+		return err
+	}
+
 	cleaner := factory.BuildDirectorBackupCleaner(c.Parent().String("host"),
 		c.Parent().String("username"),
 		c.Parent().String("private-key-path"),
 		c.App.Version,
 		c.GlobalBool("debug"),
+		rateLimiter,
 	)
 
 	cleanupErr := cleaner.Cleanup(directorName)
