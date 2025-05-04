@@ -37,12 +37,19 @@ func (d DeploymentRestoreCommand) Action(c *cli.Context) error {
 	deployment := c.Parent().String("deployment")
 	artifactPath := c.String("artifact-path")
 
+	rateLimiter, err := getConnectionRateLimiter(c)
+
+	if err != nil {
+		return err
+	}
+
 	restorer, err := factory.BuildDeploymentRestorer(c.Parent().String("target"),
 		c.Parent().String("username"),
 		c.Parent().String("password"),
 		c.Parent().String("ca-cert"),
 		c.App.Version,
-		c.GlobalBool("debug"))
+		c.GlobalBool("debug"),
+		rateLimiter)
 
 	if err != nil {
 		return processError(orchestrator.NewError(err))
