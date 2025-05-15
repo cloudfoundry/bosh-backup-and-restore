@@ -1,7 +1,8 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
 set -euo pipefail
 
-fly -t bosh-ecosystem set-pipeline \
+REPO_ROOT="$( cd "$( dirname "${0}" )/.." && pwd )"
+
+fly -t "${CONCOURSE_TARGET:=bosh-ecosystem}" set-pipeline \
   -p bbr-cli \
-  -c <(ytt -f ci/pipeline.yml --data-values-file ci/pipeline-values.yml)
+  -c <(ytt -f "${REPO_ROOT}/ci/pipeline.yml" --data-values-file "${REPO_ROOT}ci/pipeline-values.yml")
