@@ -33,7 +33,7 @@ secrets:
 - &test-bosh-director-ip-priv-key ((test_bosh_director_ssh_key.private_key))
 - &test-bosh-director-ip-pub-key ((test_bosh_director_ssh_key.public_key))
 
-- &shepherd_account_key ((bosh-ecosystem-shepherd-service-account))
+- &shepherd_account_key ((bosh-ecosystem-shepherd-service-account-lvn))
 #! shepherd_account_key was needed on 2023-09-28 to claim shepherd environments. It was created using `shepherd create service-account` after logging in with WS1.
 
 - &docker_username ((docker.username))
@@ -233,7 +233,7 @@ resources:
     service-account-key: *shepherd_account_key
     compatibility-mode: environments-app
     lease:
-      namespace: cryogenics
+      namespace: bosh-ecosystem
       pool:
         namespace: official
         name: #@ data.values.tas_versions[-1]["pool_name"]
@@ -271,7 +271,7 @@ resources:
     service-account-key: *shepherd_account_key
     compatibility-mode: environments-app
     lease:
-      namespace: cryogenics
+      namespace: bosh-ecosystem
       pool:
         namespace: official
         name: cfd
@@ -296,7 +296,7 @@ resources:
     service-account-key: *shepherd_account_key
     compatibility-mode: environments-app
     lease:
-      namespace: cryogenics
+      namespace: bosh-ecosystem
       pool:
         namespace: official
         name: cfd
@@ -309,7 +309,7 @@ resources:
     service-account-key: *shepherd_account_key
     compatibility-mode: environments-app
     lease:
-      namespace: cryogenics
+      namespace: bosh-ecosystem
       pool:
         namespace: official
         name: cfd
