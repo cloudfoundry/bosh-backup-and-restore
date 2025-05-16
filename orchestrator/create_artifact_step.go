@@ -21,7 +21,7 @@ func (s *CreateArtifactStep) Run(session *Session) error {
 	if err != nil {
 		return err
 	}
-	artifact.CreateMetadataFileWithStartTime(s.nowFunc())
+	artifact.CreateMetadataFileWithStartTime(s.nowFunc()) //nolint:errcheck
 	session.SetCurrentArtifact(artifact)
 
 	err = s.deploymentManager.SaveManifest(session.DeploymentName(), artifact)

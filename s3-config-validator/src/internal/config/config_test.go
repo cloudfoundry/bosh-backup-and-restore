@@ -187,7 +187,7 @@ var _ = Describe("Config", func() {
 				Expect(err).NotTo(HaveOccurred())
 				err = f.Chmod(noRead)
 				Expect(err).NotTo(HaveOccurred())
-				f.Close()
+				f.Close() //nolint:errcheck
 
 				conf, err := config.Read(filePath, true)
 
@@ -479,7 +479,7 @@ var _ = Describe("Config", func() {
 				Expect(err).NotTo(HaveOccurred())
 				err = f.Chmod(noRead)
 				Expect(err).NotTo(HaveOccurred())
-				f.Close()
+				f.Close() //nolint:errcheck
 
 				conf, err := config.Read(filePath, false)
 

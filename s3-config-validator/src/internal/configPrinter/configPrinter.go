@@ -9,13 +9,13 @@ import (
 )
 
 func PrintConfig(writer io.Writer, config config.Config) {
-	fmt.Fprintf(writer, "Configuration:\n\n")
+	fmt.Fprintf(writer, "Configuration:\n\n") //nolint:errcheck
 
 	if config.Buckets == nil {
-		fmt.Fprintf(writer, "  {}\n\n")
+		fmt.Fprintf(writer, "  {}\n\n") //nolint:errcheck
 	}
 
 	jsonOutput, _ := json.MarshalIndent(config.Buckets, "  ", "  ")
 
-	fmt.Fprintf(writer, "  %s\n\n", string(jsonOutput))
+	fmt.Fprintf(writer, "  %s\n\n", string(jsonOutput)) //nolint:errcheck
 }

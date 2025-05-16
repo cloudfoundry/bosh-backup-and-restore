@@ -50,7 +50,7 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = AfterSuite(func() {
-	os.Remove(sslCertPath)
+	os.Remove(sslCertPath) //nolint:errcheck
 	gexec.CleanupBuildArtifacts()
 	testcluster.WaitForContainersToDie()
 })

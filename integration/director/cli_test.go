@@ -44,7 +44,7 @@ var _ = Describe("CLI Interface", func() {
 				BeforeEach(func() {
 					keyFile, err = os.CreateTemp("", time.Now().String())
 					Expect(err).NotTo(HaveOccurred())
-					fmt.Fprintf(keyFile, "this is not a valid key")
+					fmt.Fprintf(keyFile, "this is not a valid key") //nolint:errcheck
 
 					session = binary.Run(backupWorkspace,
 						[]string{},
