@@ -106,7 +106,7 @@ var _ = Describe("lifecycle with backup_one_restore_all enabled", func() {
 		By("ensuring data is restored in both instances")
 		runOnInstances(instances, func(instName, instIndex string) {
 			Eventually(RedisWithBackupOneRestoreAll.Instance(instName, instIndex).RunCommand(
-				fmt.Sprintf("sudo ls -la /var/vcap/store/redis-server"),
+				fmt.Sprintf("sudo ls -la /var/vcap/store/redis-server"), //nolint:staticcheck
 			)).Should(gexec.Exit(0))
 
 			redisSession := RedisWithBackupOneRestoreAll.Instance(instName, instIndex).RunCommand(

@@ -78,7 +78,7 @@ func (backupDirectory *BackupDirectory) DeploymentMatches(deployment string, ins
 
 	for _, inst := range meta.MetadataForEachInstance {
 		present := backupDirectory.backupInstanceIsPresent(inst, instances)
-		if present != true {
+		if present != true { //nolint:staticcheck
 			backupDirectory.Debug("bbr", "Instance %v/%v not found in %v", inst.Name, inst.Index, instances)
 			return false, nil
 		}
@@ -142,7 +142,7 @@ func (backupDirectory *BackupDirectory) FetchChecksum(artifactIdentifier orchest
 
 func logName(artifactIdentifer orchestrator.ArtifactIdentifier) string {
 	if artifactIdentifer.HasCustomName() {
-		return fmt.Sprintf("%s", artifactIdentifer.Name())
+		return fmt.Sprintf("%s", artifactIdentifer.Name()) //nolint:staticcheck
 	}
 	return fmt.Sprintf("%s/%s", artifactIdentifer.Name(), artifactIdentifer.InstanceIndex())
 }
@@ -152,7 +152,7 @@ func (backupDirectory *BackupDirectory) CalculateChecksum(artifactIdentifier orc
 	if err != nil {
 		return nil, backupDirectory.logAndReturn(err, "Error opening artifact file %v", artifactIdentifier)
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	tarReader := tar.NewReader(file)
 	checksum := map[string]string{}
@@ -172,7 +172,7 @@ func (backupDirectory *BackupDirectory) CalculateChecksum(artifactIdentifier orc
 		if _, err := io.Copy(fileShasum, tarReader); err != nil {
 			return nil, backupDirectory.logAndReturn(err, "Error calculating sha for %s", logName(artifactIdentifier))
 		}
-		backupDirectory.Logger.Debug("bbr", "Calculating shasum for local file %s", tarHeader.Name)
+		backupDirectory.Logger.Debug("bbr", "Calculating shasum for local file %s", tarHeader.Name) //nolint:staticcheck
 		checksum[tarHeader.Name] = fmt.Sprintf("%x", fileShasum.Sum(nil))
 	}
 
@@ -209,7 +209,7 @@ func (backupDirectory *BackupDirectory) AddChecksum(artifactIdentifier orchestra
 }
 
 func (backupDirectory *BackupDirectory) CreateMetadataFileWithStartTime(startTime time.Time) error {
-	exists, _ := backupDirectory.metadataExistsAndIsReadable()
+	exists, _ := backupDirectory.metadataExistsAndIsReadable() //nolint:errcheck
 	if exists {
 		message := "metadata file already exists"
 		backupDirectory.Debug("bbr", "%s: %v", message, nil)
@@ -221,7 +221,7 @@ func (backupDirectory *BackupDirectory) CreateMetadataFileWithStartTime(startTim
 			StartTime: startTime.Format(timestampFormat),
 		},
 	}
-	metadata.save(backupDirectory.metadataFilename())
+	metadata.save(backupDirectory.metadataFilename()) //nolint:errcheck
 
 	return nil
 }
@@ -235,7 +235,7 @@ func (backupDirectory *BackupDirectory) AddFinishTime(finishTime time.Time) erro
 	}
 
 	metadata.MetadataForBackupActivity.FinishTime = finishTime.Format(timestampFormat)
-	metadata.save(backupDirectory.metadataFilename())
+	metadata.save(backupDirectory.metadataFilename()) //nolint:errcheck
 
 	return nil
 }
@@ -251,7 +251,7 @@ func (backupDirectory *BackupDirectory) Valid() (bool, error) {
 	}
 
 	for _, artifact := range meta.MetadataForEachArtifact {
-		actualArtifactChecksum, _ := backupDirectory.CalculateChecksum(makeCustomArtifactIdentifier(artifact))
+		actualArtifactChecksum, _ := backupDirectory.CalculateChecksum(makeCustomArtifactIdentifier(artifact)) //nolint:errcheck
 		match, _ := actualArtifactChecksum.Match(artifact.Checksum)
 		if !match {
 			return false, backupDirectory.logAndReturn(err, "Can't match checksums for %s, in metadata: %v, in actual file: %v", artifact.Name, actualArtifactChecksum, artifact.Checksum)

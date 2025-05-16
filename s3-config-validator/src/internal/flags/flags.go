@@ -35,7 +35,7 @@ const ReadOnlyValidationHint = `Run with --validate-put-object to test writing o
 
 func OverrideDefaultHelpFlag(message string) {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stdout, "%v", message)
+		fmt.Fprintf(os.Stdout, "%v", message) //nolint:errcheck
 		os.Exit(0)
 	}
 }

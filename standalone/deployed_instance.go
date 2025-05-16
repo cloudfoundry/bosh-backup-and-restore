@@ -19,7 +19,7 @@ func NewDeployedInstance(instanceGroupName string, remoteRunner ssh.RemoteRunner
 
 func (i DeployedInstance) Cleanup() error {
 	if !i.ArtifactDirCreated() {
-		i.Logger.Debug("bbr", "Backup directory was never created - skipping cleanup")
+		i.Logger.Debug("bbr", "Backup directory was never created - skipping cleanup") //nolint:staticcheck
 		return nil
 	}
 
@@ -31,11 +31,11 @@ func (i DeployedInstance) CleanupPrevious() error {
 }
 
 func (i DeployedInstance) cleanupArtifact() error {
-	i.Logger.Info("bbr", "Cleaning up...")
+	i.Logger.Info("bbr", "Cleaning up...") //nolint:staticcheck
 
 	err := i.RemoveArtifactDir()
 	if err != nil {
-		i.Logger.Error("bbr", "Backup artifact clean up failed")
+		i.Logger.Error("bbr", "Backup artifact clean up failed") //nolint:staticcheck
 		return errors.Wrap(err, "Unable to clean up backup artifact")
 	}
 

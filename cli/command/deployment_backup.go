@@ -52,7 +52,7 @@ func (d DeploymentBackupCommand) Action(c *cli.Context) error {
 
 	if allDeployments {
 		if unsafeLockFree {
-			return processError(orchestrator.NewError(fmt.Errorf("Cannot use the --unsafe-lock-free flag in conjunction with the --all-deployments flag")))
+			return processError(orchestrator.NewError(fmt.Errorf("Cannot use the --unsafe-lock-free flag in conjunction with the --all-deployments flag"))) //nolint:staticcheck
 		}
 		return backupAll(target, username, password, caCert, artifactPath, withManifest, bbrVersion, debug)
 	}

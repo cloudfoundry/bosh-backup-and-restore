@@ -30,43 +30,43 @@ const (
 )
 
 func (s Script) isBackup() bool {
-	match, _ := filepath.Match(backupScriptMatcher, string(s))
+	match, _ := filepath.Match(backupScriptMatcher, string(s)) //nolint:errcheck
 	return match
 }
 
 func (s Script) isRestore() bool {
-	match, _ := filepath.Match(restoreScriptMatcher, string(s))
+	match, _ := filepath.Match(restoreScriptMatcher, string(s)) //nolint:errcheck
 	return match
 }
 
 func (s Script) isMetadata() bool {
-	match, _ := filepath.Match(metadataScriptMatcher, string(s))
+	match, _ := filepath.Match(metadataScriptMatcher, string(s)) //nolint:errcheck
 	return match
 }
 
 func (s Script) isPreBackupUnlock() bool {
-	match, _ := filepath.Match(preBackupLockScriptMatcher, string(s))
+	match, _ := filepath.Match(preBackupLockScriptMatcher, string(s)) //nolint:errcheck
 	return match
 }
 
 func (s Script) isPreRestoreLock() bool {
-	match, _ := filepath.Match(preRestoreLockScriptMatcher, string(s))
+	match, _ := filepath.Match(preRestoreLockScriptMatcher, string(s)) //nolint:errcheck
 	return match
 }
 
 func (s Script) isPostBackupUnlock() bool {
-	match, _ := filepath.Match(postBackupUnlockScriptMatcher, string(s))
+	match, _ := filepath.Match(postBackupUnlockScriptMatcher, string(s)) //nolint:errcheck
 	return match
 }
 
 func (s Script) isPostRestoreUnlock() bool {
-	match, _ := filepath.Match(postRestoreUnlockScriptMatcher, string(s))
+	match, _ := filepath.Match(postRestoreUnlockScriptMatcher, string(s)) //nolint:errcheck
 	return match
 }
 
 func (s Script) isMySQLScript() bool {
-	backupMatch, _ := filepath.Match(mySQLBackupScriptMatcher, string(s))
-	restoreMatch, _ := filepath.Match(mySQLRestoreScriptMatcher, string(s))
+	backupMatch, _ := filepath.Match(mySQLBackupScriptMatcher, string(s))   //nolint:errcheck
+	restoreMatch, _ := filepath.Match(mySQLRestoreScriptMatcher, string(s)) //nolint:errcheck
 	return backupMatch || restoreMatch
 }
 
@@ -95,7 +95,7 @@ func (s Script) JobName() string {
 	return pathSplit[0]
 }
 
-func (script Script) Name() string {
-	pathSplit := script.splitPath()
+func (s Script) Name() string {
+	pathSplit := s.splitPath()
 	return pathSplit[len(pathSplit)-1]
 }

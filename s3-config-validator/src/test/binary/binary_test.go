@@ -19,7 +19,7 @@ var _ = Describe("binary tests", func() {
 	Describe("Config file reading", func() {
 
 		AfterEach(func() {
-			os.Unsetenv(ConfigPathEnv)
+			os.Unsetenv(ConfigPathEnv) //nolint:errcheck
 		})
 
 		When("BBR_S3_BUCKETS_CONFIG is set", func() {
@@ -58,7 +58,7 @@ var _ = Describe("binary tests", func() {
 				When("there is no file at default location", func() {
 
 					BeforeEach(func() {
-						os.Unsetenv(ConfigPathEnv)
+						os.Unsetenv(ConfigPathEnv) //nolint:errcheck
 						session = executeBBRValidatorVersioned("")
 					})
 
@@ -74,7 +74,7 @@ var _ = Describe("binary tests", func() {
 				When("there is no file at default location", func() {
 
 					BeforeEach(func() {
-						os.Unsetenv(ConfigPathEnv)
+						os.Unsetenv(ConfigPathEnv) //nolint:errcheck
 						session = executeBBRValidatorUnversioned("")
 					})
 
@@ -293,7 +293,7 @@ func createFile(content string) string {
 }
 
 func deleteFile(filePath string) {
-	os.Remove(filePath)
+	os.Remove(filePath) //nolint:errcheck
 }
 
 func executeBBRValidatorUnversioned(configFilePath string, args ...string) *gexec.Session {

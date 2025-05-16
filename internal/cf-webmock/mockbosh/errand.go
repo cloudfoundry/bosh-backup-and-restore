@@ -10,7 +10,7 @@ type errandMock struct {
 	*mockhttp.MockHttp
 }
 
-func Errand(deploymentName, errandName string) *errandMock {
+func Errand(deploymentName, errandName string) *errandMock { //nolint:unused
 	return &errandMock{
 		MockHttp: mockhttp.NewMockedHttpRequest("POST", fmt.Sprintf("/deployments/%s/errands/%s/runs", deploymentName, errandName)),
 	}

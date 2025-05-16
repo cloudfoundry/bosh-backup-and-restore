@@ -20,7 +20,7 @@ func TestInstance(t *testing.T) {
 	RunSpecs(t, "Instance Suite")
 }
 
-var defaultPrivateKey string
+var defaultPrivateKey string //nolint:unused
 
 var _ = BeforeSuite(func() {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
@@ -36,7 +36,7 @@ var _ = BeforeSuite(func() {
 	defaultPrivateKey = string(defaultPrivateKeyBytes)
 })
 
-func publicKeyForDocker(privateKey string) string {
+func publicKeyForDocker(privateKey string) string { //nolint:unused
 	parsedPrivateKey, err := ssh.ParsePrivateKey([]byte(privateKey))
 	if err != nil {
 		Fail("Cant parse key")

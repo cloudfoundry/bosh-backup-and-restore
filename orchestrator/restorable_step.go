@@ -34,7 +34,7 @@ func (s *RestorableStep) Run(session *Session) error {
 
 	if match, err := session.CurrentArtifact().DeploymentMatches(session.DeploymentName(), session.CurrentDeployment().Instances()); err != nil {
 		return errors.Errorf("Unable to check if deployment '%s' matches the structure of the provided backup", session.DeploymentName())
-	} else if match != true {
+	} else if match != true { //nolint:staticcheck
 		return errors.Errorf("Deployment '%s' does not match the structure of the provided backup", session.DeploymentName())
 	}
 

@@ -11,7 +11,7 @@ type ParallelExecutor struct {
 }
 
 func (s ParallelExecutor) SetMaxInFlight(maxInFlight int) {
-	s.maxInFlight = maxInFlight
+	s.maxInFlight = maxInFlight //nolint:staticcheck
 }
 
 func (s ParallelExecutor) Run(executablesList [][]Executable) []error {

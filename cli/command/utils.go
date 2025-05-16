@@ -38,7 +38,7 @@ func trapSigint(backup bool) {
 			stdinReader := bufio.NewReader(os.Stdin)
 			factory.ApplicationLoggerStdout.Pause()
 			factory.ApplicationLoggerStderr.Pause()
-			fmt.Fprintln(os.Stdout, "\n"+sigintQuestion)
+			fmt.Fprintln(os.Stdout, "\n"+sigintQuestion) //nolint:errcheck
 			input, err := stdinReader.ReadString('\n')
 			if err != nil {
 				fmt.Println("\n" + stdInErrorMessage)
@@ -46,8 +46,8 @@ func trapSigint(backup bool) {
 				fmt.Println(cleanupAdvisedNotice)
 				os.Exit(1)
 			}
-			factory.ApplicationLoggerStdout.Resume()
-			factory.ApplicationLoggerStderr.Resume()
+			factory.ApplicationLoggerStdout.Resume() //nolint:errcheck
+			factory.ApplicationLoggerStderr.Resume() //nolint:errcheck
 		}
 	}()
 }

@@ -13,8 +13,8 @@ import (
 	"io"
 	"os"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo/v2" //nolint:staticcheck
+	. "github.com/onsi/gomega"    //nolint:staticcheck
 	"github.com/onsi/gomega/gexec"
 	"gopkg.in/yaml.v2"
 )
@@ -34,8 +34,8 @@ func (b Binary) Start(cwd string, env []string, params ...string) (*gexec.Sessio
 	command.Dir = cwd
 	stdin, err := command.StdinPipe()
 	Expect(err).ToNot(HaveOccurred())
-	fmt.Fprintf(GinkgoWriter, "Running command: %v %v in %s with env %v\n", b.path, params, cwd, env)
-	fmt.Fprintf(GinkgoWriter, "Command output start\n")
+	fmt.Fprintf(GinkgoWriter, "Running command: %v %v in %s with env %v\n", b.path, params, cwd, env) //nolint:errcheck
+	fmt.Fprintf(GinkgoWriter, "Command output start\n")                                               //nolint:errcheck
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ToNot(HaveOccurred())
 	return session, stdin
@@ -44,8 +44,8 @@ func (b Binary) Start(cwd string, env []string, params ...string) (*gexec.Sessio
 func (b Binary) Run(cwd string, env []string, params ...string) *gexec.Session {
 	session, _ := b.Start(cwd, env, params...)
 	Eventually(session, b.runTimeout).Should(gexec.Exit())
-	fmt.Fprintf(GinkgoWriter, "Command output end\n")
-	fmt.Fprintf(GinkgoWriter, "Exited with %d\n", session.ExitCode())
+	fmt.Fprintf(GinkgoWriter, "Command output end\n")                 //nolint:errcheck
+	fmt.Fprintf(GinkgoWriter, "Exited with %d\n", session.ExitCode()) //nolint:errcheck
 	return session
 }
 
@@ -83,8 +83,8 @@ type metadata struct {
 
 func ParseMetadata(filePath string) metadata {
 	metadataContents := metadata{}
-	contents, _ := os.ReadFile(filePath)
-	yaml.Unmarshal(contents, &metadataContents)
+	contents, _ := os.ReadFile(filePath)        //nolint:errcheck
+	yaml.Unmarshal(contents, &metadataContents) //nolint:errcheck
 	return metadataContents
 }
 

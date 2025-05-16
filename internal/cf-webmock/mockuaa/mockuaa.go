@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega" //nolint:staticcheck
 )
 
 const (
@@ -133,7 +133,7 @@ func handleInternalServerError(writer http.ResponseWriter) {
 	status := http.StatusInternalServerError
 	writer.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	writer.WriteHeader(status)
-	writer.Write([]byte(InternalServerErrorMessage))
+	writer.Write([]byte(InternalServerErrorMessage)) //nolint:errcheck
 }
 
 func handleAuthorised(tokenToReturn string, validitySecondsToReturn int) (int, map[string]interface{}) {
@@ -157,7 +157,7 @@ func handleUnauthorised() (int, map[string]interface{}) {
 	return status, response
 }
 
-func NewClientCredentialsServer(uaaClientID, uaaClientSecret, tokenToReturn string) *ClientCredentialsServer {
+func NewClientCredentialsServer(uaaClientID, uaaClientSecret, tokenToReturn string) *ClientCredentialsServer { //nolint:unused
 	return startClientCredentialsServer(uaaClientID, uaaClientSecret, tokenToReturn, httptest.NewServer)
 }
 
@@ -165,11 +165,11 @@ func NewClientCredentialsServerTLS(uaaClientID, uaaClientSecret, tokenToReturn s
 	return startClientCredentialsServer(uaaClientID, uaaClientSecret, tokenToReturn, httptest.NewTLSServer)
 }
 
-func NewUserCredentialsServer(clientID, clientSecret, username, password, tokenToReturn string) *UserCredentialsServer {
+func NewUserCredentialsServer(clientID, clientSecret, username, password, tokenToReturn string) *UserCredentialsServer { //nolint:unused
 	return startUserCredentialsServer(clientID, clientSecret, username, password, tokenToReturn, httptest.NewServer)
 }
 
-func NewUserCredentialsServerTLS(clientID, clientSecret, username, password, tokenToReturn string) *UserCredentialsServer {
+func NewUserCredentialsServerTLS(clientID, clientSecret, username, password, tokenToReturn string) *UserCredentialsServer { //nolint:unused
 	return startUserCredentialsServer(clientID, clientSecret, username, password, tokenToReturn, httptest.NewTLSServer)
 }
 

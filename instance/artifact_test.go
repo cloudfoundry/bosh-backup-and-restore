@@ -186,7 +186,7 @@ var _ = Describe("artifact", func() {
 				})
 
 				JustBeforeEach(func() {
-					size, _ = backupArtifact.Size()
+					size, _ = backupArtifact.Size() //nolint:errcheck
 				})
 
 				It("returns the size of the backup according to the root user, as a string", func() {

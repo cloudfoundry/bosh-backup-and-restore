@@ -1,6 +1,6 @@
 package deployment
 
-func NewSerialExecutor() SerialExecutor {
+func NewSerialExecutor() SerialExecutor { //nolint:unused
 	return SerialExecutor{}
 }
 

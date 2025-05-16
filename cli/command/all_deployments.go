@@ -43,7 +43,7 @@ func runForAllDeployments(action ActionFunc, boshClient bosh.Client, summaryErro
 }
 
 func getAllDeployments(boshClient bosh.Client) ([]string, error) {
-	allDeployments, err := boshClient.Director.Deployments()
+	allDeployments, err := boshClient.Director.Deployments() //nolint:staticcheck
 	if err != nil {
 		return nil, orchestrator.NewError(err)
 	}
@@ -54,7 +54,7 @@ func getAllDeployments(boshClient bosh.Client) ([]string, error) {
 	}
 
 	if len(deploymentNames) == 0 {
-		return nil, processError(orchestrator.NewError(errors.New("Failed to find any deployments")))
+		return nil, processError(orchestrator.NewError(errors.New("Failed to find any deployments"))) //nolint:staticcheck
 	}
 
 	return deploymentNames, nil

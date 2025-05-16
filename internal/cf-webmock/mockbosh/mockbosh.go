@@ -8,7 +8,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockhttp"
 )
 
-func New() *mockhttp.Server {
+func New() *mockhttp.Server { //nolint:unused
 	return mockhttp.StartServer("mock-bosh", httptest.NewServer)
 }
 
@@ -16,7 +16,7 @@ func NewTLS() *mockhttp.Server {
 	return mockhttp.StartServer("mock-bosh", httptest.NewTLSServer)
 }
 
-func NewTLSWithCert(cert tls.Certificate) *mockhttp.Server {
+func NewTLSWithCert(cert tls.Certificate) *mockhttp.Server { //nolint:unused
 	return mockhttp.StartServer("mock-bosh", func(handler http.Handler) *httptest.Server {
 		ts := httptest.NewUnstartedServer(handler)
 

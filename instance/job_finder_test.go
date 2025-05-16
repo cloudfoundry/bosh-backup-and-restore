@@ -128,7 +128,7 @@ var _ = Describe("JobFinderFromScripts", func() {
 			})
 
 			It("finds the jobs", func() {
-				jobs, _ = jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier)
+				jobs, _ = jobFinder.FindJobs(instanceIdentifier, remoteRunner, manifestQuerier) //nolint:errcheck
 				Expect(jobs).To(ConsistOf(
 					NewJob(
 						remoteRunner,
@@ -253,7 +253,8 @@ var _ = Describe("JobFinderFromScripts", func() {
 				BeforeEach(func() {
 					remoteRunner.FindFilesReturns([]string{"/var/vcap/jobs/consul_agent/bin/bbr/metadata"}, nil)
 					remoteRunner.RunScriptWithEnvStub = func(_ string, _ map[string]string, _ string, stdout io.Writer) error {
-						stdout.Write([]byte(`---
+						stdout.Write( //nolint:errcheck
+							[]byte(`---
 backup_name: consul_backup
 restore_name: consul_backup
 backup_should_be_locked_before:
@@ -374,7 +375,7 @@ backup_should_be_locked_before:
 				BeforeEach(func() {
 					remoteRunner.FindFilesReturns([]string{"/var/vcap/jobs/consul_agent/bin/bbr/metadata"}, nil)
 					remoteRunner.RunScriptWithEnvStub = func(_ string, _ map[string]string, _ string, stdout io.Writer) error {
-						stdout.Write([]byte(`this metadata is missing all the keys`))
+						stdout.Write([]byte(`this metadata is missing all the keys`)) //nolint:errcheck
 						return nil
 					}
 				})
@@ -390,7 +391,8 @@ backup_should_be_locked_before:
 				BeforeEach(func() {
 					remoteRunner.FindFilesReturns([]string{"/var/vcap/jobs/consul_agent/bin/bbr/metadata"}, nil)
 					remoteRunner.RunScriptWithEnvStub = func(_ string, _ map[string]string, _ string, stdout io.Writer) error {
-						stdout.Write([]byte(`---
+						stdout.Write( //nolint:errcheck
+							[]byte(`---
 skip_bbr_scripts: true`))
 						return nil
 					}
@@ -408,7 +410,7 @@ skip_bbr_scripts: true`))
 					})
 
 					By("logging the list of disabled jobs", func() {
-						Expect(string(logStream.Bytes())).To(ContainSubstring("DEBUG - Found disabled jobs on instance identifier/0 jobs: consul_agent"))
+						Expect(string(logStream.Bytes())).To(ContainSubstring("DEBUG - Found disabled jobs on instance identifier/0 jobs: consul_agent")) //nolint:staticcheck
 					})
 
 				})

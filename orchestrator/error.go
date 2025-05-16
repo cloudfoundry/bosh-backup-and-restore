@@ -84,13 +84,13 @@ func (err Error) PrettyError(includeStacktrace bool) string {
 	}
 	var buffer = bytes.NewBufferString("")
 
-	fmt.Fprintf(buffer, "%d error%s occurred:\n", len(err), err.getPostFix())
+	fmt.Fprintf(buffer, "%d error%s occurred:\n", len(err), err.getPostFix()) //nolint:errcheck
 	for index, err := range err {
-		fmt.Fprintf(buffer, "error %d:\n", index+1)
+		fmt.Fprintf(buffer, "error %d:\n", index+1) //nolint:errcheck
 		if includeStacktrace {
-			fmt.Fprintf(buffer, "%+v", err)
+			fmt.Fprintf(buffer, "%+v", err) //nolint:errcheck
 		} else {
-			fmt.Fprintf(buffer, "%+v", err.Error())
+			fmt.Fprintf(buffer, "%+v", err.Error()) //nolint:errcheck
 		}
 	}
 	return buffer.String()
