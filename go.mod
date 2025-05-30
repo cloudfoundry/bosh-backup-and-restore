@@ -3,7 +3,7 @@ module github.com/cloudfoundry-incubator/bosh-backup-and-restore
 go 1.23.0
 
 require (
-	github.com/cloudfoundry/bosh-cli/v7 v7.9.5
+	github.com/cloudfoundry/bosh-cli/v7 v7.9.6
 	github.com/cloudfoundry/bosh-utils v0.0.543
 	github.com/cloudfoundry/socks5-proxy v0.2.151
 	github.com/cppforlife/go-patch v0.2.0
@@ -30,7 +30,7 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fatih/color v1.18.0 // indirect
-	github.com/go-logr/logr v1.4.2 // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20250501235452-c0086092b71a // indirect
