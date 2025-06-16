@@ -5,14 +5,14 @@ go 1.23.0
 require (
 	github.com/cloudfoundry/bosh-cli/v7 v7.9.7
 	github.com/cloudfoundry/bosh-utils v0.0.545
-	github.com/cloudfoundry/socks5-proxy v0.2.153
+	github.com/cloudfoundry/socks5-proxy v0.2.154
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.11.2
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
 	github.com/onsi/ginkgo/v2 v2.23.4
 	github.com/onsi/gomega v1.37.0
 	github.com/pkg/errors v0.9.1
-	github.com/urfave/cli v1.22.16
+	github.com/urfave/cli v1.22.17
 	golang.org/x/crypto v0.39.0
 	gopkg.in/yaml.v2 v2.4.0
 )
