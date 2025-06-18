@@ -51,7 +51,7 @@ var _ = Describe("BackupDirectory", func() {
 			instance2.NameReturns("redis")
 			instance2.IndexReturns("1")
 
-			artifact, _ = backupDirectoryManager.Open(backupName, logger)
+			artifact, _ = backupDirectoryManager.Open(backupName, logger) //nolint:errcheck
 		})
 
 		Context("when the backup on disk matches the current deployment", func() {
@@ -68,7 +68,7 @@ instances:
 			})
 
 			It("returns true", func() {
-				match, _ := artifact.DeploymentMatches(backupName, []orchestrator.Instance{instance1, instance2})
+				match, _ := artifact.DeploymentMatches(backupName, []orchestrator.Instance{instance1, instance2}) //nolint:errcheck
 				Expect(match).To(BeTrue())
 			})
 		})
@@ -90,7 +90,7 @@ instances:
 			})
 
 			It("returns false", func() {
-				match, _ := artifact.DeploymentMatches(backupName, []orchestrator.Instance{instance1, instance2})
+				match, _ := artifact.DeploymentMatches(backupName, []orchestrator.Instance{instance1, instance2}) //nolint:errcheck
 				Expect(match).To(BeFalse())
 			})
 		})
@@ -300,7 +300,7 @@ instances:
 		var fakeBackupArtifact *fakes.FakeBackupArtifact
 
 		BeforeEach(func() {
-			artifact, _ = backupDirectoryManager.Create("", backupName, logger)
+			artifact, _ = backupDirectoryManager.Create("", backupName, logger) //nolint:errcheck
 			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
 			fakeBackupArtifact.InstanceNameReturns("redis-server")
 			fakeBackupArtifact.InstanceIndexReturns("0")
@@ -319,7 +319,7 @@ instances:
 				})
 
 				It("writer writes contents to the file", func() {
-					writer.Write([]byte("lalala a file"))
+					writer.Write([]byte("lalala a file")) //nolint:errcheck
 					Expect(os.ReadFile(backupName + "/redis-server-0-redis.tar")).To(Equal([]byte("lalala a file")))
 				})
 
@@ -339,7 +339,7 @@ instances:
 			})
 
 			It("writer writes contents to the file", func() {
-				writer.Write([]byte("lalala a file"))
+				writer.Write([]byte("lalala a file")) //nolint:errcheck
 				Expect(os.ReadFile(backupName + "/my-backup-artifact.tar")).To(Equal([]byte("lalala a file")))
 			})
 
@@ -364,7 +364,7 @@ instances:
 		var saveManifestError error
 
 		BeforeEach(func() {
-			artifact, _ = backupDirectoryManager.Create("", backupName, logger)
+			artifact, _ = backupDirectoryManager.Create("", backupName, logger) //nolint:errcheck
 		})
 
 		AfterEach(func() {
@@ -390,7 +390,7 @@ instances:
 		var fakeBackupArtifact *fakes.FakeBackupArtifact
 
 		BeforeEach(func() {
-			artifact, _ = backupDirectoryManager.Open(backupName, logger)
+			artifact, _ = backupDirectoryManager.Open(backupName, logger) //nolint:errcheck
 			fakeBackupArtifact = new(fakes.FakeBackupArtifact)
 			fakeBackupArtifact.InstanceNameReturns("redis-server")
 			fakeBackupArtifact.InstanceIndexReturns("0")
@@ -472,7 +472,7 @@ instances:
 			fakeBackupArtifact.InstanceIndexReturns("0")
 		})
 		JustBeforeEach(func() {
-			artifact, _ = backupDirectoryManager.Create("", backupName, logger)
+			artifact, _ = backupDirectoryManager.Create("", backupName, logger) //nolint:errcheck
 		})
 		Context("file exists", func() {
 			Context("default artifact", func() {
@@ -490,7 +490,7 @@ instances:
 						"todo.txt":   "Get animal handling license.",
 					})
 
-					writer.Write(contents)
+					writer.Write(contents) //nolint:errcheck
 					Expect(writer.Close()).NotTo(HaveOccurred())
 				})
 
@@ -519,7 +519,7 @@ instances:
 						"todo.txt":   "Get animal handling license.",
 					})
 
-					writer.Write(contents)
+					writer.Write(contents) //nolint:errcheck
 					Expect(writer.Close()).NotTo(HaveOccurred())
 				})
 
@@ -541,7 +541,7 @@ instances:
 
 				contents := []byte("this ain't a tarball")
 
-				writer.Write(contents)
+				writer.Write(contents) //nolint:errcheck
 				Expect(writer.Close()).NotTo(HaveOccurred())
 			})
 
@@ -567,7 +567,7 @@ instances:
 		var startTime time.Time
 
 		BeforeEach(func() {
-			artifact, _ = backupDirectoryManager.Create("", backupName, logger)
+			artifact, _ = backupDirectoryManager.Create("", backupName, logger) //nolint:errcheck
 			startTime = time.Date(2015, 10, 21, 1, 2, 3, 0, time.UTC)
 			Expect(artifact.CreateMetadataFileWithStartTime(startTime)).To(Succeed())
 			fakeBackupArtifact = new(fakes.FakeBackupArtifact)

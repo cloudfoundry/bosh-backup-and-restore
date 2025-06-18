@@ -13,8 +13,8 @@ import (
 
 	"sync"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo/v2" //nolint:staticcheck
+	. "github.com/onsi/gomega"    //nolint:staticcheck
 	"github.com/onsi/gomega/gexec"
 )
 
@@ -29,7 +29,7 @@ func PullDockerImage() {
 	args := []string{"pull", "cryogenics/jammy-stemcell-oci:latest"}
 	session := dockerRun(args...)
 	Eventually(session, 10*time.Minute).Should(gexec.Exit(0))
-	fmt.Fprintf(GinkgoWriter, "Completed docker run in %v, cmd: %v\n", time.Now().Sub(startTime), args)
+	fmt.Fprintf(GinkgoWriter, "Completed docker run in %v, cmd: %v\n", time.Now().Sub(startTime), args) //nolint:errcheck,staticcheck
 }
 
 func NewInstance() *Instance {
@@ -81,7 +81,7 @@ func (mockInstance *Instance) Address() string {
 	Expect(localIPv4MapForContainerPort22Slice).NotTo(BeNil())
 	Expect(len(localIPv4MapForContainerPort22Slice)).NotTo(BeZero())
 	localIPv4MapForContainerPort22 := localIPv4MapForContainerPort22Slice[0]
-	return strings.TrimSpace(strings.Replace(localIPv4MapForContainerPort22, "0.0.0.0", mockInstance.dockerHostIp(), -1))
+	return strings.TrimSpace(strings.Replace(localIPv4MapForContainerPort22, "0.0.0.0", mockInstance.dockerHostIp(), -1)) //nolint:staticcheck
 }
 
 func (mockInstance *Instance) IP() string {
@@ -170,7 +170,7 @@ func WaitForContainersToDie() {
 
 func dockerRun(args ...string) *gexec.Session {
 	cmd := exec.Command("docker", args...)
-	fmt.Fprintf(GinkgoWriter, "Starting docker run %v\n", args)
+	fmt.Fprintf(GinkgoWriter, "Starting docker run %v\n", args) //nolint:errcheck
 	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
 	return session
@@ -180,6 +180,6 @@ func dockerRunAndWaitForSuccess(args ...string) string {
 	startTime := time.Now()
 	session := dockerRun(args...)
 	Eventually(session, timeout).Should(gexec.Exit(0))
-	fmt.Fprintf(GinkgoWriter, "Completed docker run in %v, cmd: %v\n", time.Now().Sub(startTime), args)
+	fmt.Fprintf(GinkgoWriter, "Completed docker run in %v, cmd: %v\n", time.Now().Sub(startTime), args) //nolint:errcheck,staticcheck
 	return string(session.Out.Contents())
 }
