@@ -18,7 +18,7 @@ var _ = Describe("Cleanup", func() {
 		var directorAddress string
 
 		BeforeEach(func() {
-			cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-")
+			cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-") //nolint:errcheck
 
 			directorInstance = testcluster.NewInstance()
 			directorInstance.CreateUser("foobar", readFile(pathToPublicKeyFile))

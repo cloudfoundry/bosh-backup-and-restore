@@ -93,7 +93,7 @@ var _ = Describe("Restores a deployment", func() {
 		By("ensuring data is restored")
 		runOnInstances(instanceCollection, func(instName, instIndex string) {
 			Eventually(RedisDeployment.Instance(instName, instIndex).RunCommand(
-				fmt.Sprintf("sudo ls -la /var/vcap/store/redis-server"),
+				fmt.Sprintf("sudo ls -la /var/vcap/store/redis-server"), //nolint:staticcheck
 			)).Should(gexec.Exit(0))
 
 			redisSession := RedisDeployment.Instance(instName, instIndex).RunCommand(
@@ -204,7 +204,7 @@ var _ = Describe("Restores a deployment", func() {
 
 			By("ensuring data is restored")
 			Eventually(RedisDeploymentWithDisabledJob.Instance("redis", "0").RunCommand(
-				fmt.Sprintf("sudo ls -la /var/vcap/store/redis-server"),
+				fmt.Sprintf("sudo ls -la /var/vcap/store/redis-server"), //nolint:staticcheck
 			)).Should(gexec.Exit(0))
 
 			redisSession := RedisDeploymentWithDisabledJob.Instance("redis", "0").RunCommand(

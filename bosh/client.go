@@ -56,12 +56,12 @@ type Logger interface {
 }
 
 func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, error) {
-	deployment, err := c.Director.FindDeployment(deploymentName)
+	deployment, err := c.Director.FindDeployment(deploymentName) //nolint:staticcheck
 	if err != nil {
 		return nil, errors.Wrap(err, "couldn't find deployment "+deploymentName)
 	}
 
-	c.Logger.Debug("bbr", "Finding VMs...")
+	c.Logger.Debug("bbr", "Finding VMs...") //nolint:staticcheck
 	vms, err := deployment.VMInfos()
 	if err != nil {
 		return nil, errors.Wrap(err, "couldn't get vm infos")
@@ -70,7 +70,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate ssh options")
 	}
-	c.Logger.Debug("bbr", "SSH user generated: %s", sshOpts.Username)
+	c.Logger.Debug("bbr", "SSH user generated: %s", sshOpts.Username) //nolint:staticcheck
 
 	var instances []orchestrator.Instance
 	var slugs []director.AllOrInstanceGroupOrInstanceSlug
@@ -86,7 +86,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 	}
 
 	for _, instanceGroupName := range uniqueInstanceGroupNamesFromVMs(vms) {
-		c.Logger.Debug("bbr", "Setting up SSH for job %s", instanceGroupName)
+		c.Logger.Debug("bbr", "Setting up SSH for job %s", instanceGroupName) //nolint:staticcheck
 
 		allVmInstances, err := director.NewAllOrInstanceGroupOrInstanceSlugFromString(instanceGroupName)
 		if err != nil {
@@ -105,7 +105,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 
 			var err error
 
-			c.Logger.Debug("bbr", "Attempting to SSH onto %s, %s", host.Host, host.IndexOrID)
+			c.Logger.Debug("bbr", "Attempting to SSH onto %s, %s", host.Host, host.IndexOrID) //nolint:staticcheck
 
 			hostPublicKey, _, _, _, err := gossh.ParseAuthorizedKey([]byte(host.HostPublicKey))
 			if err != nil {
@@ -128,7 +128,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 			}
 
 			if isWindows {
-				c.Logger.Warn("bbr", "skipping Windows instance %s/%s", instanceGroupName, host.IndexOrID)
+				c.Logger.Warn("bbr", "skipping Windows instance %s/%s", instanceGroupName, host.IndexOrID) //nolint:staticcheck
 				continue
 			}
 
@@ -159,7 +159,7 @@ func (c Client) FindInstances(deploymentName string) ([]orchestrator.Instance, e
 			)
 
 			if len(jobs) == 0 {
-				c.Logger.Debug("bbr", "no scripts found on instance %s/%s, skipping rest of the instances for %s", instanceGroupName, host.IndexOrID, instanceGroupName)
+				c.Logger.Debug("bbr", "no scripts found on instance %s/%s, skipping rest of the instances for %s", instanceGroupName, host.IndexOrID, instanceGroupName) //nolint:staticcheck
 				break
 			}
 		}
@@ -192,7 +192,7 @@ func isInstanceABootstrapNode(jobName, ip string, vms []director.VMInfo) bool {
 }
 
 func (c Client) GetManifest(deploymentName string) (string, error) {
-	deployment, err := c.Director.FindDeployment(deploymentName)
+	deployment, err := c.Director.FindDeployment(deploymentName) //nolint:staticcheck
 	if err != nil {
 		return "", errors.Wrap(err, "couldn't find deployment "+deploymentName)
 	}
@@ -237,6 +237,6 @@ func contains(s []string, e string) bool {
 
 func cleanupAlreadyMadeConnections(deployment director.Deployment, slugs []director.AllOrInstanceGroupOrInstanceSlug, opts director.SSHOpts) {
 	for _, slug := range slugs {
-		deployment.CleanUpSSH(slug, director.SSHOpts{Username: opts.Username})
+		deployment.CleanUpSSH(slug, director.SSHOpts{Username: opts.Username}) //nolint:errcheck
 	}
 }

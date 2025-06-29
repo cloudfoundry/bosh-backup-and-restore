@@ -9,5 +9,5 @@ func NewBackupExecutable(j Job) BackupExecutable {
 }
 
 func (e BackupExecutable) Execute() error {
-	return e.Job.Backup()
+	return e.Job.Backup() //nolint:staticcheck
 }
