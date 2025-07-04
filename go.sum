@@ -1,5 +1,5 @@
-code.cloudfoundry.org/clock v1.40.0 h1:D4gzY9oMhqLK+KtzKL55Fya8eq1G/Xbet1NQGGEIqhk=
-code.cloudfoundry.org/clock v1.40.0/go.mod h1:+RR6TI/Vi/D6Ob4viE+K2fazZyEdOPfepS4YL1fo4Bo=
+code.cloudfoundry.org/clock v1.41.0 h1:YiYQSEqcxswK+YtQ+NRIE31E1VNXkwb53Bb3zRmsoOM=
+code.cloudfoundry.org/clock v1.41.0/go.mod h1:ncX4UpMuVwZooK7Rw7P+fsE2brLasFbPlibOOrZq40w=
 code.cloudfoundry.org/tlsconfig v0.30.0 h1:VWuCq5i2wLaXObY4KfybHMwjuy/Xbs6ocxFZMOCdAfw=
 code.cloudfoundry.org/tlsconfig v0.30.0/go.mod h1:8m66fcUFM0Z7xmxIq2yxfD66vNzw0wipmyY/aU3h/DQ=
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
@@ -46,8 +46,8 @@ github.com/go-task/slim-sprig/v3 v3.0.0 h1:sUs3vkvUymDpBKi3qH1YSqBQk9+9D/8M2mN1v
 github.com/go-task/slim-sprig/v3 v3.0.0/go.mod h1:W848ghGpv3Qj3dhTPRyJypKRiqCdHZiAzKg9hl15HA8=
 github.com/google/go-cmp v0.7.0 h1:wk8382ETsv4JYUZwIsn6YpYiWiBsYLSJiTsyBybVuN8=
 github.com/google/go-cmp v0.7.0/go.mod h1:pXiqmnSA92OHEEa9HXL2W4E7lf9JzCmGVUdgjX3N/iU=
-github.com/google/pprof v0.0.0-20250629210550-e611ec304b22 h1:RanZAubGQRlhKdX83NviyIduq4DsO2zFmSgPuTlnkMc=
-github.com/google/pprof v0.0.0-20250629210550-e611ec304b22/go.mod h1:5hDyRhoBCxViHszMt12TnOpEI4VVi+U8Gm9iphldiMA=
+github.com/google/pprof v0.0.0-20250630185457-6e76a2b096b5 h1:xhMrHhTJ6zxu3gA4enFM9MLn9AY7613teCdFnlUVbSQ=
+github.com/google/pprof v0.0.0-20250630185457-6e76a2b096b5/go.mod h1:5hDyRhoBCxViHszMt12TnOpEI4VVi+U8Gm9iphldiMA=
 github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/errwrap v1.1.0 h1:OxrOeh75EUXMY8TBjag2fzXGZ40LB6IKw45YeGUDY2I=
 github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
