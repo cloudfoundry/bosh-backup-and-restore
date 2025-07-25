@@ -103,7 +103,7 @@ var _ = Describe("DeployedInstance", func() {
 		var dirExists bool
 
 		JustBeforeEach(func() {
-			dirExists, _ = deployedInstance.ArtifactDirExists()
+			dirExists, _ = deployedInstance.ArtifactDirExists() //nolint:errcheck
 		})
 
 		It("queries whether the artifact directory is present", func() {

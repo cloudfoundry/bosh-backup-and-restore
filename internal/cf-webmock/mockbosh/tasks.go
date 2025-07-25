@@ -10,7 +10,7 @@ type tasksMock struct {
 	*mockhttp.MockHttp
 }
 
-func Tasks(deploymentName string) *tasksMock {
+func Tasks(deploymentName string) *tasksMock { //nolint:unused
 	mock := &tasksMock{MockHttp: mockhttp.NewMockedHttpRequest("GET", fmt.Sprintf("/tasks?deployment=%s", deploymentName))}
 	return mock
 }
