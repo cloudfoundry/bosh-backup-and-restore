@@ -3,14 +3,14 @@ module github.com/cloudfoundry-incubator/bosh-backup-and-restore
 go 1.23.0
 
 require (
-	github.com/cloudfoundry/bosh-cli/v7 v7.9.7
-	github.com/cloudfoundry/bosh-utils v0.0.550
+	github.com/cloudfoundry/bosh-cli/v7 v7.9.8
+	github.com/cloudfoundry/bosh-utils v0.0.552
 	github.com/cloudfoundry/socks5-proxy v0.2.156
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.11.3
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
 	github.com/onsi/ginkgo/v2 v2.23.4
-	github.com/onsi/gomega v1.37.0
+	github.com/onsi/gomega v1.38.0
 	github.com/pkg/errors v0.9.1
 	github.com/urfave/cli v1.22.17
 	golang.org/x/crypto v0.40.0
@@ -18,7 +18,7 @@ require (
 )
 
 require (
-	code.cloudfoundry.org/clock v1.42.0 // indirect
+	code.cloudfoundry.org/clock v1.43.0 // indirect
 	code.cloudfoundry.org/tlsconfig v0.31.0 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
