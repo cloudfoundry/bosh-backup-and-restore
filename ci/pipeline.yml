@@ -238,7 +238,7 @@ resources:
         namespace: official
         name: #@ data.values.tas_versions[-1]["pool_name"]
 
-- name: cryogenics-ci
+- name: cryogenics-concourse-tasks
   type: git
   tags: [broadcom]
   source:
@@ -342,15 +342,15 @@ jobs:
     - get: bosh-deployment
     - get: bbr-director-test-releases
     - get: jammy-stemcell
-    - get: cryogenics-ci
+    - get: cryogenics-concourse-tasks
       tags: [broadcom]
       passed: [ claim-env ]
     - get: bosh-ecosystem-registry-image
   - task: alias-env
     image: bosh-ecosystem-registry-image
-    file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
+    file: cryogenics-concourse-tasks/tasks/toolsmiths/bosh-envify/task.yml
     input_mapping:
-      cryogenics-tasks: cryogenics-ci
+      cryogenics-tasks: cryogenics-concourse-tasks
       toolsmiths-env: environment
   - load_var: pooled-env
     file: bosh-env/metadata.yml
@@ -406,23 +406,23 @@ jobs:
     - get: bbr-director-test-releases
     - get: jammy-stemcell
     - get: bosh-ecosystem-registry-image
-    - get: cryogenics-ci
+    - get: cryogenics-concourse-tasks
       tags: [broadcom]
       passed: [ claim-env ]
   - task: alias-env
     image: bosh-ecosystem-registry-image
-    file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
+    file: cryogenics-concourse-tasks/tasks/toolsmiths/bosh-envify/task.yml
     input_mapping:
-      cryogenics-tasks: cryogenics-ci
+      cryogenics-tasks: cryogenics-concourse-tasks
       toolsmiths-env: environment
   - load_var: pooled-env
     file: bosh-env/metadata.yml
     format: yml
   - task: alias-additional-env
     image: bosh-ecosystem-registry-image
-    file: cryogenics-ci/tasks/toolsmiths/bosh-envify/task.yml
+    file: cryogenics-concourse-tasks/tasks/toolsmiths/bosh-envify/task.yml
     input_mapping:
-      cryogenics-tasks: cryogenics-ci
+      cryogenics-tasks: cryogenics-concourse-tasks
       toolsmiths-env: additional-environment
     output_mapping:
       bosh-env: additional-bosh-env
@@ -675,7 +675,7 @@ jobs:
         unpack: true
       passed:
       - build-dev
-    - get: cryogenics-ci
+    - get: cryogenics-concourse-tasks
       tags: [broadcom]
     - get: jammy-stemcell
     - get: bosh-ecosystem-registry-image
@@ -691,9 +691,9 @@ jobs:
     - in_parallel:
       - task: create-b-drats-config
         image: bosh-ecosystem-registry-image
-        file: cryogenics-ci/tasks/toolsmiths/generate-b-drats-config-from-tas-env/task.yml
+        file: cryogenics-concourse-tasks/tasks/toolsmiths/generate-b-drats-config-from-tas-env/task.yml
         input_mapping:
-          repo: cryogenics-ci
+          repo: cryogenics-concourse-tasks
           env: tas-env
           stemcell: jammy-stemcell
         params:
@@ -864,7 +864,7 @@ jobs:
       steps:
       - get: bosh-backup-and-restore
         trigger: true
-      - get: cryogenics-ci
+      - get: cryogenics-concourse-tasks
         tags: [broadcom]
       - put: environment
         attempts: *number_of_claim_env_retries
