@@ -9,7 +9,7 @@ require (
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.11.3
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
-	github.com/onsi/ginkgo/v2 v2.23.4
+	github.com/onsi/ginkgo/v2 v2.25.1
 	github.com/onsi/gomega v1.38.0
 	github.com/pkg/errors v0.9.1
 	github.com/urfave/cli v1.22.17
@@ -18,8 +18,9 @@ require (
 )
 
 require (
-	code.cloudfoundry.org/clock v1.43.0 // indirect
+	code.cloudfoundry.org/clock v1.44.0 // indirect
 	code.cloudfoundry.org/tlsconfig v0.33.0 // indirect
+	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/charlievieth/fs v0.0.3 // indirect
