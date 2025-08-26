@@ -63,6 +63,6 @@ func (i *BoshDeployedInstance) CleanupPrevious() error {
 }
 
 func (i *BoshDeployedInstance) cleanupSSHConnections() error {
-	i.Logger.Debug("bbr", "Cleaning up SSH connection on instance %s %s", i.Name(), i.ID())
+	i.Logger.Debug("bbr", "Cleaning up SSH connection on instance %s %s", i.Name(), i.ID()) //nolint:staticcheck
 	return i.Deployment.CleanUpSSH(director.NewAllOrInstanceGroupOrInstanceSlug(i.Name(), i.ID()), director.SSHOpts{Username: i.ConnectedUsername()})
 }

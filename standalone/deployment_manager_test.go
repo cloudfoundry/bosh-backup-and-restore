@@ -39,7 +39,7 @@ var _ = Describe("DeploymentManager", func() {
 	})
 
 	AfterEach(func() {
-		os.Remove(privateKey)
+		os.Remove(privateKey) //nolint:errcheck
 	})
 
 	Describe("Find", func() {
@@ -78,7 +78,7 @@ var _ = Describe("DeploymentManager", func() {
 
 		Context("can't read private key", func() {
 			BeforeEach(func() {
-				os.Remove(privateKey)
+				os.Remove(privateKey) //nolint:errcheck
 			})
 
 			It("should fail", func() {
@@ -249,7 +249,7 @@ var _ = Describe("DeployedInstance", func() {
 func createTempFile(contents string) string {
 	tempFile, err := os.CreateTemp("", "")
 	Expect(err).NotTo(HaveOccurred())
-	tempFile.Write([]byte(contents))
-	tempFile.Close()
+	tempFile.Write([]byte(contents)) //nolint:errcheck
+	tempFile.Close()                 //nolint:errcheck
 	return tempFile.Name()
 }

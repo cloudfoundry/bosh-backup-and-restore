@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega" //nolint:staticcheck
 )
 
 type MockHttp struct {
@@ -132,7 +132,7 @@ func (i *MockHttp) Respond(writer http.ResponseWriter, logger *log.Logger) {
 	}
 	logger.Printf("Reponding with code(%d)\n%s\n", i.responseStatus, i.responseBody)
 	writer.WriteHeader(i.responseStatus)
-	io.WriteString(writer, i.responseBody)
+	io.WriteString(writer, i.responseBody) //nolint:errcheck
 }
 
 func (i *MockHttp) For(comment string) *MockHttp {

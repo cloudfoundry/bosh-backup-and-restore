@@ -13,7 +13,7 @@ func Validate(requiredFlags []string, c *cli.Context) error {
 
 	for _, flag := range requiredFlags {
 		if c.String(flag) == "" {
-			cli.ShowSubcommandHelp(c)
+			cli.ShowSubcommandHelp(c) //nolint:errcheck
 			return redCliError(errors.Errorf("--%v flag is required.", flag))
 		}
 	}
@@ -24,7 +24,7 @@ func ValidateDeployment(c *cli.Context) error {
 	deploymentError := redCliError(errors.New("provide one of '--deployment' or '--all-deployments' flags."))
 
 	if (c.String("deployment") != "" && c.Bool("all-deployments")) || (c.String("deployment") == "" && !c.Bool("all-deployments")) {
-		cli.ShowSubcommandHelp(c)
+		cli.ShowSubcommandHelp(c) //nolint:errcheck
 		return deploymentError
 	}
 
