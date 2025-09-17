@@ -5,6 +5,7 @@ import (
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ratelimiter"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/pkg/errors"
 
@@ -18,6 +19,7 @@ type DeploymentManager struct {
 	privateKeyFile      string
 	jobFinder           instance.JobFinder
 	remoteRunnerFactory ssh.RemoteRunnerFactory
+	rateLimiter         ratelimiter.RateLimiter
 }
 
 func NewDeploymentManager(
@@ -25,6 +27,7 @@ func NewDeploymentManager(
 	hostName, username, privateKey string,
 	jobFinder instance.JobFinder,
 	remoteRunnerFactory ssh.RemoteRunnerFactory,
+	rateLimiter ratelimiter.RateLimiter,
 ) DeploymentManager {
 	return DeploymentManager{
 		Logger:              logger,
@@ -33,6 +36,7 @@ func NewDeploymentManager(
 		privateKeyFile:      privateKey,
 		jobFinder:           jobFinder,
 		remoteRunnerFactory: remoteRunnerFactory,
+		rateLimiter:         rateLimiter,
 	}
 }
 
@@ -42,7 +46,7 @@ func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment
 		return nil, errors.Wrap(err, "failed reading private key")
 	}
 
-	remoteRunner, err := dm.remoteRunnerFactory(dm.hostName, dm.username, string(keyContents), gossh.InsecureIgnoreHostKey(), nil, dm.Logger)
+	remoteRunner, err := dm.remoteRunnerFactory(dm.hostName, dm.username, string(keyContents), gossh.InsecureIgnoreHostKey(), nil, dm.rateLimiter, dm.Logger)
 	if err != nil {
 		return nil, err
 	}

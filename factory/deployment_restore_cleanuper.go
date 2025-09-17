@@ -5,6 +5,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orderer"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ratelimiter"
 )
 
 func BuildDeploymentRestoreCleanuper(target,
@@ -13,7 +14,8 @@ func BuildDeploymentRestoreCleanuper(target,
 	caCert,
 	bbrVersion string,
 	withManifest,
-	isDebug bool) (*orchestrator.RestoreCleaner, error) {
+	isDebug bool,
+	rateLimiter ratelimiter.RateLimiter) (*orchestrator.RestoreCleaner, error) {
 
 	logger := BuildLogger(isDebug)
 
@@ -23,6 +25,7 @@ func BuildDeploymentRestoreCleanuper(target,
 		password,
 		caCert,
 		bbrVersion,
+		rateLimiter,
 		logger,
 	)
 

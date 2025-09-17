@@ -36,12 +36,19 @@ func (checkCommand DirectorBackupCommand) Action(c *cli.Context) error {
 	directorName := extractNameFromAddress(c.Parent().String("host"))
 	timeStamp := time.Now().UTC().Format(artifactTimeStampFormat)
 
+	rateLimiter, err := getConnectionRateLimiter(c)
+
+	if err != nil {
+		return err
+	}
+
 	backuper := factory.BuildDirectorBackuper(
 		c.Parent().String("host"),
 		c.Parent().String("username"),
 		c.Parent().String("private-key-path"),
 		c.App.Version,
 		c.GlobalBool("debug"),
+		rateLimiter,
 		timeStamp)
 
 	backupErr := backuper.Backup(directorName, c.String("artifact-path"))

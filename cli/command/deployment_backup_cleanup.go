@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor/deployment"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ratelimiter"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
@@ -31,6 +32,12 @@ func (d DeploymentBackupCleanupCommand) Action(c *cli.Context) error {
 
 	username, password, target, caCert, bbrVersion, debug, deployment, allDeployments := getDeploymentParams(c)
 
+	rateLimiter, err := getConnectionRateLimiter(c)
+
+	if err != nil {
+		return err
+	}
+
 	if !allDeployments {
 		logger := factory.BuildBoshLogger(debug)
 
@@ -40,6 +47,7 @@ func (d DeploymentBackupCleanupCommand) Action(c *cli.Context) error {
 			password,
 			caCert,
 			c.App.Version,
+			rateLimiter,
 			logger,
 		)
 		if err != nil {
@@ -50,10 +58,10 @@ func (d DeploymentBackupCleanupCommand) Action(c *cli.Context) error {
 		return processError(cleanupErr)
 	}
 
-	return cleanupAllDeployments(target, username, password, caCert, bbrVersion, debug)
+	return cleanupAllDeployments(target, username, password, caCert, bbrVersion, debug, rateLimiter)
 }
 
-func cleanupAllDeployments(target, username, password, caCert, bbrVersion string, debug bool) error {
+func cleanupAllDeployments(target, username, password, caCert, bbrVersion string, debug bool, rateLimiter ratelimiter.RateLimiter) error {
 	cleanupAction := func(deploymentName string) orchestrator.Error {
 		timestamp := time.Now().UTC().Format(artifactTimeStampFormat)
 		logFilePath, buffer, logger, logErr := createLogger(timestamp, "", deploymentName, debug)
@@ -67,6 +75,7 @@ func cleanupAllDeployments(target, username, password, caCert, bbrVersion string
 			password,
 			caCert,
 			bbrVersion,
+			rateLimiter,
 			logger,
 		)
 
@@ -93,7 +102,7 @@ func cleanupAllDeployments(target, username, password, caCert, bbrVersion string
 
 	logger, _ := factory.BuildBoshLoggerWithCustomBuffer(debug)
 
-	boshClient, err := factory.BuildBoshClient(target, username, password, caCert, bbrVersion, logger)
+	boshClient, err := factory.BuildBoshClient(target, username, password, caCert, bbrVersion, rateLimiter, logger)
 	if err != nil {
 		return err
 	}

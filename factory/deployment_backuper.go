@@ -8,6 +8,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orderer"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ratelimiter"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 
@@ -19,10 +20,11 @@ func BuildDeploymentBackuper(
 	withManifest bool,
 	unsafeLockFree bool,
 	bbrVersion string,
+	rateLimiter ratelimiter.RateLimiter,
 	logger boshlog.Logger,
 	timestamp string,
 ) (*orchestrator.Backuper, error) {
-	boshClient, err := BuildBoshClient(target, username, password, caCert, bbrVersion, logger)
+	boshClient, err := BuildBoshClient(target, username, password, caCert, bbrVersion, rateLimiter, logger)
 	if err != nil {
 		return nil, err
 	}

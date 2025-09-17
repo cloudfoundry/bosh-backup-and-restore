@@ -143,6 +143,20 @@ func availableDeploymentFlags() []cli.Flag {
 			Name:  "all-deployments",
 			Usage: "Run command for all deployments. Omit if '--deployment' is provided. Currently only supported for: pre-backup-check, backup and backup-cleanup",
 		},
+		cli.BoolFlag{
+			Name:  "rate-limiting",
+			Usage: "Enable ssh connection rate limiting",
+		},
+		cli.IntFlag{
+			Name:  "rate-limiting-max-connections",
+			Usage: "Set the maximum amount of ssh connections that can be opened in configurable duration window (used with --rate-limiting)",
+			Value: 20,
+		},
+		cli.StringFlag{
+			Name:  "rate-limiting-duration",
+			Usage: "Set the duration window (example: 20s or 1m) (used with --rate-limiting)",
+			Value: "60s",
+		},
 	}
 }
 
@@ -166,6 +180,20 @@ func availableDirectorFlags() []cli.Flag {
 		cli.BoolFlag{
 			Name:  "debug",
 			Usage: "Enable debug logs",
+		},
+		cli.BoolFlag{
+			Name:  "rate-limiting",
+			Usage: "Enable ssh connection rate limiting",
+		},
+		cli.IntFlag{
+			Name:  "rate-limiting-max-connections",
+			Usage: "Set the maximum amount of ssh connections that can be opened in configurable duration window (used with --rate-limiting)",
+			Value: 20,
+		},
+		cli.StringFlag{
+			Name:  "rate-limiting-duration",
+			Usage: "Set the duration window (example: 20s or 1m) (used with --rate-limiting)",
+			Value: "60s",
 		},
 	}
 }

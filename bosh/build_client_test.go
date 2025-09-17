@@ -8,6 +8,7 @@ import (
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockbosh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockhttp"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockuaa"
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ratelimiter"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -50,7 +51,7 @@ var _ = Describe("BuildClient", func() {
 				mockbosh.Manifest(deploymentName).RespondsWith([]byte("manifest contents")),
 			)
 
-			client, err := BuildClient(director.URL, username, password, caCert, bbrVersion, logger)
+			client, err := BuildClient(director.URL, username, password, caCert, bbrVersion, ratelimiter.NoOpRateLimiter{}, logger)
 
 			Expect(err).NotTo(HaveOccurred())
 			manifest, err := client.GetManifest(deploymentName)
@@ -75,7 +76,7 @@ var _ = Describe("BuildClient", func() {
 				mockbosh.Manifest(deploymentName).RespondsWith([]byte("manifest contents")),
 			)
 
-			client, err := BuildClient(director.URL, username, password, caCert, bbrVersion, logger)
+			client, err := BuildClient(director.URL, username, password, caCert, bbrVersion, ratelimiter.NoOpRateLimiter{}, logger)
 
 			Expect(err).NotTo(HaveOccurred())
 			manifest, err := client.GetManifest(deploymentName)
@@ -90,7 +91,7 @@ var _ = Describe("BuildClient", func() {
 			director.VerifyAndMock(
 				mockbosh.Info().WithAuthTypeUAA(""),
 			)
-			_, err := BuildClient(director.URL, username, password, caCert, bbrVersion, logger)
+			_, err := BuildClient(director.URL, username, password, caCert, bbrVersion, ratelimiter.NoOpRateLimiter{}, logger)
 
 			Expect(err).To(MatchError(ContainSubstring("invalid UAA URL")))
 
@@ -103,7 +104,7 @@ var _ = Describe("BuildClient", func() {
 		caCertPath := "-----BEGIN"
 		basicAuthDirectorURL := director.URL
 
-		_, err := BuildClient(basicAuthDirectorURL, username, password, caCertPath, bbrVersion, logger)
+		_, err := BuildClient(basicAuthDirectorURL, username, password, caCertPath, bbrVersion, ratelimiter.NoOpRateLimiter{}, logger)
 		Expect(err).To(MatchError(ContainSubstring("Missing PEM block")))
 	})
 
@@ -113,7 +114,7 @@ var _ = Describe("BuildClient", func() {
 		caCertPath := ""
 		basicAuthDirectorURL := ""
 
-		_, err := BuildClient(basicAuthDirectorURL, username, password, caCertPath, bbrVersion, logger)
+		_, err := BuildClient(basicAuthDirectorURL, username, password, caCertPath, bbrVersion, ratelimiter.NoOpRateLimiter{}, logger)
 		Expect(err).To(MatchError(ContainSubstring("invalid bosh URL")))
 	})
 
@@ -125,7 +126,7 @@ var _ = Describe("BuildClient", func() {
 			mockbosh.Info().Fails("fooo!"),
 		)
 
-		_, err := BuildClient(director.URL, username, password, caCert, bbrVersion, logger)
+		_, err := BuildClient(director.URL, username, password, caCert, bbrVersion, ratelimiter.NoOpRateLimiter{}, logger)
 		Expect(err).To(MatchError(ContainSubstring("bosh director unreachable or unhealthy")))
 	})
 })

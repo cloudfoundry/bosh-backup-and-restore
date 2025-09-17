@@ -7,6 +7,7 @@ import (
 
 	"os"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ratelimiter"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
@@ -37,11 +38,11 @@ var _ = Describe("SshRemoteRunner", func() {
 		logger := boshlog.New(boshlog.LevelDebug, combinedLog)
 
 		sshConnection, err = ssh.NewConnection(testInstance.Address(), user, userPrivateKey, gossh.FixedHostKey(hostPublicKey),
-			[]string{"rsa-sha2-256"}, logger)
+			[]string{"rsa-sha2-256"}, ratelimiter.NoOpRateLimiter{}, logger)
 		Expect(err).NotTo(HaveOccurred())
 
 		sshRemoteRunner, err = ssh.NewSshRemoteRunner(testInstance.Address(), user, userPrivateKey, gossh.FixedHostKey(hostPublicKey),
-			[]string{"rsa-sha2-256"}, logger)
+			[]string{"rsa-sha2-256"}, ratelimiter.NoOpRateLimiter{}, logger)
 		Expect(err).NotTo(HaveOccurred())
 	})
 

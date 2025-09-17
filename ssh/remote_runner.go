@@ -8,6 +8,7 @@ import (
 
 	"golang.org/x/crypto/ssh"
 
+	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ratelimiter"
 	"github.com/pkg/errors"
 )
 
@@ -34,8 +35,8 @@ type SshRemoteRunner struct {
 	connection SSHConnection
 }
 
-func NewSshRemoteRunner(host, user, privateKey string, publicKeyCallback ssh.HostKeyCallback, publicKeyAlgorithm []string, logger Logger) (RemoteRunner, error) {
-	connection, err := NewConnection(host, user, privateKey, publicKeyCallback, publicKeyAlgorithm, logger)
+func NewSshRemoteRunner(host, user, privateKey string, publicKeyCallback ssh.HostKeyCallback, publicKeyAlgorithm []string, rateLimiter ratelimiter.RateLimiter, logger Logger) (RemoteRunner, error) {
+	connection, err := NewConnection(host, user, privateKey, publicKeyCallback, publicKeyAlgorithm, rateLimiter, logger)
 	if err != nil {
 		return SshRemoteRunner{}, err
 	}
