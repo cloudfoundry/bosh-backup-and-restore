@@ -72,7 +72,7 @@ func (j Job) backupOneRestoreAllArtifactName() string {
 }
 
 func (j Job) HasMetadataRestoreName() bool {
-	if j.metadata.RestoreName != "" {
+	if j.metadata.RestoreName != "" { //nolint:staticcheck
 		return true
 	}
 	return false
@@ -295,7 +295,7 @@ func (j Job) restoreArtifactOrJobName() string {
 	return j.name
 }
 
-func (j Job) handleErrs(jobName, label string, err error, exitCode int, stdout, stderr []byte) error {
+func (j Job) handleErrs(jobName, label string, err error, exitCode int, stdout, stderr []byte) error { //nolint:unused
 	var foundErrors []error
 
 	if err != nil {

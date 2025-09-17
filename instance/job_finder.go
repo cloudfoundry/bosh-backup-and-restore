@@ -118,7 +118,7 @@ func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifie
 			instanceIdentifier,
 		)
 	}
-	jobMetadata, err := j.parseJobMetadata(string(metadataBuffer.Bytes()))
+	jobMetadata, err := j.parseJobMetadata(string(metadataBuffer.Bytes())) //nolint:staticcheck
 	if err != nil {
 		return nil, errors.Wrapf(
 			err,
@@ -159,7 +159,7 @@ func (j *JobFinderFromScripts) buildJobs(remoteRunner ssh.RemoteRunner,
 			releaseName = ""
 		}
 
-		backupOneRestoreAll, _ := manifestQuerier.IsJobBackupOneRestoreAll(instanceIdentifier.InstanceGroupName, jobName)
+		backupOneRestoreAll, _ := manifestQuerier.IsJobBackupOneRestoreAll(instanceIdentifier.InstanceGroupName, jobName) //nolint:errcheck
 
 		jobs = append(jobs, NewJob(
 			remoteRunner,

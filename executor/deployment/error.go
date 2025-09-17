@@ -61,7 +61,7 @@ func writeStackTrace(errorWithStackTrace string) error {
 }
 
 func IndentBlock(block string) string {
-	return fmt.Sprintf("  %s", strings.Replace(block, "\n", "\n  ", -1))
+	return fmt.Sprintf("  %s", strings.Replace(block, "\n", "\n  ", -1)) //nolint:staticcheck
 }
 
 func ContainsUnlockOrCleanup(deploymentErrs []DeploymentError) bool {
