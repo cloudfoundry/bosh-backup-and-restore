@@ -349,6 +349,7 @@ resources:
 
 - name: environment
   type: shepherd-v2
+  tags: [broadcom]
   source:
     url: https://v2-shepherd.lvn.broadcom.net
     service-account-key: *shepherd_lvn_account_key
@@ -369,6 +370,7 @@ resources:
 
 - name: additional-environment
   type: shepherd-v2
+  tags: [broadcom]
   source:
     url: https://v2-shepherd.lvn.broadcom.net
     service-account-key: *shepherd_lvn_account_key
@@ -426,6 +428,7 @@ jobs:
     - get: environment
       passed: [ claim-env ]
       trigger: true
+      tags: [broadcom]
     - get: bosh-backup-and-restore
       passed: [ claim-env ]
     - get: bosh-deployment
@@ -488,8 +491,10 @@ jobs:
     - get: environment
       passed: [ claim-env ]
       trigger: true
+      tags: [broadcom]
     - get: additional-environment
       passed: [ claim-env ]
+      tags: [broadcom]
     - get: bosh-backup-and-restore
       passed: [ claim-env ]
     - get: bbr-director-test-releases
@@ -987,17 +992,21 @@ jobs:
         passed:
         - system-test-deployment
         - system-test-director
+        tags: [broadcom]
       - get: additional-environment
         passed:
         - system-test-deployment
+        tags: [broadcom]
   - put: environment
     params:
       action: release
       resource: environment
+    tags: [broadcom]
   - put: additional-environment
     params:
       action: release
       resource: additional-environment
+    tags: [broadcom]
 
 - name: bump-deps-bbr-cli
   plan:
