@@ -10,6 +10,8 @@ export ENVIRONMENT_LOCK_METADATA=environment/metadata
 readonly bosh_all_proxy_pattern='ssh\+socks5:\/\/(.*)@(([0-9]+\.){3}([0-9]+)):22\?private-key=(.*)'
 
 BOSH_ALL_PROXY="$(jq -r '.bosh.bosh_all_proxy' ${ENVIRONMENT_LOCK_METADATA})"
+BOSH_CA_CERT="$(jq -r '.bosh.bosh_ca_cert' ${ENVIRONMENT_LOCK_METADATA})"
+CREDHUB_CA_CERT="$(jq -r '.bosh.credhub_ca_cert' ${ENVIRONMENT_LOCK_METADATA})"
 
 # JUMPBOX_PRIVATE_KEY is present for cf-deployment pool envs
 : "${JUMPBOX_PRIVATE_KEY:="$(echo "${BOSH_ALL_PROXY}" | sed -n -E "s/${bosh_all_proxy_pattern}/\5/p")"}"
@@ -43,9 +45,6 @@ export CREDHUB_CLIENT="$(jq -r '.bosh.credhub_client' ${ENVIRONMENT_LOCK_METADAT
 export CREDHUB_SECRET="$(jq -r '.bosh.credhub_secret' ${ENVIRONMENT_LOCK_METADATA})"
 export CREDHUB_CA_CERT="$(jq -r '.bosh.credhub_ca_cert' ${ENVIRONMENT_LOCK_METADATA})"
 EOF
-
-BOSH_CA_CERT="$(jq -r '.bosh.bosh_ca_cert' ${ENVIRONMENT_LOCK_METADATA})"
-CREDHUB_CA_CERT="$(jq -r '.bosh.credhub_ca_cert' ${ENVIRONMENT_LOCK_METADATA})"
 
 cat > bosh-env/metadata.yml << EOF
 INSTANCE_JUMPBOX_PRIVATE: |-
