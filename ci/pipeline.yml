@@ -517,10 +517,7 @@ jobs:
       passed: [ claim-env ]
   - task: alias-env
     image: bosh-ecosystem-registry-image
-    file: cryogenics-concourse-tasks/tasks/toolsmiths/bosh-envify/task.yml
-    input_mapping:
-      cryogenics-tasks: cryogenics-concourse-tasks
-      toolsmiths-env: environment
+    file: bosh-backup-and-restore-ci/ci/tasks/bosh-envify/task.yml
   - load_var: pooled-env
     file: bosh-env/metadata.yml
     format: yml
