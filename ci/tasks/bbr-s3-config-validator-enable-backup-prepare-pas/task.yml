@@ -7,10 +7,10 @@ image_resource:
 
 inputs:
 - name: env-pool
-- name: bosh-backup-and-restore
+- name: bosh-backup-and-restore-ci
 
 params:
   SKIP_APPLY_CHANGES: false
 
 run:
-  path: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-enable-backup-prepare-pas/task.sh
+  path: bosh-backup-and-restore-ci/ci/tasks/bbr-s3-config-validator-enable-backup-prepare-pas/task.sh

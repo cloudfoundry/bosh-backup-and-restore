@@ -6,8 +6,9 @@ image_resource:
     tag: 0.1.111
 inputs:
   - name: bosh-backup-and-restore
+  - name: bosh-backup-and-restore-ci
 params:
   AWS_SECRET_KEY:
   AWS_ACCESS_KEY:
 run:
-  path: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-unit-test/task.sh
+  path: bosh-backup-and-restore-ci/ci/tasks/bbr-s3-config-validator-unit-test/task.sh

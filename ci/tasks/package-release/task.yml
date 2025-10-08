@@ -9,11 +9,11 @@ inputs:
 - name: version
 - name: bbr-build
 - name: bbr-s3-config-validator-build
-- name: bosh-backup-and-restore
+- name: bosh-backup-and-restore-ci
 
 outputs:
 - name: packaged-release
 - name: release_metadata
 
 run:
-  path: bosh-backup-and-restore/ci/tasks/package-release/task.sh
+  path: bosh-backup-and-restore-ci/ci/tasks/package-release/task.sh

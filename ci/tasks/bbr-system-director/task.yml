@@ -7,6 +7,7 @@ image_resource:
 
 inputs:
 - name: bosh-backup-and-restore
+- name: bosh-backup-and-restore-ci
 
 params:
   BOSH_DEPLOYMENT:
@@ -20,4 +21,4 @@ params:
 
   USE_SHUTTLE: true
 run:
-  path: bosh-backup-and-restore/ci/tasks/bbr-system-director/task.sh
+  path: bosh-backup-and-restore-ci/ci/tasks/bbr-system-director/task.sh

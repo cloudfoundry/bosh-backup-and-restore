@@ -6,6 +6,7 @@ image_resource:
     tag: 0.1.111
 inputs:
   - name: bosh-backup-and-restore
+  - name: bosh-backup-and-restore-ci
 params:
   BOSH_ENVIRONMENT:
   BOSH_CLIENT:
@@ -15,4 +16,4 @@ params:
   BOSH_GW_PRIVATE_KEY:
   BOSH_GW_USER:
 run:
-  path: bosh-backup-and-restore/ci/tasks/bbr-system-deployment/task.sh
+  path: bosh-backup-and-restore-ci/ci/tasks/bbr-system-deployment/task.sh

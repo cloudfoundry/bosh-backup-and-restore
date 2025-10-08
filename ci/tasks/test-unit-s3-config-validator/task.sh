@@ -3,6 +3,6 @@
 set -euo pipefail
 set -x
 
-cd bosh-backup-and-restore/s3-config-validator/
+cd bosh-backup-and-restore-ci/s3-config-validator/
 
 make test-unit

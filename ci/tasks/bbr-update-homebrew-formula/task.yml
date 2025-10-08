@@ -8,10 +8,10 @@ image_resource:
 inputs:
 - name: homebrew-tap
 - name: bbr-release
-- name: bosh-backup-and-restore
+- name: bosh-backup-and-restore-ci
 
 outputs:
 - name: updated-homebrew-tap
 
 run:
-  path: bosh-backup-and-restore/ci/tasks/bbr-update-homebrew-formula/task.sh
+  path: bosh-backup-and-restore-ci/ci/tasks/bbr-update-homebrew-formula/task.sh

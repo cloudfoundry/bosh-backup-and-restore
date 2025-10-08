@@ -164,6 +164,19 @@ resources:
     password: *github_access_token
     branch: master
     disable_git_lfs: true
+    ignore_paths:
+    - ci
+
+- name: bosh-backup-and-restore-ci
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/bosh-backup-and-restore.git
+    username: bosh-admin-bot
+    password: *github_access_token
+    branch: master
+    disable_git_lfs: true
+    paths:
+    - ci
 
 - name: homebrew-tap
   type: git
@@ -429,6 +442,7 @@ jobs:
       passed: [ claim-env ]
       trigger: true
       tags: [broadcom]
+    - get: bosh-backup-and-restore-ci
     - get: bosh-backup-and-restore
       passed: [ claim-env ]
     - get: bosh-deployment
@@ -440,16 +454,13 @@ jobs:
     - get: bosh-ecosystem-registry-image
   - task: alias-env
     image: bosh-ecosystem-registry-image
-    file: cryogenics-concourse-tasks/tasks/toolsmiths/bosh-envify/task.yml
-    input_mapping:
-      cryogenics-tasks: cryogenics-concourse-tasks
-      toolsmiths-env: environment
+    file: bosh-backup-and-restore-ci/ci/tasks/bosh-envify/task.yml
   - load_var: pooled-env
     file: bosh-env/metadata.yml
     format: yml
   - task: generate-bosh-deployment-source-file
     image: bosh-ecosystem-registry-image
-    file: bosh-backup-and-restore/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
     params:
       <<: *ts-bosh-env
   - put: deploy-fake-director
@@ -465,7 +476,7 @@ jobs:
         internal_ip: *test-bosh-director-ip
   - task: system-test-director
     image: bosh-ecosystem-registry-image
-    file: bosh-backup-and-restore/ci/tasks/bbr-system-director/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/bbr-system-director/task.yml
     privileged: true
     params:
       USE_SHUTTLE: false
@@ -495,6 +506,7 @@ jobs:
     - get: additional-environment
       passed: [ claim-env ]
       tags: [broadcom]
+    - get: bosh-backup-and-restore-ci
     - get: bosh-backup-and-restore
       passed: [ claim-env ]
     - get: bbr-director-test-releases
@@ -525,7 +537,7 @@ jobs:
     format: yml
   - task: generate-bosh-deployment-source-file
     image: bosh-ecosystem-registry-image
-    file: bosh-backup-and-restore/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/bosh-deployment-resource-source-file-adapter/task.yml
     params:
       <<: *ts-2-bosh-env
   - put: deploy-fake-director
@@ -542,37 +554,37 @@ jobs:
   - in_parallel:
     - task: upload-redis-test-release-to-bosh
       image: bosh-ecosystem-registry-image
-      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
+      file: bosh-backup-and-restore-ci/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: redis-test-release
         <<: *ts-2-bosh-env
     - task: upload-many-bbr-jobs-release-to-bosh-uaa
       image: bosh-ecosystem-registry-image
-      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
+      file: bosh-backup-and-restore-ci/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: many-bbr-jobs-release
         <<: *ts-2-bosh-env
     - task: upload-many-bbr-jobs-release-to-bosh
       image: bosh-ecosystem-registry-image
-      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
+      file: bosh-backup-and-restore-ci/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: many-bbr-jobs-release
         <<: *ts-bosh-env
     - task: upload-redis-test-release-to-bosh
       image: bosh-ecosystem-registry-image
-      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
+      file: bosh-backup-and-restore-ci/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: redis-test-release
         <<: *ts-bosh-env
     - task: upload-redis-test-release-to-bosh-uaa
       image: bosh-ecosystem-registry-image
-      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
+      file: bosh-backup-and-restore-ci/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: redis-test-release
         <<: *ts-2-bosh-env
     - task: upload-lock-ordering-release-to-bosh-uaa
       image: bosh-ecosystem-registry-image
-      file: bosh-backup-and-restore/ci/tasks/bbr-upload-system-test-releases/task.yml
+      file: bosh-backup-and-restore-ci/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: lock-ordering-release
         <<: *ts-2-bosh-env
@@ -598,7 +610,7 @@ jobs:
   - task: system-deployment-with-uaa
     image: bosh-ecosystem-registry-image
     attempts: *number_of_system_test_retries
-    file: bosh-backup-and-restore/ci/tasks/bbr-system-deployment/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/bbr-system-deployment/task.yml
     params:
       <<: *ts-2-bosh-env
 
@@ -607,22 +619,23 @@ jobs:
   - only_1_job_should_bump_the_BUILD_VERSION_at_a_time_to_avoid_race_condition
   plan:
   - in_parallel:
+    - get: bosh-backup-and-restore-ci
     - get: bosh-backup-and-restore
       trigger: true
     - get: bosh-ecosystem-registry-image
   - task: unit-test
     image: bosh-ecosystem-registry-image
-    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-unit-test/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/bbr-s3-config-validator-unit-test/task.yml
     params:
       <<: *AWS_ACCESS
   - task: e2e-test
     image: bosh-ecosystem-registry-image
-    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-e2e-test/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/bbr-s3-config-validator-e2e-test/task.yml
     params:
       <<: *AWS_ACCESS
   - task: build
     image: bosh-ecosystem-registry-image
-    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-build/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/bbr-s3-config-validator-build/task.yml
   - put: s3-config-validator-dev-release
     params:
       file: bbr-s3-config-validator-build/bbr-s3-config-validator
@@ -634,12 +647,13 @@ jobs:
     - get: s3-config-validator-dev-release
       passed: [ test-build-s3-config-validator ]
       trigger: true
+    - get: bosh-backup-and-restore-ci
     - get: bosh-backup-and-restore
       passed: [ test-build-s3-config-validator ]
     - get: bosh-ecosystem-registry-image
   - task: run-validator
     image: bosh-ecosystem-registry-image
-    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.yml
     params:
       <<: *AWS_ACCESS_2
 
@@ -653,16 +667,17 @@ jobs:
 - name: build-dev
   plan:
   - in_parallel:
+    - get: bosh-backup-and-restore-ci
     - get: bosh-backup-and-restore
       trigger: true
       passed: [release-fan-in]
     - get: bosh-ecosystem-registry-image
   - task: build-bbr
     image: bosh-ecosystem-registry-image
-    file: bosh-backup-and-restore/ci/tasks/bbr-build/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/bbr-build/task.yml
   - task: build-s3-config-validator
     image: bosh-ecosystem-registry-image
-    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-build/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/bbr-s3-config-validator-build/task.yml
   - put: bbr-dev-release
     params:
       file: bbr-build/bbr-*.tar
@@ -670,6 +685,7 @@ jobs:
 - name: run-drats
   serial: true
   plan:
+  - get: bosh-backup-and-restore-ci
   - get: bosh-backup-and-restore
     passed: [build-dev]
   - get: cf-deployment
@@ -725,7 +741,7 @@ jobs:
     format: json
   - task: update-integration-config
     image: bosh-ecosystem-registry-image
-    file: bosh-backup-and-restore/ci/tasks/setup-drats-integration-config/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/setup-drats-integration-config/task.yml
     input_mapping:
       integration-configs: disaster-recovery-acceptance-tests
     params:
@@ -760,6 +776,7 @@ jobs:
   serial: true
   plan:
   - in_parallel:
+    - get: bosh-backup-and-restore-ci
     - get: bosh-backup-and-restore
       passed: [build-dev]
     - get: b-drats
@@ -849,6 +866,7 @@ jobs:
   serial_groups: [version]
   plan:
   - in_parallel:
+    - get: bosh-backup-and-restore-ci
     - get: bosh-backup-and-restore
       trigger: true
       passed:
@@ -890,6 +908,7 @@ jobs:
   serial_groups: [version]
   plan:
   - in_parallel:
+    - get: bosh-backup-and-restore-ci
     - get: bosh-backup-and-restore
       passed:
       - run-drats
@@ -902,13 +921,13 @@ jobs:
     file: version/version
   - task: build-bbr
     image: bosh-ecosystem-registry-image
-    file: bosh-backup-and-restore/ci/tasks/bbr-build/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/bbr-build/task.yml
   - task: build-s3-config-validator
     image: bosh-ecosystem-registry-image
-    file: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-build/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/bbr-s3-config-validator-build/task.yml
   - task: package-release
     image: bosh-ecosystem-registry-image
-    file: bosh-backup-and-restore/ci/tasks/package-release/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/package-release/task.yml
   - put: bbr-release
     params:
       name: version/version
@@ -940,13 +959,14 @@ jobs:
       passed:
       - publish-release
       trigger: true
+    - get: bosh-backup-and-restore-ci
     - get: bosh-backup-and-restore
       passed:
       - publish-release
     - get: bosh-ecosystem-registry-image
   - task: update-homebrew-formula
     image: bosh-ecosystem-registry-image
-    file: bosh-backup-and-restore/ci/tasks/bbr-update-homebrew-formula/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/bbr-update-homebrew-formula/task.yml
   - put: homebrew-tap
     params:
       repository: updated-homebrew-tap
@@ -956,6 +976,7 @@ jobs:
   plan:
   - in_parallel:
       steps:
+      - get: bosh-backup-and-restore-ci
       - get: bosh-backup-and-restore
         trigger: true
       - get: cryogenics-concourse-tasks
@@ -983,6 +1004,7 @@ jobs:
   plan:
   - in_parallel:
       steps:
+      - get: bosh-backup-and-restore-ci
       - get: bosh-backup-and-restore
         trigger: true
         passed:
@@ -1014,6 +1036,7 @@ jobs:
     - get: every-monday
       trigger: true
     - get: bosh-backup-and-restore
+    - get: bosh-backup-and-restore-ci
     - get: golang-release
     - get: golang-image
   - task: bump-deps
@@ -1023,7 +1046,7 @@ jobs:
     output_mapping:
       output_repo: bosh-backup-and-restore
   - task: test-unit
-    file: bosh-backup-and-restore/ci/tasks/test-unit/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/test-unit/task.yml
     image: golang-image
   - put: bosh-backup-and-restore
     params:
@@ -1036,6 +1059,7 @@ jobs:
     - get: every-monday
       trigger: true
     - get: bosh-backup-and-restore
+    - get: bosh-backup-and-restore-ci
     - get: golang-release
     - get: golang-image
   - task: bump-deps
@@ -1047,7 +1071,7 @@ jobs:
     params:
       SOURCE_PATH: s3-config-validator/src/
   - task: test-unit-s3-config-validator
-    file: bosh-backup-and-restore/ci/tasks/test-unit-s3-config-validator/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/test-unit-s3-config-validator/task.yml
     image: golang-image
   - put: bosh-backup-and-restore
     params:

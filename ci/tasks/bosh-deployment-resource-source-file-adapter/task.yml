@@ -6,7 +6,7 @@ image_resource:
   source: {repository: pcfplatformrecovery/backup-and-restore}
 
 inputs:
-- name: bosh-backup-and-restore
+- name: bosh-backup-and-restore-ci
 
 outputs:
 - name: source-file
@@ -21,4 +21,4 @@ params:
   BOSH_GW_PRIVATE_KEY:
 
 run:
-  path: bosh-backup-and-restore/ci/tasks/bosh-deployment-resource-source-file-adapter/task.sh
+  path: bosh-backup-and-restore-ci/ci/tasks/bosh-deployment-resource-source-file-adapter/task.sh
