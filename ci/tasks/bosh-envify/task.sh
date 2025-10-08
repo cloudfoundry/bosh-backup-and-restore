@@ -9,6 +9,8 @@ export ENVIRONMENT_LOCK_METADATA=environment/metadata
 
 readonly bosh_all_proxy_pattern='ssh\+socks5:\/\/(.*)@(([0-9]+\.){3}([0-9]+)):22\?private-key=(.*)'
 
+BOSH_ALL_PROXY="$(jq -r '.bosh.bosh_all_proxy' ${ENVIRONMENT_LOCK_METADATA})"
+
 # JUMPBOX_PRIVATE_KEY is present for cf-deployment pool envs
 : "${JUMPBOX_PRIVATE_KEY:="$(echo "${BOSH_ALL_PROXY}" | sed -n -E "s/${bosh_all_proxy_pattern}/\5/p")"}"
 
@@ -18,7 +20,6 @@ then
   # export BOSH_CA_CERT
 fi
 
-BOSH_ALL_PROXY="$(jq -r '.bosh.bosh_all_proxy' ${ENVIRONMENT_LOCK_METADATA})"
 
 cat > bosh-env/alias-env.sh << EOF
 export INSTANCE_JUMPBOX_PRIVATE="$(jq -r '.bosh.jumpbox_private_key' ${ENVIRONMENT_LOCK_METADATA})"
