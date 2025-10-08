@@ -523,10 +523,9 @@ jobs:
     format: yml
   - task: alias-additional-env
     image: bosh-ecosystem-registry-image
-    file: cryogenics-concourse-tasks/tasks/toolsmiths/bosh-envify/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/bosh-envify/task.yml
     input_mapping:
-      cryogenics-tasks: cryogenics-concourse-tasks
-      toolsmiths-env: additional-environment
+      environment: additional-environment
     output_mapping:
       bosh-env: additional-bosh-env
   - load_var: additional-pooled-env
