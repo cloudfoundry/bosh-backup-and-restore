@@ -10,7 +10,7 @@ inputs:
   - name: bosh-backup-and-restore-ci
 
 run:
-  path: bosh-backup-and-restore-ci/tasks/bosh-envify/task.sh
+  path: bosh-backup-and-restore-ci/ci/tasks/bosh-envify/task.sh
 
 outputs:
   - name: bosh-env
