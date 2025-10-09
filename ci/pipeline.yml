@@ -485,6 +485,7 @@ jobs:
     image: bosh-ecosystem-registry-image
     file: bosh-backup-and-restore-ci/ci/tasks/bbr-system-director/task.yml
     privileged: true
+    tags: [broadcom]
     params:
       USE_SHUTTLE: false
       DIRECTOR_HOST: *test-bosh-director-ip
