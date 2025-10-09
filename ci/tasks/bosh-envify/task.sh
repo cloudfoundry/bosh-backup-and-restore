@@ -48,7 +48,7 @@ EOF
 
 cat > bosh-env/metadata.yml << EOF
 INSTANCE_JUMPBOX_PRIVATE: |-
-$(cat ${JUMPBOX_PRIVATE_KEY} | sed -E 's/(-+(BEGIN|END) RSA PRIVATE KEY-+) *| +/\1\n/g' |  sed 's/^/  /')
+$(jq -r '.bosh.jumpbox_private_key' ${ENVIRONMENT_LOCK_METADATA} | sed -E 's/(-+(BEGIN|END) RSA PRIVATE KEY-+) *| +/\1\n/g' |  sed 's/^/  /')
 INSTANCE_JUMPBOX_USER: "$(echo "${BOSH_ALL_PROXY}" | sed -n -E "s/${bosh_all_proxy_pattern}/\1/p")"
 INSTANCE_JUMPBOX_EXTERNAL_IP: "$(echo "${BOSH_ALL_PROXY}" | sed -n -E "s/${bosh_all_proxy_pattern}/\2/p")"
 BOSH_CLIENT: "$(jq -r '.bosh.bosh_client' ${ENVIRONMENT_LOCK_METADATA})"
