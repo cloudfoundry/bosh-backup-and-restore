@@ -13,6 +13,8 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
+const BOSH_CLI_EXECUTABLE_NAME = "bosh"
+
 type Deployment struct {
 	Name     string
 	Manifest string
@@ -48,7 +50,7 @@ func (d Deployment) runBosh(args ...string) *gexec.Session {
 	MustHaveEnv("BOSH_CLIENT_SECRET")
 	MustHaveEnv("BOSH_CA_CERT")
 
-	boshCommand := fmt.Sprintf("bosh-cli --non-interactive --deployment=%s", d.Name)
+	boshCommand := fmt.Sprintf("%s --non-interactive --deployment=%s", BOSH_CLI_EXECUTABLE_NAME, d.Name)
 	return run(boshCommand, args...)
 }
 
