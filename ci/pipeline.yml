@@ -170,10 +170,10 @@ resources:
 - name: bosh-backup-and-restore-ci
   type: git
   source:
-    uri: https://github.com/KauzClay/bosh-backup-and-restore.git
+    uri: https://github.com/cloudfoundry/bosh-backup-and-restore.git
     username: bosh-admin-bot
     password: *github_access_token
-    branch: migrate_shep_v1
+    branch: migrate_shep_v2_cfd
     disable_git_lfs: true
     paths:
     - ci
@@ -320,6 +320,14 @@ resources:
         name: cfd-bosh-lite
         namespace: official
         revision: "2.0"
+        arguments:
+          gcp_region: us-west1
+          vm_type: n2d-standard-8
+          root_disk_gb: 32
+          disk_pool_gb: 200
+          cfd_version: ""
+          cfd_additional_opsfiles_b64: ""
+          bosh_additional_opsfiles_b64: ""
 
 - name: disaster-recovery-acceptance-tests
   type: git
@@ -719,6 +727,7 @@ jobs:
     passed:
     - build-dev
   - put: cf-deployment-env
+    tags: [broadcom]
     attempts: *number_of_claim_env_retries
     timeout: 6h
     params:
@@ -729,6 +738,7 @@ jobs:
   - task: deploy-backup-restore-components
     image: bosh-ecosystem-registry-image
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
+    tags: [broadcom]
     input_mapping:
       toolsmiths-env: cf-deployment-env
       ops-files: cf-deployment
@@ -746,6 +756,7 @@ jobs:
     image: bosh-ecosystem-registry-image
     attempts: 5
     file: cf-deployment-concourse-tasks/run-errand/task.yml
+    tags: [broadcom]
     input_mapping:
       toolsmiths-env: cf-deployment-env
     params:
@@ -754,6 +765,7 @@ jobs:
     image: bosh-ecosystem-registry-image
     attempts: 5
     file: cf-deployment-concourse-tasks/run-errand/task.yml
+    tags: [broadcom]
     input_mapping:
       toolsmiths-env: cf-deployment-env
     params:
@@ -764,6 +776,7 @@ jobs:
   - task: update-integration-config
     image: bosh-ecosystem-registry-image
     file: bosh-backup-and-restore-ci/ci/tasks/setup-drats-integration-config/task.yml
+    tags: [broadcom]
     input_mapping:
       integration-configs: disaster-recovery-acceptance-tests
     params:
@@ -783,6 +796,7 @@ jobs:
     image: bosh-ecosystem-registry-image
     file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
     privileged: true
+    tags: [broadcom]
     input_mapping:
       drats-integration-config: updated-integration-configs
       bbr-binary-release: bbr-dev-release
@@ -790,6 +804,7 @@ jobs:
       CONFIG_FILE_PATH: ci/integration_config.json
       CF_DIAL_TIMEOUT: 300
   - put: cf-deployment-env
+    tags: [broadcom]
     params:
       action: release
       resource: cf-deployment-env
@@ -808,14 +823,13 @@ jobs:
         unpack: true
       passed:
       - build-dev
-    - get: cryogenics-concourse-tasks
-      tags: [broadcom]
     - get: jammy-stemcell
     - get: bosh-ecosystem-registry-image
   - do:
     - put: tas-env
       attempts: *number_of_claim_env_retries
       timeout: 6h
+      tags: [broadcom]
       params:
         action: create
         duration: 24h
@@ -824,9 +838,8 @@ jobs:
     - in_parallel:
       - task: create-b-drats-config
         image: bosh-ecosystem-registry-image
-        file: cryogenics-concourse-tasks/tasks/toolsmiths/generate-b-drats-config-from-tas-env/task.yml
+        file: bosh-backup-and-restore-ci/ci/tasks/bosh-generate-b-drats-config-from-tas-lite/task.yml
         input_mapping:
-          repo: cryogenics-concourse-tasks
           env: tas-env
           stemcell: jammy-stemcell
         params:
@@ -843,6 +856,7 @@ jobs:
       image: bosh-ecosystem-registry-image
       file: b-drats/ci/tasks/run-b-drats/task.yml
       privileged: true
+      tags: [broadcom]
       input_mapping:
         bosh-disaster-recovery-acceptance-tests: b-drats
         bbr-binary-release: bbr-dev-release
@@ -856,6 +870,7 @@ jobs:
         GINKGO_TIMEOUT: 48h0m0s #! 48h to be consistent with TIMEOUT_IN_MINUTES in the b-drats test config from the previous task.
     ensure:
       put: tas-env
+      tags: [broadcom]
       params:
         action: release
         resource: tas-env
