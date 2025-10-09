@@ -5,7 +5,6 @@ image_resource:
     repository: cryogenics/essentials
     tag: 0.1.111
 inputs:
-  - name: bosh-backup-and-restore
   - name: bosh-backup-and-restore-ci
 params:
   BOSH_ENVIRONMENT:
