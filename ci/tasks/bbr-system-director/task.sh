@@ -32,6 +32,7 @@ if [[ "${USE_SHUTTLE}" == "true" ]]; then
   fi
   export CREDHUB_PROXY="ssh+socks5://${BOSH_GW_USER}@${BOSH_GW_HOST}?private-key=${BOSH_GW_PRIVATE_KEY}"
 else
+  mkdir -p ~/.ssh
   cat << EOF > ~/.ssh/config
 Host jumphost
   HostName $(echo "${BOSH_GW_HOST}" | cut -f1 -d: )
