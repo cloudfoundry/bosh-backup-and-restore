@@ -170,10 +170,10 @@ resources:
 - name: bosh-backup-and-restore-ci
   type: git
   source:
-    uri: https://github.com/cloudfoundry/bosh-backup-and-restore.git
+    uri: https://github.com/KauzClay/bosh-backup-and-restore.git
     username: bosh-admin-bot
     password: *github_access_token
-    branch: master
+    branch: migrate_shep_v1
     disable_git_lfs: true
     paths:
     - ci
