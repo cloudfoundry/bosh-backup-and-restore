@@ -29,7 +29,7 @@ secrets:
 - &gchat_webhook ((gchat-webhook-dap-bosh-ecosystem-dev))
 
 #! They are static values stored in credhub.
-- &test-bosh-director-ip 10.0.255.5
+- &test-bosh-director-ip 10.244.0.5
 - &test-bosh-director-ip-priv-key ((test_bosh_director_ssh_key.private_key))
 - &test-bosh-director-ip-pub-key ((test_bosh_director_ssh_key.public_key))
 
@@ -214,10 +214,16 @@ resources:
     json_key: *gcp_service_accounts_bucket_owner
     driver: gcs
 
+#! When using shepherd v2 bosh lite, we can't use the google stemcell
+#! - name: jammy-stemcell
+#!   type: bosh-io-stemcell
+#!   source:
+#!     name: bosh-google-kvm-ubuntu-jammy-go_agent
+
 - name: jammy-stemcell
   type: bosh-io-stemcell
   source:
-    name: bosh-google-kvm-ubuntu-jammy-go_agent
+    name: bosh-warden-boshlite-ubuntu-jammy-go_agent
 
 - name: bosh-deployment
   type: git
@@ -474,6 +480,7 @@ jobs:
         jumpbox-public-key: *test-bosh-director-ip-pub-key
         test_release_path: /tmp/build/put/bbr-director-test-releases/test-bosh-backup-and-restore-release
         internal_ip: *test-bosh-director-ip
+    tags: [broadcom]
   - task: system-test-director
     image: bosh-ecosystem-registry-image
     file: bosh-backup-and-restore-ci/ci/tasks/bbr-system-director/task.yml
@@ -492,6 +499,7 @@ jobs:
       delete:
         enabled: true
       source_file: source-file/source-file.yml
+    tags: [broadcom]
 
 - name: system-test-deployment
   serial: true
@@ -547,6 +555,7 @@ jobs:
         jumpbox-public-key: *test-bosh-director-ip-pub-key
         test_release_path: /tmp/build/put/bbr-director-test-releases/test-bosh-backup-and-restore-release
         internal_ip: *test-bosh-director-ip
+    tags: [broadcom]
   - in_parallel:
     - task: upload-redis-test-release-to-bosh
       image: bosh-ecosystem-registry-image
@@ -554,36 +563,42 @@ jobs:
       params:
         RELEASE_NAME: redis-test-release
         <<: *ts-2-bosh-env
+      tags: [broadcom]
     - task: upload-many-bbr-jobs-release-to-bosh-uaa
       image: bosh-ecosystem-registry-image
       file: bosh-backup-and-restore-ci/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: many-bbr-jobs-release
         <<: *ts-2-bosh-env
+      tags: [broadcom]
     - task: upload-many-bbr-jobs-release-to-bosh
       image: bosh-ecosystem-registry-image
       file: bosh-backup-and-restore-ci/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: many-bbr-jobs-release
         <<: *ts-bosh-env
+      tags: [broadcom]
     - task: upload-redis-test-release-to-bosh
       image: bosh-ecosystem-registry-image
       file: bosh-backup-and-restore-ci/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: redis-test-release
         <<: *ts-bosh-env
+      tags: [broadcom]
     - task: upload-redis-test-release-to-bosh-uaa
       image: bosh-ecosystem-registry-image
       file: bosh-backup-and-restore-ci/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: redis-test-release
         <<: *ts-2-bosh-env
+      tags: [broadcom]
     - task: upload-lock-ordering-release-to-bosh-uaa
       image: bosh-ecosystem-registry-image
       file: bosh-backup-and-restore-ci/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: lock-ordering-release
         <<: *ts-2-bosh-env
+      tags: [broadcom]
 
     - task: allow-connections-to-bosh-director-on-port-25555
       image: bosh-ecosystem-registry-image
@@ -591,16 +606,25 @@ jobs:
         platform: linux
         inputs:
         - name: additional-environment
+        params:
+          <<: *ts-2-bosh-env
         run:
           path: /bin/bash
           args:
           - -c
           - |
             #!/bin/bash
-            . <(smith -l additional-environment/metadata bosh)
-            ENV_NAME=$(cat additional-environment/metadata | jq .name -r)
+            # . <(smith -l additional-environment/metadata bosh)
+            # ENV_NAME=$(cat additional-environment/metadata | jq .name -r)
+
+            echo -e "${BOSH_GW_PRIVATE_KEY}" > "${PWD}/ssh.key"
+            chmod 0600 "${PWD}/ssh.key"
+            export BOSH_GW_PRIVATE_KEY="${PWD}/ssh.key"
+            export BOSH_ALL_PROXY="ssh+socks5://${BOSH_GW_USER}@${BOSH_GW_HOST}?private-key=${BOSH_GW_PRIVATE_KEY}"
+
             bosh cc > cc.yml
-            bosh ucc -n <( bosh int cc.yml -o <( echo -e "- type: replace\n  path: /vm_types/name=minimal/cloud_properties/tags?\n  value: [${ENV_NAME}-bosh-open]") )
+            bosh ucc -n <( bosh int cc.yml -o <( echo -e "- type: replace\n  path: /vm_types/name=minimal/cloud_properties?/tags?\n  value: [${ENV_NAME}-bosh-open]") )
+      tags: [broadcom]
 
 
   - task: system-deployment-with-uaa
@@ -609,6 +633,7 @@ jobs:
     file: bosh-backup-and-restore-ci/ci/tasks/bbr-system-deployment/task.yml
     params:
       <<: *ts-2-bosh-env
+    tags: [broadcom]
 
 - name: test-build-s3-config-validator
   serial_groups:
