@@ -674,6 +674,7 @@ jobs:
       trigger: true
       passed: [claim-drats-env]
     - get: drats-env
+      trigger: true
       passed: [claim-drats-env]
       tags: [broadcom]
   - task: deploy-backup-restore-components
@@ -768,11 +769,13 @@ jobs:
     - get: jammy-stemcell
     - get: bosh-ecosystem-registry-image
     - get: b-drats-env
+      trigger: true
       passed: [claim-b-drats-env]
       tags: [broadcom]
   - task: create-b-drats-config
     image: bosh-ecosystem-registry-image
     file: bosh-backup-and-restore-ci/ci/tasks/bosh-generate-b-drats-config-from-tas-lite/task.yml
+    tags: [broadcom]
     input_mapping:
       environment: b-drats-env
       stemcell: jammy-stemcell

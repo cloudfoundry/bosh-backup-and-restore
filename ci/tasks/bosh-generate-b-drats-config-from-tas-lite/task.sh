@@ -30,7 +30,7 @@ main() {
     OM_TARGET \
     OM_USERNAME \
     OM_PASSWORD \
-    OM_SKIP_SSL_VALIDATION=false
+    OM_SKIP_SSL_VALIDATION=true
 
 
   local jumpbox_host
