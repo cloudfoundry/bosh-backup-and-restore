@@ -98,7 +98,7 @@ main() {
   "timeout_in_minutes": $TIMEOUT_IN_MINUTES,
   "deployment_vm_type": "default",
   "deployment_network": "network",
-  "deployment_az": "null",
+  "deployment_az": "\"null\"",
   "jumpbox_host": "$jumpbox_host",
   "jumpbox_user": "$jumpbox_user",
   "jumpbox_pubkey": $jumpbox_pubkey,
