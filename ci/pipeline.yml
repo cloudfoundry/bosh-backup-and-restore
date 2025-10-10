@@ -774,7 +774,7 @@ jobs:
       tags: [broadcom]
   - task: create-b-drats-config
     image: bosh-ecosystem-registry-image
-    file: bosh-backup-and-restore-ci/ci/tasks/bosh-generate-b-drats-config-from-tas-lite/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/setup-b-drats-integration-config/task.yml
     tags: [broadcom]
     input_mapping:
       environment: b-drats-env

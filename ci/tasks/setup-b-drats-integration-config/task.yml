@@ -20,4 +20,4 @@ params:
   TIMEOUT_IN_MINUTES:
 
 run:
-  path: bosh-backup-and-restore-ci/ci/tasks/bosh-generate-b-drats-config-from-tas-lite/task.sh
+  path: bosh-backup-and-restore-ci/ci/tasks/setup-b-drats-integration-config/task.sh
