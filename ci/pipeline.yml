@@ -132,6 +132,13 @@ resources:
     username: *docker_username
     password: *docker_password
 
+- name: cf-deployment-concourse-tasks-registry-image
+  type: registry-image
+  source:
+    repository: cloudfoundry/cf-deployment-concourse-tasks
+    username: *docker_username
+    password: *docker_password
+
 - name: golang-release
   type: git
   source:
@@ -257,18 +264,6 @@ resources:
     json_key: *gcp_service_accounts_bucket_owner
     versioned_file: bosh-backup-and-restore/release-notes.md
 
-#! Selected from sheepctl pool list -n tpsm -u epc-shepherd.lvn.broadcom.net
-#! roughly trying to use latest tas to make sure it works.
-- name: tas-env
-  type: shepherd-v1
-  icon: pool
-  source:
-    target: epc-shepherd.lvn.broadcom.net
-    config:
-      namespace: bosh-team
-      pool_namespace: tpsm
-      pool: SF-TAS-10.2-Medium-Profile
-
 - name: cryogenics-concourse-tasks
   type: git
   tags: [broadcom]
@@ -295,84 +290,6 @@ resources:
   source:
     uri: https://github.com/cloudfoundry/cf-deployment.git
     branch: main
-
-#! REMOVE
-#! - name: cf-deployment-env
-#!  type: shepherd
-#!  source:
-#!    url: https://v2.shepherd.run
-#!    service-account-key: *shepherd_account_key
-#!    compatibility-mode: environments-app
-#!    lease:
-#!      namespace: bosh-ecosystem
-#!      pool:
-#!        namespace: official
-#!        name: cfd
-
-- name: cf-deployment-env
-  type: shepherd-v2
-  source:
-    url: https://v2-shepherd.lvn.broadcom.net
-    service-account-key: *shepherd_lvn_account_key
-    lease:
-      namespace: bosh-ecosystem
-      template:
-        name: cfd-bosh-lite
-        namespace: official
-        revision: "2.0"
-        arguments:
-          gcp_region: us-west1
-          vm_type: n2d-standard-8
-          root_disk_gb: 32
-          disk_pool_gb: 200
-          cfd_version: ""
-          cfd_additional_opsfiles_b64: ""
-          bosh_additional_opsfiles_b64: ""
-
-- name: disaster-recovery-acceptance-tests
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/disaster-recovery-acceptance-tests
-    branch: main
-
-- name: b-drats
-  type: git
-  source:
-    uri: https://github.com/cloudfoundry/bosh-disaster-recovery-acceptance-tests
-    branch: master
-
-#! REMOVE
-#! - name: environment
-#!   type: shepherd
-#!   source:
-#!     url: https://v2.shepherd.run
-#!     service-account-key: *shepherd_account_key
-#!     compatibility-mode: environments-app
-#!     lease:
-#!       namespace: bosh-ecosystem
-#!       pool:
-#!         namespace: official
-#!         name: cfd
-
-#!- name: environment
-#!  type: shepherd-v1
-#!  icon: pool
-#!  source:
-#!    target: epc-shepherd.lvn.broadcom.net
-#!    config:
-#!      namespace: bosh-team
-#!      pool_namespace: official
-#!      pool: Tanzu-Opsman-3.1
-#!
-#!- name: additional-environment
-#!  type: shepherd-v1
-#!  icon: pool
-#!  source:
-#!    target: epc-shepherd.lvn.broadcom.net
-#!    config:
-#!      namespace: bosh-team
-#!      pool_namespace: official
-#!      pool: Tanzu-Opsman-3.1
 
 - name: environment
   type: shepherd-v2
@@ -416,19 +333,48 @@ resources:
           cfd_additional_opsfiles_b64: ""
           bosh_additional_opsfiles_b64: ""
 
+- name: drats-env
+  type: shepherd-v2
+  source:
+    url: https://v2-shepherd.lvn.broadcom.net
+    service-account-key: *shepherd_lvn_account_key
+    lease:
+      namespace: bosh-ecosystem
+      template:
+        name: cfd-bosh-lite
+        namespace: official
+        revision: "2.0"
+        arguments:
+          gcp_region: us-west1
+          vm_type: n2d-standard-8
+          root_disk_gb: 32
+          disk_pool_gb: 200
+          cfd_version: ""
+          cfd_additional_opsfiles_b64: ""
+          bosh_additional_opsfiles_b64: ""
 
-#! remove
-#! - name: additional-environment
-#!  type: shepherd
-#!  source:
-#!    url: https://v2.shepherd.run
-#!    service-account-key: *shepherd_account_key
-#!    compatibility-mode: environments-app
-#!    lease:
-#!      namespace: bosh-ecosystem
-#!      pool:
-#!        namespace: official
-#!        name: cfd
+- name: b-drats-env
+  type: shepherd-v2
+  source:
+    url: https://v2-shepherd.lvn.broadcom.net
+    service-account-key: *shepherd_lvn_account_key
+    lease:
+      namespace: bosh-ecosystem
+      pool:
+        name: epc-tas-10_2_0-lite
+        namespace: official
+
+- name: disaster-recovery-acceptance-tests
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/disaster-recovery-acceptance-tests
+    branch: main
+
+- name: b-drats
+  type: git
+  source:
+    uri: https://github.com/cloudfoundry/bosh-disaster-recovery-acceptance-tests
+    branch: master
 
 - name: golang-image
   type: registry-image
@@ -715,37 +661,34 @@ jobs:
 - name: run-drats
   serial: true
   plan:
-  - get: bosh-backup-and-restore-ci
-  - get: bosh-backup-and-restore
-    passed: [build-dev]
-  - get: cf-deployment
-  - get: cf-deployment-concourse-tasks
-  - get: disaster-recovery-acceptance-tests
-  - get: bosh-ecosystem-registry-image
-  - get: bbr-dev-release
-    trigger: true
-    passed:
-    - build-dev
-  - put: cf-deployment-env
-    tags: [broadcom]
-    attempts: *number_of_claim_env_retries
-    timeout: 6h
-    params:
-      action: create
-      duration: 24h
-      resource: cf-deployment-env
-      timeout: 6h
+  - in_parallel:
+    - get: bosh-backup-and-restore-ci
+    - get: bosh-backup-and-restore
+      passed: [claim-drats-env]
+    - get: cf-deployment
+    - get: cf-deployment-concourse-tasks
+    - get: disaster-recovery-acceptance-tests
+    - get: bosh-ecosystem-registry-image
+    - get: cf-deployment-concourse-tasks-registry-image
+    - get: bbr-dev-release
+      trigger: true
+      passed: [claim-drats-env]
+    - get: drats-env
+      passed: [claim-drats-env]
+      tags: [broadcom]
   - task: deploy-backup-restore-components
-    image: bosh-ecosystem-registry-image
+    image: cf-deployment-concourse-tasks-registry-image
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     tags: [broadcom]
     input_mapping:
-      toolsmiths-env: cf-deployment-env
+      toolsmiths-env: drats-env
       ops-files: cf-deployment
     params:
       OPS_FILES: >
+        operations/bosh-lite.yml
         operations/scale-to-one-az.yml
         operations/use-compiled-releases.yml
+        operations/experimental/fast-deploy-with-downtime-and-danger.yml
         operations/backup-and-restore/enable-backup-restore.yml
         operations/enable-nfs-volume-service.yml
         operations/experimental/disable-interpolate-service-bindings.yml
@@ -753,25 +696,25 @@ jobs:
         operations/enable-smb-volume-service.yml
         operations/backup-and-restore/skip-backup-restore-droplets-and-packages.yml
   - task: bosh-run-errand-nfsbrokerpush
-    image: bosh-ecosystem-registry-image
+    image: cf-deployment-concourse-tasks-registry-image
     attempts: 5
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     tags: [broadcom]
     input_mapping:
-      toolsmiths-env: cf-deployment-env
+      toolsmiths-env: drats-env
     params:
       ERRAND_NAME: nfsbrokerpush
   - task: bosh-run-errand-smbbrokerpush
-    image: bosh-ecosystem-registry-image
+    image: cf-deployment-concourse-tasks-registry-image
     attempts: 5
     file: cf-deployment-concourse-tasks/run-errand/task.yml
     tags: [broadcom]
     input_mapping:
-      toolsmiths-env: cf-deployment-env
+      toolsmiths-env: drats-env
     params:
       ERRAND_NAME: smbbrokerpush
   - load_var: pooled-env
-    file: cf-deployment-env/metadata
+    file: drats-env/metadata
     format: json
   - task: update-integration-config
     image: bosh-ecosystem-registry-image
@@ -800,14 +743,15 @@ jobs:
     input_mapping:
       drats-integration-config: updated-integration-configs
       bbr-binary-release: bbr-dev-release
+      environment: drats-env
     params:
       CONFIG_FILE_PATH: ci/integration_config.json
       CF_DIAL_TIMEOUT: 300
-  - put: cf-deployment-env
+  - put: drats-env
     tags: [broadcom]
     params:
       action: release
-      resource: cf-deployment-env
+      resource: drats-env
 
 - name: run-b-drats
   serial: true
@@ -815,65 +759,55 @@ jobs:
   - in_parallel:
     - get: bosh-backup-and-restore-ci
     - get: bosh-backup-and-restore
-      passed: [build-dev]
+      passed: [claim-b-drats-env]
     - get: b-drats
     - get: bbr-dev-release
       trigger: true
-      params:
-        unpack: true
-      passed:
-      - build-dev
+      params: {unpack: true}
+      passed: [claim-b-drats-env]
     - get: jammy-stemcell
     - get: bosh-ecosystem-registry-image
-  - do:
-    - put: tas-env
-      attempts: *number_of_claim_env_retries
-      timeout: 6h
+    - get: b-drats-env
+      passed: [claim-b-drats-env]
       tags: [broadcom]
-      params:
-        action: create
-        duration: 24h
-        resource: tas-env
-        timeout: 6h
-    - in_parallel:
-      - task: create-b-drats-config
-        image: bosh-ecosystem-registry-image
-        file: bosh-backup-and-restore-ci/ci/tasks/bosh-generate-b-drats-config-from-tas-lite/task.yml
-        input_mapping:
-          env: tas-env
-          stemcell: jammy-stemcell
-        params:
-          INCLUDE_DEPLOYMENT_TESTCASE: true
-          INCLUDE_TRUNCATE_DB_BLOBSTORE_TESTCASE: false
-          INCLUDE_CREDHUB_TESTCASE: false
-          TIMEOUT_IN_MINUTES: 2_880 #! 48h
-        output_mapping:
-          config: b-drats-config
-      - load_var: env-metadata
-        file: tas-env/metadata
-        format: json
-    - task: run-b-drats
-      image: bosh-ecosystem-registry-image
-      file: b-drats/ci/tasks/run-b-drats/task.yml
-      privileged: true
-      tags: [broadcom]
-      input_mapping:
-        bosh-disaster-recovery-acceptance-tests: b-drats
-        bbr-binary-release: bbr-dev-release
-        b-drats-integration-config: b-drats-config
-      params:
-        JUMPBOX_IP: ((.:env-metadata.ops_manager_public_ip))
-        JUMPBOX_PRIVATE_KEY: ((.:env-metadata.ops_manager_private_key))
-        JUMPBOX_USER: ubuntu
-        BBR_BINARY: bbr-binary-release/releases/bbr
-        SSH_ALIVE_INTERVAL: 60 #! in seconds
-        GINKGO_TIMEOUT: 48h0m0s #! 48h to be consistent with TIMEOUT_IN_MINUTES in the b-drats test config from the previous task.
-    ensure:
-      put: tas-env
-      tags: [broadcom]
-      params:
-        action: release
-        resource: tas-env
+  - task: create-b-drats-config
+    image: bosh-ecosystem-registry-image
+    file: bosh-backup-and-restore-ci/ci/tasks/bosh-generate-b-drats-config-from-tas-lite/task.yml
+    input_mapping:
+      environment: b-drats-env
+      stemcell: jammy-stemcell
+    params:
+      INCLUDE_DEPLOYMENT_TESTCASE: true
+      INCLUDE_TRUNCATE_DB_BLOBSTORE_TESTCASE: false
+      INCLUDE_CREDHUB_TESTCASE: false
+      TIMEOUT_IN_MINUTES: 2_880 #! 48h
+    output_mapping:
+      config: b-drats-config
+  - load_var: env-metadata
+    file: b-drats-env/metadata
+    format: json
+  - task: run-b-drats
+    image: bosh-ecosystem-registry-image
+    file: b-drats/ci/tasks/run-b-drats/task.yml
+    privileged: true
+    tags: [broadcom]
+    input_mapping:
+      bosh-disaster-recovery-acceptance-tests: b-drats
+      bbr-binary-release: bbr-dev-release
+      b-drats-integration-config: b-drats-config
+      environment: b-drats-env
+    params:
+      JUMPBOX_IP: ((.:env-metadata.ops_manager_public_ip))
+      JUMPBOX_PRIVATE_KEY: ((.:env-metadata.ops_manager_private_key))
+      JUMPBOX_USER: ubuntu
+      BBR_BINARY: bbr-binary-release/releases/bbr
+      SSH_ALIVE_INTERVAL: 60 #! in seconds
+      GINKGO_TIMEOUT: 48h0m0s #! 48h to be consistent with TIMEOUT_IN_MINUTES in the b-drats test config from the previous task.
+  - put: b-drats-env
+    tags: [broadcom]
+    params:
+      action: release
+      resource: b-drats-env
 
 - name: release-new-patch
   serial_groups:
@@ -1036,6 +970,46 @@ jobs:
           duration: 24h
           resource: additional-environment
           timeout: 6h
+
+- name: claim-drats-env
+  plan:
+    - in_parallel:
+        steps:
+          - get: bosh-backup-and-restore
+            trigger: true
+            passed: [build-dev]
+          - get: bbr-dev-release
+            tags: [broadcom]
+            passed: [build-dev]
+          - put: drats-env
+            tags: [ broadcom ]
+            attempts: *number_of_claim_env_retries
+            timeout: 6h
+            params:
+              action: create
+              duration: 24h
+              timeout: 6h
+              resource: drats-env
+
+- name: claim-b-drats-env
+  plan:
+    - in_parallel:
+        steps:
+          - get: bosh-backup-and-restore
+            trigger: true
+            passed: [build-dev]
+          - get: bbr-dev-release
+            tags: [broadcom]
+            passed: [build-dev]
+          - put: b-drats-env
+            tags: [broadcom]
+            attempts: *number_of_claim_env_retries
+            timeout: 6h
+            params:
+              action: create
+              duration: 24h
+              timeout: 6h
+              resource: b-drats-env
 
 - name: unclaim-env
   plan:
