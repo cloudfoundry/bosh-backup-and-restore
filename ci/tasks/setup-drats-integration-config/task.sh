@@ -14,7 +14,8 @@ get_system_domain() {
 }
 
 setup_env_vars() {
-  eval "$(bbl print-env --metadata-file cf-deployment-env/metadata)"
+  # assume that bosh is already targeted by the environment
+  # eval "$(bbl print-env --metadata-file cf-deployment-env/metadata)"
   export SYSTEM_DOMAIN="$(get_system_domain)"
   export JUMPBOX_ADDRESS=$(echo $BOSH_ALL_PROXY | cut -d"@" -f2 | cut -d":" -f1)
 }
@@ -32,7 +33,7 @@ bosh_ca_cert="$BOSH_CA_CERT"
 ssh_proxy_user="jumpbox"
 ssh_proxy_host="${JUMPBOX_ADDRESS}"
 ssh_proxy_cidr="10.0.0.0/8"
-ssh_proxy_private_key="$(cat "$JUMPBOX_PRIVATE_KEY")"
+ssh_proxy_private_key="$JUMPBOX_PRIVATE_KEY"
 nfs_service_name="nfs"
 nfs_plan_name="Existing"
 nfs_broker_user="nfs-broker"
