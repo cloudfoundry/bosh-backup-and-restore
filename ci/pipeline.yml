@@ -736,6 +736,7 @@ jobs:
     tags: [broadcom]
     input_mapping:
       integration-configs: disaster-recovery-acceptance-tests
+      cf-deployment-env: drats-env
     params:
       SYSTEM_DOMAIN: ((.:pooled-env.name)).cf-app.com
       JUMPBOX_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
@@ -750,7 +751,7 @@ jobs:
       BOSH_CLIENT: ((.:pooled-env.bosh.bosh_client))
       BOSH_CLIENT_SECRET: ((.:pooled-env.bosh.bosh_client_secret))
   - task: acceptance-tests
-    image: bosh-ecosystem-registry-image
+    image: cf-deployment-concourse-tasks-registry-image
     file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
     privileged: true
     tags: [broadcom]
