@@ -302,14 +302,14 @@ resources:
       template:
         name: cfd-bosh-lite
         namespace: official
-        revision: "2.0"
+        revision: "3.0"
         arguments:
           gcp_region: us-west1
           vm_type: n2d-standard-8
           root_disk_gb: 32
           disk_pool_gb: 200
           cfd_version: ""
-          cfd_additional_opsfiles_b64: ""
+          cfd_additional_opsfiles_b64: "LS0tCi0gdHlwZTogcmVwbGFjZQogIHBhdGg6IC9hZGRvbnMvbmFtZT1ib3NoLWRucy1hbGlhc2VzL2pvYnMvbmFtZT1ib3NoLWRucy1hbGlhc2VzL3Byb3BlcnRpZXMvYWxpYXNlcy8tCiAgdmFsdWU6CiAgICBkb21haW46IF8uKChzeXN0ZW1fZG9tYWluKSkKICAgIHRhcmdldHM6CiAgICAgIC0gZGVwbG95bWVudDogY2YKICAgICAgICBkb21haW46IGJvc2gKICAgICAgICBpbnN0YW5jZV9ncm91cDogcm91dGVyCiAgICAgICAgbmV0d29yazogZGVmYXVsdAogICAgICAgIHF1ZXJ5OiAiKiI="
           bosh_additional_opsfiles_b64: ""
 
 - name: additional-environment
@@ -323,14 +323,14 @@ resources:
       template:
         name: cfd-bosh-lite
         namespace: official
-        revision: "2.0"
+        revision: "3.0"
         arguments:
           gcp_region: us-west1
           vm_type: n2d-standard-8
           root_disk_gb: 32
           disk_pool_gb: 200
           cfd_version: ""
-          cfd_additional_opsfiles_b64: ""
+          cfd_additional_opsfiles_b64: "LS0tCi0gdHlwZTogcmVwbGFjZQogIHBhdGg6IC9hZGRvbnMvbmFtZT1ib3NoLWRucy1hbGlhc2VzL2pvYnMvbmFtZT1ib3NoLWRucy1hbGlhc2VzL3Byb3BlcnRpZXMvYWxpYXNlcy8tCiAgdmFsdWU6CiAgICBkb21haW46IF8uKChzeXN0ZW1fZG9tYWluKSkKICAgIHRhcmdldHM6CiAgICAgIC0gZGVwbG95bWVudDogY2YKICAgICAgICBkb21haW46IGJvc2gKICAgICAgICBpbnN0YW5jZV9ncm91cDogcm91dGVyCiAgICAgICAgbmV0d29yazogZGVmYXVsdAogICAgICAgIHF1ZXJ5OiAiKiI="
           bosh_additional_opsfiles_b64: ""
 
 - name: drats-env
@@ -343,14 +343,14 @@ resources:
       template:
         name: cfd-bosh-lite
         namespace: official
-        revision: "2.0"
+        revision: "3.0"
         arguments:
           gcp_region: us-west1
           vm_type: n2d-standard-8
           root_disk_gb: 32
           disk_pool_gb: 200
           cfd_version: ""
-          cfd_additional_opsfiles_b64: ""
+          cfd_additional_opsfiles_b64: "LS0tCi0gdHlwZTogcmVwbGFjZQogIHBhdGg6IC9hZGRvbnMvbmFtZT1ib3NoLWRucy1hbGlhc2VzL2pvYnMvbmFtZT1ib3NoLWRucy1hbGlhc2VzL3Byb3BlcnRpZXMvYWxpYXNlcy8tCiAgdmFsdWU6CiAgICBkb21haW46IF8uKChzeXN0ZW1fZG9tYWluKSkKICAgIHRhcmdldHM6CiAgICAgIC0gZGVwbG95bWVudDogY2YKICAgICAgICBkb21haW46IGJvc2gKICAgICAgICBpbnN0YW5jZV9ncm91cDogcm91dGVyCiAgICAgICAgbmV0d29yazogZGVmYXVsdAogICAgICAgIHF1ZXJ5OiAiKiI="
           bosh_additional_opsfiles_b64: ""
 
 - name: b-drats-env
@@ -679,11 +679,23 @@ jobs:
       tags: [broadcom]
   - task: deploy-backup-restore-components
     image: cf-deployment-concourse-tasks-registry-image
+    file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+    tags: [broadcom]
+    input_mapping:
+      base-ops-files: cf-deployment
+      new-ops-files: bosh-backup-and-restore-ci
+    output_mapping:
+      collected-ops-files: opsfiles
+    params:
+      BASE_OPS_FILE_DIR: operations/
+      NEW_OPS_FILES: ci/ops-files/
+  - task: deploy-backup-restore-components
+    image: cf-deployment-concourse-tasks-registry-image
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
     tags: [broadcom]
     input_mapping:
       toolsmiths-env: drats-env
-      ops-files: cf-deployment
+      ops-files: opsfiles
     params:
       OPS_FILES: >
         operations/bosh-lite.yml
@@ -696,6 +708,7 @@ jobs:
         operations/experimental/enable-traffic-to-internal-networks.yml
         operations/enable-smb-volume-service.yml
         operations/backup-and-restore/skip-backup-restore-droplets-and-packages.yml
+        operations/add_dns_alias.yml
   - task: bosh-run-errand-nfsbrokerpush
     image: cf-deployment-concourse-tasks-registry-image
     attempts: 5
