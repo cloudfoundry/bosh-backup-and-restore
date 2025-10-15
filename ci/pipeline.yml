@@ -677,7 +677,7 @@ jobs:
       trigger: true
       passed: [claim-drats-env]
       tags: [broadcom]
-  - task: deploy-backup-restore-components
+  - task: copy-shepherd-ops-files-into-cfd
     image: cf-deployment-concourse-tasks-registry-image
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
     tags: [broadcom]
@@ -688,7 +688,7 @@ jobs:
       collected-ops-files: opsfiles
     params:
       BASE_OPS_FILE_DIR: operations/
-      NEW_OPS_FILES: ci/ops-files/
+      NEW_OPS_FILES: ci/ops-files/add_dns_alias.yml
   - task: deploy-backup-restore-components
     image: cf-deployment-concourse-tasks-registry-image
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml

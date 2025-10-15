@@ -8,4 +8,4 @@
         domain: bosh
         instance_group: router
         network: default
-        query: "*"%
+        query: "*"
