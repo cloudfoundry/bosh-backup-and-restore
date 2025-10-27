@@ -4,8 +4,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/readwriter"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/readwriter/fakes"
+	"github.com/cloudfoundry/bosh-backup-and-restore/readwriter"
+	"github.com/cloudfoundry/bosh-backup-and-restore/readwriter/fakes"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate

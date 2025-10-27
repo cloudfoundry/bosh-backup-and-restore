@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/config"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/configPrinter"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/flags"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/runner"
+	"github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/config"
+	"github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/configPrinter"
+	"github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/flags"
+	"github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/runner"
 )
 
 const (

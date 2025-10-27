@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/readwriter"
+	"github.com/cloudfoundry/bosh-backup-and-restore/readwriter"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 )
 

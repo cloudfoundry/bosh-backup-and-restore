@@ -3,7 +3,7 @@ package orchestrator
 import (
 	"time"
 
-	exe "github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
+	exe "github.com/cloudfoundry/bosh-backup-and-restore/executor"
 )
 
 func NewBackuper(backupManager BackupManager, logger Logger, deploymentManager DeploymentManager, lockOrderer LockOrderer,

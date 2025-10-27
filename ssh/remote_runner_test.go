@@ -7,8 +7,8 @@ import (
 
 	"os"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
+	"github.com/cloudfoundry/bosh-backup-and-restore/ssh"
+	"github.com/cloudfoundry/bosh-backup-and-restore/testcluster"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

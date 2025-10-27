@@ -1,11 +1,11 @@
 package factory
 
 import (
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orderer"
+	"github.com/cloudfoundry/bosh-backup-and-restore/backup"
+	"github.com/cloudfoundry/bosh-backup-and-restore/bosh"
+	"github.com/cloudfoundry/bosh-backup-and-restore/executor"
+	"github.com/cloudfoundry/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry/bosh-backup-and-restore/orderer"
 )
 
 func BuildDeploymentRestorer(target, username, password, caCert, bbrVersion string, debug bool) (*orchestrator.Restorer, error) {

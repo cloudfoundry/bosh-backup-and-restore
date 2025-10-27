@@ -6,9 +6,9 @@ import (
 
 	"errors"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
+	"github.com/cloudfoundry/bosh-backup-and-restore/bosh"
+	"github.com/cloudfoundry/bosh-backup-and-restore/orchestrator"
+	sshfakes "github.com/cloudfoundry/bosh-backup-and-restore/ssh/fakes"
 	"github.com/cloudfoundry/bosh-cli/v7/director"
 	boshfakes "github.com/cloudfoundry/bosh-cli/v7/director/directorfakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"

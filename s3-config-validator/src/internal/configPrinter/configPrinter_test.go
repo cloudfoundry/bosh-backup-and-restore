@@ -7,8 +7,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/config"
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/configPrinter"
+	. "github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/config"
+	. "github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/configPrinter"
 )
 
 var _ = Describe("PrintConfig", func() {

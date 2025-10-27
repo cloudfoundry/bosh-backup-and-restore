@@ -6,9 +6,9 @@ import (
 	"log"
 	"strings"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
+	"github.com/cloudfoundry/bosh-backup-and-restore/instance"
+	"github.com/cloudfoundry/bosh-backup-and-restore/orchestrator"
+	sshfakes "github.com/cloudfoundry/bosh-backup-and-restore/ssh/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"

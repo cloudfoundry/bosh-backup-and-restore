@@ -1,6 +1,6 @@
 package mockbosh
 
-import "github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockhttp"
+import "github.com/cloudfoundry/bosh-backup-and-restore/internal/cf-webmock/mockhttp"
 
 type infoMock struct {
 	*mockhttp.MockHttp

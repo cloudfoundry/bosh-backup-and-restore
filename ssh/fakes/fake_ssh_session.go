@@ -4,7 +4,7 @@ package fakes
 import (
 	"sync"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
+	"github.com/cloudfoundry/bosh-backup-and-restore/ssh"
 )
 
 type FakeSSHSession struct {

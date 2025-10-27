@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
+	"github.com/cloudfoundry/bosh-backup-and-restore/integration"
+	"github.com/cloudfoundry/bosh-backup-and-restore/testcluster"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -22,7 +22,7 @@ var pathToPublicKeyFile = "../../fixtures/test_rsa.pub"
 var binary integration.Binary
 
 var _ = BeforeSuite(func() {
-	commandPath, err := gexec.Build("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr")
+	commandPath, err := gexec.Build("github.com/cloudfoundry/bosh-backup-and-restore/cmd/bbr")
 	Expect(err).NotTo(HaveOccurred())
 	binary = integration.NewBinary(commandPath)
 })

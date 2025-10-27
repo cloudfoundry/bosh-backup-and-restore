@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
+	. "github.com/cloudfoundry/bosh-backup-and-restore/system"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
@@ -39,7 +39,7 @@ var _ = BeforeSuite(func() {
 	directorSSHKeyPath = MustHaveEnv("DIRECTOR_SSH_KEY_PATH")
 
 	var err error
-	commandPath, err = gexec.Build("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr")
+	commandPath, err = gexec.Build("github.com/cloudfoundry/bosh-backup-and-restore/cmd/bbr")
 	Expect(err).NotTo(HaveOccurred())
 
 	workspaceDir, err = os.MkdirTemp("", "bbr_system_test_director")

@@ -3,9 +3,9 @@ package standalone
 import (
 	"os"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
+	"github.com/cloudfoundry/bosh-backup-and-restore/instance"
+	"github.com/cloudfoundry/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry/bosh-backup-and-restore/ssh"
 	"github.com/pkg/errors"
 
 	gossh "golang.org/x/crypto/ssh"

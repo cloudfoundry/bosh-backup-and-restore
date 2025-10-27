@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/ghttp"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/s3"
+	"github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/s3"
 )
 
 const (

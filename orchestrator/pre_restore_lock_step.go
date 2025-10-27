@@ -1,7 +1,7 @@
 package orchestrator
 
 import (
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
+	"github.com/cloudfoundry/bosh-backup-and-restore/executor"
 	"github.com/pkg/errors"
 )
 

@@ -26,7 +26,7 @@ var (
 
 var _ = BeforeSuite(func() {
 	var err error
-	binary, err = gexec.Build("github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/cmd")
+	binary, err = gexec.Build("github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/cmd")
 	Expect(err).NotTo(HaveOccurred())
 
 	checkRequiredEnvs([]string{

@@ -1,12 +1,12 @@
 package factory
 
 import (
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orderer"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/standalone"
+	"github.com/cloudfoundry/bosh-backup-and-restore/executor"
+	"github.com/cloudfoundry/bosh-backup-and-restore/instance"
+	"github.com/cloudfoundry/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry/bosh-backup-and-restore/orderer"
+	"github.com/cloudfoundry/bosh-backup-and-restore/ssh"
+	"github.com/cloudfoundry/bosh-backup-and-restore/standalone"
 )
 
 func BuildDirectorRestoreCleaner(host,

@@ -12,9 +12,9 @@ import (
 
 	"sync"
 
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
+	. "github.com/cloudfoundry/bosh-backup-and-restore/backup"
+	"github.com/cloudfoundry/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry/bosh-backup-and-restore/orchestrator/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

@@ -22,7 +22,7 @@ var _ = BeforeSuite(func() {
 	SetDefaultEventuallyTimeout(15 * time.Minute)
 
 	By("building bbr")
-	commandPath, err = gexec.Build("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr")
+	commandPath, err = gexec.Build("github.com/cloudfoundry/bosh-backup-and-restore/cmd/bbr")
 	Expect(err).NotTo(HaveOccurred())
 
 	workingDir, err = os.MkdirTemp("/tmp", "workingDir")

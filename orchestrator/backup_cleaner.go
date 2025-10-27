@@ -1,6 +1,6 @@
 package orchestrator
 
-import "github.com/cloudfoundry-incubator/bosh-backup-and-restore/executor"
+import "github.com/cloudfoundry/bosh-backup-and-restore/executor"
 
 func NewBackupCleaner(logger Logger, deploymentManager DeploymentManager, lockOrderer LockOrderer,
 	executor executor.Executor) *BackupCleaner {

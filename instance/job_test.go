@@ -1,14 +1,14 @@
 package instance_test
 
 import (
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	"github.com/cloudfoundry/bosh-backup-and-restore/instance"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	"log"
 
 	"fmt"
 
-	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
+	sshfakes "github.com/cloudfoundry/bosh-backup-and-restore/ssh/fakes"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

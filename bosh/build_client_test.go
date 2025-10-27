@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http/httptest"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockbosh"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockhttp"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockuaa"
+	"github.com/cloudfoundry/bosh-backup-and-restore/internal/cf-webmock/mockbosh"
+	"github.com/cloudfoundry/bosh-backup-and-restore/internal/cf-webmock/mockhttp"
+	"github.com/cloudfoundry/bosh-backup-and-restore/internal/cf-webmock/mockuaa"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

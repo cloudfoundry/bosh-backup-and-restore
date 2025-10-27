@@ -7,9 +7,9 @@ import (
 	"io"
 	"log"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
+	"github.com/cloudfoundry/bosh-backup-and-restore/ssh"
+	"github.com/cloudfoundry/bosh-backup-and-restore/ssh/fakes"
+	"github.com/cloudfoundry/bosh-backup-and-restore/testcluster"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	gossh "golang.org/x/crypto/ssh"
 
