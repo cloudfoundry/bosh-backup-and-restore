@@ -9,7 +9,7 @@ inputs:
 - name: release
 - name: release-tar
 - name: version-folder
-- name: bosh-backup-and-restore-master
+- name: bosh-backup-and-restore-ci-master
 
 params:
   VERSION_PATH:

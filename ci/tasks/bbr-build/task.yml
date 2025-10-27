@@ -6,6 +6,7 @@ image_resource:
   source: {repository: pcfplatformrecovery/backup-and-restore}
 
 inputs:
+- name: bosh-backup-and-restore-ci
 - name: bosh-backup-and-restore
 - name: version
   optional: true
@@ -15,4 +16,4 @@ outputs:
 - name: bbr-release
 
 run:
-  path: bosh-backup-and-restore/ci/tasks/bbr-build/task.sh
+  path: bosh-backup-and-restore-ci/ci/tasks/bbr-build/task.sh

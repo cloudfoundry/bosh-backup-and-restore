@@ -8,6 +8,6 @@ params:
   GCP_SERVICE_ACCOUNT_KEY: ((gcp/service_accounts/owner.json_key))
 inputs:
   - name: additional-environment
-  - name: bosh-backup-and-restore
+  - name: bosh-backup-and-restore-ci
 run:
-  path: bosh-backup-and-restore/ci/tasks/allow-connections-to-bosh-director-on-port-25555/task.sh
+  path: bosh-backup-and-restore-ci/ci/tasks/allow-connections-to-bosh-director-on-port-25555/task.sh

@@ -1,0 +1,16 @@
+---
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: bosh/bosh-ecosystem-concourse
+
+inputs:
+  - name: environment
+  - name: bosh-backup-and-restore-ci
+
+run:
+  path: bosh-backup-and-restore-ci/ci/tasks/bosh-envify/task.sh
+
+outputs:
+  - name: bosh-env

@@ -6,10 +6,10 @@ image_resource:
     tag: 0.1.111
 inputs:
   - name: s3-config-validator-dev-release
-  - name: bosh-backup-and-restore
+  - name: bosh-backup-and-restore-ci
 params:
   ACCESS_KEY:
   SECRET_KEY:
   ROLE_ARN:
 run:
-  path: bosh-backup-and-restore/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.sh
+  path: bosh-backup-and-restore-ci/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.sh

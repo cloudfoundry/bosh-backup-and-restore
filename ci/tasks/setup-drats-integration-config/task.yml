@@ -1,6 +1,6 @@
 platform: linux
 inputs:
-  - name: bosh-backup-and-restore
+  - name: bosh-backup-and-restore-ci
   - name: integration-configs
   - name: cf-deployment-env
 outputs:
@@ -21,4 +21,4 @@ params:
   BOSH_CLIENT:
   BOSH_CLIENT_SECRET:
 run:
-  path: bosh-backup-and-restore/ci/tasks/setup-drats-integration-config/task.sh
+  path: bosh-backup-and-restore-ci/ci/tasks/setup-drats-integration-config/task.sh

@@ -1,0 +1,23 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source: {repository: bosh/bosh-ecosystem-concourse}
+
+inputs:
+  - name: bosh-backup-and-restore-ci
+  - name: environment
+  - name: stemcell
+
+outputs:
+  - name: config
+
+params:
+  INCLUDE_DEPLOYMENT_TESTCASE:
+  INCLUDE_TRUNCATE_DB_BLOBSTORE_TESTCASE:
+  INCLUDE_CREDHUB_TESTCASE:
+  TIMEOUT_IN_MINUTES:
+
+run:
+  path: bosh-backup-and-restore-ci/ci/tasks/setup-b-drats-integration-config/task.sh

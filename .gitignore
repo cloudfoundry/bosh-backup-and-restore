@@ -6,3 +6,4 @@ releases/*
 .idea
 bbr-*.err.log
 integration/deployment/backup-workspace-*
+render.yaml

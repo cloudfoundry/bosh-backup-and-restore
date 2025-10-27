@@ -7,7 +7,7 @@ image_resource:
     repository: golang-image
 
 inputs:
-- name: bosh-backup-and-restore
+- name: bosh-backup-and-restore-ci
 
 run:
-  path: bosh-backup-and-restore/ci/tasks/test-unit/task.sh
+  path: bosh-backup-and-restore-ci/ci/tasks/test-unit/task.sh
