@@ -5,6 +5,9 @@ push: test sys-test-local
 
 pre-commit: test sys-test-local
 
+lint:
+	golangci-lint run ./...
+
 watch:
 	go run github.com/onsi/ginkgo/v2/ginkgo watch -r -skip-package integration,system,backup,s3-config-validator
 
