@@ -736,6 +736,7 @@ jobs:
     tags: [broadcom]
     input_mapping:
       integration-configs: disaster-recovery-acceptance-tests
+      cf-deployment-env: drats-env
     params:
       SYSTEM_DOMAIN: ((.:pooled-env.name)).cf-app.com
       JUMPBOX_PRIVATE_KEY: ((.:pooled-env.bosh.jumpbox_private_key))
