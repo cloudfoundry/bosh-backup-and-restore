@@ -18,7 +18,7 @@ var (
 	JumpboxWindowsInstance   = JumpboxWindowsDeployment.Instance("jumpbox", "0")
 	JumpboxWindowsDeployment = DeploymentWithName("jumpbox-windows")
 	RedisWindowsDeployment   = DeploymentWithName("redis-windows")
-	fixturesPath             = "../../fixtures/redis-backup/"
+	fixturesPath             = "../../fixtures/redis-backup/" //nolint:unused
 	workspaceDir             = "/var/vcap/store/bbr-backup_workspace"
 )
 

@@ -190,7 +190,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 							Expect(string(session.Out.Contents())).To(HaveSuffix("[yes/no]\n"))
 						})
 
-						fmt.Fprintln(stdin, "yes")
+						fmt.Fprintln(stdin, "yes") //nolint:errcheck
 
 						By("then exiting with a failure", func() {
 							Eventually(session, 10).Should(gexec.Exit(1))
@@ -217,7 +217,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 							Expect(string(session.Out.Contents())).To(HaveSuffix("[yes/no]\n"))
 						})
 
-						fmt.Fprintln(stdin, "no")
+						fmt.Fprintln(stdin, "no") //nolint:errcheck
 
 						By("waiting for the backup to finish successfully", func() {
 							Eventually(session, 20).Should(gexec.Exit(0))
@@ -1566,7 +1566,7 @@ instance_groups:
 					logFilePath := files[0]
 					Expect(filepath.Base(logFilePath)).To(MatchRegexp(fmt.Sprintf("%s_%s.log", deploymentName1, `(\d){8}T(\d){6}Z\b`)))
 
-					backupLogContent, err := os.ReadFile(logFilePath)
+					backupLogContent, err := os.ReadFile(logFilePath) //nolint:ineffassign,staticcheck
 					output := string(backupLogContent)
 
 					Expect(output).To(ContainSubstring("INFO - Looking for scripts"))
@@ -1664,18 +1664,18 @@ instance_groups:
 			It("alerts me about the deployment failure", func() {
 				Expect(session.ExitCode()).NotTo(BeZero())
 				assertOutput(session.Out, []string{
-					fmt.Sprintf("Starting backup..."),
+					"Starting backup...",
 					fmt.Sprintf("Pending: %s", deploymentName1),
 					fmt.Sprintf("Starting backup of %s", deploymentName1),
 					fmt.Sprintf("ERROR: failed to backup %s", deploymentName1),
-					fmt.Sprintf("Error backing up redis on redis/fake-uuid"),
-					fmt.Sprintf("Successfully backed up: "),
+					"Error backing up redis on redis/fake-uuid",
+					"Successfully backed up: ",
 					fmt.Sprintf("FAILED: %s", deploymentName1),
 				})
 
 				assertOutput(session.Err, []string{
 					"1 out of 1 deployments cannot be backed up",
-					fmt.Sprintf("%s", deploymentName1),
+					deploymentName1,
 					"Error attempting to run backup for job redis on redis/fake-uuid: ultra-baz - exit code 1",
 				})
 			})
@@ -1860,7 +1860,7 @@ exit 1`)
 				logFilePath := files[0]
 				Expect(filepath.Base(logFilePath)).To(MatchRegexp(fmt.Sprintf("%s_%s.log", deploymentName1, `(\d){8}T(\d){6}Z\b`)))
 
-				backupLogContent, err := os.ReadFile(logFilePath)
+				backupLogContent, err := os.ReadFile(logFilePath) //nolint:ineffassign,staticcheck
 				output := string(backupLogContent)
 
 				Expect(output).To(ContainSubstring("INFO - Looking for scripts"))

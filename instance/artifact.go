@@ -54,7 +54,7 @@ func NewRestoreArtifact(job orchestrator.Job, instance orchestrator.InstanceIden
 
 type Artifact struct {
 	isNamed           bool
-	index             string
+	index             string //nolint:unused
 	artifactDirectory string
 	name              string
 	instance          orchestrator.InstanceIdentifer
@@ -63,7 +63,7 @@ type Artifact struct {
 }
 
 func (b *Artifact) StreamFromRemote(writer io.Writer) error {
-	b.Logger.Debug("bbr", "Streaming backup from instance %s/%s", b.instance.Name(), b.instance.ID())
+	b.Logger.Debug("bbr", "Streaming backup from instance %s/%s", b.instance.Name(), b.instance.ID()) //nolint:staticcheck
 	err := b.remoteRunner.ArchiveAndDownload(b.artifactDirectory, writer)
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("Error streaming backup from remote instance. Error: %s", err.Error()))
@@ -78,12 +78,12 @@ func (b *Artifact) StreamToRemote(reader io.Reader) error {
 		return errors.Wrap(err, "Creating backup directory on the remote failed")
 	}
 
-	b.Logger.Debug("bbr", "Streaming backup to instance %s/%s", b.instance.Name(), b.instance.ID())
+	b.Logger.Debug("bbr", "Streaming backup to instance %s/%s", b.instance.Name(), b.instance.ID()) //nolint:staticcheck
 	return b.remoteRunner.ExtractAndUpload(reader, b.artifactDirectory)
 }
 
 func (b *Artifact) Size() (string, error) {
-	b.Logger.Debug("bbr", "Calculating size of backup on %s/%s", b.instance.Name(), b.instance.ID())
+	b.Logger.Debug("bbr", "Calculating size of backup on %s/%s", b.instance.Name(), b.instance.ID()) //nolint:staticcheck
 
 	size, err := b.remoteRunner.SizeOf(b.artifactDirectory)
 	if err != nil {
@@ -102,7 +102,7 @@ func (b *Artifact) SizeInBytes() (int, error) {
 }
 
 func (b *Artifact) Checksum() (orchestrator.BackupChecksum, error) {
-	b.Logger.Debug("bbr", "Calculating shasum for remote files on %s/%s", b.instance.Name(), b.instance.ID())
+	b.Logger.Debug("bbr", "Calculating shasum for remote files on %s/%s", b.instance.Name(), b.instance.ID()) //nolint:staticcheck
 
 	backupChecksum, err := b.remoteRunner.ChecksumDirectory(b.artifactDirectory)
 	if err != nil {
@@ -113,7 +113,7 @@ func (b *Artifact) Checksum() (orchestrator.BackupChecksum, error) {
 }
 
 func (b *Artifact) Delete() error {
-	b.Logger.Debug("bbr", "Deleting artifact directory on %s/%s", b.instance.Name(), b.instance.ID())
+	b.Logger.Debug("bbr", "Deleting artifact directory on %s/%s", b.instance.Name(), b.instance.ID()) //nolint:staticcheck
 
 	err := b.remoteRunner.RemoveDirectory(b.artifactDirectory)
 	if err != nil {

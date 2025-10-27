@@ -119,7 +119,7 @@ var _ = Describe("backup with specified locking order", func() {
 		By("ensuring data is restored")
 		runOnInstances(redisInstance, func(instName, instIndex string) {
 			Eventually(RedisWithLockingOrderDeployment.Instance(instName, instIndex).RunCommand(
-				fmt.Sprintf("sudo ls -la /var/vcap/store/redis-server"),
+				"sudo ls -la /var/vcap/store/redis-server",
 			)).Should(gexec.Exit(0))
 
 			redisSession := RedisWithLockingOrderDeployment.Instance(instName, instIndex).RunCommand(

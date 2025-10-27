@@ -111,7 +111,7 @@ func (w *sessionClosingOnErrorWriter) Write(data []byte) (int, error) {
 	n, err := w.endGameWriter.Write(data)
 	if err != nil {
 		w.writerError = err
-		w.sshSession.Close()
+		w.sshSession.Close() //nolint:errcheck
 	}
 	return n, err
 }
@@ -176,7 +176,7 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 	if err != nil {
 		return -1, errors.Wrap(err, "ssh.Dial failed")
 	}
-	defer client.Close()
+	defer client.Close() //nolint:errcheck
 
 	stdoutWrappingWriter := &sessionClosingOnErrorWriter{endGameWriter: stdout, sshSession: nil}
 	session, err := buildSSHSession(client, stdin, stdoutWrappingWriter, stderr)

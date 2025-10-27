@@ -34,7 +34,7 @@ instance_groups:
 `
 
 		BeforeEach(func() {
-			cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-")
+			cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-") //nolint:errcheck
 
 			instance1 = testcluster.NewInstance()
 
@@ -100,7 +100,7 @@ instance_groups:
 `
 
 			BeforeEach(func() {
-				cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-")
+				cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-") //nolint:errcheck
 
 				instance1 = testcluster.NewInstance()
 				director = mockbosh.NewTLS()
@@ -190,7 +190,7 @@ instance_groups:
 			var session *gexec.Session
 
 			BeforeEach(func() {
-				cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-")
+				cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-") //nolint:errcheck
 
 				director = mockbosh.NewTLS()
 				director.ExpectedBasicAuth("admin", "admin")
@@ -229,7 +229,7 @@ instance_groups:
 			var session *gexec.Session
 
 			BeforeEach(func() {
-				cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-")
+				cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-") //nolint:errcheck
 
 				director = mockbosh.NewTLS()
 				director.ExpectedBasicAuth("admin", "admin")
@@ -278,7 +278,7 @@ instance_groups:
 `
 
 			BeforeEach(func() {
-				cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-")
+				cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-") //nolint:errcheck
 
 				instance1 = testcluster.NewInstance()
 				director = mockbosh.NewTLS()
@@ -375,7 +375,7 @@ instance_groups:
 `
 
 			BeforeEach(func() {
-				cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-")
+				cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-") //nolint:errcheck
 
 				instance1 = testcluster.NewInstance()
 				director = mockbosh.NewTLS()

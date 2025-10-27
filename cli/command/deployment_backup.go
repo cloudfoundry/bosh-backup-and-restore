@@ -52,7 +52,7 @@ func (d DeploymentBackupCommand) Action(c *cli.Context) error {
 
 	if allDeployments {
 		if unsafeLockFree {
-			return processError(orchestrator.NewError(fmt.Errorf("Cannot use the --unsafe-lock-free flag in conjunction with the --all-deployments flag")))
+			return processError(orchestrator.NewError(fmt.Errorf("Cannot use the --unsafe-lock-free flag in conjunction with the --all-deployments flag"))) //nolint:staticcheck
 		}
 		return backupAll(target, username, password, caCert, artifactPath, withManifest, bbrVersion, debug)
 	}
@@ -105,7 +105,7 @@ func backupAll(target, username, password, caCert, artifactPath string, withMani
 
 	fmt.Println("Starting backup...")
 
-	logger, _ := factory.BuildBoshLoggerWithCustomBuffer(debug)
+	logger, _ := factory.BuildBoshLoggerWithCustomBuffer(debug) //nolint:errcheck
 	boshClient, err := factory.BuildBoshClient(target, username, password, caCert, bbrVersion, logger)
 	if err != nil {
 		return processError(orchestrator.NewError(err))

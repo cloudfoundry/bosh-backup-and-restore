@@ -4,7 +4,8 @@ import (
 	"fmt"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockhttp"
-	. "github.com/onsi/gomega"
+
+	. "github.com/onsi/gomega" //nolint:staticcheck
 	"gopkg.in/yaml.v2"
 )
 

@@ -359,7 +359,7 @@ backup_should_be_locked_before:
 						Eventually(session).Should(gbytes.Say(`Stopping a backup can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
 					})
 
-					stdin.Write([]byte("yes\n"))
+					stdin.Write([]byte("yes\n")) //nolint:errcheck
 
 					By("then exiting with a failure", func() {
 						Eventually(session, 20*time.Second).Should(gexec.Exit(1))
@@ -386,7 +386,7 @@ backup_should_be_locked_before:
 						Expect(string(session.Out.Contents())).To(HaveSuffix("[yes/no]\n"))
 					})
 
-					stdin.Write([]byte("no\n"))
+					stdin.Write([]byte("no\n")) //nolint:errcheck
 
 					By("waiting for the backup to finish successfully", func() {
 						Eventually(session, 20).Should(gexec.Exit(0))

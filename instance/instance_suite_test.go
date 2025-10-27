@@ -36,7 +36,7 @@ var _ = BeforeSuite(func() {
 	defaultPrivateKey = string(defaultPrivateKeyBytes)
 })
 
-func publicKeyForDocker(privateKey string) string {
+func publicKeyForDocker(privateKey string) string { //nolint:unused
 	parsedPrivateKey, err := ssh.ParsePrivateKey([]byte(privateKey))
 	if err != nil {
 		Fail("Cant parse key")
