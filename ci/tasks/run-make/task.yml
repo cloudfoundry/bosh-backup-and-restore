@@ -1,0 +1,16 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: golang-image
+
+inputs:
+- name: bosh-backup-and-restore
+
+params:
+  MAKE_TARGET:
+
+run:
+  path: bosh-backup-and-restore-ci/ci/tasks/run-make/task.sh
