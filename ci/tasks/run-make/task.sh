@@ -3,6 +3,6 @@
 set -euo pipefail
 set -x
 
-cd bosh-backup-and-restore-ci/
+cd bosh-backup-and-restore/
 
-make test-unit
+make "$MAKE_TARGET"

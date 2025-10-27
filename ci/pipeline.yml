@@ -180,7 +180,7 @@ resources:
     uri: https://github.com/cloudfoundry/bosh-backup-and-restore.git
     username: bosh-admin-bot
     password: *github_access_token
-    branch: migrate_shep_v2_cfd
+    branch: master
     disable_git_lfs: true
     paths:
     - ci
@@ -751,7 +751,7 @@ jobs:
       BOSH_CLIENT: ((.:pooled-env.bosh.bosh_client))
       BOSH_CLIENT_SECRET: ((.:pooled-env.bosh.bosh_client_secret))
   - task: acceptance-tests
-    image: bosh-ecosystem-registry-image
+    image: cf-deployment-concourse-tasks-registry-image
     file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
     privileged: true
     tags: [broadcom]
@@ -1073,9 +1073,16 @@ jobs:
       input_repo: bosh-backup-and-restore
     output_mapping:
       output_repo: bosh-backup-and-restore
-  - task: test-unit
-    file: bosh-backup-and-restore-ci/ci/tasks/test-unit/task.yml
+  - task: lint
+    file: bosh-backup-and-restore/ci/tasks/run-make/task.yml
     image: golang-image
+    params:
+      MAKE_TARGET: lint
+  - task: test
+    file: bosh-backup-and-restore/ci/tasks/run-make/task.yml
+    image: golang-image
+    params:
+      MAKE_TARGET: test-unit
   - put: bosh-backup-and-restore
     params:
       repository: bosh-backup-and-restore
