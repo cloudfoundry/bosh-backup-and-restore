@@ -1,7 +1,7 @@
 package factory
 
 import (
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
+	"github.com/cloudfoundry/bosh-backup-and-restore/bosh"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	boshcmd "github.com/cloudfoundry/bosh-cli/v7/cmd/opts"

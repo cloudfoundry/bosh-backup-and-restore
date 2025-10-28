@@ -1,4 +1,4 @@
-module github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src
+module github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src
 
 go 1.23.0
 

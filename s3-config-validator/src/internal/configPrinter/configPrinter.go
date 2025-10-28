@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/config"
+	"github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/config"
 )
 
 func PrintConfig(writer io.Writer, config config.Config) {

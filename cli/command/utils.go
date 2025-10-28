@@ -11,8 +11,8 @@ import (
 
 	"net/url"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry/bosh-backup-and-restore/factory"
+	"github.com/cloudfoundry/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
 )
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/backup"
+	. "github.com/cloudfoundry/bosh-backup-and-restore/backup"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

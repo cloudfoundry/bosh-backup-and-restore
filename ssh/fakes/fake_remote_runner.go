@@ -5,7 +5,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
+	"github.com/cloudfoundry/bosh-backup-and-restore/ssh"
 )
 
 type FakeRemoteRunner struct {

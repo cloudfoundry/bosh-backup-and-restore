@@ -12,7 +12,7 @@ import (
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/system"
+	. "github.com/cloudfoundry/bosh-backup-and-restore/system"
 )
 
 var _ = Describe("All deployments", func() {

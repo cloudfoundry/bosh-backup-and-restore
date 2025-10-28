@@ -3,9 +3,9 @@ package deployment
 import (
 	"os"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockbosh"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockhttp"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
+	"github.com/cloudfoundry/bosh-backup-and-restore/internal/cf-webmock/mockbosh"
+	"github.com/cloudfoundry/bosh-backup-and-restore/internal/cf-webmock/mockhttp"
+	"github.com/cloudfoundry/bosh-backup-and-restore/testcluster"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"

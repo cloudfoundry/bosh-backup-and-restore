@@ -3,7 +3,7 @@ package command
 import (
 	"time"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/factory"
+	"github.com/cloudfoundry/bosh-backup-and-restore/factory"
 	"github.com/urfave/cli"
 )
 

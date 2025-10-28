@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/config"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/probe"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/s3"
+	"github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/config"
+	"github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/probe"
+	"github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/s3"
 )
 
 type Runner interface {

@@ -6,8 +6,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/probe"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/s3/s3fakes"
+	. "github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/probe"
+	"github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/s3/s3fakes"
 )
 
 type ProbeResult struct {

@@ -3,9 +3,9 @@ package instance_test
 import (
 	"strings"
 
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance/fakes"
-	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
+	. "github.com/cloudfoundry/bosh-backup-and-restore/instance"
+	"github.com/cloudfoundry/bosh-backup-and-restore/instance/fakes"
+	sshfakes "github.com/cloudfoundry/bosh-backup-and-restore/ssh/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 
 	"fmt"
@@ -14,7 +14,7 @@ import (
 	"io"
 	"log"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry/bosh-backup-and-restore/orchestrator"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

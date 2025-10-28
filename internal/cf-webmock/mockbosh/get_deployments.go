@@ -1,7 +1,7 @@
 package mockbosh
 
 import (
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockhttp"
+	"github.com/cloudfoundry/bosh-backup-and-restore/internal/cf-webmock/mockhttp"
 )
 
 type getDeploymentMock struct {

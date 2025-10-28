@@ -1,4 +1,4 @@
-module github.com/cloudfoundry-incubator/bosh-backup-and-restore
+module github.com/cloudfoundry/bosh-backup-and-restore
 
 go 1.23.0
 

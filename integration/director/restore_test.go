@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
+	"github.com/cloudfoundry/bosh-backup-and-restore/testcluster"
 
 	"github.com/onsi/gomega/gexec"
 

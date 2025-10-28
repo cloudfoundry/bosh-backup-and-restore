@@ -7,8 +7,8 @@ import (
 
 	"fmt"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/cli/command"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/cli/flags"
+	"github.com/cloudfoundry/bosh-backup-and-restore/cli/command"
+	"github.com/cloudfoundry/bosh-backup-and-restore/cli/flags"
 )
 
 var version string

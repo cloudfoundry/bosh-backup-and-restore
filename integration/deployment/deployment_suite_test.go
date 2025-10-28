@@ -12,8 +12,8 @@ import (
 
 	"testing"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/integration"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
+	"github.com/cloudfoundry/bosh-backup-and-restore/integration"
+	"github.com/cloudfoundry/bosh-backup-and-restore/testcluster"
 )
 
 func TestDeploymentIntegration(t *testing.T) {
@@ -30,7 +30,7 @@ var binary integration.Binary
 const bbrVersion = "bbr_version"
 
 var _ = BeforeSuite(func() {
-	commandPath, err := gexec.Build("github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr", "-ldflags", fmt.Sprintf("-X main.version=%s", bbrVersion))
+	commandPath, err := gexec.Build("github.com/cloudfoundry/bosh-backup-and-restore/cmd/bbr", "-ldflags", fmt.Sprintf("-X main.version=%s", bbrVersion))
 	Expect(err).NotTo(HaveOccurred())
 	binary = integration.NewBinary(commandPath)
 

@@ -5,9 +5,9 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockbosh"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockhttp"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
+	"github.com/cloudfoundry/bosh-backup-and-restore/internal/cf-webmock/mockbosh"
+	"github.com/cloudfoundry/bosh-backup-and-restore/internal/cf-webmock/mockhttp"
+	"github.com/cloudfoundry/bosh-backup-and-restore/testcluster"
 )
 
 func MockDirectorWith(director *mockhttp.Server, info mockhttp.MockedResponseBuilder, vmsResponse []mockhttp.MockedResponseBuilder, manifestResponse []mockhttp.MockedResponseBuilder, sshResponse []mockhttp.MockedResponseBuilder, cleanupResponse []mockhttp.MockedResponseBuilder) {

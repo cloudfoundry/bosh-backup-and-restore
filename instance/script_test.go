@@ -1,7 +1,7 @@
 package instance_test
 
 import (
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
+	. "github.com/cloudfoundry/bosh-backup-and-restore/instance"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

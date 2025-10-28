@@ -1,8 +1,8 @@
 package bosh
 
 import (
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh"
+	"github.com/cloudfoundry/bosh-backup-and-restore/instance"
+	"github.com/cloudfoundry/bosh-backup-and-restore/ssh"
 	"github.com/cloudfoundry/bosh-cli/v7/director"
 	"github.com/pkg/errors"
 

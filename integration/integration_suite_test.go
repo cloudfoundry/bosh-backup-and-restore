@@ -21,7 +21,7 @@ const version = "2.0"
 
 var _ = BeforeSuite(func() {
 	commandPath, err := gexec.Build(
-		"github.com/cloudfoundry-incubator/bosh-backup-and-restore/cmd/bbr",
+		"github.com/cloudfoundry/bosh-backup-and-restore/cmd/bbr",
 		"-ldflags",
 		fmt.Sprintf("-X main.version=%s", version),
 	)

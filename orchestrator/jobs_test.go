@@ -1,8 +1,8 @@
 package orchestrator_test
 
 import (
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	orchestratorFakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
+	"github.com/cloudfoundry/bosh-backup-and-restore/orchestrator"
+	orchestratorFakes "github.com/cloudfoundry/bosh-backup-and-restore/orchestrator/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

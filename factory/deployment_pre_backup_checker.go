@@ -1,9 +1,9 @@
 package factory
 
 import (
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/bosh"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orderer"
+	"github.com/cloudfoundry/bosh-backup-and-restore/bosh"
+	"github.com/cloudfoundry/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry/bosh-backup-and-restore/orderer"
 )
 
 func BuildDeploymentBackupChecker(boshClient bosh.Client,

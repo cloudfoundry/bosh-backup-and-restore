@@ -1,6 +1,6 @@
 package runner
 
-import "github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/s3"
+import "github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/s3"
 
 var NewS3ClientImpl = newS3Client
 

@@ -4,11 +4,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator"
+	"github.com/cloudfoundry/bosh-backup-and-restore/orchestrator"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
-	orchestratorFakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
+	orchestratorFakes "github.com/cloudfoundry/bosh-backup-and-restore/orchestrator/fakes"
 )
 
 var _ = Describe("Reverse", func() {

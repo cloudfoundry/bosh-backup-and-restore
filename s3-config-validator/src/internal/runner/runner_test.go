@@ -8,10 +8,10 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/config"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/probe"
-	. "github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/runner"
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/s3-config-validator/src/internal/s3"
+	"github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/config"
+	"github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/probe"
+	. "github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/runner"
+	"github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/s3"
 )
 
 func SucceedingProbe(string) error {

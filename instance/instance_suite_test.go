@@ -11,7 +11,7 @@ import (
 	"encoding/pem"
 	"testing"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
+	"github.com/cloudfoundry/bosh-backup-and-restore/testcluster"
 	"golang.org/x/crypto/ssh"
 )
 

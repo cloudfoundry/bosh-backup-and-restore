@@ -8,7 +8,7 @@ This repository contains the source code for BOSH Backup and Restore.
 
 ## Install
 
-The latest BBR binaries for Linux and macOS are available to download on the [releases page](https://github.com/cloudfoundry-incubator/bosh-backup-and-restore/releases).
+The latest BBR binaries for Linux and macOS are available to download on the [releases page](https://github.com/cloudfoundry/bosh-backup-and-restore/releases).
 
 On macOS, you can install BBR using [Homebrew](http://brew.sh/):
 

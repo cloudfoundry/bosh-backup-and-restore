@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/instance"
-	backuperfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/orchestrator/fakes"
-	sshfakes "github.com/cloudfoundry-incubator/bosh-backup-and-restore/ssh/fakes"
+	"github.com/cloudfoundry/bosh-backup-and-restore/instance"
+	backuperfakes "github.com/cloudfoundry/bosh-backup-and-restore/orchestrator/fakes"
+	sshfakes "github.com/cloudfoundry/bosh-backup-and-restore/ssh/fakes"
 	boshlog "github.com/cloudfoundry/bosh-utils/logger"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"

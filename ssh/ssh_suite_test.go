@@ -11,7 +11,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 
-	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/testcluster"
+	"github.com/cloudfoundry/bosh-backup-and-restore/testcluster"
 )
 
 func TestSsh(t *testing.T) {
