@@ -731,7 +731,7 @@ jobs:
     file: drats-env/metadata
     format: json
   - task: update-integration-config
-    image: bosh-ecosystem-registry-image
+    image: cf-deployment-concourse-tasks-registry-image
     file: bosh-backup-and-restore-ci/ci/tasks/setup-drats-integration-config/task.yml
     tags: [broadcom]
     input_mapping:
