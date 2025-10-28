@@ -1074,12 +1074,12 @@ jobs:
     output_mapping:
       output_repo: bosh-backup-and-restore
   - task: lint
-    file: bosh-backup-and-restore/ci/tasks/run-make/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/run-make/task.yml
     image: golang-registry-image
     params:
       MAKE_TARGET: lint
   - task: test
-    file: bosh-backup-and-restore/ci/tasks/run-make/task.yml
+    file: bosh-backup-and-restore-ci/ci/tasks/run-make/task.yml
     image: golang-registry-image
     params:
       MAKE_TARGET: test-unit
