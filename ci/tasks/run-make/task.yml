@@ -8,6 +8,7 @@ image_resource:
 
 inputs:
 - name: bosh-backup-and-restore
+- name: bosh-backup-and-restore-ci
 
 params:
   MAKE_TARGET:
