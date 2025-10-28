@@ -387,7 +387,7 @@ touch /tmp/restore-script-was-run`)
 							Expect(string(session.Out.Contents())).To(HaveSuffix("[yes/no]\n"))
 						})
 
-						stdin.Write([]byte("yes\n"))
+						stdin.Write([]byte("yes\n")) //nolint:errcheck
 
 						By("waiting for the restore to finish successfully", func() {
 							Eventually(session, 10).Should(gexec.Exit(1))
@@ -419,7 +419,7 @@ touch /tmp/restore-script-was-run`)
 							Expect(string(session.Out.Contents())).To(HaveSuffix("[yes/no]\n"))
 						})
 
-						stdin.Write([]byte("no\n"))
+						stdin.Write([]byte("no\n")) //nolint:errcheck
 
 						By("waiting for the restore to finish successfully", func() {
 							Eventually(session, 10).Should(gexec.Exit(0))
@@ -431,7 +431,7 @@ touch /tmp/restore-script-was-run`)
 						})
 
 						By("should output buffered logs", func() {
-							Expect(string(session.Out.Contents())).NotTo(HaveSuffix(fmt.Sprintf("[yes/no]\n")))
+							Expect(string(session.Out.Contents())).NotTo(HaveSuffix("[yes/no]\n"))
 						})
 					})
 				})

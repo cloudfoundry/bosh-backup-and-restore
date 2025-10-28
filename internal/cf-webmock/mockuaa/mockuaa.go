@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega" //nolint:staticcheck
 )
 
 const (
@@ -133,7 +133,7 @@ func handleInternalServerError(writer http.ResponseWriter) {
 	status := http.StatusInternalServerError
 	writer.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	writer.WriteHeader(status)
-	writer.Write([]byte(InternalServerErrorMessage))
+	writer.Write([]byte(InternalServerErrorMessage)) //nolint:errcheck
 }
 
 func handleAuthorised(tokenToReturn string, validitySecondsToReturn int) (int, map[string]interface{}) {

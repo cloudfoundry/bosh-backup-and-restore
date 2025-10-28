@@ -80,7 +80,7 @@ func (bd *deployment) ValidateLockingDependencies(lockOrderer LockOrderer) error
 }
 
 func (bd *deployment) PreBackupLock(lockOrderer LockOrderer, executor executor.Executor) error {
-	bd.Logger.Info("bbr", "Running pre-backup-lock scripts...")
+	bd.Logger.Info("bbr", "Running pre-backup-lock scripts...") //nolint:staticcheck
 
 	jobs := bd.instances.Jobs()
 
@@ -91,12 +91,12 @@ func (bd *deployment) PreBackupLock(lockOrderer LockOrderer, executor executor.E
 
 	preBackupLockErrors := executor.Run(newJobExecutables(orderedJobs, NewJobPreBackupLockExecutable))
 
-	bd.Logger.Info("bbr", "Finished running pre-backup-lock scripts.")
+	bd.Logger.Info("bbr", "Finished running pre-backup-lock scripts.") //nolint:staticcheck
 	return ConvertErrors(preBackupLockErrors)
 }
 
 func (bd *deployment) Backup(exe executor.Executor) error {
-	bd.Logger.Info("bbr", "Running backup scripts...")
+	bd.Logger.Info("bbr", "Running backup scripts...") //nolint:staticcheck
 
 	instances := bd.instances.AllBackupable()
 
@@ -110,12 +110,12 @@ func (bd *deployment) Backup(exe executor.Executor) error {
 
 	backupErr := exe.Run([][]executor.Executable{executables})
 
-	bd.Logger.Info("bbr", "Finished running backup scripts.")
+	bd.Logger.Info("bbr", "Finished running backup scripts.") //nolint:staticcheck
 	return ConvertErrors(backupErr)
 }
 
 func (bd *deployment) PostBackupUnlock(afterSuccessfulBackup bool, lockOrderer LockOrderer, executor executor.Executor) error {
-	bd.Logger.Info("bbr", "Running post-backup-unlock scripts...")
+	bd.Logger.Info("bbr", "Running post-backup-unlock scripts...") //nolint:staticcheck
 
 	jobs := bd.instances.Jobs()
 
@@ -132,12 +132,12 @@ func (bd *deployment) PostBackupUnlock(afterSuccessfulBackup bool, lockOrderer L
 	}
 	postBackupUnlockErrors := executor.Run(newJobExecutables(reversedJobs, executableJobConstructor))
 
-	bd.Logger.Info("bbr", "Finished running post-backup-unlock scripts.")
+	bd.Logger.Info("bbr", "Finished running post-backup-unlock scripts.") //nolint:staticcheck
 	return ConvertErrors(postBackupUnlockErrors)
 }
 
 func (bd *deployment) PreRestoreLock(lockOrderer LockOrderer, executor executor.Executor) error {
-	bd.Logger.Info("bbr", "Running pre-restore-lock scripts...")
+	bd.Logger.Info("bbr", "Running pre-restore-lock scripts...") //nolint:staticcheck
 
 	jobs := bd.instances.Jobs()
 
@@ -148,19 +148,19 @@ func (bd *deployment) PreRestoreLock(lockOrderer LockOrderer, executor executor.
 
 	preRestoreLockErrors := executor.Run(newJobExecutables(orderedJobs, NewJobPreRestoreLockExecutable))
 
-	bd.Logger.Info("bbr", "Finished running pre-restore-lock scripts.")
+	bd.Logger.Info("bbr", "Finished running pre-restore-lock scripts.") //nolint:staticcheck
 	return ConvertErrors(preRestoreLockErrors)
 }
 
 func (bd *deployment) Restore() error {
-	bd.Logger.Info("bbr", "Running restore scripts...")
+	bd.Logger.Info("bbr", "Running restore scripts...") //nolint:staticcheck
 	err := bd.instances.AllRestoreable().Restore()
-	bd.Logger.Info("bbr", "Finished running restore scripts.")
+	bd.Logger.Info("bbr", "Finished running restore scripts.") //nolint:staticcheck
 	return err
 }
 
 func (bd *deployment) PostRestoreUnlock(lockOrderer LockOrderer, executor executor.Executor) error {
-	bd.Logger.Info("bbr", "Running post-restore-unlock scripts...")
+	bd.Logger.Info("bbr", "Running post-restore-unlock scripts...") //nolint:staticcheck
 
 	jobs := bd.instances.Jobs()
 
@@ -172,7 +172,7 @@ func (bd *deployment) PostRestoreUnlock(lockOrderer LockOrderer, executor execut
 
 	postRestoreUnlockErrors := executor.Run(newJobExecutables(reversedJobs, NewJobPostRestoreUnlockExecutable))
 
-	bd.Logger.Info("bbr", "Finished running post-restore-unlock scripts.")
+	bd.Logger.Info("bbr", "Finished running post-restore-unlock scripts.") //nolint:staticcheck
 	return ConvertErrors(postRestoreUnlockErrors)
 }
 

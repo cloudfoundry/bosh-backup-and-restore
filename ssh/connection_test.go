@@ -96,7 +96,7 @@ var _ = Describe("Connection", func() {
 			})
 
 			It("reads stdout from the reader", func() {
-				stdout, _, _, _ := conn.Run("cat /tmp/foo")
+				stdout, _, _, _ := conn.Run("cat /tmp/foo") //nolint:errcheck
 				Expect(string(stdout)).To(Equal("I am from the reader"))
 			})
 
@@ -332,7 +332,7 @@ var _ = Describe("Connection", func() {
 			conn, connErr = ssh.NewConnectionWithServerAliveInterval(hostname, user, privateKey, gossh.FixedHostKey(hostPublicKey), []string{"rsa-sha2-256"}, 1, logger)
 			Expect(connErr).NotTo(HaveOccurred())
 
-			stdOut, _, _, _ = conn.Run("/tmp/produce")
+			stdOut, _, _, _ = conn.Run("/tmp/produce") //nolint:errcheck
 		})
 
 		It("keeps the connection alive", func() {

@@ -42,7 +42,7 @@ func (e BackupDownloadExecutable) Execute() error {
 		return err
 	}
 
-	e.Logger.Info("bbr", "Finished validity checks -- for job %s on %s/%s...", e.remoteArtifact.Name(), e.remoteArtifact.InstanceName(), e.remoteArtifact.InstanceID())
+	e.Logger.Info("bbr", "Finished validity checks -- for job %s on %s/%s...", e.remoteArtifact.Name(), e.remoteArtifact.InstanceName(), e.remoteArtifact.InstanceID()) //nolint:staticcheck
 	return nil
 }
 
@@ -65,7 +65,7 @@ func (e BackupDownloadExecutable) downloadBackupArtifact(localBackup Backup, rem
 	percentageMessage := fmt.Sprintf("Copying backup for job %s on %s/%s -- %%d%%%% complete", remoteBackupArtifact.Name(), remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
 	percentageLogger := readwriter.NewLogPercentageWriter(localBackupArtifactWriter, e.Logger, sizeInBytes, "bbr", percentageMessage)
 
-	e.Logger.Info("bbr", "Copying backup -- %s uncompressed -- for job %s on %s/%s...", size, remoteBackupArtifact.Name(), remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
+	e.Logger.Info("bbr", "Copying backup -- %s uncompressed -- for job %s on %s/%s...", size, remoteBackupArtifact.Name(), remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID()) //nolint:staticcheck
 	err = remoteBackupArtifact.StreamFromRemote(percentageLogger)
 	if err != nil {
 		return err
@@ -76,12 +76,12 @@ func (e BackupDownloadExecutable) downloadBackupArtifact(localBackup Backup, rem
 		return err
 	}
 
-	e.Logger.Info("bbr", "Finished copying backup -- for job %s on %s/%s...", remoteBackupArtifact.Name(), remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
+	e.Logger.Info("bbr", "Finished copying backup -- for job %s on %s/%s...", remoteBackupArtifact.Name(), remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID()) //nolint:staticcheck
 	return nil
 }
 
 func (e BackupDownloadExecutable) compareChecksums(localBackup Backup, remoteBackupArtifact BackupArtifact) (BackupChecksum, error) {
-	e.Logger.Info("bbr", "Starting validity checks -- for job %s on %s/%s...", remoteBackupArtifact.Name(), remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID())
+	e.Logger.Info("bbr", "Starting validity checks -- for job %s on %s/%s...", remoteBackupArtifact.Name(), remoteBackupArtifact.InstanceName(), remoteBackupArtifact.InstanceID()) //nolint:staticcheck
 
 	localChecksum, err := localBackup.CalculateChecksum(remoteBackupArtifact)
 	if err != nil {
@@ -93,12 +93,12 @@ func (e BackupDownloadExecutable) compareChecksums(localBackup Backup, remoteBac
 		return nil, err
 	}
 
-	e.Logger.Debug("bbr", "Comparing shasums")
+	e.Logger.Debug("bbr", "Comparing shasums") //nolint:staticcheck
 
 	match, mismatchedFiles := localChecksum.Match(remoteChecksum)
 	if !match {
-		e.Logger.Debug("bbr", "Checksums didn't match for:")
-		e.Logger.Debug("bbr", fmt.Sprintf("%v\n", mismatchedFiles))
+		e.Logger.Debug("bbr", "Checksums didn't match for:")        //nolint:staticcheck
+		e.Logger.Debug("bbr", fmt.Sprintf("%v\n", mismatchedFiles)) //nolint:staticcheck
 
 		err = errors.Errorf(
 			"Backup is corrupted, checksum failed for %s/%s %s - checksums don't match for %v. "+

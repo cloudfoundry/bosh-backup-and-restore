@@ -59,13 +59,13 @@ func (mq BoshManifestQuerier) IsJobBackupOneRestoreAll(instanceGroupName, jobNam
 		backupOneRestoreAllPropertyPath = fmt.Sprintf("/jobs/name=%s/properties/bbr/backup_one_restore_all", instanceGroupName)
 	}
 
-	jobPathPointer, _ := patch.NewPointerFromString(jobPath)
+	jobPathPointer, _ := patch.NewPointerFromString(jobPath) //nolint:errcheck
 	_, err := patch.FindOp{Path: jobPathPointer}.Apply(mq.manifest)
 	if err != nil {
 		return false, errors.Wrap(err, fmt.Sprintf("error finding job %s in instance group %s", jobName, instanceGroupName))
 	}
 
-	backupOneRestoreAllPropertyPointer, _ := patch.NewPointerFromString(backupOneRestoreAllPropertyPath)
+	backupOneRestoreAllPropertyPointer, _ := patch.NewPointerFromString(backupOneRestoreAllPropertyPath) //nolint:errcheck
 	backupOneRestoreAll, err := patch.FindOp{Path: backupOneRestoreAllPropertyPointer}.Apply(mq.manifest)
 	if err != nil {
 		return false, nil
@@ -75,9 +75,9 @@ func (mq BoshManifestQuerier) IsJobBackupOneRestoreAll(instanceGroupName, jobNam
 }
 
 func isV2Manifest(manifest interface{}) bool {
-	instanceGroupPath := patch.MustNewPointerFromString(fmt.Sprintf("/instance_groups"))
+	instanceGroupPath := patch.MustNewPointerFromString("/instance_groups")
 	_, err := patch.FindOp{Path: instanceGroupPath}.Apply(manifest)
-	if err != nil {
+	if err != nil { //nolint:staticcheck
 		return false
 	}
 	return true

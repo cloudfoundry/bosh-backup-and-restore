@@ -32,7 +32,7 @@ var _ = Describe("LogPercentageReadWriter", func() {
 				By("logging 33% on first write")
 				Expect(fakeLogger.InfoCallCount()).To(Equal(0))
 				Expect(fakeReadWriter.WriteCallCount()).To(Equal(0))
-				logPercentageReadWriter.Write([]byte("words"))
+				logPercentageReadWriter.Write([]byte("words")) //nolint:errcheck
 				Expect(fakeReadWriter.WriteCallCount()).To(Equal(1))
 				Expect(fakeLogger.InfoCallCount()).To(Equal(1))
 				cmd, message, args := fakeLogger.InfoArgsForCall(0)
@@ -41,7 +41,7 @@ var _ = Describe("LogPercentageReadWriter", func() {
 				Expect(args[0]).To(Equal(33))
 
 				By("logging 66% on second write")
-				logPercentageReadWriter.Write([]byte("words"))
+				logPercentageReadWriter.Write([]byte("words")) //nolint:errcheck
 				Expect(fakeReadWriter.WriteCallCount()).To(Equal(2))
 				Expect(fakeLogger.InfoCallCount()).To(Equal(2))
 				cmd, message, args = fakeLogger.InfoArgsForCall(1)
@@ -53,10 +53,10 @@ var _ = Describe("LogPercentageReadWriter", func() {
 			It("never logs more than 100%", func() {
 				Expect(fakeLogger.InfoCallCount()).To(Equal(0))
 				Expect(fakeReadWriter.WriteCallCount()).To(Equal(0))
-				logPercentageReadWriter.Write([]byte("words"))
-				logPercentageReadWriter.Write([]byte("words"))
-				logPercentageReadWriter.Write([]byte("words"))
-				logPercentageReadWriter.Write([]byte("words"))
+				logPercentageReadWriter.Write([]byte("words")) //nolint:errcheck
+				logPercentageReadWriter.Write([]byte("words")) //nolint:errcheck
+				logPercentageReadWriter.Write([]byte("words")) //nolint:errcheck
+				logPercentageReadWriter.Write([]byte("words")) //nolint:errcheck
 				Expect(fakeReadWriter.WriteCallCount()).To(Equal(4))
 				Expect(fakeLogger.InfoCallCount()).To(Equal(4))
 				cmd, message, args := fakeLogger.InfoArgsForCall(3)
@@ -75,15 +75,15 @@ var _ = Describe("LogPercentageReadWriter", func() {
 				By("not writing for the first 4%")
 				Expect(fakeLogger.InfoCallCount()).To(Equal(0))
 				Expect(fakeReadWriter.WriteCallCount()).To(Equal(0))
-				logPercentageReadWriter.Write([]byte("add 1 byte"))
-				logPercentageReadWriter.Write([]byte("add 1 byte"))
-				logPercentageReadWriter.Write([]byte("add 1 byte"))
-				logPercentageReadWriter.Write([]byte("add 1 byte"))
+				logPercentageReadWriter.Write([]byte("add 1 byte")) //nolint:errcheck
+				logPercentageReadWriter.Write([]byte("add 1 byte")) //nolint:errcheck
+				logPercentageReadWriter.Write([]byte("add 1 byte")) //nolint:errcheck
+				logPercentageReadWriter.Write([]byte("add 1 byte")) //nolint:errcheck
 				Expect(fakeReadWriter.WriteCallCount()).To(Equal(4))
 				Expect(fakeLogger.InfoCallCount()).To(Equal(0))
 
 				By("writing once when we hit 5%")
-				logPercentageReadWriter.Write([]byte("add 1 byte"))
+				logPercentageReadWriter.Write([]byte("add 1 byte")) //nolint:errcheck
 				Expect(fakeReadWriter.WriteCallCount()).To(Equal(5))
 				Expect(fakeLogger.InfoCallCount()).To(Equal(1))
 				cmd, message, args := fakeLogger.InfoArgsForCall(0)
@@ -92,14 +92,14 @@ var _ = Describe("LogPercentageReadWriter", func() {
 				Expect(args[0]).To(Equal(5))
 
 				By("not writing for the next 4%")
-				logPercentageReadWriter.Write([]byte("add 1 byte"))
-				logPercentageReadWriter.Write([]byte("add 1 byte"))
-				logPercentageReadWriter.Write([]byte("add 1 byte"))
-				logPercentageReadWriter.Write([]byte("add 1 byte"))
+				logPercentageReadWriter.Write([]byte("add 1 byte")) //nolint:errcheck
+				logPercentageReadWriter.Write([]byte("add 1 byte")) //nolint:errcheck
+				logPercentageReadWriter.Write([]byte("add 1 byte")) //nolint:errcheck
+				logPercentageReadWriter.Write([]byte("add 1 byte")) //nolint:errcheck
 				Expect(fakeLogger.InfoCallCount()).To(Equal(1))
 
 				By("writing once when we hit 10%")
-				logPercentageReadWriter.Write([]byte("add 1 byte"))
+				logPercentageReadWriter.Write([]byte("add 1 byte")) //nolint:errcheck
 				Expect(fakeLogger.InfoCallCount()).To(Equal(2))
 				cmd, message, args = fakeLogger.InfoArgsForCall(1)
 				Expect(cmd).To(Equal("schblam"))
@@ -108,7 +108,7 @@ var _ = Describe("LogPercentageReadWriter", func() {
 
 				By("writing once when we suddenly jump to 25%")
 				fakeReadWriter.WriteReturns(15, nil)
-				logPercentageReadWriter.Write([]byte("add 15 byte"))
+				logPercentageReadWriter.Write([]byte("add 15 byte")) //nolint:errcheck
 				Expect(fakeLogger.InfoCallCount()).To(Equal(3))
 				cmd, message, args = fakeLogger.InfoArgsForCall(2)
 				Expect(cmd).To(Equal("schblam"))
@@ -117,7 +117,7 @@ var _ = Describe("LogPercentageReadWriter", func() {
 
 				By("not writing when we add 1% more")
 				fakeReadWriter.WriteReturns(1, nil)
-				logPercentageReadWriter.Write([]byte("add 1 byte"))
+				logPercentageReadWriter.Write([]byte("add 1 byte")) //nolint:errcheck
 				Expect(fakeLogger.InfoCallCount()).To(Equal(3))
 			})
 		})
@@ -143,7 +143,7 @@ var _ = Describe("LogPercentageReadWriter", func() {
 				By("logging 33% on first read")
 				Expect(fakeLogger.InfoCallCount()).To(Equal(0))
 				Expect(fakeReadWriter.ReadCallCount()).To(Equal(0))
-				logPercentageReadWriter.Read([]byte("words"))
+				logPercentageReadWriter.Read([]byte("words")) //nolint:errcheck
 				Expect(fakeReadWriter.ReadCallCount()).To(Equal(1))
 				Expect(fakeLogger.InfoCallCount()).To(Equal(1))
 				cmd, message, args := fakeLogger.InfoArgsForCall(0)
@@ -152,7 +152,7 @@ var _ = Describe("LogPercentageReadWriter", func() {
 				Expect(args[0]).To(Equal(33))
 
 				By("logging 66% on second read")
-				logPercentageReadWriter.Read([]byte("words"))
+				logPercentageReadWriter.Read([]byte("words")) //nolint:errcheck
 				Expect(fakeReadWriter.ReadCallCount()).To(Equal(2))
 				Expect(fakeLogger.InfoCallCount()).To(Equal(2))
 				cmd, message, args = fakeLogger.InfoArgsForCall(1)
@@ -164,10 +164,10 @@ var _ = Describe("LogPercentageReadWriter", func() {
 			It("never logs more than 100%", func() {
 				Expect(fakeLogger.InfoCallCount()).To(Equal(0))
 				Expect(fakeReadWriter.ReadCallCount()).To(Equal(0))
-				logPercentageReadWriter.Read([]byte("words"))
-				logPercentageReadWriter.Read([]byte("words"))
-				logPercentageReadWriter.Read([]byte("words"))
-				logPercentageReadWriter.Read([]byte("words"))
+				logPercentageReadWriter.Read([]byte("words")) //nolint:errcheck
+				logPercentageReadWriter.Read([]byte("words")) //nolint:errcheck
+				logPercentageReadWriter.Read([]byte("words")) //nolint:errcheck
+				logPercentageReadWriter.Read([]byte("words")) //nolint:errcheck
 				Expect(fakeReadWriter.ReadCallCount()).To(Equal(4))
 				Expect(fakeLogger.InfoCallCount()).To(Equal(4))
 				cmd, message, args := fakeLogger.InfoArgsForCall(3)
@@ -186,15 +186,15 @@ var _ = Describe("LogPercentageReadWriter", func() {
 				By("not writing for the first 4%")
 				Expect(fakeLogger.InfoCallCount()).To(Equal(0))
 				Expect(fakeReadWriter.ReadCallCount()).To(Equal(0))
-				logPercentageReadWriter.Read([]byte("add 1 byte"))
-				logPercentageReadWriter.Read([]byte("add 1 byte"))
-				logPercentageReadWriter.Read([]byte("add 1 byte"))
-				logPercentageReadWriter.Read([]byte("add 1 byte"))
+				logPercentageReadWriter.Read([]byte("add 1 byte")) //nolint:errcheck
+				logPercentageReadWriter.Read([]byte("add 1 byte")) //nolint:errcheck
+				logPercentageReadWriter.Read([]byte("add 1 byte")) //nolint:errcheck
+				logPercentageReadWriter.Read([]byte("add 1 byte")) //nolint:errcheck
 				Expect(fakeReadWriter.ReadCallCount()).To(Equal(4))
 				Expect(fakeLogger.InfoCallCount()).To(Equal(0))
 
 				By("writing once when we hit 5%")
-				logPercentageReadWriter.Read([]byte("add 1 byte"))
+				logPercentageReadWriter.Read([]byte("add 1 byte")) //nolint:errcheck
 				Expect(fakeReadWriter.ReadCallCount()).To(Equal(5))
 				Expect(fakeLogger.InfoCallCount()).To(Equal(1))
 				cmd, message, args := fakeLogger.InfoArgsForCall(0)
@@ -203,14 +203,14 @@ var _ = Describe("LogPercentageReadWriter", func() {
 				Expect(args[0]).To(Equal(5))
 
 				By("not writing for the next 4%")
-				logPercentageReadWriter.Read([]byte("add 1 byte"))
-				logPercentageReadWriter.Read([]byte("add 1 byte"))
-				logPercentageReadWriter.Read([]byte("add 1 byte"))
-				logPercentageReadWriter.Read([]byte("add 1 byte"))
+				logPercentageReadWriter.Read([]byte("add 1 byte")) //nolint:errcheck
+				logPercentageReadWriter.Read([]byte("add 1 byte")) //nolint:errcheck
+				logPercentageReadWriter.Read([]byte("add 1 byte")) //nolint:errcheck
+				logPercentageReadWriter.Read([]byte("add 1 byte")) //nolint:errcheck
 				Expect(fakeLogger.InfoCallCount()).To(Equal(1))
 
 				By("writing once when we hit 10%")
-				logPercentageReadWriter.Read([]byte("add 1 byte"))
+				logPercentageReadWriter.Read([]byte("add 1 byte")) //nolint:errcheck
 				Expect(fakeLogger.InfoCallCount()).To(Equal(2))
 				cmd, message, args = fakeLogger.InfoArgsForCall(1)
 				Expect(cmd).To(Equal("schblam"))
@@ -219,7 +219,7 @@ var _ = Describe("LogPercentageReadWriter", func() {
 
 				By("writing once when we suddenly jump to 25%")
 				fakeReadWriter.ReadReturns(15, nil)
-				logPercentageReadWriter.Read([]byte("add 15 byte"))
+				logPercentageReadWriter.Read([]byte("add 15 byte")) //nolint:errcheck
 				Expect(fakeLogger.InfoCallCount()).To(Equal(3))
 				cmd, message, args = fakeLogger.InfoArgsForCall(2)
 				Expect(cmd).To(Equal("schblam"))
@@ -228,7 +228,7 @@ var _ = Describe("LogPercentageReadWriter", func() {
 
 				By("not writing when we add 1% more")
 				fakeReadWriter.ReadReturns(1, nil)
-				logPercentageReadWriter.Read([]byte("add 1 byte"))
+				logPercentageReadWriter.Read([]byte("add 1 byte")) //nolint:errcheck
 				Expect(fakeLogger.InfoCallCount()).To(Equal(3))
 			})
 		})

@@ -7,7 +7,7 @@ import (
 	"reflect"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockhttp"
-	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega" //nolint:staticcheck
 )
 
 type VMsOutput struct {
@@ -40,7 +40,7 @@ func (t *taskOutputMock) RespondsWithVMsOutput(vms interface{}) *mockhttp.MockHt
 		Expect(encoder.Encode(line)).ToNot(HaveOccurred())
 	}
 
-	return t.RespondsWith(string(output.Bytes()))
+	return t.RespondsWith(string(output.Bytes())) //nolint:staticcheck
 }
 
 func (t *taskOutputMock) RespondsWithTaskOutput(taskOutput interface{}) *mockhttp.MockHttp {
@@ -51,7 +51,7 @@ func (t *taskOutputMock) RespondsWithTaskOutput(taskOutput interface{}) *mockhtt
 		Expect(encoder.Encode(line)).ToNot(HaveOccurred())
 	}
 
-	return t.RespondsWith(string(output.Bytes()))
+	return t.RespondsWith(string(output.Bytes())) //nolint:staticcheck
 }
 
 func interfaceSlice(slice interface{}) []interface{} {

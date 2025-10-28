@@ -72,7 +72,7 @@ func (j Job) backupOneRestoreAllArtifactName() string {
 }
 
 func (j Job) HasMetadataRestoreName() bool {
-	if j.metadata.RestoreName != "" {
+	if j.metadata.RestoreName != "" { //nolint:staticcheck
 		return true
 	}
 	return false
@@ -116,8 +116,8 @@ func (j Job) HasNamedRestoreArtifact() bool {
 
 func (j Job) Backup() error {
 	if j.backupScript != "" {
-		j.Logger.Debug("bbr", "> %s", j.backupScript)
-		j.Logger.Info("bbr", "Backing up %s on %s...", j.name, j.instanceIdentifier)
+		j.Logger.Debug("bbr", "> %s", j.backupScript)                                //nolint:staticcheck
+		j.Logger.Info("bbr", "Backing up %s on %s...", j.name, j.instanceIdentifier) //nolint:staticcheck
 
 		err := j.remoteRunner.CreateDirectory(j.BackupArtifactDirectory())
 		if err != nil {
@@ -133,7 +133,7 @@ func (j Job) Backup() error {
 		)
 
 		if err != nil {
-			j.Logger.Error("bbr", "Error backing up %s on %s.", j.name, j.instanceIdentifier)
+			j.Logger.Error("bbr", "Error backing up %s on %s.", j.name, j.instanceIdentifier) //nolint:staticcheck
 
 			return errors.Wrap(err, fmt.Sprintf(
 				"Error attempting to run backup for job %s on %s",
@@ -142,7 +142,7 @@ func (j Job) Backup() error {
 			))
 		}
 
-		j.Logger.Info("bbr", "Finished backing up %s on %s.", j.name, j.instanceIdentifier)
+		j.Logger.Info("bbr", "Finished backing up %s on %s.", j.name, j.instanceIdentifier) //nolint:staticcheck
 	}
 
 	return nil
@@ -150,15 +150,15 @@ func (j Job) Backup() error {
 
 func (j Job) PreBackupLock() error {
 	if j.preBackupScript != "" {
-		j.Logger.Debug("bbr", "> %s", j.preBackupScript)
-		j.Logger.Info("bbr", "Locking %s on %s for backup...", j.name, j.instanceIdentifier)
+		j.Logger.Debug("bbr", "> %s", j.preBackupScript)                                     //nolint:staticcheck
+		j.Logger.Info("bbr", "Locking %s on %s for backup...", j.name, j.instanceIdentifier) //nolint:staticcheck
 
 		err := j.remoteRunner.RunScript(
 			string(j.preBackupScript),
 			fmt.Sprintf("pre-backup lock %s on %s", j.name, j.instanceIdentifier),
 		)
 		if err != nil {
-			j.Logger.Error("bbr", "Error locking %s on %s.", j.name, j.instanceIdentifier)
+			j.Logger.Error("bbr", "Error locking %s on %s.", j.name, j.instanceIdentifier) //nolint:staticcheck
 
 			return errors.Wrap(err, fmt.Sprintf(
 				"Error attempting to run pre-backup-lock for job %s on %s",
@@ -167,7 +167,7 @@ func (j Job) PreBackupLock() error {
 			))
 		}
 
-		j.Logger.Info("bbr", "Finished locking %s on %s for backup.", j.name, j.instanceIdentifier)
+		j.Logger.Info("bbr", "Finished locking %s on %s for backup.", j.name, j.instanceIdentifier) //nolint:staticcheck
 	}
 
 	return nil
@@ -175,8 +175,8 @@ func (j Job) PreBackupLock() error {
 
 func (j Job) PostBackupUnlock(afterSuccessfulBackup bool) error {
 	if j.postBackupScript != "" {
-		j.Logger.Debug("bbr", "> %s", j.postBackupScript)
-		j.Logger.Info("bbr", "Unlocking %s on %s...", j.name, j.instanceIdentifier)
+		j.Logger.Debug("bbr", "> %s", j.postBackupScript)                           //nolint:staticcheck
+		j.Logger.Info("bbr", "Unlocking %s on %s...", j.name, j.instanceIdentifier) //nolint:staticcheck
 		env := map[string]string{
 			"BBR_AFTER_BACKUP_SCRIPTS_SUCCESSFUL": strconv.FormatBool(afterSuccessfulBackup),
 		}
@@ -187,7 +187,7 @@ func (j Job) PostBackupUnlock(afterSuccessfulBackup bool) error {
 			io.Discard,
 		)
 		if err != nil {
-			j.Logger.Error("bbr", "Error unlocking %s on %s.", j.name, j.instanceIdentifier)
+			j.Logger.Error("bbr", "Error unlocking %s on %s.", j.name, j.instanceIdentifier) //nolint:staticcheck
 
 			return errors.Wrap(err, fmt.Sprintf(
 				"Error attempting to run post-backup-unlock for job %s on %s",
@@ -196,7 +196,7 @@ func (j Job) PostBackupUnlock(afterSuccessfulBackup bool) error {
 			))
 		}
 
-		j.Logger.Info("bbr", "Finished unlocking %s on %s.", j.name, j.instanceIdentifier)
+		j.Logger.Info("bbr", "Finished unlocking %s on %s.", j.name, j.instanceIdentifier) //nolint:staticcheck
 	}
 
 	return nil
@@ -204,15 +204,15 @@ func (j Job) PostBackupUnlock(afterSuccessfulBackup bool) error {
 
 func (j Job) PreRestoreLock() error {
 	if j.preRestoreScript != "" {
-		j.Logger.Debug("bbr", "> %s", j.preRestoreScript)
-		j.Logger.Info("bbr", "Locking %s on %s for restore...", j.name, j.instanceIdentifier)
+		j.Logger.Debug("bbr", "> %s", j.preRestoreScript)                                     //nolint:staticcheck
+		j.Logger.Info("bbr", "Locking %s on %s for restore...", j.name, j.instanceIdentifier) //nolint:staticcheck
 
 		err := j.remoteRunner.RunScript(
 			string(j.preRestoreScript),
 			fmt.Sprintf("pre-restore lock %s on %s", j.name, j.instanceIdentifier),
 		)
 		if err != nil {
-			j.Logger.Error("bbr", "Error locking %s on %s.", j.name, j.instanceIdentifier)
+			j.Logger.Error("bbr", "Error locking %s on %s.", j.name, j.instanceIdentifier) //nolint:staticcheck
 
 			return errors.Wrap(err, fmt.Sprintf(
 				"Error attempting to run pre-restore-lock for job %s on %s",
@@ -221,7 +221,7 @@ func (j Job) PreRestoreLock() error {
 			))
 		}
 
-		j.Logger.Info("bbr", "Finished locking %s on %s for restore.", j.name, j.instanceIdentifier)
+		j.Logger.Info("bbr", "Finished locking %s on %s for restore.", j.name, j.instanceIdentifier) //nolint:staticcheck
 	}
 
 	return nil
@@ -229,8 +229,8 @@ func (j Job) PreRestoreLock() error {
 
 func (j Job) Restore() error {
 	if j.restoreScript != "" {
-		j.Logger.Debug("bbr", "> %s", j.restoreScript)
-		j.Logger.Info("bbr", "Restoring %s on %s...", j.name, j.instanceIdentifier)
+		j.Logger.Debug("bbr", "> %s", j.restoreScript)                              //nolint:staticcheck
+		j.Logger.Info("bbr", "Restoring %s on %s...", j.name, j.instanceIdentifier) //nolint:staticcheck
 
 		env := artifactDirectoryVariables(j.RestoreArtifactDirectory())
 		err := j.remoteRunner.RunScriptWithEnv(
@@ -239,7 +239,7 @@ func (j Job) Restore() error {
 			io.Discard,
 		)
 		if err != nil {
-			j.Logger.Error("bbr", "Error restoring %s on %s.", j.name, j.instanceIdentifier)
+			j.Logger.Error("bbr", "Error restoring %s on %s.", j.name, j.instanceIdentifier) //nolint:staticcheck
 
 			return errors.Wrap(err, fmt.Sprintf(
 				"Error attempting to run restore for job %s on %s",
@@ -248,7 +248,7 @@ func (j Job) Restore() error {
 			))
 		}
 
-		j.Logger.Info("bbr", "Finished restoring %s on %s.", j.name, j.instanceIdentifier)
+		j.Logger.Info("bbr", "Finished restoring %s on %s.", j.name, j.instanceIdentifier) //nolint:staticcheck
 	}
 
 	return nil
@@ -256,15 +256,15 @@ func (j Job) Restore() error {
 
 func (j Job) PostRestoreUnlock() error {
 	if j.postRestoreScript != "" {
-		j.Logger.Debug("bbr", "> %s", j.postRestoreScript)
-		j.Logger.Info("bbr", "Unlocking %s on %s...", j.name, j.instanceIdentifier)
+		j.Logger.Debug("bbr", "> %s", j.postRestoreScript)                          //nolint:staticcheck
+		j.Logger.Info("bbr", "Unlocking %s on %s...", j.name, j.instanceIdentifier) //nolint:staticcheck
 
 		err := j.remoteRunner.RunScript(
 			string(j.postRestoreScript),
 			fmt.Sprintf("post-restore unlock %s on %s", j.name, j.instanceIdentifier),
 		)
 		if err != nil {
-			j.Logger.Error("bbr", "Error unlocking %s on %s.", j.name, j.instanceIdentifier)
+			j.Logger.Error("bbr", "Error unlocking %s on %s.", j.name, j.instanceIdentifier) //nolint:staticcheck
 
 			return errors.Wrap(err, fmt.Sprintf(
 				"Error attempting to run post-restore-unlock for job %s on %s",
@@ -273,7 +273,7 @@ func (j Job) PostRestoreUnlock() error {
 			))
 		}
 
-		j.Logger.Info("bbr", "Finished unlocking %s on %s.", j.name, j.instanceIdentifier)
+		j.Logger.Info("bbr", "Finished unlocking %s on %s.", j.name, j.instanceIdentifier) //nolint:staticcheck
 	}
 
 	return nil
@@ -295,11 +295,11 @@ func (j Job) restoreArtifactOrJobName() string {
 	return j.name
 }
 
-func (j Job) handleErrs(jobName, label string, err error, exitCode int, stdout, stderr []byte) error {
+func (j Job) handleErrs(jobName, label string, err error, exitCode int, stdout, stderr []byte) error { //nolint:unused
 	var foundErrors []error
 
 	if err != nil {
-		j.Logger.Error("bbr", fmt.Sprintf(
+		j.Logger.Error("bbr", fmt.Sprintf( //nolint:staticcheck
 			"Error attempting to run %s script for job %s on %s. Error: %s",
 			label,
 			jobName,
@@ -319,7 +319,7 @@ func (j Job) handleErrs(jobName, label string, err error, exitCode int, stdout, 
 
 		foundErrors = append(foundErrors, errors.New(errorString))
 
-		j.Logger.Error("bbr", errorString)
+		j.Logger.Error("bbr", errorString) //nolint:staticcheck
 	}
 
 	return orchestrator.ConvertErrors(foundErrors)

@@ -111,7 +111,7 @@ var _ = Describe("Director", func() {
 					),
 				}
 
-				fakeJobFinder.FindJobsReturns(append(expectedJobs), nil)
+				fakeJobFinder.FindJobsReturns(append(expectedJobs), nil) //nolint:staticcheck,govet
 
 				manifestQuerierCreator.Returns(manifestQuerier, nil)
 			})

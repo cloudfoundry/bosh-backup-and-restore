@@ -29,7 +29,7 @@ func (jobs Jobs) AnyAreRestorable() bool {
 	return !jobs.Restorable().empty()
 }
 
-func (jobs Jobs) withNamedBackupArtifacts() Jobs {
+func (jobs Jobs) withNamedBackupArtifacts() Jobs { //nolint:unused
 	jobsWithNamedArtifacts := Jobs{}
 	for _, job := range jobs {
 		if job.HasNamedBackupArtifact() {

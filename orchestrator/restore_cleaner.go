@@ -25,10 +25,10 @@ type RestoreCleaner struct {
 
 func (c RestoreCleaner) Cleanup(deploymentName string) Error {
 	session := NewSession(deploymentName)
-	currentError := c.Workflow.Run(session)
+	currentError := c.Workflow.Run(session) //nolint:staticcheck
 
 	if len(currentError) == 0 {
-		c.Logger.Info("bbr", "'%s' cleaned up\n", deploymentName)
+		c.Logger.Info("bbr", "'%s' cleaned up\n", deploymentName) //nolint:staticcheck
 	}
 	return currentError
 }

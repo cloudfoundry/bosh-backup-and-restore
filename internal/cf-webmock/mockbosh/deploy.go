@@ -4,11 +4,11 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/cloudfoundry-incubator/bosh-backup-and-restore/internal/cf-webmock/mockhttp"
-	. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega" //nolint:staticcheck
 )
 
 type deployMock struct {
-	expectedManifest []byte
+	expectedManifest []byte //nolint:unused
 	*mockhttp.MockHttp
 }
 

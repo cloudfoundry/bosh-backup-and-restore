@@ -163,7 +163,7 @@ cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 								Eventually(session).Should(gbytes.Say(`Stopping a restore can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
 							})
 
-							stdin.Write([]byte("yes\n"))
+							stdin.Write([]byte("yes\n")) //nolint:errcheck
 
 							By("waiting for the restore to finish successfully", func() {
 								Eventually(session, 10).Should(gexec.Exit(1))
@@ -191,7 +191,7 @@ cat $BBR_ARTIFACT_DIRECTORY/backup > /var/vcap/store/bosh/restored_file
 								Eventually(session).Should(gbytes.Say(`Stopping a restore can leave the system in bad state. Are you sure you want to cancel\? \[yes/no\]`))
 							})
 
-							stdin.Write([]byte("no\n"))
+							stdin.Write([]byte("no\n")) //nolint:errcheck
 
 							By("waiting for the restore to finish successfully", func() {
 								Eventually(session, 20).Should(gexec.Exit(0))

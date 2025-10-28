@@ -25,8 +25,9 @@ var _ = Describe("All deployments", func() {
 	})
 
 	AfterEach(func() {
-		os.RemoveAll(artifactPath)
+		os.RemoveAll(artifactPath) //nolint:errcheck
 	})
+
 	Context("when running pre-backup-check", func() {
 		Context("and all deployments are backupable", func() {
 			It("reports that all deployments are backupable", func() {
@@ -96,7 +97,7 @@ var _ = Describe("All deployments", func() {
 
 				//we cant enforce the order of the output given it is random, so we assert that it contains what we expect and only those lines.
 				Expect(stdout).To(ConsistOf(
-					ContainSubstring(fmt.Sprintf("Pending: redis-1, redis-2, redis-3")),
+					ContainSubstring("Pending: redis-1, redis-2, redis-3"),
 					ContainSubstring("-------------------------"),
 					ContainSubstring("Deployment 'redis-1' cannot be backed up."),
 					"  1 error occurred:",
@@ -322,10 +323,10 @@ func assertCleanupLogfile(deployment string) {
 	logFilePath := files[0]
 	Expect(filepath.Base(logFilePath)).To(MatchRegexp(buildLogFileTimestampRegex(deployment)))
 
-	backupLogContent, err := os.ReadFile(logFilePath)
+	backupLogContent, err := os.ReadFile(logFilePath) //nolint:ineffassign,staticcheck
 	output := string(backupLogContent)
 
-	Expect(output).To(ContainSubstring(fmt.Sprintf("INFO - Looking for scripts")))
+	Expect(output).To(ContainSubstring("INFO - Looking for scripts"))
 	Expect(output).To(ContainSubstring("INFO - Running post-backup-unlock scripts..."))
 	Expect(output).To(ContainSubstring("INFO - Finished running post-backup-unlock scripts."))
 }
@@ -338,7 +339,7 @@ func assertBackupLogfile(deployment string) {
 	logFilePath := files[0]
 	Expect(filepath.Base(logFilePath)).To(MatchRegexp(buildLogFileTimestampRegex(deployment)))
 
-	backupLogContent, err := os.ReadFile(logFilePath)
+	backupLogContent, err := os.ReadFile(logFilePath) //nolint:ineffassign,staticcheck
 	output := string(backupLogContent)
 
 	Expect(output).To(ContainSubstring(fmt.Sprintf("Running pre-checks for backup of %s", deployment)))

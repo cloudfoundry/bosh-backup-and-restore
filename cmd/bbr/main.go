@@ -77,11 +77,11 @@ func main() {
 
 func commandNotFoundFunc(c *cli.Context, msg string) {
 	fmt.Printf("Error command '%s' not found\n\n", msg)
-	cli.ShowAppHelp(c)
+	cli.ShowAppHelp(c) //nolint:errcheck
 }
 
 func versionAction(c *cli.Context) error {
-	cli.ShowAppHelp(c)
+	cli.ShowAppHelp(c) //nolint:errcheck
 	return nil
 }
 
