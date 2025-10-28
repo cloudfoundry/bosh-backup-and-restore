@@ -6,8 +6,7 @@ push: test sys-test-local
 pre-commit: test sys-test-local
 
 lint:
-	command -v golangci-lint &> /dev/null || \
-	  go install -v github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+	command -v golangci-lint || go install -v github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
 	golangci-lint run ./...
 
 watch:
