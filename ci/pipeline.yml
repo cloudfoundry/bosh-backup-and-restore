@@ -139,6 +139,13 @@ resources:
     username: *docker_username
     password: *docker_password
 
+- name: golang-registry-image
+  type: registry-image
+  source:
+    repository: golang
+    username: *docker_username
+    password: *docker_password
+
 - name: golang-release
   type: git
   source:
@@ -375,13 +382,6 @@ resources:
   source:
     uri: https://github.com/cloudfoundry/bosh-disaster-recovery-acceptance-tests
     branch: master
-
-- name: golang-image
-  type: registry-image
-  source:
-    repository: golang
-    username: *docker_username
-    password: *docker_password
 
 - name: every-monday
   type: time
@@ -1066,7 +1066,7 @@ jobs:
     - get: bosh-backup-and-restore
     - get: bosh-backup-and-restore-ci
     - get: golang-release
-    - get: golang-image
+    - get: golang-registry-image
   - task: bump-deps
     file: golang-release/ci/tasks/shared/bump-deps.yml
     input_mapping:
@@ -1075,12 +1075,12 @@ jobs:
       output_repo: bosh-backup-and-restore
   - task: lint
     file: bosh-backup-and-restore/ci/tasks/run-make/task.yml
-    image: golang-image
+    image: golang-registry-image
     params:
       MAKE_TARGET: lint
   - task: test
     file: bosh-backup-and-restore/ci/tasks/run-make/task.yml
-    image: golang-image
+    image: golang-registry-image
     params:
       MAKE_TARGET: test-unit
   - put: bosh-backup-and-restore
@@ -1096,7 +1096,7 @@ jobs:
     - get: bosh-backup-and-restore
     - get: bosh-backup-and-restore-ci
     - get: golang-release
-    - get: golang-image
+    - get: golang-registry-image
   - task: bump-deps
     file: golang-release/ci/tasks/shared/bump-deps.yml
     input_mapping:
@@ -1107,7 +1107,7 @@ jobs:
       SOURCE_PATH: s3-config-validator/src/
   - task: test-unit-s3-config-validator
     file: bosh-backup-and-restore-ci/ci/tasks/test-unit-s3-config-validator/task.yml
-    image: golang-image
+    image: golang-registry-image
   - put: bosh-backup-and-restore
     params:
       repository: bosh-backup-and-restore
