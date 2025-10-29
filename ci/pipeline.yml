@@ -84,7 +84,7 @@ resource_types:
     tag: v1
     username: svc.bosh-ecosystem
     password: *artifactory_token
-  tags: [ broadcom ]
+  tags: [broadcom]
 
 - name: shepherd-v2
   tags: [broadcom]
@@ -151,6 +151,12 @@ resources:
   source:
     uri: https://github.com/bosh-packages/golang-release.git
     tag_filter: v*
+- name: golang-release-image
+  type: registry-image
+  source:
+    repository: bosh/golang-release
+    username: ((docker.username))
+    password: ((docker.password))
 
 - name: bbr-director-test-releases
   type: git
@@ -999,7 +1005,7 @@ jobs:
             tags: [broadcom]
             passed: [build-dev]
           - put: drats-env
-            tags: [ broadcom ]
+            tags: [broadcom]
             attempts: *number_of_claim_env_retries
             timeout: 6h
             params:
@@ -1061,6 +1067,7 @@ jobs:
 - name: bump-deps-bbr-cli
   plan:
   - in_parallel:
+    - get: golang-release-image
     - get: every-monday
       trigger: true
     - get: bosh-backup-and-restore
@@ -1069,10 +1076,14 @@ jobs:
     - get: golang-registry-image
   - task: bump-deps
     file: golang-release/ci/tasks/shared/bump-deps.yml
+    image: golang-release-image
+    tags: [broadcom]
     input_mapping:
       input_repo: bosh-backup-and-restore
     output_mapping:
       output_repo: bosh-backup-and-restore
+    params:
+      GOPROXY: https://((broadcom_artifactory_mirrors.username)):((broadcom_artifactory_mirrors.password))@((broadcom_artifactory_mirrors.golang)),off
   - task: lint
     file: bosh-backup-and-restore-ci/ci/tasks/run-make/task.yml
     image: golang-registry-image
@@ -1091,6 +1102,7 @@ jobs:
 - name: bump-deps-s3-config-validator
   plan:
   - in_parallel:
+    - get: golang-release-image
     - get: every-monday
       trigger: true
     - get: bosh-backup-and-restore
@@ -1099,12 +1111,15 @@ jobs:
     - get: golang-registry-image
   - task: bump-deps
     file: golang-release/ci/tasks/shared/bump-deps.yml
+    image: golang-release-image
+    tags: [broadcom]
     input_mapping:
       input_repo: bosh-backup-and-restore
     output_mapping:
       output_repo: bosh-backup-and-restore
     params:
       SOURCE_PATH: s3-config-validator/src/
+      GOPROXY: https://((broadcom_artifactory_mirrors.username)):((broadcom_artifactory_mirrors.password))@((broadcom_artifactory_mirrors.golang)),off
   - task: test-unit-s3-config-validator
     file: bosh-backup-and-restore-ci/ci/tasks/test-unit-s3-config-validator/task.yml
     image: golang-registry-image
