@@ -795,7 +795,7 @@ jobs:
   - task: create-b-drats-config
     image: bosh-ecosystem-registry-image
     file: bosh-backup-and-restore-ci/ci/tasks/setup-b-drats-integration-config/task.yml
-    tags: [broadcom]
+    tags: [nimbus]
     input_mapping:
       environment: b-drats-env
       stemcell: jammy-stemcell
@@ -813,7 +813,7 @@ jobs:
     image: bosh-ecosystem-registry-image
     file: b-drats/ci/tasks/run-b-drats/task.yml
     privileged: true
-    tags: [broadcom]
+    tags: [nimbus]
     input_mapping:
       bosh-disaster-recovery-acceptance-tests: b-drats
       bbr-binary-release: bbr-dev-release
