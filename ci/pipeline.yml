@@ -1083,7 +1083,8 @@ jobs:
     output_mapping:
       output_repo: bosh-backup-and-restore
     params:
-      GOPROXY: https://((broadcom_artifactory_mirrors.username)):((broadcom_artifactory_mirrors.password))@((broadcom_artifactory_mirrors.golang)),off
+      GOPROXY: https://((broadcom_artifactory_mirrors.username)):((broadcom_artifactory_mirrors.password))@((broadcom_artifactory_mirrors.goproxy)),off
+      GOSUMDB: https://(broadcom_artifactory_mirrors.gosumdb))
   - task: lint
     file: bosh-backup-and-restore-ci/ci/tasks/run-make/task.yml
     image: golang-registry-image
@@ -1119,7 +1120,8 @@ jobs:
       output_repo: bosh-backup-and-restore
     params:
       SOURCE_PATH: s3-config-validator/src/
-      GOPROXY: https://((broadcom_artifactory_mirrors.username)):((broadcom_artifactory_mirrors.password))@((broadcom_artifactory_mirrors.golang)),off
+      GOPROXY: https://((broadcom_artifactory_mirrors.username)):((broadcom_artifactory_mirrors.password))@((broadcom_artifactory_mirrors.goproxy)),off
+      GOSUMDB: https://(broadcom_artifactory_mirrors.gosumdb))
   - task: test-unit-s3-config-validator
     file: bosh-backup-and-restore-ci/ci/tasks/test-unit-s3-config-validator/task.yml
     image: golang-registry-image
