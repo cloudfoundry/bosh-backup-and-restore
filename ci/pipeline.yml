@@ -1083,6 +1083,7 @@ jobs:
     params:
       GOPROXY: ((repository_mirrors.goproxy))
       GOSUMDB: ((repository_mirrors.gosumdb))
+      GOOS_LIST: linux,windows
   - task: lint
     file: bosh-backup-and-restore-ci/ci/tasks/run-make/task.yml
     image: golang-registry-image
