@@ -110,28 +110,23 @@ func validateConfig(config Config, versioned bool) error {
 
 	}
 
-	errorMessage := ""
+	var errs []error
 	if len(emptyFieldNames) > 0 {
 		sort.Sort(sort.StringSlice(emptyFieldNames))
-		errorMessage += fmt.Sprintf("invalid config: fields %v are empty\n", emptyFieldNames)
+		errs = append(errs, fmt.Errorf("invalid config: fields %v are empty\n", emptyFieldNames))
 	}
 	if len(bucketsWithTooManyCreds) > 0 {
 		sort.Sort(sort.StringSlice(bucketsWithTooManyCreds))
-		errorMessage += fmt.Sprintf("invalid config: because use_iam_profile is set to true, there should be no aws_access_key_id or aws_secret_access_key in the following buckets: %v\n", bucketsWithTooManyCreds)
+		errs = append(errs, fmt.Errorf("invalid config: because use_iam_profile is set to true, there should be no aws_access_key_id or aws_secret_access_key in the following buckets: %v\n", bucketsWithTooManyCreds))
 	}
 	if len(missingUnversionedBackupBuckets) > 0 {
 		sort.Sort(sort.StringSlice(missingUnversionedBackupBuckets))
-		errorMessage += fmt.Sprintf("invalid config: backup buckets must be specified when taking unversioned backups. The following buckets are missing backup buckets: %v\n", missingUnversionedBackupBuckets)
+		errs = append(errs, fmt.Errorf("invalid config: backup buckets must be specified when taking unversioned backups. The following buckets are missing backup buckets: %v\n", missingUnversionedBackupBuckets))
 	}
-
 	if len(bucketsWithEndpointThatUseIAM) > 0 {
 		sort.Sort(sort.StringSlice(bucketsWithEndpointThatUseIAM))
-		errorMessage += fmt.Sprintf("invalid config: because use_iam_profile is set to true, the endpoint field must not be set in the following buckets: %v\n", bucketsWithEndpointThatUseIAM)
+		errs = append(errs, fmt.Errorf("invalid config: because use_iam_profile is set to true, the endpoint field must not be set in the following buckets: %v\n", bucketsWithEndpointThatUseIAM))
 	}
 
-	if errorMessage != "" {
-		return fmt.Errorf(errorMessage)
-	}
-
-	return nil
+	return errors.Join(errs...)
 }
