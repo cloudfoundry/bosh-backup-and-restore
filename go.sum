@@ -21,8 +21,8 @@ github.com/clipperhouse/uax29/v2 v2.3.0 h1:SNdx9DVUqMoBuBoW3iLOj4FQv3dN5mDtuqwuh
 github.com/clipperhouse/uax29/v2 v2.3.0/go.mod h1:Wn1g7MK6OoeDT0vL+Q0SQLDz/KpfsVRgg6W7ihQeh4g=
 github.com/cloudfoundry/bosh-cli/v7 v7.9.14 h1:iFcN5CrMAcs7zpt81H/5Fx8UdFY7jTLaZaV15k3G3zs=
 github.com/cloudfoundry/bosh-cli/v7 v7.9.14/go.mod h1:BBFXzI6X4iOWp2jEg9BucodTBTDAOipIYo1KxR6mNZk=
-github.com/cloudfoundry/bosh-utils v0.0.573 h1:lgHdhz/oOCuWY7RXId44nHWXm/32Vsv9GL0ljXTSuYI=
-github.com/cloudfoundry/bosh-utils v0.0.573/go.mod h1:eXzAI0yL29bPpA2x5b/T5DSABhlh3VZkrrx3IPfEWJY=
+github.com/cloudfoundry/bosh-utils v0.0.575 h1:hdSTDDs3Wb1N9dDev0YVYa3Lxw/E+ex7JFUUiAeECk8=
+github.com/cloudfoundry/bosh-utils v0.0.575/go.mod h1:eXzAI0yL29bPpA2x5b/T5DSABhlh3VZkrrx3IPfEWJY=
 github.com/cloudfoundry/config-server v0.1.261 h1:2tvLPXXqSLqyFOG++tR+61ofpf/JOat9hwjkcCzyoKk=
 github.com/cloudfoundry/config-server v0.1.261/go.mod h1:UJj4JqJ4g2AELGgHjJdgvegF8H69ueTBjYtXfYfIwA4=
 github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851 h1:oy59UYcspoP44ggE8DM3kjxl1+sTFd802bbZlBBhBMk=
