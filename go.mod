@@ -19,7 +19,7 @@ require (
 
 require (
 	code.cloudfoundry.org/clock v1.55.0 // indirect
-	code.cloudfoundry.org/tlsconfig v0.41.0 // indirect
+	code.cloudfoundry.org/tlsconfig v0.42.0 // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
