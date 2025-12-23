@@ -51,6 +51,9 @@ secrets:
 #! End of secrets
 #! **************
 
+- &internal_worker_tag broadcom
+- &vsphere_access_worker_tag nimbus
+
 number_of_claim_env_retries: &number_of_claim_env_retries 1
 number_of_system_test_retries: &number_of_system_test_retries 3
 
@@ -85,16 +88,16 @@ resource_types:
     tag: v1
     username: *artifactory_username
     password: *artifactory_token
-  tags: [broadcom]
+  tags: [ *internal_worker_tag ]
 
 - name: shepherd-v2
-  tags: [broadcom]
   source:
     tag: v1 #! yep, really.
     repository: tas-bosh-docker-dev-local.usw1.packages.broadcom.com/cryogenics/shepherd2-concourse-resource
     username: *artifactory_username
     password: *artifactory_token
   type: registry-image
+  tags: [ *internal_worker_tag ]
 
 - name: bosh-deployment-resource
   type: registry-image
@@ -278,7 +281,6 @@ resources:
 
 - name: cryogenics-concourse-tasks
   type: git
-  tags: [broadcom]
   source:
     uri: https://github.gwd.broadcom.net/TNZ/cryogenics-concourse-tasks.git
     branch: main
@@ -305,7 +307,6 @@ resources:
 
 - name: environment
   type: shepherd-v2
-  tags: [broadcom]
   source:
     url: https://v2-shepherd.lvn.broadcom.net
     service-account-key: *shepherd_lvn_account_key
@@ -326,7 +327,6 @@ resources:
 
 - name: additional-environment
   type: shepherd-v2
-  tags: [broadcom]
   source:
     url: https://v2-shepherd.lvn.broadcom.net
     service-account-key: *shepherd_lvn_account_key
@@ -406,7 +406,6 @@ jobs:
     - get: environment
       passed: [ claim-env ]
       trigger: true
-      tags: [broadcom]
     - get: bosh-backup-and-restore-ci
     - get: bosh-backup-and-restore
       passed: [ claim-env ]
@@ -414,7 +413,6 @@ jobs:
     - get: bbr-director-test-releases
     - get: jammy-stemcell
     - get: cryogenics-concourse-tasks
-      tags: [broadcom]
       passed: [ claim-env ]
     - get: bosh-ecosystem-registry-image
   - task: alias-env
@@ -439,12 +437,10 @@ jobs:
         jumpbox-public-key: *test-bosh-director-ip-pub-key
         test_release_path: /tmp/build/put/bbr-director-test-releases/test-bosh-backup-and-restore-release
         internal_ip: *test-bosh-director-ip
-    tags: [broadcom]
   - task: system-test-director
     image: bosh-ecosystem-registry-image
     file: bosh-backup-and-restore-ci/ci/tasks/bbr-system-director/task.yml
     privileged: true
-    tags: [broadcom]
     params:
       USE_SHUTTLE: false
       DIRECTOR_HOST: *test-bosh-director-ip
@@ -459,7 +455,6 @@ jobs:
       delete:
         enabled: true
       source_file: source-file/source-file.yml
-    tags: [broadcom]
 
 - name: system-test-deployment
   serial: true
@@ -470,10 +465,8 @@ jobs:
     - get: environment
       passed: [ claim-env ]
       trigger: true
-      tags: [broadcom]
     - get: additional-environment
       passed: [ claim-env ]
-      tags: [broadcom]
     - get: bosh-backup-and-restore-ci
     - get: bosh-backup-and-restore
       passed: [ claim-env ]
@@ -481,7 +474,6 @@ jobs:
     - get: jammy-stemcell
     - get: bosh-ecosystem-registry-image
     - get: cryogenics-concourse-tasks
-      tags: [broadcom]
       passed: [ claim-env ]
   - task: alias-env
     image: bosh-ecosystem-registry-image
@@ -515,7 +507,6 @@ jobs:
         jumpbox-public-key: *test-bosh-director-ip-pub-key
         test_release_path: /tmp/build/put/bbr-director-test-releases/test-bosh-backup-and-restore-release
         internal_ip: *test-bosh-director-ip
-    tags: [broadcom]
   - in_parallel:
     - task: upload-redis-test-release-to-bosh
       image: bosh-ecosystem-registry-image
@@ -523,42 +514,36 @@ jobs:
       params:
         RELEASE_NAME: redis-test-release
         <<: *ts-2-bosh-env
-      tags: [broadcom]
     - task: upload-many-bbr-jobs-release-to-bosh-uaa
       image: bosh-ecosystem-registry-image
       file: bosh-backup-and-restore-ci/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: many-bbr-jobs-release
         <<: *ts-2-bosh-env
-      tags: [broadcom]
     - task: upload-many-bbr-jobs-release-to-bosh
       image: bosh-ecosystem-registry-image
       file: bosh-backup-and-restore-ci/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: many-bbr-jobs-release
         <<: *ts-bosh-env
-      tags: [broadcom]
     - task: upload-redis-test-release-to-bosh
       image: bosh-ecosystem-registry-image
       file: bosh-backup-and-restore-ci/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: redis-test-release
         <<: *ts-bosh-env
-      tags: [broadcom]
     - task: upload-redis-test-release-to-bosh-uaa
       image: bosh-ecosystem-registry-image
       file: bosh-backup-and-restore-ci/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: redis-test-release
         <<: *ts-2-bosh-env
-      tags: [broadcom]
     - task: upload-lock-ordering-release-to-bosh-uaa
       image: bosh-ecosystem-registry-image
       file: bosh-backup-and-restore-ci/ci/tasks/bbr-upload-system-test-releases/task.yml
       params:
         RELEASE_NAME: lock-ordering-release
         <<: *ts-2-bosh-env
-      tags: [broadcom]
 
     - task: allow-connections-to-bosh-director-on-port-25555
       image: bosh-ecosystem-registry-image
@@ -584,7 +569,6 @@ jobs:
 
             bosh cc > cc.yml
             bosh ucc -n <( bosh int cc.yml -o <( echo -e "- type: replace\n  path: /vm_types/name=minimal/cloud_properties?/tags?\n  value: [${ENV_NAME}-bosh-open]") )
-      tags: [broadcom]
 
 
   - task: system-deployment-with-uaa
@@ -593,7 +577,6 @@ jobs:
     file: bosh-backup-and-restore-ci/ci/tasks/bbr-system-deployment/task.yml
     params:
       <<: *ts-2-bosh-env
-    tags: [broadcom]
 
 - name: test-build-s3-config-validator
   serial_groups:
@@ -681,11 +664,9 @@ jobs:
     - get: drats-env
       trigger: true
       passed: [claim-drats-env]
-      tags: [broadcom]
   - task: copy-shepherd-ops-files-into-cfd
     image: cf-deployment-concourse-tasks-registry-image
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
-    tags: [broadcom]
     input_mapping:
       base-ops-files: cf-deployment
       new-ops-files: bosh-backup-and-restore-ci
@@ -697,7 +678,6 @@ jobs:
   - task: deploy-backup-restore-components
     image: cf-deployment-concourse-tasks-registry-image
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
-    tags: [broadcom]
     input_mapping:
       toolsmiths-env: drats-env
       ops-files: opsfiles
@@ -718,7 +698,6 @@ jobs:
     image: cf-deployment-concourse-tasks-registry-image
     attempts: 5
     file: cf-deployment-concourse-tasks/run-errand/task.yml
-    tags: [broadcom]
     input_mapping:
       toolsmiths-env: drats-env
     params:
@@ -727,7 +706,6 @@ jobs:
     image: cf-deployment-concourse-tasks-registry-image
     attempts: 5
     file: cf-deployment-concourse-tasks/run-errand/task.yml
-    tags: [broadcom]
     input_mapping:
       toolsmiths-env: drats-env
     params:
@@ -738,7 +716,6 @@ jobs:
   - task: update-integration-config
     image: cf-deployment-concourse-tasks-registry-image
     file: bosh-backup-and-restore-ci/ci/tasks/setup-drats-integration-config/task.yml
-    tags: [broadcom]
     input_mapping:
       integration-configs: disaster-recovery-acceptance-tests
       cf-deployment-env: drats-env
@@ -759,7 +736,6 @@ jobs:
     image: cf-deployment-concourse-tasks-registry-image
     file: disaster-recovery-acceptance-tests/ci/tasks/drats-with-integration-config/task.yml
     privileged: true
-    tags: [broadcom]
     input_mapping:
       drats-integration-config: updated-integration-configs
       bbr-binary-release: bbr-dev-release
@@ -768,7 +744,6 @@ jobs:
       CONFIG_FILE_PATH: ci/integration_config.json
       CF_DIAL_TIMEOUT: 300
   - put: drats-env
-    tags: [broadcom]
     params:
       action: release
       resource: drats-env
@@ -790,11 +765,10 @@ jobs:
     - get: b-drats-env
       trigger: true
       passed: [claim-b-drats-env]
-      tags: [broadcom]
   - task: create-b-drats-config
     image: bosh-ecosystem-registry-image
     file: bosh-backup-and-restore-ci/ci/tasks/setup-b-drats-integration-config/task.yml
-    tags: [nimbus]
+    tags: [ *vsphere_access_worker_tag ]
     input_mapping:
       environment: b-drats-env
       stemcell: jammy-stemcell
@@ -812,7 +786,7 @@ jobs:
     image: bosh-ecosystem-registry-image
     file: b-drats/ci/tasks/run-b-drats/task.yml
     privileged: true
-    tags: [nimbus]
+    tags: [ *vsphere_access_worker_tag ]
     input_mapping:
       bosh-disaster-recovery-acceptance-tests: b-drats
       bbr-binary-release: bbr-dev-release
@@ -826,7 +800,6 @@ jobs:
       SSH_ALIVE_INTERVAL: 60 #! in seconds
       GINKGO_TIMEOUT: 48h0m0s #! 48h to be consistent with TIMEOUT_IN_MINUTES in the b-drats test config from the previous task.
   - put: b-drats-env
-    tags: [broadcom]
     params:
       action: release
       resource: b-drats-env
@@ -973,9 +946,7 @@ jobs:
       - get: bosh-backup-and-restore
         trigger: true
       - get: cryogenics-concourse-tasks
-        tags: [broadcom]
       - put: environment
-        tags: [broadcom]
         attempts: *number_of_claim_env_retries
         timeout: 6h
         params:
@@ -984,7 +955,6 @@ jobs:
           resource: environment
           timeout: 6h
       - put: additional-environment
-        tags: [broadcom]
         attempts: *number_of_claim_env_retries
         timeout: 6h
         params:
@@ -1001,10 +971,8 @@ jobs:
             trigger: true
             passed: [build-dev]
           - get: bbr-dev-release
-            tags: [broadcom]
             passed: [build-dev]
           - put: drats-env
-            tags: [broadcom]
             attempts: *number_of_claim_env_retries
             timeout: 6h
             params:
@@ -1021,10 +989,8 @@ jobs:
             trigger: true
             passed: [build-dev]
           - get: bbr-dev-release
-            tags: [broadcom]
             passed: [build-dev]
           - put: b-drats-env
-            tags: [broadcom]
             attempts: *number_of_claim_env_retries
             timeout: 6h
             params:
@@ -1047,21 +1013,17 @@ jobs:
         passed:
         - system-test-deployment
         - system-test-director
-        tags: [broadcom]
       - get: additional-environment
         passed:
         - system-test-deployment
-        tags: [broadcom]
   - put: environment
     params:
       action: release
       resource: environment
-    tags: [broadcom]
   - put: additional-environment
     params:
       action: release
       resource: additional-environment
-    tags: [broadcom]
 
 - name: bump-deps-bbr-cli
   plan:
@@ -1076,7 +1038,6 @@ jobs:
   - task: bump-deps
     file: golang-release/ci/tasks/shared/bump-deps.yml
     image: golang-release-image
-    tags: [broadcom]
     input_mapping:
       input_repo: bosh-backup-and-restore
     output_mapping:
@@ -1112,7 +1073,6 @@ jobs:
   - task: bump-deps
     file: golang-release/ci/tasks/shared/bump-deps.yml
     image: golang-release-image
-    tags: [broadcom]
     input_mapping:
       input_repo: bosh-backup-and-restore
     output_mapping:
