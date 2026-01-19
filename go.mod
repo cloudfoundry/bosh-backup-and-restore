@@ -4,8 +4,8 @@ go 1.24.0
 
 require (
 	github.com/cloudfoundry/bosh-cli/v7 v7.9.15
-	github.com/cloudfoundry/bosh-utils v0.0.581
-	github.com/cloudfoundry/socks5-proxy v0.2.164
+	github.com/cloudfoundry/bosh-utils v0.0.582
+	github.com/cloudfoundry/socks5-proxy v0.2.165
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.1
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
@@ -26,7 +26,7 @@ require (
 	github.com/charlievieth/fs v0.0.3 // indirect
 	github.com/cheggaaa/pb/v3 v3.1.7 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
-	github.com/clipperhouse/uax29/v2 v2.3.0 // indirect
+	github.com/clipperhouse/uax29/v2 v2.3.1 // indirect
 	github.com/cloudfoundry/config-server v0.1.261 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851 // indirect
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4 // indirect
