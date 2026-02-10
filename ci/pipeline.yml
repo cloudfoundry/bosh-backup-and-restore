@@ -185,7 +185,6 @@ resources:
     username: bosh-admin-bot
     password: *github_access_token
     branch: master
-    disable_git_lfs: true
     ignore_paths:
     - ci
 
@@ -196,7 +195,6 @@ resources:
     username: bosh-admin-bot
     password: *github_access_token
     branch: master
-    disable_git_lfs: true
     paths:
     - ci
 
@@ -427,6 +425,7 @@ jobs:
     params:
       <<: *ts-bosh-env
   - put: deploy-fake-director
+    inputs: all
     resource: test-bosh-director-deployment
     params:
       manifest: bosh-backup-and-restore/fixtures/fake-director.yml
@@ -497,6 +496,7 @@ jobs:
     params:
       <<: *ts-2-bosh-env
   - put: deploy-fake-director
+    inputs: all
     resource: additional-test-bosh-director-deployment
     params:
       manifest: bosh-backup-and-restore/fixtures/fake-director.yml
