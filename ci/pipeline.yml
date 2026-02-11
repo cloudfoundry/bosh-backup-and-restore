@@ -371,7 +371,7 @@ resources:
     lease:
       namespace: bosh-ecosystem
       pool:
-        name: epc-tas-10_2_0-lite
+        name: tas-10_3_0-lite
         namespace: official
 
 - name: disaster-recovery-acceptance-tests
