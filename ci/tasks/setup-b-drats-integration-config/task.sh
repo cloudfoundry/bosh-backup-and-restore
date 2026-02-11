@@ -69,6 +69,9 @@ main() {
   local stemcell_src
   stemcell_src="$(cat stemcell/url)"
 
+  local stemcell_os
+  stemcell_os=$(tar --occurrence --to-stdout -xf stemcell/stemcell.tgz stemcell.MF | yq '.operating_system')
+
   local az
   az="$(jq -r '.azs[0]' environment/metadata)"
 
@@ -92,6 +95,7 @@ main() {
   "credhub_ca_cert": "$bosh_ca_cert",
   "credhub_server": "https://${bosh_environment}:8844",
   "stemcell_src": "$stemcell_src",
+  "stemcell_os": "$stemcell_os",
   "include_deployment_testcase": $INCLUDE_DEPLOYMENT_TESTCASE,
   "include_truncate_db_blobstore_testcase": $INCLUDE_TRUNCATE_DB_BLOBSTORE_TESTCASE,
   "include_credhub_testcase": $INCLUDE_CREDHUB_TESTCASE,
