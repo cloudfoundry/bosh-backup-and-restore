@@ -100,7 +100,7 @@ main() {
   "include_truncate_db_blobstore_testcase": $INCLUDE_TRUNCATE_DB_BLOBSTORE_TESTCASE,
   "include_credhub_testcase": $INCLUDE_CREDHUB_TESTCASE,
   "timeout_in_minutes": $TIMEOUT_IN_MINUTES,
-  "deployment_vm_type": "default",
+  "deployment_vm_type": "medium",
   "deployment_network": "network",
   "deployment_az": "\"null\"",
   "jumpbox_host": "$jumpbox_host",
