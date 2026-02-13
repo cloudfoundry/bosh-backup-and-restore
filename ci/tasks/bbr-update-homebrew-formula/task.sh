@@ -58,6 +58,7 @@ EOF
 
   git add bbr.rb
   git config --global user.name "PCF Backup & Restore CI"
+  git config --global user.email "cf-lazarus@pivotal.io"
   if git commit -m "Release BBR CLI v${VERSION}"; then
     echo "Updated homebrew formula to bbr v${VERSION}"
   else
