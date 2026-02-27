@@ -19,14 +19,14 @@ require (
 
 require (
 	code.cloudfoundry.org/clock v1.61.0 // indirect
-	code.cloudfoundry.org/tlsconfig v0.45.0 // indirect
+	code.cloudfoundry.org/tlsconfig v0.46.0 // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/charlievieth/fs v0.0.3 // indirect
 	github.com/cheggaaa/pb/v3 v3.1.7 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
-	github.com/cloudfoundry/config-server v0.1.264 // indirect
+	github.com/cloudfoundry/config-server v0.1.265 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851 // indirect
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
@@ -49,7 +49,7 @@ require (
 	github.com/vito/go-interact v1.0.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/mod v0.33.0 // indirect
-	golang.org/x/net v0.50.0 // indirect
+	golang.org/x/net v0.51.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.41.0 // indirect
 	golang.org/x/term v0.40.0 // indirect
