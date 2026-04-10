@@ -3,7 +3,7 @@ module github.com/cloudfoundry/bosh-backup-and-restore
 go 1.25.0
 
 require (
-	github.com/cloudfoundry/bosh-cli/v7 v7.10.1
+	github.com/cloudfoundry/bosh-cli/v7 v7.10.2
 	github.com/cloudfoundry/bosh-utils v0.0.605
 	github.com/cloudfoundry/socks5-proxy v0.2.172
 	github.com/cppforlife/go-patch v0.2.0
@@ -13,12 +13,12 @@ require (
 	github.com/onsi/gomega v1.39.1
 	github.com/pkg/errors v0.9.1
 	github.com/urfave/cli v1.22.17
-	golang.org/x/crypto v0.49.0
+	golang.org/x/crypto v0.50.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
-	code.cloudfoundry.org/clock v1.64.0 // indirect
+	code.cloudfoundry.org/clock v1.65.0 // indirect
 	code.cloudfoundry.org/tlsconfig v0.50.0 // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
@@ -39,20 +39,20 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mattn/go-runewidth v0.0.22 // indirect
+	github.com/mattn/go-isatty v0.0.21 // indirect
+	github.com/mattn/go-runewidth v0.0.23 // indirect
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/pivotal-cf/paraphernalia v0.0.0-20180203224945-a64ae2051c20 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/vito/go-interact v1.0.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
-	golang.org/x/mod v0.34.0 // indirect
-	golang.org/x/net v0.52.0 // indirect
+	golang.org/x/mod v0.35.0 // indirect
+	golang.org/x/net v0.53.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.42.0 // indirect
-	golang.org/x/term v0.41.0 // indirect
-	golang.org/x/text v0.35.0 // indirect
-	golang.org/x/tools v0.43.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
+	golang.org/x/term v0.42.0 // indirect
+	golang.org/x/text v0.36.0 // indirect
+	golang.org/x/tools v0.44.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
