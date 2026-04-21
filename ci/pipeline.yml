@@ -318,7 +318,7 @@ resources:
           vm_type: n2d-standard-8
           root_disk_gb: 32
           disk_pool_gb: 200
-          cfd_version: ""
+          cfd_version: "v55.3.0"
           cfd_additional_opsfiles_b64: "LS0tCi0gdHlwZTogcmVwbGFjZQogIHBhdGg6IC9hZGRvbnMvbmFtZT1ib3NoLWRucy1hbGlhc2VzL2pvYnMvbmFtZT1ib3NoLWRucy1hbGlhc2VzL3Byb3BlcnRpZXMvYWxpYXNlcy8tCiAgdmFsdWU6CiAgICBkb21haW46IF8uKChzeXN0ZW1fZG9tYWluKSkKICAgIHRhcmdldHM6CiAgICAgIC0gZGVwbG95bWVudDogY2YKICAgICAgICBkb21haW46IGJvc2gKICAgICAgICBpbnN0YW5jZV9ncm91cDogcm91dGVyCiAgICAgICAgbmV0d29yazogZGVmYXVsdAogICAgICAgIHF1ZXJ5OiAiKiI="
           bosh_additional_opsfiles_b64: ""
 
@@ -338,7 +338,7 @@ resources:
           vm_type: n2d-standard-8
           root_disk_gb: 32
           disk_pool_gb: 200
-          cfd_version: ""
+          cfd_version: "v55.3.0"
           cfd_additional_opsfiles_b64: "LS0tCi0gdHlwZTogcmVwbGFjZQogIHBhdGg6IC9hZGRvbnMvbmFtZT1ib3NoLWRucy1hbGlhc2VzL2pvYnMvbmFtZT1ib3NoLWRucy1hbGlhc2VzL3Byb3BlcnRpZXMvYWxpYXNlcy8tCiAgdmFsdWU6CiAgICBkb21haW46IF8uKChzeXN0ZW1fZG9tYWluKSkKICAgIHRhcmdldHM6CiAgICAgIC0gZGVwbG95bWVudDogY2YKICAgICAgICBkb21haW46IGJvc2gKICAgICAgICBpbnN0YW5jZV9ncm91cDogcm91dGVyCiAgICAgICAgbmV0d29yazogZGVmYXVsdAogICAgICAgIHF1ZXJ5OiAiKiI="
           bosh_additional_opsfiles_b64: ""
 
@@ -358,7 +358,7 @@ resources:
           vm_type: n2d-standard-8
           root_disk_gb: 32
           disk_pool_gb: 200
-          cfd_version: ""
+          cfd_version: "v55.3.0"
           cfd_additional_opsfiles_b64: "LS0tCi0gdHlwZTogcmVwbGFjZQogIHBhdGg6IC9hZGRvbnMvbmFtZT1ib3NoLWRucy1hbGlhc2VzL2pvYnMvbmFtZT1ib3NoLWRucy1hbGlhc2VzL3Byb3BlcnRpZXMvYWxpYXNlcy8tCiAgdmFsdWU6CiAgICBkb21haW46IF8uKChzeXN0ZW1fZG9tYWluKSkKICAgIHRhcmdldHM6CiAgICAgIC0gZGVwbG95bWVudDogY2YKICAgICAgICBkb21haW46IGJvc2gKICAgICAgICBpbnN0YW5jZV9ncm91cDogcm91dGVyCiAgICAgICAgbmV0d29yazogZGVmYXVsdAogICAgICAgIHF1ZXJ5OiAiKiI="
           bosh_additional_opsfiles_b64: ""
 
