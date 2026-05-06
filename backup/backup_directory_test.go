@@ -1055,7 +1055,7 @@ backup_activity:
 				size, err = artifact.GetArtifactByteSize(fakeBackupArtifact)
 
 				Expect(err).NotTo(HaveOccurred())
-				Expect(size).To(Equal(4096))
+				Expect(size).To(Equal(len("this-is-a-4k-file")))
 			})
 		})
 

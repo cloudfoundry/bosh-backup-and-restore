@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"strconv"
 	"strings"
 
 	"crypto/sha256"
@@ -45,19 +44,12 @@ func (backupDirectory *BackupDirectory) GetArtifactSize(artifactIdentifier orche
 func (backupDirectory *BackupDirectory) GetArtifactByteSize(artifactIdentifier orchestrator.ArtifactIdentifier) (int, error) {
 	filename := backupDirectory.instanceFilename(artifactIdentifier)
 
-	cmd := exec.Command("du", filename)
-	cmd.Env = []string{"BLOCKSIZE=512"}
-	output, err := cmd.Output()
+	info, err := os.Stat(filename)
 	if err != nil {
 		return 0, fmt.Errorf("failed to determine file size for file %s", filename)
 	}
 
-	sizeString := strings.Fields(string(output))[0]
-	size, err := strconv.Atoi(sizeString)
-	if err != nil {
-		return 0, fmt.Errorf("expected <%s> to be a number of bytes: failed to convert it to int", sizeString)
-	}
-	return size * 512, nil
+	return int(info.Size()), nil
 }
 
 func (backupDirectory *BackupDirectory) logAndReturn(err error, message string, args ...interface{}) error {
