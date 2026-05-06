@@ -990,7 +990,7 @@ backup_activity:
 		)
 
 		BeforeEach(func() {
-			backupDir := os.TempDir()
+			backupDir := GinkgoT().TempDir()
 			jobName = "my-artifact"
 			filename := jobName + "-" + "0" + "-" + jobName + ".tar"
 			err := os.WriteFile(filepath.Join(backupDir, filename), []byte("this-is-a-4k-file"), 0600)
@@ -1034,7 +1034,7 @@ backup_activity:
 		)
 
 		BeforeEach(func() {
-			backupDir := os.TempDir()
+			backupDir := GinkgoT().TempDir()
 			jobName = "my-artifact-bytes"
 			filename := jobName + "-" + "0" + "-" + jobName + ".tar"
 			err := os.WriteFile(filepath.Join(backupDir, filename), []byte("this-is-a-4k-file"), 0600)
