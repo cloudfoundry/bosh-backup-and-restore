@@ -5,8 +5,8 @@ code.cloudfoundry.org/tlsconfig v0.52.0/go.mod h1:9Jxw2AnXRy1aq9iSGrOWWrOMc+vh6J
 filippo.io/edwards25519 v1.2.0 h1:crnVqOiS4jqYleHd9vaKZ+HKtHfllngJIiOpNpoJsjo=
 filippo.io/edwards25519 v1.2.0/go.mod h1:xzAOLCNug/yB62zG1bQ8uziwrIqIuxhctzJT18Q77mc=
 github.com/BurntSushi/toml v1.5.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
-github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1Xbatp0=
-github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
+github.com/Masterminds/semver/v3 v3.5.0 h1:kQceYJfbupGfZOKZQg0kou0DgAKhzDg2NZPAwZ/2OOE=
+github.com/Masterminds/semver/v3 v3.5.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/VividCortex/ewma v1.2.0 h1:f58SaIzcDXrSy3kWaHNvuJgJ3Nmz59Zji6XoJR/q1ow=
 github.com/VividCortex/ewma v1.2.0/go.mod h1:nz4BbCtbLyFDeC9SUHbtcT5644juEuWfUAUnGx7j5l4=
 github.com/bmatcuk/doublestar v1.3.4 h1:gPypJ5xD31uhX6Tf54sDPUOBXTqKH4c9aPY66CyQrS0=
@@ -23,8 +23,8 @@ github.com/cloudfoundry/config-server v0.1.276 h1:m4zu+pcqKEtxNeLFB6R6PjdjMSi6fo
 github.com/cloudfoundry/config-server v0.1.276/go.mod h1:Z+9YVVH7PzjRZib2Bdf5j7YfksYx9uvA9c+rShMdHAQ=
 github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851 h1:oy59UYcspoP44ggE8DM3kjxl1+sTFd802bbZlBBhBMk=
 github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851/go.mod h1:72EEm1oq5oXqGfu9XGtaRPWEcAFYd/P10cMNln0QhA8=
-github.com/cloudfoundry/socks5-proxy v0.2.173 h1:vEAKc//jHXN9AWrSjoZJMPZWVORusRfq6lkwKyUuOQs=
-github.com/cloudfoundry/socks5-proxy v0.2.173/go.mod h1:i4pmYUQel0SFjAdHGZ65hWVuQMV5fkZNE4m1QXmPH/0=
+github.com/cloudfoundry/socks5-proxy v0.2.174 h1:X3ZDnDH16ushlASHn/Kmg96X86sgq+3nbVjuepfpXLw=
+github.com/cloudfoundry/socks5-proxy v0.2.174/go.mod h1:ZAl3AHDeopXwcbgysjMOEvDueDyzxP2koWYdD7S+vDE=
 github.com/cppforlife/go-patch v0.2.0 h1:Y14MnCQjDlbw7WXT4k+u6DPAA9XnygN4BfrSpI/19RU=
 github.com/cppforlife/go-patch v0.2.0/go.mod h1:67a7aIi94FHDZdoeGSJRRFDp66l9MhaAG1yGxpUoFD8=
 github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4 h1:J+ghqo7ZubTzelkjo9hntpTtP/9lUCWH9icEmAW+B+Q=
