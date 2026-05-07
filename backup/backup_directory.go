@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"os/exec"
 	"path"
@@ -46,10 +47,15 @@ func (backupDirectory *BackupDirectory) GetArtifactByteSize(artifactIdentifier o
 
 	info, err := os.Stat(filename)
 	if err != nil {
-		return 0, fmt.Errorf("failed to determine file size for file %s", filename)
+		return 0, fmt.Errorf("failed to determine file size for file %s: %w", filename, err)
 	}
 
-	return int(info.Size()), nil
+	size := info.Size()
+	if size > math.MaxInt {
+		return 0, fmt.Errorf("file %s is too large (%d bytes) to fit in an int; cannot compute percentage", filename, size)
+	}
+
+	return int(size), nil
 }
 
 func (backupDirectory *BackupDirectory) logAndReturn(err error, message string, args ...interface{}) error {
