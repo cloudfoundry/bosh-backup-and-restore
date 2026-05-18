@@ -4,13 +4,13 @@ go 1.25.0
 
 require (
 	github.com/cloudfoundry/bosh-cli/v7 v7.10.5
-	github.com/cloudfoundry/bosh-utils v0.0.611
+	github.com/cloudfoundry/bosh-utils v0.0.612
 	github.com/cloudfoundry/socks5-proxy v0.2.175
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.2
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
-	github.com/onsi/ginkgo/v2 v2.28.3
-	github.com/onsi/gomega v1.40.0
+	github.com/onsi/ginkgo/v2 v2.29.0
+	github.com/onsi/gomega v1.41.0
 	github.com/pkg/errors v0.9.1
 	github.com/urfave/cli v1.22.17
 	golang.org/x/crypto v0.51.0
@@ -25,7 +25,7 @@ require (
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
 	github.com/cheggaaa/pb/v3 v3.1.7 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
-	github.com/cloudfoundry/config-server v0.1.278 // indirect
+	github.com/cloudfoundry/config-server v0.1.279 // indirect
 	github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851 // indirect
 	github.com/cppforlife/go-semi-semantic v0.0.0-20160921010311-576b6af77ae4 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
