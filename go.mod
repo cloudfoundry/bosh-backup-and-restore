@@ -13,12 +13,12 @@ require (
 	github.com/onsi/gomega v1.41.0
 	github.com/pkg/errors v0.9.1
 	github.com/urfave/cli v1.22.17
-	golang.org/x/crypto v0.51.0
+	golang.org/x/crypto v0.52.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
-	code.cloudfoundry.org/clock v1.70.0 // indirect
+	code.cloudfoundry.org/clock v1.71.0 // indirect
 	code.cloudfoundry.org/tlsconfig v0.53.0 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
@@ -47,9 +47,9 @@ require (
 	github.com/vito/go-interact v1.0.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/mod v0.36.0 // indirect
-	golang.org/x/net v0.54.0 // indirect
+	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.44.0 // indirect
+	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/term v0.43.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/tools v0.45.0 // indirect
