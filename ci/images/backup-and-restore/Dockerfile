@@ -106,7 +106,7 @@ RUN gem install cf-uaac
 
 # credhub
 RUN \
-  wget https://github.com/cloudfoundry-incubator/credhub-cli/releases/download/${CREDHUB_CLI_VERSION}/credhub-linux-${CREDHUB_CLI_VERSION}.tgz -P /tmp && \
+  wget https://github.com/cloudfoundry/credhub-cli/releases/download/${CREDHUB_CLI_VERSION}/credhub-linux-${CREDHUB_CLI_VERSION}.tgz -P /tmp && \
   tar xzvf /tmp/credhub-linux-${CREDHUB_CLI_VERSION}.tgz -C /usr/local/bin && \
   chmod +x /usr/local/bin/credhub
 
