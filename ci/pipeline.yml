@@ -5,10 +5,10 @@
 #! Secrets we need to run this pipeline
 #! ************************************
 secrets:
-#! github_access_token is used to create PRs and fetch github releases.
+#! github_access_token is used to create PRs and fetch GitHub releases.
 - &github_access_token ((github_read_write_token))
 
-- &aws-access
+-
 #! AWS access keys for the 686843836666 account
   access_key_id: &aws_access_key ((bbr_aws_access_key.username))
   secret_access_key: &aws_secret_key ((bbr_aws_access_key.password))
@@ -33,14 +33,14 @@ secrets:
 - &test-bosh-director-ip-priv-key ((test_bosh_director_ssh_key.private_key))
 - &test-bosh-director-ip-pub-key ((test_bosh_director_ssh_key.public_key))
 
-- &shepherd_account_key ((bosh-ecosystem-shepherd-service-account))
 - &shepherd_lvn_account_key ((bosh-ecosystem-shepherd-service-account-lvn))
+#! - &shepherd_account_key ((bosh-ecosystem-shepherd-service-account))
 #! shepherd_account_key was needed on 2023-09-28 to claim shepherd environments. It was created using `shepherd create service-account` after logging in with WS1.
 
 - &docker_username ((docker.username))
 - &docker_password ((docker.password))
 
-#! Access token for our service account user in Github Enterprise
+#! Access token for our service account user in GitHub Enterprise
 - &ghe_svc_account_personal_access_token ((svc-bosh-ecosystem-ghe-personal-access-token))
 
 #! Artifactory token
@@ -233,12 +233,6 @@ resources:
     json_key: *gcp_service_accounts_bucket_owner
     driver: gcs
 
-#! When using shepherd v2 bosh lite, we can't use the google stemcell
-#! - name: jammy-stemcell
-#!   type: bosh-io-stemcell
-#!   source:
-#!     name: bosh-google-kvm-ubuntu-jammy-go_agent
-
 - name: jammy-stemcell
   type: bosh-io-stemcell
   source:
@@ -294,7 +288,6 @@ resources:
   source:
     branch: main
     uri: https://github.com/cloudfoundry/cf-deployment-concourse-tasks.git
-
 
 - name: cf-deployment
   type: git
@@ -408,7 +401,8 @@ jobs:
       passed: [ claim-env ]
     - get: bosh-deployment
     - get: bbr-director-test-releases
-    - get: jammy-stemcell
+    - get: stemcell
+      resource: jammy-stemcell
     - get: cryogenics-concourse-tasks
       passed: [ claim-env ]
     - get: bosh-ecosystem-registry-image
@@ -428,7 +422,7 @@ jobs:
     resource: test-bosh-director-deployment
     params:
       manifest: bosh-backup-and-restore/fixtures/fake-director.yml
-      stemcells: [ jammy-stemcell/*.tgz ]
+      stemcells: [ stemcell/*.tgz ]
       source_file: source-file/source-file.yml
       vars:
         deployment-name: test-bosh-director
@@ -469,7 +463,8 @@ jobs:
     - get: bosh-backup-and-restore
       passed: [ claim-env ]
     - get: bbr-director-test-releases
-    - get: jammy-stemcell
+    - get: stemcell
+      resource: jammy-stemcell
     - get: bosh-ecosystem-registry-image
     - get: cryogenics-concourse-tasks
       passed: [ claim-env ]
@@ -499,7 +494,7 @@ jobs:
     resource: additional-test-bosh-director-deployment
     params:
       manifest: bosh-backup-and-restore/fixtures/fake-director.yml
-      stemcells: [ jammy-stemcell/*.tgz ]
+      stemcells: [ stemcell/*.tgz ]
       source_file: source-file/source-file.yml
       vars:
         deployment-name: ci
@@ -663,6 +658,8 @@ jobs:
     - get: drats-env
       trigger: true
       passed: [claim-drats-env]
+    - get: stemcell
+      resource: jammy-stemcell
   - task: copy-shepherd-ops-files-into-cfd
     image: cf-deployment-concourse-tasks-registry-image
     file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
@@ -673,7 +670,25 @@ jobs:
       collected-ops-files: opsfiles
     params:
       BASE_OPS_FILE_DIR: operations/
-      NEW_OPS_FILES: ci/ops-files/add_dns_alias.yml
+      NEW_OPS_FILES: >
+        ci/ops-files/add_dns_alias.yml
+  - task: upload-stemcell
+    image: cf-deployment-concourse-tasks-registry-image
+    config:
+      platform: linux
+      inputs:
+      - name: stemcell
+      - name: cf-deployment-concourse-tasks
+      - name: drats-env
+        path: toolsmiths-env
+      run:
+        path: /bin/bash
+        args:
+        - -ce
+        - |
+          source cf-deployment-concourse-tasks/shared-functions
+          setup_bosh_env_vars
+          bosh upload-stemcell stemcell/*.tgz --fix
   - task: deploy-backup-restore-components
     image: cf-deployment-concourse-tasks-registry-image
     file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
@@ -759,7 +774,8 @@ jobs:
       trigger: true
       params: {unpack: true}
       passed: [claim-b-drats-env]
-    - get: jammy-stemcell
+    - get: stemcell
+      resource: jammy-stemcell
     - get: bosh-ecosystem-registry-image
     - get: b-drats-env
       trigger: true
@@ -770,7 +786,6 @@ jobs:
     tags: [ *vsphere_access_worker_tag ]
     input_mapping:
       environment: b-drats-env
-      stemcell: jammy-stemcell
     params:
       INCLUDE_DEPLOYMENT_TESTCASE: true
       INCLUDE_TRUNCATE_DB_BLOBSTORE_TESTCASE: false
