@@ -68,7 +68,7 @@ func (r *ProbeRunner) Run() (succeeded bool) {
 
 func NewProbeRunners(resource string, bucket config.LiveBucket, readOnly, versioned bool) []ProbeRunner {
 	// the s3 clients for the runners are meant to be constructed the same way as the BBR SDK is constructing them;
-	// see https://github.com/cloudfoundry-incubator/backup-and-restore-sdk-release/blob/59d6a95963d0a81e77b666f44338833c45452d37/src/s3-blobstore-backup-restore/unversioned/config.go#L32-L61
+	// see https://github.com/cloudfoundry/backup-and-restore-sdk-release/blob/59d6a95963d0a81e77b666f44338833c45452d37/src/s3-blobstore-backup-restore/unversioned/config.go#L32-L61
 	// while the respective regions are being used, the endpoint is the same for both.
 	// this is a known issue: https://www.pivotaltracker.com/story/show/174547239
 

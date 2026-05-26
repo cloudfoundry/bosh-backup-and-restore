@@ -19,7 +19,7 @@ On macOS, you can install BBR using [Homebrew](http://brew.sh/):
 
 We use [go modules](https://blog.golang.org/using-go-modules) to manage our dependencies, so run:
 
-1. `git clone git@github.com:cloudfoundry-incubator/bosh-backup-and-restore.`
+1. `git clone git@github.com:cloudfoundry/bosh-backup-and-restore`
 1. `go mod download`
 
 Unit tests make use of Docker containers to test networking. Ensure that Docker is running in your environment, before attempting to run tests.
