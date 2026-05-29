@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/cloudfoundry/bosh-cli/v7 v7.10.5
-	github.com/cloudfoundry/bosh-utils v0.0.612
+	github.com/cloudfoundry/bosh-utils v0.0.613
 	github.com/cloudfoundry/socks5-proxy v0.2.176
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.2
@@ -18,7 +18,7 @@ require (
 )
 
 require (
-	code.cloudfoundry.org/clock v1.71.0 // indirect
+	code.cloudfoundry.org/clock v1.72.0 // indirect
 	code.cloudfoundry.org/tlsconfig v0.53.0 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
