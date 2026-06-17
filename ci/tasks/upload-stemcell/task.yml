@@ -1,0 +1,17 @@
+platform: linux
+
+inputs:
+  - name: stemcell
+  - name: bosh-backup-and-restore-ci
+
+params:
+  BOSH_ENVIRONMENT:
+  BOSH_CLIENT:
+  BOSH_CLIENT_SECRET:
+  BOSH_CA_CERT:
+  BOSH_GW_HOST:
+  BOSH_GW_PRIVATE_KEY:
+  BOSH_GW_USER:
+
+run:
+  path: bosh-backup-and-restore-ci/ci/tasks/upload-stemcell/task.sh

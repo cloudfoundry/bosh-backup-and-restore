@@ -1,15 +1,16 @@
 platform: linux
-image_resource:
-  type: registry-image
-  source:
-    repository: cryogenics/essentials
-    tag: 0.1.111
+
 inputs:
   - name: s3-config-validator-dev-release
   - name: bosh-backup-and-restore-ci
+
 params:
-  ACCESS_KEY:
-  SECRET_KEY:
-  ROLE_ARN:
+  AWS_ACCESS_KEY:
+  AWS_SECRET_KEY:
+  AWS_ASSUMED_ROLE_ARN:
+  AWS_REGION:
+  AWS_UNVERSIONED_BUCKET_LIVE:
+  AWS_UNVERSIONED_BUCKET_BACKUP:
+
 run:
   path: bosh-backup-and-restore-ci/ci/tasks/bbr-s3-config-validator-validate-aws-s3-config/task.sh

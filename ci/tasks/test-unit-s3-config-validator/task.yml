@@ -8,6 +8,7 @@ image_resource:
 
 inputs:
 - name: bosh-backup-and-restore-ci
+- name: bosh-backup-and-restore
 
 run:
   path: bosh-backup-and-restore-ci/ci/tasks/test-unit-s3-config-validator/task.sh

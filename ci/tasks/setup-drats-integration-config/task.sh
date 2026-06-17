@@ -8,15 +8,20 @@ get_password_from_credhub() {
   credhub find -j -n "${variable_name}" | jq -r .credentials[].name | xargs credhub get -j -n | jq -r .value
 }
 
-get_system_domain() {
-  jq -r '.cf.api_url | capture("^api\\.(?<system_domain>.*)$") | .system_domain' \
-    cf-deployment-env/metadata
-}
-
 setup_env_vars() {
-  eval "$(bbl print-env --metadata-file cf-deployment-env/metadata)"
-  export SYSTEM_DOMAIN="$(get_system_domain)"
-  export JUMPBOX_ADDRESS=$(echo $BOSH_ALL_PROXY | cut -d"@" -f2 | cut -d":" -f1)
+  pushd cf-deployment-env
+    eval "$(bbl print-env)"
+    # The credhub CLI connects to two TLS endpoints that use different CAs:
+    #   - CredHub server (8844): signed by credhub_ca (credhubServerCa)
+    #   - UAA server (8443): signed by default_ca (= BOSH_CA_CERT)
+    # CREDHUB_CA_CERT must contain both CAs (PEM concatenation is supported).
+    CREDHUB_TLS_CA=$(bosh interpolate vars/director-vars-store.yml --path /credhub_tls/ca)
+    export CREDHUB_CA_CERT="${CREDHUB_TLS_CA}
+${BOSH_CA_CERT}"
+  popd
+  # SYSTEM_DOMAIN is passed as a pipeline param (e.g. bosh-lite.com)
+  # Prefer BOSH_GW_HOST (set by bbl print-env) over parsing BOSH_ALL_PROXY.
+  export JUMPBOX_ADDRESS="${BOSH_GW_HOST:-$(echo "$BOSH_ALL_PROXY" | cut -d"@" -f2 | cut -d":" -f1)}"
 }
 
 setup_env_vars
@@ -32,7 +37,8 @@ bosh_ca_cert="$BOSH_CA_CERT"
 ssh_proxy_user="jumpbox"
 ssh_proxy_host="${JUMPBOX_ADDRESS}"
 ssh_proxy_cidr="10.0.0.0/8"
-ssh_proxy_private_key="$(cat "$JUMPBOX_PRIVATE_KEY")"
+# JUMPBOX_PRIVATE_KEY is set by bbl print-env as a path to a temp file
+ssh_proxy_private_key="$(cat "${JUMPBOX_PRIVATE_KEY:-${BOSH_GW_PRIVATE_KEY}}")"
 nfs_service_name="nfs"
 nfs_plan_name="Existing"
 nfs_broker_user="nfs-broker"
@@ -74,7 +80,7 @@ configs=( cf_deployment_name
 integration_config="$(cat "integration-configs/${INTEGRATION_CONFIG_FILE_PATH}")"
 
 for config in "${configs[@]}"; do
-  integration_config=$(echo "${integration_config}" | jq ".${config}=\"${!config}\"")
+  integration_config=$(echo "${integration_config}" | jq --arg val "${!config}" ".${config}=\$val")
 done
 
 tests_to_disable=( include_cf-credhub

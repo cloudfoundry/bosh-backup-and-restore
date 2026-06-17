@@ -12,155 +12,88 @@ set -euo pipefail
 : "${TIMEOUT_IN_MINUTES:?}"
 
 main() {
-  check_binary_exists \
-    yq \
-    om
+  pushd environment
+    eval "$(bbl print-env)"
+  popd
 
-  if [ -f "environment/pcf.yml" ]; then
-      OM_TARGET="$(yq -r '.target' 'environment/pcf.yml')"
-      OM_USERNAME="$(yq -r '.username' 'environment/pcf.yml')"
-      OM_PASSWORD="$(yq -r '.password' 'environment/pcf.yml')"
-  else
-      OM_TARGET="$(yq -r '.ops_manager.url' 'environment/metadata')"
-      OM_USERNAME="$(yq -r '.ops_manager.username' 'environment/metadata')"
-      OM_PASSWORD="$(yq -r '.ops_manager.password' 'environment/metadata')"
-  fi
-
-  export \
-    OM_TARGET \
-    OM_USERNAME \
-    OM_PASSWORD \
-    OM_SKIP_SSL_VALIDATION=true
-
-
+  # Modern bbl emits BOSH_ALL_PROXY (ssh+socks5://user@host:22?private-key=...)
+  # and JUMPBOX_PRIVATE_KEY instead of the legacy BOSH_GW_HOST / BOSH_GW_PRIVATE_KEY.
   local jumpbox_host
-  jumpbox_host=$( jq .ops_manager_dns -r < environment/metadata  )
+  jumpbox_host="$(echo "${BOSH_ALL_PROXY}" | cut -d"@" -f2 | cut -d":" -f1)"
+
+  # BOSH_ENVIRONMENT is a URL (https://<IP>:25555); BBR needs just the IP for SSH.
+  local bosh_host
+  bosh_host="$(echo "${BOSH_ENVIRONMENT}" | sed 's|https://||' | cut -d: -f1)"
 
   local jumpbox_user
-  jumpbox_user=ubuntu
+  jumpbox_user="${BOSH_GW_USER:-jumpbox}"
 
-  local jumpbox_pubkey
-  jumpbox_pubkey=$( jq .ops_manager_public_key < environment/metadata )
+  local jumpbox_privkey_path
+  jumpbox_privkey_path="${JUMPBOX_PRIVATE_KEY:-${BOSH_GW_PRIVATE_KEY}}"
 
-  local jumpbox_privkey
-  jumpbox_privkey=$( jq .ops_manager_private_key < environment/metadata )
+  local jumpbox_privkey_raw
+  jumpbox_privkey_raw="$(cat "${jumpbox_privkey_path}")"
 
-  local bosh_commandline_credentials
-  bosh_commandline_credentials="$(om curl --silent --path /api/v0/deployed/director/credentials/bosh_commandline_credentials)"
+  local jumpbox_pubkey_raw
+  jumpbox_pubkey_raw="$(ssh-keygen -y -f "${jumpbox_privkey_path}")"
 
-  local \
-    bosh_environment \
-    bosh_client \
-    bosh_client_secret \
-
-  bosh_environment=$(get_bosh_environment "$bosh_commandline_credentials")
-  bosh_client=$(get_bosh_client "$bosh_commandline_credentials")
-  bosh_client_secret=$(get_bosh_client_secret "$bosh_commandline_credentials")
-
-  local bbr_ssh_credentials
-  bbr_ssh_credentials="$(om curl --silent --path /api/v0/deployed/director/credentials/bbr_ssh_credentials)"
-
-  local bosh_ssh_private_key
-  bosh_ssh_private_key="$(jq '.credential.value.private_key_pem' <(echo "$bbr_ssh_credentials"))"
-
-  local bosh_ca_cert
-  bosh_ca_cert="$(get_bosh_ca_cert)"
+  # The BOSH director's 'jumpbox' user is provisioned via jumpbox-user.yml with a
+  # BOSH-generated key pair (jumpbox_ssh), stored in the bbl state vars-store.
+  # This is NOT the same as the jumpbox VM's SSH key.
+  local bosh_ssh_private_key_raw
+  bosh_ssh_private_key_raw="$(bosh int environment/vars/director-vars-store.yml --path /jumpbox_ssh/private_key)"
 
   local stemcell_src
   stemcell_src="$(cat stemcell/url)"
 
   local stemcell_os
-  stemcell_os=$(tar --occurrence --to-stdout -xf stemcell/stemcell.tgz stemcell.MF | yq '.operating_system')
+  stemcell_os="$(tar --occurrence --to-stdout -xf stemcell/stemcell.tgz stemcell.MF | yq '.operating_system')"
 
-  local az
-  az="$(jq -r '.azs[0]' environment/metadata)"
-
-  local env_name
-  if [ -f "environment/name" ]; then
-      env_name="$(cat environment/name)"
-  else
-      env_name="$( jq -r '.name' < environment/metadata )"
-  fi
-
-  cat << EOF > config/integration_config.json
-{
-  "bosh_host": "$bosh_environment",
-  "bosh_client": "$bosh_client",
-  "bosh_client_secret": "$bosh_client_secret",
-  "bosh_ssh_username": "bbr",
-  "bosh_ssh_private_key": $bosh_ssh_private_key,
-  "bosh_ca_cert": "$bosh_ca_cert",
-  "credhub_client_secret": "$bosh_client_secret",
-  "credhub_client": "$bosh_client",
-  "credhub_ca_cert": "$bosh_ca_cert",
-  "credhub_server": "https://${bosh_environment}:8844",
-  "stemcell_src": "$stemcell_src",
-  "stemcell_os": "$stemcell_os",
-  "include_deployment_testcase": $INCLUDE_DEPLOYMENT_TESTCASE,
-  "include_truncate_db_blobstore_testcase": $INCLUDE_TRUNCATE_DB_BLOBSTORE_TESTCASE,
-  "include_credhub_testcase": $INCLUDE_CREDHUB_TESTCASE,
-  "timeout_in_minutes": $TIMEOUT_IN_MINUTES,
-  "deployment_vm_type": "medium",
-  "deployment_network": "network",
-  "deployment_az": "\"null\"",
-  "jumpbox_host": "$jumpbox_host",
-  "jumpbox_user": "$jumpbox_user",
-  "jumpbox_pubkey": $jumpbox_pubkey,
-  "jumpbox_privkey": $jumpbox_privkey
-}
-EOF
-}
-
-check_binary_exists() {
-  local binaries
-  binaries=("$@")
-
-  for binary in "${binaries[@]}"
-  do
-    if ! command -v "$binary" > /dev/null; then \
-      echo "'$binary' required, but not found in PATH."; \
-      exit 1; \
-    fi;
-  done
-}
-
-get_bosh_environment() {
-  local bosh_commandline_credentials="${1:?}"
-
-  jq -r '.credential' <(echo "$bosh_commandline_credentials") | sed -n -E 's/.*BOSH_ENVIRONMENT=(([0-9]{1,3}\.){3}[0-9]{1,3}).*/\1/p'
-}
-
-get_bosh_client(){
-  local bosh_commandline_credentials="${1:?}"
-
-  jq -r '.credential' <(echo "$bosh_commandline_credentials") | sed -n -E 's/.*BOSH_CLIENT=([^[:space:]]+).*/\1/p'
-}
-
-get_bosh_client_secret() {
-  local bosh_commandline_credentials="${1:?}"
-
-  jq -r '.credential' <(echo "$bosh_commandline_credentials") | sed -n -E 's/.*BOSH_CLIENT_SECRET=([^[:space:]]+).*/\1/p'
-}
-
-get_bosh_ca_cert() {
-  local ops_manager_private_key
-  ops_manager_private_key="$(mktemp)"
-  chmod 0600 "$ops_manager_private_key"
-  jq -r '.ops_manager_private_key' environment/metadata > "$ops_manager_private_key"
-
-  local ops_manager_dns
-  ops_manager_dns="$(jq -r '.ops_manager_dns' environment/metadata)"
-
-  local bosh_ca_cert_path
-  bosh_ca_cert_path="$(mktemp)"
-
-  scp \
-    -o UserKnownHostsFile=/dev/null \
-    -o StrictHostKeyChecking=no \
-    -i "$ops_manager_private_key" \
-    "ubuntu@${ops_manager_dns}:/var/tempest/workspaces/default/root_ca_certificate" "$bosh_ca_cert_path"
-
-  awk '{printf "%s\\n", $0}' "$bosh_ca_cert_path"
+  jq -n \
+    --arg bosh_host "${bosh_host}" \
+    --arg bosh_client "${BOSH_CLIENT}" \
+    --arg bosh_client_secret "${BOSH_CLIENT_SECRET}" \
+    --arg bosh_ssh_private_key "${bosh_ssh_private_key_raw}" \
+    --arg bosh_ca_cert "${BOSH_CA_CERT}" \
+    --arg credhub_client "${CREDHUB_CLIENT}" \
+    --arg credhub_client_secret "${CREDHUB_SECRET}" \
+    --arg credhub_ca_cert "${BOSH_CA_CERT}" \
+    --arg credhub_server "${CREDHUB_SERVER}" \
+    --arg stemcell_src "${stemcell_src}" \
+    --arg stemcell_os "${stemcell_os}" \
+    --argjson include_deployment_testcase "${INCLUDE_DEPLOYMENT_TESTCASE}" \
+    --argjson include_truncate_db_blobstore_testcase "${INCLUDE_TRUNCATE_DB_BLOBSTORE_TESTCASE}" \
+    --argjson include_credhub_testcase "${INCLUDE_CREDHUB_TESTCASE}" \
+    --argjson timeout_in_minutes "${TIMEOUT_IN_MINUTES}" \
+    --arg jumpbox_host "${jumpbox_host}" \
+    --arg jumpbox_user "${jumpbox_user}" \
+    --arg jumpbox_pubkey "${jumpbox_pubkey_raw}" \
+    --arg jumpbox_privkey "${jumpbox_privkey_raw}" \
+    '{
+      bosh_host: $bosh_host,
+      bosh_client: $bosh_client,
+      bosh_client_secret: $bosh_client_secret,
+      bosh_ssh_username: "jumpbox",
+      bosh_ssh_private_key: $bosh_ssh_private_key,
+      bosh_ca_cert: $bosh_ca_cert,
+      credhub_client_secret: $credhub_client_secret,
+      credhub_client: $credhub_client,
+      credhub_ca_cert: $credhub_ca_cert,
+      credhub_server: $credhub_server,
+      stemcell_src: $stemcell_src,
+      stemcell_os: $stemcell_os,
+      include_deployment_testcase: $include_deployment_testcase,
+      include_truncate_db_blobstore_testcase: $include_truncate_db_blobstore_testcase,
+      include_credhub_testcase: $include_credhub_testcase,
+      timeout_in_minutes: $timeout_in_minutes,
+      deployment_vm_type: "minimal",
+      deployment_network: "default",
+      deployment_az: "z1",
+      jumpbox_host: $jumpbox_host,
+      jumpbox_user: $jumpbox_user,
+      jumpbox_pubkey: $jumpbox_pubkey,
+      jumpbox_privkey: $jumpbox_privkey
+    }' > config/integration_config.json
 }
 
 main

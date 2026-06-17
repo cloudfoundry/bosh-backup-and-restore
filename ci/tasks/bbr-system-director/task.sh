@@ -1,13 +1,11 @@
 #!/bin/bash
-
-set -eu
-set -o pipefail
+set -euo pipefail
 
 # Add GitHub SSH key to avoid rate-limit
 eval "$(ssh-agent)"
 
 # # Write Jumpbox SSH key to file
-echo -e "${BOSH_GW_PRIVATE_KEY}" > "${PWD}/ssh.key"
+printf '%s' "${BOSH_GW_PRIVATE_KEY}" > "${PWD}/ssh.key"
 chmod 0600 "${PWD}/ssh.key"
 export BOSH_GW_PRIVATE_KEY="${PWD}/ssh.key"
 
@@ -50,6 +48,9 @@ EOF
 fi
 
 export BOSH_ALL_PROXY="ssh+socks5://${BOSH_GW_USER}@${BOSH_GW_HOST}?private-key=${BOSH_GW_PRIVATE_KEY}"
+
+FIXTURES_DIR="$(realpath "${FIXTURES_DIR}")"
+export FIXTURES_DIR
 
 cd bosh-backup-and-restore
 make sys-test-director-ci

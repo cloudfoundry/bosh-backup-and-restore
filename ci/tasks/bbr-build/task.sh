@@ -1,12 +1,12 @@
 #!/bin/bash
-
-set -eu
+set -euo pipefail
 
 if [ -d version ]; then
-  export VERSION=$(cat version/version)
+  build_version=$(cat version/version)
 else
-  export VERSION=$(date +%s)
+  build_version=$(date +%s)
 fi
+export VERSION="${build_version}"
 
 BBR_REPO="bosh-backup-and-restore"
 pushd "$BBR_REPO"
@@ -22,10 +22,6 @@ ls -R bbr-release
 
 echo "Creating release tarball..."
 tar -C bbr-release -cf "bbr-build/bbr-${VERSION}.tar" .
-echo "Auto-delivered in
-https://s3-eu-west-1.amazonaws.com/bosh-backup-and-restore-builds/bbr-${VERSION}.tar
-
-[Backup and Restore Bot]" > bbr-build/message
 
 echo "Moving linux binaries to the build directory..."
 

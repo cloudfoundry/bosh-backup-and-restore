@@ -13,7 +13,7 @@ instance_groups:
 - name: backup-node
   azs:
   - z1
-  instances: 1
+  instances: 3
   jobs:
   - name: backup-and-restore-1
     release: many-bbr-jobs
