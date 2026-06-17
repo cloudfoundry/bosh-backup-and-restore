@@ -27,10 +27,10 @@ func PullDockerImage() {
 	args := []string{"pull", "cryogenics/jammy-stemcell-oci:latest"}
 	session := dockerRun(args...)
 	Eventually(session, 10*time.Minute).Should(gexec.Exit(0))
-	fmt.Fprintf(GinkgoWriter, "Completed docker run in %v, cmd: %v\n", time.Now().Sub(startTime), args) //nolint:errcheck,staticcheck
+	GinkgoWriter.Printf("Completed docker run in %v, cmd: %v\n", time.Since(startTime), args)
 }
 
-func NewInstance() *Instance {
+func NewInstance(fixturesDir string) *Instance {
 	contents := dockerRunAndWaitForSuccess("run", "--publish", "22", "--detach", "cryogenics/jammy-stemcell-oci:latest", "bash", "-c", `#!/bin/bash
 
 	mkdir -p /var/run/sshd
@@ -44,17 +44,10 @@ func NewInstance() *Instance {
 	)
 
 	dockerID := strings.TrimSpace(contents)
-	found := false
-	fixturePath := `../fixtures/create_user_with_key`
-	for !found {
-		_, err := os.Stat(fixturePath)
-		found = err == nil
-		if found {
-			break
-		}
-		fixturePath = fmt.Sprintf("../%s", fixturePath)
-	}
-	dockerRunAndWaitForSuccess("cp", fixturePath, fmt.Sprintf("%s:/bin/create_user_with_key", dockerID))
+
+	createUserWithKeyScript := filepath.Join(fixturesDir, "create_user_with_key")
+
+	dockerRunAndWaitForSuccess("cp", createUserWithKeyScript, fmt.Sprintf("%s:/bin/create_user_with_key", dockerID))
 	dockerRunAndWaitForSuccess(`exec`, dockerID, "chmod", "+x", "/bin/create_user_with_key")
 	dockerRunAndWaitForSuccess("exec", dockerID, "bash", "-c", `until nc -q 0 localhost 22; do sleep 1; done`)
 	return &Instance{
@@ -62,8 +55,8 @@ func NewInstance() *Instance {
 	}
 }
 
-func NewInstanceWithKeepAlive(aliveInterval int) *Instance {
-	instance := NewInstance()
+func NewInstanceWithKeepAlive(fixturesDir string, aliveInterval int) *Instance {
+	instance := NewInstance(fixturesDir)
 
 	dockerRunAndWaitForSuccess("exec", instance.dockerID, "sed", "-i", fmt.Sprintf("s/^ClientAliveInterval .*/ClientAliveInterval %d/g", aliveInterval), "/etc/ssh/sshd_config")
 	dockerRunAndWaitForSuccess("exec", "--detach", instance.dockerID, "pkill", "sshd")
@@ -168,7 +161,7 @@ func WaitForContainersToDie() {
 
 func dockerRun(args ...string) *gexec.Session {
 	cmd := exec.Command("docker", args...)
-	fmt.Fprintf(GinkgoWriter, "Starting docker run %v\n", args) //nolint:errcheck
+	GinkgoWriter.Printf("Starting docker run %v\n", args)
 	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
 	return session
@@ -178,6 +171,6 @@ func dockerRunAndWaitForSuccess(args ...string) string {
 	startTime := time.Now()
 	session := dockerRun(args...)
 	Eventually(session, timeout).Should(gexec.Exit(0))
-	fmt.Fprintf(GinkgoWriter, "Completed docker run in %v, cmd: %v\n", time.Now().Sub(startTime), args) //nolint:errcheck,staticcheck
+	GinkgoWriter.Printf("Completed docker run in %v, cmd: %v\n", time.Since(startTime), args)
 	return string(session.Out.Contents())
 }

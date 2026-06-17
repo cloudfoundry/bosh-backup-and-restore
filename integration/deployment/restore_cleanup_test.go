@@ -30,7 +30,7 @@ instance_groups:
 	BeforeEach(func() {
 		cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-") //nolint:errcheck
 
-		instance = testcluster.NewInstance()
+		instance = testcluster.NewInstance(fixturesDir)
 
 		deploymentName = "my-new-deployment"
 		director = mockbosh.NewTLS()

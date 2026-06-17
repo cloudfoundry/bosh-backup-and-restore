@@ -2,6 +2,7 @@ package deployment
 
 import (
 	"fmt"
+	"path/filepath"
 
 	. "github.com/cloudfoundry/bosh-backup-and-restore/system"
 	. "github.com/onsi/ginkgo/v2"
@@ -11,20 +12,21 @@ import (
 )
 
 var _ = Describe("Deployment restore cleanup", func() {
-	var deploymentNameToRestore = RedisSlowBackupDeployment.Name
+	var backupArtifactPath string
 	var backupArtifactName = "redis-with-slow-backup"
-	var backupArtifactPath = "../../fixtures/" + backupArtifactName + ".tar"
 	var workspaceDir = "/var/vcap/store/restore_cleanup_workspace"
 
 	BeforeEach(func() {
+		backupArtifactPath = filepath.Join(fixturesDir, fmt.Sprintf("%s.tar", backupArtifactName))
+
 		By("copying the backup artifact on the jumpbox", func() {
 			Eventually(JumpboxInstance.RunCommand(
 				fmt.Sprintf("sudo mkdir -p %s && sudo chown -R vcap:vcap %s && sudo chmod -R 0777 %s",
 					workspaceDir, workspaceDir, workspaceDir),
 			)).Should(gexec.Exit(0))
 
-			JumpboxInstance.Copy(commandPath, workspaceDir+"/bbr")
-			JumpboxInstance.Copy(boshCaCertPath, workspaceDir+"/bosh.crt")
+			JumpboxInstance.Copy(commandPath, filepath.Join(workspaceDir, "bbr"))
+			JumpboxInstance.Copy(boshCaCertPath, filepath.Join(workspaceDir, "bosh.crt"))
 			JumpboxInstance.Copy(backupArtifactPath, workspaceDir)
 			Eventually(JumpboxInstance.RunCommandAs("vcap",
 				fmt.Sprintf("cd %s; tar xvf redis-with-slow-backup.tar", workspaceDir),
@@ -45,7 +47,7 @@ var _ = Describe("Deployment restore cleanup", func() {
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
 				MustHaveEnv("BOSH_ENVIRONMENT"),
-				deploymentNameToRestore,
+				RedisSlowBackupDeployment.Name,
 				backupArtifactName),
 		)
 
@@ -67,7 +69,7 @@ var _ = Describe("Deployment restore cleanup", func() {
 					MustHaveEnv("BOSH_CLIENT_SECRET"),
 					MustHaveEnv("BOSH_CLIENT"),
 					MustHaveEnv("BOSH_ENVIRONMENT"),
-					deploymentNameToRestore),
+					RedisSlowBackupDeployment.Name),
 			)).Should(gexec.Exit(0))
 		})
 	})
@@ -87,11 +89,11 @@ var _ = Describe("Deployment restore cleanup", func() {
 						MustHaveEnv("BOSH_CLIENT_SECRET"),
 						MustHaveEnv("BOSH_CLIENT"),
 						MustHaveEnv("BOSH_ENVIRONMENT"),
-						deploymentNameToRestore),
+						RedisSlowBackupDeployment.Name),
 				)
 
 				Eventually(cleanupCommand).Should(gexec.Exit(0))
-				Expect(cleanupCommand.Out.Contents()).To(ContainSubstring("'%s' cleaned up", deploymentNameToRestore))
+				Expect(cleanupCommand.Out.Contents()).To(ContainSubstring("'%s' cleaned up", RedisSlowBackupDeployment.Name))
 			})
 
 			By("allowing subsequent restores to complete successfully", func() {
@@ -108,7 +110,7 @@ var _ = Describe("Deployment restore cleanup", func() {
 						MustHaveEnv("BOSH_CLIENT_SECRET"),
 						MustHaveEnv("BOSH_CLIENT"),
 						MustHaveEnv("BOSH_ENVIRONMENT"),
-						deploymentNameToRestore,
+						RedisSlowBackupDeployment.Name,
 						backupArtifactName),
 				)
 
@@ -132,7 +134,7 @@ var _ = Describe("Deployment restore cleanup", func() {
 					MustHaveEnv("BOSH_CLIENT_SECRET"),
 					MustHaveEnv("BOSH_CLIENT"),
 					MustHaveEnv("BOSH_ENVIRONMENT"),
-					deploymentNameToRestore,
+					RedisSlowBackupDeployment.Name,
 					backupArtifactName),
 			)
 

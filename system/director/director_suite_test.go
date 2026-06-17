@@ -24,6 +24,7 @@ var (
 	directorSSHUsername       string
 	directorSSHKeyPath        string
 	directorBackupFixturePath string
+	fixturesDir               string
 )
 
 func TestDirector(t *testing.T) {
@@ -45,8 +46,9 @@ var _ = BeforeSuite(func() {
 	workspaceDir, err = os.MkdirTemp("", "bbr_system_test_director")
 	Expect(err).NotTo(HaveOccurred())
 
-	directorBackupFixturePath, err = filepath.Abs("../../fixtures/director-backup")
-	Expect(err).NotTo(HaveOccurred())
+	fixturesDir = MustHaveEnv("FIXTURES_DIR")
+
+	directorBackupFixturePath = filepath.Join(fixturesDir, "director-backup")
 })
 
 var _ = AfterSuite(func() {

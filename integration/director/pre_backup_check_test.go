@@ -46,7 +46,7 @@ var _ = Describe("Pre-backup checks", func() {
 			var directorInstance *testcluster.Instance
 
 			BeforeEach(func() {
-				directorInstance = testcluster.NewInstance()
+				directorInstance = testcluster.NewInstance(fixturesDir)
 				directorInstance.CreateUser("foobar", readFile(pathToPublicKeyFile))
 				By("creating a dummy backup script")
 				directorInstance.CreateScript("/var/vcap/jobs/uaa/bin/bbr/backup", `#!/usr/bin/env sh
@@ -111,7 +111,7 @@ restore_should_be_locked_before:
 			var directorInstance *testcluster.Instance
 
 			BeforeEach(func() {
-				directorInstance = testcluster.NewInstance()
+				directorInstance = testcluster.NewInstance(fixturesDir)
 				directorInstance.CreateUser("foobar", readFile(pathToPublicKeyFile))
 
 				directorInstance.CreateExecutableFiles(

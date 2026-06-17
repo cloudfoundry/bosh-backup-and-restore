@@ -12,8 +12,8 @@ releases:
   url: ((test_release_path))
 
 stemcells:
-- alias: jammy
-  os: ubuntu-jammy
+- alias: default
+  os: ((stemcell-os))
   version: latest
 
 instance_groups:
@@ -34,7 +34,7 @@ instance_groups:
     release: test-bosh-backup-and-restore
   vm_type: minimal
   persistent_disk_type: 5GB
-  stemcell: jammy
+  stemcell: default
   azs:
   - z1
   networks:

@@ -37,7 +37,9 @@ var _ = Describe("Restore", func() {
 		Expect(err).NotTo(HaveOccurred())
 		artifactName = "director-backup-integration"
 
-		command := exec.Command("cp", "-r", "../../fixtures/director-backup-integration", path.Join(restoreWorkspace, artifactName))
+		command :=
+			exec.Command("cp", "-r", path.Join(fixturesDir, "director-backup-integration"),
+				path.Join(restoreWorkspace, artifactName))
 		cpFiles, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 		Expect(err).ToNot(HaveOccurred())
 		Eventually(cpFiles).Should(gexec.Exit())
@@ -80,7 +82,7 @@ var _ = Describe("Restore", func() {
 		var directorInstance *testcluster.Instance
 
 		BeforeEach(func() {
-			directorInstance = testcluster.NewInstance()
+			directorInstance = testcluster.NewInstance(fixturesDir)
 			directorInstance.CreateUser("foobar", readFile(pathToPublicKeyFile))
 			directorAddress = directorInstance.Address()
 			directorIP = directorInstance.IP()

@@ -6,7 +6,7 @@ releases:
 
 stemcells:
 - alias: default
-  os: ubuntu-jammy
+  os: ((stemcell-os))
   version: latest
 
 instance_groups:

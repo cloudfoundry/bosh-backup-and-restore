@@ -142,7 +142,7 @@ instance_groups:
 
 		Context("and there is a plausible backup script", func() {
 			BeforeEach(func() {
-				instance1 = testcluster.NewInstance()
+				instance1 = testcluster.NewInstance(fixturesDir)
 				By("creating a dummy backup script")
 				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
 
@@ -718,7 +718,7 @@ exit 1`)
 
 		Context("when there are multiple plausible backup scripts", func() {
 			BeforeEach(func() {
-				instance1 = testcluster.NewInstance()
+				instance1 = testcluster.NewInstance(fixturesDir)
 				By("creating a dummy backup script")
 				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
 
@@ -806,7 +806,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 		Context("when a deployment can't be backed up", func() {
 			BeforeEach(func() {
-				instance1 = testcluster.NewInstance()
+				instance1 = testcluster.NewInstance(fixturesDir)
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
@@ -834,7 +834,7 @@ printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 
 		Context("when the instance backup script fails", func() {
 			BeforeEach(func() {
-				instance1 = testcluster.NewInstance()
+				instance1 = testcluster.NewInstance(fixturesDir)
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
@@ -870,7 +870,7 @@ echo "Unlocking release"`)
 
 		Context("when both the instance backup script and cleanup fail", func() {
 			BeforeEach(func() {
-				instance1 = testcluster.NewInstance()
+				instance1 = testcluster.NewInstance(fixturesDir)
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
@@ -905,7 +905,7 @@ echo "Unlocking release"`)
 
 		Context("when backup succeeds but cleanup fails", func() {
 			BeforeEach(func() {
-				instance1 = testcluster.NewInstance()
+				instance1 = testcluster.NewInstance(fixturesDir)
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, singleInstanceResponse("redis-dedicated-node")),
@@ -944,7 +944,7 @@ echo "Unlocking release"`)
 
 		Context("when running the metadata script does not give valid yml", func() {
 			BeforeEach(func() {
-				instance1 = testcluster.NewInstance()
+				instance1 = testcluster.NewInstance(fixturesDir)
 				instance1.CreateScript("/var/vcap/jobs/redis/bin/bbr/metadata", `#!/usr/bin/env sh
 touch /tmp/metadata-script-was-run-but-produces-invalid-yaml
 echo "not valid yaml
@@ -976,7 +976,7 @@ echo "not valid yaml
 
 		Context("when the job is disabled", func() {
 			BeforeEach(func() {
-				instance1 = testcluster.NewInstance()
+				instance1 = testcluster.NewInstance(fixturesDir)
 
 				instance1.CreateScript(
 					"/var/vcap/jobs/redis/bin/bbr/backup", `#!/usr/bin/env sh
@@ -1034,8 +1034,8 @@ skip_bbr_scripts: true
 
 			BeforeEach(func() {
 				deploymentName = "my-bigger-deployment"
-				firstReturnedInstance = testcluster.NewInstance()
-				secondReturnedInstance = testcluster.NewInstance()
+				firstReturnedInstance = testcluster.NewInstance(fixturesDir)
+				secondReturnedInstance = testcluster.NewInstance(fixturesDir)
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
@@ -1229,8 +1229,8 @@ rm -rf /usr/bin/shasum
 
 			BeforeEach(func() {
 				deploymentName = "my-two-instance-deployment"
-				backupableInstance1 = testcluster.NewInstance()
-				backupableInstance2 = testcluster.NewInstance()
+				backupableInstance1 = testcluster.NewInstance(fixturesDir)
+				backupableInstance2 = testcluster.NewInstance(fixturesDir)
 				MockDirectorWith(director,
 					mockbosh.Info().WithAuthTypeBasic(),
 					VmsForDeployment(deploymentName, twoInstancesResponse("redis-dedicated-node", "redis-broker")),
@@ -1326,8 +1326,8 @@ instance_groups:
     release: redis
 `
 				deploymentName = "my-bigger-deployment"
-				firstReturnedInstance = testcluster.NewInstance()
-				secondReturnedInstance = testcluster.NewInstance()
+				firstReturnedInstance = testcluster.NewInstance(fixturesDir)
+				secondReturnedInstance = testcluster.NewInstance(fixturesDir)
 
 				twoInstancesInSameGroupResponse := func(instanceGroupName string) []mockbosh.VMsOutput {
 					return []mockbosh.VMsOutput{
@@ -1474,7 +1474,7 @@ instance_groups:
 		artifactPath, err = os.MkdirTemp("/tmp", "artifact-path-")
 		Expect(err).NotTo(HaveOccurred())
 
-		instance1 = testcluster.NewInstance()
+		instance1 = testcluster.NewInstance(fixturesDir)
 
 		unsafeLockFreeBackup = false
 	})

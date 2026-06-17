@@ -6,8 +6,8 @@ releases:
   version: latest
 
 stemcells:
-- alias: jammy
-  os: ubuntu-jammy
+- alias: default
+  os: ((stemcell-os))
   version: latest
 
 instance_groups:
@@ -23,7 +23,7 @@ instance_groups:
         maxclients: 1000
   vm_type: minimal
   persistent_disk_type: 5GB
-  stemcell: jammy
+  stemcell: default
   azs:
   - z1
   networks:

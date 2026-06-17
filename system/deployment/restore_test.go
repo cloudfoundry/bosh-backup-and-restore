@@ -2,6 +2,7 @@ package deployment
 
 import (
 	"fmt"
+	"path/filepath"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -15,7 +16,7 @@ var _ = Describe("Restores a deployment", func() {
 	It("restores", func() {
 		var (
 			workspaceDir       = "/var/vcap/store/restore_workspace"
-			backupMetadata     = "../../fixtures/redis-backup/metadata"
+			backupMetadata     = filepath.Join(fixturesDir, "redis-backup", "metadata")
 			instanceCollection = map[string][]string{
 				"redis":       {"0", "1"},
 				"other-redis": {"0"},
@@ -26,17 +27,17 @@ var _ = Describe("Restores a deployment", func() {
 		By("setting up the jump box")
 		Eventually(JumpboxInstance.RunCommand(
 			fmt.Sprintf("sudo mkdir -p %s && sudo chown -R vcap:vcap %s && sudo chmod -R 0777 %s",
-				workspaceDir+"/"+backupName, workspaceDir, workspaceDir),
+				filepath.Join(workspaceDir, backupName), workspaceDir, workspaceDir),
 		)).Should(gexec.Exit(0))
 
-		JumpboxInstance.Copy(commandPath, workspaceDir+"/bbr")
-		JumpboxInstance.Copy(boshCaCertPath, workspaceDir+"/bosh.crt")
-		JumpboxInstance.Copy(backupMetadata, workspaceDir+"/"+backupName+"/metadata")
+		JumpboxInstance.Copy(commandPath, filepath.Join(workspaceDir, "bbr"))
+		JumpboxInstance.Copy(boshCaCertPath, filepath.Join(workspaceDir, "bosh.crt"))
+		JumpboxInstance.Copy(backupMetadata, filepath.Join(workspaceDir, backupName, "metadata"))
 		runOnInstances(instanceCollection, func(in, ii string) {
 			fileName := fmt.Sprintf("%s-%s-redis-server.tar", in, ii)
 			JumpboxInstance.Copy(
-				fixturesPath+fileName,
-				fmt.Sprintf("%s/%s/%s", workspaceDir, backupName, fileName),
+				filepath.Join(fixturesDir, "redis-backup", fileName),
+				filepath.Join(workspaceDir, backupName, fileName),
 			)
 		})
 
@@ -108,7 +109,7 @@ var _ = Describe("Restores a deployment", func() {
 		It("restores only the enabled job", func() {
 			var (
 				workspaceDir   = "/var/vcap/store/restore_workspace"
-				backupMetadata = "../../fixtures/redis-backup-with-disabled-job/metadata"
+				backupMetadata = filepath.Join(fixturesDir, "redis-backup-with-disabled-job", "metadata")
 
 				backupName = "redis-backup_20170502T132536Z"
 			)
@@ -116,16 +117,16 @@ var _ = Describe("Restores a deployment", func() {
 			By("setting up the jump box")
 			Eventually(JumpboxInstance.RunCommand(
 				fmt.Sprintf("sudo mkdir -p %s && sudo chown -R vcap:vcap %s && sudo chmod -R 0777 %s",
-					workspaceDir+"/"+backupName, workspaceDir, workspaceDir),
+					filepath.Join(workspaceDir, backupName), workspaceDir, workspaceDir),
 			)).Should(gexec.Exit(0))
 
 			JumpboxInstance.Copy(commandPath, workspaceDir)
-			JumpboxInstance.Copy(boshCaCertPath, workspaceDir+"/bosh.crt")
-			JumpboxInstance.Copy(backupMetadata, workspaceDir+"/"+backupName+"/metadata")
+			JumpboxInstance.Copy(boshCaCertPath, filepath.Join(workspaceDir, "bosh.crt"))
+			JumpboxInstance.Copy(backupMetadata, filepath.Join(workspaceDir, backupName, "metadata"))
 			fileName := "redis-0-redis-server.tar"
 			JumpboxInstance.Copy(
-				fixturesPath+fileName,
-				fmt.Sprintf("%s/%s/%s", workspaceDir, backupName, fileName),
+				filepath.Join(fixturesDir, "redis-backup", fileName),
+				filepath.Join(workspaceDir, backupName, fileName),
 			)
 
 			bbrSession := JumpboxInstance.RunCommand(

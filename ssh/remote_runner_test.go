@@ -27,7 +27,7 @@ var _ = Describe("SshRemoteRunner", func() {
 		user = "test-user"
 		userPrivateKey = defaultPrivateKey
 
-		testInstance = testcluster.NewInstanceWithKeepAlive(2)
+		testInstance = testcluster.NewInstanceWithKeepAlive(fixturesDir, 2)
 		testInstance.CreateUser(user, publicKeyForDocker(userPrivateKey))
 
 		hostPublicKey, _, _, _, err := gossh.ParseAuthorizedKey([]byte(testInstance.HostPublicKey()))

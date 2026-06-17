@@ -29,7 +29,13 @@ func NewDeployment(name, manifest string) Deployment {
 }
 
 func (d Deployment) Deploy() {
-	session := d.runBosh("deploy", "--var=deployment-name="+d.Name, d.Manifest)
+	session :=
+		d.runBosh(
+			"deploy",
+			fmt.Sprintf("--var=deployment-name=%s", d.Name),
+			fmt.Sprintf("--var=stemcell-os=%s", MustHaveEnv("STEMCELL_OS")),
+			d.Manifest,
+		)
 	EventuallyWithOffset(1, session).Should(gexec.Exit(0))
 }
 

@@ -1,6 +1,8 @@
 package ssh_test
 
 import (
+	"os"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
@@ -20,6 +22,7 @@ func TestSsh(t *testing.T) {
 }
 
 var defaultPrivateKey string
+var fixturesDir string
 
 var _ = SynchronizedBeforeSuite(func() []byte {
 	testcluster.PullDockerImage()
@@ -36,6 +39,9 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 	)
 
 	defaultPrivateKey = string(defaultPrivateKeyBytes)
+
+	fixturesDir = os.Getenv("FIXTURES_DIR")
+	Expect(fixturesDir).NotTo(BeEmpty())
 })
 
 var _ = AfterSuite(func() {
