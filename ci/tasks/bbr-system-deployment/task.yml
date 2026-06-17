@@ -5,6 +5,7 @@ image_resource:
     repository: cryogenics/essentials
     tag: 0.1.111
 inputs:
+  - name: bosh-backup-and-restore
   - name: bosh-backup-and-restore-ci
 params:
   BOSH_ENVIRONMENT:
@@ -14,5 +15,7 @@ params:
   BOSH_GW_HOST:
   BOSH_GW_PRIVATE_KEY:
   BOSH_GW_USER:
+  FIXTURES_DIR:
+  STEMCELL_OS:
 run:
   path: bosh-backup-and-restore-ci/ci/tasks/bbr-system-deployment/task.sh

@@ -1,0 +1,19 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: cloudfoundry/cf-deployment-concourse-tasks
+
+inputs:
+  - name: bosh-backup-and-restore-ci
+  - name: bbl-state
+
+params:
+  BBL_IAAS: gcp
+  BBL_GCP_SERVICE_ACCOUNT_KEY: ((gcp_json_key))
+  BBL_GCP_REGION: europe-west1
+
+run:
+  path: bosh-backup-and-restore-ci/ci/tasks/bbl-down/task.sh

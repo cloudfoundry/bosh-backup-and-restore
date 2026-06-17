@@ -3,7 +3,8 @@ platform: linux
 
 image_resource:
   type: registry-image
-  source: {repository: bosh/bosh-ecosystem-concourse}
+  source:
+    repository: cloudfoundry/cf-deployment-concourse-tasks
 
 inputs:
   - name: bosh-backup-and-restore-ci
@@ -18,6 +19,9 @@ params:
   INCLUDE_TRUNCATE_DB_BLOBSTORE_TESTCASE:
   INCLUDE_CREDHUB_TESTCASE:
   TIMEOUT_IN_MINUTES:
+  CREDHUB_CLIENT: ""
+  CREDHUB_SECRET: ""
+  CREDHUB_SERVER: ""
 
 run:
   path: bosh-backup-and-restore-ci/ci/tasks/setup-b-drats-integration-config/task.sh

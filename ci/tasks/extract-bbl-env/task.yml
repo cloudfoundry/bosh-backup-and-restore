@@ -1,0 +1,17 @@
+---
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+    repository: cloudfoundry/cf-deployment-concourse-tasks
+
+inputs:
+  - name: bosh-backup-and-restore-ci
+  - name: bbl-state
+
+outputs:
+  - name: bosh-env
+
+run:
+  path: bosh-backup-and-restore-ci/ci/tasks/extract-bbl-env/task.sh

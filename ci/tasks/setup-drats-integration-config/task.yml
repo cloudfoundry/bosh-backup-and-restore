@@ -9,16 +9,7 @@ params:
   CF_DEPLOYMENT_NAME: cf
   INTEGRATION_CONFIG_FILE_PATH: ci/integration_config.json
   SYSTEM_DOMAIN:
-  JUMPBOX_PRIVATE_KEY:
-  CREDHUB_CLIENT:
-  CREDHUB_SECRET:
-  CREDHUB_CA_CERT:
-  CREDHUB_SERVER:
-  CREDHUB_PROXY:
-  BOSH_ENVIRONMENT:
-  BOSH_CA_CERT:
-  BOSH_ALL_PROXY:
-  BOSH_CLIENT:
-  BOSH_CLIENT_SECRET:
+  CREDHUB_CLIENT: ""
+  CREDHUB_SECRET: ""
 run:
   path: bosh-backup-and-restore-ci/ci/tasks/setup-drats-integration-config/task.sh

@@ -19,6 +19,8 @@ params:
   DIRECTOR_SSH_USERNAME:
   DIRECTOR_SSH_KEY:
 
+  FIXTURES_DIR:
+  STEMCELL_OS:
   USE_SHUTTLE: true
 run:
   path: bosh-backup-and-restore-ci/ci/tasks/bbr-system-director/task.sh

@@ -1,0 +1,26 @@
+---
+# Restore the critical serialisation barriers that fast-deploy-with-downtime-
+# and-danger.yml removes by setting max_in_flight=100% and canaries=0.
+#
+# In a stock cf-deployment the following groups deploy as serialisation
+# barriers (each waits for everything before it to complete):
+#
+#   database → credhub → uaa → api → (remaining groups in parallel)
+#
+# Without these barriers, all instance groups start simultaneously on the
+# bosh-lite VM.  The bosh-lite host is an e2-standard-8 (8 vCPU/32 GB).
+# Heavyweight JVM processes (UAA) cannot start within the 20-minute BOSH
+# watch-time when they share those 8 CPUs with 15 other simultaneously
+# starting warden containers.  The serial chain here gives each critical
+# service a dedicated window with enough CPU to start reliably.
+- type: replace
+  path: /instance_groups/name=credhub/update?/serial
+  value: true
+
+- type: replace
+  path: /instance_groups/name=uaa/update?/serial
+  value: true
+
+- type: replace
+  path: /instance_groups/name=api/update?/serial
+  value: true
