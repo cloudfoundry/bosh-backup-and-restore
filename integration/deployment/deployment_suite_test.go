@@ -24,6 +24,7 @@ func TestDeploymentIntegration(t *testing.T) {
 // Default cert for golang ssh
 var sslCertPath string
 var sslCertValue string
+var fixturesDir string
 
 var binary integration.Binary
 
@@ -47,6 +48,8 @@ var _ = BeforeSuite(func() {
 	_, err = sslCertFile.Write(pem)
 	Expect(err).NotTo(HaveOccurred())
 
+	fixturesDir = os.Getenv("FIXTURES_DIR")
+	Expect(fixturesDir).NotTo(BeEmpty())
 })
 
 var _ = AfterSuite(func() {

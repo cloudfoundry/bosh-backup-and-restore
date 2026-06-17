@@ -92,6 +92,8 @@ A BBR bucket configuration file is expected to look like this:
 
 ## Sample output
 ```shell script
+$ export AWS_REGION=<region here>
+
 $ ./bbr-s3-config-validator --validate-put-object
 
 Make sure to run this on your 'backup & restore' VM.
@@ -105,24 +107,24 @@ Configuration:
   {
     "packages": {
       "name": "packages-live",
-      "region": "eu-west-1",
+      "region": "${AWS_REGION}",
       "aws_access_key_id": "<redacted>",
       "aws_secret_access_key": "<redacted>",
-      "endpoint": "https://s3.eu-west-1.amazonaws.com",
+      "endpoint": "https://s3.${AWS_REGION}.amazonaws.com",
       "backup": {
         "name": "packages-backup",
-        "region": "eu-west-1"
+        "region": "${AWS_REGION}"
       }
     },
     "buildpacks": {
       "name": "buildpacks-live",
-      "region": "eu-west-1",
+      "region": "${AWS_REGION}",
       "aws_access_key_id": "<redacted>",
       "aws_secret_access_key": "<redacted>",
-      "endpoint": "https://s3.eu-west-1.amazonaws.com",
+      "endpoint": "https://s3.${AWS_REGION}.amazonaws.com",
       "backup": {
         "name": "buildpacks-backup",
-        "region": "eu-west-1"
+        "region": "${AWS_REGION}"
       }
     }
   }

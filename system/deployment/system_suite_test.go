@@ -21,13 +21,32 @@ func TestSystem(t *testing.T) {
 var (
 	commandPath    string
 	boshCaCertPath string
+	fixturesDir    string
 	err            error
-)
 
-var fixturesPath = "../../fixtures/redis-backup/"
+	RedisDeployment                 Deployment
+	RedisWithBackupOneRestoreAll    Deployment
+	RedisDeploymentWithDisabledJob  Deployment
+	JumpboxDeployment               Deployment
+	JumpboxInstance                 Instance
+	RedisSlowBackupDeployment       Deployment
+	RedisWithLockingOrderDeployment Deployment
+	ManyBbrJobsDeployment           Deployment
+)
 
 var _ = BeforeSuite(func() {
 	SetDefaultEventuallyTimeout(15 * time.Minute)
+
+	fixturesDir = MustHaveEnv("FIXTURES_DIR")
+
+	RedisDeployment = DeploymentWithName("redis")
+	RedisWithBackupOneRestoreAll = DeploymentWithName("redis-with-backup-one-restore-all")
+	RedisDeploymentWithDisabledJob = DeploymentWithName("redis-with-disabled-bbr-job")
+	JumpboxDeployment = DeploymentWithName("jumpbox")
+	JumpboxInstance = JumpboxDeployment.Instance("jumpbox", "0")
+	RedisSlowBackupDeployment = DeploymentWithName("redis-with-slow-backup")
+	RedisWithLockingOrderDeployment = DeploymentWithName("redis-with-locking-order")
+	ManyBbrJobsDeployment = DeploymentWithName("many-bbr-jobs")
 
 	var wg sync.WaitGroup
 
@@ -64,12 +83,12 @@ var _ = BeforeSuite(func() {
 
 		By("deploying the jump box")
 		JumpboxDeployment.Deploy()
-
-		By("deploying the many-bbr-jobs deployment")
-		ManyBbrJobsDeployment.Deploy()
 	}()
 
 	wg.Wait()
+
+	By("deploying the many-bbr-jobs deployment")
+	ManyBbrJobsDeployment.Deploy()
 
 	By("building bbr")
 	commandPath, err = gexec.BuildWithEnvironment("github.com/cloudfoundry/bosh-backup-and-restore/cmd/bbr", []string{"GOOS=linux", "GOARCH=amd64"})

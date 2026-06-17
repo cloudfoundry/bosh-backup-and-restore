@@ -20,6 +20,9 @@ var (
 	awsAccessKey               string
 	awsSecretKey               string
 	awsAssumeRoleARN           string
+	awsRegion                  string
+	versionedBucketName        string
+	unversionedBucketName      string
 	validUnversionedConfigFile *os.File
 	validVersionedConfigFile   *os.File
 )
@@ -33,14 +36,20 @@ var _ = BeforeSuite(func() {
 		"AWS_ACCESS_KEY",
 		"AWS_SECRET_KEY",
 		"AWS_ASSUMED_ROLE_ARN",
+		"AWS_REGION",
+		"AWS_VERSIONED_BUCKET",
+		"AWS_UNVERSIONED_BUCKET",
 	})
 
 	awsAccessKey = os.Getenv("AWS_ACCESS_KEY")
 	awsSecretKey = os.Getenv("AWS_SECRET_KEY")
 	awsAssumeRoleARN = os.Getenv("AWS_ASSUMED_ROLE_ARN")
+	awsRegion = os.Getenv("AWS_REGION")
+	versionedBucketName = os.Getenv("AWS_VERSIONED_BUCKET")
+	unversionedBucketName = os.Getenv("AWS_UNVERSIONED_BUCKET")
 
-	validVersionedConfigFile = createVersionedConfigFile("bbr-s3-validator-versioned-bucket", awsAccessKey, awsSecretKey, awsAssumeRoleARN, "eu-west-1")
-	validUnversionedConfigFile = createUnversionedConfigFile("bbr-s3-validator-e2e-all-permissions", awsAccessKey, awsSecretKey, awsAssumeRoleARN, "eu-west-1", "eu-west-1")
+	validVersionedConfigFile = createVersionedConfigFile(versionedBucketName, awsAccessKey, awsSecretKey, awsAssumeRoleARN, awsRegion)
+	validUnversionedConfigFile = createUnversionedConfigFile(unversionedBucketName, awsAccessKey, awsSecretKey, awsAssumeRoleARN, awsRegion, awsRegion)
 })
 
 var _ = AfterSuite(func() {

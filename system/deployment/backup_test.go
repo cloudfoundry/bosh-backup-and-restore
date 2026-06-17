@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	. "github.com/cloudfoundry/bosh-backup-and-restore/system"
 	. "github.com/onsi/ginkgo/v2"
@@ -34,7 +35,15 @@ var _ = Describe("backup", func() {
 	runBBRBackupAndSucceed := func() {
 		It("backs up, and cleans up the backup on the remote", func() {
 			By("populating data in redis", func() {
-				populateRedisFixtureOnInstances(instanceCollection)
+				dataFixture := filepath.Join(fixturesDir, "redis_test_commands")
+				runOnInstances(instanceCollection, func(instName, instIndex string) {
+					RedisDeployment.Instance(instName, instIndex).Copy(dataFixture, "/tmp")
+					Eventually(
+						RedisDeployment.Instance(instName, instIndex).RunCommand(
+							"cat /tmp/redis_test_commands | /var/vcap/packages/redis/bin/redis-cli > /dev/null",
+						),
+					).Should(gexec.Exit(0))
+				})
 			})
 
 			By("running the backup command", func() {
@@ -205,15 +214,3 @@ var _ = Describe("backup", func() {
 		})
 	})
 })
-
-func populateRedisFixtureOnInstances(instanceCollection map[string][]string) {
-	dataFixture := "../../fixtures/redis_test_commands"
-	runOnInstances(instanceCollection, func(instName, instIndex string) {
-		RedisDeployment.Instance(instName, instIndex).Copy(dataFixture, "/tmp")
-		Eventually(
-			RedisDeployment.Instance(instName, instIndex).RunCommand(
-				"cat /tmp/redis_test_commands | /var/vcap/packages/redis/bin/redis-cli > /dev/null",
-			),
-		).Should(gexec.Exit(0))
-	})
-}

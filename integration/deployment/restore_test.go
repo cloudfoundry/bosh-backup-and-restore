@@ -26,6 +26,7 @@ var _ = Describe("Restore", func() {
 	var director *mockhttp.Server
 	var restoreWorkspace string
 	var verifyMocks bool
+	var backupTarFixturePath string
 	manifest := `---
 instance_groups:
 - name: redis-dedicated-node
@@ -61,6 +62,8 @@ instance_groups:
 		restoreWorkspace, err = os.MkdirTemp(".", "restore-workspace-")
 		verifyMocks = true
 		Expect(err).NotTo(HaveOccurred())
+
+		backupTarFixturePath = filepath.Join(fixturesDir, "backup.tar")
 	})
 
 	AfterEach(func() {
@@ -184,7 +187,7 @@ instances:
     checksums:
       redis-backup: this-is-not-a-checksum-this-is-only-a-tribute`))
 
-			backupContents, err := os.ReadFile("../../fixtures/backup.tar")
+			backupContents, err := os.ReadFile(backupTarFixturePath)
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", backupContents)
 			session = binary.Run(
@@ -239,7 +242,7 @@ instances:
 		var stdin io.WriteCloser
 
 		BeforeEach(func() {
-			instance1 = testcluster.NewInstance()
+			instance1 = testcluster.NewInstance(fixturesDir)
 			deploymentName = "my-new-deployment"
 			director.VerifyAndMock(AppendBuilders(
 				InfoWithBasicAuth(),
@@ -271,7 +274,7 @@ instances:
     checksums:
       ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
-			backupContents, err := os.ReadFile("../../fixtures/backup.tar")
+			backupContents, err := os.ReadFile(backupTarFixturePath)
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar",
 				backupContents)
@@ -558,8 +561,8 @@ skip_bbr_scripts: true
 		var deploymentName string
 
 		BeforeEach(func() {
-			instance1 = testcluster.NewInstance()
-			instance2 = testcluster.NewInstance()
+			instance1 = testcluster.NewInstance(fixturesDir)
+			instance2 = testcluster.NewInstance(fixturesDir)
 			deploymentName = "my-new-deployment"
 			director.VerifyAndMock(AppendBuilders(
 				InfoWithBasicAuth(),
@@ -607,7 +610,7 @@ instances:
     checksums:
       ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
-			backupContents, err := os.ReadFile("../../fixtures/backup.tar")
+			backupContents, err := os.ReadFile(backupTarFixturePath)
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", backupContents)
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-server-0-redis.tar", backupContents)
@@ -786,7 +789,7 @@ restore_should_be_locked_before:
 		var deploymentName string
 
 		BeforeEach(func() {
-			instance1 = testcluster.NewInstance()
+			instance1 = testcluster.NewInstance(fixturesDir)
 			deploymentName = "my-new-deployment"
 		})
 
@@ -843,7 +846,7 @@ custom_artifacts:
   checksums:
     ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
-				backupContents, err := os.ReadFile("../../fixtures/backup.tar")
+				backupContents, err := os.ReadFile(backupTarFixturePath)
 				Expect(err).NotTo(HaveOccurred())
 				createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tar", backupContents)
 
@@ -924,7 +927,7 @@ custom_artifacts:
   checksums: {}
 `))
 
-				backupContents, err := os.ReadFile("../../fixtures/backup.tar")
+				backupContents, err := os.ReadFile(backupTarFixturePath)
 				Expect(err).NotTo(HaveOccurred())
 
 				createFileWithContents(
@@ -981,8 +984,8 @@ instance_groups:
 `
 
 		BeforeEach(func() {
-			instance1 = testcluster.NewInstance()
-			instance2 = testcluster.NewInstance()
+			instance1 = testcluster.NewInstance(fixturesDir)
+			instance2 = testcluster.NewInstance(fixturesDir)
 
 			deploymentName = "my-new-deployment"
 			twoInstancesInSameGroupResponse := func(instanceGroupName string) []mockbosh.VMsOutput {
@@ -1040,7 +1043,7 @@ backup_activity:
   start_time: 2019/02/27 10:10:30 GMT
   finish_time: 2019/02/27 10:10:30 GMT`))
 
-			backupContents, err := os.ReadFile("../../fixtures/backup.tar")
+			backupContents, err := os.ReadFile(backupTarFixturePath)
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-redis-backup-one-restore-all.tar", backupContents)
 
@@ -1103,7 +1106,7 @@ custom_artifacts:
   checksums:
     ./redis/redis-backup: this-is-damn-wrong`))
 
-			backupContents, err := os.ReadFile("../../fixtures/backup.tar")
+			backupContents, err := os.ReadFile(backupTarFixturePath)
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"foo.tar", backupContents)
 
@@ -1147,7 +1150,7 @@ custom_artifacts:
 		var deploymentName string
 
 		BeforeEach(func() {
-			instance1 = testcluster.NewInstance()
+			instance1 = testcluster.NewInstance(fixturesDir)
 			deploymentName = "my-new-deployment"
 			director.VerifyAndMock(AppendBuilders(
 				InfoWithBasicAuth(),
@@ -1179,7 +1182,7 @@ instances:
     checksums:
       ./redis/redis-backup: 8d7fa73732d6dba6f6af01621552d3a6d814d2042c959465d0562a97c3f796b0`))
 
-			backupContents, err := os.ReadFile("../../fixtures/backup.tar")
+			backupContents, err := os.ReadFile(backupTarFixturePath)
 			Expect(err).NotTo(HaveOccurred())
 			createFileWithContents(restoreWorkspace+"/"+deploymentName+"/"+"redis-dedicated-node-0-redis.tar", backupContents)
 		})

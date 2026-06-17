@@ -3,22 +3,14 @@ package system
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
-var RedisDeployment = DeploymentWithName("redis")
-var RedisWithBackupOneRestoreAll = DeploymentWithName("redis-with-backup-one-restore-all")
-var RedisDeploymentWithDisabledJob = DeploymentWithName("redis-with-disabled-bbr-job")
-var JumpboxDeployment = DeploymentWithName("jumpbox")
-var JumpboxInstance = JumpboxDeployment.Instance("jumpbox", "0")
-var RedisSlowBackupDeployment = DeploymentWithName("redis-with-slow-backup")
-var RedisWithLockingOrderDeployment = DeploymentWithName("redis-with-locking-order")
-var ManyBbrJobsDeployment = DeploymentWithName("many-bbr-jobs")
-
-func MustHaveEnv(keyname string) string {
-	val := os.Getenv(keyname)
+func MustHaveEnv(envVar string) string {
+	val := os.Getenv(envVar)
 
 	if val == "" {
-		panic("Need " + keyname + " for the test")
+		panic(fmt.Sprintf("Need '%s' for the test", envVar))
 	}
 
 	return val
@@ -29,7 +21,10 @@ func BackupDirWithTimestamp(deploymentName string) string {
 }
 
 func DeploymentWithName(name string) Deployment {
-	return NewDeployment(name+"-"+MustHaveEnv("TEST_ENV"), "../../fixtures/"+name+".yml")
+	testEnv := MustHaveEnv("TEST_ENV")
+	fixturesDir := MustHaveEnv("FIXTURES_DIR")
+
+	return NewDeployment(fmt.Sprintf("%s-%s", name, testEnv), filepath.Join(fixturesDir, fmt.Sprintf("%s.yml", name)))
 }
 
 func WriteEnvVarToTempFile(key string) (string, error) {
@@ -39,6 +34,7 @@ func WriteEnvVarToTempFile(key string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer file.Close() //nolint:errcheck
 
 	err = file.Chmod(0644)
 	if err != nil {

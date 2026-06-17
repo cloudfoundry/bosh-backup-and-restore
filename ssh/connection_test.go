@@ -32,7 +32,7 @@ var _ = Describe("Connection", func() {
 	var hostPublicKey gossh.PublicKey
 
 	BeforeEach(func() {
-		instance1 = testcluster.NewInstanceWithKeepAlive(2)
+		instance1 = testcluster.NewInstanceWithKeepAlive(fixturesDir, 2)
 		instance1.CreateUser("test-user", publicKeyForDocker(defaultPrivateKey))
 		privateKey = defaultPrivateKey
 		hostname = instance1.Address()

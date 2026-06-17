@@ -11,8 +11,6 @@ import (
 )
 
 var _ = Describe("Deployment backup cleanup", func() {
-	var deploymentNameToBackup = RedisSlowBackupDeployment.Name
-
 	BeforeEach(func() {
 		By("starting a backup and aborting mid-way")
 		backupSession := JumpboxInstance.RunCommandAs("vcap",
@@ -27,7 +25,7 @@ var _ = Describe("Deployment backup cleanup", func() {
 				MustHaveEnv("BOSH_CLIENT_SECRET"),
 				MustHaveEnv("BOSH_CLIENT"),
 				MustHaveEnv("BOSH_ENVIRONMENT"),
-				deploymentNameToBackup),
+				RedisSlowBackupDeployment.Name),
 		)
 
 		Eventually(backupSession.Out).Should(gbytes.Say("Backing up slow-backup on"))
@@ -49,11 +47,11 @@ var _ = Describe("Deployment backup cleanup", func() {
 						MustHaveEnv("BOSH_CLIENT_SECRET"),
 						MustHaveEnv("BOSH_CLIENT"),
 						MustHaveEnv("BOSH_ENVIRONMENT"),
-						deploymentNameToBackup),
+						RedisSlowBackupDeployment.Name),
 				)
 
 				Eventually(cleanupCommand).Should(gexec.Exit(0))
-				Expect(cleanupCommand.Out.Contents()).To(ContainSubstring("'%s' cleaned up", deploymentNameToBackup))
+				Expect(cleanupCommand.Out.Contents()).To(ContainSubstring("'%s' cleaned up", RedisSlowBackupDeployment.Name))
 			})
 
 			By("allowing subsequent backups to complete successfully", func() {
@@ -69,7 +67,7 @@ var _ = Describe("Deployment backup cleanup", func() {
 						MustHaveEnv("BOSH_CLIENT_SECRET"),
 						MustHaveEnv("BOSH_CLIENT"),
 						MustHaveEnv("BOSH_ENVIRONMENT"),
-						deploymentNameToBackup),
+						RedisSlowBackupDeployment.Name),
 				)
 				Eventually(backupCommand).Should(gexec.Exit(0))
 			})
@@ -90,7 +88,7 @@ var _ = Describe("Deployment backup cleanup", func() {
 					MustHaveEnv("BOSH_CLIENT_SECRET"),
 					MustHaveEnv("BOSH_CLIENT"),
 					MustHaveEnv("BOSH_ENVIRONMENT"),
-					deploymentNameToBackup),
+					RedisSlowBackupDeployment.Name),
 			)
 
 			Eventually(backupCommand).Should(gexec.Exit(1))
@@ -109,7 +107,7 @@ var _ = Describe("Deployment backup cleanup", func() {
 					MustHaveEnv("BOSH_CLIENT_SECRET"),
 					MustHaveEnv("BOSH_CLIENT"),
 					MustHaveEnv("BOSH_ENVIRONMENT"),
-					deploymentNameToBackup),
+					RedisSlowBackupDeployment.Name),
 			)).Should(gexec.Exit(0))
 		})
 	})

@@ -2,6 +2,7 @@ package director
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/cloudfoundry/bosh-backup-and-restore/integration"
@@ -16,8 +17,9 @@ func TestDirectorIntegration(t *testing.T) {
 	RunSpecs(t, "Director Integration Suite")
 }
 
-var pathToPrivateKeyFile = "../../../fixtures/test_rsa"
-var pathToPublicKeyFile = "../../fixtures/test_rsa.pub"
+var pathToPrivateKeyFile string
+var pathToPublicKeyFile string
+var fixturesDir string
 
 var binary integration.Binary
 
@@ -25,6 +27,12 @@ var _ = BeforeSuite(func() {
 	commandPath, err := gexec.Build("github.com/cloudfoundry/bosh-backup-and-restore/cmd/bbr")
 	Expect(err).NotTo(HaveOccurred())
 	binary = integration.NewBinary(commandPath)
+
+	fixturesDir = os.Getenv("FIXTURES_DIR")
+	Expect(fixturesDir).NotTo(BeEmpty())
+
+	pathToPrivateKeyFile = filepath.Join(fixturesDir, "test_rsa")
+	pathToPublicKeyFile = filepath.Join(fixturesDir, "test_rsa.pub")
 })
 
 var _ = AfterSuite(func() {

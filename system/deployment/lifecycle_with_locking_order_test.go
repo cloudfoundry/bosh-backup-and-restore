@@ -2,6 +2,7 @@ package deployment
 
 import (
 	"fmt"
+	"path/filepath"
 
 	. "github.com/cloudfoundry/bosh-backup-and-restore/system"
 	. "github.com/onsi/ginkgo/v2"
@@ -23,7 +24,15 @@ var _ = Describe("backup with specified locking order", func() {
 
 	It("locks the instances in the correct order and backs up", func() {
 		By("populating the Redis instance")
-		populateRedis(redisInstance)
+		dataFixture := filepath.Join(fixturesDir, "redis_test_commands")
+		runOnInstances(redisInstance, func(instName, instIndex string) {
+			RedisWithLockingOrderDeployment.Instance(instName, instIndex).Copy(dataFixture, "/tmp")
+			Eventually(
+				RedisWithLockingOrderDeployment.Instance(instName, instIndex).RunCommand(
+					"cat /tmp/redis_test_commands | /var/vcap/packages/redis/bin/redis-cli > /dev/null",
+				),
+			).Should(gexec.Exit(0))
+		})
 
 		By("running the backup command")
 		backupSession := JumpboxInstance.RunCommandAs("vcap",
@@ -130,15 +139,3 @@ var _ = Describe("backup with specified locking order", func() {
 		})
 	})
 })
-
-func populateRedis(instanceCollection map[string][]string) {
-	dataFixture := "../../fixtures/redis_test_commands"
-	runOnInstances(instanceCollection, func(instName, instIndex string) {
-		RedisWithLockingOrderDeployment.Instance(instName, instIndex).Copy(dataFixture, "/tmp")
-		Eventually(
-			RedisWithLockingOrderDeployment.Instance(instName, instIndex).RunCommand(
-				"cat /tmp/redis_test_commands | /var/vcap/packages/redis/bin/redis-cli > /dev/null",
-			),
-		).Should(gexec.Exit(0))
-	})
-}

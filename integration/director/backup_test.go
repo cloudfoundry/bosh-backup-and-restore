@@ -94,7 +94,7 @@ var _ = Describe("Backup", func() {
 		var directorInstance *testcluster.Instance
 
 		BeforeEach(func() {
-			directorInstance = testcluster.NewInstance()
+			directorInstance = testcluster.NewInstance(fixturesDir)
 			directorInstance.CreateUser("foobar", readFile(pathToPublicKeyFile))
 			directorAddress = directorInstance.Address()
 			directorIP = directorInstance.IP()

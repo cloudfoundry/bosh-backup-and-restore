@@ -31,8 +31,8 @@ func (b Binary) Start(cwd string, env []string, params ...string) (*gexec.Sessio
 	command.Dir = cwd
 	stdin, err := command.StdinPipe()
 	Expect(err).ToNot(HaveOccurred())
-	fmt.Fprintf(GinkgoWriter, "Running command: %v %v in %s with env %v\n", b.path, params, cwd, env) //nolint:errcheck
-	fmt.Fprintf(GinkgoWriter, "Command output start\n")                                               //nolint:errcheck
+	GinkgoWriter.Printf("Running command: %v %v in %s with env %v\n", b.path, params, cwd, env)
+	GinkgoWriter.Printf("Command output start\n")
 	session, err := gexec.Start(command, GinkgoWriter, GinkgoWriter)
 	Expect(err).ToNot(HaveOccurred())
 	return session, stdin
@@ -41,8 +41,8 @@ func (b Binary) Start(cwd string, env []string, params ...string) (*gexec.Sessio
 func (b Binary) Run(cwd string, env []string, params ...string) *gexec.Session {
 	session, _ := b.Start(cwd, env, params...)
 	Eventually(session, b.runTimeout).Should(gexec.Exit())
-	fmt.Fprintf(GinkgoWriter, "Command output end\n")                 //nolint:errcheck
-	fmt.Fprintf(GinkgoWriter, "Exited with %d\n", session.ExitCode()) //nolint:errcheck
+	GinkgoWriter.Printf("Command output end\n")
+	GinkgoWriter.Printf("Exited with %d\n", session.ExitCode())
 	return session
 }
 
@@ -135,7 +135,7 @@ func (t TarArchive) FileContents(fileName string) string {
 			return string(contents)
 		}
 	}
-	Fail("File " + fileName + " not found in tar " + t.path)
+	Fail(fmt.Sprintf("File %s not found in tar %s", fileName, t.path))
 	return ""
 }
 

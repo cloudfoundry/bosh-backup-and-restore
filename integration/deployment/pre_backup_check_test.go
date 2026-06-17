@@ -80,7 +80,7 @@ instance_groups:
 			}
 
 			BeforeEach(func() {
-				instance1 = testcluster.NewInstance()
+				instance1 = testcluster.NewInstance(fixturesDir)
 			})
 
 			AfterEach(func() {
@@ -279,7 +279,7 @@ backup_should_be_locked_before:
 			deploymentName1 := "deployment1"
 
 			BeforeEach(func() {
-				instance = testcluster.NewInstance()
+				instance = testcluster.NewInstance(fixturesDir)
 
 				director.VerifyAndMock(AppendBuilders(
 					InfoWithBasicAuth(),
@@ -349,7 +349,7 @@ backup_should_be_locked_before:
 			deploymentName1 := "deployment1"
 
 			BeforeEach(func() {
-				instance = testcluster.NewInstance()
+				instance = testcluster.NewInstance(fixturesDir)
 
 				director.VerifyAndMock(AppendBuilders(
 					InfoWithBasicAuth(),

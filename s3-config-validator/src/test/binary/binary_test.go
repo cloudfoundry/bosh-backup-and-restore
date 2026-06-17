@@ -1,6 +1,7 @@
 package binary_test
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -112,16 +113,16 @@ var _ = Describe("binary tests", func() {
 
 			It("successfully validates all operations", func() {
 				Eventually(session, "20s").Should(gexec.Exit(0))
-				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(`
-					Validating test-resource's live bucket bbr-s3-validator-versioned-bucket ...
-					 * Bucket is versioned ... Yes
-					 * Can list object versions ... Yes
-					 * Can get object versions ... Yes
-			
-					Good config
-			
-					Run with --validate-put-object to test writing objects to the buckets. Disclaimer: This will write test files to the buckets.
-				`)))
+				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(fmt.Sprintf(`
+				Validating test-resource's live bucket %s ...
+				 * Bucket is versioned ... Yes
+				 * Can list object versions ... Yes
+				 * Can get object versions ... Yes
+		
+				Good config
+		
+				Run with --validate-put-object to test writing objects to the buckets. Disclaimer: This will write test files to the buckets.
+			`, versionedBucketName))))
 			})
 		})
 
@@ -147,15 +148,15 @@ var _ = Describe("binary tests", func() {
 
 			It("successfully validates all operations", func() {
 				Eventually(session, "20s").Should(gexec.Exit(0))
-				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(`
-					Validating test-resource's live bucket bbr-s3-validator-versioned-bucket ...
-					 * Bucket is versioned ... Yes
-					 * Can list object versions ... Yes
-					 * Can get object versions ... Yes
-					 * Can put objects ... Yes
-					
-					Good config
-				`)))
+				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(fmt.Sprintf(`
+				Validating test-resource's live bucket %s ...
+				 * Bucket is versioned ... Yes
+				 * Can list object versions ... Yes
+				 * Can get object versions ... Yes
+				 * Can put objects ... Yes
+				
+				Good config
+			`, versionedBucketName))))
 			})
 		})
 
@@ -183,21 +184,21 @@ var _ = Describe("binary tests", func() {
 				session := executeBBRValidatorUnversioned(validUnversionedConfigFile.Name())
 
 				Eventually(session, "60s").Should(gexec.Exit(0))
-				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(`
-					Validating test-resource's live bucket bbr-s3-validator-e2e-all-permissions ...
-					 * Bucket is not versioned ... Yes
-					 * Can list objects ... Yes
-					 * Can get objects ... Yes
+				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(fmt.Sprintf(`
+				Validating test-resource's live bucket %s ...
+				 * Bucket is not versioned ... Yes
+				 * Can list objects ... Yes
+				 * Can get objects ... Yes
 
-					Validating test-resource's backup bucket bbr-s3-validator-e2e-all-permissions ...
-					 * Bucket is not versioned ... Yes
-					 * Can list objects ... Yes
-					 * Can get objects ... Yes
-					
-					Good config
+				Validating test-resource's backup bucket %s ...
+				 * Bucket is not versioned ... Yes
+				 * Can list objects ... Yes
+				 * Can get objects ... Yes
+				
+				Good config
 
-					Run with --validate-put-object to test writing objects to the buckets. Disclaimer: This will write test files to the buckets.
-					`)))
+				Run with --validate-put-object to test writing objects to the buckets. Disclaimer: This will write test files to the buckets.
+				`, unversionedBucketName, unversionedBucketName))))
 			})
 		})
 
@@ -223,21 +224,21 @@ var _ = Describe("binary tests", func() {
 
 			It("successfully validates all operations", func() {
 				Eventually(session, "60s").Should(gexec.Exit(0))
-				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(`
-					Validating test-resource's live bucket bbr-s3-validator-e2e-all-permissions ...
-					 * Bucket is not versioned ... Yes
-					 * Can list objects ... Yes
-					 * Can get objects ... Yes
-					 * Can put objects ... Yes
+				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(fmt.Sprintf(`
+				Validating test-resource's live bucket %s ...
+				 * Bucket is not versioned ... Yes
+				 * Can list objects ... Yes
+				 * Can get objects ... Yes
+				 * Can put objects ... Yes
 
-					Validating test-resource's backup bucket bbr-s3-validator-e2e-all-permissions ...
-					 * Bucket is not versioned ... Yes
-					 * Can list objects ... Yes
-					 * Can get objects ... Yes
-					 * Can put objects ... Yes
-					
-					Good config
-				`)))
+				Validating test-resource's backup bucket %s ...
+				 * Bucket is not versioned ... Yes
+				 * Can list objects ... Yes
+				 * Can get objects ... Yes
+				 * Can put objects ... Yes
+				
+				Good config
+			`, unversionedBucketName, unversionedBucketName))))
 			})
 		})
 	})

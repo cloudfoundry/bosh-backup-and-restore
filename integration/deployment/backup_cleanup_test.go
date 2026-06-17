@@ -36,7 +36,7 @@ instance_groups:
 		BeforeEach(func() {
 			cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-") //nolint:errcheck
 
-			instance1 = testcluster.NewInstance()
+			instance1 = testcluster.NewInstance(fixturesDir)
 
 			deploymentName = "my-new-deployment"
 			director = mockbosh.NewTLS()
@@ -102,7 +102,7 @@ instance_groups:
 			BeforeEach(func() {
 				cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-") //nolint:errcheck
 
-				instance1 = testcluster.NewInstance()
+				instance1 = testcluster.NewInstance(fixturesDir)
 				director = mockbosh.NewTLS()
 				director.ExpectedBasicAuth("admin", "admin")
 				director.VerifyAndMock(AppendBuilders(
@@ -280,7 +280,7 @@ instance_groups:
 			BeforeEach(func() {
 				cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-") //nolint:errcheck
 
-				instance1 = testcluster.NewInstance()
+				instance1 = testcluster.NewInstance(fixturesDir)
 				director = mockbosh.NewTLS()
 				director.ExpectedBasicAuth("admin", "admin")
 				director.VerifyAndMock(AppendBuilders(
@@ -377,7 +377,7 @@ instance_groups:
 			BeforeEach(func() {
 				cleanupWorkspace, _ = os.MkdirTemp(".", "cleanup-workspace-") //nolint:errcheck
 
-				instance1 = testcluster.NewInstance()
+				instance1 = testcluster.NewInstance(fixturesDir)
 				director = mockbosh.NewTLS()
 				director.ExpectedBasicAuth("admin", "admin")
 				director.VerifyAndMock(AppendBuilders(
