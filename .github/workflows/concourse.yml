@@ -1,0 +1,44 @@
+---
+name: concourse
+
+on:
+  pull_request:
+    paths:
+      - ci/pipeline.yml
+  push:
+    branches:
+      - main
+    paths:
+      - ci/pipeline.yml
+
+jobs:
+  validate-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download fly CLI
+        run: |
+          curl -sSL \
+            "https://bosh.ci.cloudfoundry.org/api/v1/cli?arch=amd64&platform=linux" \
+            -o fly
+          sudo install fly /usr/local/bin/fly
+          fly --version
+
+      - name: Download ytt CLI
+        run: |
+          ytt_cli_url="$(curl -s https://api.github.com/repos/carvel-dev/ytt/releases/latest \
+            | jq -r '.assets[] | select(.name | match("ytt-linux-amd64")) | .browser_download_url')"
+          curl -sSL "${ytt_cli_url}" -o ytt
+          sudo install ytt /usr/local/bin/ytt
+          ytt --version
+
+      - name: Render ytt to YAML and validate-pipeline
+        run: |
+          if ! rendered_pipeline=$(ytt -f ci/pipeline.yml); then
+            echo -e "\n => ytt render failed, please check for template errors above." >&2
+            exit 1
+          fi
+
+          fly validate-pipeline --strict \
+            --config <(echo "${rendered_pipeline}")
