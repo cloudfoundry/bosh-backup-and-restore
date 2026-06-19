@@ -678,7 +678,7 @@ jobs:
                   -o UserKnownHostsFile=/dev/null \
                   -o ServerAliveInterval=60 \
                   -o ServerAliveCountMax=30 \
-                  -J ${BOSH_GW_USER}@${BOSH_GW_HOST}"
+                  -o ProxyCommand='ssh -i ssh.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p ${BOSH_GW_USER}@${BOSH_GW_HOST}'"
 
             # Poll until the CF API is actually reachable (confirms the SSH tunnel
             # is up and the gorouter is responding) before running DRATS.
@@ -700,7 +700,7 @@ jobs:
                 echo "=== director routing table and gorouter TCP check ==="
                 ssh -i director-ssh.pem \
                   -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-                  -J "${BOSH_GW_USER}@${BOSH_GW_HOST}" \
+                  -o "ProxyCommand=ssh -i ssh.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p ${BOSH_GW_USER}@${BOSH_GW_HOST}" \
                   "jumpbox@${DIRECTOR_IP}" \
                   "echo '--- ip route ---'; ip route show; \
                    echo '--- TCP check 10.244.0.34:443 ---'; echo TCP: \$(timeout 5 bash -c 'echo > /dev/tcp/10.244.0.34/443' && echo OK || echo FAIL); \
