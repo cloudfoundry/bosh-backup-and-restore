@@ -28,7 +28,7 @@ bbl_direct_destroy() {
   BBL_GCP_PROJECT_ID=$(echo "${BBL_GCP_SERVICE_ACCOUNT_KEY}" | jq -r '.project_id')
   export BBL_GCP_ZONE
   BBL_GCP_ZONE=$(grep -m1 '^zone:' vars/director-vars-file.yml 2>/dev/null \
-    | awk '{print $2}' | tr -d '"')
+    | awk '{print $2}' | tr -d '"' || true)
   BBL_GCP_ZONE="${BBL_GCP_ZONE:-${BBL_GCP_REGION}-a}"
 
   # bbl writes the key JSON to a temp file; replicate that here.
@@ -69,6 +69,31 @@ pushd "${PWD}/bbl-state"
   if [[ ! -f bbl-state.json ]]; then
     echo "No bbl state found; bbl up never completed, nothing to tear down."
     exit 0
+  fi
+
+  # Delete all BOSH deployments before tearing down the environment.
+  # In BOSH-lite, CF VMs are warden containers; their persistent volumes are
+  # bind-mounted from the director's persistent disk. If these bind mounts are
+  # still active when bbl down tries to unmount the disk, umount fails with
+  # "target is busy" (exit 32) and bosh delete-env aborts after a 10-minute
+  # timeout. Deleting deployments first stops the containers and releases the
+  # bind mounts so the disk can be unmounted cleanly.
+  echo "Pre-cleanup: sourcing BOSH env to delete deployments before tearing down..."
+  bbl_env="$(bbl print-env 2>/dev/null || true)"
+  if [[ -n "${bbl_env}" ]]; then
+    eval "${bbl_env}" || true
+    deployments="$(timeout 60 bosh deployments --json 2>/dev/null | jq -r '.Tables[0].Rows[].name' 2>/dev/null || true)"
+    if [[ -n "${deployments}" ]]; then
+      echo "${deployments}" | while IFS= read -r dep; do
+        echo "Pre-cleanup: deleting deployment '${dep}' to release warden bind mounts..."
+        timeout 600 bosh -d "${dep}" delete-deployment --force -n 2>&1 \
+          || echo "WARNING: Failed to delete deployment '${dep}'; bind mounts may still be active"
+      done
+    else
+      echo "No BOSH deployments found; skipping pre-cleanup."
+    fi
+  else
+    echo "WARNING: Could not source BOSH env; skipping deployment pre-cleanup"
   fi
 
   if bbl --debug down --no-confirm; then
