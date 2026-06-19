@@ -90,12 +90,18 @@ OPSEOF
 
   # The GCP VPC has a static route for 10.244.0.0/16 pointing to the director
   # VM as next-hop. The director must forward packets from the jumpbox (10.0.0.x)
-  # to warden containers (10.244.x.x). When the Linux kernel's default iptables
-  # FORWARD policy is DROP (common on GCP VMs), these packets are silently dropped,
-  # making container IPs unreachable from the jumpbox and breaking sshuttle.
-  # The pre-start-script job from os-conf runs on the director VM at BOSH startup
-  # and sets the FORWARD policy to ACCEPT before the BOSH director starts, so that
-  # the route works from the moment the director is reachable.
+  # to warden containers (10.244.x.x). Guardian (garden-runc) manages iptables for
+  # outbound container traffic (-i w-+) via the garden-forward chain, but does NOT
+  # add any FORWARD rules for INBOUND traffic to containers (from jumpbox). That
+  # traffic falls to the FORWARD default policy, which may be DROP.
+  #
+  # Two-layer defence:
+  #   1. Set FORWARD policy to ACCEPT (belt).
+  #   2. Insert explicit named ACCEPT rules at positions 1-2 (suspenders). These
+  #      survive a subsequent `iptables -P FORWARD DROP` policy change because they
+  #      are matched before the policy is reached. Guardian's teardown_filter() only
+  #      removes its own jump-to-garden-forward rule from FORWARD, so our rules
+  #      persist across guardian restarts/re-initialisation.
   cat > bosh-forward-iptables.yml << 'OPSEOF'
 ---
 - path: /instance_groups/name=bosh/jobs/-
@@ -106,8 +112,22 @@ OPSEOF
     properties:
       script: |
         #!/bin/bash
+        # Ensure ip_forward is on (belt)
+        sysctl -w net.ipv4.ip_forward=1 || echo 1 > /proc/sys/net/ipv4/ip_forward || true
+        # Load connection-tracking module so state-based iptables rules work on Noble
+        modprobe nf_conntrack 2>/dev/null || true
+        # Set FORWARD policy to ACCEPT (belt)
         iptables -P FORWARD ACCEPT || true
-        echo 1 > /proc/sys/net/ipv4/ip_forward || true
+        # Add explicit ACCEPT rules (suspenders). Use -C to check first so the
+        # script is idempotent if run more than once (e.g., monit restart).
+        # Rule 1: jumpbox subnet (10.0.0.0/24) → warden containers (10.244.0.0/16)
+        iptables -C FORWARD -s 10.0.0.0/24 -d 10.244.0.0/16 -j ACCEPT 2>/dev/null || \
+          iptables -I FORWARD 1 -s 10.0.0.0/24 -d 10.244.0.0/16 -j ACCEPT || true
+        # Rule 2: established/related return packets from containers back to jumpbox
+        iptables -C FORWARD -s 10.244.0.0/16 -d 10.0.0.0/24 \
+          -m state --state ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || \
+          iptables -I FORWARD 2 -s 10.244.0.0/16 -d 10.0.0.0/24 \
+          -m state --state ESTABLISHED,RELATED -j ACCEPT || true
 OPSEOF
   printf ' -o ${BBL_STATE_DIR}/bosh-forward-iptables.yml \\\n' >> /tmp/create-director-override.sh
   printf ' -o ${BBL_STATE_DIR}/gcp-labels-director.yml\n' >> /tmp/create-director-override.sh

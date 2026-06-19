@@ -674,17 +674,49 @@ jobs:
               fi
               if [ "${ELAPSED}" -ge "${MAX_WAIT}" ]; then
                 echo "ERROR: CF API not reachable after ${MAX_WAIT}s (last status: '${HTTP_STATUS}')"
+
                 echo "=== sshuttle process check ==="
                 ps aux | grep -v grep | grep sshuttle || echo "sshuttle NOT in process list"
-                echo "=== iptables FORWARD rules ==="
-                iptables -L FORWARD -n 2>/dev/null || echo "(iptables unavailable)"
-                echo "=== connectivity from jumpbox to gorouter ==="
+
+                echo "=== worker iptables FORWARD rules ==="
+                iptables -L FORWARD -n -v 2>/dev/null || echo "(iptables unavailable on worker)"
+
+                echo "=== jumpbox routing table and gorouter TCP check ==="
                 ssh -i ssh.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
                   "${BOSH_GW_USER}@${BOSH_GW_HOST}" \
-                  "curl -sk --max-time 15 -o /dev/null -w 'HTTP from jumpbox: %{http_code}\n' https://api.bosh-lite.com; echo TCP: \$(timeout 5 bash -c 'echo > /dev/tcp/10.244.0.34/443' && echo OK || echo FAIL)" \
+                  "echo '--- ip route ---'; ip route show; \
+                   echo '--- traceroute to gorouter ---'; traceroute -n -m 6 -w 2 10.244.0.34 2>&1 || true; \
+                   echo '--- TCP check 10.244.0.34:443 ---'; echo TCP: \$(timeout 5 bash -c 'echo > /dev/tcp/10.244.0.34/443' && echo OK || echo FAIL); \
+                   echo '--- HTTP from jumpbox ---'; curl -sk --max-time 15 -o /dev/null -w 'HTTP from jumpbox: %{http_code}' https://api.bosh-lite.com || true; echo" \
                   2>&1 || echo "SSH to jumpbox failed"
+
+                echo "=== director VM iptables and routing (via jumpbox) ==="
+                DIRECTOR_SSH_KEY=$(jq -r '.director_ssh_private_key // empty' "${CONFIG}" 2>/dev/null || true)
+                if [ -n "${DIRECTOR_SSH_KEY}" ]; then
+                  echo "${DIRECTOR_SSH_KEY}" > director-ssh.pem
+                  chmod 0400 director-ssh.pem
+                  DIRECTOR_IP=$(jq -r '.bosh_environment' "${CONFIG}" | sed 's|https://||' | cut -d: -f1)
+                  echo "Attempting SSH to director VM at ${DIRECTOR_IP} via jumpbox..."
+                  # Jump through jumpbox (using ssh.pem) then authenticate to director
+                  # VM as vcap (using director-ssh.pem). The ProxyCommand establishes
+                  # the tunnel; the outer -i authenticates to the director.
+                  ssh -i director-ssh.pem \
+                    -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+                    -o ProxyCommand="ssh -i ssh.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p ${BOSH_GW_USER}@${BOSH_GW_HOST}" \
+                    vcap@"${DIRECTOR_IP}" \
+                    "echo '--- director iptables FORWARD ---'; sudo iptables -L FORWARD -n -v 2>/dev/null || true; \
+                     echo '--- director nft ruleset ---'; sudo nft list ruleset 2>/dev/null || true; \
+                     echo '--- director ip route ---'; ip route show; \
+                     echo '--- director ip_forward ---'; cat /proc/sys/net/ipv4/ip_forward" \
+                    2>&1 || echo "SSH to director VM failed (this is diagnostic-only)"
+                  rm -f director-ssh.pem
+                else
+                  echo "(director SSH key not available in integration config)"
+                fi
+
                 echo "=== verbose curl to CF API via sshuttle ==="
                 curl -vk --max-time 15 "https://api.bosh-lite.com" 2>&1 || true
+
                 exit 1
               fi
               echo "CF API not yet reachable (status='${HTTP_STATUS}', ${ELAPSED}s elapsed), retrying in 10s..."

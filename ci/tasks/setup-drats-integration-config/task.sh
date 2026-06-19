@@ -18,6 +18,10 @@ setup_env_vars() {
     CREDHUB_TLS_CA=$(bosh interpolate vars/director-vars-store.yml --path /credhub_tls/ca)
     export CREDHUB_CA_CERT="${CREDHUB_TLS_CA}
 ${BOSH_CA_CERT}"
+    # Extract the director VM's jumpbox SSH private key for diagnostic SSH access.
+    # bosh create-env stores this in director-vars-store.yml under jumpbox_ssh.
+    export DIRECTOR_SSH_PRIVATE_KEY
+    DIRECTOR_SSH_PRIVATE_KEY=$(bosh interpolate vars/director-vars-store.yml --path /jumpbox_ssh/private_key)
   popd
   # SYSTEM_DOMAIN is passed as a pipeline param (e.g. bosh-lite.com)
   # Prefer BOSH_GW_HOST (set by bbl print-env) over parsing BOSH_ALL_PROXY.
@@ -39,6 +43,9 @@ ssh_proxy_host="${JUMPBOX_ADDRESS}"
 ssh_proxy_cidr="10.0.0.0/8"
 # JUMPBOX_PRIVATE_KEY is set by bbl print-env as a path to a temp file
 ssh_proxy_private_key="$(cat "${JUMPBOX_PRIVATE_KEY:-${BOSH_GW_PRIVATE_KEY}}")"
+# Director VM SSH key (vcap user) for diagnostic access via the jumpbox.
+# Extracted from director-vars-store.yml which bosh create-env populates.
+director_ssh_private_key="${DIRECTOR_SSH_PRIVATE_KEY}"
 nfs_service_name="nfs"
 nfs_plan_name="Existing"
 nfs_broker_user="nfs-broker"
@@ -64,6 +71,7 @@ configs=( cf_deployment_name
         ssh_proxy_host
         ssh_proxy_cidr
         ssh_proxy_private_key
+        director_ssh_private_key
         nfs_service_name
         nfs_plan_name
         nfs_broker_user
