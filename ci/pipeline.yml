@@ -616,6 +616,8 @@ jobs:
             BOSH_GW_USER=$(jq -r .ssh_proxy_user "${CONFIG}")
             BOSH_GW_HOST=$(jq -r .ssh_proxy_host "${CONFIG}")
             BOSH_GW_PRIVATE_KEY=$(jq -r .ssh_proxy_private_key "${CONFIG}")
+            DIRECTOR_SSH_KEY=$(jq -r '.director_ssh_private_key // empty' "${CONFIG}")
+            DIRECTOR_IP=$(jq -r '.bosh_environment' "${CONFIG}" | sed 's|https://||' | cut -d: -f1)
 
             eval "$(ssh-agent)"
             rm -f ~/.gitconfig
@@ -623,14 +625,27 @@ jobs:
             chmod 0400 ssh.pem
             ssh-add ssh.pem
 
+            if [ -z "${DIRECTOR_SSH_KEY}" ]; then
+              echo "ERROR: director_ssh_private_key not found in integration config"
+              exit 1
+            fi
+            echo "${DIRECTOR_SSH_KEY}" > director-ssh.pem
+            chmod 0400 director-ssh.pem
+
             export BOSH_ALL_PROXY="ssh+socks5://${BOSH_GW_USER}@${BOSH_GW_HOST}:22?private-key=$(pwd)/ssh.pem"
             echo "Configured BOSH_ALL_PROXY to $BOSH_ALL_PROXY"
 
             # bosh-lite.com has no public DNS records, so all *.bosh-lite.com subdomains
             # (CF API, UAA, app routes, etc.) must be resolved locally. We use dnsmasq
             # to resolve them to the CF router IP (10.244.0.34) and sshuttle to route
-            # all 10.244.x.x traffic through the jumpbox (which is in the same GCP VPC
-            # as the bbl-up director and can reach 10.244.0.34 via the VPC route).
+            # all 10.244.x.x traffic through the BOSH director VM.
+            #
+            # We tunnel through the DIRECTOR (not the jumpbox) because the director has
+            # the warden bridge interface and can natively reach all container IPs. This
+            # avoids the intermittently broken GCP VPC route (next_hop_ip=10.0.0.6) +
+            # GCP-level canIpForward requirement that caused ~50% of builds to fail.
+            # The director is reached via ProxyJump through the jumpbox; that hop uses
+            # direct GCP subnet routing (10.0.0.0/24 LAN), which is always reliable.
             if ! command -v sshuttle &>/dev/null || ! command -v dnsmasq &>/dev/null; then
               echo "Installing sshuttle and dnsmasq..."
               apt-get update -qq && apt-get install -y -q sshuttle dnsmasq
@@ -655,12 +670,16 @@ jobs:
             echo "nameserver 127.0.0.1" > /etc/resolv.conf
             echo "nameserver ${UPSTREAM_DNS}" >> /etc/resolv.conf
 
-            sshuttle -r "${BOSH_GW_USER}@${BOSH_GW_HOST}" 10.244.0.0/16 \
+            sshuttle -r "jumpbox@${DIRECTOR_IP}" 10.244.0.0/16 \
               --daemon \
               --pidfile=/tmp/sshuttle.pid \
-              -e 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ServerAliveInterval=60 -o ServerAliveCountMax=30'
+              -e "ssh -i director-ssh.pem \
+                  -o StrictHostKeyChecking=no \
+                  -o UserKnownHostsFile=/dev/null \
+                  -o ServerAliveInterval=60 \
+                  -o ServerAliveCountMax=30 \
+                  -J ${BOSH_GW_USER}@${BOSH_GW_HOST}"
 
-            # sshuttle writes its PID file before the SSH tunnel is established.
             # Poll until the CF API is actually reachable (confirms the SSH tunnel
             # is up and the gorouter is responding) before running DRATS.
             echo "Waiting for CF API to be reachable via sshuttle tunnel..."
@@ -678,41 +697,17 @@ jobs:
                 echo "=== sshuttle process check ==="
                 ps aux | grep -v grep | grep sshuttle || echo "sshuttle NOT in process list"
 
-                echo "=== worker iptables FORWARD rules ==="
-                iptables -L FORWARD -n -v 2>/dev/null || echo "(iptables unavailable on worker)"
-
-                echo "=== jumpbox routing table and gorouter TCP check ==="
-                ssh -i ssh.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-                  "${BOSH_GW_USER}@${BOSH_GW_HOST}" \
+                echo "=== director routing table and gorouter TCP check ==="
+                ssh -i director-ssh.pem \
+                  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+                  -J "${BOSH_GW_USER}@${BOSH_GW_HOST}" \
+                  "jumpbox@${DIRECTOR_IP}" \
                   "echo '--- ip route ---'; ip route show; \
-                   echo '--- traceroute to gorouter ---'; traceroute -n -m 6 -w 2 10.244.0.34 2>&1 || true; \
                    echo '--- TCP check 10.244.0.34:443 ---'; echo TCP: \$(timeout 5 bash -c 'echo > /dev/tcp/10.244.0.34/443' && echo OK || echo FAIL); \
-                   echo '--- HTTP from jumpbox ---'; curl -sk --max-time 15 -o /dev/null -w 'HTTP from jumpbox: %{http_code}' https://api.bosh-lite.com || true; echo" \
-                  2>&1 || echo "SSH to jumpbox failed"
-
-                echo "=== director VM iptables and routing (via jumpbox) ==="
-                DIRECTOR_SSH_KEY=$(jq -r '.director_ssh_private_key // empty' "${CONFIG}" 2>/dev/null || true)
-                if [ -n "${DIRECTOR_SSH_KEY}" ]; then
-                  echo "${DIRECTOR_SSH_KEY}" > director-ssh.pem
-                  chmod 0400 director-ssh.pem
-                  DIRECTOR_IP=$(jq -r '.bosh_environment' "${CONFIG}" | sed 's|https://||' | cut -d: -f1)
-                  echo "Attempting SSH to director VM at ${DIRECTOR_IP} via jumpbox..."
-                  # Jump through jumpbox (using ssh.pem) then authenticate to director
-                  # VM as vcap (using director-ssh.pem). The ProxyCommand establishes
-                  # the tunnel; the outer -i authenticates to the director.
-                  ssh -i director-ssh.pem \
-                    -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-                    -o ProxyCommand="ssh -i ssh.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -W %h:%p ${BOSH_GW_USER}@${BOSH_GW_HOST}" \
-                    vcap@"${DIRECTOR_IP}" \
-                    "echo '--- director iptables FORWARD ---'; sudo iptables -L FORWARD -n -v 2>/dev/null || true; \
-                     echo '--- director nft ruleset ---'; sudo nft list ruleset 2>/dev/null || true; \
-                     echo '--- director ip route ---'; ip route show; \
-                     echo '--- director ip_forward ---'; cat /proc/sys/net/ipv4/ip_forward" \
-                    2>&1 || echo "SSH to director VM failed (this is diagnostic-only)"
-                  rm -f director-ssh.pem
-                else
-                  echo "(director SSH key not available in integration config)"
-                fi
+                   echo '--- iptables FORWARD ---'; sudo iptables -L FORWARD -n -v 2>/dev/null || true; \
+                   echo '--- ip_forward ---'; cat /proc/sys/net/ipv4/ip_forward; \
+                   echo '--- warden bridge ---'; ip addr show bosh-lite0 2>/dev/null || ip link show 2>/dev/null" \
+                  2>&1 || echo "SSH to director failed"
 
                 echo "=== verbose curl to CF API via sshuttle ==="
                 curl -vk --max-time 15 "https://api.bosh-lite.com" 2>&1 || true

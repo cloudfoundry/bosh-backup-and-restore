@@ -88,20 +88,12 @@ OPSEOF
 OPSEOF
   printf ' -o ${BBL_STATE_DIR}/bosh-inotify-limits.yml \\\n' >> /tmp/create-director-override.sh
 
-  # The GCP VPC has a static route for 10.244.0.0/16 pointing to the director
-  # VM as next-hop. The director must forward packets from the jumpbox (10.0.0.x)
-  # to warden containers (10.244.x.x). Guardian (garden-runc) manages iptables for
-  # outbound container traffic (-i w-+) via the garden-forward chain, but does NOT
-  # add any FORWARD rules for INBOUND traffic to containers (from jumpbox). That
-  # traffic falls to the FORWARD default policy, which may be DROP.
-  #
-  # Two-layer defence:
-  #   1. Set FORWARD policy to ACCEPT (belt).
-  #   2. Insert explicit named ACCEPT rules at positions 1-2 (suspenders). These
-  #      survive a subsequent `iptables -P FORWARD DROP` policy change because they
-  #      are matched before the policy is reached. Guardian's teardown_filter() only
-  #      removes its own jump-to-garden-forward rule from FORWARD, so our rules
-  #      persist across guardian restarts/re-initialisation.
+  # The acceptance-tests task routes sshuttle THROUGH the director (via SSH
+  # ProxyJump through the jumpbox) so the director's local warden bridge reaches
+  # containers directly — no GCP VPC next-hop IP-forwarding is needed.
+  # This pre-start script therefore exists as a secondary safeguard: it enables
+  # ip_forward and sets permissive FORWARD rules so guardian container networking
+  # continues to work if anything else on the director resets the policy.
   cat > bosh-forward-iptables.yml << 'OPSEOF'
 ---
 - path: /instance_groups/name=bosh/jobs/-
