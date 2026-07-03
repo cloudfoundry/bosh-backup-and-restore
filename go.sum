@@ -1,5 +1,5 @@
-code.cloudfoundry.org/clock v1.76.0 h1:guwRh0ZjP7g/dj+j2CITvh9/0gMa8bNaw7WMAjd78dU=
-code.cloudfoundry.org/clock v1.76.0/go.mod h1:1hr8418A6RkZpIz103qhsqiRSfbIKovz5sct6lkJ0VY=
+code.cloudfoundry.org/clock v1.77.0 h1:neXS4LXnNZl6uxVQiAxbrpLvSN18CnGbyep9z8oviao=
+code.cloudfoundry.org/clock v1.77.0/go.mod h1:lbL5dk2Vs0oyaYgt951SyNq1XqeWfXgzXgED+6e9/ao=
 code.cloudfoundry.org/tlsconfig v0.53.0 h1:ajprkio3g4V+C0AUJt3rXkkA0il+3sQZ9dJMRQ/e7Ug=
 code.cloudfoundry.org/tlsconfig v0.53.0/go.mod h1:DMYiC50mOZC38kVQChNoHvLveqD+xohYJgfO9yusAFk=
 filippo.io/edwards25519 v1.2.0 h1:crnVqOiS4jqYleHd9vaKZ+HKtHfllngJIiOpNpoJsjo=
@@ -19,8 +19,8 @@ github.com/cloudfoundry/bosh-cli/v7 v7.10.6 h1:YqJ7tp9fwXHp8AYq9Pi1wAfX1o0Oazd6Y
 github.com/cloudfoundry/bosh-cli/v7 v7.10.6/go.mod h1:E80kvksBDDguoLmKSl24UCLQW/TJGhzHA0Ed35OlE8Q=
 github.com/cloudfoundry/bosh-utils v0.0.624 h1:uh2U7gjf9p+aE3gVQzuGd4lk22QdIYivkmxDncBDJ1o=
 github.com/cloudfoundry/bosh-utils v0.0.624/go.mod h1:BoUzADhyqOVSh7K2SxPLV9oYWEWHVTz4Bc32q4oRzTI=
-github.com/cloudfoundry/config-server v0.1.286 h1:G+XQ4US/vNxI6gAMiEKxJVZbHMW+s0OWgy816U3oVZQ=
-github.com/cloudfoundry/config-server v0.1.286/go.mod h1:4d3INx9KCtdBs1fGntcd8WrHCvqQQx1Wr7J6pqj1ux4=
+github.com/cloudfoundry/config-server v0.1.287 h1:5oNsV7IazZg4Lfaj2rDtagV10QBo9OIyJUDiqZw0sg8=
+github.com/cloudfoundry/config-server v0.1.287/go.mod h1:4d3INx9KCtdBs1fGntcd8WrHCvqQQx1Wr7J6pqj1ux4=
 github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851 h1:oy59UYcspoP44ggE8DM3kjxl1+sTFd802bbZlBBhBMk=
 github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851/go.mod h1:72EEm1oq5oXqGfu9XGtaRPWEcAFYd/P10cMNln0QhA8=
 github.com/cloudfoundry/socks5-proxy v0.2.180 h1:mM55Kz+ORO1L1RpgQk7KazNArKDXXuMVxxW6y+/g2GI=
