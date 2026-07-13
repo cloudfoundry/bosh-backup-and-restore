@@ -3,9 +3,9 @@ module github.com/cloudfoundry/bosh-backup-and-restore
 go 1.25.0
 
 require (
-	github.com/cloudfoundry/bosh-cli/v7 v7.10.6
-	github.com/cloudfoundry/bosh-utils v0.0.627
-	github.com/cloudfoundry/socks5-proxy v0.2.180
+	github.com/cloudfoundry/bosh-cli/v7 v7.10.7
+	github.com/cloudfoundry/bosh-utils v0.0.628
+	github.com/cloudfoundry/socks5-proxy v0.2.181
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.2
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
