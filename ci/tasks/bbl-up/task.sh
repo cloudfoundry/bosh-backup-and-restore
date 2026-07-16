@@ -3,7 +3,14 @@ set -euo pipefail
 [ -n "${DEBUG:-}" ] && set -x
 
 bbl_up() {
-  bbl plan
+  # Generate a unique environment name with the bbr-cli- prefix.
+  # bbl's --name flag sets the *full* env ID (no random suffix is appended by bbl
+  # itself), so we generate the unique portion here: a timestamp (minute resolution)
+  # combined with a 4-char random hex suffix to avoid collisions between concurrent
+  # jobs that start within the same minute.
+  local env_name
+  env_name="bbr-cli-$(date -u +%Y-%m-%dt%H-%Mz)-$(openssl rand -hex 2)"
+  bbl plan --name "${env_name}"
   rm -rf bosh-deployment
   cp -rfp "${bosh_deployment}" .
   cp -R "${bosh_bootloader}/plan-patches/bosh-lite-gcp/." .
@@ -152,11 +159,11 @@ resource "google_compute_address" "bosh-director-ip" {
 EOF
 
   # The bosh-lite-gcp plan-patch uses short_env_id (first 20 chars of env_id) for
-  # firewall rule names. Two concurrent environments that share the same lake name
-  # in the same year (e.g. bbl-env-qinghai-2026-...) collide because both truncate
-  # to "bbl-env-qinghai-2026". Increasing to 32 chars includes the full date+hour,
-  # making the name unique per run while staying within GCP's 63-char resource name
-  # limit (32-char prefix + 31-char longest suffix "-bosh-director-lite-tcp-routing").
+  # firewall rule names. Our generated name (e.g. bbr-cli-2026-07-16t22-58z-a3f9)
+  # is ~31 chars; increasing the truncation to 32 ensures the full name (including
+  # the random suffix) is used, guaranteeing uniqueness between concurrent runs
+  # while staying within GCP's 63-char resource name limit (32 + 31-char longest
+  # suffix "-bosh-director-lite-tcp-routing" = 63).
   sed -i 's/min(20, length(var.env_id))/min(32, length(var.env_id))/' terraform/bosh-lite.tf
 
   bbl --debug up
