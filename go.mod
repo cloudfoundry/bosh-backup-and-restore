@@ -18,7 +18,7 @@ require (
 )
 
 require (
-	code.cloudfoundry.org/clock v1.79.0 // indirect
+	code.cloudfoundry.org/clock v1.80.0 // indirect
 	code.cloudfoundry.org/tlsconfig v0.53.0 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
@@ -31,7 +31,7 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/fatih/color v1.19.0 // indirect
-	github.com/go-logr/logr v1.4.3 // indirect
+	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/google/pprof v0.0.0-20260709232956-b9395ee17fa0 // indirect
@@ -39,8 +39,8 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.15 // indirect
-	github.com/mattn/go-isatty v0.0.23 // indirect
-	github.com/mattn/go-runewidth v0.0.24 // indirect
+	github.com/mattn/go-isatty v0.0.24 // indirect
+	github.com/mattn/go-runewidth v0.0.27 // indirect
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d // indirect
 	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
