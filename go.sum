@@ -1,5 +1,5 @@
-code.cloudfoundry.org/clock v1.81.0 h1:OtqbGXTXnEvs+MhnG4ynWRmGvA3BmoTg9E6gTYjGPUg=
-code.cloudfoundry.org/clock v1.81.0/go.mod h1:hR8GvnpsSG1Uiz1ZauSB7qMybpgdfsWp7yFEqW5kTPI=
+code.cloudfoundry.org/clock v1.82.0 h1:HEm2jYX2MB401hmQmr/wnkyJMEoUaKnKYO3JrTrOTvM=
+code.cloudfoundry.org/clock v1.82.0/go.mod h1:5VwgIDKGjhB9A9DlYEana0P77ZVnX9WdNf8zpD7MtWw=
 code.cloudfoundry.org/tlsconfig v0.53.0 h1:ajprkio3g4V+C0AUJt3rXkkA0il+3sQZ9dJMRQ/e7Ug=
 code.cloudfoundry.org/tlsconfig v0.53.0/go.mod h1:DMYiC50mOZC38kVQChNoHvLveqD+xohYJgfO9yusAFk=
 filippo.io/edwards25519 v1.2.0 h1:crnVqOiS4jqYleHd9vaKZ+HKtHfllngJIiOpNpoJsjo=
