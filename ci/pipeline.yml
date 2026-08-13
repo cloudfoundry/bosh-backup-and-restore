@@ -98,7 +98,6 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh-backup-and-restore-test-releases.git
-    branch: master
 
 - name: bosh-backup-and-restore
   type: git
@@ -121,7 +120,6 @@ resources:
   type: git
   source:
     uri: git@github.com:cloudfoundry/homebrew-tap
-    branch: master
     private_key: ((github_deploy_key_homebrew-tap.private_key))
 
 - name: bosh-shared-ci
@@ -133,7 +131,6 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh-bootloader.git
-    branch: main
 
 - name: bbr-dev-release
   type: gcs
@@ -196,7 +193,6 @@ resources:
 - name: cf-deployment-concourse-tasks
   type: git
   source:
-    branch: main
     uri: https://github.com/cloudfoundry/cf-deployment-concourse-tasks.git
 
 - name: cf-deployment
@@ -209,13 +205,11 @@ resources:
   type: git
   source:
     uri: https://github.com/cloudfoundry/disaster-recovery-acceptance-tests
-    branch: main
 
 - name: b-drats
   type: git
   source:
     uri: https://github.com/cloudfoundry/bosh-disaster-recovery-acceptance-tests
-    branch: master
 
 - name: every-monday
   type: time
