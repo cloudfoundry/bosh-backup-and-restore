@@ -15,9 +15,9 @@ if ! rendered_pipeline=$(ytt -f "${REPO_ROOT}/ci/pipeline.yml"); then
 fi
 
 if [ -n "${DEBUG:-}" ]; then
-  rendered_pipeline="${REPO_ROOT}/ci/pipeline-rendered.yml"
-  err_echo "DEBUG: Writing rendered YTT pipeline.yml to\n => '${rendered_pipeline}'"
-  echo "${rendered_pipeline}" > "${rendered_pipeline}"
+  rendered_pipeline_file="${REPO_ROOT}/ci/pipeline-rendered.yml"
+  err_echo "DEBUG: Writing rendered YTT pipeline.yml to\n => '${rendered_pipeline_file}'"
+  echo "${rendered_pipeline}" > "${rendered_pipeline_file}"
 fi
 
 fly -t "${CONCOURSE_TARGET:=bosh}" set-pipeline \
