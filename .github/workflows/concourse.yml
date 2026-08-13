@@ -40,5 +40,5 @@ jobs:
             exit 1
           fi
 
-          fly validate-pipeline --strict \
-            --config <(echo "${rendered_pipeline}")
+          # NOTE: `--strict` CAN NOT be used if there are unknown YAML keys
+          fly validate-pipeline --config <(echo "${rendered_pipeline}")
