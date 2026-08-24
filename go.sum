@@ -17,8 +17,8 @@ github.com/clipperhouse/uax29/v2 v2.7.0 h1:+gs4oBZ2gPfVrKPthwbMzWZDaAFPGYK72F0NJ
 github.com/clipperhouse/uax29/v2 v2.7.0/go.mod h1:EFJ2TJMRUaplDxHKj1qAEhCtQPW2tJSwu5BF98AuoVM=
 github.com/cloudfoundry/bosh-cli/v7 v7.10.10 h1:BA1ZYnAJMZbPqOBulBapGBh0cSFLSuJcREDouKwWo/E=
 github.com/cloudfoundry/bosh-cli/v7 v7.10.10/go.mod h1:TdYMi1rysZHvIgo7Qw6T9u7lqWnbOuUVJQ6J5vV1ufc=
-github.com/cloudfoundry/bosh-utils v0.0.642 h1:vsd+dhR953cq0eKZRn7Y2GZzvKsdF6Z2orqnTQsfS2M=
-github.com/cloudfoundry/bosh-utils v0.0.642/go.mod h1:0psBMo1juz6L4EzcDlVCJwp709jIFVtJuaaHSdp8O9E=
+github.com/cloudfoundry/bosh-utils v0.0.643 h1:UobZ+Q9Vtn2UzsPQGPDAZEJ4f1IUozbw8waR10gROgo=
+github.com/cloudfoundry/bosh-utils v0.0.643/go.mod h1:8hZNSg82/00YCma6wwAKQK+7erYu54i+OUuaYoP6Gf8=
 github.com/cloudfoundry/config-server v0.1.287 h1:5oNsV7IazZg4Lfaj2rDtagV10QBo9OIyJUDiqZw0sg8=
 github.com/cloudfoundry/config-server v0.1.287/go.mod h1:4d3INx9KCtdBs1fGntcd8WrHCvqQQx1Wr7J6pqj1ux4=
 github.com/cloudfoundry/go-socks5 v0.0.0-20250423223041-4ad5fea42851 h1:oy59UYcspoP44ggE8DM3kjxl1+sTFd802bbZlBBhBMk=
@@ -115,8 +115,8 @@ github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO+kdMU+MU=
 github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
-github.com/stretchr/testify v1.12.0 h1:K6Mr6jO9JICuend/5xzTM03ydSV3vdNRYAdPSukj8uI=
-github.com/stretchr/testify v1.12.0/go.mod h1:bOYBZb5qJ00vPzWfIqBUZPaxK8jWiXc6d3ErP4Ca9Gw=
+github.com/stretchr/testify v1.12.1 h1:EuwCh5fleGS7H32xRwO3wRGT7DxrDhLAT6FF8MpWDWE=
+github.com/stretchr/testify v1.12.1/go.mod h1:MDEgiDPPsNp5cuIrHPPCyornHKgEVbtFUmoNlxoYthg=
 github.com/tidwall/gjson v1.18.0 h1:FIDeeyB800efLX89e5a8Y0BNH+LOngJyGrIWxG2FKQY=
 github.com/tidwall/gjson v1.18.0/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/match v1.1.1 h1:+Ho715JplO36QYgwN9PGYNhgZvoUSc9X2c80KVTi+GA=
