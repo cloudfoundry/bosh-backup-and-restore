@@ -4,8 +4,8 @@ go 1.25.0
 
 require (
 	github.com/cloudfoundry/bosh-cli/v7 v7.10.10
-	github.com/cloudfoundry/bosh-utils v0.0.645
-	github.com/cloudfoundry/socks5-proxy v0.2.185
+	github.com/cloudfoundry/bosh-utils v0.0.646
+	github.com/cloudfoundry/socks5-proxy v0.2.186
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.12.2
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
@@ -34,7 +34,7 @@ require (
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20260825171938-4d453200e7d9 // indirect
+	github.com/google/pprof v0.0.0-20260830191439-4932ad3515ea // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
