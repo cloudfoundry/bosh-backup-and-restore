@@ -182,7 +182,7 @@ var _ = Describe("S3Client", func() {
 					BeforeEach(func() {
 						fakeS3Server.AppendHandlers(
 							ghttp.CombineHandlers(
-								ghttp.VerifyRequest("GET", "/test-bucket", "versioning"),
+								ghttp.VerifyRequest("GET", "/test-bucket/", "versioning"),
 								ghttp.RespondWith(http.StatusOK, VersioningDisabledResponse),
 							),
 						)
@@ -207,7 +207,7 @@ var _ = Describe("S3Client", func() {
 					BeforeEach(func() {
 						fakeS3Server.AppendHandlers(
 							ghttp.CombineHandlers(
-								ghttp.VerifyRequest("GET", "/test-bucket", "versioning"),
+								ghttp.VerifyRequest("GET", "/test-bucket/", "versioning"),
 								ghttp.RespondWith(http.StatusOK, VersioningSuspendedResponse),
 							),
 						)
@@ -232,7 +232,7 @@ var _ = Describe("S3Client", func() {
 					BeforeEach(func() {
 						fakeS3Server.AppendHandlers(
 							ghttp.CombineHandlers(
-								ghttp.VerifyRequest("GET", "/test-bucket", "versioning"),
+								ghttp.VerifyRequest("GET", "/test-bucket/", "versioning"),
 								ghttp.RespondWith(http.StatusOK, VersioningEnabledResponse),
 							),
 						)
@@ -260,7 +260,7 @@ var _ = Describe("S3Client", func() {
 					BeforeEach(func() {
 						fakeS3Server.AppendHandlers(
 							ghttp.CombineHandlers(
-								ghttp.VerifyRequest("GET", "/test-bucket", "versioning"),
+								ghttp.VerifyRequest("GET", "/test-bucket/", "versioning"),
 								ghttp.RespondWith(http.StatusForbidden, AccessDeniedResponse),
 							),
 						)
@@ -288,7 +288,7 @@ var _ = Describe("S3Client", func() {
 				BeforeEach(func() {
 					fakeS3Server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/test-bucket"),
+							ghttp.VerifyRequest("GET", "/test-bucket/"),
 							ghttp.RespondWith(http.StatusOK, ListObjectsResponse),
 						),
 					)
@@ -306,7 +306,7 @@ var _ = Describe("S3Client", func() {
 				BeforeEach(func() {
 					fakeS3Server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/test-bucket"),
+							ghttp.VerifyRequest("GET", "/test-bucket/"),
 							ghttp.RespondWith(http.StatusForbidden, AccessDeniedResponse),
 						),
 					)
@@ -326,7 +326,7 @@ var _ = Describe("S3Client", func() {
 				BeforeEach(func() {
 					fakeS3Server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/test-bucket", "versions"),
+							ghttp.VerifyRequest("GET", "/test-bucket/", "versions"),
 							ghttp.RespondWith(http.StatusOK, ListObjectVersionsResponse),
 						),
 					)
@@ -344,7 +344,7 @@ var _ = Describe("S3Client", func() {
 				BeforeEach(func() {
 					fakeS3Server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/test-bucket", "versions"),
+							ghttp.VerifyRequest("GET", "/test-bucket/", "versions"),
 							ghttp.RespondWith(http.StatusForbidden, AccessDeniedResponse),
 						),
 					)
@@ -364,7 +364,7 @@ var _ = Describe("S3Client", func() {
 				BeforeEach(func() {
 					fakeS3Server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/test-bucket"),
+							ghttp.VerifyRequest("GET", "/test-bucket/"),
 							ghttp.RespondWith(http.StatusOK, ListObjectsResponse),
 						),
 						ghttp.CombineHandlers(
@@ -394,7 +394,7 @@ var _ = Describe("S3Client", func() {
 				BeforeEach(func() {
 					fakeS3Server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/test-bucket"),
+							ghttp.VerifyRequest("GET", "/test-bucket/"),
 							ghttp.RespondWith(http.StatusOK, ListObjectsResponse),
 						),
 						ghttp.CombineHandlers(
@@ -424,7 +424,7 @@ var _ = Describe("S3Client", func() {
 				BeforeEach(func() {
 					fakeS3Server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/test-bucket"),
+							ghttp.VerifyRequest("GET", "/test-bucket/"),
 							ghttp.RespondWith(http.StatusForbidden, AccessDeniedResponse),
 						),
 					)
@@ -444,7 +444,7 @@ var _ = Describe("S3Client", func() {
 				BeforeEach(func() {
 					fakeS3Server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/test-bucket", "versions"),
+							ghttp.VerifyRequest("GET", "/test-bucket/", "versions"),
 							ghttp.RespondWith(http.StatusOK, ListObjectVersionsResponse),
 						),
 						ghttp.CombineHandlers(
@@ -474,7 +474,7 @@ var _ = Describe("S3Client", func() {
 				BeforeEach(func() {
 					fakeS3Server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/test-bucket", "versions"),
+							ghttp.VerifyRequest("GET", "/test-bucket/", "versions"),
 							ghttp.RespondWith(http.StatusOK, ListObjectVersionsResponse),
 						),
 						ghttp.CombineHandlers(
@@ -504,7 +504,7 @@ var _ = Describe("S3Client", func() {
 				BeforeEach(func() {
 					fakeS3Server.AppendHandlers(
 						ghttp.CombineHandlers(
-							ghttp.VerifyRequest("GET", "/test-bucket", "versions"),
+							ghttp.VerifyRequest("GET", "/test-bucket/", "versions"),
 							ghttp.RespondWith(http.StatusForbidden, AccessDeniedResponse),
 						),
 					)
