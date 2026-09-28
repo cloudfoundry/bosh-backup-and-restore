@@ -3,11 +3,11 @@ module github.com/cloudfoundry/bosh-backup-and-restore
 go 1.26.0
 
 require (
-	github.com/cloudfoundry/bosh-cli/v7 v7.10.11
+	github.com/cloudfoundry/bosh-cli/v7 v7.11.0
 	github.com/cloudfoundry/bosh-utils v0.0.655
 	github.com/cloudfoundry/socks5-proxy v0.2.189
 	github.com/cppforlife/go-patch v0.2.0
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.13.0
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.14.0
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
 	github.com/onsi/ginkgo/v2 v2.33.0
 	github.com/onsi/gomega v1.44.0
@@ -34,7 +34,7 @@ require (
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20260906184651-6331bc6350fe // indirect
+	github.com/google/pprof v0.0.0-20260926063103-aaccee046517 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
