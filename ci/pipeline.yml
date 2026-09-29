@@ -121,6 +121,7 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/homebrew-tap
     private_key: ((github_deploy_key_homebrew-tap.private_key))
+    branch: master
 
 - name: bosh-shared-ci
   type: git
