@@ -4,8 +4,8 @@ go 1.26.0
 
 require (
 	github.com/cloudfoundry/bosh-cli/v7 v7.11.0
-	github.com/cloudfoundry/bosh-utils v0.0.655
-	github.com/cloudfoundry/socks5-proxy v0.2.189
+	github.com/cloudfoundry/bosh-utils v0.0.656
+	github.com/cloudfoundry/socks5-proxy v0.2.190
 	github.com/cppforlife/go-patch v0.2.0
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.14.0
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
@@ -34,7 +34,7 @@ require (
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20261002000307-77d3b59017a0 // indirect
+	github.com/google/pprof v0.0.0-20261003200830-ebaad5f31b4d // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
@@ -52,6 +52,6 @@ require (
 	golang.org/x/sys v0.48.0 // indirect
 	golang.org/x/term v0.46.0 // indirect
 	golang.org/x/text v0.42.0 // indirect
-	golang.org/x/tools v0.50.0 // indirect
+	golang.org/x/tools v0.51.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
