@@ -166,7 +166,29 @@ func buildSSHSessionImpl(client *ssh.Client, stdin io.Reader, stdout, stderr io.
 	session.Stdout = stdout
 	session.Stderr = stderr
 
-	return session, nil
+	return startThenWaitSession{session}, nil
+}
+
+// startThenWaitSession separates starting the remote command from waiting
+// for it, so that a session torn down before the command started is never
+// mistaken for success.
+type startThenWaitSession struct {
+	*ssh.Session
+}
+
+func (s startThenWaitSession) Run(cmd string) error {
+	if err := s.Start(cmd); err != nil {
+		return errors.Wrap(err, "ssh.Session.Start failed")
+	}
+	err := s.Wait()
+	if err == io.EOF {
+		// The remote command exited with status 0 before reading all of its
+		// stdin (for example, tar stops at the end-of-archive marker), so
+		// writing the rest of stdin hit the closed channel. That is not a
+		// failure.
+		return nil
+	}
+	return err
 }
 
 var buildSSHSession = buildSSHSessionImpl
@@ -197,11 +219,6 @@ func (c Connection) runInSession(cmd string, stdout, stderr io.Writer, stdin io.
 	}
 
 	if err != nil {
-		// special case: EOF != ErrUnexpectedEOF. This is okay and should not abort the session
-		switch err {
-		case io.EOF:
-			return 0, nil
-		}
 		switch err := err.(type) {
 		case *ssh.ExitError:
 			return err.ExitStatus(), nil
