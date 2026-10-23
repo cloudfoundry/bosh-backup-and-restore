@@ -79,8 +79,8 @@ var _ = Describe("PrintConfig", func() {
     "Test Resource": {
       "name": "testName",
       "region": "testRegion",
-      "aws_access_key_id": "testID",
-      "aws_secret_access_key": "testSecret",
+      "aws_access_key_id": "REDACTED",
+      "aws_secret_access_key": "REDACTED",
       "endpoint": "testEndpoint",
       "backup": {
         "name": "testBackupName",
@@ -101,8 +101,8 @@ var _ = Describe("PrintConfig", func() {
     "Test Resource": {
       "name": "testName",
       "region": "testRegion",
-      "aws_access_key_id": "testID",
-      "aws_secret_access_key": "testSecret",
+      "aws_access_key_id": "REDACTED",
+      "aws_secret_access_key": "REDACTED",
       "endpoint": "testEndpoint",
       "backup": {
         "name": "testBackupName",
@@ -113,8 +113,8 @@ var _ = Describe("PrintConfig", func() {
     "Test Resource 2": {
       "name": "testName",
       "region": "testRegion",
-      "aws_access_key_id": "testID",
-      "aws_secret_access_key": "testSecret",
+      "aws_access_key_id": "REDACTED",
+      "aws_secret_access_key": "REDACTED",
       "endpoint": "testEndpoint",
       "backup": {
         "name": "testBackupName",
@@ -185,8 +185,8 @@ var _ = Describe("PrintConfig", func() {
     "Test Resource": {
       "name": "testName",
       "region": "testRegion",
-      "aws_access_key_id": "testID",
-      "aws_secret_access_key": "testSecret",
+      "aws_access_key_id": "REDACTED",
+      "aws_secret_access_key": "REDACTED",
       "endpoint": "testEndpoint",
       "use_iam_profile": false
     }
@@ -203,16 +203,16 @@ var _ = Describe("PrintConfig", func() {
     "Test Resource": {
       "name": "testName",
       "region": "testRegion",
-      "aws_access_key_id": "testID",
-      "aws_secret_access_key": "testSecret",
+      "aws_access_key_id": "REDACTED",
+      "aws_secret_access_key": "REDACTED",
       "endpoint": "testEndpoint",
       "use_iam_profile": false
     },
     "Test Resource 2": {
       "name": "testName",
       "region": "testRegion",
-      "aws_access_key_id": "testID",
-      "aws_secret_access_key": "testSecret",
+      "aws_access_key_id": "REDACTED",
+      "aws_secret_access_key": "REDACTED",
       "endpoint": "testEndpoint",
       "use_iam_profile": false
     }
