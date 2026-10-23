@@ -82,6 +82,9 @@ func (lr *LogPercentageReader) Read(b []byte) (int, error) {
 }
 
 func (l *LogPercentage) logPercentage(n, b int) {
+	if l.totalSize <= 0 {
+		return
+	}
 	percentageWrittenSoFar := (100 * b) / l.totalSize
 	if b > l.totalSize {
 		l.logger.Info(l.command, l.message, 100)
