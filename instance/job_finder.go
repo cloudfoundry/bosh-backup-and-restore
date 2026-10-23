@@ -10,6 +10,20 @@ import (
 	"github.com/pkg/errors"
 )
 
+const maxMetadataBytes = 1 << 20
+
+// metadataOutput retains only the bounded metadata response.
+type metadataOutput struct {
+	bytes.Buffer
+}
+
+func (b *metadataOutput) Write(p []byte) (int, error) {
+	if len(p) > maxMetadataBytes-b.Len() {
+		return 0, fmt.Errorf("metadata output exceeds %d bytes", maxMetadataBytes)
+	}
+	return b.Buffer.Write(p)
+}
+
 type InstanceIdentifier struct {
 	InstanceGroupName string
 	InstanceId        string
@@ -102,7 +116,7 @@ func (j *JobFinderFromScripts) findBBRScripts(instanceIdentifierForLogging Insta
 }
 
 func (j *JobFinderFromScripts) findMetadata(instanceIdentifier InstanceIdentifier, script Script, remoteRunner ssh.RemoteRunner) (*Metadata, error) {
-	metadataBuffer := &bytes.Buffer{}
+	metadataBuffer := &metadataOutput{}
 	err := remoteRunner.RunScriptWithEnv(
 		string(script),
 		map[string]string{"BBR_VERSION": j.bbrVersion},
