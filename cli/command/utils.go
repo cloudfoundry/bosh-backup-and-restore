@@ -16,7 +16,7 @@ import (
 	"github.com/urfave/cli"
 )
 
-const defaultLogfilePermissions = 0644
+const defaultLogfilePermissions = 0600
 
 func trapSigint(backup bool) {
 	sigintChan := make(chan os.Signal, 1)
