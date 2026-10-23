@@ -28,7 +28,10 @@ type BackupDirectory struct {
 }
 
 func (backupDirectory *BackupDirectory) GetArtifactSize(artifactIdentifier orchestrator.ArtifactIdentifier) (string, error) {
-	filename := backupDirectory.instanceFilename(artifactIdentifier)
+	filename, err := backupDirectory.instanceFilename(artifactIdentifier)
+	if err != nil {
+		return "", err
+	}
 
 	cmd := exec.Command("du", "-sh", filename)
 
@@ -43,7 +46,10 @@ func (backupDirectory *BackupDirectory) GetArtifactSize(artifactIdentifier orche
 }
 
 func (backupDirectory *BackupDirectory) GetArtifactByteSize(artifactIdentifier orchestrator.ArtifactIdentifier) (int, error) {
-	filename := backupDirectory.instanceFilename(artifactIdentifier)
+	filename, err := backupDirectory.instanceFilename(artifactIdentifier)
+	if err != nil {
+		return 0, err
+	}
 
 	info, err := os.Stat(filename)
 	if err != nil {
@@ -86,9 +92,13 @@ func (backupDirectory *BackupDirectory) DeploymentMatches(deployment string, ins
 }
 
 func (backupDirectory *BackupDirectory) CreateArtifact(artifactIdentifier orchestrator.ArtifactIdentifier) (io.WriteCloser, error) {
+	filename, err := backupDirectory.instanceFilename(artifactIdentifier)
+	if err != nil {
+		return nil, errors.Wrap(err, "Error creating file")
+	}
 	backupDirectory.Debug("bbr", "Trying to create file %s", fileName(artifactIdentifier))
 
-	file, err := os.Create(path.Join(backupDirectory.baseDirName, fileName(artifactIdentifier)))
+	file, err := os.Create(filename)
 	if err != nil {
 		return nil, backupDirectory.logAndReturn(err, "Error creating file %s", fileName(artifactIdentifier))
 
@@ -98,7 +108,10 @@ func (backupDirectory *BackupDirectory) CreateArtifact(artifactIdentifier orches
 }
 
 func (backupDirectory *BackupDirectory) ReadArtifact(artifactIdentifier orchestrator.ArtifactIdentifier) (io.ReadCloser, error) {
-	filename := backupDirectory.instanceFilename(artifactIdentifier)
+	filename, err := backupDirectory.instanceFilename(artifactIdentifier)
+	if err != nil {
+		return nil, err
+	}
 	backupDirectory.Debug("bbr", "Trying to open %s", filename)
 	file, err := os.Open(filename)
 	if err != nil {
@@ -249,7 +262,10 @@ func (backupDirectory *BackupDirectory) Valid() (bool, error) {
 	}
 
 	for _, artifact := range meta.MetadataForEachArtifact {
-		actualArtifactChecksum, _ := backupDirectory.CalculateChecksum(makeCustomArtifactIdentifier(artifact)) //nolint:errcheck
+		actualArtifactChecksum, err := backupDirectory.CalculateChecksum(makeCustomArtifactIdentifier(artifact))
+		if err != nil {
+			return false, backupDirectory.logAndReturn(err, "Error calculating checksum for artifact")
+		}
 
 		match, _ := actualArtifactChecksum.Match(artifact.Checksum) //nolint:errcheck
 		if !match {
@@ -285,8 +301,15 @@ func (backupDirectory *BackupDirectory) backupInstanceIsPresent(backupInstance *
 	return false
 }
 
-func (backupDirectory *BackupDirectory) instanceFilename(artifactIdentifier orchestrator.ArtifactIdentifier) string {
-	return path.Join(backupDirectory.baseDirName, fileName(artifactIdentifier))
+// instanceFilename returns the path of an artifact's file. Artifact names come
+// from backup metadata, so a name that would leave the backup directory is
+// rejected.
+func (backupDirectory *BackupDirectory) instanceFilename(artifactIdentifier orchestrator.ArtifactIdentifier) (string, error) {
+	name := fileName(artifactIdentifier)
+	if strings.ContainsAny(name, "/\\:\x00") {
+		return "", fmt.Errorf("invalid artifact filename")
+	}
+	return path.Join(backupDirectory.baseDirName, name), nil
 }
 
 func (backupDirectory *BackupDirectory) metadataFilename() string {
