@@ -14,6 +14,7 @@ import (
 	"github.com/cloudfoundry/bosh-backup-and-restore/bosh"
 	"github.com/cloudfoundry/bosh-backup-and-restore/executor/deployment"
 	"github.com/cloudfoundry/bosh-backup-and-restore/factory"
+	"github.com/cloudfoundry/bosh-backup-and-restore/internal/filepathutil"
 	"github.com/cloudfoundry/bosh-backup-and-restore/orchestrator"
 	"github.com/urfave/cli"
 )
@@ -50,6 +51,9 @@ func getAllDeployments(boshClient bosh.Client) ([]string, error) {
 
 	deploymentNames := []string{}
 	for _, dep := range allDeployments {
+		if !filepathutil.IsComponent(dep.Name()) {
+			return nil, fmt.Errorf("invalid deployment name")
+		}
 		deploymentNames = append(deploymentNames, dep.Name())
 	}
 
@@ -143,6 +147,9 @@ func NewDeploymentExecutable(action ActionFunc, name string) DeploymentExecutabl
 }
 
 func createLogger(timestamp string, artifactPath string, deploymentName string, debug bool) (string, *bytes.Buffer, logger.Logger, error) {
+	if !filepathutil.IsComponent(deploymentName) {
+		return "", nil, nil, fmt.Errorf("invalid deployment name")
+	}
 	logFilePath := filepath.Join(artifactPath, fmt.Sprintf("%s_%s.log", deploymentName, timestamp))
 	logFile, err := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, defaultLogfilePermissions)
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 
 	"fmt"
 
+	"github.com/cloudfoundry/bosh-backup-and-restore/internal/filepathutil"
 	"github.com/cloudfoundry/bosh-backup-and-restore/orchestrator"
 	"github.com/pkg/errors"
 )
@@ -12,6 +13,9 @@ import (
 type BackupDirectoryManager struct{}
 
 func (BackupDirectoryManager) Create(path, directoryName string, logger orchestrator.Logger) (orchestrator.Backup, error) {
+	if !filepathutil.IsComponent(directoryName) {
+		return nil, fmt.Errorf("invalid artifact directory name")
+	}
 	var (
 		backupPath string
 		err        error
