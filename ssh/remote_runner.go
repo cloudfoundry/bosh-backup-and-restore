@@ -81,7 +81,11 @@ func (r SshRemoteRunner) SizeOf(path string) (string, error) {
 		return "", err
 	}
 
-	return strings.Fields(string(stdout))[0], nil
+	fields := strings.Fields(stdout)
+	if len(fields) == 0 {
+		return "", fmt.Errorf("remote du command returned no size")
+	}
+	return fields[0], nil
 }
 
 func (r SshRemoteRunner) SizeInBytes(path string) (int, error) {
@@ -89,7 +93,11 @@ func (r SshRemoteRunner) SizeInBytes(path string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	sizeString := strings.Fields(stdout)[0]
+	fields := strings.Fields(stdout)
+	if len(fields) == 0 {
+		return 0, fmt.Errorf("remote du command returned no size")
+	}
+	sizeString := fields[0]
 	size, err := strconv.Atoi(sizeString)
 	if err != nil {
 		//untested
@@ -104,7 +112,7 @@ func (r SshRemoteRunner) ChecksumDirectory(path string) (map[string]string, erro
 		return nil, err
 	}
 
-	return convertShasToMap(stdout), nil
+	return convertShasToMap(stdout)
 }
 
 func (r SshRemoteRunner) RunScript(path, label string) error {
@@ -234,19 +242,22 @@ func exitError(stderr []byte, exitCode int) error {
 	return errors.New(fmt.Sprintf("%s - exit code %d", strings.TrimSpace(string(stderr)), exitCode))
 }
 
-func convertShasToMap(shas string) map[string]string {
+func convertShasToMap(shas string) (map[string]string, error) {
 	mapOfSha := map[string]string{}
 	shas = strings.TrimSpace(shas)
 	if shas == "" {
-		return mapOfSha
+		return mapOfSha, nil
 	}
 	for _, line := range strings.Split(shas, "\n") {
 		parts := strings.SplitN(line, " ", 2)
+		if len(parts) != 2 || parts[0] == "" || strings.TrimSpace(parts[1]) == "" {
+			return nil, fmt.Errorf("remote checksum command returned malformed output")
+		}
 		filename := strings.TrimSpace(parts[1])
 		if filename == "-" {
 			continue
 		}
 		mapOfSha[filename] = parts[0]
 	}
-	return mapOfSha
+	return mapOfSha, nil
 }
