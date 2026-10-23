@@ -2,13 +2,14 @@ package standalone
 
 import (
 	"os"
+	"path/filepath"
 
 	"github.com/cloudfoundry/bosh-backup-and-restore/instance"
 	"github.com/cloudfoundry/bosh-backup-and-restore/orchestrator"
 	"github.com/cloudfoundry/bosh-backup-and-restore/ssh"
 	"github.com/pkg/errors"
 
-	gossh "golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/knownhosts"
 )
 
 type DeploymentManager struct {
@@ -42,7 +43,15 @@ func (dm DeploymentManager) Find(deploymentName string) (orchestrator.Deployment
 		return nil, errors.Wrap(err, "failed reading private key")
 	}
 
-	remoteRunner, err := dm.remoteRunnerFactory(dm.hostName, dm.username, string(keyContents), gossh.InsecureIgnoreHostKey(), nil, dm.Logger)
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return nil, errors.Wrap(err, "locating SSH known hosts")
+	}
+	verifyHost, err := knownhosts.New(filepath.Join(homeDir, ".ssh", "known_hosts"))
+	if err != nil {
+		return nil, errors.Wrap(err, "loading SSH known hosts; add the verified director host key before connecting")
+	}
+	remoteRunner, err := dm.remoteRunnerFactory(dm.hostName, dm.username, string(keyContents), verifyHost, nil, dm.Logger)
 	if err != nil {
 		return nil, err
 	}

@@ -1,8 +1,12 @@
 package standalone_test
 
 import (
+	"crypto/ed25519"
+	"crypto/rand"
 	"fmt"
+	"net"
 	"os"
+	"path/filepath"
 
 	"github.com/cloudfoundry/bosh-backup-and-restore/instance"
 	. "github.com/cloudfoundry/bosh-backup-and-restore/standalone"
@@ -13,6 +17,7 @@ import (
 	sshfakes "github.com/cloudfoundry/bosh-backup-and-restore/ssh/fakes"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	gossh "golang.org/x/crypto/ssh"
 )
 
 var _ = Describe("DeploymentManager", func() {
@@ -26,8 +31,16 @@ var _ = Describe("DeploymentManager", func() {
 	var fakeJobFinder *instancefakes.FakeJobFinder
 	var remoteRunnerFactory *sshfakes.FakeRemoteRunnerFactory
 	var remoteRunner *sshfakes.FakeRemoteRunner
+	var originalHome, testHome string
 
 	BeforeEach(func() {
+		originalHome = os.Getenv("HOME")
+		var err error
+		testHome, err = os.MkdirTemp("", "bbr-home")
+		Expect(err).NotTo(HaveOccurred())
+		Expect(os.Setenv("HOME", testHome)).To(Succeed())
+		Expect(os.MkdirAll(filepath.Join(testHome, ".ssh"), 0700)).To(Succeed())
+		Expect(os.WriteFile(filepath.Join(testHome, ".ssh", "known_hosts"), nil, 0600)).To(Succeed())
 		privateKey = createTempFile("privateKey")
 		logger = new(fakes.FakeLogger)
 		artifact = new(fakes.FakeBackup)
@@ -40,6 +53,8 @@ var _ = Describe("DeploymentManager", func() {
 
 	AfterEach(func() {
 		os.Remove(privateKey) //nolint:errcheck
+		Expect(os.Setenv("HOME", originalHome)).To(Succeed())
+		Expect(os.RemoveAll(testHome)).To(Succeed())
 	})
 
 	Describe("Find", func() {
@@ -65,6 +80,14 @@ var _ = Describe("DeploymentManager", func() {
 				Expect(remoteRunnerFactory.CallCount()).To(Equal(1))
 			})
 
+			It("rejects a host absent from the trust store", func() {
+				_, _, _, verify, _, _ := remoteRunnerFactory.ArgsForCall(0)
+				key, _, err := ed25519.GenerateKey(rand.Reader)
+				Expect(err).NotTo(HaveOccurred())
+				public, err := gossh.NewPublicKey(key)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(verify("hostname:22", &net.TCPAddr{IP: net.ParseIP("127.0.0.1"), Port: 22}, public)).NotTo(Succeed())
+			})
 			It("invokes job finder", func() {
 				Expect(fakeJobFinder.FindJobsCallCount()).To(Equal(1))
 			})
@@ -76,6 +99,13 @@ var _ = Describe("DeploymentManager", func() {
 			})
 		})
 
+		Context("missing known hosts", func() {
+			BeforeEach(func() { Expect(os.Remove(filepath.Join(testHome, ".ssh", "known_hosts"))).To(Succeed()) })
+			It("fails before creating a connection", func() {
+				Expect(actualError).To(MatchError(ContainSubstring("loading SSH known hosts")))
+				Expect(remoteRunnerFactory.CallCount()).To(BeZero())
+			})
+		})
 		Context("can't read private key", func() {
 			BeforeEach(func() {
 				os.Remove(privateKey) //nolint:errcheck

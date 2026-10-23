@@ -47,7 +47,7 @@ var _ = Describe("CLI Interface", func() {
 					fmt.Fprintf(keyFile, "this is not a valid key") //nolint:errcheck
 
 					session = binary.Run(backupWorkspace,
-						[]string{},
+						[]string{knownHostsEnv()},
 						"director",
 						"-u", "admin",
 						"--host", "10.0.0.5",
@@ -85,7 +85,7 @@ var _ = Describe("CLI Interface", func() {
 
 				BeforeEach(func() {
 					session = binary.Run(backupWorkspace,
-						[]string{},
+						[]string{knownHostsEnv()},
 						"director",
 						"-u", "admin",
 						"--host", "10.0.0.5",
@@ -109,7 +109,7 @@ var _ = Describe("CLI Interface", func() {
 
 				BeforeEach(func() {
 					session = binary.Run(backupWorkspace,
-						[]string{},
+						[]string{knownHostsEnv()},
 						"director",
 						"-u", "admin",
 						"--host", "10.0.0.5",

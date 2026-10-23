@@ -63,7 +63,7 @@ var _ = Describe("Backup", func() {
 	})
 
 	JustBeforeEach(func() {
-		env := []string{"BOSH_CLIENT_SECRET=admin"}
+		env := []string{"BOSH_CLIENT_SECRET=admin", knownHostsEnv()}
 
 		params := []string{
 			"director",
@@ -97,6 +97,7 @@ var _ = Describe("Backup", func() {
 			directorInstance = testcluster.NewInstance(fixturesDir)
 			directorInstance.CreateUser("foobar", readFile(pathToPublicKeyFile))
 			directorAddress = directorInstance.Address()
+			trustDirector(directorInstance)
 			directorIP = directorInstance.IP()
 		})
 

@@ -32,7 +32,7 @@ var _ = Describe("Pre-backup checks", func() {
 	JustBeforeEach(func() {
 		session = binary.Run(
 			backupWorkspace,
-			[]string{"BOSH_CLIENT_SECRET=admin"},
+			[]string{"BOSH_CLIENT_SECRET=admin", knownHostsEnv()},
 			"director",
 			"--host", directorAddress,
 			"--username", "foobar",
@@ -55,6 +55,7 @@ printf "backupcontent1" > $BBR_ARTIFACT_DIRECTORY/backupdump1
 printf "backupcontent2" > $BBR_ARTIFACT_DIRECTORY/backupdump2
 `)
 				directorAddress = directorInstance.Address()
+				trustDirector(directorInstance)
 			})
 
 			AfterEach(func() {
@@ -118,6 +119,7 @@ restore_should_be_locked_before:
 					"/var/vcap/jobs/uaa/bin/not-a-backup-script",
 				)
 				directorAddress = directorInstance.Address()
+				trustDirector(directorInstance)
 			})
 
 			AfterEach(func() {

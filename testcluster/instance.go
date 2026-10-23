@@ -155,6 +155,18 @@ func (mockInstance *Instance) HostPublicKey() string {
 	return dockerRunAndWaitForSuccess("exec", mockInstance.dockerID, "perl", "-p", "-e", "s/\n/ /", "/etc/ssh/ssh_host_rsa_key.pub")
 }
 
+func (mockInstance *Instance) HostPublicKeys() []string {
+	dockerRunAndWaitForSuccess("exec", mockInstance.dockerID, "bash", "-c", "until cat /etc/ssh/ssh_host_rsa_key.pub; do sleep 1; done")
+	contents := dockerRunAndWaitForSuccess("exec", mockInstance.dockerID, "bash", "-c", "cat /etc/ssh/ssh_host_*_key.pub")
+	var keys []string
+	for _, line := range strings.Split(contents, "\n") {
+		if strings.TrimSpace(line) != "" {
+			keys = append(keys, strings.TrimSpace(line))
+		}
+	}
+	return keys
+}
+
 func WaitForContainersToDie() {
 	waitGroup.Wait()
 }

@@ -24,6 +24,7 @@ var _ = Describe("Restore Cleanup", func() {
 			directorInstance = testcluster.NewInstance(fixturesDir)
 			directorInstance.CreateUser("foobar", readFile(pathToPublicKeyFile))
 			directorAddress = directorInstance.Address()
+			trustDirector(directorInstance)
 
 			directorInstance.CreateScript("/var/vcap/jobs/redis/bin/bbr/backup", ``)
 			directorInstance.CreateDir("/var/vcap/store/bbr-backup")
@@ -32,7 +33,7 @@ var _ = Describe("Restore Cleanup", func() {
 		JustBeforeEach(func() {
 			session = binary.Run(
 				cleanupWorkspace,
-				[]string{"BOSH_CLIENT_SECRET=admin", fmt.Sprintf("PATH=%s", os.Getenv("PATH"))},
+				[]string{"BOSH_CLIENT_SECRET=admin", fmt.Sprintf("PATH=%s", os.Getenv("PATH")), knownHostsEnv()},
 				"director",
 				"--host", directorAddress,
 				"--username", "foobar",
