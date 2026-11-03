@@ -20,7 +20,7 @@ secrets:
 #! **************
 #! End of secrets
 #! **************
-bbr-branch: &bbr-branch master
+bbr-branch: &bbr-branch main
 
 broker-push-attempts: &broker-push-attempts 2
 
