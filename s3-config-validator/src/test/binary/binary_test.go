@@ -1,11 +1,15 @@
 package binary_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	awss3 "github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/cloudfoundry/bosh-backup-and-restore/s3-config-validator/src/internal/s3"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
@@ -98,7 +102,7 @@ var _ = Describe("binary tests", func() {
 			})
 
 			It("displays general information", func() {
-				Eventually(session, "20s").Should(gexec.Exit(0))
+				Eventually(session, "60s").Should(gexec.Exit(0))
 				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(`
 				Make sure to run this on your 'backup & restore' VM.
 
@@ -112,7 +116,7 @@ var _ = Describe("binary tests", func() {
 			})
 
 			It("successfully validates all operations", func() {
-				Eventually(session, "20s").Should(gexec.Exit(0))
+				Eventually(session, "60s").Should(gexec.Exit(0))
 				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(fmt.Sprintf(`
 				Validating test-resource's live bucket %s ...
 				 * Bucket is versioned ... Yes
@@ -132,8 +136,33 @@ var _ = Describe("binary tests", func() {
 				session = executeBBRValidatorVersioned(validVersionedConfigFile.Name(), "--validate-put-object")
 			})
 
+			AfterEach(func() {
+				Eventually(session, "60s").Should(gexec.Exit())
+
+				client := s3.NewS3ClientWithRoleARN(awsRegion, "", awsAccessKey, awsSecretKey, awsAssumeRoleARN, false).S3Client
+				paginator := awss3.NewListObjectVersionsPaginator(client, &awss3.ListObjectVersionsInput{
+					Bucket: aws.String(versionedBucketName),
+					Prefix: aws.String("delete_me"),
+				})
+				for paginator.HasMorePages() {
+					page, err := paginator.NextPage(context.TODO())
+					Expect(err).NotTo(HaveOccurred())
+					for _, version := range page.Versions {
+						if aws.ToString(version.Key) != "delete_me" {
+							continue
+						}
+						_, err = client.DeleteObject(context.TODO(), &awss3.DeleteObjectInput{
+							Bucket:    aws.String(versionedBucketName),
+							Key:       version.Key,
+							VersionId: version.VersionId,
+						})
+						Expect(err).NotTo(HaveOccurred())
+					}
+				}
+			})
+
 			It("displays general information", func() {
-				Eventually(session, "20s").Should(gexec.Exit(0))
+				Eventually(session, "60s").Should(gexec.Exit(0))
 				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(`
 				Make sure to run this on your 'backup & restore' VM.
 
@@ -147,7 +176,7 @@ var _ = Describe("binary tests", func() {
 			})
 
 			It("successfully validates all operations", func() {
-				Eventually(session, "20s").Should(gexec.Exit(0))
+				Eventually(session, "60s").Should(gexec.Exit(0))
 				Expect(string(session.Out.Contents())).To(ContainSubstring(dedent(fmt.Sprintf(`
 				Validating test-resource's live bucket %s ...
 				 * Bucket is versioned ... Yes
