@@ -3,7 +3,7 @@ module github.com/cloudfoundry/bosh-backup-and-restore
 go 1.26.11
 
 require (
-	github.com/cloudfoundry/bosh-cli/v7 v7.11.2
+	github.com/cloudfoundry/bosh-cli/v7 v7.11.3
 	github.com/cloudfoundry/bosh-utils v0.0.676
 	github.com/cloudfoundry/socks5-proxy v0.2.197
 	github.com/cppforlife/go-patch v0.2.0
@@ -18,7 +18,7 @@ require (
 )
 
 require (
-	code.cloudfoundry.org/clock v1.96.0 // indirect
+	code.cloudfoundry.org/clock v1.97.0 // indirect
 	code.cloudfoundry.org/tlsconfig v0.69.0 // indirect
 	github.com/Masterminds/semver/v3 v3.5.0 // indirect
 	github.com/VividCortex/ewma v1.2.0 // indirect
@@ -35,7 +35,7 @@ require (
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
-	github.com/google/pprof v0.0.0-20261111200114-fac431ef4d26 // indirect
+	github.com/google/pprof v0.0.0-20261118010117-084b33a85f63 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jpillora/backoff v1.1.0 // indirect
@@ -46,14 +46,17 @@ require (
 	github.com/nxadm/tail v1.4.11 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/sergi/go-diff v1.4.5 // indirect
+	github.com/tidwall/gjson v1.20.5 // indirect
+	github.com/tidwall/sjson v1.2.11 // indirect
 	github.com/vito/go-interact v1.0.2 // indirect
 	go.yaml.in/yaml/v3 v3.0.6 // indirect
 	golang.org/x/mod v0.43.0 // indirect
-	golang.org/x/net v0.62.0 // indirect
+	golang.org/x/net v0.63.0 // indirect
 	golang.org/x/sync v0.25.0 // indirect
 	golang.org/x/sys v0.50.0 // indirect
 	golang.org/x/term v0.48.0 // indirect
 	golang.org/x/text v0.44.0 // indirect
-	golang.org/x/tools v0.52.0 // indirect
+	golang.org/x/tools v0.53.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
